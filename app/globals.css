@@ -1,0 +1,271 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==========================================================================
+   DUAL UX/UI INTERFACE ARCHITECTURE
+   1. [data-ui="cockpit"] - Avionics Glass Cockpit Night (Dark Slate & HUD Cyan)
+   2. [data-ui="brand"]   - SimDream Brand Daylight (Royal Blue & Cloud White)
+   ========================================================================== */
+
+:root {
+  --background: #070b14;
+  --foreground: #f8fafc;
+  --brand-primary: #38bdf8;
+  --brand-navy: #0284c7;
+}
+
+html[data-ui="brand"] {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --brand-primary: #0284c7;
+  --brand-navy: #0369a1;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  overflow-x: hidden;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+/* Cockpit HUD & Instrument Scanlines */
+.hud-grid {
+  background-size: 40px 40px;
+  background-image: 
+    linear-gradient(to right, rgba(56, 189, 248, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(56, 189, 248, 0.05) 1px, transparent 1px);
+}
+
+.cockpit-glow {
+  text-shadow: 0 0 12px rgba(56, 189, 248, 0.6);
+}
+
+.fmc-green {
+  color: #10b981;
+  text-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+}
+
+.hud-border {
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  box-shadow: inset 0 0 15px rgba(56, 189, 248, 0.05);
+}
+
+/* ==========================================================================
+   SIMDREAM BRAND DAYLIGHT INTERFACE OVERRIDES (data-ui="brand")
+   Styled in the authentic colors of simdream.co.il logo & brand
+   ========================================================================== */
+
+html[data-ui="brand"] body {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+/* Canvas & Page Backgrounds */
+html[data-ui="brand"] .bg-aviation-darkest,
+html[data-ui="brand"] .bg-slate-950 {
+  background-color: #f8fafc !important;
+}
+
+/* Navigation Bar & Header Glass */
+html[data-ui="brand"] nav {
+  background-color: rgba(255, 255, 255, 0.92) !important;
+  border-bottom-color: #e2e8f0 !important;
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
+}
+
+/* Telemetry & METAR Bar */
+html[data-ui="brand"] .bg-slate-950\/90 {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Cards & Elevated Containers */
+html[data-ui="brand"] .bg-slate-900,
+html[data-ui="brand"] .bg-slate-900\/60,
+html[data-ui="brand"] .bg-slate-900\/70,
+html[data-ui="brand"] .bg-slate-900\/80,
+html[data-ui="brand"] .bg-slate-900\/90 {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.06), 0 4px 6px -2px rgba(15, 23, 42, 0.03);
+}
+
+html[data-ui="brand"] .bg-slate-900\/50,
+html[data-ui="brand"] .bg-slate-900\/40 {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  border-color: #e2e8f0 !important;
+}
+
+html[data-ui="brand"] .bg-slate-800,
+html[data-ui="brand"] .bg-slate-800\/60,
+html[data-ui="brand"] .bg-slate-800\/70,
+html[data-ui="brand"] .bg-slate-800\/80 {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+}
+
+/* Borders */
+html[data-ui="brand"] .border-slate-800,
+html[data-ui="brand"] .border-slate-800\/80,
+html[data-ui="brand"] .border-slate-800\/60 {
+  border-color: #e2e8f0 !important;
+}
+
+html[data-ui="brand"] .border-slate-700 {
+  border-color: #cbd5e1 !important;
+}
+
+/* Typography & Contrast */
+html[data-ui="brand"] .text-white {
+  color: #0f172a !important;
+}
+
+html[data-ui="brand"] .text-slate-100,
+html[data-ui="brand"] .text-slate-200 {
+  color: #1e293b !important;
+}
+
+html[data-ui="brand"] .text-slate-300 {
+  color: #334155 !important;
+}
+
+html[data-ui="brand"] .text-slate-400,
+html[data-ui="brand"] .text-slate-500 {
+  color: #64748b !important;
+}
+
+/* Preserve White Text on Solid Buttons & Badges */
+html[data-ui="brand"] button.bg-sky-500,
+html[data-ui="brand"] a.bg-sky-500,
+html[data-ui="brand"] .bg-sky-500,
+html[data-ui="brand"] .bg-sky-600,
+html[data-ui="brand"] .bg-blue-600,
+html[data-ui="brand"] .bg-red-600 {
+  color: #ffffff !important;
+}
+
+html[data-ui="brand"] button.bg-sky-500 *,
+html[data-ui="brand"] a.bg-sky-500 *,
+html[data-ui="brand"] .bg-sky-500 *,
+html[data-ui="brand"] .bg-sky-600 * {
+  color: #ffffff !important;
+}
+
+/* Brand Accent Colors (simdream.co.il Royal Aviation Blue) */
+html[data-ui="brand"] .text-sky-400 {
+  color: #0284c7 !important;
+}
+
+html[data-ui="brand"] .text-sky-500 {
+  color: #0369a1 !important;
+}
+
+html[data-ui="brand"] .bg-sky-500\/10,
+html[data-ui="brand"] .bg-sky-500\/20 {
+  background-color: #e0f2fe !important;
+}
+
+html[data-ui="brand"] .border-sky-500\/30,
+html[data-ui="brand"] .border-sky-500\/40,
+html[data-ui="brand"] .border-sky-500\/50 {
+  border-color: #7dd3fc !important;
+}
+
+/* Status Accents (Emerald / Amber / Purple) in Daylight */
+html[data-ui="brand"] .text-emerald-400 {
+  color: #059669 !important;
+}
+html[data-ui="brand"] .bg-emerald-500\/10,
+html[data-ui="brand"] .bg-emerald-500\/20 {
+  background-color: #d1fae5 !important;
+}
+html[data-ui="brand"] .border-emerald-500\/30,
+html[data-ui="brand"] .border-emerald-500\/40 {
+  border-color: #6ee7b7 !important;
+}
+
+html[data-ui="brand"] .text-amber-400 {
+  color: #d97706 !important;
+}
+html[data-ui="brand"] .bg-amber-500\/10,
+html[data-ui="brand"] .bg-amber-500\/20 {
+  background-color: #fef3c7 !important;
+}
+html[data-ui="brand"] .border-amber-500\/30,
+html[data-ui="brand"] .border-amber-500\/40 {
+  border-color: #fcd34d !important;
+}
+
+html[data-ui="brand"] .text-purple-400 {
+  color: #7c3aed !important;
+}
+html[data-ui="brand"] .bg-purple-500\/10,
+html[data-ui="brand"] .bg-purple-500\/20 {
+  background-color: #f3e8ff !important;
+}
+html[data-ui="brand"] .border-purple-500\/30,
+html[data-ui="brand"] .border-purple-500\/40 {
+  border-color: #c4b5fd !important;
+}
+
+/* Daylight HUD Grid & Horizon Coordinates */
+html[data-ui="brand"] .hud-grid {
+  background-image: 
+    linear-gradient(to right, rgba(2, 132, 199, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(2, 132, 199, 0.06) 1px, transparent 1px) !important;
+}
+
+html[data-ui="brand"] .hud-border {
+  border-color: #bae6fd !important;
+  box-shadow: inset 0 0 15px rgba(2, 132, 199, 0.04) !important;
+}
+
+html[data-ui="brand"] .cockpit-glow {
+  text-shadow: 0 0 10px rgba(2, 132, 199, 0.3) !important;
+}
+
+/* Inputs, Selects & Forms in Daylight */
+html[data-ui="brand"] input:not([type="checkbox"]):not([type="radio"]),
+html[data-ui="brand"] textarea,
+html[data-ui="brand"] select {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+html[data-ui="brand"] input:focus,
+html[data-ui="brand"] textarea:focus,
+html[data-ui="brand"] select:focus {
+  border-color: #0284c7 !important;
+  outline: 2px solid rgba(2, 132, 199, 0.2) !important;
+}
+
+/* Smooth custom scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #070b14;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #0284c7;
+}
+
+html[data-ui="brand"] ::-webkit-scrollbar-track {
+  background: #f1f5f9 !important;
+}
+html[data-ui="brand"] ::-webkit-scrollbar-thumb {
+  background: #cbd5e1 !important;
+}
+html[data-ui="brand"] ::-webkit-scrollbar-thumb:hover {
+  background: #0284c7 !important;
+}
+
+
