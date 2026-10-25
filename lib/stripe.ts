@@ -1,16 +1,54 @@
+import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
+import { hasUsableValue, isProduction } from '@/lib/config/server-env';
 
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY || '';
+const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET || '';
 
 export const isStripeConfigured = Boolean(
-  stripeSecretKey && !stripeSecretKey.includes('sk_test_...') && stripeSecretKey.startsWith('sk_')
+  hasUsableValue(stripeSecretKey) &&
+    stripeSecretKey.startsWith('sk_') &&
+    (!isProduction || stripeSecretKey.startsWith('sk_live_'))
 );
+
+export const isStripeWebhookConfigured = Boolean(
+  hasUsableValue(stripeWebhookSecret) && stripeWebhookSecret.startsWith('whsec_')
+);
+
+/**
+ * Online sales require both a real API key and a real webhook signing secret:
+ * without a verified webhook a payment can never be confirmed server-side.
+ */
+export const isPaymentsConfigured = isStripeConfigured && isStripeWebhookConfigured;
+
+export const PAYMENTS_DISABLED_MESSAGE =
+  'Online payments are temporarily unavailable. Please contact us to book.';
 
 export const stripe = isStripeConfigured
   ? new Stripe(stripeSecretKey, {
       apiVersion: '2024-09-30.acacia' as any,
     })
   : null;
+
+/**
+ * Returns a 503 response when online payments are not fully configured,
+ * or `null` when the caller may proceed.
+ */
+export function requirePaymentsEnabled(): NextResponse | null {
+  if (isPaymentsConfigured) return null;
+  return NextResponse.json({ error: PAYMENTS_DISABLED_MESSAGE }, { status: 503 });
+}
+
+/**
+ * Verifies the Stripe signature and parses the event. Throws if the webhook is
+ * not configured or the signature is invalid; unsigned payloads are never trusted.
+ */
+export function constructStripeWebhookEvent(payload: string, signature: string): Stripe.Event {
+  if (!stripe || !isStripeWebhookConfigured) {
+    throw new Error('Stripe webhook is not configured');
+  }
+  return stripe.webhooks.constructEvent(payload, signature, stripeWebhookSecret);
+}
 
 export interface CreateCheckoutParams {
   bookingId?: string;
@@ -24,47 +62,44 @@ export interface CreateCheckoutParams {
 }
 
 export async function createCheckoutSession(params: CreateCheckoutParams): Promise<{ url: string; sessionId: string }> {
-  if (isStripeConfigured && stripe) {
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items: [
-        {
-          price_data: {
-            currency: 'ils',
-            product_data: {
-              name: params.title,
-              description: params.description,
-            },
-            unit_amount: Math.round(params.amountIls * 100), // Stripe uses minor currency units (agorot/cents)
-          },
-          quantity: 1,
-        },
-      ],
-      mode: 'payment',
-      customer_email: params.customerEmail,
-      success_url: params.successUrl,
-      cancel_url: params.cancelUrl,
-      metadata: {
-        bookingId: params.bookingId || '',
-        voucherId: params.voucherId || '',
-      },
-    });
-
-    return {
-      url: session.url || params.successUrl,
-      sessionId: session.id,
-    };
+  if (!isPaymentsConfigured || !stripe) {
+    throw new Error(PAYMENTS_DISABLED_MESSAGE);
   }
 
-  // Graceful Local Simulation Mode:
-  // Automatically creates a mock session redirecting to the success URL
-  const mockSessionId = `cs_test_mock_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
-  const redirectUrl = new URL(params.successUrl);
-  redirectUrl.searchParams.set('session_id', mockSessionId);
+  const session = await stripe.checkout.sessions.create({
+    payment_method_types: ['card'],
+    line_items: [
+      {
+        price_data: {
+          currency: 'ils',
+          product_data: {
+            name: params.title,
+            description: params.description,
+          },
+          unit_amount: Math.round(params.amountIls * 100), // Stripe uses minor currency units (agorot/cents)
+        },
+        quantity: 1,
+      },
+    ],
+    mode: 'payment',
+    // Pending inventory is released by signed session-expired events. Stripe
+    // requires an expiry between 30 minutes and 24 hours from creation.
+    expires_at: Math.floor(Date.now() / 1000) + 30 * 60,
+    customer_email: params.customerEmail,
+    success_url: params.successUrl,
+    cancel_url: params.cancelUrl,
+    metadata: {
+      bookingId: params.bookingId || '',
+      voucherId: params.voucherId || '',
+    },
+  });
+
+  if (!session.url) {
+    throw new Error('Stripe did not return a checkout URL');
+  }
 
   return {
-    url: redirectUrl.toString(),
-    sessionId: mockSessionId,
+    url: session.url,
+    sessionId: session.id,
   };
 }
-

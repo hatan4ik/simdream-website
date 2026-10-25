@@ -5,7 +5,6 @@ import {
   Gift,
   Plane,
   CreditCard,
-  CheckCircle2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -24,7 +23,7 @@ export default function VouchersPage() {
     'Happy Birthday Aviad! Hope you enjoy commanding the Boeing 737 MAX cockpit in Tel Aviv!'
   );
   const [isProcessing, setIsProcessing] = useState(false);
-  const [purchasedVoucher, setPurchasedVoucher] = useState<any>(null);
+  const [purchaseMessage, setPurchaseMessage] = useState<string>('');
 
   const predefinedAmounts = [
     { amount: 490, label: t.vouchers.tier1Label },
@@ -44,42 +43,28 @@ export default function VouchersPage() {
 
     setIsProcessing(true);
     try {
-      const res = await fetch('/api/vouchers', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          amountIls: currentAmount,
-          recipientName,
-          recipientEmail: recipientEmail || 'gift-recipient@example.com',
-          senderName,
-          senderEmail: senderEmail || 'gift-buyer@example.com',
-          personalMessage: message,
-        }),
-      });
-
-      const voucherData = await res.json();
-      if (!res.ok) throw new Error(voucherData.error || 'Failed to generate voucher');
-
       const checkoutRes = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title: `Sim Dream Flight Gift Voucher - ${formatCurrency(currentAmount)}`,
-          description: `Gift voucher for ${recipientName}`,
+          kind: 'voucher',
           amountIls: currentAmount,
-          customerEmail: senderEmail || 'buyer@example.com',
-          voucherId: voucherData.id,
+          recipientName,
+          recipientEmail,
+          senderName,
+          senderEmail,
+          personalMessage: message,
         }),
       });
 
       const checkoutData = await checkoutRes.json();
-      setPurchasedVoucher(voucherData);
-
-      if (checkoutData.url && checkoutData.url.includes('checkout.stripe.com')) {
-        window.location.href = checkoutData.url;
+      if (!checkoutRes.ok || !checkoutData.url) {
+        throw new Error(checkoutData.error || 'Payment could not be started. Your card was not charged.');
       }
-    } catch (err: any) {
-      alert(err.message || 'Payment initialization failed.');
+      // The voucher code is revealed only after verified payment, never before checkout.
+      window.location.href = checkoutData.url;
+    } catch (err: unknown) {
+      setPurchaseMessage(err instanceof Error ? err.message : 'Payment initialization failed.');
     } finally {
       setIsProcessing(false);
     }
@@ -98,50 +83,12 @@ export default function VouchersPage() {
         </p>
       </div>
 
-      {purchasedVoucher ? (
-        <div className="max-w-2xl mx-auto p-8 rounded-2xl border border-emerald-500/40 bg-slate-900/90 text-center space-y-6 shadow-glowGreen">
-          <div className="w-16 h-16 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center mx-auto">
-            <CheckCircle2 className="w-8 h-8" />
-          </div>
-          <div className="space-y-2">
-            <h2 className="text-2xl font-black text-white">Voucher Generated Successfully!</h2>
-            <p className="text-slate-300 text-sm">
-              Your gift certificate is ready. An email copy has been dispatched with redeemable flight credentials.
-            </p>
-          </div>
-
-          <div className="p-6 rounded-xl bg-slate-950 border border-slate-800 text-left rtl:text-right space-y-3 font-mono">
-            <div className="flex justify-between items-center text-xs text-slate-400">
-              <span>VOUCHER CODE:</span>
-              <span className="text-lg font-bold text-sky-400" dir="ltr">{purchasedVoucher.code}</span>
-            </div>
-            <div className="flex justify-between items-center text-xs text-slate-400">
-              <span>VALUE:</span>
-              <span className="text-white font-bold">{formatCurrency(purchasedVoucher.initialValueIls)}</span>
-            </div>
-            <div className="flex justify-between items-center text-xs text-slate-400">
-              <span>RECIPIENT:</span>
-              <span className="text-white font-bold">{purchasedVoucher.recipientName}</span>
-            </div>
-          </div>
-
-          <div className="flex justify-center gap-4">
-            <Button
-              variant="outline"
-              onClick={() => {
-                navigator.clipboard.writeText(purchasedVoucher.code);
-                alert('Voucher code copied to clipboard!');
-              }}
-            >
-              Copy Voucher Code
-            </Button>
-            <Button onClick={() => (window.location.href = `/book?voucher=${purchasedVoucher.code}`)}>
-              Redeem in Booking Engine &rarr;
-            </Button>
-          </div>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+        {purchaseMessage && (
+          <p className="lg:col-span-12 rounded-xl border border-red-500/30 bg-red-950/40 px-4 py-3 text-sm text-red-200" role="alert">
+            {purchaseMessage}
+          </p>
+        )}
           {/* Left Column: Voucher Customization Form */}
           <form onSubmit={handlePurchase} className="lg:col-span-7 space-y-8">
             {/* Step 1: Select Amount */}
@@ -352,8 +299,7 @@ export default function VouchersPage() {
               </div>
             </div>
           </div>
-        </div>
-      )}
+      </div>
     </div>
   );
 }

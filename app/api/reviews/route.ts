@@ -1,15 +1,12 @@
 import { NextResponse } from 'next/server';
+import { requireAdmin } from '@/lib/auth/admin-guard';
 import { getCachedGoogleReviews, syncGoogleReviews } from '@/lib/reviews/google-reviews-cache';
 
-export const dynamic = 'force-dynamic';
 export const revalidate = 86400; // 24 hours ISR (once a day)
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const force = searchParams.get('force') === 'true';
-
+export async function GET() {
   try {
-    const data = await getCachedGoogleReviews(force);
+    const data = await getCachedGoogleReviews(false);
     return NextResponse.json(data, {
       headers: {
         'Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=43200',
@@ -23,7 +20,10 @@ export async function GET(request: Request) {
   }
 }
 
-export async function POST() {
+export async function POST(request: Request) {
+  const denied = requireAdmin(request);
+  if (denied) return denied;
+
   try {
     const result = await syncGoogleReviews();
     return NextResponse.json(result);
@@ -34,4 +34,3 @@ export async function POST() {
     );
   }
 }
-

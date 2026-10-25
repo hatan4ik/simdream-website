@@ -1,101 +1,247 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { UserProfile } from '@/types';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import type { Session, User } from '@supabase/supabase-js';
+import type { UserProfile } from '@/types';
 import { DEMO_USERS } from '../db/seed-data';
 import { isSupabaseConfigured, supabase } from '../supabaseClient';
+
+const isProduction = process.env.NODE_ENV === 'production';
+
+export type SocialAuthProvider = 'google' | 'facebook' | 'apple';
+
+export interface AuthActionResult {
+  success: boolean;
+  message?: string;
+  needsEmailConfirmation?: boolean;
+}
 
 interface AuthContextType {
   user: UserProfile | null;
   isAdmin: boolean;
   isLoading: boolean;
-  login: (email: string, role?: 'user' | 'admin') => Promise<boolean>;
+  login: (email: string, password: string) => Promise<AuthActionResult>;
+  signup: (fullName: string, email: string, password: string) => Promise<AuthActionResult>;
+  loginWithProvider: (provider: SocialAuthProvider) => Promise<AuthActionResult>;
+  resetPassword: (email: string) => Promise<AuthActionResult>;
   logout: () => void;
-  setDemoUser: (type: 'pilot' | 'admin') => void;
+  setDemoUser: (type: 'pilot' | 'admin') => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+function profileFromUser(
+  user: Pick<User, 'id' | 'email' | 'user_metadata'>,
+  profile?: Record<string, unknown> | null
+): UserProfile {
+  return {
+    id: user.id,
+    email: user.email || '',
+    fullName:
+      typeof profile?.full_name === 'string'
+        ? profile.full_name
+        : typeof user.user_metadata?.full_name === 'string'
+        ? user.user_metadata.full_name
+        : typeof user.user_metadata?.name === 'string'
+        ? user.user_metadata.name
+        : (user.email || 'Pilot').split('@')[0],
+    phone: typeof profile?.phone_number === 'string' ? profile.phone_number : undefined,
+    // Roles are only read from the authenticated user's protected profile row;
+    // user metadata and an email string can never grant administrative access.
+    role: profile?.role === 'admin' ? 'admin' : 'user',
+    totalHours: typeof profile?.total_flight_hours === 'number' ? profile.total_flight_hours : 0,
+    totalFlights: typeof profile?.total_flights === 'number' ? profile.total_flights : 0,
+    pilotLicense: typeof profile?.pilot_license === 'string' ? profile.pilot_license : undefined,
+    createdAt: typeof profile?.created_at === 'string' ? profile.created_at : new Date().toISOString(),
+  };
+}
+
+async function getProfileForAuthenticatedUser(user: User): Promise<UserProfile> {
+  if (!supabase) return profileFromUser(user);
+  const { data } = await supabase
+    .from('profiles')
+    .select('full_name, phone_number, role, total_flight_hours, total_flights, pilot_license, created_at')
+    .eq('id', user.id)
+    .maybeSingle();
+  return profileFromUser(user, data as Record<string, unknown> | null);
+}
+
+function authRedirect(path: '/auth/callback' | '/auth/reset-password'): string {
+  return `${window.location.origin}${path}`;
+}
+
+async function bootstrapMember(accessToken: string): Promise<void> {
+  await fetch('/api/membership/bootstrap', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Load persisted user or default to pilot demo
-    const savedUser = localStorage.getItem('simdream_user');
-    if (savedUser) {
+    let active = true;
+
+    const hydrateSession = async (session: Session) => {
       try {
-        setUser(JSON.parse(savedUser));
+        // This is idempotent. It creates the customer profile if a legacy user
+        // predates the database trigger and securely claims prior guest orders.
+        await bootstrapMember(session.access_token);
+        const profile = await getProfileForAuthenticatedUser(session.user);
+        if (active) setUser(profile);
       } catch {
-        setUser(DEMO_USERS[0]);
+        // Authentication remains valid if the customer-data sync is briefly
+        // unavailable; protected APIs still enforce verified ownership.
+        if (active) setUser(profileFromUser(session.user));
+      } finally {
+        if (active) setIsLoading(false);
       }
-    } else {
-      // Default to the pilot user for easy testing
-      setUser(DEMO_USERS[0]);
+    };
+
+    if (isSupabaseConfigured && supabase) {
+      void supabase.auth.getSession().then(({ data }) => {
+        if (data.session) {
+          void hydrateSession(data.session);
+        } else if (active) {
+          setIsLoading(false);
+        }
+      });
+
+      const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+        if (!active) return;
+        if (session) {
+          setIsLoading(true);
+          void hydrateSession(session);
+        } else {
+          setUser(null);
+          setIsLoading(false);
+        }
+      });
+
+      return () => {
+        active = false;
+        listener.subscription.unsubscribe();
+      };
     }
-    setIsLoading(false);
+
+    if (!isProduction) {
+      try {
+        const saved = localStorage.getItem('simdream_demo_user');
+        if (saved && active) setUser(JSON.parse(saved) as UserProfile);
+      } catch {
+        localStorage.removeItem('simdream_demo_user');
+      }
+    }
+    if (active) setIsLoading(false);
+    return () => {
+      active = false;
+    };
   }, []);
 
-  const login = async (email: string, role: 'user' | 'admin' = 'user'): Promise<boolean> => {
+  const login = async (email: string, password: string): Promise<AuthActionResult> => {
     setIsLoading(true);
     try {
       if (isSupabaseConfigured && supabase) {
-        // Real Supabase signin
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password: 'Password123!', // Standard mock/real
-        });
-        if (!error && data.user) {
-          const profile: UserProfile = {
-            id: data.user.id,
-            email: data.user.email || email,
-            fullName: data.user.user_metadata?.full_name || email.split('@')[0],
-            role: role,
-            totalHours: 2.5,
-            totalFlights: 2,
-            createdAt: new Date().toISOString(),
-          };
-          setUser(profile);
-          localStorage.setItem('simdream_user', JSON.stringify(profile));
-          setIsLoading(false);
-          return true;
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error || !data.user) {
+          return { success: false, message: 'Email or password is incorrect.' };
         }
+        if (!data.session) {
+          return {
+            success: false,
+            needsEmailConfirmation: true,
+            message: 'Please confirm your email address before signing in.',
+          };
+        }
+        // Avoid a signed-in-but-empty Flight Deck while the idempotent member
+        // bootstrap request finishes in the auth-state listener.
+        setUser(profileFromUser(data.user));
+        return { success: true };
       }
 
-      // Local / Demo mode signin
-      const matchedUser = DEMO_USERS.find((u) => u.email.toLowerCase() === email.toLowerCase());
-      const newUser: UserProfile = matchedUser || {
-        id: `usr-${Date.now()}`,
-        email,
-        fullName: email.split('@')[0].toUpperCase(),
-        role: email.includes('admin') ? 'admin' : role,
-        totalHours: 2.5,
-        totalFlights: 2,
-        createdAt: new Date().toISOString(),
-      };
-
-      setUser(newUser);
-      localStorage.setItem('simdream_user', JSON.stringify(newUser));
+      // Local-only simulation. It cannot be enabled in a production bundle.
+      if (!isProduction) {
+        const matched = DEMO_USERS.find((candidate) => candidate.email.toLowerCase() === email.toLowerCase());
+        if (matched && password.length > 0) {
+          setUser(matched);
+          localStorage.setItem('simdream_demo_user', JSON.stringify(matched));
+          return { success: true };
+        }
+      }
+      return { success: false, message: 'Member authentication is not configured.' };
+    } finally {
       setIsLoading(false);
-      return true;
-    } catch {
-      setIsLoading(false);
-      return false;
     }
+  };
+
+  const signup = async (fullName: string, email: string, password: string): Promise<AuthActionResult> => {
+    if (!isSupabaseConfigured || !supabase) {
+      return { success: false, message: 'Member registration is not configured yet.' };
+    }
+    if (password.length < 12) {
+      return { success: false, message: 'Use a password with at least 12 characters.' };
+    }
+
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { full_name: fullName.trim().slice(0, 120) },
+        emailRedirectTo: authRedirect('/auth/callback'),
+      },
+    });
+    if (error) return { success: false, message: 'We could not create the member profile. Please try again.' };
+    if (data.session && data.user) {
+      setUser(profileFromUser(data.user));
+      return { success: true };
+    }
+    return {
+      success: true,
+      needsEmailConfirmation: true,
+      message: 'Check your email to confirm your address and activate your member profile.',
+    };
+  };
+
+  const loginWithProvider = async (provider: SocialAuthProvider): Promise<AuthActionResult> => {
+    if (!isSupabaseConfigured || !supabase) {
+      return { success: false, message: 'Member authentication is not configured yet.' };
+    }
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: `${authRedirect('/auth/callback')}?next=/dashboard` },
+    });
+    return error
+      ? { success: false, message: `${provider} sign-in is unavailable. Please use email or try again later.` }
+      : { success: true };
+  };
+
+  const resetPassword = async (email: string): Promise<AuthActionResult> => {
+    if (!isSupabaseConfigured || !supabase) {
+      return { success: false, message: 'Password recovery is not configured yet.' };
+    }
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: authRedirect('/auth/reset-password'),
+    });
+    // Do not disclose whether an address has a member account.
+    return error
+      ? { success: false, message: 'We could not send a recovery email. Please try again later.' }
+      : { success: true, message: 'If an account exists for this email, a recovery link is on its way.' };
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('simdream_user');
-    if (isSupabaseConfigured && supabase) {
-      supabase.auth.signOut();
-    }
+    if (!isProduction) localStorage.removeItem('simdream_demo_user');
+    if (isSupabaseConfigured && supabase) void supabase.auth.signOut();
   };
 
-  const setDemoUser = (type: 'pilot' | 'admin') => {
+  const setDemoUser = (type: 'pilot' | 'admin'): boolean => {
+    if (isProduction || isSupabaseConfigured) return false;
     const selected = type === 'admin' ? DEMO_USERS[1] : DEMO_USERS[0];
     setUser(selected);
-    localStorage.setItem('simdream_user', JSON.stringify(selected));
+    localStorage.setItem('simdream_demo_user', JSON.stringify(selected));
+    return true;
   };
 
   return (
@@ -105,6 +251,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isAdmin: user?.role === 'admin',
         isLoading,
         login,
+        signup,
+        loginWithProvider,
+        resetPassword,
         logout,
         setDemoUser,
       }}
@@ -116,9 +265,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  if (!context) throw new Error('useAuth must be used within an AuthProvider');
   return context;
 }
-

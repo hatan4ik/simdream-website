@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import {
   Calendar as CalendarIcon,
   Clock,
@@ -23,6 +24,8 @@ import { useLanguage } from '@/lib/i18n/language-context';
 import { getLocalizedPackages, getLocalizedAddons } from '@/lib/i18n/translations';
 import { KantorovichCalendarScheduler } from '@/components/scheduler/KantorovichCalendarScheduler';
 import { AmazonFlightStorefront } from '@/components/scheduler/AmazonFlightStorefront';
+import { useAuth } from '@/lib/auth/auth-context';
+import { isSupabaseConfigured, supabase } from '@/lib/supabaseClient';
 import {
   calculateMissionManifest,
   canAddonFitInSlot,
@@ -30,9 +33,9 @@ import {
 } from '@/lib/scheduler/mission-calculator';
 
 function BookContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const { t, language, isRTL } = useLanguage();
+  const { user } = useAuth();
 
   const localizedPackages = getLocalizedPackages(language);
   const localizedAddons = getLocalizedAddons(language);
@@ -66,6 +69,54 @@ function BookContent() {
   const activePackage =
     localizedPackages.find((p) => p.id === selectedPackage.id) || selectedPackage;
 
+  // Check if booking is for Professional Airline Training or Fear of Flying
+  const isProBooking =
+    activePackage.category === 'training' ||
+    activePackage.id.startsWith('pkg-pro') ||
+    activePackage.id.includes('assessment') ||
+    activePackage.slug.includes('prep') ||
+    activePackage.slug.includes('assessment');
+
+  const isFearOfFlyingBooking =
+    activePackage.category === 'fear_of_flying' ||
+    activePackage.id === 'pkg-fear-of-flying-90' ||
+    activePackage.slug === 'fear-of-flying-course';
+
+  const isNoiseFreeBooking = isProBooking || isFearOfFlyingBooking;
+
+  // Scoped packages:
+  // - PRO: strictly show the 3 PRO training tiers (60, 90, 120 PRO)
+  // - Fear of Flying: strictly show the Fear of Flying course
+  // - Recreational: show recreational consumer packages (20m, 45m, 60m, 90m)
+  const scopedPackages = React.useMemo(() => {
+    if (isProBooking) {
+      return localizedPackages.filter(
+        (p) =>
+          p.category === 'training' ||
+          p.id.startsWith('pkg-pro') ||
+          p.id.includes('assessment') ||
+          p.slug.includes('prep')
+      );
+    }
+    if (isFearOfFlyingBooking) {
+      return localizedPackages.filter(
+        (p) =>
+          p.category === 'fear_of_flying' ||
+          p.id === 'pkg-fear-of-flying-90' ||
+          p.slug === 'fear-of-flying-course'
+      );
+    }
+    return localizedPackages.filter((p) => p.category === 'recreational');
+  }, [localizedPackages, isProBooking, isFearOfFlyingBooking]);
+
+  // Scoped add-ons:
+  // - PRO or Fear of Flying: strictly [] (empty array, zero add-on noise!)
+  // - Recreational: all localized add-ons
+  const scopedAddons = React.useMemo(() => {
+    if (isNoiseFreeBooking) return [];
+    return localizedAddons;
+  }, [localizedAddons, isNoiseFreeBooking]);
+
   // Selected Date & Slot (using local calendar YYYY-MM-DD to prevent UTC timezone day-shift)
   const tomorrow = formatLocalYMD(new Date(Date.now() + 86400000));
   const [selectedDate, setSelectedDate] = useState<string>(tomorrow);
@@ -77,15 +128,35 @@ function BookContent() {
   const [selectedSlot, setSelectedSlot] = useState<FlightSlot | null>(null);
   const [loadingSlots, setLoadingSlots] = useState<boolean>(false);
 
-  // Add-ons
+  // Add-ons (strictly empty for noise-free specialized bookings)
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (isNoiseFreeBooking && selectedAddons.length > 0) {
+      setSelectedAddons([]);
+    }
+  }, [isNoiseFreeBooking, selectedAddons.length]);
 
   // Pilot Details
   const [pilotName, setPilotName] = useState<string>('');
   const [pilotEmail, setPilotEmail] = useState<string>('');
   const [pilotPhone, setPilotPhone] = useState<string>('');
-  const [experienceLevel, setExperienceLevel] = useState<PilotExperienceLevel>('beginner');
+  const [experienceLevel, setExperienceLevel] = useState<PilotExperienceLevel>(
+    isProBooking ? 'atpl' : 'beginner'
+  );
   const [notes, setNotes] = useState<string>('');
+
+  useEffect(() => {
+    if (!user) return;
+    setPilotName((current) => current || user.fullName);
+    setPilotEmail((current) => current || user.email);
+  }, [user?.email, user?.fullName, user?.id]);
+
+  useEffect(() => {
+    if (isProBooking && experienceLevel === 'beginner') {
+      setExperienceLevel('atpl');
+    }
+  }, [isProBooking, experienceLevel]);
 
   // Voucher Code & Session Cache
   const initialVoucher = searchParams.get('voucher') || '';
@@ -127,25 +198,6 @@ function BookContent() {
 
         if (data?.durationAvailability) {
           setDurationAvailability(data.durationAvailability);
-
-          // If the currently selected duration has 0 available slots on this date (e.g. 45m or 120m on Saturday),
-          // automatically switch to an available duration on this date so the user is never stuck!
-          const currentDurInfo = data.durationAvailability[selectedPackage.durationMinutes];
-          if (currentDurInfo && currentDurInfo.availableCount === 0) {
-            const preferredOrder = [60, 90, 20, 30, 45, 120];
-            const nextValidDuration = preferredOrder.find(
-              (d) => data.durationAvailability[d]?.availableCount > 0
-            );
-            if (nextValidDuration) {
-              const fallbackPkg = localizedPackages.find(
-                (p) => p.category !== 'corporate' && p.durationMinutes === nextValidDuration
-              );
-              if (fallbackPkg && fallbackPkg.id !== selectedPackage.id) {
-                setSelectedPackage(fallbackPkg);
-                return;
-              }
-            }
-          }
         }
 
         setAvailableSlots(slotList);
@@ -185,10 +237,10 @@ function BookContent() {
         pkg: activePackage,
         slot: selectedSlot,
         selectedAddonIds: selectedAddons,
-        availableAddons: localizedAddons,
+        availableAddons: scopedAddons,
         voucherDiscountIls: voucherDiscount,
       }),
-    [activePackage, selectedSlot, selectedAddons, localizedAddons, voucherDiscount]
+    [activePackage, selectedSlot, selectedAddons, scopedAddons, voucherDiscount]
   );
 
   const {
@@ -208,14 +260,21 @@ function BookContent() {
     if (!selectedSlot) return;
     const pruned = pruneAddonsExceedingSlot(
       selectedAddons,
-      localizedAddons,
+      scopedAddons,
       baseDuration,
       selectedSlot.maxAvailableMinutes ?? 180
     );
     if (pruned.length !== selectedAddons.length) {
       setSelectedAddons(pruned);
     }
-  }, [selectedSlot, baseDuration]);
+  }, [selectedSlot, baseDuration, scopedAddons]);
+
+  // Guard against step 2 in noise-free mode
+  useEffect(() => {
+    if (isNoiseFreeBooking && currentStep === 2) {
+      setCurrentStep(3);
+    }
+  }, [isNoiseFreeBooking, currentStep]);
 
   // Voucher verification handler with 1-click reapply and session storage persistence
   const handleVerifyVoucher = async (codeOverride?: string) => {
@@ -226,14 +285,21 @@ function BookContent() {
     setVoucherSuccess('');
 
     try {
-      const res = await fetch(`/api/vouchers?code=${encodeURIComponent(code)}`);
+      const res = await fetch('/api/vouchers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'verify', code }),
+      });
       const data = await res.json();
 
       if (!res.ok) {
         throw new Error(data.error || 'Invalid voucher code.');
       }
 
-      const applicableDiscount = Math.min(data.currentBalanceIls, subtotal);
+      if (data.currentBalanceIls < subtotal) {
+        throw new Error('This voucher cannot cover the full online order. Please contact us for split payment.');
+      }
+      const applicableDiscount = subtotal;
       setVoucherCode(code);
       setVoucherDiscount(applicableDiscount);
       setVoucherSuccess(`Voucher applied! ₪${applicableDiscount} discount applied.`);
@@ -285,78 +351,42 @@ function BookContent() {
     setBookingError('');
 
     try {
-      const res = await fetch('/api/bookings', {
+      const headers: HeadersInit = { 'Content-Type': 'application/json' };
+      if (isSupabaseConfigured && supabase) {
+        const { data } = await supabase.auth.getSession();
+        if (data.session?.access_token) {
+          headers.Authorization = `Bearer ${data.session.access_token}`;
+        }
+      }
+      const res = await fetch('/api/checkout', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
+          kind: 'booking',
           packageId: activePackage.id,
-          packageTitle: cleanPackageTitle,
-          durationMinutes: totalDurationMinutes,
           bookingDate: selectedDate,
           startTime: selectedSlot.startTime,
-          endTime: effectiveEndTime || selectedSlot.endTime,
           pilotName,
           pilotEmail,
           pilotPhone,
           experienceLevel,
           addons: selectedAddons,
-          subtotalIls: subtotal,
-          discountIls: voucherDiscount,
-          totalIls: totalAmount,
           voucherCode: voucherDiscount > 0 ? voucherCode : undefined,
           notes,
         }),
       });
 
-      const booking = await res.json();
-      if (!res.ok) throw new Error(booking.error || 'Booking reservation failed');
-
-      try {
-        sessionStorage.setItem('simdream_last_booking', JSON.stringify(booking));
-      } catch {}
-
-      const successParams = new URLSearchParams({
-        booking_id: booking.id,
-        ref: booking.bookingReference,
-        pkg: cleanPackageTitle,
-        pkg_id: activePackage.id,
-        date: selectedDate,
-        start: selectedSlot.startTime,
-        end: effectiveEndTime || selectedSlot.endTime,
-        dur: String(totalDurationMinutes),
-        base_dur: String(baseDuration),
-        addon_dur: String(addonsDuration),
-        base_price: String(basePrice),
-        total: String(totalAmount),
-        pilot: pilotName,
-        addons: selectedAddons.join(','),
-      });
-      const successPath = `/book/success?${successParams.toString()}`;
-
-      if (totalAmount === 0) {
-        router.push(successPath);
+      const checkout = await res.json();
+      if (!res.ok) throw new Error(checkout.error || 'Payment could not be started. Your card was not charged.');
+      if (checkout.kind === 'voucher' && typeof checkout.successUrl === 'string') {
+        window.location.assign(checkout.successUrl);
         return;
       }
-
-      const checkoutRes = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: `Sim Dream: ${cleanPackageTitle} (${totalDurationMinutes} min)`,
-          description: `${totalDurationMinutes} min B737 MAX simulator on ${formatDate(selectedDate)} (${selectedSlot.startTime}–${effectiveEndTime || selectedSlot.endTime})`,
-          amountIls: totalAmount,
-          customerEmail: pilotEmail,
-          bookingId: booking.id,
-          returnUrl: `${window.location.origin}${successPath}`,
-        }),
-      });
-
-      const checkoutData = await checkoutRes.json();
-      if (checkoutData.url) {
-        window.location.href = checkoutData.url;
-      } else {
-        router.push(successPath);
+      if (checkout.kind === 'stripe' && typeof checkout.url === 'string') {
+        window.location.assign(checkout.url);
+        return;
       }
+      throw new Error('Payment could not be initialized. Your card was not charged.');
     } catch (err: unknown) {
       setBookingError(
         extractErrorMessage(err, 'An error occurred while creating your reservation.')
@@ -417,24 +447,40 @@ function BookContent() {
         </div>
       )}
 
+      <div className="max-w-4xl mx-auto rounded-xl border border-slate-800 bg-slate-900/70 px-4 py-3 text-xs text-slate-300 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        {user ? (
+          <>
+            <span>
+              Booking as <strong className="text-white">{user.email}</strong>. Keep this email on the reservation to save it in your Flight Deck.
+            </span>
+            <Link href="/dashboard" className="font-semibold text-sky-400 hover:text-sky-300 whitespace-nowrap">View Flight Deck</Link>
+          </>
+        ) : (
+          <>
+            <span>Guest checkout is always available. No sign-in or member profile is required.</span>
+            <Link href="/login" className="font-semibold text-sky-400 hover:text-sky-300 whitespace-nowrap">Sign in to save bookings</Link>
+          </>
+        )}
+      </div>
+
       {bookingViewMode === 'storefront' ? (
         <AmazonFlightStorefront
           selectedDate={selectedDate}
           onSelectDate={setSelectedDate}
           selectedPackage={activePackage}
-          packages={localizedPackages}
+          packages={scopedPackages}
           onSelectPackage={setSelectedPackage}
           slots={availableSlots}
           selectedSlot={selectedSlot}
           onSelectSlot={setSelectedSlot}
           durationAvailability={durationAvailability}
           loadingSlots={loadingSlots}
-          addons={localizedAddons}
+          addons={scopedAddons}
           selectedAddons={selectedAddons}
           onToggleAddon={toggleAddon}
           onSetAddons={(ids) =>
             setSelectedAddons(
-              pruneAddonsExceedingSlot(ids, localizedAddons, baseDuration, maxSlotMinutes)
+              pruneAddonsExceedingSlot(ids, scopedAddons, baseDuration, maxSlotMinutes)
             )
           }
           manifest={manifest}
@@ -459,18 +505,29 @@ function BookContent() {
           cachedVoucherCode={cachedVoucherCode}
           onReapplyCachedVoucher={(code) => handleVerifyVoucher(code)}
           isSubmitting={isSubmitting}
+          checkoutError={bookingError}
           onSubmitBooking={handleCompleteBooking}
         />
       ) : (
         <>
-          {/* 3-Step Calendar-First Wizard Progress Bar */}
+          {/* Calendar-First Wizard Progress Bar */}
           <div className="max-w-3xl mx-auto">
-            <div className="grid grid-cols-3 gap-2 text-center text-xs font-mono font-semibold">
-              {[
-                { step: 1, label: t.booking.step2 },
-                { step: 2, label: t.booking.step3 },
-                { step: 3, label: t.booking.step4 },
-              ].map((item) => (
+            <div
+              className={`grid ${
+                isNoiseFreeBooking ? 'grid-cols-2' : 'grid-cols-3'
+              } gap-2 text-center text-xs font-mono font-semibold`}
+            >
+              {(isNoiseFreeBooking
+                ? [
+                    { step: 1, label: t.booking.step2 },
+                    { step: 3, label: t.booking.step4 },
+                  ]
+                : [
+                    { step: 1, label: t.booking.step2 },
+                    { step: 2, label: t.booking.step3 },
+                    { step: 3, label: t.booking.step4 },
+                  ]
+              ).map((item) => (
                 <button
                   key={item.step}
                   type="button"
@@ -503,7 +560,7 @@ function BookContent() {
             selectedDate={selectedDate}
             onSelectDate={setSelectedDate}
             selectedPackage={activePackage}
-            packages={localizedPackages}
+            packages={scopedPackages}
             onSelectPackage={setSelectedPackage}
             slots={availableSlots}
             selectedSlot={selectedSlot}
@@ -537,18 +594,18 @@ function BookContent() {
             <Button
               size="lg"
               disabled={!selectedSlot || !selectedSlot.available}
-              onClick={() => setCurrentStep(2)}
+              onClick={() => setCurrentStep(isNoiseFreeBooking ? 3 : 2)}
               className="shrink-0 font-bold"
             >
-              <span>{t.booking.continueToAddons}</span>
+              <span>{isNoiseFreeBooking ? t.booking.continueToPilot : t.booking.continueToAddons}</span>
               <ChevronRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
             </Button>
           </div>
         </div>
       )}
 
-      {/* STEP 2: FLIGHT ADD-ONS */}
-      {currentStep === 2 && (
+      {/* STEP 2: FLIGHT ADD-ONS (Skipped in noise-free PRO & Fear of Flying sessions) */}
+      {!isNoiseFreeBooking && currentStep === 2 && (
         <div className="space-y-8 max-w-4xl mx-auto">
           <div className="text-center space-y-2">
             <h1 className="text-3xl font-black text-white">{t.booking.step3Title}</h1>
@@ -558,7 +615,7 @@ function BookContent() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {localizedAddons.map((addon) => {
+            {scopedAddons.map((addon) => {
               const isChecked = selectedAddons.includes(addon.id);
               const addonMin = addon.durationMinutes || 0;
               const isMissionModule = addonMin > 0;
@@ -757,7 +814,7 @@ function BookContent() {
                     onClick={handleRemoveVoucher}
                     className="text-xs font-mono text-red-400 hover:text-red-300 underline font-bold"
                   >
-                    {isRTL ? 'הסר שובר' : 'Remove Voucher'}
+                    {t.booking.removeVoucher}
                   </button>
                 )}
               </div>
@@ -769,7 +826,7 @@ function BookContent() {
                       ✓ {voucherCode}
                     </p>
                     <p className="text-[11px] font-mono text-emerald-300">
-                      -{formatCurrency(voucherDiscount)} {isRTL ? 'הנחה מופעלת' : 'discount applied'}
+                      -{formatCurrency(voucherDiscount)} ({t.booking.discountApplied})
                     </p>
                   </div>
                   <Button
@@ -779,7 +836,7 @@ function BookContent() {
                     onClick={handleRemoveVoucher}
                     className="text-xs text-slate-400 hover:text-red-300 h-auto py-1 px-2"
                   >
-                    {isRTL ? 'בטל שובר' : 'Reset'}
+                    {t.booking.resetVoucher}
                   </Button>
                 </div>
               ) : (
@@ -806,13 +863,13 @@ function BookContent() {
 
                   {cachedVoucherCode && (
                     <div className="flex items-center justify-between text-[11px] font-mono text-slate-400 bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-lg">
-                      <span>{isRTL ? 'שובר שמור:' : 'Saved voucher:'} <strong className="text-sky-300">{cachedVoucherCode}</strong></span>
+                      <span>{t.booking.savedVoucher} <strong className="text-sky-300">{cachedVoucherCode}</strong></span>
                       <button
                         type="button"
                         onClick={() => handleVerifyVoucher(cachedVoucherCode)}
                         className="text-amber-400 hover:text-amber-300 font-bold underline"
                       >
-                        {isRTL ? 'החל שוב ↗' : '1-Click Reapply ↗'}
+                        {t.booking.reapplyVoucher}
                       </button>
                     </div>
                   )}
@@ -934,7 +991,7 @@ function BookContent() {
               type="button"
               variant="ghost"
               size="sm"
-              onClick={() => setCurrentStep(2)}
+              onClick={() => setCurrentStep(isNoiseFreeBooking ? 1 : 2)}
               className="text-xs"
             >
               <ChevronLeft className={`w-3.5 h-3.5 ${isRTL ? 'rotate-180' : ''}`} />

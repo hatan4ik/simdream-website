@@ -16,32 +16,141 @@ import {
 } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
-import { useLanguage } from '@/lib/i18n/language-context';
+import { useLanguage, SupportedLanguage } from '@/lib/i18n/language-context';
 import { FACILITY_INFO } from '@/lib/config/facility-info';
+
+const RULES_COPY: Record<
+  SupportedLanguage,
+  {
+    badge: string;
+    title: string;
+    reg: string;
+    address: string;
+    ageBadge: string;
+    ageTitle: string;
+    ageDesc: string;
+    arrivalBadge: string;
+    arrivalTitle: string;
+    arrivalDesc: string;
+    natureBadge: string;
+    natureTitle: string;
+    natureDesc: string;
+    contactQuestion: string;
+    privacyLink: string;
+  }
+> = {
+  en: {
+    badge: 'OFFICIAL FACILITY RULES & TERMS OF USE',
+    title: 'Facility Rules, Terms & Conditions — Sim Dream Israel',
+    reg: `Company Reg. (ח.פ.) ${FACILITY_INFO.companyRegistrationNumber}`,
+    address: `Facility Address: ${FACILITY_INFO.address.streetEn}, ${FACILITY_INFO.address.cityEn} | Official Domains: simdream.co.il, simdream.aero`,
+    ageBadge: 'Age Requirements',
+    ageTitle: 'Simulator Entry: Age 10+',
+    ageDesc: 'Participants aged 10–15 require adult supervision. Online booking & payment require age 18+.',
+    arrivalBadge: 'Arrival & Punctuality',
+    arrivalTitle: 'Arrive 5 Minutes Before Slot',
+    arrivalDesc:
+      'Delays over 10 minutes may result in a shortened session (without refund for lost time) or rescheduling fees.',
+    natureBadge: 'Nature of Service',
+    natureTitle: 'Experiential Facility & Briefing',
+    natureDesc:
+      'Session duration includes pre-flight briefing. The simulator is an entertainment facility, not for official licensing.',
+    contactQuestion: 'Questions Regarding Facility Rules or an Existing Booking?',
+    privacyLink: 'View Privacy Policy →',
+  },
+  he: {
+    badge: 'תקנון ותנאי שימוש רשמיים • SIM DREAM ISRAEL',
+    title: 'תקנון ותנאי שימוש – סימדרים ישראל',
+    reg: `ח.פ. ${FACILITY_INFO.companyRegistrationNumber}`,
+    address: `כתובת המרכז: ${FACILITY_INFO.address.streetHe}, ${FACILITY_INFO.address.cityHe} | אתרים רשמיים: simdream.co.il, simdream.aero`,
+    ageBadge: 'גילאים וליווי מבוגר',
+    ageTitle: 'כניסה לסימולטור מגיל 10+',
+    ageDesc: 'ילדים בגילאי 10–15 מחויבים בליווי מבוגר. ביצוע הזמנה ותשלום באתר מגיל 18 ומעלה.',
+    arrivalBadge: 'הגעה ואיחורים',
+    arrivalTitle: 'הגעה 5 דקות לפני תחילת הסשן',
+    arrivalDesc:
+      'איחור העולה על 10 דקות עלול לגרור קיצור של זמן הסשן (ללא החזר כספי) או דחיית המועד בכפוף לדמי שינוי.',
+    natureBadge: 'אופי השירות והתדריך',
+    natureTitle: 'מתקן חוויה ובידור בליווי מדריך',
+    natureDesc:
+      'משך השירות כולל תדריך מקדים בתא הטייס. הסימולטור הוא מתקן בידור ואינו מיועד להכשרה מקצועית או רישוי.',
+    contactQuestion: 'שאלות לגבי התקנון או הזמנה קיימת?',
+    privacyLink: 'למדיניות הפרטיות ←',
+  },
+  ru: {
+    badge: 'ОФИЦИАЛЬНЫЙ РЕГЛАМЕНТ И ПРАВИЛА • SIM DREAM ISRAEL',
+    title: 'Правила и условия посещения — Sim Dream Israel',
+    reg: `Рег. номер компании (ח.פ.): ${FACILITY_INFO.companyRegistrationNumber}`,
+    address: `Адрес: ${FACILITY_INFO.address.streetEn}, Тель-Авив | Официальные сайты: simdream.co.il, simdream.aero`,
+    ageBadge: 'Возрастные ограничения',
+    ageTitle: 'Вход в симулятор: от 10 лет и старше',
+    ageDesc: 'Посетители от 10 до 15 лет допускаются в сопровождении взрослого. Онлайн-бронирование — с 18 лет.',
+    arrivalBadge: 'Время прибытия',
+    arrivalTitle: 'Прибытие за 5 минут до начала сессии',
+    arrivalDesc:
+      'Опоздание более чем на 10 минут может привести к сокращению времени сессии или переносу слота.',
+    natureBadge: 'Формат услуги',
+    natureTitle: 'Интерактивный опыт с пилотом-инструктором',
+    natureDesc:
+      'Включает предполетный брифинг. Симулятор является развлекательным комплексом и не выдает лицензий.',
+    contactQuestion: 'Вопросы по регламенту посещения или существующей брони?',
+    privacyLink: 'Политика конфиденциальности →',
+  },
+  fr: {
+    badge: 'RÈGLEMENT OFFICIEL DU CENTRE • SIM DREAM ISRAEL',
+    title: 'Règlement Intérieur et Conditions Générales — Sim Dream Israel',
+    reg: `N° d'enregistrement (ח.פ.) : ${FACILITY_INFO.companyRegistrationNumber}`,
+    address: `Adresse : ${FACILITY_INFO.address.streetEn}, Tel Aviv | Domaines officiels : simdream.co.il, simdream.aero`,
+    ageBadge: 'Conditions d’âge',
+    ageTitle: 'Accès au simulateur : dès 10 ans et plus',
+    ageDesc: 'Les participants de 10 à 15 ans doivent être accompagnés d’un adulte. Réservation dès 18 ans.',
+    arrivalBadge: 'Arrivée et ponctualité',
+    arrivalTitle: 'Arrivée 5 minutes avant l’horaire',
+    arrivalDesc:
+      'Tout retard supérieur à 10 minutes peut entraîner l’écourtement de la session ou des frais de report.',
+    natureBadge: 'Nature du service',
+    natureTitle: 'Centre expérientiel avec instructeur',
+    natureDesc:
+      'La durée inclut le briefing en cabine. Le simulateur est une expérience de divertissement sans visée de brevet officiel.',
+    contactQuestion: 'Des questions concernant le règlement ou une réservation ?',
+    privacyLink: 'Politique de Confidentialité →',
+  },
+  ar: {
+    badge: 'اللائحة الرسمية وشروط الاستخدام • SIM DREAM ISRAEL',
+    title: 'شروط الاستخدام واللوائح الرسمية — سيم دريم إسرائيل',
+    reg: `رقم تسجيل الشركة (ח.פ.): ${FACILITY_INFO.companyRegistrationNumber}`,
+    address: `العنوان: ${FACILITY_INFO.address.streetEn}، تل أبيب | المواقع الرسمية: simdream.co.il, simdream.aero`,
+    ageBadge: 'شروط العمر والمرافقة',
+    ageTitle: 'دخول قمرة المحاكاة: من عمر 10 سنوات فما فوق',
+    ageDesc: 'المشاركون بين 10 و15 عاماً يشترط مرافقة شخص بالغ. الحجز والدفع متاحان لمن هم في سن 18 فما فوق.',
+    arrivalBadge: 'الوصول والمواعيد',
+    arrivalTitle: 'الوصول قبل 5 دقائق من الموعد',
+    arrivalDesc:
+      'التأخير لأكثر من 10 دقائق قد يؤدي إلى تقليص وقت الجلسة دون تعويض أو إعادة جدولتها برسوم.',
+    natureBadge: 'طبيعة الخدمة',
+    natureTitle: 'تجربة طيران ترفيهية بإشراف مدرب',
+    natureDesc:
+      'تشمل مدة الجلسة إيجازاً تعريفياً مسبقاً. المحاكي مخصص للتجربة والترفيه ولا يعد ترخيصاً رسمياً.',
+    contactQuestion: 'هل لديك استفسارات بخصوص اللائحة أو حجز قائم؟',
+    privacyLink: 'سياسة الخصوصية ←',
+  },
+};
 
 export function RulesContentView() {
   const { language } = useLanguage();
   const isHe = language === 'he';
+  const c = RULES_COPY[language] || RULES_COPY.en;
 
   return (
     <main className="flex-1 py-14 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto space-y-10">
       {/* Header */}
       <header className="space-y-4 border-b border-slate-800 pb-8">
-        <Badge variant="sky">
-          {isHe ? 'תקנון ותנאי שימוש רשמיים • SIM DREAM ISRAEL' : 'OFFICIAL FACILITY RULES & TERMS OF USE'}
-        </Badge>
-        <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight">
-          {isHe ? 'תקנון ותנאי שימוש – סימדרים ישראל' : 'Facility Rules, Terms & Conditions — Sim Dream Israel'}
-        </h1>
+        <Badge variant="sky">{c.badge}</Badge>
+        <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight">{c.title}</h1>
         <p className="text-sm text-slate-300 font-mono">
-          {FACILITY_INFO.legalNameHe} • {FACILITY_INFO.legalNameEn} •{' '}
-          {isHe ? `ח.פ. ${FACILITY_INFO.companyRegistrationNumber}` : `Company Reg. (ח.פ.) ${FACILITY_INFO.companyRegistrationNumber}`}
+          {FACILITY_INFO.legalNameHe} • {FACILITY_INFO.legalNameEn} • {c.reg}
         </p>
-        <p className="text-xs text-slate-400">
-          {isHe
-            ? `כתובת המרכז: ${FACILITY_INFO.address.streetHe}, ${FACILITY_INFO.address.cityHe} | אתרים רשמיים: simdream.co.il, simdream.aero`
-            : `Facility Address: ${FACILITY_INFO.address.streetEn}, ${FACILITY_INFO.address.cityEn} | Official Domains: simdream.co.il, simdream.aero`}
-        </p>
+        <p className="text-xs text-slate-400">{c.address}</p>
       </header>
 
       {/* Quick Operational Highlights */}
@@ -49,48 +158,42 @@ export function RulesContentView() {
         <Card borderAccent="amber" className="p-4 space-y-1.5">
           <div className="flex items-center gap-2 text-amber-400 font-mono text-xs font-bold uppercase">
             <UserCheck className="w-4 h-4" />
-            <span>{isHe ? 'גילאים וליווי מבוגר' : 'Age Requirements'}</span>
+            <span>{c.ageBadge}</span>
           </div>
-          <p className="text-sm font-bold text-white">
-            {isHe ? 'כניסה לסימולטור מגיל 10+' : 'Simulator Entry: Age 10+'}
-          </p>
-          <p className="text-xs text-slate-300 leading-relaxed">
-            {isHe
-              ? 'ילדים בגילאי 10–15 מחויבים בליווי מבוגר. ביצוע הזמנה ותשלום באתר מגיל 18 ומעלה.'
-              : 'Participants aged 10–15 require adult supervision. Online booking & payment require age 18+.'}
-          </p>
+          <p className="text-sm font-bold text-white">{c.ageTitle}</p>
+          <p className="text-xs text-slate-300 leading-relaxed">{c.ageDesc}</p>
         </Card>
 
         <Card borderAccent="sky" className="p-4 space-y-1.5">
           <div className="flex items-center gap-2 text-sky-400 font-mono text-xs font-bold uppercase">
             <Clock className="w-4 h-4" />
-            <span>{isHe ? 'הגעה ואיחורים' : 'Arrival & Punctuality'}</span>
+            <span>{c.arrivalBadge}</span>
           </div>
-          <p className="text-sm font-bold text-white">
-            {isHe ? 'הגעה 5 דקות לפני תחילת הסשן' : 'Arrive 5 Minutes Before Slot'}
-          </p>
-          <p className="text-xs text-slate-300 leading-relaxed">
-            {isHe
-              ? 'איחור העולה על 10 דקות עלול לגרור קיצור של זמן הסשן (ללא החזר כספי) או דחיית המועד בכפוף לדמי שינוי.'
-              : 'Delays over 10 minutes may result in a shortened session (without refund for lost time) or rescheduling fees.'}
-          </p>
+          <p className="text-sm font-bold text-white">{c.arrivalTitle}</p>
+          <p className="text-xs text-slate-300 leading-relaxed">{c.arrivalDesc}</p>
         </Card>
 
         <Card borderAccent="emerald" className="p-4 space-y-1.5">
           <div className="flex items-center gap-2 text-emerald-400 font-mono text-xs font-bold uppercase">
             <ShieldCheck className="w-4 h-4" />
-            <span>{isHe ? 'אופי השירות והתדריך' : 'Nature of Service'}</span>
+            <span>{c.natureBadge}</span>
           </div>
-          <p className="text-sm font-bold text-white">
-            {isHe ? 'מתקן חוויה ובידור בליווי מדריך' : 'Experiential Facility & Briefing'}
-          </p>
-          <p className="text-xs text-slate-300 leading-relaxed">
-            {isHe
-              ? 'משך השירות כולל תדריך מקדים בתא הטייס. הסימולטור הוא מתקן בידור ואינו מיועד להכשרה מקצועית או רישוי.'
-              : 'Session duration includes pre-flight briefing. The simulator is an entertainment facility, not for official licensing.'}
-          </p>
+          <p className="text-sm font-bold text-white">{c.natureTitle}</p>
+          <p className="text-xs text-slate-300 leading-relaxed">{c.natureDesc}</p>
         </Card>
       </section>
+
+      {/* International Language Notice */}
+      {!isHe && language !== 'en' && (
+        <div className="p-4 rounded-xl border border-sky-500/30 bg-sky-950/20 text-xs text-slate-300 font-mono">
+          {language === 'ru' &&
+            'ℹ️ Официальный регламент и правила центра SimDream (Израиль) юридически зафиксированы на иврите и английском языках в соответствии с законодательством Государства Израиль. Ниже приведена официальная английская версия.'}
+          {language === 'fr' &&
+            'ℹ️ Le règlement officiel et les conditions d’utilisation de SimDream Israël sont juridiquement établis en hébreu et en anglais conformément à la législation israélienne. Veuillez trouver ci-dessous la version officielle en anglais.'}
+          {language === 'ar' &&
+            'ℹ️ تخضع اللائحة الرسمية وشروط الاستخدام لمركز سيم دريم للقانون الإسرائيلي باللغتين العبرية والإنجليزية. يُرجى الاطلاع أدناه على النسخة الرسمية باللغة الإنجليزية.'}
+        </div>
+      )}
 
       {/* Full Legal Clauses */}
       <div className="space-y-6 text-sm text-slate-300 leading-relaxed">
@@ -98,22 +201,22 @@ export function RulesContentView() {
         <Card className="p-6 space-y-4">
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
             <FileText className="w-5 h-5 text-sky-400" />
-            <span>{isHe ? '1. הגדרות' : '1. Definitions (הגדרות)'}</span>
+            <span>{isHe ? '1. הגדרות' : '1. Definitions'}</span>
           </h2>
           <dl className="space-y-3 text-xs sm:text-sm">
             <div>
               <dt className="font-bold text-white inline">
-                {isHe ? '1.1 המרכז: ' : '1.1 The Center (המרכז): '}
+                {isHe ? '1.1 המרכז: ' : '1.1 The Center: '}
               </dt>
               <dd className="inline">
                 {isHe
                   ? 'Simulation Systems (Israel) Sim Dream LTD (מערכות הדמיה סימולטורים (ישראל) סיםדרים בע״מ), ח.פ. 516651031, כתובת: גרשון ש״ץ 36, תל-אביב-יפו, 6701772.'
-                  : 'Simulation Systems (Israel) Sim Dream LTD, Israeli Company Registration No. (ח.פ.) 516651031, located at Gershon Shatz St 36, Tel Aviv-Yafo, 6701772, Israel.'}
+                  : 'Simulation Systems (Israel) Sim Dream LTD, Israeli Company Registration No. 516651031, located at Gershon Shatz St 36, Tel Aviv-Yafo, 6701772, Israel.'}
               </dd>
             </div>
             <div>
               <dt className="font-bold text-white inline">
-                {isHe ? '1.2 סימולטור: ' : '1.2 The Simulator (סימולטור): '}
+                {isHe ? '1.2 סימולטור: ' : '1.2 The Simulator: '}
               </dt>
               <dd className="inline">
                 {isHe
@@ -123,7 +226,7 @@ export function RulesContentView() {
             </div>
             <div>
               <dt className="font-bold text-white inline">
-                {isHe ? '1.3 שירות / סשן: ' : '1.3 Service / Session (שירות / סשן): '}
+                {isHe ? '1.3 שירות / סשן: ' : '1.3 Service / Session: '}
               </dt>
               <dd className="inline">
                 {isHe
@@ -133,7 +236,7 @@ export function RulesContentView() {
             </div>
             <div>
               <dt className="font-bold text-white inline">
-                {isHe ? '1.4 משך שירות: ' : '1.4 Session Duration (משך שירות): '}
+                {isHe ? '1.4 משך שירות: ' : '1.4 Session Duration: '}
               </dt>
               <dd className="inline">
                 {isHe
@@ -153,7 +256,7 @@ export function RulesContentView() {
             </div>
             <div>
               <dt className="font-bold text-white inline">
-                {isHe ? '1.6 הסכמה לתקנון (Accept): ' : '1.6 Acceptance of Terms (Accept): '}
+                {isHe ? '1.6 הסכמה לתקנון (Accept): ' : '1.6 Acceptance of Terms: '}
               </dt>
               <dd className="inline">
                 {isHe
@@ -178,7 +281,7 @@ export function RulesContentView() {
         <Card className="p-6 space-y-4">
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
             <Scale className="w-5 h-5 text-emerald-400" />
-            <span>{isHe ? '2. עקרונות כלליים' : '2. General Principles (עקרונות כלליים)'}</span>
+            <span>{isHe ? '2. עקרונות כלליים' : '2. General Principles'}</span>
           </h2>
           <ul className="space-y-2.5 text-xs sm:text-sm list-disc list-inside">
             <li>
@@ -290,9 +393,7 @@ export function RulesContentView() {
       {/* Contact Footer Box */}
       <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs text-slate-300">
         <div className="space-y-1">
-          <p className="font-bold text-white">
-            {isHe ? 'שאלות לגבי התקנון או הזמנה קיימת?' : 'Questions Regarding Facility Rules or an Existing Booking?'}
-          </p>
+          <p className="font-bold text-white">{c.contactQuestion}</p>
           <div className="flex flex-wrap items-center gap-4 font-mono text-slate-400">
             <span className="inline-flex items-center gap-1">
               <MapPin className="w-3.5 h-3.5 text-sky-400" />
@@ -312,7 +413,7 @@ export function RulesContentView() {
           href="/privacy-policy"
           className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-sky-300 font-mono font-semibold shrink-0"
         >
-          {isHe ? 'למדיניות הפרטיות ←' : 'View Privacy Policy →'}
+          {c.privacyLink}
         </Link>
       </div>
     </main>

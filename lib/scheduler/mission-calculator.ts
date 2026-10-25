@@ -80,7 +80,7 @@ export interface CalculateMissionManifestInput {
 /**
  * Canonical Single-Source-of-Truth calculation for Flight Mission duration,
  * start/end time window, itemized add-ons, and pricing across Step 1, Step 2,
- * Step 3 Order Summary, `POST /api/bookings`, and `/book/success` Boarding Pass.
+ * Step 3 Order Summary, server checkout, and `/book/success` Boarding Pass.
  */
 export function calculateMissionManifest(
   input: CalculateMissionManifestInput
@@ -140,4 +140,3 @@ export function calculateMissionManifest(
     selectedAddonItems,
   };
 }
-

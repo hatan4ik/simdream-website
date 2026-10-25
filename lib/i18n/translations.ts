@@ -1,6 +1,7 @@
 import { SIMULATOR_PACKAGES, FLIGHT_ADDONS } from '@/lib/db/seed-data';
 
 export type Language = 'en' | 'he' | 'ru' | 'fr' | 'ar';
+export type SupportedLanguage = Language;
 
 export interface LanguageInfo {
   code: Language;
@@ -23,9 +24,10 @@ export const translations = {
     nav: {
       brandSub: 'FLIGHT CENTER • TEL AVIV',
       experiences: 'Flight Experiences',
-      simulator: 'PRO Sessions',
+      simulator: 'Professional Training',
       workshops: 'Corporate CRM (B2B)',
       vouchers: 'Gift Vouchers',
+      about: 'About Us',
       contact: 'Location & Contact',
       bookFlight: 'Book a Flight',
       pilotLogin: 'Pilot Login',
@@ -95,6 +97,7 @@ export const translations = {
       pillar4Points: ['Instant official gift boarding passes', 'Proven therapeutic fear-of-flying coaching'],
       techTeaser: 'Looking for our engineering certifications and OEM hardware specs?',
       viewTechSpecs: 'Explore Boeing 737 MAX Flight Deck Specifications',
+      proTrainingSpecs: 'Professional Pilot Training & 1:1 Cockpit Specs',
     },
     simulator: {
       pageBadge: 'ABOUT SIM DREAM ISRAEL',
@@ -165,6 +168,11 @@ export const translations = {
       packageHighlights: 'Package Highlights:',
       bookThisFlight: 'Book This Flight',
       inquireCorporate: 'Inquire for Corporate',
+      b2bBadge: 'CORPORATE & ENTERPRISE',
+      b2bTitle: 'Looking for Corporate Leadership & CRM Team Events?',
+      b2bDesc:
+        'Crew Resource Management (CRM) workshops, high-stakes decision making, and team synchronization in a 1:1 Boeing 737 cockpit.',
+      b2bButton: 'Explore Corporate Workshops',
       giftTeaserBadge: 'LOOKING FOR AN UNFORGETTABLE GIFT?',
       giftTeaserTitle: 'Give the Ultimate Flight Experience',
       giftTeaserDesc:
@@ -364,6 +372,11 @@ export const translations = {
       secureNotice: 'Encrypted 256-bit SSL transaction processed by Stripe. Instant confirmation & calendar invite delivered by email.',
       errorSelectSlot: 'Please select an available flight time slot.',
       errorFillFields: 'Please fill in all required pilot contact fields.',
+      removeVoucher: 'Remove Voucher',
+      discountApplied: 'discount applied',
+      resetVoucher: 'Reset',
+      savedVoucher: 'Saved voucher:',
+      reapplyVoucher: '1-Click Reapply ↗',
     },
     bookingSuccess: {
       badge: 'FLIGHT CLEARANCE GRANTED',
@@ -601,6 +614,24 @@ export const translations = {
       hoursFri: 'Fri: 09:00 - 16:00',
       hoursSat: 'Sat: 19:00 - 24:00',
       rightsReserved: 'All rights reserved.',
+      termsRules: 'Facility Rules & Terms',
+      privacyPolicy: 'Privacy & Cookie Policy',
+      minAgeLabel: 'Minimum Pilot Age: 10+',
+      rulesDrawerTitle: 'Facility Rules & Terms Summary (simdream.co.il/rules)',
+      privacyDrawerTitle: 'Privacy & Cookie Policy Summary (simdream.co.il/privacy-policy)',
+      rulesPoint1:
+        '1. The Center: SimDream Simulators (Israel) Ltd. (Company Reg. 515865242), Gershon Shatz St 36, Tel Aviv-Yafo. The simulator is an experiential entertainment and flight training facility accompanied by an instructor.',
+      rulesPoint2:
+        '2. Age Policy: Simulator entry is permitted from Age 10+. Children aged 10–15 require adult supervision (18+). Online booking and payment require age 18+.',
+      rulesPoint3:
+        '3. Arrival & Late Policy: Please arrive 5 minutes prior to your scheduled session. Delays over 10 minutes may result in a shortened session without refund.',
+      readFullRules: 'Read Full Facility Rules & Terms →',
+      privacyPoint1:
+        '1. Data Security: Contact details (name, email, phone) are used strictly for flight dispatch, vouchers, and customer service. Payments are processed via encrypted PCI-DSS gateways.',
+      privacyPoint2:
+        '2. Cookies & Privacy Rights: We use cookies to maintain booking state, language preferences, and analytics. For privacy requests: desk@simdream.co.il.',
+      readFullPrivacy: 'Read Full Privacy & Cookie Policy →',
+      proTraining: 'Professional Training',
       disclaimer:
         'Disclaimer: SimDream Simulators (Israel) Ltd. provides professional flight simulation experiences and training. Boeing® is a registered trademark of The Boeing Company. SimDream is an independent flight simulation facility.',
     },
@@ -610,9 +641,10 @@ export const translations = {
     nav: {
       brandSub: 'מרכז סימולציה • תל אביב',
       experiences: 'חבילות טיסה',
-      simulator: 'אימוני PRO וטייסים',
+      simulator: 'הדרכה מקצועית לטייסים',
       workshops: 'סדנאות CRM לחברות (B2B)',
       vouchers: 'שוברי מתנה',
+      about: 'אודות המרכז',
       contact: 'מיקום ויצירת קשר',
       bookFlight: 'הזמן טיסה',
       pilotLogin: 'כניסת טייסים',
@@ -682,6 +714,7 @@ export const translations = {
       pillar4Points: ['שוברי עלייה למטוס יוקרתיים הנשלחים מיידית', 'סדנאות ייעודיות להתגברות על חרדת טיסה'],
       techTeaser: 'מתעניינים במערכות האוויוניקה והמפרט ההנדסי של הסימולטור?',
       viewTechSpecs: 'לצפייה במפרט הטכני של הבואינג 737 MAX',
+      proTrainingSpecs: 'הדרכה מקצועית לטייסים ומפרט הקוקפיט 1:1',
     },
     simulator: {
       pageBadge: 'אודות סים דרים ישראל',
@@ -752,6 +785,11 @@ export const translations = {
       packageHighlights: 'עיקרי החבילה:',
       bookThisFlight: 'הזמן טיסה זו',
       inquireCorporate: 'בירור לסדנה ארגונית',
+      b2bBadge: 'עסקים וצוותים • B2B WORKSHOPS',
+      b2bTitle: 'מחפשים סדנת מנהלים או יום גיבוש ארגוני?',
+      b2bDesc:
+        'סדנאות ניהול משאבי צוות (CRM), עבודת צוות תחת לחץ וקבלת החלטות בקוקפיט בואינג 737. לפרטים ותיאום מותאם אישית לחברות.',
+      b2bButton: 'צפו בסדנאות לארגונים',
       giftTeaserBadge: 'מחפשים מתנה בלתי נשכחת?',
       giftTeaserTitle: 'העניקו את חוויית הטיסה האולטימטיבית',
       giftTeaserDesc:
@@ -805,7 +843,7 @@ export const translations = {
         ],
       },
       'pkg-pro-60': {
-        title: 'הכנה למיונים ואימון מתקדם 60 PRO',
+        title: 'Airline Interview Prep 60 PRO',
         badge: 'PRO 60m • ₪890',
         shortDesc: 'אימון מקצועי של 60 דקות (ראייה ומכשירים IFR/ILS) והכנה למבדקי סימולטור בחברות תעופה.',
         description: 'מיועד לטייסים בעלי רישיון (PPL/CPL/ATPL), חניכי קורס טיס ומועמדים לחברות תעופה. התמקדות בהטסת Raw Data (ללא Flight Director), גישות ILS ו-RNAV, מעגלי המתנה ונהלי SOP. המדריך יכול לשמש כ-PM או לפנות מושב לטייס שני/מדריך אישי.',
@@ -819,7 +857,7 @@ export const translations = {
         ],
       },
       'pkg-pro-90': {
-        title: 'הכנה למיונים ואימון מתקדם 90 PRO',
+        title: 'Airline Interview Prep 90 PRO',
         badge: 'PRO 90m • הפופולרי לטייסים',
         shortDesc: 'אימון PRO מורחב של 90 דקות המדמה מבדק הערכה מלא לחברות תעופה (Raw Data, SID/STAR ותקלת מנוע ב-V1).',
         description: 'חבילת ה-PRO המבוקשת ביותר (90 דקות). מדמה פרופילי מיון של חברות תעופה בישראל ובאירופה (אל על, ישראייר, ארקיע, Wizz Air, Ryanair). כוללת הכנת FMS/CDU, יציאת SID, עבודת אוויר Raw Data, אובדן מנוע ב-V1, גישת ILS במנוע בודד, הליכה סביב (Go-Around) וניהול בד״ח חירום QRH.',
@@ -833,7 +871,7 @@ export const translations = {
         ],
       },
       'pkg-assessment-prep-120': {
-        title: 'הכנה למיוני טייסים ומבדקי סימולטור 120 PRO',
+        title: 'Airline Interview Prep 120 PRO',
         badge: 'PRO 120m • בלוק שעתיים מלא',
         shortDesc: 'בלוק אימון מקצועי מקיף של 120 דקות (שעתיים) לטייסים מסחריים, צוערים וצוותי MCC המתכוננים למיוני קבלה.',
         description: 'הכנה יסודית ומדויקת של שעתיים למבדקי סימולטור בחברות תעופה (אל על, ארקיע, ישראייר וחברות אירופאיות). האימון מועבר על ידי קברניט פעיל בחברת תעופה ומתמקד בהטסה ידנית ללא Flight Director (Raw Data), פניות חדות, הזדקרויות, תפעול מנוע בודד, גישות מכשירים לא-מדויקות ו-RNP-AR, עבודת צוות ותקשורת קוקפיט.',
@@ -951,6 +989,11 @@ export const translations = {
       secureNotice: 'סליקה מוצפנת ומאובטחת בתקן 256-bit SSL באמצעות Stripe. אישור מיידי וזימון ליומן יישלחו במייל.',
       errorSelectSlot: 'אנא בחרו מועד טיסה פנוי.',
       errorFillFields: 'אנא מלאו את כל שדות החובה בפרטי הקברניט.',
+      removeVoucher: 'הסר שובר',
+      discountApplied: 'הנחה מופעלת',
+      resetVoucher: 'בטל שובר',
+      savedVoucher: 'שובר שמור:',
+      reapplyVoucher: 'החל שוב בלחיצה אחת ↗',
     },
     bookingSuccess: {
       badge: 'אישור טיסה רשמי (CLEARED FOR TAKEOFF)',
@@ -1188,6 +1231,24 @@ export const translations = {
       hoursFri: 'ו׳: 09:00 - 16:00',
       hoursSat: 'ש׳: 19:00 - 24:00',
       rightsReserved: 'כל הזכויות שמורות.',
+      termsRules: 'תקנון ותנאי שימוש',
+      privacyPolicy: 'מדיניות פרטיות וקובצי Cookie',
+      minAgeLabel: 'גיל מינימלי להטסה: 10+',
+      rulesDrawerTitle: 'תקנון ותנאי שימוש מרכזיים (simdream.co.il/rules)',
+      privacyDrawerTitle: 'מדיניות פרטיות וקובצי Cookie (simdream.co.il/privacy-policy)',
+      rulesPoint1:
+        '1. המרכז: מערכות הדמיה סימולטורים ישראל סיםדרים בע״מ, ח.פ. 515865242, רח׳ גרשון ש"ץ 36, תל אביב-יפו. הסימולטור הינו מתקן חוויה והדרכת טיסה בליווי מדריך מוסמך.',
+      rulesPoint2:
+        '2. גילאים: הכניסה לסימולטור מותרת מגיל 10 ומעלה (10+). ילדים בגילאי 10–15 מחויבים בליווי מבוגר. ביצוע הזמנה ותשלום באתר מחייבים גיל 18 ומעלה.',
+      rulesPoint3:
+        '3. הגעה ואיחורים: יש להגיע 5 דקות לפני מועד הסשן שנקבע. איחור מעל 10 דקות עלול לגרור קיצור של זמן הסשן ללא החזר כספי.',
+      readFullRules: 'קראו את התקנון המלא ←',
+      privacyPoint1:
+        '1. אבטחת מידע וסליקה: פרטי הקשר (שם, דוא״ל, טלפון) משמשים לתיאום הטיסה, שליחת שוברים ומתן שירות לקוחות בלבד. הסליקה מתבצעת בתקן PCI-DSS מוצפן.',
+      privacyPoint2:
+        '2. קובצי Cookie וזכויות: האתר משתמש בעוגיות לתפעול תקין, שמירת העדפות שפה וניתוח תנועה. לבקשות פרטיות: desk@simdream.co.il.',
+      readFullPrivacy: 'קראו את מדיניות הפרטיות המלאה ←',
+      proTraining: 'הדרכה מקצועית לטייסים',
       disclaimer:
         'הבהרה: מערכות הדמיה סימולטורים (ישראל) סיםדרים בע״מ מפעילה מתקני אימון וחוויות טיסה מקצועיים. Boeing® הוא סימן מסחרי רשום של חברת בואינג.',
     },
@@ -1197,9 +1258,10 @@ export const translations = {
     nav: {
       brandSub: 'ЛЕТНЫЙ ЦЕНТР • ТЕЛЬ-АВИВ',
       experiences: 'Летные программы',
-      simulator: 'Сессии PRO (Пилотам)',
+      simulator: 'Профессиональная подготовка',
       workshops: 'Корпоративный CRM (B2B)',
       vouchers: 'Подарочные сертификаты',
+      about: 'О центре',
       contact: 'Контакты и локация',
       bookFlight: 'Забронировать полет',
       pilotLogin: 'Вход для пилотов',
@@ -1269,6 +1331,7 @@ export const translations = {
       pillar4Points: ['Фирменные подарочные сертификаты в стиле посадочного талона', 'Эффективные методики преодоления страха перед полетами'],
       techTeaser: 'Интересуетесь сертифицированным оборудованием и инженерными деталями?',
       viewTechSpecs: 'Посмотреть технические характеристики Boeing 737 MAX',
+      proTrainingSpecs: 'Профессиональная подготовка пилотов и спецификация кабины 1:1',
     },
     simulator: {
       pageBadge: 'О ЦЕНТРЕ SIM DREAM ISRAEL',
@@ -1339,6 +1402,11 @@ export const translations = {
       packageHighlights: 'Особенности пакета:',
       bookThisFlight: 'Выбрать этот полет',
       inquireCorporate: 'Запрос на корпоратив',
+      b2bBadge: 'ДЛЯ КОМПАНИЙ И КОРПОРАТИВНЫХ КЛИЕНТОВ',
+      b2bTitle: 'Ищете тренинг для руководителей или тимбилдинг для команды?',
+      b2bDesc:
+        'Семинары по управлению ресурсами экипажа (CRM), командной работе в условиях стресса и принятию решений в настоящей кабине Boeing 737.',
+      b2bButton: 'Ознакомиться с программами для бизнеса',
       giftTeaserBadge: 'ИЩЕТЕ НЕЗАБЫВАЕМЫЙ ПОДАРОК?',
       giftTeaserTitle: 'Подарите ощущение настоящего полета',
       giftTeaserDesc:
@@ -1392,7 +1460,7 @@ export const translations = {
         ],
       },
       'pkg-pro-60': {
-        title: 'Подготовка к собеседованию 60 PRO',
+        title: 'Airline Interview Prep 60 PRO',
         badge: 'PRO 60м • ₪890',
         shortDesc: 'Профессиональная 60-минутная тренировка по приборам IFR и подготовка к отбору в авиакомпании.',
         description: 'Для коммерческих пилотов (CPL/ATPL) и курсантов. Пилотирование по Raw Data (без Flight Director), точные заходы ILS и схемы вылета/прилета SID/STAR. Инструктор в роли PM или второй пилот из вашего экипажа.',
@@ -1406,7 +1474,7 @@ export const translations = {
         ],
       },
       'pkg-pro-90': {
-        title: 'Подготовка к собеседованию 90 PRO',
+        title: 'Airline Interview Prep 90 PRO',
         badge: 'PRO 90м • Хит среди пилотов',
         shortDesc: 'Расширенная 90-минутная сессия подготовки к скринингам: программирование FMC, Raw Data и отказ двигателя на V1.',
         description: 'Полная имитация отборочных тестов в авиакомпании (El Al, Israir, Arkia, Wizz Air, Ryanair). Полный расчет и инициализация FMS/CDU, отказ мотора на скорости принятия решения V1, однодвигательный заход ILS, уход на второй круг и дисциплина по аварийным картам QRH.',
@@ -1420,9 +1488,9 @@ export const translations = {
         ],
       },
       'pkg-assessment-prep-120': {
-        title: 'Подготовка к собеседованиям в авиакомпании (Sim Check)',
-        badge: 'Для пилотов и курсантов',
-        shortDesc: 'Целевая подготовка коммерческих пилотов и выпускников летных школ к отборочным тестам на авиасимуляторе.',
+        title: 'Airline Interview Prep 120 PRO',
+        badge: 'PRO 120м • Полный блок 2 часа',
+        shortDesc: 'Комплексный 120-минутный мастер-класс для коммерческих пилотов, курсантов и экипажей MCC.',
         description: 'Строгая программа подготовки к скринингам в El Al, Arkia, Israir, Ryanair, Wizz Air и европейские авиакомпании. Проводится действующим капитаном авиалиний по стандартам EASA/FAA: пилотирование по «сырым данным» (Raw Data без Flight Director), крутые виражи, сваливание, отказ двигателя на взлете, заходы RNP-AR и ILS на одном моторе, взаимодействие в экипаже (CRM).',
         features: [
           '120 минут специализированного тренажерного времени',
@@ -1538,6 +1606,11 @@ export const translations = {
       secureNotice: 'Платеж защищен 256-битным SSL шифрованием через Stripe. Моментальное подтверждение и приглашение в календарь придут на email.',
       errorSelectSlot: 'Пожалуйста, выберите доступный временной слот полета.',
       errorFillFields: 'Пожалуйста, заполните все обязательные контактные поля.',
+      removeVoucher: 'Удалить сертификат',
+      discountApplied: 'скидка применена',
+      resetVoucher: 'Сбросить',
+      savedVoucher: 'Сохранённый сертификат:',
+      reapplyVoucher: 'Применить повторно ↗',
     },
     bookingSuccess: {
       badge: 'РАЗРЕШЕНИЕ НА ВЫЛЕТ ВЫДАНО',
@@ -1775,6 +1848,24 @@ export const translations = {
       hoursFri: 'Пт: 09:00 - 16:00',
       hoursSat: 'Сб: 19:00 - 24:00',
       rightsReserved: 'Все права защищены.',
+      termsRules: 'Правила центра и условия',
+      privacyPolicy: 'Политика конфиденциальности и Cookie',
+      minAgeLabel: 'Минимальный возраст: 10+',
+      rulesDrawerTitle: 'Краткие правила центра (simdream.co.il/rules)',
+      privacyDrawerTitle: 'Политика конфиденциальности (simdream.co.il/privacy-policy)',
+      rulesPoint1:
+        '1. Центр: SimDream Simulators (Israel) Ltd., рег. № 515865242, ул. Гершон Шац 36, Тель-Авив. Высокоточный авиатренажёрный комплекс с сопровождением пилота-инструктора.',
+      rulesPoint2:
+        '2. Возрастные правила: Допуск в кабину симулятора — от 10 лет и старше. Дети 10–15 лет допускаются в сопровождении взрослого (18+). Онлайн-бронирование и оплата — с 18 лет.',
+      rulesPoint3:
+        '3. Прибытие и опоздания: Прибывайте за 5 минут до начала сеанса. Опоздание более чем на 10 минут может привести к сокращению времени сеанса без возврата средств.',
+      readFullRules: 'Читать полные правила центра →',
+      privacyPoint1:
+        '1. Безопасность данных: Контактные данные (имя, email, телефон) используются строго для организации полетов, выдачи ваучеров и клиентского сервиса. Платежи защищены PCI-DSS.',
+      privacyPoint2:
+        '2. Файлы Cookie и права: Сайт использует Cookie для сохранения бронирований, настроек языка и аналитики. Запросы: desk@simdream.co.il.',
+      readFullPrivacy: 'Читать полную политику конфиденциальности →',
+      proTraining: 'Профессиональная подготовка',
       disclaimer:
         'Дисклеймер: SimDream Simulators (Israel) Ltd. предоставляет профессиональные симуляционные сессии. Boeing® является зарегистрированной торговой маркой The Boeing Company.',
     },
@@ -1784,9 +1875,10 @@ export const translations = {
     nav: {
       brandSub: 'CENTRE DE VOL • TEL AVIV',
       experiences: 'Expériences de vol',
-      simulator: 'Sessions PRO (Pilotes)',
+      simulator: 'Formation Professionnelle',
       workshops: 'CRM Entreprises (B2B)',
       vouchers: 'Bons Cadeaux',
+      about: 'À propos',
       contact: 'Accès & Contact',
       bookFlight: 'Réserver un vol',
       pilotLogin: 'Espace Pilote',
@@ -1856,6 +1948,7 @@ export const translations = {
       pillar4Points: ['Bons cadeaux officiels sous forme de cartes d’embarquement', 'Accompagnement thérapeutique contre l’aérophobie'],
       techTeaser: 'Vous souhaitez découvrir nos certifications et notre matériel avionique OEM ?',
       viewTechSpecs: 'Consulter les spécifications techniques du Boeing 737 MAX',
+      proTrainingSpecs: 'Formation professionnelle des pilotes et spécifications 1:1',
     },
     simulator: {
       pageBadge: 'À PROPOS DE SIM DREAM ISRAEL',
@@ -1926,6 +2019,11 @@ export const translations = {
       packageHighlights: 'Points forts du pack :',
       bookThisFlight: 'Réserver ce vol',
       inquireCorporate: 'Devis pour entreprise',
+      b2bBadge: 'ENTREPRISES & ÉVÉNEMENTS D’ÉQUIPE',
+      b2bTitle: 'Vous recherchez un atelier de leadership ou un teambuilding d’entreprise ?',
+      b2bDesc:
+        'Ateliers de gestion des ressources de l’équipage (CRM), prise de décision sous pression et synchronisation d’équipe dans un cockpit 1:1 de Boeing 737.',
+      b2bButton: 'Découvrir les ateliers d’entreprise',
       giftTeaserBadge: 'VOUS CHERCHEZ UN CADEAU UNIQUE ?',
       giftTeaserTitle: 'Offrez l’Expérience de Vol Ultime',
       giftTeaserDesc:
@@ -1979,7 +2077,7 @@ export const translations = {
         ],
       },
       'pkg-pro-60': {
-        title: 'Préparation Sélections 60 PRO',
+        title: 'Airline Interview Prep 60 PRO',
         badge: 'PRO 60m • ₪890',
         shortDesc: 'Entraînement professionnel de 60 minutes aux instruments IFR et préparation aux sélections de compagnies aériennes.',
         description: 'Conçu pour les pilotes professionnels (CPL/ATPL) et les élèves en formation. Travail en pilotage manuel Raw Data (Flight Director coupé), approches de précision ILS/RNAV et gestion des procédures standards. L’instructeur peut agir comme PM ou laisser la place à votre binôme.',
@@ -1993,7 +2091,7 @@ export const translations = {
         ],
       },
       'pkg-pro-90': {
-        title: 'Préparation Sélections 90 PRO',
+        title: 'Airline Interview Prep 90 PRO',
         badge: 'PRO 90m • Formule Phare',
         shortDesc: 'Entraînement approfondi de 90 minutes aux checkrides de recrutement : programmation FMC, Raw Data et panne moteur à V1.',
         description: 'Reproduit fidèlement les profils de sélection des compagnies aériennes (El Al, Israir, Arkia, Wizz Air, Ryanair). Inclut l’initialisation complète du FMS/CDU, départ SID, maniabilité Raw Data, panne moteur à V1 (V1 Cut), approche ILS monomoteur, remise de gaz et discipline des checklists d’urgence QRH.',
@@ -2007,12 +2105,12 @@ export const translations = {
         ],
       },
       'pkg-assessment-prep-120': {
-        title: 'Préparation aux Sélections en Compagnie Aérienne',
-        badge: 'Pilotes & Cadets',
-        shortDesc: 'Programme sur mesure pour pilotes professionnels et élèves-pilotes préparant les épreuves sur simulateur.',
+        title: 'Airline Interview Prep 120 PRO',
+        badge: 'PRO 120m • Bloc 2 Heures',
+        shortDesc: 'Masterclass complet de 120 minutes pour pilotes professionnels, cadets et équipages MCC préparant les épreuves de sélection.',
         description: 'Préparation rigoureuse aux tests de sélection simulateur pour El Al, Arkia, Israir, Ryanair, Wizz Air et les compagnies européennes. Dispensée par un commandant de bord en activité selon les profils d’évaluation EASA / FAA : pilotage manuel brut (Raw Data sans directeur de vol), virages engagés, décrochages, panne moteur au décollage, approches RNP-AR et ILS monomoteur, travail en équipage (MCC/CRM).',
         features: [
-          '120 minutes d’entraînement ciblé sur simulateur',
+          '120 minutes d’entraînement ciblé sur simulateur (Bloc 2h complet)',
           'Encadrement par un commandant de bord de ligne en activité',
           'Profils d’évaluation conformes aux sélections (Raw data, SE ILS, Go-around)',
           'Briefing préalable complet et rapport de débriefing détaillé',
@@ -2125,6 +2223,11 @@ export const translations = {
       secureNotice: 'Transaction sécurisée chiffrée SSL 256 bits via Stripe. Confirmation instantanée et invitation calendrier envoyées par email.',
       errorSelectSlot: 'Veuillez sélectionner un créneau horaire disponible.',
       errorFillFields: 'Veuillez renseigner tous les champs obligatoires.',
+      removeVoucher: 'Supprimer le bon',
+      discountApplied: 'remise appliquée',
+      resetVoucher: 'Réinitialiser',
+      savedVoucher: 'Bon enregistré :',
+      reapplyVoucher: 'Réappliquer en 1 clic ↗',
     },
     bookingSuccess: {
       badge: 'AUTORISATION DE VOL ACCORDÉE',
@@ -2362,6 +2465,24 @@ export const translations = {
       hoursFri: 'Ven : 09:00 - 16:00',
       hoursSat: 'Sam : 19:00 - 24:00',
       rightsReserved: 'Tous droits réservés.',
+      termsRules: 'Règlement et conditions',
+      privacyPolicy: 'Politique de confidentialité et cookies',
+      minAgeLabel: 'Âge minimum : 10+',
+      rulesDrawerTitle: 'Résumé du règlement intérieur (simdream.co.il/rules)',
+      privacyDrawerTitle: 'Politique de confidentialité (simdream.co.il/privacy-policy)',
+      rulesPoint1:
+        '1. Le Centre : SimDream Simulators (Israel) Ltd. (N° d\'immatriculation 515865242), 36 rue Gershon Shatz, Tel Aviv-Yafo. Simulateur professionnel de vol accompagné d\'un instructeur.',
+      rulesPoint2:
+        '2. Âge minimum : L\'accès au cockpit est autorisé dès 10 ans. Les enfants âgés de 10 à 15 ans doivent être accompagnés d\'un adulte. La réservation en ligne requiert 18 ans et plus.',
+      rulesPoint3:
+        '3. Arrivée et retards : Veuillez vous présenter 5 minutes avant l\'heure de votre vol. Un retard supérieur à 10 minutes peut entraîner l\'écourtement de la session sans remboursement.',
+      readFullRules: 'Lire le règlement intérieur complet →',
+      privacyPoint1:
+        '1. Sécurité des données : Vos coordonnées sont utilisées exclusivement pour la planification des vols, les bons cadeaux et le service client. Paiements sécurisés PCI-DSS.',
+      privacyPoint2:
+        '2. Cookies et droits : Nous utilisons des cookies pour maintenir l\'état des réservations, les préférences linguistiques et les statistiques. Contact : desk@simdream.co.il.',
+      readFullPrivacy: 'Lire toute la politique de confidentialité →',
+      proTraining: 'Formation Professionnelle',
       disclaimer:
         'Avertissement : SimDream Simulators (Israel) Ltd. exploite des dispositifs de simulation professionnels. Boeing® est une marque déposée de The Boeing Company.',
     },
@@ -2371,9 +2492,10 @@ export const translations = {
     nav: {
       brandSub: 'مركز محاكاة الطيران • تل أبيب',
       experiences: 'تجارب الطيران',
-      simulator: 'جلسات PRO للمحترفين',
+      simulator: 'تدريب احترافي للطيارين',
       workshops: 'ورش عمل CRM للشركات (B2B)',
       vouchers: 'قسائم الهدايا',
+      about: 'عن المركز',
       contact: 'الموقع والتواصل',
       bookFlight: 'احجز رحلة طيران',
       pilotLogin: 'تسجيل دخول الطيار',
@@ -2441,8 +2563,9 @@ export const translations = {
       pillar4Desc:
         'تحقيق حلم الطفولة، أو تقديم هدية أسطورية يتردد صداها لسنوات، أو كسر حاجز الخوف من الطيران نهائياً في بيئة آمنة وهادئة ومدعومة بأعلى المعايير.',
       pillar4Points: ['قسائم هدايا رقمية فورية مصممة كبطاقات صعود للطائرة', 'جلسات متخصصة ومثبتة علمياً لعلاج رهاب الطيران'],
-      techTeaser: 'هل ترغب في استكشاف تفاصيل الأجهزة المعتمدة والمواصفات الهندسية للסימולטור؟',
+      techTeaser: 'هل ترغب في استكشاف تفاصيل الأجهزة المعتمدة والمواصفات الهندسية لجهاز المحاكاة؟',
       viewTechSpecs: 'عرض المواصفات الفنية الكاملة لطائرة بوينغ 737 ماكس',
+      proTrainingSpecs: 'تدريب الطيارين المحترفين ومواصفات قمرة القيادة 1:1',
     },
     simulator: {
       pageBadge: 'عن سيم دريم إسرائيل',
@@ -2513,6 +2636,11 @@ export const translations = {
       packageHighlights: 'أبرز مميزات الباقة:',
       bookThisFlight: 'حجز هذه الرحلة',
       inquireCorporate: 'طلب عرض للشركات',
+      b2bBadge: 'للشركات وفرق العمل • B2B',
+      b2bTitle: 'هل تبحث عن ورشة عمل قيادية أو يوم بناء فريق للمؤسسات؟',
+      b2bDesc:
+        'ورش عمل إدارة موارد طاقم الطائرة (CRM)، والعمل الجماعي تحت الضغط واتخاذ القرارات في قمرة قيادة بوينغ 737 بمقياس 1:1.',
+      b2bButton: 'استكشاف ورش العمل للشركات',
       giftTeaserBadge: 'هل تبحث عن هدية لا تُنسى؟',
       giftTeaserTitle: 'امنح تجربة الطيران الاستثنائية',
       giftTeaserDesc:
@@ -2566,7 +2694,7 @@ export const translations = {
         ],
       },
       'pkg-pro-60': {
-        title: 'الإعداد لاختبارات القبول 60 PRO',
+        title: 'Airline Interview Prep 60 PRO',
         badge: 'PRO 60 دقيقة • 890 ₪',
         shortDesc: 'تدريب احترافي متقدم لمدة 60 دقيقة على الطيران الآلي IFR والتحضير لاختبارات الخطوط الجوية.',
         description: 'مخصص للطيارين المرخصين (CPL/ATPL) وطلاب الطيران المتقدمين. يشمل الطيران اليدوي بدون موجه (Raw Data / Flight Director OFF)، اقترابات ILS الدقيقة وإجراءات المغادرة والوصول. يمكن للمدرب العمل كضابط أول (PM) أو إتاحة المقعد لزميلك في الطاقم.',
@@ -2580,7 +2708,7 @@ export const translations = {
         ],
       },
       'pkg-pro-90': {
-        title: 'الإعداد لاختبارات القبول 90 PRO',
+        title: 'Airline Interview Prep 90 PRO',
         badge: 'PRO 90 دقيقة • الباقة الأكثر طلباً',
         shortDesc: 'تدريب شامل ومكثف لاختبارات التقييم: برمجة FMS، الطيران اليدوي بدون مساعدات، وحالات عطل المحرك عند سرعة V1.',
         description: 'محاكاة كاملة ودقيقة لاختبارات فحص الطيارين في شركات الطيران الكبرى (إل عال، ويز إير، رايان إير وغيرها). تشمل تهيئة كمبيوتر الرحلة FMS/CDU، إجراءات المغادرة SID، طيران يدوي Raw Data، عطل محرك عند V1، اقتراب ILS بمحرك واحد، الهبوط والإلغاء وإدارة قوائم الطوارئ QRH.',
@@ -2594,12 +2722,12 @@ export const translations = {
         ],
       },
       'pkg-assessment-prep-120': {
-        title: 'التأهيل لاختبارات قبول طياري الخطوط الجوية',
-        badge: 'للطيارين والمتدربين',
-        shortDesc: 'تدريب مخصص للطيارين التجاريين وخريجي الطيران للاستعداد لاختبارات أجهزة المحاكاة (Sim Check).',
+        title: 'Airline Interview Prep 120 PRO',
+        badge: 'PRO 120 دقيقة • جلسة ساعتين كاملة',
+        shortDesc: 'تدريب مكثف لمدة 120 دقيقة (ساعتين) للطيارين التجاريين وخريجي الطيران للاستعداد لاختبارات أجهزة المحاكاة.',
         description: 'إعداد دقيق ومكثف لاختبارات التقييم في طيران إل عال، أركيا، يسرائير، رايان إير، ويز إير وكبرى الشركات العالمية. يقدم التدريب كابتن طيران تجاري عامل وفق معايير EASA / FAA: الطيران اليدوي بدون موجه طيران (Raw Data)، الانعطافات الحادة، استعادة توازن الطائرة عند الانهيار، تشغيل المحرك الواحد، اقترابات RNP-AR، ونظام العمل الجماعي وتنسيق الطاقم.',
         features: [
-          '120 دقيقة تدريب عملي مخصص ومكثف على جهاز المحاكاة',
+          '120 دقيقة تدريب عملي مخصص ومكثف على جهاز المحاكاة (ساعتين كاملتين)',
           'إشراف مباشر من قبطان خطوط جوية تجارية متمرس',
           'تطبيق البروفايلات المعيارية للشركات (Raw Data, SE ILS, Go-Around)',
           'جلسة تمهيدية كاملة وتقرير تحليلي مفصل بعد انتهاء الرحلة',
@@ -2712,6 +2840,11 @@ export const translations = {
       secureNotice: 'معاملة مالية مشفرة وآمنة وفق معيار 256-bit SSL عبر منصة Stripe. يتم إرسال التأكيد الفوري وتذكرة الطيران إلى بريدك.',
       errorSelectSlot: 'يرجى اختيار موعد طيران متاح.',
       errorFillFields: 'يرجى تعبئة كافة الحقول الإلزامية الخاصة ببيانات الطيار.',
+      removeVoucher: 'إزالة القسيمة',
+      discountApplied: 'تم تطبيق الخصم',
+      resetVoucher: 'إلغاء القسيمة',
+      savedVoucher: 'القسيمة المحفوظة:',
+      reapplyVoucher: 'إعادة التطبيق بنقرة واحدة ↗',
     },
     bookingSuccess: {
       badge: 'تم إصدار تصريح الإقلاع الرسمي',
@@ -2949,6 +3082,24 @@ export const translations = {
       hoursFri: 'الجمعة: 09:00 - 16:00',
       hoursSat: 'السبت: 19:00 - 24:00',
       rightsReserved: 'جميع الحقوق محفوظة.',
+      termsRules: 'شروط ولوائح المركز',
+      privacyPolicy: 'سياسة الخصوصية وملفات تعريف الارتباط',
+      minAgeLabel: 'الحد الأدنى للعمر: 10+',
+      rulesDrawerTitle: 'ملخص شروط ولوائح المركز (simdream.co.il/rules)',
+      privacyDrawerTitle: 'ملخص سياسة الخصوصية (simdream.co.il/privacy-policy)',
+      rulesPoint1:
+        '1. المركز: شركة سيم دريم سيموليتورز (إسرائيل) م.ض، رقم تسجيل 515865242، شارع غيرشون شاتس 36، تل أبيب-يافا. منشأة متطورة لتجارب الطيران والتدريب برفقة مدرب طيران معتمد.',
+      rulesPoint2:
+        '2. شروط العمر: يُسمح بدخول القمرة من عمر 10 سنوات فما فوق. الأطفال بين 10 و15 عاماً يلزمهم مرافق بالغ (18+). الحجز والدفع يتطلبان 18 عاماً وما فوق.',
+      rulesPoint3:
+        '3. الوصول والتأخير: يرجى الحضور قبل 5 دقائق من الموعد. أي تأخير يزيد عن 10 دقائق قد يؤدي إلى تقليص مدة الرحلة دون استرداد.',
+      readFullRules: 'قراءة اللوائح والشروط الكاملة ←',
+      privacyPoint1:
+        '1. أمان البيانات والدفع: تُستخدم البيانات (الاسم، البريد، الهاتف) حصرياً لتنسيق الرحلات وإصدار القسائم وخدمة العملاء. عمليات الدفع مشفرة بمعيار PCI-DSS.',
+      privacyPoint2:
+        '2. ملفات تعريف الارتباط: يستخدم الموقع ملفات تعريف الارتباط لإدارة الحجز وتفضيلات اللغة والتحليلات. للاستفسارات: desk@simdream.co.il.',
+      readFullPrivacy: 'قراءة سياسة الخصوصية الكاملة ←',
+      proTraining: 'تدريب احترافي للطيارين',
       disclaimer:
         'تنويه: تدير شركة SimDream Simulators (Israel) Ltd أجهزة محاكاة طيران احترافية. بوينغ® هي علامة تجارية مسجلة لشركة بوينغ.',
     },

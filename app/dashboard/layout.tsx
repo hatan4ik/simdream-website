@@ -21,8 +21,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <Plane className="w-6 h-6 -rotate-45" />
             </div>
             <div className="min-w-0">
-              <h3 className="font-bold text-white text-sm truncate">{user?.fullName || 'Pilot In Command'}</h3>
-              <p className="text-[11px] font-mono text-slate-400 truncate">{user?.email || 'pilot@simdream.co.il'}</p>
+              <h3 className="font-bold text-white text-sm truncate">{user?.fullName || 'Guest'}</h3>
+              <p className="text-[11px] font-mono text-slate-400 truncate">{user?.email || 'Sign in to view your missions'}</p>
               <span className="inline-block mt-1 text-[10px] font-mono text-emerald-400 uppercase font-semibold">
                 &bull; Status: Active Flyer
               </span>
@@ -83,4 +83,3 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     </div>
   );
 }
-

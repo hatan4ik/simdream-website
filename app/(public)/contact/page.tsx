@@ -22,20 +22,352 @@ import {
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
-import { useLanguage } from '@/lib/i18n/language-context';
+import { useLanguage, SupportedLanguage } from '@/lib/i18n/language-context';
 import {
   FACILITY_INFO,
   ROUTE_ORIGIN_PRESETS,
   getLiveFacilityStatus,
   calculateDynamicRouteFromCoords,
   LiveFacilityStatus,
+  RouteOriginPreset,
 } from '@/lib/config/facility-info';
 
 type TravelMode = 'transit' | 'driving' | 'walking';
 
+const CONTACT_COPY: Record<
+  SupportedLanguage,
+  {
+    minAgeLabel: string;
+    minAgeValue: string;
+    reservationPolicyLabel: string;
+    reservationPolicyValue: string;
+    cockpitJumpseatsLabel: string;
+    cockpitJumpseatsValue: string;
+    openNow: string;
+    closedNow: string;
+    sunThu: string;
+    friday: string;
+    saturday: string;
+    calcTitle: string;
+    calcSubtitle: string;
+    gpsLocating: string;
+    gpsReady: string;
+    gpsUse: string;
+    choosePreset: string;
+    customSrOnly: string;
+    customPlaceholder: string;
+    modes: {
+      transit: string;
+      driving: string;
+      walking: string;
+    };
+    destinationLabel: string;
+    launchMaps: string;
+  }
+> = {
+  en: {
+    minAgeLabel: 'MINIMUM PILOT AGE',
+    minAgeValue: 'Ages 10+ Years Old',
+    reservationPolicyLabel: 'RESERVATION POLICY',
+    reservationPolicyValue: 'Advance Booking Required (Arrive 10 min prior)',
+    cockpitJumpseatsLabel: 'COCKPIT JUMPSEATS',
+    cockpitJumpseatsValue: 'Up to 2 Observer Guests Welcome',
+    openNow: 'OPEN NOW',
+    closedNow: 'CLOSED',
+    sunThu: 'Sun – Thu:',
+    friday: 'Friday:',
+    saturday: 'Saturday:',
+    calcTitle: 'Dynamic Google Maps Arrival Calculator',
+    calcSubtitle:
+      'Select your starting point or use your live GPS location to calculate dynamic arrival instructions to Gershon Shatz St 36, Tel Aviv:',
+    gpsLocating: 'Locating GPS...',
+    gpsReady: '✓ Live GPS Active',
+    gpsUse: 'Use My Live GPS',
+    choosePreset: '1. Choose Starting Point or Enter Custom Origin:',
+    customSrOnly: 'Custom starting address',
+    customPlaceholder: 'Or type any starting street/city for live Google Maps routing...',
+    modes: {
+      transit: 'Train / Light Rail',
+      driving: 'Driving & Parking',
+      walking: 'Walking',
+    },
+    destinationLabel: 'DESTINATION:',
+    launchMaps: 'Launch Turn-by-Turn Route in Google Maps ↗',
+  },
+  he: {
+    minAgeLabel: 'גיל מינימלי להטסה',
+    minAgeValue: 'גיל 10+ ומעלה',
+    reservationPolicyLabel: 'תיאום והגעה',
+    reservationPolicyValue: 'נדרשת הזמנה מראש (הגעה 10 דק׳ לפני)',
+    cockpitJumpseatsLabel: 'מלווים בתא הטייס',
+    cockpitJumpseatsValue: 'עד 2 אורחים נוספים בתא הטייס',
+    openNow: 'פתוח כעת',
+    closedNow: 'סגור כעת',
+    sunThu: 'ראשון – חמישי:',
+    friday: 'יום שישי:',
+    saturday: 'מוצ״ש (שבת):',
+    calcTitle: 'מחשבון מסלול הגעה דינמי (Google Maps)',
+    calcSubtitle:
+      'בחרו נקודת מוצא או השתמשו במיקום ה-GPS שלכם לחישוב מסלול הגעה דינמי אל רחוב גרשון ש"ץ 36, תל אביב:',
+    gpsLocating: 'מאתר מיקום...',
+    gpsReady: '✓ מיקום GPS פעיל',
+    gpsUse: 'השתמש במיקום הנוכחי שלי',
+    choosePreset: '1. בחרו נקודת מוצא מהירה או הקלידו כתובת:',
+    customSrOnly: 'כתובת מוצא מותאמת אישית',
+    customPlaceholder: 'או הקלידו עיר / כתובת מוצא לחישוב מסלול ב-Google Maps...',
+    modes: {
+      transit: 'רכבת / רכבת קלה',
+      driving: 'רכב וחניה',
+      walking: 'הליכה רגלית',
+    },
+    destinationLabel: 'יעד:',
+    launchMaps: 'פתח מסלול ניווט חי ב-Google Maps ↗',
+  },
+  ru: {
+    minAgeLabel: 'МИНИМАЛЬНЫЙ ВОЗРАСТ ПИЛОТА',
+    minAgeValue: 'От 10 лет и старше',
+    reservationPolicyLabel: 'ПРАВИЛА БРОНИРОВАНИЯ',
+    reservationPolicyValue: 'Требуется предварительное бронирование (за 10 мин)',
+    cockpitJumpseatsLabel: 'МЕСТА ДЛЯ ГОСТЕЙ В КАБИНЕ',
+    cockpitJumpseatsValue: 'До 2 гостей-наблюдателей бесплатно',
+    openNow: 'СЕЙЧАС ОТКРЫТО',
+    closedNow: 'ЗАКРЫТО',
+    sunThu: 'Вс – Чт:',
+    friday: 'Пятница:',
+    saturday: 'Суббота (вечер):',
+    calcTitle: 'Динамический расчет маршрута в Google Maps',
+    calcSubtitle:
+      'Выберите начальную точку или включите GPS для пошаговой навигации к ул. Гершон Шац 36, Тель-Авив:',
+    gpsLocating: 'Определение GPS...',
+    gpsReady: '✓ GPS активен',
+    gpsUse: 'Использовать мой GPS',
+    choosePreset: '1. Выберите точку отправления или введите адрес:',
+    customSrOnly: 'Пользовательский адрес отправления',
+    customPlaceholder: 'Или введите город / улицу для построения маршрута в Google Maps...',
+    modes: {
+      transit: 'Поезд / Трамвай (Red Line)',
+      driving: 'Автомобиль и парковка',
+      walking: 'Пешком',
+    },
+    destinationLabel: 'ПУНКТ НАЗНАЧЕНИЯ:',
+    launchMaps: 'Открыть навигацию в Google Maps ↗',
+  },
+  fr: {
+    minAgeLabel: 'ÂGE MINIMUM DU PILOTE',
+    minAgeValue: 'Dès 10 ans et plus',
+    reservationPolicyLabel: 'POLITIQUE DE RÉSERVATION',
+    reservationPolicyValue: 'Réservation préalable requise (arriver 10 min avant)',
+    cockpitJumpseatsLabel: 'OBSERVATEURS EN CABINE',
+    cockpitJumpseatsValue: 'Jusqu’à 2 invités observateurs inclus',
+    openNow: 'OUVERT',
+    closedNow: 'FERMÉ',
+    sunThu: 'Dim – Jeu :',
+    friday: 'Vendredi :',
+    saturday: 'Samedi (soir) :',
+    calcTitle: 'Calculateur dynamique d’itinéraire Google Maps',
+    calcSubtitle:
+      'Sélectionnez votre point de départ ou activez votre GPS pour vous rendre au 36 rue Gershon Shatz, Tel-Aviv :',
+    gpsLocating: 'Recherche GPS...',
+    gpsReady: '✓ GPS actif',
+    gpsUse: 'Utiliser mon GPS',
+    choosePreset: '1. Choisissez un point de départ ou saisissez une adresse :',
+    customSrOnly: 'Adresse de départ personnalisée',
+    customPlaceholder: 'Ou saisissez une rue / ville pour le calcul Google Maps...',
+    modes: {
+      transit: 'Train / Tramway',
+      driving: 'Voiture et stationnement',
+      walking: 'À pied',
+    },
+    destinationLabel: 'DESTINATION :',
+    launchMaps: 'Lancer l’itinéraire dans Google Maps ↗',
+  },
+  ar: {
+    minAgeLabel: 'الحد الأدنى لعمر الطيار',
+    minAgeValue: 'من عمر 10 سنوات فما فوق',
+    reservationPolicyLabel: 'سياسة الحجز',
+    reservationPolicyValue: 'الحجز المسبق مطلوب (الوصول قبل 10 دقائق)',
+    cockpitJumpseatsLabel: 'مقاعد المرافقين في قمرة القيادة',
+    cockpitJumpseatsValue: 'ما يصل إلى ضيفين مرافقين في قمرة القيادة',
+    openNow: 'مفتوح الآن',
+    closedNow: 'مغلق الآن',
+    sunThu: 'الأحد – الخميس:',
+    friday: 'الجمعة:',
+    saturday: 'السبت (مساءً):',
+    calcTitle: 'حاسبة مسار الوصول المباشرة (Google Maps)',
+    calcSubtitle:
+      'اختر نقطة انطلاق أو استخدم موقع GPS لحساب مسار الوصول إلى شارع غيرشون شاتس 36، تل أبيب:',
+    gpsLocating: 'تحديد الموقع...',
+    gpsReady: '✓ نظام GPS نشط',
+    gpsUse: 'استخدام موقعي الحالي',
+    choosePreset: '1. اختر نقطة انطلاق سريعة أو أدخل عنواناً:',
+    customSrOnly: 'عنوان انطلاق مخصص',
+    customPlaceholder: 'أو اكتب شارع / مدينة الانطلاق لحساب المسار عبر خرائط Google...',
+    modes: {
+      transit: 'قطار / قطار خفيف',
+      driving: 'بالسيارة والمواقف',
+      walking: 'سيراً على الأقدام',
+    },
+    destinationLabel: 'الوجهة:',
+    launchMaps: 'فتح مسار التنقل المباشر في خرائط Google ↗',
+  },
+};
+
+const PRESET_LOCALIZATIONS: Record<
+  string,
+  {
+    ru: { label: string; transit: string; driving: string };
+    fr: { label: string; transit: string; driving: string };
+    ar: { label: string; transit: string; driving: string };
+  }
+> = {
+  'yehudit-lrt': {
+    ru: {
+      label: 'Трамвай — станция Йехудит (Красная линия)',
+      transit:
+        'Выйдите из подземной станции «Йехудит» (Красная ветка) в сторону ул. Ицхак Садэ / Ха-Масгер → 4 минуты пешком (350 м) по кварталу Монтефиори до ул. Гершон Шац 36.',
+      driving:
+        'С улицы Бегин поверните на ул. Ицхак Садэ → поворот на ул. Гершон Шац 36. Доступна городская разметка (сине-белая) и платные парковки рядом.',
+    },
+    fr: {
+      label: 'Tramway — Station Yehudit (Ligne Rouge)',
+      transit:
+        'Sortez de la station souterraine « Yehudit » (Ligne Rouge) vers HaMasger / Yitzhak Sadeh → 4 minutes à pied (350 m) dans le quartier Montefiore jusqu’au 36 rue Gershon Shatz.',
+      driving:
+        'Depuis Derech Menachem Begin, tournez rue Yitzhak Sadeh → entrez rue Gershon Shatz 36. Stationnement voirie (bleu-blanc) ou parkings privés disponibles.',
+    },
+    ar: {
+      label: 'القطار الخفيف — محطة يهوديت (الخط الأحمر)',
+      transit:
+        'اخرج من محطة القطار الخفيف تحت الأرض "يهوديت" (الخط الأحمر) باتجاه يتسحاق سديه / هماسغير ← سير لمدة 4 دقائق (350 متراً) عبر حي مونتيفيوري حتى شارع غيرشون شاتس 36.',
+      driving:
+        'من طريق بيغن انعطف إلى شارع يتسحاق سديه ← ادخل شارع غيرشون شاتس 36. تتوفر مواقف بلدية (أزرق وأبيض) أو مواقف خاصة مدفوعة.',
+    },
+  },
+  'hashalom-train': {
+    ru: {
+      label: 'Поезд — станция Тель-Авив Ха-Шалом',
+      transit:
+        'Выйдите из станции «Ха-Шалом» (Азриэли) на запад к ул. Бегин → 8–10 мин пешком на юг через ул. Ицхак Садэ (или 1 остановка на Красной линии до Йехудит) → ул. Гершон Шац 36.',
+      driving:
+        'От развязки Азриэли на юг по Дерех Менахем Бегин → налево на ул. Ицхак Садэ → на ул. Гершон Шац 36.',
+    },
+    fr: {
+      label: 'Train — Gare Tel Aviv HaShalom',
+      transit:
+        'Sortez de la gare HaShalom (Azrieli) vers Derech Begin → 8–10 min à pied vers le sud par Yitzhak Sadeh (ou 1 arrêt en Tramway Ligne Rouge jusqu’à Yehudit) → 36 rue Gershon Shatz.',
+      driving:
+        'Depuis Azrieli, prenez vers le sud sur Derech Menachem Begin → tournez à gauche rue Yitzhak Sadeh → entrez rue Gershon Shatz 36.',
+    },
+    ar: {
+      label: 'القطار — محطة تل أبيب هشالوم',
+      transit:
+        'اخرج من محطة قطار هشالوم (عزرائيلي) غرباً نحو طريق بيغن ← مشي 8–10 دقائق جنوباً عبر يتسحاق سديه (أو محطة واحدة بالقطار الخفيف إلى يهوديت) ← الوصول إلى شارع غيرشون شاتس 36.',
+      driving:
+        'من مفرق عزرائيلي اتجه جنوباً على طريق مناحيم بيغن ← انعطف يساراً إلى شارع يتسحاق سديه ← ادخل شارع غيرشون شاتس 36.',
+    },
+  },
+  'ben-gurion-llbg': {
+    ru: {
+      label: 'Аэропорт Бен-Гурион (TLV / LLBG)',
+      transit:
+        'Поезд Израильских железных дорог от станции Бен-Гурион до станции Тель-Авив Ха-Шалом (12 минут) → 9 минут пешком до ул. Гершон Шац 36.',
+      driving:
+        'Трасса 1 на запад к Аялон Север (шоссе 20) → съезд Ла-Гвардия / Ха-Шалом на ул. Ицхак Садэ → ул. Гершон Шац 36.',
+    },
+    fr: {
+      label: 'Aéroport Ben Gourion (TLV / LLBG)',
+      transit:
+        'Prenez le train depuis l’aéroport Ben Gourion jusqu’à la gare Tel Aviv HaShalom (12 min) → 9 min à pied via Yitzhak Sadeh jusqu’au 36 rue Gershon Shatz.',
+      driving:
+        'Prenez la Route 1 Ouest vers Ayalon Nord (Route 20) → Sortie La Guardia / HaShalom vers Yitzhak Sadeh → 36 rue Gershon Shatz.',
+    },
+    ar: {
+      label: 'مطار بن غوريون (TLV / LLBG)',
+      transit:
+        'استقل قطار إسرائيل من محطة مطار بن غوريون مباشرة إلى محطة تل أبيب هشالوم (12 دقيقة) ← 9 دقائق سيراً عبر شارع يتسحاق سديه إلى شارع غيرشون شاتس 36.',
+      driving:
+        'اسلك طريق 1 غرباً باتجاه أيالون شمالاً (طريق 20) ← اخرج عند مفرق لاغوارديا / هشالوم باتجاه شارع يتسحاق سديه ← انعطف إلى شارع غيرشون شاتس 36.',
+    },
+  },
+  'herzliya-north': {
+    ru: {
+      label: 'Герцлия / Северный Тель-Авив',
+      transit:
+        'Поезд на юг до станции Тель-Авив Ха-Шалом или Красная линия трамвая до ст. Йехудит → короткая прогулка до ул. Гершон Шац 36.',
+      driving:
+        'Аялон Юг (шоссе 20) → съезд Ха-Шалом → на ул. Ицхак Садэ и поворот на ул. Гершон Шац 36.',
+    },
+    fr: {
+      label: 'Herzliya / Nord de Tel-Aviv',
+      transit:
+        'Train vers le sud jusqu’à HaShalom ou Ligne Rouge du Tramway jusqu’à Yehudit → courte marche jusqu’au 36 rue Gershon Shatz.',
+      driving:
+        'Ayalon Sud (Route 20) → Sortie HaShalom → continuez sur Yitzhak Sadeh et tournez rue Gershon Shatz 36.',
+    },
+    ar: {
+      label: 'هرتسليا / شمال تل أبيب',
+      transit:
+        'قطار إسرائيل جنوباً إلى محطة تل أبيب هشالوم أو الخط الأحمر للقطار الخفيف إلى محطة يهوديت ← مشي قصير إلى شارع غيرشون شاتس 36.',
+      driving:
+        'اسلك أيالون جنوباً (طريق 20) ← اخرج عند مفرق هشالوم ← تابع إلى شارع يتسحاق سديه وانعطف إلى شارع غيرشون شاتس 36.',
+    },
+  },
+  'rishon-south': {
+    ru: {
+      label: 'Ришон-ле-Цион / Бат-Ям / Юг',
+      transit:
+        'Красная ветка трамвая на север прямо до станции Йехудит (без пересадок) → 4 минуты пешком до ул. Гершон Шац 36.',
+      driving:
+        'Аялон Север (шоссе 20) → съезд Ла-Гвардия на ул. Ицхак Садэ → поворот на ул. Гершон Шац 36.',
+    },
+    fr: {
+      label: 'Rishon LeZion / Bat Yam / Sud',
+      transit:
+        'Ligne Rouge du Tramway vers le nord directement jusqu’à Yehudit (direct) → 4 minutes à pied jusqu’au 36 rue Gershon Shatz.',
+      driving:
+        'Ayalon Nord (Route 20) → Sortie La Guardia vers Yitzhak Sadeh → tournez rue Gershon Shatz 36.',
+    },
+    ar: {
+      label: 'ريشون لتسيون / بات يام / الجنوب',
+      transit:
+        'الخط الأحمر للقطار الخفيف شمالاً مباشرة إلى محطة يهوديت (مباشر) ← 4 دقائق مشي إلى شارع غيرشون شاتس 36.',
+      driving:
+        'اسلك أيالون شمالاً (طريق 20) ← اخرج عند مفرق لاغوارديا باتجاه شارع يتسحاق سديه ← انعطف إلى شارع غيرشون شاتس 36.',
+    },
+  },
+};
+
+function getPresetLabel(preset: RouteOriginPreset, lang: SupportedLanguage): string {
+  if (lang === 'he') return preset.labelHe;
+  if (lang === 'ru' && PRESET_LOCALIZATIONS[preset.id]?.ru) return PRESET_LOCALIZATIONS[preset.id].ru.label;
+  if (lang === 'fr' && PRESET_LOCALIZATIONS[preset.id]?.fr) return PRESET_LOCALIZATIONS[preset.id].fr.label;
+  if (lang === 'ar' && PRESET_LOCALIZATIONS[preset.id]?.ar) return PRESET_LOCALIZATIONS[preset.id].ar.label;
+  return preset.labelEn;
+}
+
+function getPresetSteps(
+  preset: RouteOriginPreset,
+  lang: SupportedLanguage,
+  mode: TravelMode
+): string {
+  if (lang === 'he') {
+    return mode === 'driving' ? preset.drivingStepsHe : preset.transitStepsHe;
+  }
+  if (lang === 'ru' && PRESET_LOCALIZATIONS[preset.id]?.ru) {
+    return mode === 'driving' ? PRESET_LOCALIZATIONS[preset.id].ru.driving : PRESET_LOCALIZATIONS[preset.id].ru.transit;
+  }
+  if (lang === 'fr' && PRESET_LOCALIZATIONS[preset.id]?.fr) {
+    return mode === 'driving' ? PRESET_LOCALIZATIONS[preset.id].fr.driving : PRESET_LOCALIZATIONS[preset.id].fr.transit;
+  }
+  if (lang === 'ar' && PRESET_LOCALIZATIONS[preset.id]?.ar) {
+    return mode === 'driving' ? PRESET_LOCALIZATIONS[preset.id].ar.driving : PRESET_LOCALIZATIONS[preset.id].ar.transit;
+  }
+  return mode === 'driving' ? preset.drivingStepsEn : preset.transitStepsEn;
+}
+
 export default function ContactPage() {
   const { t, language } = useLanguage();
-  const isHe = language === 'he';
+  const c = CONTACT_COPY[language] || CONTACT_COPY.en;
 
   // Live Israel Time & Facility Open/Closed Status
   const [liveStatus, setLiveStatus] = useState<LiveFacilityStatus>(() => getLiveFacilityStatus());
@@ -47,6 +379,28 @@ export default function ContactPage() {
     }, 30000);
     return () => clearInterval(timer);
   }, []);
+
+  const liveStatusHeadline =
+    language === 'he'
+      ? liveStatus.statusHeadlineHe
+      : language === 'ru'
+      ? (liveStatus.isOpen ? 'ОТКРЫТО • По предварительной записи' : 'СЕЙЧАС ЗАКРЫТО • Бронирование 24/7')
+      : language === 'fr'
+      ? (liveStatus.isOpen ? 'OUVERT • Sur réservation préalable' : 'ACTUELLEMENT FERMÉ • Réservation 24/7')
+      : language === 'ar'
+      ? (liveStatus.isOpen ? 'مفتوح ويعمل • يتطلب حجزاً مسبقاً' : 'مغلق حالياً • الحجز الإلكتروني متاح 24/7')
+      : liveStatus.statusHeadlineEn;
+
+  const liveStatusSubline =
+    language === 'he'
+      ? liveStatus.statusSublineHe
+      : language === 'ru'
+      ? `Время в Тель-Авиве: ${liveStatus.israelTimeFormatted} IST • Онлайн-бронирование 24/7`
+      : language === 'fr'
+      ? `Heure de Tel-Aviv : ${liveStatus.israelTimeFormatted} IST • Réservation en ligne 24/7`
+      : language === 'ar'
+      ? `توقيت تل أبيب: ${liveStatus.israelTimeFormatted} IST • الحجز الإلكتروني متاح 24/7`
+      : liveStatus.statusSublineEn;
 
   // Dynamic Arrival & Route Calculator State
   const [selectedPresetId, setSelectedPresetId] = useState<string>('yehudit-lrt');
@@ -166,10 +520,10 @@ export default function ContactPage() {
           </div>
           <div>
             <div className="text-xs font-mono uppercase text-amber-400 font-bold">
-              {isHe ? 'גיל מינימלי להטסה' : 'MINIMUM PILOT AGE'}
+              {c.minAgeLabel}
             </div>
             <div className="text-sm sm:text-base font-black text-white">
-              {isHe ? 'גיל 10+ ומעלה' : 'Ages 10+ Years Old'}
+              {c.minAgeValue}
             </div>
           </div>
         </div>
@@ -180,10 +534,10 @@ export default function ContactPage() {
           </div>
           <div>
             <div className="text-xs font-mono uppercase text-sky-400 font-bold">
-              {isHe ? 'תיאום והגעה' : 'RESERVATION POLICY'}
+              {c.reservationPolicyLabel}
             </div>
             <div className="text-sm font-bold text-white">
-              {isHe ? 'נדרשת הזמנה מראש (הגעה 10 דק׳ לפני)' : 'Advance Booking Required'}
+              {c.reservationPolicyValue}
             </div>
           </div>
         </div>
@@ -194,10 +548,10 @@ export default function ContactPage() {
           </div>
           <div>
             <div className="text-xs font-mono uppercase text-emerald-400 font-bold">
-              {isHe ? 'מלווים בתא הטייס' : 'COCKPIT JUMPSEATS'}
+              {c.cockpitJumpseatsLabel}
             </div>
             <div className="text-sm font-bold text-white">
-              {isHe ? 'עד 2 אורחים נוספים בתא הטייס' : 'Up to 2 Observer Guests Welcome'}
+              {c.cockpitJumpseatsValue}
             </div>
           </div>
         </div>
@@ -265,7 +619,7 @@ export default function ContactPage() {
                     liveStatus.isOpen ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'
                   }`}
                 />
-                <span>{liveStatus.isOpen ? (isHe ? 'פתוח כעת' : 'OPEN NOW') : isHe ? 'סגור כעת' : 'CLOSED'}</span>
+                <span>{liveStatus.isOpen ? c.openNow : c.closedNow}</span>
               </span>
             </div>
 
@@ -273,15 +627,15 @@ export default function ContactPage() {
 
             <div className="text-slate-200 text-xs font-mono space-y-1.5 bg-slate-950/70 p-3 rounded-xl border border-slate-800/80">
               <div className="flex justify-between">
-                <span className="text-slate-400">{isHe ? 'ראשון – חמישי:' : 'Sun – Thu:'}</span>
+                <span className="text-slate-400">{c.sunThu}</span>
                 <span className="font-bold text-white" dir="ltr">10:00 – 23:00</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">{isHe ? 'יום שישי:' : 'Friday:'}</span>
+                <span className="text-slate-400">{c.friday}</span>
                 <span className="font-bold text-white" dir="ltr">09:00 – 16:00</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">{isHe ? 'מוצ״ש (שבת):' : 'Saturday:'}</span>
+                <span className="text-slate-400">{c.saturday}</span>
                 <span className="font-bold text-amber-300" dir="ltr">19:00 – 24:00</span>
               </div>
             </div>
@@ -289,10 +643,10 @@ export default function ContactPage() {
 
           <div className="pt-3 border-t border-slate-800/80 space-y-0.5 font-mono text-[11px]">
             <p className={liveStatus.isOpen ? 'text-emerald-400 font-bold' : 'text-amber-400 font-bold'}>
-              {isHe ? liveStatus.statusHeadlineHe : liveStatus.statusHeadlineEn}
+              {liveStatusHeadline}
             </p>
             <p className="text-slate-400">
-              {isHe ? liveStatus.statusSublineHe : liveStatus.statusSublineEn}
+              {liveStatusSubline}
             </p>
           </div>
         </Card>
@@ -356,9 +710,7 @@ export default function ContactPage() {
           <div className="space-y-1">
             <h2 className="text-2xl font-black text-white">{t.contact.directionsTitle}</h2>
             <p className="text-xs sm:text-sm text-slate-400">
-              {isHe
-                ? 'בחרו נקודת מוצא או השתמשו במיקום ה-GPS שלכם לחישוב מסלול הגעה דינמי אל רחוב גרשון ש"ץ 36, תל אביב:'
-                : 'Select your starting point or use your live GPS location to calculate dynamic arrival instructions to Gershon Shatz St 36:'}
+              {c.calcSubtitle}
             </p>
           </div>
 
@@ -368,7 +720,7 @@ export default function ContactPage() {
               <div className="flex items-center gap-2">
                 <Compass aria-hidden="true" className="w-5 h-5 text-sky-400" />
                 <span className="text-sm font-bold text-white font-mono uppercase">
-                  {isHe ? 'מחשבון מסלול הגעה דינמי (Google Maps)' : 'Dynamic Google Maps Arrival Calculator'}
+                  {c.calcTitle}
                 </span>
               </div>
 
@@ -380,16 +732,10 @@ export default function ContactPage() {
                 <LocateFixed aria-hidden="true" className="w-3.5 h-3.5" />
                 <span>
                   {gpsStatus === 'locating'
-                    ? isHe
-                      ? 'מאתר מיקום...'
-                      : 'Locating GPS...'
+                    ? c.gpsLocating
                     : gpsStatus === 'ready'
-                    ? isHe
-                      ? '✓ מיקום GPS פעיל'
-                      : '✓ Live GPS Active'
-                    : isHe
-                    ? 'השתמש במיקום הנוכחי שלי'
-                    : 'Use My Live GPS'}
+                    ? c.gpsReady
+                    : c.gpsUse}
                 </span>
               </button>
             </div>
@@ -397,7 +743,7 @@ export default function ContactPage() {
             {/* Quick Starting Point Pills */}
             <div className="space-y-2">
               <span className="block text-[11px] font-mono uppercase text-slate-400">
-                {isHe ? '1. בחרו נקודת מוצא מהירה או הקלידו כתובת:' : '1. Choose Starting Point or Enter Custom Origin:'}
+                {c.choosePreset}
               </span>
               <div className="flex flex-wrap gap-1.5">
                 {ROUTE_ORIGIN_PRESETS.map((preset) => {
@@ -417,7 +763,7 @@ export default function ContactPage() {
                           : 'bg-slate-950 border border-slate-800 text-slate-300 hover:border-slate-700'
                       }`}
                     >
-                      {isHe ? preset.labelHe : preset.labelEn}
+                      {getPresetLabel(preset, language)}
                     </button>
                   );
                 })}
@@ -425,7 +771,7 @@ export default function ContactPage() {
 
               <div className="pt-1">
                 <label htmlFor="custom-origin-input" className="sr-only">
-                  {isHe ? 'כתובת מוצא מותאמת אישית' : 'Custom starting address'}
+                  {c.customSrOnly}
                 </label>
                 <input
                   id="custom-origin-input"
@@ -433,11 +779,7 @@ export default function ContactPage() {
                   type="text"
                   value={customOrigin}
                   onChange={(e) => setCustomOrigin(e.target.value)}
-                  placeholder={
-                    isHe
-                      ? 'או הקלידו עיר / כתובת מוצא לחישוב מסלול ב-Google Maps...'
-                      : 'Or type any starting street/city for live Google Maps routing...'
-                  }
+                  placeholder={c.customPlaceholder}
                   className="w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm text-white focus:outline-none focus:border-sky-500"
                 />
               </div>
@@ -449,17 +791,17 @@ export default function ContactPage() {
                 [
                   {
                     id: 'transit',
-                    label: isHe ? 'רכבת / רכבת קלה' : 'Train / Light Rail',
+                    label: c.modes.transit,
                     icon: Train,
                   },
                   {
                     id: 'driving',
-                    label: isHe ? 'רכב וחניה' : 'Driving & Parking',
+                    label: c.modes.driving,
                     icon: Car,
                   },
                   {
                     id: 'walking',
-                    label: isHe ? 'הליכה רגלית' : 'Walking',
+                    label: c.modes.walking,
                     icon: Footprints,
                   },
                 ] as const
@@ -488,7 +830,7 @@ export default function ContactPage() {
             <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-2.5 font-mono text-xs">
                 <span className="text-slate-400">
-                  {isHe ? 'יעד:' : 'DESTINATION:'}{' '}
+                  {c.destinationLabel}{' '}
                   <strong className="text-white">Gershon Shatz 36, Tel Aviv</strong>
                 </span>
                 <div className="flex items-center gap-3">
@@ -500,13 +842,7 @@ export default function ContactPage() {
               </div>
 
               <p className="text-xs sm:text-sm text-slate-200 leading-relaxed">
-                {travelMode === 'driving'
-                  ? isHe
-                    ? activePreset.drivingStepsHe
-                    : activePreset.drivingStepsEn
-                  : isHe
-                  ? activePreset.transitStepsHe
-                  : activePreset.transitStepsEn}
+                {getPresetSteps(activePreset, language, travelMode)}
               </p>
 
               <div className="pt-1 flex flex-wrap gap-2">
@@ -517,11 +853,7 @@ export default function ContactPage() {
                   className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-mono text-xs font-black transition-all shadow-md"
                 >
                   <Navigation aria-hidden="true" className="w-3.5 h-3.5" />
-                  <span>
-                    {isHe
-                      ? 'פתח מסלול ניווט חי ב-Google Maps ↗'
-                      : 'Launch Turn-by-Turn Route in Google Maps ↗'}
-                  </span>
+                  <span>{c.launchMaps}</span>
                 </a>
               </div>
             </div>

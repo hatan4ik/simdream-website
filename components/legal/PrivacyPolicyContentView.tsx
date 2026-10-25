@@ -14,33 +14,90 @@ import {
 } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
-import { useLanguage } from '@/lib/i18n/language-context';
+import { useLanguage, SupportedLanguage } from '@/lib/i18n/language-context';
 import { FACILITY_INFO } from '@/lib/config/facility-info';
+
+const PRIVACY_COPY: Record<
+  SupportedLanguage,
+  {
+    badge: string;
+    title: string;
+    reg: string;
+    address: string;
+    contactOfficer: string;
+    rulesLink: string;
+  }
+> = {
+  en: {
+    badge: 'OFFICIAL PRIVACY & COOKIE POLICY',
+    title: 'Privacy & Cookie Policy — Sim Dream Israel',
+    reg: `Company Reg. (ח.פ.) ${FACILITY_INFO.companyRegistrationNumber}`,
+    address: `Address: ${FACILITY_INFO.address.streetEn}, ${FACILITY_INFO.address.cityEn} | Privacy Contact: ${FACILITY_INFO.contact.email}`,
+    contactOfficer: 'Privacy & Data Protection Officer Contact',
+    rulesLink: 'View Facility Rules & Terms →',
+  },
+  he: {
+    badge: 'מדיניות פרטיות וקובצי COOKIE • SIM DREAM ISRAEL',
+    title: 'מדיניות פרטיות ואבטחת מידע – סימדרים ישראל',
+    reg: `ח.פ. ${FACILITY_INFO.companyRegistrationNumber}`,
+    address: `כתובת: ${FACILITY_INFO.address.streetHe}, ${FACILITY_INFO.address.cityHe} | דוא״ל פרטיות: ${FACILITY_INFO.contact.email}`,
+    contactOfficer: 'יצירת קשר בנושאי פרטיות ואבטחת מידע',
+    rulesLink: 'לתקנון ותנאי השימוש ←',
+  },
+  ru: {
+    badge: 'ПОЛИТИКА КОНФИДЕНЦИАЛЬНОСТИ И COOKIE • SIM DREAM ISRAEL',
+    title: 'Политика конфиденциальности и защита данных — Sim Dream Israel',
+    reg: `Рег. номер компании (ח.פ.): ${FACILITY_INFO.companyRegistrationNumber}`,
+    address: `Адрес: ${FACILITY_INFO.address.streetEn}, Тель-Авив | Контакт по данным: ${FACILITY_INFO.contact.email}`,
+    contactOfficer: 'Служба защиты персональных данных',
+    rulesLink: 'Регламент и правила посещения →',
+  },
+  fr: {
+    badge: 'POLITIQUE DE CONFIDENTIALITÉ & COOKIES • SIM DREAM ISRAEL',
+    title: 'Protection des Données et Confidentialité — Sim Dream Israel',
+    reg: `N° d'enregistrement (ח.פ.) : ${FACILITY_INFO.companyRegistrationNumber}`,
+    address: `Adresse : ${FACILITY_INFO.address.streetEn}, Tel Aviv | Contact : ${FACILITY_INFO.contact.email}`,
+    contactOfficer: 'Contact délégué à la protection des données',
+    rulesLink: 'Consulter le règlement intérieur →',
+  },
+  ar: {
+    badge: 'سياسة الخصوصية وملفات تعريف الارتباط • SIM DREAM ISRAEL',
+    title: 'سياسة الخصوصية وأمان البيانات — سيم دريم إسرائيل',
+    reg: `رقم تسجيل الشركة (ח.פ.): ${FACILITY_INFO.companyRegistrationNumber}`,
+    address: `العنوان: ${FACILITY_INFO.address.streetEn}، تل أبيب | بريد الخصوصية: ${FACILITY_INFO.contact.email}`,
+    contactOfficer: 'مسؤول حماية البيانات والخصوصية',
+    rulesLink: 'عرض اللائحة الرسمية وشروط الاستخدام ←',
+  },
+};
 
 export function PrivacyPolicyContentView() {
   const { language } = useLanguage();
   const isHe = language === 'he';
+  const c = PRIVACY_COPY[language] || PRIVACY_COPY.en;
 
   return (
     <main className="flex-1 py-14 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto space-y-10">
       {/* Header */}
       <header className="space-y-4 border-b border-slate-800 pb-8">
-        <Badge variant="emerald">
-          {isHe ? 'מדיניות פרטיות וקובצי COOKIE • SIM DREAM ISRAEL' : 'OFFICIAL PRIVACY & COOKIE POLICY'}
-        </Badge>
-        <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight">
-          {isHe ? 'מדיניות פרטיות ואבטחת מידע – סימדרים ישראל' : 'Privacy & Cookie Policy — Sim Dream Israel'}
-        </h1>
+        <Badge variant="emerald">{c.badge}</Badge>
+        <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight">{c.title}</h1>
         <p className="text-sm text-slate-300 font-mono">
-          {FACILITY_INFO.legalNameHe} • {FACILITY_INFO.legalNameEn} •{' '}
-          {isHe ? `ח.פ. ${FACILITY_INFO.companyRegistrationNumber}` : `Company Reg. (ח.פ.) ${FACILITY_INFO.companyRegistrationNumber}`}
+          {FACILITY_INFO.legalNameHe} • {FACILITY_INFO.legalNameEn} • {c.reg}
         </p>
-        <p className="text-xs text-slate-400">
-          {isHe
-            ? `כתובת: ${FACILITY_INFO.address.streetHe}, ${FACILITY_INFO.address.cityHe} | דוא״ל פרטיות: ${FACILITY_INFO.contact.email}`
-            : `Address: ${FACILITY_INFO.address.streetEn}, ${FACILITY_INFO.address.cityEn} | Privacy Contact: ${FACILITY_INFO.contact.email}`}
-        </p>
+        <p className="text-xs text-slate-400">{c.address}</p>
       </header>
+
+      {/* International Language Notice */}
+      {!isHe && language !== 'en' && (
+        <div className="p-4 rounded-xl border border-emerald-500/30 bg-emerald-950/20 text-xs text-slate-300 font-mono">
+          {language === 'ru' &&
+            'ℹ️ Политика конфиденциальности SimDream (Израиль) юридически действует на иврите и английском языках в соответствии с Законом о защите конфиденциальности Государства Израиль (5741-1981). Ниже приведена официальная английская версия.'}
+          {language === 'fr' &&
+            'ℹ️ La politique de confidentialité de SimDream Israël est juridiquement régie en hébreu et en anglais conformément à la loi israélienne sur la protection de la vie privée (5741-1981). Veuillez trouver ci-dessous la version officielle en anglais.'}
+          {language === 'ar' &&
+            'ℹ️ تخضع سياسة الخصوصية لمركز سيم دريم للقانون الإسرائيلي لحماية الخصوصية باللغتين العبرية والإنجليزية. يُرجى الاطلاع أدناه على النسخة الرسمية باللغة الإنجليزية.'}
+        </div>
+      )}
 
       {/* Sections */}
       <div className="space-y-6 text-sm text-slate-300 leading-relaxed">
@@ -110,9 +167,7 @@ export function PrivacyPolicyContentView() {
       {/* Contact & Cross-Link Box */}
       <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs text-slate-300">
         <div className="space-y-1">
-          <p className="font-bold text-white">
-            {isHe ? 'יצירת קשר בנושאי פרטיות ואבטחת מידע' : 'Privacy & Data Protection Officer Contact'}
-          </p>
+          <p className="font-bold text-white">{c.contactOfficer}</p>
           <div className="flex flex-wrap items-center gap-4 font-mono text-slate-400">
             <span className="inline-flex items-center gap-1">
               <MapPin className="w-3.5 h-3.5 text-sky-400" />
@@ -132,7 +187,7 @@ export function PrivacyPolicyContentView() {
           href="/rules"
           className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-sky-300 font-mono font-semibold shrink-0"
         >
-          {isHe ? 'לתקנון ותנאי השימוש ←' : 'View Facility Rules (תקנון) →'}
+          {c.rulesLink}
         </Link>
       </div>
     </main>

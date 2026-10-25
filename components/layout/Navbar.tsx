@@ -10,6 +10,8 @@ import { useLanguage } from '@/lib/i18n/language-context';
 import { LanguageSelector } from './LanguageSelector';
 import { UiThemeSwitcher } from './UiThemeSwitcher';
 
+const demoModeEnabled = process.env.NODE_ENV !== 'production' && !process.env.NEXT_PUBLIC_SUPABASE_URL;
+
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
@@ -19,14 +21,14 @@ export function Navbar() {
 
   const navLinks = [
     { name: t.nav.experiences, href: '/experiences' },
-    { name: t.nav.simulator, href: '/about' },
+    { name: t.nav.simulator, href: '/pro' },
     { name: t.nav.workshops, href: '/workshops' },
     { name: t.nav.vouchers, href: '/vouchers' },
     { name: t.nav.contact, href: '/contact' },
   ];
 
   const isActive = (path: string) =>
-    pathname === path || (path === '/about' && pathname === '/simulator');
+    pathname === path || (path === '/pro' && (pathname === '/about' || pathname === '/simulator'));
 
   return (
     <nav className="sticky top-0 z-50 bg-slate-950/85 backdrop-blur-lg border-b border-slate-800/80">
@@ -92,7 +94,7 @@ export function Navbar() {
                     <p className="text-[10px] text-slate-400 uppercase font-mono">Signed in as</p>
                     <p className="font-semibold text-white truncate">{user?.email || 'Guest'}</p>
                     <span className="inline-block mt-1 px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-400 font-mono text-[10px]">
-                      {isAdmin ? 'DISPATCHER (ADMIN)' : 'PILOT IN COMMAND'}
+                      {user ? (isAdmin ? 'DISPATCHER (ADMIN)' : 'PILOT IN COMMAND') : 'GUEST'}
                     </span>
                   </div>
 
@@ -116,7 +118,7 @@ export function Navbar() {
                     </Link>
                   )}
 
-                  <div className="px-3 py-1.5 border-t border-slate-800 mt-1">
+                  {demoModeEnabled && <div className="px-3 py-1.5 border-t border-slate-800 mt-1">
                     <p className="text-[10px] text-slate-500 mb-1">Quick Demo Switcher:</p>
                     <div className="flex gap-1.5">
                       <button
@@ -138,7 +140,7 @@ export function Navbar() {
                         {t.nav.adminMode}
                       </button>
                     </div>
-                  </div>
+                  </div>}
 
                   <div className="border-t border-slate-800 mt-1 pt-1">
                     <button
@@ -223,7 +225,7 @@ export function Navbar() {
             <UiThemeSwitcher variant="full" />
           </div>
 
-          <div className="pt-3 border-t border-slate-800 flex items-center justify-between">
+          {demoModeEnabled && <div className="pt-3 border-t border-slate-800 flex items-center justify-between">
             <span className="text-xs text-slate-400">Demo Role:</span>
             <div className="flex gap-2">
               <button
@@ -239,7 +241,7 @@ export function Navbar() {
                 {t.nav.adminMode}
               </button>
             </div>
-          </div>
+          </div>}
         </div>
       )}
     </nav>

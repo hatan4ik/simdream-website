@@ -170,21 +170,17 @@ export default function ExperiencesPage() {
       {/* B2B / Corporate Aviation Workshops Dedicated Bridge Card */}
       <div className="rounded-2xl border border-amber-500/30 bg-gradient-to-r from-amber-950/40 via-slate-900 to-amber-950/40 p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
         <div className="space-y-2 text-center md:text-left rtl:md:text-right">
-          <Badge variant="amber">{language === 'he' ? 'עסקים וצוותים • B2B WORKSHOPS' : 'CORPORATE & ENTERPRISE'}</Badge>
+          <Badge variant="amber">{t.experiences.b2bBadge}</Badge>
           <h3 className="text-xl sm:text-2xl font-bold text-white">
-            {language === 'he'
-              ? 'מחפשים סדנת מנהלים או יום גיבוש ארגוני?'
-              : 'Looking for Corporate Leadership & CRM Team Events?'}
+            {t.experiences.b2bTitle}
           </h3>
           <p className="text-slate-300 text-xs sm:text-sm max-w-xl">
-            {language === 'he'
-              ? 'סדנאות ניהול משאבי צוות (CRM), עבודת צוות תחת לחץ וקבלת החלטות בקוקפיט בואינג 737. לפרטים ותיאום מותאם אישית לחברות.'
-              : 'Crew Resource Management (CRM) workshops, high-stakes decision making, and team synchronization in a 1:1 Boeing 737 cockpit.'}
+            {t.experiences.b2bDesc}
           </p>
         </div>
         <Link href="/workshops" className="shrink-0">
           <Button size="lg" className="font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-glowAmber">
-            <span>{language === 'he' ? 'צפו בסדנאות לארגונים' : 'Explore Corporate Workshops'}</span>
+            <span>{t.experiences.b2bButton}</span>
             <ArrowRight className={`w-4 h-4 text-slate-950 ${isRTL ? 'rotate-180' : ''}`} />
           </Button>
         </Link>

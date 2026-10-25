@@ -7,6 +7,7 @@ export type SeoPageKey =
   | 'experiences'
   | 'about'
   | 'simulator'
+  | 'pro'
   | 'workshops'
   | 'vouchers'
   | 'contact'
@@ -94,15 +95,17 @@ export const PAGE_SEO_DEFINITIONS: Record<SeoPageKey, PageSeoDefinition> = {
   },
   about: {
     path: '/about',
-    title: 'About Sim Dream Israel & The Boeing 737 Flight Experience | Tel Aviv (אודות)',
+    title: 'Professional Training & Airline Assessment Preparation | Sim Dream Tel Aviv (הדרכה מקצועית לטייסים)',
     description:
-      'Discover how a Sim Dream Boeing 737 flight session works in Tel Aviv. Learn about our commercial pilot instructors, pre-flight briefing, 220° wrap-around visual horizon, free jumpseat observers, and minimum age 10+ policy.',
+      'Professional Boeing 737 MAX flight training for commercial pilots and airline applicants in Tel Aviv (Gershon Shatz 36). Airline Interview Prep 60, 90, and 120 PRO packages covering Raw Data manual flying, V1 Cut, Single-Engine ILS, and QRH procedures.',
     keywords: [
       ...COMMON_KEYWORDS,
-      'about Sim Dream Israel',
-      'how flight simulator works',
-      'אודות סים דרים',
-      'Boeing 737 flight experience Tel Aviv',
+      'airline interview prep 60 pro',
+      'airline interview prep 90 pro',
+      'airline interview prep 120 pro',
+      'professional flight training Tel Aviv',
+      'הדרכה מקצועית לטייסים',
+      'הכנה למבדקי חברות תעופה',
     ],
   },
   simulator: {
@@ -117,6 +120,21 @@ export const PAGE_SEO_DEFINITIONS: Record<SeoPageKey, PageSeoDefinition> = {
       'הכנה למיוני חברות תעופה',
       'אימון טייסים מקצועי סימולטור',
       'raw data manual flying Boeing 737',
+    ],
+  },
+  pro: {
+    path: '/pro',
+    title: 'Professional Training & Airline Assessment Preparation | Sim Dream Tel Aviv (הדרכה מקצועית לטייסים)',
+    description:
+      'Professional Boeing 737 MAX flight training for commercial pilots and airline applicants in Tel Aviv (Gershon Shatz 36). Airline Interview Prep 60, 90, and 120 PRO packages covering Raw Data manual flying, V1 Cut, Single-Engine ILS, and QRH procedures.',
+    keywords: [
+      ...COMMON_KEYWORDS,
+      'airline interview prep 60 pro',
+      'airline interview prep 90 pro',
+      'airline interview prep 120 pro',
+      'professional flight training Tel Aviv',
+      'הדרכה מקצועית לטייסים',
+      'הכנה למבדקי חברות תעופה',
     ],
   },
   workshops: {

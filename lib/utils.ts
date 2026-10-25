@@ -21,22 +21,23 @@ export function formatCurrency(amount: number, currency: 'ILS' | 'USD' = 'ILS'):
   }).format(amount).replace('ILS', '₪');
 }
 
-export function generateBookingReference(): string {
+function cryptographicallyRandomToken(length: number): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let ref = 'SD-737-';
-  for (let i = 0; i < 4; i++) {
-    ref += chars.charAt(Math.floor(Math.random() * chars.length));
+  if (!globalThis.crypto?.getRandomValues) {
+    throw new Error('Secure random number generation is unavailable.');
   }
-  return ref;
+  const values = new Uint32Array(length);
+  globalThis.crypto.getRandomValues(values);
+  return Array.from(values, (value) => chars[value % chars.length]).join('');
+}
+
+/** Capability-style booking reference; do not make this short or guessable. */
+export function generateBookingReference(): string {
+  return `SD-737-${cryptographicallyRandomToken(16)}`;
 }
 
 export function generateVoucherCode(): string {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let code = 'SD-VOUCH-';
-  for (let i = 0; i < 4; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return code;
+  return `SD-VOUCH-${cryptographicallyRandomToken(18)}`;
 }
 
 export function formatLocalYMD(date: Date): string {
@@ -81,4 +82,3 @@ export function extractErrorMessage(err: unknown, fallback: string): string {
   }
   return fallback;
 }
-

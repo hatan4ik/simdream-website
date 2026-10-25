@@ -121,14 +121,14 @@ export default function AdminOverviewPage() {
 
         <Card className="space-y-1">
           <div className="flex justify-between items-center text-slate-400 text-xs font-mono">
-            <span>LP TARGET YIELD</span>
+            <span>CAPACITY TARGET YIELD</span>
             <TrendingUp className="w-4 h-4 text-amber-400" />
           </div>
           <p className="text-2xl font-black text-amber-400 font-mono">
             {efficiency ? formatCurrency(efficiency.projectedMaxRevenueIls) : '₪7,320'}
           </p>
           <p className="text-[10px] text-slate-500 font-mono">
-            Kantorovich Daily Max ({efficiency?.totalFundMinutes || 780}m fund)
+            Tiled schedule target ({efficiency?.totalFundMinutes || 780}m capacity)
           </p>
         </Card>
 
@@ -142,13 +142,13 @@ export default function AdminOverviewPage() {
         </Card>
       </div>
 
-      {/* KANTOROVICH DAILY EFFICIENCY BAR & GAP COLLISION MONITOR */}
+      {/* DAILY EFFICIENCY BAR & GAP COLLISION MONITOR */}
       {efficiency && (
         <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 space-y-5 shadow-xl">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-800 pb-4">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <Badge variant="sky">KANTOROVICH EFFICIENCY BAR</Badge>
+                <Badge variant="sky">TILED CAPACITY EFFICIENCY</Badge>
                 <span className="text-xs font-mono text-slate-400">
                   {efficiency.operatingWindow}
                 </span>
@@ -163,7 +163,7 @@ export default function AdminOverviewPage() {
                 >
                   {efficiency.orphanGapMinutes} мин
                 </span>{' '}
-                | Выручка дня: {formatCurrency(efficiency.actualRevenueIls)} (Прогноз LP:{' '}
+                | Выручка дня: {formatCurrency(efficiency.actualRevenueIls)} (Прогноз мощности:{' '}
                 {formatCurrency(efficiency.projectedMaxRevenueIls)})
               </h2>
             </div>
@@ -496,7 +496,7 @@ export default function AdminOverviewPage() {
 
           <Card className="space-y-4 text-xs font-mono">
             <div className="space-y-2">
-              <span className="text-slate-400 uppercase">Kantorovich LP Engine Rules:</span>
+              <span className="text-slate-400 uppercase">Tiled Capacity Rules:</span>
               <ul className="space-y-1.5 text-[11px] text-slate-400">
                 <li>• 30m Flight (45m block): ₪450 (₪10.00/m)</li>
                 <li>• 60m Flight (75m block): ₪690 (₪9.20/m)</li>

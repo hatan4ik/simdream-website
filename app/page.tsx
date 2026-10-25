@@ -68,7 +68,7 @@ export default function HomePage() {
                 <span>{t.hero.bookFlight}</span>
               </Button>
             </Link>
-            <Link href="/about" className="w-full sm:w-auto">
+            <Link href="/pro" className="w-full sm:w-auto">
               <Button variant="secondary" size="lg" className="w-full sm:w-auto font-semibold text-base px-8 py-4">
                 <span>{t.hero.cockpitSpecs}</span>
                 <ChevronRight className={`w-5 h-5 ${isRTL ? 'rotate-180' : ''}`} />
@@ -236,11 +236,11 @@ export default function HomePage() {
             </Card>
           </div>
 
-          {/* Link to About & Flight Mission Flow */}
+          {/* Link to Professional Training & Cockpit Specifications */}
           <div className="text-center pt-2">
-            <Link href="/about">
+            <Link href="/pro">
               <Button variant="outline" size="sm" className="font-mono text-xs">
-                <span>{language === 'he' ? 'איך מתנהלת חווית הטיסה? קראו עוד אודותינו' : 'How Does a Flight Session Work? About Sim Dream'}</span>
+                <span>{t.whyUs.proTrainingSpecs}</span>
                 <ArrowRight className={`w-3.5 h-3.5 ${isRTL ? 'rotate-180' : ''}`} />
               </Button>
             </Link>

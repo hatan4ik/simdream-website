@@ -1,4 +1,5 @@
 export type PackageCategory = 'recreational' | 'training' | 'corporate' | 'fear_of_flying';
+export type FlightPackageDuration = 20 | 45 | 60 | 90 | 120 | 240;
 export type PilotExperienceLevel = 'beginner' | 'enthusiast' | 'student_pilot' | 'atpl';
 export type AddonIconName =
   | 'Zap'
@@ -16,7 +17,7 @@ export interface SimulatorPackage {
   title: string;
   slug: string;
   category: PackageCategory;
-  durationMinutes: number;
+  durationMinutes: FlightPackageDuration;
   priceIls: number;
   primeTimePriceIls?: number;
   priceUsd: number;
@@ -135,10 +136,14 @@ export interface MissionManifestCalculation {
 
 export type BookingStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled';
 export type PaymentStatus = 'paid' | 'pending' | 'refunded';
+export type PaymentMethod = 'stripe' | 'voucher' | 'desk';
+export type VoucherPaymentStatus = 'pending' | 'paid' | 'refunded';
 
 export interface Booking {
   id: string;
   bookingReference: string;
+  /** Set only after a verified member purchases or claims a guest booking. */
+  userId?: string;
   packageId: string;
   packageTitle: string;
   durationMinutes: number;
@@ -156,7 +161,7 @@ export interface Booking {
   voucherCode?: string;
   status: BookingStatus;
   paymentStatus: PaymentStatus;
-  paymentMethod: 'stripe' | 'voucher' | 'desk';
+  paymentMethod: PaymentMethod;
   stripePaymentIntentId?: string;
   notes?: string;
   createdAt: string;
@@ -176,6 +181,9 @@ export interface GiftVoucher {
   packageTitle?: string;
   expiryDate: string;
   isRedeemed: boolean;
+  paymentStatus: VoucherPaymentStatus;
+  stripeCheckoutSessionId?: string;
+  activatedAt?: string;
   createdAt: string;
 }
 
@@ -222,4 +230,3 @@ export interface UserProfile {
   pilotLicense?: string;
   createdAt: string;
 }
-

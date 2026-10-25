@@ -80,6 +80,7 @@ interface AmazonFlightStorefrontProps {
   onReapplyCachedVoucher?: (code: string) => void;
   // Submit
   isSubmitting: boolean;
+  checkoutError?: string;
   onSubmitBooking: (e: React.FormEvent) => void;
 }
 
@@ -149,7 +150,13 @@ function getPackageFormulaBadge(duration: number, category: string) {
   if (category === 'training') {
     return {
       text: '🎯 Airline Checkride • Raw Data & V1 Failure',
-      cls: 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30',
+      cls: 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30 font-bold',
+    };
+  }
+  if (category === 'fear_of_flying') {
+    return {
+      text: '🕊️ Private Therapy & Captain Coaching • Gentle Pacing',
+      cls: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30 font-bold',
     };
   }
   if (duration === 20) {
@@ -225,6 +232,7 @@ export function AmazonFlightStorefront({
   cachedVoucherCode,
   onReapplyCachedVoucher,
   isSubmitting,
+  checkoutError,
   onSubmitBooking,
 }: AmazonFlightStorefrontProps) {
   const { t, isRTL } = useLanguage();
@@ -296,13 +304,10 @@ export function AmazonFlightStorefront({
   );
 
   const visiblePackages = useMemo(() => {
-    const hasAvailabilityMap = Object.keys(durationAvailability).length > 0;
-    if (!hasAvailabilityMap) return nonCorporatePackages;
-    const filtered = nonCorporatePackages.filter(
-      (pkg) => (durationAvailability[pkg.durationMinutes]?.availableCount ?? 0) > 0
-    );
-    return filtered.length > 0 ? filtered : nonCorporatePackages;
-  }, [nonCorporatePackages, durationAvailability]);
+    return nonCorporatePackages;
+  }, [nonCorporatePackages]);
+
+  const availableSlotCount = useMemo(() => slots.filter((s) => s.available).length, [slots]);
 
   // Group visible slots by Morning, Afternoon, Evening
   const groupedSlots = useMemo(() => {
@@ -575,6 +580,75 @@ export function AmazonFlightStorefront({
                   />
                 ))}
               </div>
+            ) : availableSlotCount === 0 ? (
+              <div className="p-6 rounded-2xl bg-slate-950/90 border border-amber-500/30 text-center space-y-4">
+                <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-amber-500/10 text-amber-400 mx-auto">
+                  <Clock className="w-5 h-5" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-sm sm:text-base font-bold text-white">
+                    No open runway slots for {cleanPackageTitle} on {formatDate(selectedDate)}
+                  </h3>
+                  <p className="text-xs text-slate-400 max-w-md mx-auto">
+                    All departure windows for this duration are currently booked or reserved. Choose another date or try an available duration today:
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap justify-center gap-2 pt-1">
+                  {packages
+                    .filter(
+                      (p) =>
+                        p.category !== 'corporate' &&
+                        p.id !== selectedPackage.id &&
+                        (durationAvailability[p.durationMinutes]?.availableCount ?? 0) > 0
+                    )
+                    .map((altPkg) => (
+                      <Button
+                        key={altPkg.id}
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => onSelectPackage(altPkg)}
+                        className="font-mono text-xs"
+                      >
+                        Try {altPkg.durationMinutes}m ({formatCurrency(durationAvailability[altPkg.durationMinutes]?.minPriceIls || altPkg.priceIls)})
+                      </Button>
+                    ))}
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const next = new Date(new Date(selectedDate).getTime() + 86400000);
+                      onSelectDate(formatLocalYMD(next));
+                    }}
+                    className="font-mono text-xs text-sky-400 border-sky-500/40 hover:bg-sky-500/10"
+                  >
+                    Check Next Day →
+                  </Button>
+                </div>
+
+                {slots.some((s) => s.disabledReason === 'booked') && (
+                  <div className="pt-3 border-t border-slate-900 text-left rtl:text-right">
+                    <span className="text-[10px] font-mono uppercase text-slate-500 block mb-1.5">
+                      Booked Slots on this Date:
+                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      {slots
+                        .filter((s) => s.disabledReason === 'booked')
+                        .map((slot) => (
+                          <span
+                            key={slot.id}
+                            className="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-[11px] font-mono text-slate-500 line-through"
+                          >
+                            {slot.startTime} ({slot.disabledNote || 'Booked'})
+                          </span>
+                        ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             ) : (
               <div className="space-y-3">
                 {(['morning', 'afternoon', 'evening'] as const).map((period) => {
@@ -601,7 +675,7 @@ export function AmazonFlightStorefront({
                               type="button"
                               disabled={!slot.available}
                               onClick={() => onSelectSlot(slot)}
-                              className={`relative px-3 py-2.5 rounded-xl border text-left transition-all flex flex-col justify-between ${
+                              className={`relative px-3 py-2.5 rounded-xl border text-left rtl:text-right transition-all flex flex-col justify-between ${
                                 !slot.available
                                   ? 'border-slate-800/40 bg-slate-950/30 opacity-40 cursor-not-allowed line-through'
                                   : isSelected
@@ -664,7 +738,8 @@ export function AmazonFlightStorefront({
             {visiblePackages.map((pkg) => {
               const isSelected = pkg.id === selectedPackage.id;
               const availInfo = durationAvailability[pkg.durationMinutes];
-              const slotCount = availInfo ? availInfo.availableCount : slots.filter((s) => s.available).length;
+              const slotCount = availInfo ? availInfo.availableCount : (pkg.id === selectedPackage.id ? slots.filter((s) => s.available).length : 0);
+              const isAvailable = availInfo ? availInfo.availableCount > 0 : true;
               const displayPrice =
                 availInfo && availInfo.minPriceIls > 0 ? availInfo.minPriceIls : pkg.priceIls;
               const cleanTitle = sanitizePackageTitle(pkg.title);
@@ -685,6 +760,8 @@ export function AmazonFlightStorefront({
                   className={`p-4 rounded-xl border text-left rtl:text-right transition-all flex flex-col justify-between relative cursor-pointer ${
                     isSelected
                       ? 'border-amber-400 bg-amber-500/10 shadow-lg ring-1 ring-amber-400/50'
+                      : !isAvailable
+                      ? 'border-slate-800/60 bg-slate-950/40 opacity-80 hover:border-slate-700'
                       : 'border-slate-800 bg-slate-950/80 hover:border-slate-700'
                   }`}
                 >
@@ -699,11 +776,15 @@ export function AmazonFlightStorefront({
                       >
                         {pkg.durationMinutes} MIN
                       </span>
-                      {pkg.badge && (
+                      {!isAvailable ? (
+                        <span className="text-[10px] font-mono text-amber-400 bg-amber-500/10 border border-amber-500/25 px-2 py-0.5 rounded">
+                          0 slots today
+                        </span>
+                      ) : pkg.badge ? (
                         <span className="text-[10px] font-mono font-bold text-amber-300 truncate">
                           {pkg.badge}
                         </span>
-                      )}
+                      ) : null}
                     </div>
 
                     {/* Formula Pill (What is included at a glance) */}
@@ -740,8 +821,12 @@ export function AmazonFlightStorefront({
                       <span className="text-lg font-black font-mono text-white">
                         {formatCurrency(displayPrice)}
                       </span>
-                      <div className="text-[10px] font-mono text-emerald-400">
-                        ● {slotCount} slots open
+                      <div className="text-[10px] font-mono">
+                        {!isAvailable ? (
+                          <span className="text-amber-400">● 0 slots open today</span>
+                        ) : (
+                          <span className="text-emerald-400">● {slotCount} slots open</span>
+                        )}
                       </div>
                     </div>
                     <span
@@ -760,10 +845,11 @@ export function AmazonFlightStorefront({
           </div>
         </section>
 
-        {/* ===================================================================
-            SECTION 3: AMAZON "FREQUENTLY FLOWN TOGETHER" 1-CLICK COMBOS
-           =================================================================== */}
-        <section className="p-5 sm:p-6 rounded-2xl border border-amber-500/30 bg-gradient-to-br from-amber-950/15 via-slate-900/80 to-slate-950 space-y-4">
+        {/* SECTION 3 & 4: RENDERED ONLY WHEN ADDONS EXIST.
+            FOR NOISE-FREE PROFESSIONAL TRAINING & FEAR OF FLYING, ADDONS ARE EMPTY. */}
+        {addons.length > 0 ? (
+          <>
+            <section className="p-5 sm:p-6 rounded-2xl border border-amber-500/30 bg-gradient-to-br from-amber-950/15 via-slate-900/80 to-slate-950 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
             <div>
               <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-amber-400">
@@ -992,7 +1078,30 @@ export function AmazonFlightStorefront({
             })}
           </div>
         </section>
+      </>
+    ) : (
+      /* NOISE-FREE REASSURANCE BANNER FOR SPECIALIZED SESSIONS (PRO TRAINING & FEAR OF FLYING) */
+      <div className="p-5 sm:p-6 rounded-2xl border border-slate-800 bg-slate-900/60 space-y-2.5">
+        <div className="flex items-center gap-2 text-xs font-mono font-bold text-sky-400">
+          <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span>
+            {selectedPackage.category === 'training'
+              ? '🎯 NOISE-FREE AIRLINE ASSESSMENT SCHEDULING'
+              : selectedPackage.category === 'fear_of_flying'
+              ? '🕊️ CALM & REASSURING FEAR OF FLYING SCHEDULING'
+              : 'DIRECT FLIGHT SCHEDULING'}
+          </span>
+        </div>
+        <p className="text-sm font-semibold text-white leading-relaxed">
+          {selectedPackage.category === 'training'
+            ? 'Your slot is dedicated strictly to professional airline assessment preparation (Raw Data, V1 Engine Cut, Single-Engine ILS & QRH flows). Recreational tourism add-ons are suppressed.'
+            : selectedPackage.category === 'fear_of_flying'
+            ? 'Your slot is dedicated to a calm, empowering experience overcoming flight anxiety with an airline captain at your own comfortable pace. Stunt weather and turbulence add-ons are completely suppressed.'
+            : 'Direct flight reservation with dedicated cockpit time.'}
+        </p>
       </div>
+    )}
+  </div>
 
       {/* =====================================================================
           RIGHT 4 COLUMNS: STICKY AMAZON "BUY BOX" & EXPRESS PILOT CHECKOUT
@@ -1000,8 +1109,6 @@ export function AmazonFlightStorefront({
       <div className="lg:col-span-4 lg:sticky lg:top-24 space-y-5">
         <form
           onSubmit={onSubmitBooking}
-          method="POST"
-          action="/api/bookings"
           className="rounded-2xl border-2 border-amber-500/40 bg-slate-900/95 p-5 sm:p-6 space-y-5 shadow-2xl"
         >
           {/* BUY BOX HEADER: LIVE TOTAL PRICE & DURATION */}
@@ -1260,7 +1367,7 @@ export function AmazonFlightStorefront({
                     className="inline-flex items-center gap-1 text-[11px] font-mono text-red-400 hover:text-red-300 underline font-bold"
                   >
                     <X className="w-3 h-3" />
-                    <span>{isRTL ? 'הסר שובר' : 'Remove Voucher'}</span>
+                    <span>{t.booking.removeVoucher}</span>
                   </button>
                 )}
               </label>
@@ -1273,7 +1380,7 @@ export function AmazonFlightStorefront({
                       <span>{voucherCode}</span>
                     </p>
                     <p className="text-[11px] font-mono text-emerald-300">
-                      -{formatCurrency(voucherDiscount)} {isRTL ? 'הנחה פעילה' : 'discount active'}
+                      -{formatCurrency(voucherDiscount)} ({t.booking.discountApplied})
                     </p>
                   </div>
                   {onRemoveVoucher && (
@@ -1284,7 +1391,7 @@ export function AmazonFlightStorefront({
                       onClick={onRemoveVoucher}
                       className="text-xs text-slate-400 hover:text-red-300 px-2 py-1 h-auto"
                     >
-                      {isRTL ? 'בטל הנחה' : 'Reset Price'}
+                      {t.booking.resetVoucher}
                     </Button>
                   )}
                 </div>
@@ -1317,13 +1424,13 @@ export function AmazonFlightStorefront({
 
                   {cachedVoucherCode && onReapplyCachedVoucher && (
                     <div className="flex items-center justify-between text-[11px] font-mono text-slate-400 bg-slate-950/80 border border-slate-800 px-3 py-1.5 rounded-lg">
-                      <span>{isRTL ? 'שובר שמור:' : 'Saved in cache:'} <strong className="text-sky-300">{cachedVoucherCode}</strong></span>
+                      <span>{t.booking.savedVoucher} <strong className="text-sky-300">{cachedVoucherCode}</strong></span>
                       <button
                         type="button"
                         onClick={() => onReapplyCachedVoucher(cachedVoucherCode)}
                         className="text-amber-400 hover:text-amber-300 font-bold underline transition-colors"
                       >
-                        {isRTL ? 'החל שוב בלחיצה אחת ↗' : '1-Click Reapply ↗'}
+                        {t.booking.reapplyVoucher}
                       </button>
                     </div>
                   )}
@@ -1355,6 +1462,16 @@ export function AmazonFlightStorefront({
           </fieldset>
 
           {/* AMAZON-STYLE PRIMARY BUY BUTTON */}
+          {checkoutError && (
+            <div
+              id="storefront-checkout-feedback"
+              role="alert"
+              aria-live="assertive"
+              className="rounded-xl border border-red-500/40 bg-red-950/50 px-3 py-2.5 text-xs leading-relaxed text-red-200"
+            >
+              {checkoutError}
+            </div>
+          )}
           <Button
             type="submit"
             size="lg"

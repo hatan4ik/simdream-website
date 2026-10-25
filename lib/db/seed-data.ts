@@ -659,7 +659,7 @@ export const DEMO_BOOKINGS: Booking[] = generateMonthAheadBookings();
 export const DEMO_VOUCHERS: GiftVoucher[] = [
   {
     id: 'vouch-01',
-    code: 'SD-VOUCH-737X',
+    code: 'SD-VOUCH-DF7QK3MN8R2V6X9LPA',
     initialValueIls: 500,
     currentBalanceIls: 400,
     recipientName: 'David Ben-Ami',
@@ -669,11 +669,12 @@ export const DEMO_VOUCHERS: GiftVoucher[] = [
     personalMessage: 'Happy 40th Birthday David! Time to fly your favorite Boeing 737 MAX!',
     expiryDate: new Date(Date.now() + 86400000 * 365).toISOString(),
     isRedeemed: false,
+    paymentStatus: 'paid',
     createdAt: new Date().toISOString(),
   },
   {
     id: 'vouch-02',
-    code: 'SIMDREAM-MAX8',
+    code: 'SD-VOUCH-H5TZR8K2V9M3Q7LNXB',
     initialValueIls: 890,
     currentBalanceIls: 890,
     recipientName: 'Aviad Stern',
@@ -685,6 +686,7 @@ export const DEMO_VOUCHERS: GiftVoucher[] = [
     packageTitle: "Captain's Command Flight",
     expiryDate: new Date(Date.now() + 86400000 * 365).toISOString(),
     isRedeemed: false,
+    paymentStatus: 'paid',
     createdAt: new Date().toISOString(),
   },
 ];
@@ -773,4 +775,3 @@ export const DEMO_USERS: UserProfile[] = [
     createdAt: '2025-06-01T08:00:00Z',
   },
 ];
-

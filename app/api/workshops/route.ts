@@ -1,67 +1,58 @@
 import { NextResponse } from 'next/server';
+import { requireAdmin } from '@/lib/auth/admin-guard';
 import { store } from '@/lib/db/store';
+import { adminWorkshopPatchSchema, validationError, workshopInquirySchema } from '@/lib/validation';
 
-export async function GET() {
+export async function GET(request: Request) {
+  const denied = requireAdmin(request);
+  if (denied) return denied;
   try {
-    const inquiries = await store.getCorporateInquiries();
-    return NextResponse.json(inquiries);
+    return NextResponse.json(await store.getCorporateInquiries(), {
+      headers: { 'Cache-Control': 'private, no-store' },
+    });
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch corporate inquiries' }, { status: 500 });
+    console.error('Corporate inquiry lookup failed', error);
+    return NextResponse.json({ error: 'Corporate inquiries are temporarily unavailable.' }, { status: 503 });
   }
 }
 
 export async function POST(request: Request) {
+  let body: unknown;
   try {
-    const body = await request.json();
-    const {
-      companyName,
-      contactName,
-      email,
-      phone,
-      teamSize,
-      targetDate,
-      primaryGoal,
-      message,
-    } = body;
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON request body.' }, { status: 400 });
+  }
+  const parsed = workshopInquirySchema.safeParse(body);
+  if (!parsed.success) return NextResponse.json(validationError(parsed.error), { status: 400 });
 
-    if (!companyName || !contactName || !email || !phone || !teamSize || !primaryGoal) {
-      return NextResponse.json({ error: 'Missing required corporate inquiry fields' }, { status: 400 });
-    }
-
-    const inquiry = await store.createCorporateInquiry({
-      companyName,
-      contactName,
-      email,
-      phone,
-      teamSize: Number(teamSize),
-      targetDate,
-      primaryGoal,
-      message,
-    });
-
-    return NextResponse.json(inquiry, { status: 201 });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Failed to submit inquiry' }, { status: 500 });
+  try {
+    const inquiry = await store.createCorporateInquiry(parsed.data);
+    return NextResponse.json({ id: inquiry.id, status: inquiry.status }, { status: 201 });
+  } catch (error) {
+    console.error('Corporate inquiry creation failed', error);
+    return NextResponse.json({ error: 'Unable to submit your inquiry right now.' }, { status: 503 });
   }
 }
 
 export async function PATCH(request: Request) {
+  const denied = requireAdmin(request);
+  if (denied) return denied;
+  let body: unknown;
   try {
-    const body = await request.json();
-    const { id, status } = body;
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON request body.' }, { status: 400 });
+  }
+  const parsed = adminWorkshopPatchSchema.safeParse(body);
+  if (!parsed.success) return NextResponse.json(validationError(parsed.error), { status: 400 });
 
-    if (!id || !status) {
-      return NextResponse.json({ error: 'ID and status required' }, { status: 400 });
-    }
-
-    const updated = await store.updateInquiryStatus(id, status);
-    if (!updated) {
-      return NextResponse.json({ error: 'Inquiry not found' }, { status: 404 });
-    }
-
+  try {
+    const updated = await store.updateInquiryStatus(parsed.data.id, parsed.data.status);
+    if (!updated) return NextResponse.json({ error: 'Inquiry not found.' }, { status: 404 });
     return NextResponse.json(updated);
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to update inquiry status' }, { status: 500 });
+    console.error('Corporate inquiry update failed', error);
+    return NextResponse.json({ error: 'Unable to update inquiry.' }, { status: 503 });
   }
 }
-

@@ -47,7 +47,15 @@ export function Footer() {
                 }`}
               />
               <span>
-                {language === 'he' ? liveStatus.statusHeadlineHe : liveStatus.statusHeadlineEn}
+                {language === 'he'
+                  ? liveStatus.statusHeadlineHe
+                  : language === 'ru'
+                  ? (liveStatus.isOpen ? 'ОТКРЫТО • По предварительной записи' : 'ЗАКРЫТО • Бронирование 24/7')
+                  : language === 'fr'
+                  ? (liveStatus.isOpen ? 'OUVERT • Sur réservation préalable' : 'FERMÉ • Réservation en ligne 24/7')
+                  : language === 'ar'
+                  ? (liveStatus.isOpen ? 'مفتوح ويعمل • بالحجز المسبق' : 'مغلق حالياً • الحجز متاح 24/7')
+                  : liveStatus.statusHeadlineEn}
               </span>
             </div>
 
@@ -103,7 +111,7 @@ export function Footer() {
             </h4>
             <ul className="space-y-2.5 text-xs">
               <li>
-                <Link href="/about" className="hover:text-sky-400 transition-colors">
+                <Link href="/pro" className="hover:text-sky-400 transition-colors">
                   {t.nav.simulator}
                 </Link>
               </li>
@@ -115,13 +123,13 @@ export function Footer() {
               <li>
                 <Link href="/rules" className="hover:text-sky-400 transition-colors flex items-center gap-1.5 text-slate-300">
                   <FileText className="w-3.5 h-3.5 text-sky-400 shrink-0" />
-                  <span>{language === 'he' ? 'תקנון ותנאי שימוש (Rules)' : 'Facility Rules & Terms (תקנון)'}</span>
+                  <span>{t.footer.termsRules}</span>
                 </Link>
               </li>
               <li>
                 <Link href="/privacy-policy" className="hover:text-sky-400 transition-colors flex items-center gap-1.5 text-slate-300">
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                  <span>{language === 'he' ? 'מדיניות פרטיות וקובצי Cookie' : 'Privacy & Cookie Policy'}</span>
+                  <span>{t.footer.privacyPolicy}</span>
                 </Link>
               </li>
               <li>
@@ -179,9 +187,7 @@ export function Footer() {
               <li className="flex items-center gap-2.5">
                 <UserCheck className="w-4 h-4 text-amber-400 shrink-0" />
                 <span className="text-amber-300 font-mono">
-                  {language === 'he'
-                    ? `גיל מינימלי להטסה: ${FACILITY_INFO.requirements.minimumAgeYears}+`
-                    : `Minimum Pilot Age: ${FACILITY_INFO.requirements.minimumAgeYears}+`}
+                  {t.footer.minAgeLabel}
                 </span>
               </li>
               <li className="flex items-start gap-2.5">
@@ -196,7 +202,7 @@ export function Footer() {
           </div>
         </div>
 
-        {/* Official Facility Rules (תקנון) & Privacy Policy Summary Drawer at the Bottom */}
+        {/* Official Facility Rules & Privacy Policy Summary Drawer at the Bottom */}
         <div className="border-t border-slate-900 mt-12 pt-6 space-y-3">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <details
@@ -206,11 +212,7 @@ export function Footer() {
               <summary className="cursor-pointer list-none flex items-center justify-between gap-2 font-mono text-slate-300 hover:text-white">
                 <span className="flex items-center gap-2">
                   <FileText aria-hidden="true" className="w-3.5 h-3.5 text-sky-400 shrink-0" />
-                  <span>
-                    {language === 'he'
-                      ? 'תקנון ותנאי שימוש מרכזיים (simdream.co.il/rules)'
-                      : 'Facility Rules & Terms Summary (simdream.co.il/rules)'}
-                  </span>
+                  <span>{t.footer.rulesDrawerTitle}</span>
                 </span>
                 <ChevronDown
                   aria-hidden="true"
@@ -218,24 +220,12 @@ export function Footer() {
                 />
               </summary>
               <div className="mt-3 pt-3 border-t border-slate-800/80 space-y-2 text-[11px] leading-relaxed text-slate-400">
-                <p>
-                  {language === 'he'
-                    ? `1. המרכז: ${FACILITY_INFO.legalNameHe} (${FACILITY_INFO.legalNameEn}), ח.פ. ${FACILITY_INFO.companyRegistrationNumber}, רח׳ גרשון ש"ץ 36, תל אביב-יפו. הסימולטור הינו מתקן בידור וחוויה בליווי מדריך ואינו מיועד להכשרה מקצועית או רישוי טיס.`
-                    : `1. The Center: ${FACILITY_INFO.legalNameEn} (Company Reg. ${FACILITY_INFO.companyRegistrationNumber}), Gershon Shatz St 36, Tel Aviv-Yafo. The simulator is an experiential entertainment facility accompanied by an instructor and not an accredited pilot certification device.`}
-                </p>
-                <p>
-                  {language === 'he'
-                    ? '2. גילאים: הכניסה לסימולטור מותרת מגיל 10 ומעלה (10+). ילדים בגילאי 10–15 מחויבים בליווי מבוגר. ביצוע הזמנה ותשלום באתר מחייבים גיל 18 ומעלה.'
-                    : '2. Age Policy: Simulator entry is permitted from Age 10+. Children aged 10–15 require adult supervision (18+). Online booking and credit card payment require age 18+.'}
-                </p>
-                <p>
-                  {language === 'he'
-                    ? '3. הגעה ואיחורים: חובה להגיע למרכז 5 דקות לפני מועד הסשן. משך השירות כולל תדריך מקדים בתא הטייס. איחור העולה על 10 דקות עלול לגרור קיצור של זמן הסשן (ללא החזר כספי) או דחיית המועד בכפוף לדמי שינוי.'
-                    : '3. Arrival & Late Policy: Arrive 5 minutes prior to your scheduled session. Session duration includes the cockpit briefing. Delays over 10 minutes may result in a shortened session without refund or rescheduling subject to a change fee.'}
-                </p>
+                <p>{t.footer.rulesPoint1}</p>
+                <p>{t.footer.rulesPoint2}</p>
+                <p>{t.footer.rulesPoint3}</p>
                 <p className="pt-1">
                   <Link href="/rules" className="text-sky-400 hover:underline font-mono font-semibold">
-                    {language === 'he' ? 'קראו את התקנון המלא ←' : 'Read Full Facility Rules & Terms →'}
+                    {t.footer.readFullRules}
                   </Link>
                 </p>
               </div>
@@ -248,11 +238,7 @@ export function Footer() {
               <summary className="cursor-pointer list-none flex items-center justify-between gap-2 font-mono text-slate-300 hover:text-white">
                 <span className="flex items-center gap-2">
                   <ShieldCheck aria-hidden="true" className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                  <span>
-                    {language === 'he'
-                      ? 'מדיניות פרטיות וקובצי Cookie (simdream.co.il/privacy-policy)'
-                      : 'Privacy & Cookie Policy Summary (simdream.co.il/privacy-policy)'}
-                  </span>
+                  <span>{t.footer.privacyDrawerTitle}</span>
                 </span>
                 <ChevronDown
                   aria-hidden="true"
@@ -260,19 +246,11 @@ export function Footer() {
                 />
               </summary>
               <div className="mt-3 pt-3 border-t border-slate-800/80 space-y-2 text-[11px] leading-relaxed text-slate-400">
-                <p>
-                  {language === 'he'
-                    ? '1. איסוף מידע ואבטחה: פרטים הנמסרים בעת הזמנה או פנייה (שם, דוא״ל, טלפון) משמשים לתיאום הטיסה, שליחת אישורים ושוברים ומתן שירות לקוחות בלבד. סליקת אשראי מתבצעת בתקן PCI-DSS מוצפן ופרטי כרטיס מלאים אינם נשמרים בשרתינו.'
-                    : '1. Data & Payment Security: Booking and inquiry details (name, email, phone) are used strictly for flight dispatch, digital vouchers, and customer support. Payments are processed via encrypted PCI-DSS gateways.'}
-                </p>
-                <p>
-                  {language === 'he'
-                    ? '2. קובצי Cookie וזכויות פרטיות: האתר משתמש בעוגיות לתפעול תקין, שמירת העדפות שפה וניתוח תנועה. לבירורים או בקשות עיון/הסרה לפי חוק הגנת הפרטיות: desk@simdream.co.il או 055-507-1307.'
-                    : '2. Cookies & Privacy Rights: We use cookies to maintain booking state, language preferences, and analytics. For privacy inquiries under Israeli law, contact desk@simdream.co.il or 055-507-1307.'}
-                </p>
+                <p>{t.footer.privacyPoint1}</p>
+                <p>{t.footer.privacyPoint2}</p>
                 <p className="pt-1">
                   <Link href="/privacy-policy" className="text-emerald-400 hover:underline font-mono font-semibold">
-                    {language === 'he' ? 'קראו את מדיניות הפרטיות המלאה ←' : 'Read Full Privacy & Cookie Policy →'}
+                    {t.footer.readFullPrivacy}
                   </Link>
                 </p>
               </div>
@@ -288,13 +266,13 @@ export function Footer() {
               {FACILITY_INFO.companyRegistrationNumber}). {t.footer.rightsReserved}
             </p>
             <Link href="/rules" className="text-slate-400 hover:text-sky-400 underline underline-offset-2">
-              {language === 'he' ? 'תקנון ותנאי שימוש' : 'Terms & Rules'}
+              {t.footer.termsRules}
             </Link>
             <Link href="/privacy-policy" className="text-slate-400 hover:text-sky-400 underline underline-offset-2">
-              {language === 'he' ? 'מדיניות פרטיות' : 'Privacy Policy'}
+              {t.footer.privacyPolicy}
             </Link>
-            <Link href="/about" className="text-slate-400 hover:text-sky-400 underline underline-offset-2">
-              {language === 'he' ? 'אודות' : 'About Us'}
+            <Link href="/pro" className="text-slate-400 hover:text-sky-400 underline underline-offset-2">
+              {t.footer.proTraining}
             </Link>
           </div>
           <p className="max-w-xl text-center md:text-right rtl:md:text-left">

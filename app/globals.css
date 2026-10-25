@@ -1,6 +1,5 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@config "../tailwind.config.ts";
+@import "tailwindcss";
 
 /* ==========================================================================
    DUAL UX/UI INTERFACE ARCHITECTURE
@@ -267,5 +266,4 @@ html[data-ui="brand"] ::-webkit-scrollbar-thumb {
 html[data-ui="brand"] ::-webkit-scrollbar-thumb:hover {
   background: #0284c7 !important;
 }
-
 

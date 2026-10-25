@@ -43,16 +43,15 @@ export default function AdminVouchersPage() {
     setLookupError('');
     setRedeemSuccess('');
     try {
-      const res = await fetch(`/api/vouchers?code=${encodeURIComponent(code)}`);
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'Voucher not found');
-      }
-      setVerifiedVoucher(data);
-      setDeductAmount(String(data.currentBalanceIls));
-    } catch (err: any) {
+      // The authenticated inventory response already contains full counter
+      // details; avoid placing a bearer voucher code in a URL or another call.
+      const voucher = vouchers.find((item) => item.code.toUpperCase() === code.toUpperCase());
+      if (!voucher) throw new Error('Voucher not found. Refresh the inventory and try again.');
+      setVerifiedVoucher(voucher);
+      setDeductAmount(String(voucher.currentBalanceIls));
+    } catch (err: unknown) {
       setVerifiedVoucher(null);
-      setLookupError(err.message || 'Voucher not found.');
+      setLookupError(err instanceof Error ? err.message : 'Voucher not found.');
     }
   };
 
@@ -123,7 +122,7 @@ export default function AdminVouchersPage() {
         <div className="flex gap-2">
           <input
             type="text"
-            placeholder="Scan or enter voucher code (e.g. SD-VOUCH-737X)"
+            placeholder="Scan or enter the full voucher code"
             value={searchCode}
             onChange={(e) => setSearchCode(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleLookup()}
@@ -270,4 +269,3 @@ export default function AdminVouchersPage() {
     </div>
   );
 }
-

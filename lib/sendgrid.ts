@@ -1,5 +1,5 @@
 import sgMail from '@sendgrid/mail';
-import { Booking } from '@/types';
+import { Booking, GiftVoucher } from '@/types';
 import { formatDate } from './utils';
 
 const apiKey = process.env.SENDGRID_API_KEY || '';
@@ -12,6 +12,15 @@ if (isSendgridConfigured) {
 }
 
 const senderEmail = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || 'info@simdream.co.il';
+
+function escapeHtml(value: string | number): string {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
 
 export async function sendBookingConfirmationEmail(booking: Booking): Promise<{ success: boolean; message: string }> {
   const emailHtml = `
@@ -38,24 +47,24 @@ export async function sendBookingConfirmationEmail(booking: Booking): Promise<{ 
           </div>
           <div class="content">
             <span class="badge">FLIGHT RESERVATION CONFIRMED</span>
-            <h2 style="color: #38bdf8; margin-top: 16px;">Flight Clearance: ${booking.bookingReference}</h2>
+            <h2 style="color: #38bdf8; margin-top: 16px;">Flight Clearance: ${escapeHtml(booking.bookingReference)}</h2>
             <p style="color: #cbd5e1; line-height: 1.6;">
-              Dear <strong>${booking.pilotName}</strong>,<br>
+              Dear <strong>${escapeHtml(booking.pilotName)}</strong>,<br>
               Your flight deck reservation in our Boeing 737 MAX flight simulator has been confirmed. Please arrive 15 minutes before your scheduled departure time for pre-flight mission briefing.
             </p>
 
             <table class="details-table">
               <tr>
                 <td style="color: #94a3b8;">Flight Mission</td>
-                <td style="color: #ffffff; font-weight: bold;">${booking.packageTitle}</td>
+                <td style="color: #ffffff; font-weight: bold;">${escapeHtml(booking.packageTitle)}</td>
               </tr>
               <tr>
                 <td style="color: #94a3b8;">Flight Date</td>
-                <td style="color: #ffffff; font-weight: bold;">${formatDate(booking.bookingDate)}</td>
+                <td style="color: #ffffff; font-weight: bold;">${escapeHtml(formatDate(booking.bookingDate))}</td>
               </tr>
               <tr>
                 <td style="color: #94a3b8;">Cockpit Slot</td>
-                <td style="color: #38bdf8; font-weight: bold;">${booking.startTime} - ${booking.endTime} (IST)</td>
+                <td style="color: #38bdf8; font-weight: bold;">${escapeHtml(booking.startTime)} - ${escapeHtml(booking.endTime)} (IST)</td>
               </tr>
               <tr>
                 <td style="color: #94a3b8;">Center Location</td>
@@ -63,7 +72,7 @@ export async function sendBookingConfirmationEmail(booking: Booking): Promise<{ 
               </tr>
               <tr>
                 <td style="color: #94a3b8;">Total Paid</td>
-                <td style="color: #10b981; font-weight: bold;">₪${booking.totalIls}</td>
+                <td style="color: #10b981; font-weight: bold;">₪${escapeHtml(booking.totalIls)}</td>
               </tr>
             </table>
 
@@ -90,13 +99,47 @@ export async function sendBookingConfirmationEmail(booking: Booking): Promise<{ 
       });
       return { success: true, message: 'Confirmation email dispatched via SendGrid.' };
     } catch (err: any) {
-      console.error('SendGrid error:', err);
+      console.error('SendGrid confirmation dispatch failed');
       return { success: false, message: err?.message || 'Failed to dispatch email.' };
     }
   }
 
   // Simulation mode
-  console.log(`[SIMULATION EMAIL] To: ${booking.pilotEmail} | Booking: ${booking.bookingReference}`);
+  console.info('[SIMULATION EMAIL] Booking confirmation queued', { bookingReference: booking.bookingReference });
   return { success: true, message: 'Email queued in local simulator mode.' };
 }
 
+export async function sendVoucherActivationEmail(voucher: GiftVoucher): Promise<{ success: boolean; message: string }> {
+  const safeRecipient = escapeHtml(voucher.recipientName);
+  const safeSender = escapeHtml(voucher.senderName);
+  const safeCode = escapeHtml(voucher.code);
+  const safeValue = escapeHtml(voucher.initialValueIls);
+  const safeMessage = escapeHtml(voucher.personalMessage);
+  const html = `
+    <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;padding:24px;color:#0f172a">
+      <h1>Sim Dream Gift Voucher</h1>
+      <p>Dear ${safeRecipient},</p>
+      <p>${safeSender} has sent you a Boeing 737 MAX simulator gift voucher.</p>
+      <p><strong>Voucher code:</strong> ${safeCode}<br><strong>Value:</strong> ₪${safeValue}</p>
+      ${safeMessage ? `<p><em>${safeMessage}</em></p>` : ''}
+      <p>Your voucher is active for one year. Enter the code at checkout to redeem it.</p>
+    </div>`;
+
+  if (!isSendgridConfigured) {
+    console.info('[SIMULATION EMAIL] Voucher activation queued', { voucherId: voucher.id });
+    return { success: true, message: 'Voucher activation queued in local simulator mode.' };
+  }
+
+  try {
+    await sgMail.send({
+      to: voucher.recipientEmail,
+      from: senderEmail,
+      subject: 'Your Sim Dream gift voucher is ready',
+      html,
+    });
+    return { success: true, message: 'Voucher activation email dispatched.' };
+  } catch (error) {
+    console.error('SendGrid voucher dispatch failed');
+    return { success: false, message: error instanceof Error ? error.message : 'Failed to dispatch voucher email.' };
+  }
+}
