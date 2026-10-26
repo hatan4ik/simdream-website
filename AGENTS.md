@@ -12,6 +12,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 Comprehensive source of truth and professional prompt instructions for all engineering, design, scheduling, routing, multilingual (i18n), and booking systems implemented for **Sim Dream LTD** (`simdream.co.il`), located at **Gershon Shatz St 36, Tel Aviv-Yafo, Israel**.
 
 > 📐 **Visual Architecture Diagrams**: Visual system topology, adaptive booking workflows, scheduler engine pipelines, and payment sequence diagrams are maintained in [`ARCHITECTURE.md`](ARCHITECTURE.md).
+> 🎛️ **Dashboard Reproduction Specification**: The complete master AI prompt and architectural blueprint for reproducing the Member Flight Deck (`/dashboard`) and Admin Dispatch Command Center (`/admin`) is documented in [`DASHBOARD_REPRODUCTION_SPEC.md`](DASHBOARD_REPRODUCTION_SPEC.md).
 
 ---
 
@@ -134,12 +135,17 @@ The platform supports 5 languages with zero cross-language contamination:
    - Never fallback to in-memory orders in production.
 2. **Graceful Local In-Memory Fallback**:
    - In [`lib/db/supabase-admin.ts`](lib/db/supabase-admin.ts) and [`lib/db/store.ts`](lib/db/store.ts), check `isProduction && Boolean(getSupabaseAdmin())`.
-   - If Supabase environment variables are missing during local development or testing, fallback gracefully to in-memory store and demo seed data without crashing `/api/slots` with HTTP 500.
+   - If Supabase environment variables are missing during local development or testing, fallback gracefully to in-memory store and demo seed data without crashing `/api/slots` with HTTP 500. Local dev server can run with `npm run start:local` (`ALLOW_IN_MEMORY_STORE=true`).
 3. **Server-Authoritative Pricing & Durations**:
    - The client submits only IDs (`packageId`, `slotId`, `addonIds`).
    - The server resolves all prices, durations, end times, and discounts from authoritative registries.
 4. **Stripe Webhook Authority**:
    - Only a signature-verified Stripe webhook (`checkout.session.completed`) marks bookings paid and confirms reservations. Client redirect to `/book/success` does not confirm payments.
+5. **Verified Member Identity & Protected Data Ownership**:
+   - A flight booking is attached to a member profile only when the checkout email matches that member's confirmed identity-provider email.
+   - Guest checkouts remain permitted; an authenticated member may later claim matching **paid** guest bookings. Anonymous email lookups must never expose purchase history or Stripe receipts.
+6. **Isolated Test Build Sandboxing**:
+   - Sandboxed test runs and Playwright servers must use `.next-test` (`NEXT_DIST_DIR: '.next-test'`, see `tests/support/test-env.ts`), ensuring test builds never mutate or clobber the developer's working `.next` build.
 
 ---
 
@@ -152,4 +158,6 @@ Before completing any feature or code change:
 4. Verify calendar across Sunday (10:00–23:00), Friday (09:00–16:00), and Saturday (19:00–24:00 Prime-Time).
 5. Verify all 5 language switchers (`he`, `en`, `ru`, `fr`, `ar`) render correctly with zero mixed scripts or broken keys.
 6. Verify the brand identity in both themes: official logo (orange airplane + cerulean wordmark), translated tagline, and no off-brand blues or cyans (§1, Brand Identity).
-7. Run the automated quality framework ([`TESTING.md`](TESTING.md)): `npm run test:quick` for every change, `npm run test:all` before completing a feature. The accessibility baseline must stay empty and visual baselines change only on purpose.
+7. Verify responsive header and UI fit across all viewports from 320px (iPhone SE) to 1920px desktop (`tests/usability/header-fit.spec.ts`), with 44x44px minimum tap targets.
+8. Verify member authentication & dashboard localization across all 5 languages (`tests/usability/member-i18n.spec.ts`).
+9. Run the automated quality framework ([`TESTING.md`](TESTING.md)): `npm run test:quick` for every change, `npm run test:all` before completing a feature. The accessibility baseline must stay empty (0 axe violations) and visual baselines change only on purpose.

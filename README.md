@@ -86,6 +86,7 @@ Production-grade website, multi-step booking engine, Amazon-style flight storefr
    - **Tiled Daily Efficiency Bar**: Displays live occupied vs. total capacity minutes (`Занято: X / 780 мин`), wasted tail minutes (`Потери («хвосты»): 0 мин`), booked revenue, and a rules-based capacity projection.
    - **Red Gap Collision Alert & Interactive Auto-Snap**: Detects orphan gaps if an admin manually shifts a slot to an unaligned time (e.g. `19:00`) and provides one-click **Auto-Snap** buttons (`18:00` or `19:15`) to restore Zero-Waste alignment.
    - **Exact dry-run draft allocator**: `POST /api/admin/schedule-optimization` evaluates up to eight flexible, 15-minute-aligned draft requests against existing immutable bookings. It maximizes declared value without increasing orphan capacity and never writes a booking. This is the safe integration boundary for a later OR-Tools CP-SAT service.
+   - **Master AI Reproduction Blueprint**: Full technical blueprint and prompt instructions for reproducing both Member and Admin dashboards are documented in [`DASHBOARD_REPRODUCTION_SPEC.md`](DASHBOARD_REPRODUCTION_SPEC.md).
    - Full CRUD bookings manager, Corporate CRM leads pipeline, and counter voucher redemption terminal.
 
 9. **Amazon.com Shop-Style Flight Storefront GUI (`/book`)**:

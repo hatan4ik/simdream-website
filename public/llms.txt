@@ -4,6 +4,7 @@
 
 ## Quick Facts & Local Business Profile
 - **Brand Name**: Sim Dream Israel (סימדרים ישראל)
+- **Visual Identity**: Official logo featuring an orange airplane (`#FF5500`) and cerulean wordmark (`#2096C7`), with the Hebrew tagline "מערכות סימולציה (ישראל)"
 - **Legal Entity**: Simulation Systems (Israel) Sim Dream LTD (ח.פ. 516651031)
 - **Address**: Gershon Shatz St 36, Tel Aviv-Yafo, 6701772, Israel (`גרשון ש"ץ 36, תל אביב-יפו`)
 - **Neighborhood**: Montefiore Quarter, central Tel Aviv
@@ -63,6 +64,7 @@
 - [Express Online Booking](https://www.simdream.co.il/book)
 - [Flight Packages & World Bundles](https://www.simdream.co.il/experiences)
 - [Professional Training & Airline Assessment Prep](https://www.simdream.co.il/pro)
+- [Member Flight Deck & Login](https://www.simdream.co.il/login)
 - [Gift Vouchers](https://www.simdream.co.il/vouchers)
 - [Corporate CRM Workshops](https://www.simdream.co.il/workshops)
 - [Contact, Map & Arrival Calculator](https://www.simdream.co.il/contact)

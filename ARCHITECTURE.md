@@ -10,6 +10,7 @@ Visual architecture documentation for **Sim Dream LTD** (`simdream.co.il`), Boei
 flowchart TD
     subgraph ClientLayer["Client & User Interface Layer"]
         User["Visitor / Pilot Candidate"]
+        BrandLogoSystem["Official Brand Identity<br/>BrandLogo.tsx (Orange Plane + Cerulean Wordmark)<br/>Translated Tagline (t.nav.brandSub)"]
         ThemeEngine["Dual UX Engine<br/>🌙 Cockpit Night / ☀️ Brand Daylight<br/>Sim Dream cerulean #2096C7 + orange #FF5500"]
         I18nEngine["5-Language Engine (i18n)<br/>HE (RTL) • AR (RTL) • EN • RU • FR"]
         StorefrontUI["Dual Booking Storefront<br/>Amazon 1-Page Storefront / 3-Step Wizard"]
@@ -227,3 +228,41 @@ flowchart TD
 
     StrictRules --> DOM
 ```
+
+---
+
+## 6. Automated Quality Framework & Testing Pipeline (TESTING.md)
+
+```mermaid
+flowchart TD
+    Trigger(["npm run test:quick / npm run test:all"]) --> EnvCheck["Sandboxed Test Environment<br/>TEST_DIST_DIR = '.next-test'<br/>ALLOW_IN_MEMORY_STORE = 'true'"]
+
+    subgraph Stage1["1. Static & Fast Unit Verification (Vitest)"]
+        Typecheck["TypeScript Strict Check<br/>(tsc --noEmit)"]
+        UnitTests["Vitest Unit Projects<br/>- Scheduling math & mission manifests<br/>- i18n key parity & unicode purity<br/>- Member auth ownership contracts"]
+    end
+
+    subgraph Stage2["2. Build & Artifact Verification"]
+        SandboxedBuild["Next.js Sandboxed Build<br/>Output to .next-test (Never touches dev .next)"]
+        ServerLaunch["Ephemeral Test Server Launch<br/>Isolated port with clean mock state"]
+    end
+
+    subgraph Stage3["3. Browser, Usability & Accessibility Suites (Playwright)"]
+        E2E["5 Browser Projects<br/>Chromium • Firefox • WebKit<br/>Mobile Chrome • Mobile Safari"]
+        A11y["Axe-Core Automated Audit<br/>(0 color-contrast violations, empty baseline)"]
+        Usability["Usability Suites<br/>- header-fit.spec.ts (320px–1920px)<br/>- member-i18n.spec.ts (5 languages)<br/>- theme-switch.spec.ts (Flicker-free persistence)"]
+        Visual["Visual Regression<br/>Platform snapshots (Linux & Darwin)"]
+    end
+
+    subgraph Stage4["4. Performance & Reliability Smoke"]
+        LoadSmoke["Autocannon Load Smoke<br/>100 concurrency slot hammering"]
+        LighthouseAudit["Lighthouse CWV Budgets<br/>Performance, A11y, Best Practices, SEO"]
+    end
+
+    EnvCheck --> Stage1
+    Stage1 --> Stage2
+    Stage2 --> Stage3
+    Stage3 --> Stage4
+    Stage4 --> QualityReport(["Comprehensive Quality Report<br/>test-results/quality-report.md"])
+```
+

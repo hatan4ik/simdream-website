@@ -110,10 +110,10 @@ This narrow boundary is suitable for replacing or complementing with a dedicated
 Run the repository's checks after changing scheduling or checkout behavior:
 
 ```bash
-npm run lint
-npm test
-npm run build
-npm audit --audit-level=high
+npm run typecheck       # Verify strict TypeScript types
+npm run test:quick      # Fast unit & integration test run with Vitest
+npm run build           # Verify 35 Next.js production routes
+npm run test:all        # Full automated quality framework (see TESTING.md)
 ```
 
 The tests cover manifest calculation, reservation capacity, server-owned checkout request shape, member ownership rules, and the exact draft allocator's non-overlap/orphan-capacity constraints.
