@@ -59,8 +59,8 @@ jobs:
         with:
           name: next-build
           path: |
-            .next
-            !.next/cache
+            .next-test
+            !.next-test/cache
           include-hidden-files: true
           retention-days: 3
 
@@ -88,7 +88,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: next-build
-          path: .next
+          path: .next-test
       - run: npx playwright install --with-deps ${{ matrix.browser }}
       - run: npx playwright test --project=${{ matrix.project }}
         env:
@@ -118,7 +118,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: next-build
-          path: .next
+          path: .next-test
       - run: npx playwright install --with-deps chromium
       - run: npx playwright test --project=a11y --project=usability --project=security-web --project=resilience
         env:
@@ -156,7 +156,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: next-build
-          path: .next
+          path: .next-test
       - run: npm run test:load
       - uses: actions/upload-artifact@v4
         if: always()
@@ -180,7 +180,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: next-build
-          path: .next
+          path: .next-test
       - run: npx playwright install --with-deps chromium
       # @lhci/cli runs through a pinned npx so its dependency tree stays out of the lockfile.
       - run: npm run test:lighthouse

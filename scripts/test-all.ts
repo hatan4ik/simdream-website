@@ -9,7 +9,7 @@ import { join } from 'node:path';
  *                                       a11y / usability / security-web / resilience, visual, load smoke
  *   npm run test:all -- --quick         typecheck + Vitest only (seconds; no browser, no build)
  *   npm run test:all -- --full          e2e on all five browser projects
- *   npm run test:all -- --no-build      reuse an up-to-date .next instead of rebuilding
+ *   npm run test:all -- --no-build      reuse an up-to-date .next-test instead of rebuilding
  *   npm run test:all -- --lighthouse    add the Lighthouse budgets stage
  *   npm run test:all -- --bail          stop at the first failing stage
  *   npm run test:all -- --report-only   rebuild test-results/quality-report.md from existing results

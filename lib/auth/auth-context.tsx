@@ -10,10 +10,74 @@ const isProduction = process.env.NODE_ENV === 'production';
 
 export type SocialAuthProvider = 'google' | 'facebook' | 'apple';
 
+/** Provider brand names. They stay in Latin script in every language. */
+export const SOCIAL_PROVIDER_LABELS: Record<SocialAuthProvider, string> = {
+  google: 'Google',
+  facebook: 'Facebook',
+  apple: 'Apple',
+};
+
+/**
+ * Stable, machine-readable outcome of an auth action. The UI localizes it
+ * through `t.member.auth[code]`; `message` is only the English fallback.
+ */
+export type AuthResultCode =
+  | 'authNotConfigured'
+  | 'invalidCredentials'
+  | 'emailNotConfirmed'
+  | 'registrationNotConfigured'
+  | 'passwordTooShort'
+  | 'signupFailed'
+  | 'confirmEmailToActivate'
+  | 'socialAuthNotConfigured'
+  | 'providerUnavailable'
+  | 'recoveryNotConfigured'
+  | 'recoveryFailed'
+  | 'recoveryEmailSent';
+
+/** Values for `{placeholder}` tokens in the copy for a result code. */
+export interface AuthResultParams {
+  provider?: string;
+}
+
 export interface AuthActionResult {
   success: boolean;
+  /** Present on every result that carries something to tell the visitor. */
+  code?: AuthResultCode;
+  /** English fallback copy for `code`, already interpolated. */
   message?: string;
+  params?: AuthResultParams;
   needsEmailConfirmation?: boolean;
+}
+
+/** English fallback copy, kept identical to the `en` entries of `member.auth`. */
+const AUTH_RESULT_FALLBACK_COPY: Record<AuthResultCode, string> = {
+  authNotConfigured: 'Member authentication is not configured.',
+  invalidCredentials: 'Email or password is incorrect.',
+  emailNotConfirmed: 'Please confirm your email address before signing in.',
+  registrationNotConfigured: 'Member registration is not configured yet.',
+  passwordTooShort: 'Use a password with at least 12 characters.',
+  signupFailed: 'We could not create the member profile. Please try again.',
+  confirmEmailToActivate: 'Check your email to confirm your address and activate your member profile.',
+  socialAuthNotConfigured: 'Member authentication is not configured yet.',
+  providerUnavailable: '{provider} sign-in is unavailable. Please use email or try again later.',
+  recoveryNotConfigured: 'Password recovery is not configured yet.',
+  recoveryFailed: 'We could not send a recovery email. Please try again later.',
+  recoveryEmailSent: 'If an account exists for this email, a recovery link is on its way.',
+};
+
+/** Replaces `{name}` tokens with the matching params; unknown tokens are left untouched. */
+export function formatAuthCopy(template: string, params: AuthResultParams = {}): string {
+  const values = params as Record<string, string | undefined>;
+  return template.replace(/\{(\w+)\}/g, (token, name: string) => values[name] ?? token);
+}
+
+function authResult(
+  success: boolean,
+  code: AuthResultCode,
+  extra: { params?: AuthResultParams; needsEmailConfirmation?: boolean } = {}
+): AuthActionResult {
+  return { success, code, message: formatAuthCopy(AUTH_RESULT_FALLBACK_COPY[code], extra.params), ...extra };
 }
 
 interface AuthContextType {
@@ -146,14 +210,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (isSupabaseConfigured && supabase) {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error || !data.user) {
-          return { success: false, message: 'Email or password is incorrect.' };
+          return authResult(false, 'invalidCredentials');
         }
         if (!data.session) {
-          return {
-            success: false,
-            needsEmailConfirmation: true,
-            message: 'Please confirm your email address before signing in.',
-          };
+          return authResult(false, 'emailNotConfirmed', { needsEmailConfirmation: true });
         }
         // Avoid a signed-in-but-empty Flight Deck while the idempotent member
         // bootstrap request finishes in the auth-state listener.
@@ -170,7 +230,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return { success: true };
         }
       }
-      return { success: false, message: 'Member authentication is not configured.' };
+      return authResult(false, 'authNotConfigured');
     } finally {
       setIsLoading(false);
     }
@@ -178,10 +238,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signup = async (fullName: string, email: string, password: string): Promise<AuthActionResult> => {
     if (!isSupabaseConfigured || !supabase) {
-      return { success: false, message: 'Member registration is not configured yet.' };
+      return authResult(false, 'registrationNotConfigured');
     }
     if (password.length < 12) {
-      return { success: false, message: 'Use a password with at least 12 characters.' };
+      return authResult(false, 'passwordTooShort');
     }
 
     const { data, error } = await supabase.auth.signUp({
@@ -192,42 +252,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         emailRedirectTo: authRedirect('/auth/callback'),
       },
     });
-    if (error) return { success: false, message: 'We could not create the member profile. Please try again.' };
+    if (error) return authResult(false, 'signupFailed');
     if (data.session && data.user) {
       setUser(profileFromUser(data.user));
       return { success: true };
     }
-    return {
-      success: true,
-      needsEmailConfirmation: true,
-      message: 'Check your email to confirm your address and activate your member profile.',
-    };
+    return authResult(true, 'confirmEmailToActivate', { needsEmailConfirmation: true });
   };
 
   const loginWithProvider = async (provider: SocialAuthProvider): Promise<AuthActionResult> => {
     if (!isSupabaseConfigured || !supabase) {
-      return { success: false, message: 'Member authentication is not configured yet.' };
+      return authResult(false, 'socialAuthNotConfigured');
     }
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: { redirectTo: `${authRedirect('/auth/callback')}?next=/dashboard` },
     });
     return error
-      ? { success: false, message: `${provider} sign-in is unavailable. Please use email or try again later.` }
+      ? authResult(false, 'providerUnavailable', { params: { provider: SOCIAL_PROVIDER_LABELS[provider] } })
       : { success: true };
   };
 
   const resetPassword = async (email: string): Promise<AuthActionResult> => {
     if (!isSupabaseConfigured || !supabase) {
-      return { success: false, message: 'Password recovery is not configured yet.' };
+      return authResult(false, 'recoveryNotConfigured');
     }
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: authRedirect('/auth/reset-password'),
     });
     // Do not disclose whether an address has a member account.
-    return error
-      ? { success: false, message: 'We could not send a recovery email. Please try again later.' }
-      : { success: true, message: 'If an account exists for this email, a recovery link is on its way.' };
+    return error ? authResult(false, 'recoveryFailed') : authResult(true, 'recoveryEmailSent');
   };
 
   const logout = () => {

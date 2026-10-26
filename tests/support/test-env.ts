@@ -42,8 +42,18 @@ export const SANDBOX_ENV: Record<string, string> = {
  */
 export const IN_MEMORY_STORE_ENV: Record<string, string> = { ALLOW_IN_MEMORY_STORE: 'true' };
 
-/** Environment for sandboxed `next start` servers (Playwright, load smoke, Lighthouse). */
-export const SERVER_SANDBOX_ENV: Record<string, string> = { ...SANDBOX_ENV, ...IN_MEMORY_STORE_ENV };
+/**
+ * Sandboxed builds and servers use their own build folder, so a test build never replaces
+ * the .next that a developer's own `npm run start` is serving.
+ */
+export const TEST_DIST_DIR = '.next-test';
+
+/** Environment for sandboxed builds and `next start` servers (Playwright, load smoke, Lighthouse). */
+export const SERVER_SANDBOX_ENV: Record<string, string> = {
+  ...SANDBOX_ENV,
+  ...IN_MEMORY_STORE_ENV,
+  NEXT_DIST_DIR: TEST_DIST_DIR,
+};
 
 /** Enables online payments in non-production test runs; Stripe calls are mocked. */
 export const STRIPE_TEST_ENV: Record<string, string> = {

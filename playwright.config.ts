@@ -1,11 +1,42 @@
+import { existsSync, readdirSync, statSync } from 'node:fs';
+import { join } from 'node:path';
 import { defineConfig, devices } from '@playwright/test';
-import { SERVER_SANDBOX_ENV } from './tests/support/test-env';
+import { SERVER_SANDBOX_ENV, TEST_DIST_DIR } from './tests/support/test-env';
 
-// Tests run against the production build (`npm run build`), as the Next.js docs
-// recommend. PW_PORT lets several suites run side by side on one machine.
+// Tests run against the sandboxed production build (`npm run test:build`), as the Next.js
+// docs recommend. PW_PORT lets several suites run side by side on one machine.
 const PORT = Number(process.env.PW_PORT ?? 3100);
 const baseURL = `http://127.0.0.1:${PORT}`;
 const isCI = Boolean(process.env.CI);
+
+/** Newest modification time of the app sources a build depends on. */
+function newestSourceMtime(paths: string[]): number {
+  let newest = 0;
+  const visit = (path: string) => {
+    if (!existsSync(path)) return;
+    const stats = statSync(path);
+    if (stats.isDirectory()) readdirSync(path).forEach((entry) => visit(join(path, entry)));
+    else newest = Math.max(newest, stats.mtimeMs);
+  };
+  paths.forEach(visit);
+  return newest;
+}
+
+// A browser verdict on a missing or out-of-date build is meaningless, so refuse to run.
+// CI builds in the same workflow; locally PW_ALLOW_STALE_BUILD=1 overrides the age check.
+const buildId = join(TEST_DIST_DIR, 'BUILD_ID');
+if (!existsSync(buildId)) {
+  throw new Error(`No test build in ${TEST_DIST_DIR}/. Run \`npm run test:build\` first.`);
+}
+if (!isCI && !process.env.PW_ALLOW_STALE_BUILD) {
+  const sources = ['app', 'components', 'lib', 'types', 'public', 'proxy.ts', 'next.config.mjs', 'package-lock.json'];
+  if (newestSourceMtime(sources) > statSync(buildId).mtimeMs) {
+    throw new Error(
+      `The test build in ${TEST_DIST_DIR}/ is older than the app sources. Run \`npm run test:build\` ` +
+        '(or set PW_ALLOW_STALE_BUILD=1 to test the old build on purpose).'
+    );
+  }
+}
 // Playwright empties its output folders on start; per-port folders keep parallel runs apart.
 const runSuffix = process.env.PW_PORT ? `-${PORT}` : '';
 

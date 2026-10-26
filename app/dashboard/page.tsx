@@ -16,9 +16,77 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
 import { useAuth } from '@/lib/auth/auth-context';
+import { useLanguage, type Language } from '@/lib/i18n/language-context';
 import { isSupabaseConfigured, supabase } from '@/lib/supabaseClient';
 import type { Booking } from '@/types';
 import { formatCurrency, formatDate } from '@/lib/utils';
+
+/** Keys of `t.member.dashboard.errors`. Errors are held as keys so they re-render in the active language. */
+type DashboardErrorKey =
+  | 'loadFailed'
+  | 'emailNotConfirmed'
+  | 'authRequired'
+  | 'bookingDataUnavailable'
+  | 'receiptAuthNotConfigured'
+  | 'sessionExpired'
+  | 'receiptUnavailable'
+  | 'receiptConfirmedEmailRequired'
+  | 'bookingNotFound'
+  | 'receiptNotAvailableForBooking'
+  | 'receiptTemporarilyUnavailable'
+  | 'receiptNotPublished';
+
+/** Keys of `t.member.dashboard.status`. */
+type BookingStatusKey = 'cancelled' | 'refunded' | 'paymentPending' | 'completed' | 'confirmed';
+
+/**
+ * The exact English messages returned by `/api/my-bookings`, mapped to localized copy. An unknown or
+ * missing message falls back to the generic error so raw server text never reaches a non-English visitor.
+ */
+const BOOKINGS_API_ERRORS: ReadonlyMap<string, DashboardErrorKey> = new Map([
+  ['Confirm your email address to access member purchases.', 'emailNotConfirmed'],
+  ['Authentication required.', 'authRequired'],
+  ['Booking data is temporarily unavailable.', 'bookingDataUnavailable'],
+]);
+
+/** The exact English messages returned by `/api/my-bookings/[ref]/receipt`. */
+const RECEIPT_API_ERRORS: ReadonlyMap<string, DashboardErrorKey> = new Map([
+  ['Authentication with a confirmed email is required.', 'receiptConfirmedEmailRequired'],
+  ['Booking not found.', 'bookingNotFound'],
+  ['A Stripe payment receipt is not available for this booking.', 'receiptNotAvailableForBooking'],
+  ['Payment receipt is temporarily unavailable.', 'receiptTemporarilyUnavailable'],
+  ['Stripe has not published a receipt for this payment yet.', 'receiptNotPublished'],
+]);
+
+function apiErrorKey(
+  known: ReadonlyMap<string, DashboardErrorKey>,
+  message: unknown,
+  fallback: DashboardErrorKey
+): DashboardErrorKey {
+  return (typeof message === 'string' && known.get(message)) || fallback;
+}
+
+/** English keeps the shared `formatDate` output (en-GB); Arabic keeps Latin digits like the rest of the telemetry. */
+const DATE_LOCALES: Record<Language, string> = {
+  en: 'en-GB',
+  he: 'he-IL',
+  ru: 'ru-RU',
+  fr: 'fr-FR',
+  ar: 'ar-u-nu-latn',
+};
+
+function formatMissionDate(ymd: string, language: Language): string {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd);
+  if (!match) return formatDate(ymd);
+  // Local calendar date, not UTC midnight, so the day never shifts (same rule as formatDate).
+  const localDate = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  return new Intl.DateTimeFormat(DATE_LOCALES[language] ?? DATE_LOCALES.en, {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  }).format(localDate);
+}
 
 function todayInIsrael(): string {
   const parts = new Intl.DateTimeFormat('en-CA', {
@@ -31,12 +99,12 @@ function todayInIsrael(): string {
   return `${value('year')}-${value('month')}-${value('day')}`;
 }
 
-function bookingStatusLabel(booking: Booking): string {
-  if (booking.status === 'cancelled') return 'Cancelled';
-  if (booking.paymentStatus === 'refunded') return 'Refunded';
-  if (booking.paymentStatus === 'pending') return 'Payment pending';
-  if (booking.status === 'completed') return 'Completed';
-  return 'Confirmed';
+function bookingStatusKey(booking: Booking): BookingStatusKey {
+  if (booking.status === 'cancelled') return 'cancelled';
+  if (booking.paymentStatus === 'refunded') return 'refunded';
+  if (booking.paymentStatus === 'pending') return 'paymentPending';
+  if (booking.status === 'completed') return 'completed';
+  return 'confirmed';
 }
 
 function bookingStatusVariant(booking: Booking): 'sky' | 'emerald' | 'amber' | 'slate' {
@@ -48,10 +116,12 @@ function bookingStatusVariant(booking: Booking): 'sky' | 'emerald' | 'amber' | '
 
 export default function DashboardPage() {
   const { user, isLoading: authLoading } = useAuth();
+  const { t, language } = useLanguage();
+  const copy = t.member.dashboard;
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState('');
-  const [receiptError, setReceiptError] = useState('');
+  const [loadError, setLoadError] = useState<DashboardErrorKey | null>(null);
+  const [receiptError, setReceiptError] = useState<DashboardErrorKey | null>(null);
   const [openingReceipt, setOpeningReceipt] = useState<string | null>(null);
 
   useEffect(() => {
@@ -67,7 +137,7 @@ export default function DashboardPage() {
       }
 
       setLoading(true);
-      setLoadError('');
+      setLoadError(null);
       try {
         const headers: HeadersInit = {};
         if (isSupabaseConfigured && supabase) {
@@ -81,13 +151,18 @@ export default function DashboardPage() {
         const response = await fetch('/api/my-bookings', { headers, cache: 'no-store' });
         const data = await response.json().catch(() => null);
         if (!response.ok) {
-          throw new Error(typeof data?.error === 'string' ? data.error : 'We could not load your reservations.');
+          if (active) {
+            setBookings([]);
+            setLoadError(apiErrorKey(BOOKINGS_API_ERRORS, data?.error, 'loadFailed'));
+          }
+          return;
         }
         if (active) setBookings(Array.isArray(data) ? data : []);
-      } catch (error) {
+      } catch {
+        // Network or session failure: browser error text is not localizable, so show the generic message.
         if (active) {
           setBookings([]);
-          setLoadError(error instanceof Error ? error.message : 'We could not load your reservations.');
+          setLoadError('loadFailed');
         }
       } finally {
         if (active) setLoading(false);
@@ -116,25 +191,30 @@ export default function DashboardPage() {
   }, [bookings]);
 
   const openReceipt = async (bookingReference: string) => {
-    setReceiptError('');
+    setReceiptError(null);
     setOpeningReceipt(bookingReference);
     try {
       if (!isSupabaseConfigured || !supabase) {
-        throw new Error('Payment receipts are available only with configured member authentication.');
+        setReceiptError('receiptAuthNotConfigured');
+        return;
       }
       const { data } = await supabase.auth.getSession();
-      if (!data.session?.access_token) throw new Error('Your member session has expired. Please sign in again.');
+      if (!data.session?.access_token) {
+        setReceiptError('sessionExpired');
+        return;
+      }
       const response = await fetch(`/api/my-bookings/${encodeURIComponent(bookingReference)}/receipt`, {
         headers: { Authorization: `Bearer ${data.session.access_token}` },
         cache: 'no-store',
       });
       const result = await response.json().catch(() => null);
       if (!response.ok || typeof result?.receiptUrl !== 'string') {
-        throw new Error(typeof result?.error === 'string' ? result.error : 'Payment receipt is unavailable.');
+        setReceiptError(apiErrorKey(RECEIPT_API_ERRORS, result?.error, 'receiptUnavailable'));
+        return;
       }
       window.open(result.receiptUrl, '_blank', 'noopener,noreferrer');
-    } catch (error) {
-      setReceiptError(error instanceof Error ? error.message : 'Payment receipt is unavailable.');
+    } catch {
+      setReceiptError('receiptUnavailable');
     } finally {
       setOpeningReceipt(null);
     }
@@ -143,15 +223,15 @@ export default function DashboardPage() {
   if (!authLoading && !user) {
     return (
       <Card className="p-10 text-center space-y-4">
-        <h1 className="text-2xl font-black text-white">Sign in to your Flight Deck</h1>
-        <p className="text-sm text-slate-400">Members can view reservations, purchase history, and Stripe payment receipts.</p>
-        <Link href="/login"><Button>Sign in or create a member profile</Button></Link>
+        <h1 className="text-2xl font-black text-white">{copy.signInTitle}</h1>
+        <p className="text-sm text-slate-400">{copy.signInSubtitle}</p>
+        <Link href="/login"><Button>{copy.signInCta}</Button></Link>
       </Card>
     );
   }
 
   if (authLoading || !user) {
-    return <Card className="p-10 text-center text-sm text-slate-400">Loading your secure Flight Deck…</Card>;
+    return <Card className="p-10 text-center text-sm text-slate-400">{copy.loadingFlightDeck}</Card>;
   }
 
   const renderBooking = (booking: Booking, isUpcoming: boolean) => (
@@ -161,15 +241,15 @@ export default function DashboardPage() {
     >
       <div className="space-y-2 min-w-0">
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant={bookingStatusVariant(booking)}>{bookingStatusLabel(booking).toUpperCase()}</Badge>
-          <span className="text-xs font-mono text-sky-400 font-bold">{booking.bookingReference}</span>
+          <Badge variant={bookingStatusVariant(booking)}>{copy.status[bookingStatusKey(booking)].toUpperCase()}</Badge>
+          <span className="text-xs font-mono text-sky-400 font-bold" dir="ltr">{booking.bookingReference}</span>
         </div>
         <h3 className="text-base font-bold text-white">{booking.packageTitle}</h3>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400 font-mono">
-          <span>{formatDate(booking.bookingDate)}</span>
-          <span>{booking.startTime}–{booking.endTime} IST</span>
-          <span>{booking.durationMinutes} min</span>
-          <span className="text-white font-bold">{formatCurrency(booking.totalIls)}</span>
+          <span>{formatMissionDate(booking.bookingDate, language)}</span>
+          <span dir="ltr">{booking.startTime}–{booking.endTime} IST</span>
+          <span>{copy.durationMinutes.replace('{minutes}', String(booking.durationMinutes))}</span>
+          <span className="text-white font-bold" dir="ltr">{formatCurrency(booking.totalIls)}</span>
         </div>
       </div>
       <div className="flex flex-wrap items-center gap-2 shrink-0">
@@ -177,7 +257,7 @@ export default function DashboardPage() {
           <Link href={`/book/success?ref=${encodeURIComponent(booking.bookingReference)}`}>
             <Button variant="secondary" size="sm">
               <FileText className="w-3.5 h-3.5" />
-              <span>Boarding pass</span>
+              <span>{copy.boardingPass}</span>
             </Button>
           </Link>
         )}
@@ -190,7 +270,7 @@ export default function DashboardPage() {
             onClick={() => void openReceipt(booking.bookingReference)}
           >
             <ReceiptText className="w-3.5 h-3.5" />
-            <span>Payment receipt</span>
+            <span>{copy.paymentReceipt}</span>
             <ExternalLink className="w-3 h-3" />
           </Button>
         )}
@@ -202,74 +282,74 @@ export default function DashboardPage() {
     <div className="space-y-8">
       <div className="rounded-2xl border border-slate-800 bg-gradient-to-r from-sky-950/40 via-slate-900 to-slate-900 p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <span className="text-xs font-mono text-sky-400 uppercase font-semibold">Secure member Flight Deck</span>
-          <h1 className="text-2xl font-black text-white mt-1">Welcome back, {user.fullName || 'Captain'}</h1>
-          <p className="text-xs text-slate-400">{user.email} · reservations and purchases belonging to this verified email</p>
+          <span className="text-xs font-mono text-sky-400 uppercase font-semibold">{copy.secureBadge}</span>
+          <h1 className="text-2xl font-black text-white mt-1">{copy.welcomeBack.replace('{name}', () => user.fullName || copy.defaultPilotName)}</h1>
+          <p className="text-xs text-slate-400"><span dir="ltr">{user.email}</span> · {copy.verifiedEmailScope}</p>
         </div>
         <Link href="/book">
           <Button size="sm" className="font-bold whitespace-nowrap">
             <Plane className="w-4 h-4 -rotate-45" />
-            <span>Book next mission</span>
+            <span>{copy.bookNextMission}</span>
           </Button>
         </Link>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card className="p-4 space-y-1">
-          <span className="text-[10px] font-mono text-slate-400 uppercase">Upcoming reservations</span>
+          <span className="text-[10px] font-mono text-slate-400 uppercase">{copy.stats.upcomingLabel}</span>
           <p className="text-2xl font-black text-sky-400 font-mono">{upcomingBookings.length}</p>
-          <p className="text-[10px] text-slate-400">Confirmed or pending future sessions</p>
+          <p className="text-[10px] text-slate-400">{copy.stats.upcomingHint}</p>
         </Card>
         <Card className="p-4 space-y-1">
-          <span className="text-[10px] font-mono text-slate-400 uppercase">Purchase records</span>
+          <span className="text-[10px] font-mono text-slate-400 uppercase">{copy.stats.recordsLabel}</span>
           <p className="text-2xl font-black text-white font-mono">{bookings.length}</p>
-          <p className="text-[10px] text-slate-400">Bookings saved to this member account</p>
+          <p className="text-[10px] text-slate-400">{copy.stats.recordsHint}</p>
         </Card>
         <Card className="p-4 space-y-1">
-          <span className="text-[10px] font-mono text-slate-400 uppercase">Paid booking total</span>
-          <p className="text-2xl font-black text-emerald-400 font-mono">{formatCurrency(paidSpend)}</p>
-          <p className="text-[10px] text-slate-400">Paid flight bookings; refunds are shown separately</p>
+          <span className="text-[10px] font-mono text-slate-400 uppercase">{copy.stats.paidTotalLabel}</span>
+          <p className="text-2xl font-black text-emerald-400 font-mono"><span dir="ltr">{formatCurrency(paidSpend)}</span></p>
+          <p className="text-[10px] text-slate-400">{copy.stats.paidTotalHint}</p>
         </Card>
       </div>
 
       {loadError && (
-        <div role="alert" className="p-4 rounded-xl bg-red-950/40 border border-red-500/30 text-red-300 text-sm">{loadError}</div>
+        <div role="alert" className="p-4 rounded-xl bg-red-950/40 border border-red-500/30 text-red-300 text-sm">{copy.errors[loadError]}</div>
       )}
       {receiptError && (
-        <div role="alert" className="p-4 rounded-xl bg-amber-950/40 border border-amber-500/30 text-amber-200 text-sm">{receiptError}</div>
+        <div role="alert" className="p-4 rounded-xl bg-amber-950/40 border border-amber-500/30 text-amber-200 text-sm">{copy.errors[receiptError]}</div>
       )}
 
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-white flex items-center gap-2"><Calendar className="w-5 h-5 text-sky-400" /> Upcoming sessions</h2>
-          <span className="text-xs font-mono text-slate-400">{upcomingBookings.length} scheduled</span>
+          <h2 className="text-lg font-bold text-white flex items-center gap-2"><Calendar className="w-5 h-5 text-sky-400" /> {copy.upcomingHeading}</h2>
+          <span className="text-xs font-mono text-slate-400">{copy.scheduledCount.replace('{count}', String(upcomingBookings.length))}</span>
         </div>
         {loading ? (
-          <Card className="p-8 text-center text-sm text-slate-400">Loading reservations…</Card>
+          <Card className="p-8 text-center text-sm text-slate-400">{copy.loadingReservations}</Card>
         ) : upcomingBookings.length === 0 ? (
           <Card className="p-8 text-center space-y-3">
-            <p className="text-slate-400 text-sm">No future simulator reservations are saved to this member profile.</p>
-            <Link href="/book"><Button size="sm">Book a cockpit slot</Button></Link>
+            <p className="text-slate-400 text-sm">{copy.noUpcoming}</p>
+            <Link href="/book"><Button size="sm">{copy.bookCockpitSlot}</Button></Link>
           </Card>
         ) : <div className="space-y-3">{upcomingBookings.map((booking) => renderBooking(booking, true))}</div>}
       </section>
 
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-white flex items-center gap-2"><Clock className="w-5 h-5 text-emerald-400" /> Previous sessions & purchases</h2>
-          <Badge variant="emerald"><ShieldCheck className="w-3.5 h-3.5" /> VERIFIED ACCOUNT HISTORY</Badge>
+          <h2 className="text-lg font-bold text-white flex items-center gap-2"><Clock className="w-5 h-5 text-emerald-400" /> {copy.historyHeading}</h2>
+          <Badge variant="emerald"><ShieldCheck className="w-3.5 h-3.5" /> {copy.verifiedHistoryBadge}</Badge>
         </div>
-        <p className="text-xs text-slate-400">Stripe payments include a protected Stripe payment receipt. A tax invoice requires the business’s invoicing system.</p>
+        <p className="text-xs text-slate-400">{copy.receiptNotice}</p>
         {loading ? (
-          <Card className="p-8 text-center text-sm text-slate-400">Loading purchase history…</Card>
+          <Card className="p-8 text-center text-sm text-slate-400">{copy.loadingHistory}</Card>
         ) : historyBookings.length === 0 ? (
-          <Card className="p-8 text-center text-sm text-slate-400">No previous sessions or purchases are saved to this member profile.</Card>
+          <Card className="p-8 text-center text-sm text-slate-400">{copy.noHistory}</Card>
         ) : <div className="space-y-3">{historyBookings.map((booking) => renderBooking(booking, false))}</div>}
       </section>
 
       <Card className="p-4 text-xs text-slate-400 flex gap-3">
         <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-        <p>Older guest bookings are added only after you sign in with a confirmed email address that exactly matches the checkout email. If a purchase is missing, contact SimDream with the booking reference.</p>
+        <p>{copy.guestBookingsNotice}</p>
       </Card>
     </div>
   );

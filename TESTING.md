@@ -34,7 +34,7 @@ No secrets, Stripe account or Supabase project are needed. Every test runs in a 
 | `npm run test:all` | Typecheck, Vitest with coverage, sandboxed build, e2e on Chromium, a11y, usability, security-web, resilience, visual and load. Writes `test-results/quality-report.md`. |
 | `npm run test:quick` | Typecheck and Vitest only: seconds, no build, no browser |
 | `npm run test:full` | `test:all` on all five browser projects, plus Lighthouse |
-| `npm run test:all -- --no-build` | Reuses the current `.next`. Only valid if nothing changed since the last `npm run test:build`. |
+| `npm run test:all -- --no-build` | Reuses the current test build in `.next-test` |
 | `npm run test:all -- --bail` | Stops at the first failing stage |
 | `npm run test:report` | Rebuilds the quality report from existing results |
 | `npm test` / `test:unit` / `test:integration` | Vitest: everything, or one project |
@@ -47,7 +47,7 @@ No secrets, Stripe account or Supabase project are needed. Every test runs in a 
 | `npm run test:visual:update` | Re-records Linux screenshot baselines in the pinned Playwright Docker image. The build runs on a private copy inside the container; only the snapshots are copied back. |
 | `npm run test:load` / `test:lighthouse` | Starts a sandboxed server and runs the load smoke or Lighthouse |
 
-Browser tests run against the **production build**. Run `npm run test:build` after changing app code, before any direct `npx playwright test`. `test:all` rebuilds for you.
+Browser tests run against a sandboxed **production build** in `.next-test`. That's a separate folder from `.next`, so tests never disturb a server you started with `npm run start`. Run `npm run test:build` after changing app code; a direct `npx playwright test` refuses to run on a missing or out-of-date test build (`PW_ALLOW_STALE_BUILD=1` overrides it). `test:all` rebuilds for you.
 
 To run a single file or project, use the `--project=name` form. A bare `--project name` swallows the file argument.
 
@@ -135,7 +135,6 @@ These are coverage gaps the framework review found that are not yet closed. Each
 
 | ID | Gap |
 | --- | --- |
-| GAP-2 | No guard against running browser tests on a stale `.next`. `test:all` rebuilds, but a direct `npx playwright test` doesn't check the build's age. |
 | GAP-4 | Production database defences are untested against real Postgres: the `EXCLUDE` overlap constraint, `redeem_gift_voucher`, the `23P01` → 409 mapping and migrations 001–004. This needs a Postgres service container. |
 | GAP-6 | Admin back-office mutations (reschedule, cancel, voucher actions) aren't exercised in a browser |
 | GAP-7 | Signed-in member journeys (dashboard, receipts, auth callback, password reset) have no browser coverage |
