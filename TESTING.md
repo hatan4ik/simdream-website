@@ -20,7 +20,7 @@ No secrets, Stripe account or Supabase project are needed. Every test runs in a 
 | Reliability | Vitest | `tests/reliability` | Concurrency (double booking), idempotency (Stripe retries), persistence outages, failure injection, DST and midnight edges |
 | Browser journeys | Playwright | `tests/e2e` | Booking (storefront and wizard), success page, vouchers, workshops, contact, admin, member area, language and theme, navigation, mobile. Runs on Chromium, Firefox, WebKit, Pixel 7 and iPhone 15 |
 | Accessibility | Playwright, axe-core | `tests/a11y` | WCAG 2.x AA scans in both themes: every public route (English and Hebrew; Arabic on the main funnel), booking states, success, member, auth and 404 pages, keyboard paths, mobile and admin |
-| Usability | Playwright | `tests/usability` | Hydration (including on a later day than the build), forms, i18n and RTL, layout stability (CLS), reduced motion, page structure, responsive layout |
+| Usability | Playwright | `tests/usability` | Hydration (including on a later day than the build), forms, i18n and RTL (including the member area in all five languages), header theme switch and header fit in all five languages, layout stability (CLS), reduced motion, page structure, responsive layout from 320 to 1280px |
 | Security (browser) | Playwright | `tests/security-web` | Response headers and CSP, access control, information disclosure, stored XSS |
 | Resilience | Playwright | `tests/resilience` | Slot loading and checkout under slow, failing and offline networks |
 | Visual | Playwright | `tests/visual` | Screenshot baselines for key pages |

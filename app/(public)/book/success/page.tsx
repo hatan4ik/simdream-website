@@ -4,7 +4,8 @@ import React, { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import confetti from 'canvas-confetti';
-import { CheckCircle2, Clock3, Download, MapPin, Plane } from 'lucide-react';
+import { CheckCircle2, Clock3, Download, MapPin } from 'lucide-react';
+import { BrandMark } from '@/components/brand/BrandLogo';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { formatCurrency, formatDate } from '@/lib/utils';
@@ -119,7 +120,7 @@ function BookingSuccessContent() {
         <div className="rounded-2xl border-2 border-sky-500/40 bg-gradient-to-br from-slate-900 via-slate-950 to-sky-950/70 p-6 sm:p-8 text-left rtl:text-right shadow-2xl space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-800 pb-6 gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-sky-500 flex items-center justify-center"><Plane className="w-5 h-5 text-white -rotate-45" /></div>
+              <BrandMark className="w-10 h-10 shrink-0" />
               <div><p className="font-black text-white text-lg">SIM DREAM LTD</p><p className="text-[10px] font-mono text-sky-400 uppercase">{t.bookingSuccess.manifestBadge}</p></div>
             </div>
             <div className="text-left sm:text-right rtl:text-right sm:rtl:text-left"><p className="text-[10px] font-mono text-slate-400 uppercase">{t.bookingSuccess.clearanceRef}</p><p className="text-xl font-black text-sky-400 font-mono" dir="ltr">{booking.bookingReference}</p></div>

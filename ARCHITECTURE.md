@@ -10,7 +10,7 @@ Visual architecture documentation for **Sim Dream LTD** (`simdream.co.il`), Boei
 flowchart TD
     subgraph ClientLayer["Client & User Interface Layer"]
         User["Visitor / Pilot Candidate"]
-        ThemeEngine["Dual UX Engine<br/>🌙 Cockpit Night / ☀️ Brand Daylight"]
+        ThemeEngine["Dual UX Engine<br/>🌙 Cockpit Night / ☀️ Brand Daylight<br/>Sim Dream cerulean #2096C7 + orange #FF5500"]
         I18nEngine["5-Language Engine (i18n)<br/>HE (RTL) • AR (RTL) • EN • RU • FR"]
         StorefrontUI["Dual Booking Storefront<br/>Amazon 1-Page Storefront / 3-Step Wizard"]
     end

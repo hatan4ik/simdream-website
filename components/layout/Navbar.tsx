@@ -3,7 +3,8 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Plane, Menu, X, User, ShieldAlert, Award, Calendar, ChevronDown, LogOut } from 'lucide-react';
+import { Menu, X, User, ShieldAlert, Award, Calendar, ChevronDown, LogOut } from 'lucide-react';
+import { BrandLogo } from '@/components/brand/BrandLogo';
 import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useLanguage } from '@/lib/i18n/language-context';
@@ -32,36 +33,28 @@ export function Navbar() {
 
   return (
     <nav className="sticky top-0 z-50 bg-slate-950/85 backdrop-blur-lg border-b border-slate-800/80">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
+      <div className="max-w-[96rem] mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between gap-4 h-20">
           {/* Brand Logo */}
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-600 to-sky-400 flex items-center justify-center shadow-glow group-hover:scale-105 transition-transform shrink-0">
-              <Plane className="w-6 h-6 text-white transform -rotate-45" />
-            </div>
+          <Link href="/" className="flex items-center group shrink-0">
             <div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-xl font-black tracking-tight text-white whitespace-nowrap">SIM DREAM</span>
-                <span className="hidden sm:inline text-[10px] bg-sky-500/20 text-sky-400 border border-sky-500/30 px-1.5 py-0.5 rounded font-mono font-bold">
-                  737 MAX
-                </span>
-              </div>
-              <p className="hidden min-[400px]:block text-[10px] tracking-widest text-slate-400 uppercase font-mono">
+              <BrandLogo className="h-6 sm:h-7 w-auto group-hover:opacity-90 transition-opacity" priority />
+              <p className="hidden min-[400px]:block mt-1 text-[10px] tracking-widest text-orange-400 uppercase font-bold">
                 {t.nav.brandSub}
               </p>
             </div>
           </Link>
 
-          {/* Desktop Navigation Links */}
-          <div className="hidden lg:flex items-center gap-1">
+          {/* Desktop Navigation Links (2xl+: below it they overflowed beside the logo and actions in long languages such as Russian, so the drawer takes over) */}
+          <div className="hidden 2xl:flex items-center gap-1">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`px-3.5 py-2 text-sm font-medium rounded-lg transition-colors ${
+                className={`px-3 py-2 text-sm leading-tight font-medium rounded-lg border-b-2 transition-colors ${
                   isActive(link.href)
-                    ? 'text-sky-400 bg-sky-500/10'
-                    : 'text-slate-300 hover:text-white hover:bg-slate-900/60'
+                    ? 'text-sky-400 bg-sky-500/10 border-orange-500'
+                    : 'text-slate-300 border-transparent hover:text-white hover:bg-slate-900/60'
                 }`}
               >
                 {link.name}
@@ -70,7 +63,7 @@ export function Navbar() {
           </div>
 
           {/* Right Actions: UI Interface Switcher, Language Selector, User Menu & Book Button */}
-          <div className="hidden md:flex items-center gap-2.5">
+          <div className="hidden md:flex shrink-0 items-center gap-2.5">
             {/* UI Interface Switcher */}
             <UiThemeSwitcher variant="compact" />
 
@@ -84,7 +77,9 @@ export function Navbar() {
                 className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-800 bg-slate-900/70 hover:bg-slate-800 text-xs text-slate-300 transition-colors"
               >
                 <div className={`w-2 h-2 rounded-full ${isAdmin ? 'bg-amber-400' : 'bg-sky-400'}`} />
-                <span className="font-medium">{user ? user.fullName : t.nav.pilotLogin}</span>
+                <User className="w-4 h-4" aria-hidden="true" />
+                {/* Icon-only: a visible label squeezed the inline links onto extra lines. The text stays the accessible name. */}
+                <span className="sr-only">{user ? user.fullName || t.member.dashboard.defaultPilotName : t.nav.pilotLogin}</span>
                 <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
               </button>
 
@@ -160,15 +155,15 @@ export function Navbar() {
 
             {/* Main Booking CTA */}
             <Link href="/book">
-              <Button variant="primary" size="md" className="font-semibold">
+              <Button variant="primary" size="md" className="font-semibold whitespace-nowrap">
                 <Calendar className="w-4 h-4" />
                 <span>{t.nav.bookFlight}</span>
               </Button>
             </Link>
           </div>
 
-          {/* Compact actions below lg: the drawer toggle covers tablets too, where the inline links are hidden. */}
-          <div className="flex items-center gap-1.5 lg:hidden">
+          {/* Compact actions below 2xl: the drawer toggle covers tablets and laptops, where the inline links are hidden. */}
+          <div className="flex items-center gap-1.5 2xl:hidden">
             <div className="flex items-center gap-1.5 md:hidden">
               {/* Phones narrower than sm get these two inside the drawer instead, so the header fits 320px. */}
               <div className="hidden sm:flex items-center gap-1.5">
@@ -197,7 +192,7 @@ export function Navbar() {
 
       {/* Mobile & Tablet Drawer */}
       {mobileMenuOpen && (
-        <div id="mobile-navigation" className="lg:hidden border-t border-slate-800 bg-slate-950 px-4 pt-3 pb-6 space-y-3">
+        <div id="mobile-navigation" className="2xl:hidden border-t border-slate-800 bg-slate-950 px-4 pt-3 pb-6 space-y-3">
           <div className="space-y-1">
             {navLinks.map((link) => (
               <Link

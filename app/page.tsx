@@ -49,7 +49,7 @@ export default function HomePage() {
           {/* Main Headline */}
           <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-white leading-[1.1]">
             {t.hero.titlePart1}{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-sky-200 to-cyan-400">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-sky-200 to-sky-400">
               {t.hero.titleHighlight}
             </span>{' '}
             {t.hero.titlePart2}

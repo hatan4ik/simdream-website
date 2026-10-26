@@ -24,8 +24,9 @@ Production-grade website, multi-step booking engine, Amazon-style flight storefr
    - **Specialized Noise-Free Booking Engine**: When booking a Professional Training or Fear of Flying session, the booking flow automatically suppresses all recreational add-on clutter, combos, and tourist options. The candidate is presented with a serene, noise-free 2-step booking flow (`Date & Operational Slot` &rarr; `Pilot Manifest & Checkout`).
 
 2. **Dual UX/UI Interface Engine (Cockpit Night & SimDream Brand Daylight)**:
-   - **🌙 Cockpit Night (`data-ui="cockpit"`)**: Titanium and dark slate aesthetic with instrument cyan HUD scanlines, autothrottle glowing green, and dark glassmorphic cockpit instrumentation.
-   - **☀️ SimDream Brand Daylight (`data-ui="brand"`)**: High-contrast, clean daylight airline portal styled directly in the authentic colors of the **`simdream.co.il`** logo: Royal Aviation Blue (`#0284c7`), horizon sky, and crisp cloud white (`#ffffff`).
+   - **Official Sim Dream identity**: both interfaces use the **`simdream.co.il`** logo (orange airplane `#FF5500` and cerulean "SIM DREAM" wordmark `#2096C7`) with a translated tagline. The colours are design tokens in `app/globals.css`: Tailwind `sky-*` is the Sim Dream cerulean scale and `orange-*` the Sim Dream orange scale (rules in AGENTS.md §1, Brand Identity).
+   - **🌙 Cockpit Night (`data-ui="cockpit"`, default)**: Titanium and dark slate aesthetic with Sim Dream cerulean HUD scanlines, orange brand highlights, autothrottle glowing green, and dark glassmorphic cockpit instrumentation.
+   - **☀️ SimDream Brand Daylight (`data-ui="brand"`)**: High-contrast, clean daylight airline portal in the Sim Dream colours: cerulean (`#2096C7`) and orange (`#FF5500`) on crisp cloud white (`#ffffff`), with WCAG AA-safe darker shades for small text.
    - **Tactile UI Switcher**: Prominent button in the desktop header, mobile top-bar, mobile drawer, and footer to instantly toggle interfaces.
    - **Zero-Flicker Persistence**: Preserves theme selection via `localStorage` with an inline anti-flicker `<head>` bootstrap script.
 
@@ -158,6 +159,8 @@ npm run dev -- --port 3001
 
 Local demo controls appear only when Supabase is not configured and the app is not in production. They are not an authentication mechanism. Production login uses Supabase password authentication, and `/admin` additionally requires the configured server-side HTTP Basic credentials.
 
+To run the production build on your machine without Supabase, use `npm run start:local` (after `npm run build`). It sets `ALLOW_IN_MEMORY_STORE=true`, so the calendar and catalog use the seeded demo data. A plain `npm run start` is production mode and fails closed without a database: availability and the catalog answer 503 rather than showing data that isn't real. Never set `ALLOW_IN_MEMORY_STORE` in a real deployment.
+
 ---
 
 ## Supabase Database Setup (Production)
@@ -219,11 +222,15 @@ npm test
 # Generate optimized static & serverless production build
 npm run build
 
-# Preview the production build locally on http://localhost:3000
-npm run preview   # or: npm run start
+# Preview the production build locally on http://localhost:3000 with demo data
+npm run start:local   # plain `npm run start` needs Supabase (fails closed without it)
 
 # Verify dependency advisories
 npm audit --audit-level=high
+
+# Full automated quality framework: unit/integration/security/reliability, e2e on 5 browsers,
+# accessibility, usability, visual, load and Lighthouse (see TESTING.md)
+npm run test:all
 ```
 
 ---

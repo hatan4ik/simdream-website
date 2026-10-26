@@ -2,7 +2,8 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Plane, MapPin, Phone, Mail, Clock, UserCheck, ChevronDown, FileText, ShieldCheck } from 'lucide-react';
+import { MapPin, Phone, Mail, Clock, UserCheck, ChevronDown, FileText, ShieldCheck } from 'lucide-react';
+import { BrandLogo } from '@/components/brand/BrandLogo';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { LanguageSelector } from './LanguageSelector';
 import { UiThemeSwitcher } from './UiThemeSwitcher';
@@ -22,14 +23,9 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           {/* Brand & Mission */}
           <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-sky-500 flex items-center justify-center shadow-glow shrink-0">
-                <Plane className="w-5 h-5 text-white transform -rotate-45" />
-              </div>
-              <div>
-                <span className="text-lg font-black tracking-tight text-white">SIM DREAM LTD</span>
-                <p className="text-[10px] tracking-wider text-sky-400 font-mono">BOEING 737 MAX CENTER</p>
-              </div>
+            <div>
+              <BrandLogo className="h-7 w-auto" />
+              <p className="mt-1.5 text-[10px] tracking-widest text-orange-400 uppercase font-bold">{t.nav.brandSub}</p>
             </div>
             <p className="text-xs text-slate-400 leading-relaxed">
               {t.footer.missionDesc}

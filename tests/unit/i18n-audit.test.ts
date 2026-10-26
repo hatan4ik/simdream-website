@@ -1,8 +1,9 @@
+import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import ts from 'typescript';
 import { FLIGHT_ADDONS, SIMULATOR_PACKAGES } from '@/lib/db/seed-data';
 import { LANGUAGES, getLocalizedAddons, getLocalizedPackages, translations, type Language } from '@/lib/i18n/translations';
-import { literalTexts, location, parseSource, sourceFiles, walk } from './_support/source';
+import { REPO_ROOT, literalTexts, location, parseSource, readConstLiteral, sourceFiles, walk } from './_support/source';
 
 const CODES: Language[] = ['he', 'en', 'ru', 'fr', 'ar'];
 const HEBREW = /[֐-׿]/;
@@ -255,5 +256,169 @@ describe('static source scans', () => {
 
   it('keeps the company-registration label in en/ru/fr/ar legal copy free of Hebrew letters (UNIT-8)', () => {
     expect(crossScriptViolations(copySources.flatMap(languageKeyedCopy)).filter((violation) => UNIT_8_LABEL.test(violation))).toEqual([]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Member area ratchet (AGENTS.md section 5): every visible string comes from t.member
+// ---------------------------------------------------------------------------
+
+/** The member area: sign-in, dashboard, auth callback, password reset and the auth result messages. */
+const MEMBER_FILES = [
+  'app/(auth)/login/page.tsx',
+  'app/dashboard/layout.tsx',
+  'app/dashboard/page.tsx',
+  'app/auth/callback/page.tsx',
+  'app/auth/reset-password/page.tsx',
+  'lib/auth/auth-context.tsx',
+];
+
+/** JSX attributes whose value a visitor reads or a screen reader announces. */
+const DISPLAY_ATTRIBUTES = new Set([
+  'placeholder',
+  'aria-label',
+  'aria-description',
+  'aria-placeholder',
+  'aria-roledescription',
+  'aria-valuetext',
+  'title',
+  'alt',
+  'label',
+]);
+
+/**
+ * Literal text that reads the same in every language and may therefore be written in member JSX.
+ * Anything else with a letter in it belongs in `member` in lib/i18n/translations.ts.
+ */
+const LANGUAGE_NEUTRAL_TEXT = [
+  // Brand names stay in Latin script in every language.
+  'Sim Dream',
+  'SimDream',
+  'Boeing',
+  'Google',
+  'Facebook',
+  'Apple',
+  'Stripe',
+  // Left-to-right telemetry and identifier samples (AGENTS.md section 5.3).
+  'IST', // time-zone suffix of a slot range, e.g. "11:15–12:15 IST"
+  'pilot@example.com', // address-format sample in the dir="ltr" email field
+];
+
+const HTML_ENTITY = /&(?:[a-z][a-z0-9]*|#\d+|#x[0-9a-f]+);/gi;
+const LETTER = /\p{L}/u;
+
+/** Whether rendered literal text still holds a letter once entities and language-neutral text are removed. */
+function isHardCodedDisplayText(text: string): boolean {
+  let remainder = text.replace(HTML_ENTITY, ' ');
+  for (const neutral of LANGUAGE_NEUTRAL_TEXT) remainder = remainder.split(neutral).join(' ');
+  return LETTER.test(remainder);
+}
+
+/**
+ * Literal pieces of the value an expression renders: through parentheses, both ternary branches,
+ * the right side of `&&` and both sides of `||` / `??`. Literals passed to calls (such as the
+ * `'{count}'` token in `copy.x.replace('{count}', n)`) are arguments, not rendered text.
+ */
+function renderedLiterals(node: ts.Expression): ts.LiteralLikeNode[] {
+  if (ts.isParenthesizedExpression(node) || ts.isAsExpression(node) || ts.isNonNullExpression(node)) {
+    return renderedLiterals(node.expression);
+  }
+  if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) return [node];
+  if (ts.isTemplateExpression(node)) return [node.head, ...node.templateSpans.map((span) => span.literal)];
+  if (ts.isConditionalExpression(node)) return [...renderedLiterals(node.whenTrue), ...renderedLiterals(node.whenFalse)];
+  if (ts.isBinaryExpression(node)) {
+    const operator = node.operatorToken.kind;
+    if (operator === ts.SyntaxKind.AmpersandAmpersandToken) return renderedLiterals(node.right);
+    if (operator === ts.SyntaxKind.BarBarToken || operator === ts.SyntaxKind.QuestionQuestionToken) {
+      return [...renderedLiterals(node.left), ...renderedLiterals(node.right)];
+    }
+  }
+  return [];
+}
+
+interface DisplaySite {
+  node: ts.Node;
+  /** Literal text this site renders; empty when it renders only dictionary lookups or variables. */
+  texts: string[];
+}
+
+/** Every place JSX renders text: JSX text, `{expression}` children and display attributes. */
+function displaySites(source: ts.SourceFile): DisplaySite[] {
+  const sites: DisplaySite[] = [];
+  const textsOf = (literals: ts.LiteralLikeNode[]) => literals.map((literal) => literal.text);
+  walk(source, (node) => {
+    if (ts.isJsxText(node) && !node.containsOnlyTriviaWhiteSpaces) {
+      sites.push({ node, texts: [node.text] });
+    } else if (ts.isJsxExpression(node) && node.expression && (ts.isJsxElement(node.parent) || ts.isJsxFragment(node.parent))) {
+      sites.push({ node, texts: textsOf(renderedLiterals(node.expression)) });
+    } else if (ts.isJsxAttribute(node) && DISPLAY_ATTRIBUTES.has(node.name.getText()) && node.initializer) {
+      const { initializer } = node;
+      const literals = ts.isStringLiteral(initializer)
+        ? [initializer]
+        : ts.isJsxExpression(initializer) && initializer.expression
+        ? renderedLiterals(initializer.expression)
+        : [];
+      sites.push({ node, texts: textsOf(literals) });
+    }
+  });
+  return sites;
+}
+
+function hardCodedDisplayText(source: ts.SourceFile): string[] {
+  return displaySites(source).flatMap(({ node, texts }) =>
+    texts.filter(isHardCodedDisplayText).map((text) => `${location(node)} ${JSON.stringify(text.replace(/\s+/g, ' ').trim())}`)
+  );
+}
+
+describe('member area localization ratchet', () => {
+  const synthetic = (text: string) => parseSource('synthetic.tsx', text);
+  const memberSources = MEMBER_FILES.map((file) => parseSource(path.join(REPO_ROOT, file)));
+
+  it('detects hard-coded display text and allows dictionary lookups, brands and LTR telemetry', () => {
+    const violations = hardCodedDisplayText(
+      synthetic(`
+        const heading = <h1>Member Flight Deck Login</h1>;
+        const field = <input placeholder="Your name" aria-label={'Email'} />;
+        const status = <p title={ok ? copy.hint : 'Fallback'}>{loading ? 'Loading…' : copy.ready}</p>;
+        const duration = <span>{\`\${minutes} min\`}</span>;
+        const guest = <b>{user?.fullName || 'Guest'}</b>;
+        const branded = <button>Continue with Google</button>;
+      `)
+    );
+    expect(violations.map((violation) => violation.replace(/^synthetic\.tsx:\d+ /, ''))).toEqual([
+      '"Member Flight Deck Login"',
+      '"Your name"',
+      '"Email"',
+      '"Fallback"',
+      '"Loading…"',
+      '"min"',
+      '"Guest"',
+      '"Continue with Google"',
+    ]);
+
+    expect(
+      hardCodedDisplayText(
+        synthetic(`
+          const ok = (
+            <p className="flex text-sky-400" dir="ltr" placeholder={isSignup ? copy.newPassword : '••••••••'}>
+              {copy.title} &bull; {start}–{end} IST · <b>Google</b> {copy.count.replace('{count}', String(n))}
+              {isAdmin && <span>{nav.adminBoard}</span>}
+            </p>
+          );
+          const email = <input type="email" placeholder="pilot@example.com" />;
+        `)
+      )
+    ).toEqual([]);
+  });
+
+  it('renders no hard-coded display text in the six member files', () => {
+    // Guard against a vacuous pass: the scan must reach the member JSX it audits.
+    const sites = memberSources.flatMap(displaySites);
+    expect(sites.length).toBeGreaterThan(100);
+    expect(memberSources.flatMap(hardCodedDisplayText)).toEqual([]);
+  });
+
+  it('keeps the English auth fallback messages identical to en.member.auth', () => {
+    expect(readConstLiteral('lib/auth/auth-context.tsx', 'AUTH_RESULT_FALLBACK_COPY')).toEqual(translations.en.member.auth);
   });
 });

@@ -13,7 +13,8 @@ test.beforeEach(async ({ page, baseURL }) => {
 });
 
 /** The mobile navbar cluster (theme, language, Book, menu) needs about 454px, so narrower phones clip it. */
-const WIDTHS = [320, 375, 768, 1280] as const;
+// 1024px covers small laptops, where the header once overflowed beside the inline links.
+const WIDTHS = [320, 375, 768, 1024, 1280] as const;
 
 for (const width of WIDTHS) {
   test.describe(`at ${width}px wide`, () => {

@@ -2,8 +2,8 @@ import type { Locator, Page } from '@playwright/test';
 import { expect, type Language } from '../../support/e2e';
 import { waitUntilInteractive } from './hydration';
 
-/** Tailwind `lg`: below it the inline links collapse into the drawer (tablets included, E2E-11). */
-const DRAWER_BREAKPOINT_PX = 1024;
+/** Tailwind `2xl`: below it the inline links collapse into the drawer (tablets and laptops, E2E-11). */
+const DRAWER_BREAKPOINT_PX = 1536;
 /** Tailwind `sm`: below it the language and theme controls live inside the drawer (UX-1). */
 const DRAWER_CONTROLS_BREAKPOINT_PX = 640;
 
@@ -59,10 +59,14 @@ export class SiteChrome {
     return this.navbar.getByRole('link', { name: /SIM DREAM/ });
   }
 
-  /** Primary navigation link; opens the drawer first on narrow screens. */
+  /**
+   * Primary navigation link; opens the drawer first when the header is collapsed. Decided by
+   * what is rendered, not by window width: a classic scrollbar (WebKit desktop) narrows the
+   * layout viewport below `xl` even in a 1280px window, so the drawer is showing there.
+   */
   async primaryLink(name: string): Promise<Locator> {
     const link = this.navbar.getByRole('link', { name, exact: true });
-    if (this.usesDrawer) {
+    if (this.usesDrawer || (await this.menuToggle().isVisible())) {
       await this.openMenu();
       await expect(link).toBeVisible();
     }

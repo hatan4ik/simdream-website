@@ -10,7 +10,7 @@ import { useLanguage } from '@/lib/i18n/language-context';
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { user, isAdmin, logout } = useAuth();
-  const { t } = useLanguage();
+  const { t, isRTL } = useLanguage();
   const nav = t.member.dashboardNav;
 
   return (
@@ -24,10 +24,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <Plane className="w-6 h-6 -rotate-45" />
             </div>
             <div className="min-w-0">
-              <h3 className="font-bold text-white text-sm truncate">{user?.fullName || nav.guestName}</h3>
-              <p className="text-[11px] font-mono text-slate-400 truncate">
-                {user?.email ? <span dir="ltr">{user.email}</span> : nav.signInPrompt}
-              </p>
+              <h3 className="font-bold text-white text-sm truncate">
+                {user ? user.fullName || t.member.dashboard.defaultPilotName : nav.guestName}
+              </h3>
+              {user?.email ? (
+                // Truncate the LTR element itself so a long address keeps its start and loses its tail in he/ar too.
+                <p dir="ltr" className={`text-[11px] font-mono text-slate-400 truncate ${isRTL ? 'text-right' : ''}`}>
+                  {user.email}
+                </p>
+              ) : (
+                <p className="text-[11px] font-mono text-slate-400 truncate">{nav.signInPrompt}</p>
+              )}
               <span className="inline-block mt-1 text-[10px] font-mono text-emerald-400 uppercase font-semibold">
                 &bull; {nav.statusActiveFlyer}
               </span>

@@ -24,6 +24,21 @@ Any customer-facing copy, landing page, or layout must reinforce the **5 Custome
 4. **Transformative Milestones & Fear of Flying**: Bucket-list birthday/anniversary gifts, corporate CRM leadership offsites, and therapeutic flight anxiety coaching.
 5. **Authentic Aviation Integrity**: Strict fidelity to Boeing flight deck documentation, ICAO terminology, and official airline operating procedures.
 
+### Brand Identity: Logo & Colour Tokens (mandatory)
+
+The visual identity is the official **simdream.co.il** logo: an **orange airplane** and a **cerulean "SIM DREAM" wordmark**, with the tagline *מערכות סימולציה (ישראל)* ("Simulation Systems (Israel)").
+
+| Token | Value | Use |
+| :--- | :--- | :--- |
+| Sim Dream cerulean | `#2096C7` (Tailwind `sky-500`) | Primary brand colour: wordmark, links, primary actions, accents. |
+| Sim Dream orange | `#FF5500` (Tailwind `orange-500`) | Brand highlight: airplane mark, tagline, active navigation indicator, key highlights. |
+
+1. **Logo assets only**: render the logo with [`components/brand/BrandLogo.tsx`](components/brand/BrandLogo.tsx) (`BrandLogo` = airplane + wordmark, `BrandMark` = airplane only), backed by `public/brand/simdream-logo.png` and `public/brand/simdream-plane.png`. The favicon is `app/icon.png`. Never rebuild the logo from text or icon fonts, never recolour it, and never mirror it in RTL layouts.
+2. **Tagline is translated text**: the wordmark artwork carries no tagline; render `t.nav.brandSub` beside it so every language gets its own tagline (AGENTS.md §5).
+3. **Colour tokens live in [`app/globals.css`](app/globals.css)** (`@theme`): Tailwind's `sky-*` scale *is* the Sim Dream cerulean scale and `orange-*` *is* the Sim Dream orange scale. Use those utilities; do not introduce other blues, cyans or oranges as brand colours, and never hard-code the old Tailwind sky values (`#0284c7`, `#0369a1`, `#38bdf8`).
+4. **Contrast (WCAG 2.x AA, enforced by the axe suite with an empty baseline)**: `#FF5500` is 3.2:1 on white, so `orange-500` is for the logo, icons, borders/indicators and large text only; small orange text on light surfaces uses `orange-700` (5.3:1). White text on a cerulean fill needs `sky-700` or darker. Brand Daylight colour overrides live in `app/globals.css` under `html[data-ui="brand"]`.
+5. **Both interface themes carry the brand**: 🌙 Cockpit Night (default: dark slate with cerulean and orange accents) and ☀️ Brand Daylight (cloud white with cerulean and orange).
+
 ---
 
 ## 2. Canonical Routing & URL Discipline
@@ -136,3 +151,5 @@ Before completing any feature or code change:
 3. Verify `/book` with PRO packages (`/book?package=airline-interview-prep-90-pro`) &rarr; 2-step noise-free flow.
 4. Verify calendar across Sunday (10:00–23:00), Friday (09:00–16:00), and Saturday (19:00–24:00 Prime-Time).
 5. Verify all 5 language switchers (`he`, `en`, `ru`, `fr`, `ar`) render correctly with zero mixed scripts or broken keys.
+6. Verify the brand identity in both themes: official logo (orange airplane + cerulean wordmark), translated tagline, and no off-brand blues or cyans (§1, Brand Identity).
+7. Run the automated quality framework ([`TESTING.md`](TESTING.md)): `npm run test:quick` for every change, `npm run test:all` before completing a feature. The accessibility baseline must stay empty and visual baselines change only on purpose.

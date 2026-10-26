@@ -17,6 +17,8 @@ import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useLanguage, type Language } from '@/lib/i18n/language-context';
+import { getLocalizedPackages } from '@/lib/i18n/translations';
+import { sanitizePackageTitle } from '@/lib/scheduler/mission-calculator';
 import { isSupabaseConfigured, supabase } from '@/lib/supabaseClient';
 import type { Booking } from '@/types';
 import { formatCurrency, formatDate } from '@/lib/utils';
@@ -123,6 +125,17 @@ export default function DashboardPage() {
   const [loadError, setLoadError] = useState<DashboardErrorKey | null>(null);
   const [receiptError, setReceiptError] = useState<DashboardErrorKey | null>(null);
   const [openingReceipt, setOpeningReceipt] = useState<string | null>(null);
+
+  /**
+   * Package titles in the active language, keyed by package ID. A booking stores the English
+   * registry title at checkout, so it is only the fallback for legacy or unknown package IDs.
+   * getLocalizedPackages applies the BASIC_20 / PROMO_45 overrides, and the duration suffix is
+   * stripped exactly as at checkout so the title never contradicts the booked duration.
+   */
+  const packageTitles = useMemo(
+    () => new Map(getLocalizedPackages(language).map((pkg) => [pkg.id, sanitizePackageTitle(pkg.title)])),
+    [language]
+  );
 
   useEffect(() => {
     let active = true;
@@ -244,7 +257,7 @@ export default function DashboardPage() {
           <Badge variant={bookingStatusVariant(booking)}>{copy.status[bookingStatusKey(booking)].toUpperCase()}</Badge>
           <span className="text-xs font-mono text-sky-400 font-bold" dir="ltr">{booking.bookingReference}</span>
         </div>
-        <h3 className="text-base font-bold text-white">{booking.packageTitle}</h3>
+        <h3 className="text-base font-bold text-white">{packageTitles.get(booking.packageId) ?? booking.packageTitle}</h3>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400 font-mono">
           <span>{formatMissionDate(booking.bookingDate, language)}</span>
           <span dir="ltr">{booking.startTime}–{booking.endTime} IST</span>

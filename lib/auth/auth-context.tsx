@@ -19,7 +19,7 @@ export const SOCIAL_PROVIDER_LABELS: Record<SocialAuthProvider, string> = {
 
 /**
  * Stable, machine-readable outcome of an auth action. The UI localizes it
- * through `t.member.auth[code]`; `message` is only the English fallback.
+ * through `t.member.auth[code]`; `message` is English for logs and tests only.
  */
 export type AuthResultCode =
   | 'authNotConfigured'
@@ -44,7 +44,10 @@ export interface AuthActionResult {
   success: boolean;
   /** Present on every result that carries something to tell the visitor. */
   code?: AuthResultCode;
-  /** English fallback copy for `code`, already interpolated. */
+  /**
+   * English copy for `code`, already interpolated, for logs and tests only. The UI must
+   * render `t.member.auth[code]` and never this text (AGENTS.md section 5).
+   */
   message?: string;
   params?: AuthResultParams;
   needsEmailConfirmation?: boolean;
@@ -108,7 +111,9 @@ function profileFromUser(
         ? user.user_metadata.full_name
         : typeof user.user_metadata?.name === 'string'
         ? user.user_metadata.name
-        : (user.email || 'Pilot').split('@')[0],
+        : // No name and no email (e.g. a phone-only social account): leave it empty so the
+          // UI renders its localized default pilot name instead of English text.
+          (user.email || '').split('@')[0],
     phone: typeof profile?.phone_number === 'string' ? profile.phone_number : undefined,
     // Roles are only read from the authenticated user's protected profile row;
     // user metadata and an email string can never grant administrative access.

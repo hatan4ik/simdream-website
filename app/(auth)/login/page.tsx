@@ -3,7 +3,8 @@
 import React, { useId, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Apple, ArrowRight, AlertCircle, Facebook, Lock, Mail, Plane, UserRound, type LucideIcon } from 'lucide-react';
+import { Apple, ArrowRight, AlertCircle, Facebook, Lock, Mail, UserRound, type LucideIcon } from 'lucide-react';
+import { BrandMark } from '@/components/brand/BrandLogo';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { formatAuthCopy, useAuth, type AuthActionResult, type SocialAuthProvider } from '@/lib/auth/auth-context';
@@ -67,11 +68,14 @@ export default function LoginPage() {
   const [error, setError] = useState<Feedback | null>(null);
   const [notice, setNotice] = useState<Feedback | null>(null);
 
-  /** Localized copy for the result code; the English message only covers codes without a translation. */
+  /**
+   * Localized copy for the result code, else the localized fallback. `result.message` is English
+   * and is never rendered, so no code path can show English to he/ar/ru/fr visitors.
+   */
   const feedbackText = ({ result, fallback }: Feedback): string => {
     const localized = result?.code ? t.member.auth[result.code] : undefined;
     if (localized) return formatAuthCopy(localized, result?.params);
-    return result?.message || copy[fallback];
+    return copy[fallback];
   };
 
   const switchMode = (nextMode: MemberMode) => {
@@ -132,9 +136,7 @@ export default function LoginPage() {
     <div className="flex-1 flex items-center justify-center py-16 px-4 sm:px-6 lg:px-8 hud-grid">
       <Card className="max-w-md w-full p-8 space-y-6 shadow-2xl border-slate-800 bg-slate-900/90 backdrop-blur-md">
         <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-xl bg-sky-500 flex items-center justify-center mx-auto shadow-glow">
-            <Plane className="w-6 h-6 text-white -rotate-45" />
-          </div>
+          <BrandMark className="w-14 h-14 mx-auto" />
           <h1 className="text-2xl font-black text-white">{title}</h1>
           <p className="text-xs text-slate-400">{subtitle}</p>
         </div>
@@ -175,7 +177,7 @@ export default function LoginPage() {
             <div className="space-y-1.5">
               <label htmlFor={`${fieldId}-full-name`} className="font-mono uppercase text-slate-400 font-semibold">{copy.fullNameLabel}</label>
               <div className="relative">
-                <UserRound className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
+                <UserRound className="w-4 h-4 text-slate-500 absolute inset-s-3 top-3" />
                 <input
                   id={`${fieldId}-full-name`}
                   type="text"
@@ -219,7 +221,7 @@ export default function LoginPage() {
                 )}
               </div>
               <div className="relative">
-                <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
+                <Lock className="w-4 h-4 text-slate-500 absolute inset-s-3 top-3" />
                 <input
                   id={`${fieldId}-password`}
                   type="password"

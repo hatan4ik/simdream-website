@@ -2,23 +2,57 @@
 @import "tailwindcss";
 
 /* ==========================================================================
+   SIM DREAM BRAND TOKENS (from the official simdream.co.il logo)
+   - Cerulean #2096C7: the "SIM DREAM" wordmark. Replaces Tailwind's sky scale, so every
+     sky-* utility is brand cerulean (same lightness ladder, so contrast ratios hold).
+   - Orange #FF5500: the airplane mark and tagline. Replaces Tailwind's orange scale.
+     #FF5500 is 3.2:1 on white: use it for the logo, icons, rules and large text only;
+     small orange text on light surfaces uses orange-700 (5.3:1).
+   ========================================================================== */
+@theme {
+  --color-sky-50: #f2f9fd;
+  --color-sky-100: #e3f1f9;
+  --color-sky-200: #c4e4f6;
+  --color-sky-300: #91d0f2;
+  --color-sky-400: #56b9e9;
+  --color-sky-500: #2096c7;
+  --color-sky-600: #1a87b4;
+  --color-sky-700: #136c91;
+  --color-sky-800: #195a77;
+  --color-sky-900: #1a4b62;
+  --color-sky-950: #0f3040;
+
+  --color-orange-50: #fff5f1;
+  --color-orange-100: #ffe8dd;
+  --color-orange-200: #ffcdb9;
+  --color-orange-300: #ffab89;
+  --color-orange-400: #ff7c4b;
+  --color-orange-500: #ff5500;
+  --color-orange-600: #f84400;
+  --color-orange-700: #cb3200;
+  --color-orange-800: #a02c00;
+  --color-orange-900: #7f2907;
+  --color-orange-950: #441302;
+}
+
+/* ==========================================================================
    DUAL UX/UI INTERFACE ARCHITECTURE
-   1. [data-ui="cockpit"] - Avionics Glass Cockpit Night (Dark Slate & HUD Cyan)
-   2. [data-ui="brand"]   - SimDream Brand Daylight (Royal Blue & Cloud White)
+   1. [data-ui="cockpit"] - Avionics Glass Cockpit Night (Dark Slate, Sim Dream Cerulean & Orange)
+   2. [data-ui="brand"]   - SimDream Brand Daylight (Sim Dream Cerulean & Orange on Cloud White)
    ========================================================================== */
 
 :root {
   --background: #070b14;
   --foreground: #f8fafc;
-  --brand-primary: #38bdf8;
-  --brand-navy: #0284c7;
+  --brand-primary: #56b9e9;
+  --brand-navy: #1a87b4;
 }
 
 html[data-ui="brand"] {
   --background: #f8fafc;
   --foreground: #0f172a;
-  --brand-primary: #0284c7;
-  --brand-navy: #0369a1;
+  --brand-primary: #1a87b4;
+  --brand-navy: #136c91;
 }
 
 /* Keeps focused or anchored content clear of the sticky navbar (WCAG 2.4.11). */
@@ -50,12 +84,12 @@ body {
 .hud-grid {
   background-size: 40px 40px;
   background-image: 
-    linear-gradient(to right, rgba(56, 189, 248, 0.05) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(56, 189, 248, 0.05) 1px, transparent 1px);
+    linear-gradient(to right, rgba(86, 185, 233, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(86, 185, 233, 0.05) 1px, transparent 1px);
 }
 
 .cockpit-glow {
-  text-shadow: 0 0 12px rgba(56, 189, 248, 0.6);
+  text-shadow: 0 0 12px rgba(86, 185, 233, 0.6);
 }
 
 .fmc-green {
@@ -64,13 +98,13 @@ body {
 }
 
 .hud-border {
-  border: 1px solid rgba(56, 189, 248, 0.25);
-  box-shadow: inset 0 0 15px rgba(56, 189, 248, 0.05);
+  border: 1px solid rgba(86, 185, 233, 0.25);
+  box-shadow: inset 0 0 15px rgba(86, 185, 233, 0.05);
 }
 
 /* ==========================================================================
    SIMDREAM BRAND DAYLIGHT INTERFACE OVERRIDES (data-ui="brand")
-   Styled in the authentic colors of simdream.co.il logo & brand
+   Styled in the official simdream.co.il logo colours: cerulean #2096C7 and orange #FF5500
    ========================================================================== */
 
 html[data-ui="brand"] body {
@@ -208,13 +242,13 @@ html[data-ui="brand"] .via-slate-950\/80 {
 html[data-ui="brand"] .from-sky-900\/30,
 html[data-ui="brand"] .from-sky-950\/40,
 html[data-ui="brand"] .from-sky-950\/60 {
-  --tw-gradient-from: #e0f2fe !important;
+  --tw-gradient-from: #e3f1f9 !important;
 }
 html[data-ui="brand"] .to-sky-900\/30,
 html[data-ui="brand"] .to-sky-950\/60,
 html[data-ui="brand"] .to-sky-950\/70,
 html[data-ui="brand"] .to-sky-950\/80 {
-  --tw-gradient-to: #e0f2fe !important;
+  --tw-gradient-to: #e3f1f9 !important;
 }
 html[data-ui="brand"] .from-amber-950\/15,
 html[data-ui="brand"] .from-amber-950\/20,
@@ -226,21 +260,22 @@ html[data-ui="brand"] .to-amber-950\/40 {
 }
 /* Hero headline gradient text (large text, >= 3:1 on the daylight hero) */
 html[data-ui="brand"] .from-sky-400 {
-  --tw-gradient-from: #0369a1 !important;
+  --tw-gradient-from: #136c91 !important;
 }
 html[data-ui="brand"] .via-sky-200 {
-  --tw-gradient-via: #0284c7 !important;
+  --tw-gradient-via: #1a87b4 !important;
 }
-html[data-ui="brand"] .to-cyan-400 {
-  --tw-gradient-to: #0e7490 !important;
+html[data-ui="brand"] .to-cyan-400,
+html[data-ui="brand"] .to-sky-400 {
+  --tw-gradient-to: #136c91 !important;
 }
 
 /* Tinted status panels (dark translucent fills -> light tints) */
 html[data-ui="brand"] .bg-sky-950\/20 {
-  background-color: #f0f9ff !important;
+  background-color: #f2f9fd !important;
 }
 html[data-ui="brand"] .bg-sky-950\/40 {
-  background-color: #e0f2fe !important;
+  background-color: #e3f1f9 !important;
 }
 html[data-ui="brand"] .bg-emerald-950\/20 {
   background-color: #ecfdf5 !important;
@@ -296,7 +331,7 @@ html[data-ui="brand"] .hover\:border-slate-700:hover {
 
 html[data-ui="brand"] .border-sky-900\/50,
 html[data-ui="brand"] .border-sky-900\/60 {
-  border-color: #bae6fd !important;
+  border-color: #c4e4f6 !important;
 }
 
 html[data-ui="brand"] .focus\:ring-offset-slate-900:focus {
@@ -318,7 +353,7 @@ html[data-ui="brand"] .text-slate-300 {
 }
 
 /* Muted greys: #475569 holds >= 6.1:1 on every daylight surface and tint
-   (#ffffff, #f8fafc, #f1f5f9, #e2e8f0, #e0f2fe, #d1fae5, #fef3c7, #fee2e2). */
+   (#ffffff, #f8fafc, #f1f5f9, #e2e8f0, #e3f1f9, #d1fae5, #fef3c7, #fee2e2). */
 html[data-ui="brand"] .text-slate-400,
 html[data-ui="brand"] .text-slate-500,
 html[data-ui="brand"] .text-slate-600 {
@@ -335,16 +370,16 @@ html[data-ui="brand"] .hover\:text-slate-200:hover {
 
 /* Brand Accent Colors (simdream.co.il Royal Aviation Blue)
    Cockpit accents (300-500) map to the 700-800 range so they pass on white and on
-   their own tinted panel: #0369a1 >= 5.17:1 on #e0f2fe, 5.93:1 on white. */
+   their own tinted panel: #136c91 >= 5.17:1 on #e3f1f9, 5.93:1 on white. */
 html[data-ui="brand"] .text-sky-300,
 html[data-ui="brand"] .text-sky-400,
 html[data-ui="brand"] .text-sky-500 {
-  color: #0369a1 !important;
+  color: #136c91 !important;
 }
 html[data-ui="brand"] .text-sky-200,
 html[data-ui="brand"] .hover\:text-sky-300:hover,
 html[data-ui="brand"] .hover\:text-sky-400:hover {
-  color: #075985 !important;
+  color: #195a77 !important;
 }
 html[data-ui="brand"] .text-cyan-300 {
   color: #0e7490 !important;
@@ -356,13 +391,19 @@ html[data-ui="brand"] .bg-sky-500\/20,
 html[data-ui="brand"] .hover\:bg-sky-500\/10:hover,
 html[data-ui="brand"] .hover\:bg-sky-500\/20:hover,
 html[data-ui="brand"] .hover\:bg-sky-500\/25:hover {
-  background-color: #e0f2fe !important;
+  background-color: #e3f1f9 !important;
 }
 
 html[data-ui="brand"] .border-sky-500\/30,
 html[data-ui="brand"] .border-sky-500\/40,
 html[data-ui="brand"] .border-sky-500\/50 {
-  border-color: #7dd3fc !important;
+  border-color: #91d0f2 !important;
+}
+
+/* Sim Dream orange: #FF5500 is only 3.2:1 on white, so small orange text uses orange-700 (5.3:1). */
+html[data-ui="brand"] .text-orange-400,
+html[data-ui="brand"] .text-orange-500 {
+  color: #cb3200 !important;
 }
 
 /* Status Accents (Emerald / Amber / Red / Purple) in Daylight */
@@ -433,11 +474,11 @@ html[data-ui="brand"] .border-purple-500\/40 {
 }
 
 /* Solid fills behind white text. Declared after the accent rules so white wins
-   inside a fill. #0369a1 = 5.93:1 with white (sky-500 was 2.7:1); hover #075985 = 7.56:1. */
+   inside a fill. #136c91 = 5.93:1 with white (sky-500 was 2.7:1); hover #195a77 = 7.56:1. */
 html[data-ui="brand"] .bg-sky-500,
 html[data-ui="brand"] .bg-sky-600,
 html[data-ui="brand"] .bg-sky-700 {
-  background-color: #0369a1 !important;
+  background-color: #136c91 !important;
 }
 html[data-ui="brand"] .hover\:bg-sky-400:hover,
 html[data-ui="brand"] .hover\:bg-sky-500:hover,
@@ -445,7 +486,7 @@ html[data-ui="brand"] .hover\:bg-sky-600:hover,
 html[data-ui="brand"] .hover\:bg-sky-700:hover,
 html[data-ui="brand"] .hover\:bg-sky-800:hover,
 html[data-ui="brand"] .focus\:bg-sky-700:focus {
-  background-color: #075985 !important;
+  background-color: #195a77 !important;
 }
 html[data-ui="brand"] .bg-emerald-700 {
   background-color: #047857 !important;
@@ -485,17 +526,17 @@ html[data-ui="brand"] .bg-sky-700 * {
 /* Daylight HUD Grid & Horizon Coordinates */
 html[data-ui="brand"] .hud-grid {
   background-image: 
-    linear-gradient(to right, rgba(2, 132, 199, 0.06) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(2, 132, 199, 0.06) 1px, transparent 1px) !important;
+    linear-gradient(to right, rgba(26, 135, 180, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(26, 135, 180, 0.06) 1px, transparent 1px) !important;
 }
 
 html[data-ui="brand"] .hud-border {
-  border-color: #bae6fd !important;
-  box-shadow: inset 0 0 15px rgba(2, 132, 199, 0.04) !important;
+  border-color: #c4e4f6 !important;
+  box-shadow: inset 0 0 15px rgba(26, 135, 180, 0.04) !important;
 }
 
 html[data-ui="brand"] .cockpit-glow {
-  text-shadow: 0 0 10px rgba(2, 132, 199, 0.3) !important;
+  text-shadow: 0 0 10px rgba(26, 135, 180, 0.3) !important;
 }
 
 /* Inputs, Selects & Forms in Daylight */
@@ -510,8 +551,8 @@ html[data-ui="brand"] select {
 html[data-ui="brand"] input:focus,
 html[data-ui="brand"] textarea:focus,
 html[data-ui="brand"] select:focus {
-  border-color: #0284c7 !important;
-  outline: 2px solid rgba(2, 132, 199, 0.2) !important;
+  border-color: #1a87b4 !important;
+  outline: 2px solid rgba(26, 135, 180, 0.2) !important;
 }
 
 /* Smooth custom scrollbars */
@@ -527,7 +568,7 @@ html[data-ui="brand"] select:focus {
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #0284c7;
+  background: #1a87b4;
 }
 
 html[data-ui="brand"] ::-webkit-scrollbar-track {
@@ -537,6 +578,6 @@ html[data-ui="brand"] ::-webkit-scrollbar-thumb {
   background: #cbd5e1 !important;
 }
 html[data-ui="brand"] ::-webkit-scrollbar-thumb:hover {
-  background: #0284c7 !important;
+  background: #1a87b4 !important;
 }
 

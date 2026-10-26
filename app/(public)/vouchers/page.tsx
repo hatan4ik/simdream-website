@@ -3,9 +3,9 @@
 import React, { useId, useState } from 'react';
 import {
   Gift,
-  Plane,
   CreditCard,
 } from 'lucide-react';
+import { BrandMark } from '@/components/brand/BrandLogo';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { formatCurrency } from '@/lib/utils';
@@ -256,9 +256,7 @@ export default function VouchersPage() {
               {/* Card Header */}
               <div className="flex items-center justify-between border-b border-slate-800 pb-4">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-sky-500 flex items-center justify-center shrink-0">
-                    <Plane className="w-4 h-4 text-white -rotate-45" />
-                  </div>
+                  <BrandMark className="w-8 h-8 shrink-0" />
                   <div>
                     <p className="font-black text-white text-sm tracking-tight">SIM DREAM LTD</p>
                     <p className="text-[9px] font-mono text-sky-400 uppercase">BOEING 737 MAX TEL AVIV</p>

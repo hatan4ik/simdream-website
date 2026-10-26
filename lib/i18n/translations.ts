@@ -22,7 +22,7 @@ export const LANGUAGES: LanguageInfo[] = [
 export const translations = {
   en: {
     nav: {
-      brandSub: 'FLIGHT CENTER • TEL AVIV',
+      brandSub: 'Simulation Systems (Israel)',
       openMenu: 'Open menu',
       closeMenu: 'Close menu',
       skipToContent: 'Skip to main content',
@@ -802,7 +802,7 @@ export const translations = {
 
   he: {
     nav: {
-      brandSub: 'מרכז סימולציה • תל אביב',
+      brandSub: 'מערכות סימולציה (ישראל)',
       openMenu: 'פתיחת תפריט',
       closeMenu: 'סגירת תפריט',
       skipToContent: 'דילוג לתוכן הראשי',
@@ -1486,7 +1486,7 @@ export const translations = {
         secureBadge: 'תא טייס אישי ומאובטח',
         welcomeBack: 'ברוכים השבים, {name}',
         defaultPilotName: 'קפטן',
-        verifiedEmailScope: 'הזמנות ורכישות המשויכות לכתובת המייל המאומתת הזו',
+        verifiedEmailScope: 'הזמנות ורכישות המשויכות לכתובת הדוא״ל המאומתת הזו',
         bookNextMission: 'הזמינו את המשימה הבאה',
         stats: {
           upcomingLabel: 'הזמנות קרובות',
@@ -1508,7 +1508,7 @@ export const translations = {
         loadingHistory: 'טוענים את היסטוריית הרכישות…',
         noHistory: 'אין טיסות או רכישות קודמות השמורות בפרופיל שלכם.',
         guestBookingsNotice:
-          'הזמנות קודמות שבוצעו כאורחים מצורפות לחשבון רק לאחר התחברות עם כתובת מייל מאומתת הזהה בדיוק לזו שהוזנה בתשלום. חסרה רכישה? פנו ל-SimDream עם מספר ההזמנה.',
+          'הזמנות קודמות שבוצעו כאורחים מצורפות לחשבון רק לאחר התחברות עם כתובת דוא״ל מאומתת הזהה בדיוק לזו שהוזנה בתשלום. חסרה רכישה? פנו ל-SimDream עם מספר ההזמנה.',
         boardingPass: 'כרטיס עלייה למטוס',
         paymentReceipt: 'קבלת תשלום',
         durationMinutes: '{minutes} דק׳',
@@ -1521,13 +1521,13 @@ export const translations = {
         },
         errors: {
           loadFailed: 'לא הצלחנו לטעון את ההזמנות שלכם.',
-          emailNotConfirmed: 'אשרו את כתובת המייל שלכם כדי לצפות ברכישות בחשבון.',
+          emailNotConfirmed: 'אשרו את כתובת הדוא״ל שלכם כדי לצפות ברכישות בחשבון.',
           authRequired: 'נדרשת התחברות.',
           bookingDataUnavailable: 'נתוני ההזמנות אינם זמינים כרגע.',
           receiptAuthNotConfigured: 'קבלות תשלום זמינות רק כשמערכת ההתחברות לחברים מוגדרת.',
           sessionExpired: 'פג תוקף החיבור שלכם. אנא התחברו מחדש.',
           receiptUnavailable: 'קבלת התשלום אינה זמינה.',
-          receiptConfirmedEmailRequired: 'נדרשת התחברות עם כתובת מייל מאומתת.',
+          receiptConfirmedEmailRequired: 'נדרשת התחברות עם כתובת דוא״ל מאומתת.',
           bookingNotFound: 'ההזמנה לא נמצאה.',
           receiptNotAvailableForBooking: 'אין קבלת תשלום של Stripe עבור הזמנה זו.',
           receiptTemporarilyUnavailable: 'קבלת התשלום אינה זמינה כרגע.',
@@ -1577,7 +1577,7 @@ export const translations = {
 
   ru: {
     nav: {
-      brandSub: 'ЛЕТНЫЙ ЦЕНТР • ТЕЛЬ-АВИВ',
+      brandSub: 'Симуляционные системы (Израиль)',
       openMenu: 'Открыть меню',
       closeMenu: 'Закрыть меню',
       skipToContent: 'Перейти к основному содержимому',
@@ -2237,14 +2237,14 @@ export const translations = {
         demoUnavailable: 'Демо-доступ работает, только если локальная аутентификация не настроена.',
       },
       auth: {
-        authNotConfigured: 'Авторизация участников не настроена.',
+        authNotConfigured: 'Вход в личный кабинет не настроен.',
         invalidCredentials: 'Неверный email или пароль.',
         emailNotConfirmed: 'Перед входом подтвердите адрес email.',
-        registrationNotConfigured: 'Регистрация участников пока не настроена.',
+        registrationNotConfigured: 'Регистрация в личном кабинете пока не настроена.',
         passwordTooShort: 'Пароль должен содержать не менее 12 символов.',
         signupFailed: 'Не удалось создать профиль. Пожалуйста, попробуйте еще раз.',
         confirmEmailToActivate: 'Проверьте почту, чтобы подтвердить адрес и активировать профиль.',
-        socialAuthNotConfigured: 'Авторизация участников пока не настроена.',
+        socialAuthNotConfigured: 'Вход в личный кабинет пока не настроен.',
         providerUnavailable:
           'Вход через {provider} недоступен. Войдите по email или повторите попытку позже.',
         recoveryNotConfigured: 'Восстановление пароля пока не настроено.',
@@ -2253,12 +2253,12 @@ export const translations = {
           'Если к этому email привязан аккаунт, ссылка для восстановления уже в пути.',
       },
       dashboard: {
-        signInTitle: 'Войдите в свою кабину пилота',
+        signInTitle: 'Войдите в личный кабинет',
         signInSubtitle:
           'В личном кабинете доступны бронирования, история покупок и платежные квитанции Stripe.',
         signInCta: 'Войти или создать профиль',
-        loadingFlightDeck: 'Загружаем вашу защищенную кабину пилота…',
-        secureBadge: 'Защищенная кабина пилота',
+        loadingFlightDeck: 'Загружаем ваш защищенный личный кабинет…',
+        secureBadge: 'Защищенный личный кабинет',
         welcomeBack: 'С возвращением на борт, {name}',
         defaultPilotName: 'Капитан',
         verifiedEmailScope: 'бронирования и покупки, привязанные к этому подтвержденному email',
@@ -2279,7 +2279,7 @@ export const translations = {
         historyHeading: 'Прошлые полеты и покупки',
         verifiedHistoryBadge: 'ПОДТВЕРЖДЕННАЯ ИСТОРИЯ АККАУНТА',
         receiptNotice:
-          'К платежам через Stripe прилагается защищенная квитанция Stripe. Налоговый счет выставляется только через систему счетов компании.',
+          'К платежам через Stripe прилагается защищенная квитанция Stripe. Счет-фактура для налоговых целей выставляется только через бухгалтерскую систему компании.',
         loadingHistory: 'Загружаем историю покупок…',
         noHistory: 'В этом профиле нет прошлых полетов или покупок.',
         guestBookingsNotice:
@@ -2297,15 +2297,15 @@ export const translations = {
         errors: {
           loadFailed: 'Не удалось загрузить ваши бронирования.',
           emailNotConfirmed:
-            'Подтвердите адрес электронной почты, чтобы получить доступ к покупкам.',
+            'Подтвердите email, чтобы получить доступ к покупкам.',
           authRequired: 'Требуется вход в аккаунт.',
           bookingDataUnavailable: 'Данные о бронированиях временно недоступны.',
           receiptAuthNotConfigured:
-            'Платежные квитанции доступны только при настроенной авторизации участников.',
+            'Платежные квитанции доступны, только когда настроен вход в личный кабинет.',
           sessionExpired: 'Срок действия сеанса истек. Пожалуйста, войдите снова.',
           receiptUnavailable: 'Квитанция об оплате недоступна.',
           receiptConfirmedEmailRequired:
-            'Требуется вход с подтвержденным адресом электронной почты.',
+            'Требуется вход с подтвержденным email.',
           bookingNotFound: 'Бронирование не найдено.',
           receiptNotAvailableForBooking: 'Для этого бронирования квитанция Stripe недоступна.',
           receiptTemporarilyUnavailable: 'Квитанция об оплате временно недоступна.',
@@ -2324,13 +2324,13 @@ export const translations = {
       },
       callback: {
         loadingFallback: 'Завершаем безопасный вход в личный кабинет…',
-        preparingTitle: 'Готовим вашу кабину пилота',
+        preparingTitle: 'Готовим ваш личный кабинет',
         preparingDescription: 'Безопасно подключаем ваш личный профиль и историю покупок.',
-        errorTitle: 'Вход в личный кабинет не завершён',
+        errorTitle: 'Вход в личный кабинет не завершен',
         returnToLogin: 'Вернуться ко входу в личный кабинет',
         errorNotConfigured: 'Вход в личный кабинет не настроен в этой среде.',
         errorLinkExpired:
-          'Срок действия ссылки для входа истёк, или она уже была использована. Пожалуйста, начните заново.',
+          'Срок действия ссылки для входа истек, или она уже была использована. Пожалуйста, начните заново.',
         errorSessionMissing:
           'Не удалось завершить вход. Пожалуйста, вернитесь на страницу входа в личный кабинет.',
         errorHistoryUnavailable:
@@ -2338,13 +2338,13 @@ export const translations = {
       },
       resetPassword: {
         title: 'Задайте новый пароль',
-        subtitle: 'Придумайте надёжный пароль для личного кабинета Sim Dream.',
+        subtitle: 'Придумайте надежный пароль для личного кабинета Sim Dream.',
         newPasswordPlaceholder: 'Новый пароль (не менее 12 символов)',
         confirmPasswordPlaceholder: 'Повторите новый пароль',
         submit: 'Сохранить новый пароль',
         validating: 'Проверяем ссылку для восстановления…',
         returnToLogin: 'Вернуться ко входу в личный кабинет',
-        successUpdated: 'Пароль обновлён. Переходим в вашу кабину пилота…',
+        successUpdated: 'Пароль обновлен. Переходим в личный кабинет…',
         errorNotConfigured: 'Восстановление пароля не настроено в этой среде.',
         errorLinkInvalid:
           'Ссылка для восстановления недействительна или устарела. Запросите новую ссылку на странице входа в личный кабинет.',
@@ -2358,7 +2358,7 @@ export const translations = {
 
   fr: {
     nav: {
-      brandSub: 'CENTRE DE VOL • TEL AVIV',
+      brandSub: 'Systèmes de simulation (Israël)',
       openMenu: 'Ouvrir le menu',
       closeMenu: 'Fermer le menu',
       skipToContent: 'Aller au contenu principal',
@@ -2988,20 +2988,20 @@ export const translations = {
           'Conservez vos séances payées, vos reçus et vos futures réservations dans un seul Espace Pilote sécurisé.',
         recoveryTitle: 'Récupérez votre accès membre',
         recoverySubtitle:
-          'Si un profil membre est associé à cette adresse e-mail, nous vous enverrons un lien sécurisé pour réinitialiser votre mot de passe.',
+          'Si un profil membre est associé à cette adresse email, nous vous enverrons un lien sécurisé pour réinitialiser votre mot de passe.',
         continueWithGoogle: 'Continuer avec Google',
         continueWithFacebook: 'Continuer avec Facebook',
         continueWithApple: 'Continuer avec Apple',
-        emailDivider: 'OU CONTINUER PAR E-MAIL',
+        emailDivider: 'OU CONTINUER PAR EMAIL',
         fullNameLabel: 'Nom complet',
         fullNamePlaceholder: 'Votre nom',
-        emailLabel: 'Adresse e-mail',
+        emailLabel: 'Adresse email',
         passwordLabel: 'Mot de passe',
         forgotPassword: 'Mot de passe oublié ?',
         newPasswordPlaceholder: '12 caractères minimum',
         signInSubmit: 'Accéder à mon Espace Pilote',
         signUpSubmit: 'Créer mon profil membre',
-        recoverySubmit: 'Envoyer l’e-mail de récupération',
+        recoverySubmit: 'Envoyer l’email de récupération',
         returnToSignIn: 'Retour à la connexion',
         alreadyMember: 'Déjà membre ? Se connecter',
         createProfile: 'Créer un profil membre',
@@ -3013,39 +3013,39 @@ export const translations = {
         demoAdminTitle: 'Dispatch Admin',
         demoAdminSubtitle: 'Gérer le centre',
         requestFailed: 'Impossible de traiter votre demande. Veuillez réessayer.',
-        checkEmail: 'Consultez votre boîte e-mail pour la suite.',
+        checkEmail: 'Consultez votre boîte email pour la suite.',
         socialUnavailable: 'La connexion via les réseaux sociaux est indisponible.',
         demoUnavailable:
           'L’accès démo n’est disponible que lorsque l’authentification locale n’est pas configurée.',
       },
       auth: {
         authNotConfigured: 'L’authentification des membres n’est pas configurée.',
-        invalidCredentials: 'Adresse e-mail ou mot de passe incorrect.',
-        emailNotConfirmed: 'Veuillez confirmer votre adresse e-mail avant de vous connecter.',
+        invalidCredentials: 'Adresse email ou mot de passe incorrect.',
+        emailNotConfirmed: 'Veuillez confirmer votre adresse email avant de vous connecter.',
         registrationNotConfigured: 'L’inscription des membres n’est pas encore configurée.',
         passwordTooShort: 'Choisissez un mot de passe d’au moins 12 caractères.',
         signupFailed: 'Impossible de créer le profil membre. Veuillez réessayer.',
         confirmEmailToActivate:
-          'Consultez votre boîte e-mail pour confirmer votre adresse et activer votre profil membre.',
+          'Consultez votre boîte email pour confirmer votre adresse et activer votre profil membre.',
         socialAuthNotConfigured: 'L’authentification des membres n’est pas encore configurée.',
         providerUnavailable:
-          'La connexion avec {provider} est indisponible. Utilisez votre e-mail ou réessayez plus tard.',
+          'La connexion avec {provider} est indisponible. Utilisez votre email ou réessayez plus tard.',
         recoveryNotConfigured: 'La récupération du mot de passe n’est pas encore configurée.',
         recoveryFailed:
-          'Impossible d’envoyer l’e-mail de récupération. Veuillez réessayer plus tard.',
+          'Impossible d’envoyer l’email de récupération. Veuillez réessayer plus tard.',
         recoveryEmailSent:
-          'Si un compte existe pour cette adresse e-mail, un lien de récupération est en route.',
+          'Si un compte existe pour cette adresse email, un lien de récupération est en route.',
       },
       dashboard: {
-        signInTitle: 'Connectez-vous à votre poste de pilotage',
+        signInTitle: 'Connectez-vous à votre Espace Pilote',
         signInSubtitle:
           'Les membres peuvent consulter leurs réservations, leur historique d’achats et leurs reçus de paiement Stripe.',
         signInCta: 'Se connecter ou créer un profil membre',
-        loadingFlightDeck: 'Chargement de votre poste de pilotage sécurisé…',
-        secureBadge: 'Poste de pilotage membre sécurisé',
+        loadingFlightDeck: 'Chargement de votre Espace Pilote sécurisé…',
+        secureBadge: 'Espace Pilote membre sécurisé',
         welcomeBack: 'Bon retour à bord, {name}',
         defaultPilotName: 'Commandant',
-        verifiedEmailScope: 'réservations et achats associés à cette adresse e-mail vérifiée',
+        verifiedEmailScope: 'réservations et achats associés à cette adresse email vérifiée',
         bookNextMission: 'Réserver la prochaine mission',
         stats: {
           upcomingLabel: 'Réservations à venir',
@@ -3067,7 +3067,7 @@ export const translations = {
         loadingHistory: 'Chargement de l’historique d’achats…',
         noHistory: 'Aucune séance ni aucun achat précédent n’est enregistré sur ce profil.',
         guestBookingsNotice:
-          'Les anciennes réservations effectuées en tant qu’invité ne sont ajoutées qu’après connexion avec une adresse e-mail confirmée, identique à celle utilisée lors du paiement. S’il manque un achat, contactez SimDream en indiquant la référence de réservation.',
+          'Les anciennes réservations effectuées en tant qu’invité ne sont ajoutées qu’après connexion avec une adresse email confirmée, identique à celle utilisée lors du paiement. S’il manque un achat, contactez SimDream en indiquant la référence de réservation.',
         boardingPass: 'Carte d’embarquement',
         paymentReceipt: 'Reçu de paiement',
         durationMinutes: '{minutes} min',
@@ -3080,7 +3080,7 @@ export const translations = {
         },
         errors: {
           loadFailed: 'Impossible de charger vos réservations.',
-          emailNotConfirmed: 'Confirmez votre adresse e-mail pour accéder à vos achats.',
+          emailNotConfirmed: 'Confirmez votre adresse email pour accéder à vos achats.',
           authRequired: 'Connexion requise.',
           bookingDataUnavailable: 'Les données de réservation sont temporairement indisponibles.',
           receiptAuthNotConfigured:
@@ -3088,7 +3088,7 @@ export const translations = {
           sessionExpired: 'Votre session membre a expiré. Veuillez vous reconnecter.',
           receiptUnavailable: 'Le reçu de paiement est indisponible.',
           receiptConfirmedEmailRequired:
-            'Une connexion avec une adresse e-mail confirmée est requise.',
+            'Une connexion avec une adresse email confirmée est requise.',
           bookingNotFound: 'Réservation introuvable.',
           receiptNotAvailableForBooking:
             'Aucun reçu de paiement Stripe n’est disponible pour cette réservation.',
@@ -3107,11 +3107,11 @@ export const translations = {
         signOut: 'Déconnexion',
       },
       callback: {
-        loadingFallback: 'Finalisation de votre connexion sécurisée à l’espace membre…',
-        preparingTitle: 'Préparation de votre poste de pilotage',
+        loadingFallback: 'Finalisation de votre connexion sécurisée à l’Espace Pilote…',
+        preparingTitle: 'Préparation de votre Espace Pilote',
         preparingDescription:
           'Connexion sécurisée de votre profil membre et de votre historique d’achats.',
-        errorTitle: 'La connexion à l’espace membre n’a pas abouti',
+        errorTitle: 'La connexion à l’Espace Pilote n’a pas abouti',
         returnToLogin: 'Retour à la connexion membre',
         errorNotConfigured:
           'L’authentification des membres n’est pas configurée dans cet environnement.',
@@ -3130,7 +3130,7 @@ export const translations = {
         submit: 'Enregistrer le nouveau mot de passe',
         validating: 'Vérification de votre lien de récupération…',
         returnToLogin: 'Retour à la connexion membre',
-        successUpdated: 'Mot de passe mis à jour. Redirection vers votre poste de pilotage…',
+        successUpdated: 'Mot de passe mis à jour. Redirection vers votre Espace Pilote…',
         errorNotConfigured:
           'La récupération du mot de passe n’est pas configurée dans cet environnement.',
         errorLinkInvalid:
@@ -3145,7 +3145,7 @@ export const translations = {
 
   ar: {
     nav: {
-      brandSub: 'مركز محاكاة الطيران • تل أبيب',
+      brandSub: 'أنظمة المحاكاة (إسرائيل)',
       openMenu: 'فتح القائمة',
       closeMenu: 'إغلاق القائمة',
       skipToContent: 'تخطَّ إلى المحتوى الرئيسي',
@@ -3774,7 +3774,7 @@ export const translations = {
         signUpSubtitle: 'احفظ جلساتك المدفوعة وإيصالاتك وحجوزاتك القادمة في قمرة قيادة واحدة آمنة.',
         recoveryTitle: 'استعادة الوصول إلى حسابك',
         recoverySubtitle:
-          'سنرسل رابطًا آمنًا لإعادة تعيين كلمة المرور إذا كان هذا البريد الإلكتروني مرتبطًا بملف عضوية.',
+          'سنرسل رابطاً آمناً لإعادة تعيين كلمة المرور إذا كان هذا البريد الإلكتروني مرتبطاً بملف عضوية.',
         continueWithGoogle: 'المتابعة باستخدام Google',
         continueWithFacebook: 'المتابعة باستخدام Facebook',
         continueWithApple: 'المتابعة باستخدام Apple',
@@ -3784,7 +3784,7 @@ export const translations = {
         emailLabel: 'البريد الإلكتروني',
         passwordLabel: 'كلمة المرور',
         forgotPassword: 'نسيت كلمة المرور؟',
-        newPasswordPlaceholder: '12 حرفًا أو أكثر',
+        newPasswordPlaceholder: '12 حرفاً أو أكثر',
         signInSubmit: 'الدخول إلى قمرة القيادة',
         signUpSubmit: 'إنشاء ملف العضوية',
         recoverySubmit: 'إرسال رسالة الاستعادة',
@@ -3800,7 +3800,7 @@ export const translations = {
         demoAdminSubtitle: 'إدارة المركز',
         requestFailed: 'تعذّر إكمال الطلب. يُرجى المحاولة مرة أخرى.',
         checkEmail: 'تحقّق من بريدك الإلكتروني لمتابعة الخطوة التالية.',
-        socialUnavailable: 'تسجيل الدخول عبر الشبكات الاجتماعية غير متاح حاليًا.',
+        socialUnavailable: 'تسجيل الدخول عبر الشبكات الاجتماعية غير متاح حالياً.',
         demoUnavailable: 'الوصول التجريبي متاح فقط عندما لا تكون المصادقة المحلية مُهيّأة.',
       },
       auth: {
@@ -3808,14 +3808,14 @@ export const translations = {
         invalidCredentials: 'البريد الإلكتروني أو كلمة المرور غير صحيحة.',
         emailNotConfirmed: 'يُرجى تأكيد بريدك الإلكتروني قبل تسجيل الدخول.',
         registrationNotConfigured: 'لم تتم تهيئة تسجيل الأعضاء بعد.',
-        passwordTooShort: 'استخدم كلمة مرور لا تقل عن 12 حرفًا.',
+        passwordTooShort: 'استخدم كلمة مرور لا تقل عن 12 حرفاً.',
         signupFailed: 'تعذّر إنشاء ملف العضوية. يُرجى المحاولة مرة أخرى.',
         confirmEmailToActivate: 'تحقّق من بريدك الإلكتروني لتأكيد عنوانك وتفعيل ملف العضوية.',
         socialAuthNotConfigured: 'لم تتم تهيئة مصادقة الأعضاء بعد.',
         providerUnavailable:
-          'تسجيل الدخول عبر {provider} غير متاح حاليًا. يُرجى استخدام البريد الإلكتروني أو المحاولة لاحقًا.',
+          'تسجيل الدخول عبر {provider} غير متاح حالياً. يُرجى استخدام البريد الإلكتروني أو المحاولة لاحقاً.',
         recoveryNotConfigured: 'لم تتم تهيئة استعادة كلمة المرور بعد.',
-        recoveryFailed: 'تعذّر إرسال رسالة الاستعادة. يُرجى المحاولة لاحقًا.',
+        recoveryFailed: 'تعذّر إرسال رسالة الاستعادة. يُرجى المحاولة لاحقاً.',
         recoveryEmailSent:
           'إذا كان هناك حساب مرتبط بهذا البريد الإلكتروني، فإن رابط الاستعادة في طريقه إليك.',
       },
@@ -3898,12 +3898,12 @@ export const translations = {
         errorSessionMissing:
           'تعذّر علينا إكمال تسجيل دخولك. يُرجى العودة إلى صفحة تسجيل دخول الأعضاء.',
         errorHistoryUnavailable:
-          'تم إنشاء حسابك، لكن سجل المشتريات غير متاح مؤقتًا. يُرجى المحاولة مرة أخرى بعد قليل.',
+          'تم إنشاء حسابك، لكن سجل المشتريات غير متاح مؤقتاً. يُرجى المحاولة مرة أخرى بعد قليل.',
       },
       resetPassword: {
         title: 'تعيين كلمة مرور جديدة',
         subtitle: 'اختر كلمة مرور قوية لحساب العضوية الخاص بك في Sim Dream.',
-        newPasswordPlaceholder: 'كلمة المرور الجديدة (12 حرفًا على الأقل)',
+        newPasswordPlaceholder: 'كلمة المرور الجديدة (12 حرفاً على الأقل)',
         confirmPasswordPlaceholder: 'تأكيد كلمة المرور الجديدة',
         submit: 'حفظ كلمة المرور الجديدة',
         validating: 'جارٍ التحقق من رابط الاستعادة…',
@@ -3911,11 +3911,11 @@ export const translations = {
         successUpdated: 'تم تحديث كلمة المرور. جارٍ تحويلك إلى قمرة القيادة…',
         errorNotConfigured: 'استعادة كلمة المرور غير مُفعّلة في هذه البيئة.',
         errorLinkInvalid:
-          'رابط الاستعادة هذا غير صالح أو انتهت صلاحيته. اطلب رابطًا جديدًا من صفحة تسجيل دخول الأعضاء.',
-        errorTooShort: 'استخدم كلمة مرور لا تقل عن 12 حرفًا.',
+          'رابط الاستعادة هذا غير صالح أو انتهت صلاحيته. اطلب رابطاً جديداً من صفحة تسجيل دخول الأعضاء.',
+        errorTooShort: 'استخدم كلمة مرور لا تقل عن 12 حرفاً.',
         errorMismatch: 'كلمتا المرور غير متطابقتين.',
         errorUpdateFailed:
-          'تعذّر علينا تحديث كلمة المرور. اطلب رابط استعادة جديدًا وحاول مرة أخرى.',
+          'تعذّر علينا تحديث كلمة المرور. اطلب رابط استعادة جديداً وحاول مرة أخرى.',
       },
     },
   },
