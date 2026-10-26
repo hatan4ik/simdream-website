@@ -3,6 +3,7 @@
 
 # next.js build output
 /.next/
+/.next-*/
 /out/
 /build
 
@@ -21,6 +22,12 @@ next-env.d.ts
 # deployment
 .vercel
 
+# local tooling caches
+.eslintcache
+.swc/
+.turbo/
+/playwright/.cache/
+
 # logs
 npm-debug.log*
 yarn-debug.log*
@@ -29,3 +36,8 @@ yarn-error.log*
 # OS / editor clutter
 .DS_Store
 *.pem
+
+# test artifacts
+/test-results/
+/playwright-report*/
+/blob-report/

@@ -8,14 +8,16 @@ import { useLanguage } from '@/lib/i18n/language-context';
 export function UiThemeSwitcher({ variant = 'compact' }: { variant?: 'compact' | 'full' }) {
   const { theme, toggleTheme, isBrandTheme } = useUiTheme();
   const { t } = useLanguage();
+  const themeName = isBrandTheme ? (t.uiTheme?.brand || 'SimDream Day') : (t.uiTheme?.cockpit || 'Cockpit Night');
+  const switchLabel = t.uiTheme?.switchLabel || 'Switch UI Interface';
 
   if (variant === 'full') {
+    // The visible theme name and caption form the accessible name (WCAG 2.5.3 label in name).
     return (
       <button
         type="button"
         onClick={toggleTheme}
         className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl border border-slate-800 bg-slate-900/80 hover:bg-slate-800 text-xs font-mono transition-all group"
-        aria-label={t.uiTheme?.switchLabel || 'Switch UI Interface'}
       >
         <div className="flex items-center gap-2.5">
           <div
@@ -60,8 +62,9 @@ export function UiThemeSwitcher({ variant = 'compact' }: { variant?: 'compact' |
       type="button"
       onClick={toggleTheme}
       className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg border border-slate-800 bg-slate-900/80 hover:bg-slate-800 text-xs font-mono transition-all duration-200 group shadow-sm"
-      title={t.uiTheme?.switchLabel || 'Switch UI Interface'}
-      aria-label={t.uiTheme?.switchLabel || 'Switch UI Interface'}
+      title={switchLabel}
+      // Starts with the visible theme name, which is hidden on phones where the button is icon-only.
+      aria-label={`${themeName}, ${switchLabel}`}
     >
       <div
         className={`w-5 h-5 rounded flex items-center justify-center transition-colors ${

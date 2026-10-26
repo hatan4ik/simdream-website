@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth/admin-guard';
-import { PersistenceError, store } from '@/lib/db/store';
+import { BookingConflictError, RecordNotFoundError, store } from '@/lib/db/store';
 import { adminBookingPatchSchema, validationError } from '@/lib/validation';
 import { Booking } from '@/types';
 
@@ -86,7 +86,14 @@ export async function PATCH(request: Request) {
 
   try {
     const { id, status, startTime } = parsed.data;
-    if (startTime) await store.assertRescheduleAllowed(id, startTime);
+    if (startTime) {
+      await store.assertRescheduleAllowed(id, startTime);
+    } else if (status && status !== 'cancelled') {
+      // Reactivating a cancelled booking re-occupies its departure, which may have been re-sold.
+      const current = await store.getBookingById(id);
+      if (!current) return NextResponse.json({ error: 'Booking not found' }, { status: 404 });
+      if (current.status === 'cancelled') await store.assertRescheduleAllowed(id, current.startTime);
+    }
 
     let updated: Booking | undefined;
     if (startTime) updated = await store.updateBookingTime(id, startTime);
@@ -94,7 +101,10 @@ export async function PATCH(request: Request) {
     if (!updated) return NextResponse.json({ error: 'Booking not found' }, { status: 404 });
     return NextResponse.json(updated);
   } catch (error) {
-    if (error instanceof PersistenceError) {
+    if (error instanceof RecordNotFoundError) {
+      return NextResponse.json({ error: error.message }, { status: 404 });
+    }
+    if (error instanceof BookingConflictError) {
       return NextResponse.json({ error: error.message }, { status: 409 });
     }
     console.error('Booking update failed', error);

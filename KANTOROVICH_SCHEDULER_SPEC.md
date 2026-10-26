@@ -50,6 +50,15 @@ The engine generates candidate starts from these operating windows, calculates e
 
 The engine may mark a slot as a smart recommendation where it completes a 150-minute constructor pattern. This is a recommendation, not a promise of globally optimal revenue.
 
+### Frontend Calendar Resilience & Recovery
+- **Package Visibility Invariant**: Packages and duration options must never be removed or filtered out from the customer view when `availableCount === 0` on a selected date. Instead, they remain visible with a status badge (`0 slots open today` / `0 מקומות היום`).
+- **Selection Preservation**: Switching dates must preserve the user's selected package; client state must never forcibly overwrite the user's choice to a default package.
+- **Actionable Zero-Slots Recovery**: When `openSlotCount === 0` on a date for the selected duration, the UI renders an actionable alert containing:
+  - Direct 1-click **Check Next Day →** button advancing the calendar by 1 day.
+  - Quick-switch buttons to other durations that have open slots on the same date.
+  - Strikethrough list of booked slots for operational transparency.
+- **Noise-Free Scope**: For `training` (PRO) and `fear_of_flying` packages, step 2 (recreational add-ons) is bypassed entirely in a serene 2-step flow.
+
 ## Pricing and mission calculation
 
 The package and add-on registries live in `lib/db/seed-data.ts`. The checkout request sends identifiers only; the server resolves the package, selected slot, and add-ons from its own registry.

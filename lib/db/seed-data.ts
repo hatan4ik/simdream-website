@@ -377,6 +377,23 @@ interface SeedSlotTemplate {
   notes: string;
 }
 
+const REFERENCE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+
+/**
+ * Demo booking reference in the real capability format (SD-737- plus 16 characters), so
+ * the public lookup accepts seeded bookings. Deterministic per sequence number for stable
+ * demos and tests; real bookings use cryptographic randomness (generateBookingReference).
+ */
+function seedBookingReference(seq: number): string {
+  let state = Math.imul(seq, 2654435761) >>> 0;
+  let token = '';
+  for (let i = 0; i < 16; i++) {
+    state = (Math.imul(state, 1103515245) + 12345) >>> 0;
+    token += REFERENCE_ALPHABET[state >>> 27];
+  }
+  return `SD-737-${token}`;
+}
+
 function generateMonthAheadBookings(): Booking[] {
   const generated: Booking[] = [];
   const today = new Date();
@@ -385,7 +402,8 @@ function generateMonthAheadBookings(): Booking[] {
   let seq = 101;
 
   for (let dayOffset = 0; dayOffset <= 35; dayOffset++) {
-    const targetDate = new Date(today.getTime() + dayOffset * 86400000);
+    // Calendar arithmetic: adding 24h steps would repeat or skip a day across a DST change.
+    const targetDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + dayOffset);
     const dateStr = formatLocalYMD(targetDate);
     const dow = targetDate.getDay(); // 0=Sun .. 5=Fri, 6=Sat
 
@@ -622,10 +640,9 @@ function generateMonthAheadBookings(): Booking[] {
 
     templates.forEach((tpl, idx) => {
       const pilot = SAMPLE_PILOTS[(seq + idx) % SAMPLE_PILOTS.length];
-      const refNum = 1000 + ((seq * 137) % 8999);
       generated.push({
         id: `book-${seq}`,
-        bookingReference: `SD-737-${refNum}`,
+        bookingReference: seedBookingReference(seq),
         packageId: tpl.pkgId,
         packageTitle: tpl.pkgTitle,
         durationMinutes: tpl.duration,
@@ -643,7 +660,7 @@ function generateMonthAheadBookings(): Booking[] {
         status: 'confirmed',
         paymentStatus: 'paid',
         paymentMethod: 'stripe',
-        stripePaymentIntentId: `pi_test_simdream_${refNum}`,
+        stripePaymentIntentId: `pi_test_simdream_${seq}`,
         notes: tpl.notes,
         createdAt: new Date(Date.now() - 86400000).toISOString(),
       });

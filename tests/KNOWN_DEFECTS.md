@@ -1,0 +1,30 @@
+# Known defects
+
+Every defect the test framework has found has an ID (`AREA-n`). An **open** defect sits in an expected-failure test: Vitest `it.fails` or Playwright `test.fail`, with `[KNOWN-DEFECT ID]` in the test title. The suite stays green while the defect exists. When the defect is fixed, the expected failure unexpectedly passes and the run turns red until the marker is removed. Removing it locks the fix in.
+
+`npm run test:report` lists the open IDs in `test-results/quality-report.md` by scanning the test tree for those markers. Mention `KNOWN-DEFECT` only on an open marker, never in a comment about a fixed defect.
+
+## Open
+
+| ID | Area | Defect | Where it's pinned | Status and remediation |
+| --- | --- | --- | --- | --- |
+| SEC-3 | Security | No rate limit on gift-voucher verification. One client can try codes indefinitely (enumeration and brute force). | [payment-integrity.test.ts](security/payment-integrity.test.ts) `it.fails` | **Deferred by the owner.** Add a sliding-window limit per IP and per code at the edge, using a WAF rule or a Redis-backed limiter in `proxy.ts`. Answer 429 with `Retry-After`. |
+| SEC-4 | Security | No rate limit or backoff on failed admin Basic-auth logins. | [payment-integrity.test.ts](security/payment-integrity.test.ts) `it.fails` | **Deferred by the owner.** Use the same limiter as SEC-3, plus a backoff per username. Basic auth is interim: replace it with Supabase Auth, server-side roles and MFA. |
+| SEC-8 | Security | The CSP allows inline scripts (`script-src 'self' 'unsafe-inline'`). | [response-headers.spec.ts](security-web/response-headers.spec.ts) `test.fail` | **Accepted risk (owner decision).** The App Router streams inline RSC payload scripts, which can't be hashed, so a static CSP needs `'unsafe-inline'`. The strict alternative is a per-request nonce set in `proxy.ts`, which makes every page dynamically rendered and gives up static prerendering and CDN caching. Revisit when the site goes live behind a CDN that can carry the extra rendering cost. |
+
+## Fixed
+
+All of these were open expected failures in the first full run. Each now passes as a normal test.
+
+| Area | IDs | What was wrong (and is now pinned by a passing test) |
+| --- | --- | --- |
+| API contracts | API-1 to API-12 | The public efficiency report leaked customer names. Noise-free packages accepted add-ons. Departed slots were listed. A voucher was debited, or a slot held, before checkout succeeded. A late payment revived a cancelled or re-sold booking. Calendar-invalid dates were accepted. Rescheduling an unknown booking didn't answer 404. Internal errors leaked stack traces. Redemptions finer than one agora were accepted. A late payment on a voided voucher went unrecorded. |
+| Unit / domain | UNIT-1 to UNIT-10 | Scheduler windows left unsellable prime-time gaps. Add-on missions reserved past the next booking. Nonexistent calendar dates were accepted. Hebrew letters appeared in non-Hebrew legal copy. The admin origin check rejected a legitimate same-origin PATCH when a proxy forwarded the host as `Host:443` or in mixed case (UNIT-10). |
+| Security | SEC-1, 2, 5, 6, 7, 9, 10, 11, 12 | Impossible dates on `/api/slots`. A 503 still consumed a voucher. Database and runtime errors reached clients. An ILIKE wildcard on email attached another customer's bookings to a member, now an exact match (migration `003`). Host-header open redirects. Header and disclosure hardening. |
+| Reliability | REL-1 to REL-16 | Racing checkouts double-booked a departure. A Stripe retry sent duplicate confirmations, now handled by the confirmation outbox (migration `004`). An order was taken while persistence was down, now fail-closed with 503. Checkout was possible after departure (Israel clock). The DST ribbon showed a duplicate day. Late slot responses overwrote the selected day. Slot-load failures looked like a sold-out day. Offline errors weren't explained. |
+| Browser journeys | E2E-1 to E2E-16 | Workshop leads couldn't be submitted. A voucher without a recipient email was rejected. The documented PRO deep link was broken. Sold-out durations vanished. The ribbon repeated a day at DST. The success page showed "paid" for unknown references. The navigation was unusable at tablet and phone widths. Pages were prerendered with the build day's clock, so hydration broke on every later day: the footer year, open/closed status, `/contact` and the admin dispatch date (E2E-12). The 45m consumer promo was booked as PRO training (E2E-13). Out-of-order slot responses won (E2E-14). |
+| Colour contrast | UX-24 | 1,815 axe `color-contrast` nodes across all 73 scans, now 0, and the accessibility baseline is empty. Cockpit theme: muted `slate-500` text on near-black became `slate-400`, opacity-dimmed text became full strength, and white-on-`sky-500` became `sky-700`. Brand daylight theme (`app/globals.css`): light overrides for every translucent dark surface, gradient and hover state, and accent and muted text darkened to pass 4.5:1 on every daylight surface (muted text at least 6.1:1). |
+| Usability / a11y | UX-1 to UX-23, UX-25 to UX-27 | The mobile navbar overflowed. Dialogs couldn't be opened from the keyboard and didn't close on Escape. Labels weren't associated with their controls. Errors weren't announced, or were announced twice. Confetti ignored reduced motion. The login page reused the home page's title. Wizard step 3 had no `h1`. Selection was conveyed by colour only. Controls had no accessible name. Package cards nested interactive elements. `/book` had a CLS of 0.55–0.78 against a 0.1 budget. |
+| Framework gaps | GAP-1, 3, 5, 10, 14 | Closed from the critic review. GAP-5 asserts the money record and the refund alert for late payments. GAP-10 added oracle and property tests for the Israel clock and the departure cut-off, plus the admin guard's origin allowlist. GAP-14 extended the axe scans to the success page, dashboard, auth pages, 404, wizard step 3 and Arabic. |
+
+For the remaining test-coverage backlog (GAP-2, 4, 6–9, 11–13, 15, 16), see [TESTING.md](../TESTING.md#backlog).

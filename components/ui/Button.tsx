@@ -12,7 +12,8 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const baseStyles = 'inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed select-none';
 
     const variants = {
-      primary: 'bg-sky-500 text-white hover:bg-sky-400 shadow-glow active:scale-[0.98]',
+      // sky-700 keeps white label text at ~5.9:1 (WCAG AA); sky-500 was 2.7:1.
+      primary: 'bg-sky-700 text-white hover:bg-sky-800 shadow-glow active:scale-[0.98]',
       secondary: 'bg-slate-800 text-slate-100 hover:bg-slate-700 border border-slate-700',
       outline: 'bg-transparent text-sky-400 border border-sky-500/50 hover:bg-sky-500/10 hover:border-sky-400',
       danger: 'bg-red-600 text-white hover:bg-red-500 shadow-md',

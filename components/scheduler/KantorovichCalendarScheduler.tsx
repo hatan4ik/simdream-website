@@ -17,13 +17,14 @@ import { Button } from '@/components/ui/Button';
 import {
   FlightSlot,
   SimulatorPackage,
-  DailyEfficiencyReport,
+  PublicCapacityReport,
   SlotBlockPeriod,
 } from '@/types';
 import { formatCurrency, formatDate, formatLocalYMD } from '@/lib/utils';
+import { useModalFocus } from '@/lib/ui/use-modal-focus';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { Language } from '@/lib/i18n/translations';
-import { addMinutesToTime } from '@/lib/scheduler/mission-calculator';
+import { addMinutesToTime, packageFromPriceIls, packagePriceForSlot } from '@/lib/scheduler/mission-calculator';
 
 interface KantorovichCalendarSchedulerProps {
   selectedDate: string;
@@ -34,7 +35,7 @@ interface KantorovichCalendarSchedulerProps {
   slots: FlightSlot[];
   selectedSlot: FlightSlot | null;
   onSelectSlot: (slot: FlightSlot) => void;
-  efficiencyReport: DailyEfficiencyReport | null;
+  efficiencyReport: PublicCapacityReport | null;
   durationAvailability?: Record<number, { availableCount: number; minPriceIls: number }>;
   loading: boolean;
 }
@@ -460,6 +461,9 @@ export function KantorovichCalendarScheduler({
 
   const [calendarMode, setCalendarMode] = useState<'horizon' | 'month'>('horizon');
   const [blueprintModalPackage, setBlueprintModalPackage] = useState<SimulatorPackage | null>(null);
+  const blueprintPanelRef = useModalFocus<HTMLDivElement>(blueprintModalPackage !== null, () =>
+    setBlueprintModalPackage(null)
+  );
 
   // Month cursor for Full Month Grid view
   const [viewMonthDate, setViewMonthDate] = useState<Date>(() => {
@@ -469,15 +473,11 @@ export function KantorovichCalendarScheduler({
 
   // Deduplicate packages by duration
   const durationOptions = useMemo(() => {
-    const [y, m, d] = selectedDate.split('-').map(Number);
-    const isSaturday = new Date(y, (m || 1) - 1, d || 1).getDay() === 6;
-
     const nonCorp = packages.filter((p) => p.category !== 'corporate');
     const byDuration = new Map<number, SimulatorPackage>();
     for (const pkg of nonCorp) {
-      // 45m Daytime Special is never available on Saturday prime-time
-      if (isSaturday && pkg.durationMinutes === 45) continue;
-
+      // Every duration stays visible (AGENTS.md §4 rule 1); the 45m promo on a Saturday shows
+      // its "0 slots" badge from durationAvailability instead of disappearing.
       const existing = byDuration.get(pkg.durationMinutes);
       if (!existing || pkg.id === selectedPackage.id) {
         byDuration.set(pkg.durationMinutes, pkg);
@@ -486,7 +486,7 @@ export function KantorovichCalendarScheduler({
     return Array.from(byDuration.values()).sort(
       (a, b) => a.durationMinutes - b.durationMinutes
     );
-  }, [packages, selectedPackage.id, selectedDate]);
+  }, [packages, selectedPackage.id]);
 
   // 14-day swipeable strip
   const horizonDays = useMemo(() => {
@@ -497,10 +497,10 @@ export function KantorovichCalendarScheduler({
       monthShort: string;
     }[] = [];
     const base = new Date();
-    base.setHours(0, 0, 0, 0);
 
     for (let i = 0; i < 14; i++) {
-      const d = new Date(base.getTime() + i * 86400000);
+      // Calendar arithmetic: 24h steps repeat or skip a day across a DST change.
+      const d = new Date(base.getFullYear(), base.getMonth(), base.getDate() + i);
       list.push({
         dateStr: formatLocalYMD(d),
         dayNum: d.getDate(),
@@ -649,7 +649,7 @@ export function KantorovichCalendarScheduler({
                   <span className="text-lg sm:text-xl font-black text-white leading-tight my-0.5">
                     {day.dayNum}
                   </span>
-                  <span className="text-[10px] text-slate-500">{day.monthShort}</span>
+                  <span className="text-[10px] text-slate-400">{day.monthShort}</span>
                 </button>
               );
             })}
@@ -747,8 +747,7 @@ export function KantorovichCalendarScheduler({
             const isSelected = pkg.durationMinutes === selectedPackage.durationMinutes;
             const durInfo = durationAvailability?.[pkg.durationMinutes];
             const isZeroAvailable = durInfo && durInfo.availableCount === 0;
-            const effectivePrice =
-              durInfo?.minPriceIls || pkg.priceIls;
+            const effectivePrice = packageFromPriceIls(pkg, durInfo?.minPriceIls);
             return (
               <button
                 key={pkg.id}
@@ -768,7 +767,7 @@ export function KantorovichCalendarScheduler({
                   </span>
                   <span
                     className={`text-xs font-mono font-bold ${
-                      isSelected ? 'text-sky-300' : isZeroAvailable ? 'text-slate-500' : 'text-slate-400'
+                      isSelected ? 'text-sky-300' : 'text-slate-400'
                     }`}
                   >
                     {formatCurrency(effectivePrice)}
@@ -893,21 +892,21 @@ export function KantorovichCalendarScheduler({
                     const isRecommended =
                       slot.smartRecommendation === 'optimal_150_pair' ||
                       slot.smartRecommendation === 'friday_30m_closer';
-                    const slotPrice = slot.dynamicPriceIls || selectedPackage.priceIls;
+                    const slotPrice = packagePriceForSlot(selectedPackage, slot.isPrimeTime);
 
                     if (!slot.available) {
                       return (
                         <div
                           key={slot.id}
-                          className="min-h-[60px] px-3 py-2.5 rounded-xl border border-slate-800/50 bg-slate-950/40 opacity-45 flex items-center justify-between cursor-not-allowed"
+                          className="min-h-[60px] px-3 py-2.5 rounded-xl border border-slate-800/50 bg-slate-950/40 flex items-center justify-between cursor-not-allowed"
                         >
                           <span
-                            className="text-sm font-mono text-slate-500 line-through"
+                            className="text-sm font-mono text-slate-400 line-through"
                             dir="ltr"
                           >
                             {slot.startTime}
                           </span>
-                          <span className="text-[11px] text-slate-500 font-medium">
+                          <span className="text-[11px] text-slate-400 font-medium">
                             {copy.booked}
                           </span>
                         </div>
@@ -983,7 +982,9 @@ export function KantorovichCalendarScheduler({
           onClick={() => setBlueprintModalPackage(null)}
         >
           <div
-            className="relative max-w-2xl w-full rounded-2xl border-2 border-sky-500/40 bg-slate-900 shadow-2xl p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto text-left rtl:text-right"
+            ref={blueprintPanelRef}
+            tabIndex={-1}
+            className="relative max-w-2xl w-full rounded-2xl border-2 border-sky-500/40 bg-slate-900 shadow-2xl p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto text-left rtl:text-right focus:outline-none"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}

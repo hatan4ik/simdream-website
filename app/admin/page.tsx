@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useId } from 'react';
+import { israelToday } from '@/lib/scheduler/israel-clock';
+import { useClientValue } from '@/lib/ui/use-client-value';
 import Link from 'next/link';
 import {
   Radio,
@@ -19,7 +21,7 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Booking, CorporateInquiry, DailyEfficiencyReport } from '@/types';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { addDaysToYmd, formatCurrency, formatDate } from '@/lib/utils';
 
 function parseMinutes(hhmm: string): number {
   const [h, m] = hhmm.split(':').map(Number);
@@ -27,10 +29,15 @@ function parseMinutes(hhmm: string): number {
 }
 
 export default function AdminOverviewPage() {
-  const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+  const fieldId = useId();
+  // Israel calendar date: the UTC date of "now + 24h" is off by one late in the Israeli evening.
+  // Read in the browser, since /admin is prerendered at build time (E2E-12); empty while hydrating.
+  const israelTodayYmd = useClientValue(() => israelToday());
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [inquiries, setInquiries] = useState<CorporateInquiry[]>([]);
-  const [selectedDate, setSelectedDate] = useState<string>(tomorrow);
+  const [pickedDate, setSelectedDate] = useState<string | null>(null);
+  // Tomorrow until the dispatcher picks a day.
+  const selectedDate = pickedDate ?? (israelTodayYmd ? addDaysToYmd(israelTodayYmd, 1) : '');
   const [efficiency, setEfficiency] = useState<DailyEfficiencyReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [reschedulingId, setReschedulingId] = useState<string | null>(null);
@@ -38,10 +45,10 @@ export default function AdminOverviewPage() {
   const loadData = async (targetDate = selectedDate) => {
     setLoading(true);
     try {
-      const [bookingsRes, inquiriesRes, slotsRes] = await Promise.all([
+      const [bookingsRes, inquiriesRes, efficiencyRes] = await Promise.all([
         fetch('/api/bookings'),
         fetch('/api/workshops'),
-        fetch(`/api/slots?date=${targetDate}&duration=60&includeEfficiency=true`),
+        fetch(`/api/admin/schedule-efficiency?date=${targetDate}`),
       ]);
 
       if (bookingsRes.ok) {
@@ -52,11 +59,8 @@ export default function AdminOverviewPage() {
         const iData = await inquiriesRes.json();
         setInquiries(iData);
       }
-      if (slotsRes.ok) {
-        const sData = await slotsRes.json();
-        if (sData?.efficiency) {
-          setEfficiency(sData.efficiency);
-        }
+      if (efficiencyRes.ok) {
+        setEfficiency(await efficiencyRes.json());
       }
     } catch (err) {
       console.error(err);
@@ -66,7 +70,7 @@ export default function AdminOverviewPage() {
   };
 
   useEffect(() => {
-    loadData(selectedDate);
+    if (selectedDate) loadData(selectedDate);
   }, [selectedDate]);
 
   // Handle shifting a booking time in Admin (to test or resolve Gap Collisions)
@@ -107,7 +111,7 @@ export default function AdminOverviewPage() {
           <p className="text-2xl font-black text-emerald-400 font-mono">
             {formatCurrency(totalRevenue)}
           </p>
-          <p className="text-[10px] text-slate-500 font-mono">Across all missions & vouchers</p>
+          <p className="text-[10px] text-slate-400 font-mono">Across all missions & vouchers</p>
         </Card>
 
         <Card className="space-y-1">
@@ -116,7 +120,7 @@ export default function AdminOverviewPage() {
             <Calendar className="w-4 h-4 text-sky-400" />
           </div>
           <p className="text-2xl font-black text-sky-400 font-mono">{activeBookingsCount}</p>
-          <p className="text-[10px] text-slate-500 font-mono">Scheduled & confirmed flights</p>
+          <p className="text-[10px] text-slate-400 font-mono">Scheduled & confirmed flights</p>
         </Card>
 
         <Card className="space-y-1">
@@ -127,7 +131,7 @@ export default function AdminOverviewPage() {
           <p className="text-2xl font-black text-amber-400 font-mono">
             {efficiency ? formatCurrency(efficiency.projectedMaxRevenueIls) : '₪7,320'}
           </p>
-          <p className="text-[10px] text-slate-500 font-mono">
+          <p className="text-[10px] text-slate-400 font-mono">
             Tiled schedule target ({efficiency?.totalFundMinutes || 780}m capacity)
           </p>
         </Card>
@@ -138,7 +142,7 @@ export default function AdminOverviewPage() {
             <Users className="w-4 h-4 text-purple-400" />
           </div>
           <p className="text-2xl font-black text-purple-400 font-mono">{newLeadsCount}</p>
-          <p className="text-[10px] text-slate-500 font-mono">Pending corporate quotes</p>
+          <p className="text-[10px] text-slate-400 font-mono">Pending corporate quotes</p>
         </Card>
       </div>
 
@@ -169,8 +173,9 @@ export default function AdminOverviewPage() {
             </div>
 
             <div className="flex items-center gap-3 self-start">
-              <label className="text-xs font-mono text-slate-400">Dispatch Date:</label>
+              <label htmlFor={`${fieldId}-dispatch-date`} className="text-xs font-mono text-slate-400">Dispatch Date:</label>
               <input
+                id={`${fieldId}-dispatch-date`}
                 type="date"
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
@@ -201,7 +206,7 @@ export default function AdminOverviewPage() {
                         <div
                           key={`open-${idx}`}
                           style={{ left: `${leftPct}%`, width: `${widthPct}%` }}
-                          className="absolute top-0 bottom-0 flex items-center justify-center text-[9px] font-mono text-slate-600 border-r border-slate-900"
+                          className="absolute top-0 bottom-0 flex items-center justify-center text-[9px] font-mono text-slate-400 border-r border-slate-900"
                           title={block.label}
                         >
                           {block.minutes >= 75 ? `${block.minutes}m open` : ''}
@@ -211,9 +216,9 @@ export default function AdminOverviewPage() {
 
                     const style =
                       block.type === 'booked'
-                        ? 'bg-sky-500/70 border-r border-sky-300 text-slate-950 font-black'
+                        ? 'bg-sky-400 border-r border-sky-300 text-slate-950 font-black'
                         : block.type === 'turnaround'
-                        ? 'bg-amber-500/60 border-r border-amber-300 text-slate-950 font-bold'
+                        ? 'bg-amber-500 border-r border-amber-300 text-slate-950 font-bold'
                         : 'bg-red-500/80 border-2 border-red-300 text-white font-black animate-pulse';
 
                     return (
@@ -329,7 +334,7 @@ export default function AdminOverviewPage() {
             <div className="flex items-center gap-2">
               <Radio className="w-5 h-5 text-sky-400" />
               <h2 className="text-lg font-bold text-white">
-                Flight Dispatch Manifest & Gap Collision Tester ({formatDate(selectedDate)})
+                Flight Dispatch Manifest & Gap Collision Tester{selectedDate && ` (${formatDate(selectedDate)})`}
               </h2>
             </div>
             <button
@@ -508,7 +513,7 @@ export default function AdminOverviewPage() {
 
             <div className="pt-3 border-t border-slate-800 space-y-2">
               <span className="text-slate-400 uppercase">Emergency Schedule Block:</span>
-              <p className="text-[11px] text-slate-500">
+              <p className="text-[11px] text-slate-400">
                 Block simulator availability for scheduled maintenance or avionics calibration.
               </p>
               <Button

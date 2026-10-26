@@ -47,6 +47,15 @@ export function formatLocalYMD(date: Date): string {
   return `${y}-${m}-${d}`;
 }
 
+/**
+ * Adds calendar days to a YYYY-MM-DD date. Pure calendar arithmetic: parsing the string
+ * as an instant and adding 24h steps breaks west of UTC and across DST changes.
+ */
+export function addDaysToYmd(ymd: string, days: number): string {
+  const [year, month, day] = ymd.split('-').map(Number);
+  return new Date(Date.UTC(year, month - 1, day + days)).toISOString().slice(0, 10);
+}
+
 export function formatDate(dateString: string): string {
   try {
     // Parse YYYY-MM-DD in local time rather than UTC midnight to prevent timezone day-shift bugs

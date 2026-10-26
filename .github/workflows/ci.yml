@@ -8,18 +8,206 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: 22
+  # Seed data and local-date helpers are time-zone sensitive; match the test harness.
+  TZ: Asia/Jerusalem
+
 jobs:
   quality:
+    name: Typecheck, Vitest (unit · integration · security · reliability), audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - run: npx tsc --noEmit -p .
+      - name: Vitest with coverage ratchet
+        run: npx vitest run --coverage --reporter=default --reporter=junit --outputFile.junit=test-results/vitest-junit.xml
+      - run: npm audit --audit-level=high
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: results-vitest
+          path: |
+            test-results/vitest-junit.xml
+            test-results/coverage/
+          if-no-files-found: ignore
+
+  build:
+    name: Sandboxed production build
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: ${{ env.NODE_VERSION }}
           cache: npm
       - run: npm ci
-      - run: npm run lint
-      - run: npm test
-      - run: npm run build
-      - run: npm audit --audit-level=high
+      # All external secrets blank, so the build can never embed real keys.
+      - run: npm run test:build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: next-build
+          path: |
+            .next
+            !.next/cache
+          include-hidden-files: true
+          retention-days: 3
+
+  e2e:
+    name: E2E (${{ matrix.project }})
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { project: chromium, browser: chromium }
+          - { project: firefox, browser: firefox }
+          - { project: webkit, browser: webkit }
+          - { project: mobile-chrome, browser: chromium }
+          - { project: mobile-safari, browser: webkit }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          name: next-build
+          path: .next
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - run: npx playwright test --project=${{ matrix.project }}
+        env:
+          PW_PORT: 3801
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: results-e2e-${{ matrix.project }}
+          path: |
+            test-results/playwright-junit-3801.xml
+            playwright-report-3801/
+            test-results/playwright-3801/
+          if-no-files-found: ignore
+
+  web-quality:
+    name: Accessibility, usability, security-web, resilience, visual
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          name: next-build
+          path: .next
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test --project=a11y --project=usability --project=security-web --project=resilience
+        env:
+          PW_PORT: 3802
+      # Compares against the committed Linux baselines (npm run test:visual:update).
+      - run: npx playwright test --project=visual
+        if: always()
+        env:
+          PW_PORT: 3803
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: results-web-quality
+          path: |
+            test-results/playwright-junit-3802.xml
+            test-results/playwright-junit-3803.xml
+            playwright-report-3802/
+            playwright-report-3803/
+            test-results/playwright-3802/
+            test-results/playwright-3803/
+          if-no-files-found: ignore
+
+  load-smoke:
+    name: Load smoke
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          name: next-build
+          path: .next
+      - run: npm run test:load
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: results-load
+          path: test-results/load-smoke.json
+          if-no-files-found: ignore
+
+  lighthouse:
+    name: Lighthouse budgets
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          name: next-build
+          path: .next
+      - run: npx playwright install --with-deps chromium
+      # @lhci/cli runs through a pinned npx so its dependency tree stays out of the lockfile.
+      - run: npm run test:lighthouse
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: results-lighthouse
+          path: tests/perf/reports/
+          if-no-files-found: ignore
+
+  report:
+    name: Quality report
+    needs: [quality, e2e, web-quality, load-smoke, lighthouse]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: results-*
+          path: test-results
+          merge-multiple: true
+      # Writes test-results/quality-report.md and the job summary.
+      - run: npm run test:report

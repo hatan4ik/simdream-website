@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth/admin-guard';
-import { PersistenceError, store } from '@/lib/db/store';
+import { store } from '@/lib/db/store';
 import { adminVoucherRedemptionSchema, validationError, voucherVerificationSchema } from '@/lib/validation';
 
 function publicVoucherView(voucher: { code: string; currentBalanceIls: number; expiryDate: string }) {
@@ -67,7 +67,7 @@ export async function PATCH(request: Request) {
     if (!result.success) return NextResponse.json({ error: result.message }, { status: 409 });
     return NextResponse.json(result);
   } catch (error) {
-    if (error instanceof PersistenceError) return NextResponse.json({ error: error.message }, { status: 503 });
+    // Storage failures stay generic: the raw driver message is for server logs only.
     console.error('Voucher redemption failed', error);
     return NextResponse.json({ error: 'Unable to redeem voucher.' }, { status: 503 });
   }

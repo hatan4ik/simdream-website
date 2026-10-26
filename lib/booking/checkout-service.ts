@@ -2,8 +2,13 @@ import 'server-only';
 
 import { Booking, GiftVoucher } from '@/types';
 import { FLIGHT_ADDONS, SIMULATOR_PACKAGES } from '@/lib/db/seed-data';
-import { store, PersistenceError } from '@/lib/db/store';
-import { calculateMissionManifest, sanitizePackageTitle } from '@/lib/scheduler/mission-calculator';
+import { BookingConflictError, store } from '@/lib/db/store';
+import { hasDeparted, israelToday } from '@/lib/scheduler/israel-clock';
+import {
+  calculateMissionManifest,
+  packageAllowsAddons,
+  sanitizePackageTitle,
+} from '@/lib/scheduler/mission-calculator';
 import { sendBookingConfirmationEmail } from '@/lib/sendgrid';
 import { createCheckoutSession } from '@/lib/stripe';
 import { getApplicationOrigin } from '@/lib/config/server-env';
@@ -22,15 +27,6 @@ export class CheckoutError extends Error {
   }
 }
 
-function israelToday(): string {
-  return new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Asia/Jerusalem',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).format(new Date());
-}
-
 function validVoucherForAmount(voucher: GiftVoucher | undefined, amount: number): GiftVoucher {
   if (!voucher || voucher.paymentStatus !== 'paid' || voucher.isRedeemed) {
     throw new CheckoutError('This voucher is not active.', 409);
@@ -47,6 +43,16 @@ function validVoucherForAmount(voucher: GiftVoucher | undefined, amount: number)
   return voucher;
 }
 
+/** Scheduling conflicts become a user-facing 409; storage failures propagate as a generic 503. */
+async function conflictsAsCheckoutErrors<T>(operation: Promise<T>): Promise<T> {
+  try {
+    return await operation;
+  } catch (error) {
+    if (error instanceof BookingConflictError) throw new CheckoutError(error.message, 409);
+    throw error;
+  }
+}
+
 async function createBookingFromRequest(
   request: Request,
   input: z.infer<typeof bookingCheckoutSchema>
@@ -56,6 +62,9 @@ async function createBookingFromRequest(
 }> {
   if (input.bookingDate < israelToday()) {
     throw new CheckoutError('Bookings must be for today or a future date.');
+  }
+  if (hasDeparted(input.bookingDate, input.startTime)) {
+    throw new CheckoutError('This departure time has already passed. Please choose a later departure.');
   }
 
   const pkg = SIMULATOR_PACKAGES.find((item) => item.id === input.packageId);
@@ -67,16 +76,13 @@ async function createBookingFromRequest(
   if (addonIds.some((id) => !FLIGHT_ADDONS.some((addon) => addon.id === id))) {
     throw new CheckoutError('One or more selected mission add-ons are unavailable.');
   }
-
-  let slot;
-  try {
-    slot = await store.assertBookableStart(input.bookingDate, input.startTime, pkg.durationMinutes);
-  } catch (error) {
-    throw new CheckoutError(
-      error instanceof PersistenceError ? error.message : 'The selected departure slot is no longer available.',
-      409
-    );
+  if (addonIds.length > 0 && !packageAllowsAddons(pkg)) {
+    throw new CheckoutError('Mission add-ons are not available for this package.');
   }
+
+  const slot = await conflictsAsCheckoutErrors(
+    store.assertBookableStart(input.bookingDate, input.startTime, pkg.durationMinutes)
+  );
 
   const manifest = calculateMissionManifest({
     pkg,
@@ -102,7 +108,8 @@ async function createBookingFromRequest(
   const memberId = memberIdForBooking(authenticatedMember, input.pilotEmail);
   if (authenticatedMember && memberId) await store.ensureMemberProfile(authenticatedMember);
 
-  const booking = await store.createBooking({
+  // A concurrent purchase of the same departure loses at the database exclusion constraint.
+  const booking = await conflictsAsCheckoutErrors(store.createBooking({
     userId: memberId,
     packageId: pkg.id,
     packageTitle: sanitizePackageTitle(pkg.title),
@@ -123,7 +130,7 @@ async function createBookingFromRequest(
     paymentStatus: isVoucherPayment ? 'paid' : 'pending',
     paymentMethod: isVoucherPayment ? 'voucher' : 'stripe',
     notes: input.notes,
-  });
+  }));
 
   if (voucher) {
     const redemption = await store.redeemVoucher(voucher.code, manifest.totalIls);
@@ -138,9 +145,11 @@ async function createBookingFromRequest(
 }
 
 export async function startBookingCheckout(request: Request, input: z.infer<typeof bookingCheckoutSchema>) {
+  // Resolve every fallible setting before the first write, so a misconfiguration
+  // can never leave a spent voucher or an unexpiring pending hold behind.
+  const origin = getApplicationOrigin(request);
   const result = await createBookingFromRequest(request, input);
   const booking = result.booking;
-  const origin = getApplicationOrigin(request);
   const successUrl = origin + '/book/success?ref=' + encodeURIComponent(booking.bookingReference) + '&session_id={CHECKOUT_SESSION_ID}';
 
   if (result.isVoucherPayment) {
@@ -169,20 +178,21 @@ export async function startBookingCheckout(request: Request, input: z.infer<type
 }
 
 export async function startVoucherCheckout(request: Request, input: z.infer<typeof voucherCheckoutSchema>) {
+  const origin = getApplicationOrigin(request);
   const expiryDate = new Date();
   expiryDate.setFullYear(expiryDate.getFullYear() + 1);
 
   const voucher = await store.createPendingVoucher({
     initialValueIls: input.amountIls,
     recipientName: input.recipientName,
-    recipientEmail: input.recipientEmail,
+    // No recipient email: the buyer receives the voucher to print and hand over.
+    recipientEmail: input.recipientEmail || input.senderEmail,
     senderName: input.senderName,
     senderEmail: input.senderEmail,
     personalMessage: input.personalMessage,
     expiryDate: expiryDate.toISOString(),
   });
 
-  const origin = getApplicationOrigin(request);
   try {
     const session = await createCheckoutSession({
       title: 'Sim Dream Flight Gift Voucher — ₪' + input.amountIls,

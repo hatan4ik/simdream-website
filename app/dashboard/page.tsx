@@ -218,17 +218,17 @@ export default function DashboardPage() {
         <Card className="p-4 space-y-1">
           <span className="text-[10px] font-mono text-slate-400 uppercase">Upcoming reservations</span>
           <p className="text-2xl font-black text-sky-400 font-mono">{upcomingBookings.length}</p>
-          <p className="text-[10px] text-slate-500">Confirmed or pending future sessions</p>
+          <p className="text-[10px] text-slate-400">Confirmed or pending future sessions</p>
         </Card>
         <Card className="p-4 space-y-1">
           <span className="text-[10px] font-mono text-slate-400 uppercase">Purchase records</span>
           <p className="text-2xl font-black text-white font-mono">{bookings.length}</p>
-          <p className="text-[10px] text-slate-500">Bookings saved to this member account</p>
+          <p className="text-[10px] text-slate-400">Bookings saved to this member account</p>
         </Card>
         <Card className="p-4 space-y-1">
           <span className="text-[10px] font-mono text-slate-400 uppercase">Paid booking total</span>
           <p className="text-2xl font-black text-emerald-400 font-mono">{formatCurrency(paidSpend)}</p>
-          <p className="text-[10px] text-slate-500">Paid flight bookings; refunds are shown separately</p>
+          <p className="text-[10px] text-slate-400">Paid flight bookings; refunds are shown separately</p>
         </Card>
       </div>
 

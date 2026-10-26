@@ -1,13 +1,13 @@
 import assert from 'node:assert/strict';
-import test from 'node:test';
-import { calculateMissionManifest } from '../lib/scheduler/mission-calculator';
-import { getReservedMinutesForFlight, canTileIntervalZeroWaste } from '../lib/scheduler/kantorovich-engine';
-import { checkoutRequestSchema } from '../lib/validation';
+import { test } from 'vitest';
+import { calculateMissionManifest } from '@/lib/scheduler/mission-calculator';
+import { getReservedMinutesForFlight, canTileIntervalZeroWaste } from '@/lib/scheduler/kantorovich-engine';
+import { checkoutRequestSchema } from '@/lib/validation';
 
 test('mission pricing and end time are calculated from server-owned package and add-on data', () => {
   const manifest = calculateMissionManifest({
     pkg: { title: "Captain's Command Flight (60m)", durationMinutes: 60, priceIls: 690 },
-    slot: { startTime: '18:00', endTime: '19:30', dynamicPriceIls: 690, maxAvailableMinutes: 120 },
+    slot: { startTime: '18:00', endTime: '19:30', isPrimeTime: true, maxAvailableMinutes: 120 },
     selectedAddonIds: ['weather', 'video'],
     availableAddons: [
       { id: 'weather', name: 'Weather', description: '', priceIls: 250, durationMinutes: 15, icon: 'CloudLightning' },

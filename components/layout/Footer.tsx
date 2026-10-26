@@ -1,22 +1,20 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { Plane, MapPin, Phone, Mail, Clock, UserCheck, ChevronDown, FileText, ShieldCheck } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { LanguageSelector } from './LanguageSelector';
 import { UiThemeSwitcher } from './UiThemeSwitcher';
-import { FACILITY_INFO, getLiveFacilityStatus, LiveFacilityStatus } from '@/lib/config/facility-info';
+import { FACILITY_INFO } from '@/lib/config/facility-info';
+import { useLiveFacilityStatus } from '@/lib/config/use-live-facility-status';
+import { useClientValue } from '@/lib/ui/use-client-value';
 
 export function Footer() {
   const { t, language } = useLanguage();
-  const [liveStatus, setLiveStatus] = useState<LiveFacilityStatus>(() => getLiveFacilityStatus());
-
-  useEffect(() => {
-    setLiveStatus(getLiveFacilityStatus());
-    const timer = setInterval(() => setLiveStatus(getLiveFacilityStatus()), 60000);
-    return () => clearInterval(timer);
-  }, []);
+  const liveStatus = useLiveFacilityStatus();
+  // Read in the browser: a render-time read froze the build year into prerendered pages (E2E-12).
+  const year = useClientValue(() => new Date().getFullYear());
 
   return (
     <footer className="bg-slate-950 border-t border-slate-900 text-slate-400 text-sm">
@@ -36,27 +34,32 @@ export function Footer() {
             <p className="text-xs text-slate-400 leading-relaxed">
               {t.footer.missionDesc}
             </p>
-            <div
-              className={`flex items-center gap-2 pt-2 text-xs font-mono ${
-                liveStatus.isOpen ? 'text-emerald-400' : 'text-amber-400'
-              }`}
-            >
-              <span
-                className={`h-2 w-2 rounded-full ${
-                  liveStatus.isOpen ? 'bg-emerald-500 animate-pulse' : 'bg-amber-400'
-                }`}
-              />
-              <span>
-                {language === 'he'
-                  ? liveStatus.statusHeadlineHe
-                  : language === 'ru'
-                  ? (liveStatus.isOpen ? 'ОТКРЫТО • По предварительной записи' : 'ЗАКРЫТО • Бронирование 24/7')
-                  : language === 'fr'
-                  ? (liveStatus.isOpen ? 'OUVERT • Sur réservation préalable' : 'FERMÉ • Réservation en ligne 24/7')
-                  : language === 'ar'
-                  ? (liveStatus.isOpen ? 'مفتوح ويعمل • بالحجز المسبق' : 'مغلق حالياً • الحجز متاح 24/7')
-                  : liveStatus.statusHeadlineEn}
-              </span>
+            {/* Reserved height so the status appearing after mount causes no layout shift. */}
+            <div className="min-h-6 pt-2">
+              {liveStatus && (
+                <div
+                  className={`flex items-center gap-2 text-xs font-mono ${
+                    liveStatus.isOpen ? 'text-emerald-400' : 'text-amber-400'
+                  }`}
+                >
+                  <span
+                    className={`h-2 w-2 rounded-full ${
+                      liveStatus.isOpen ? 'bg-emerald-500 motion-safe:animate-pulse' : 'bg-amber-400'
+                    }`}
+                  />
+                  <span>
+                    {language === 'he'
+                      ? liveStatus.statusHeadlineHe
+                      : language === 'ru'
+                      ? (liveStatus.isOpen ? 'ОТКРЫТО • По предварительной записи' : 'ЗАКРЫТО • Бронирование 24/7')
+                      : language === 'fr'
+                      ? (liveStatus.isOpen ? 'OUVERT • Sur réservation préalable' : 'FERMÉ • Réservation en ligne 24/7')
+                      : language === 'ar'
+                      ? (liveStatus.isOpen ? 'مفتوح ويعمل • بالحجز المسبق' : 'مغلق حالياً • الحجز متاح 24/7')
+                      : liveStatus.statusHeadlineEn}
+                  </span>
+                </div>
+              )}
             </div>
 
             <div className="pt-2 flex items-center gap-2 flex-wrap">
@@ -67,9 +70,9 @@ export function Footer() {
 
           {/* Quick Links */}
           <div>
-            <h4 className="text-xs font-mono font-bold tracking-widest text-slate-200 uppercase mb-4">
+            <h2 className="text-xs font-mono font-bold tracking-widest text-slate-200 uppercase mb-4">
               {t.footer.flightExperiences}
-            </h4>
+            </h2>
             <ul className="space-y-2.5 text-xs">
               <li>
                 <Link href="/experiences" className="hover:text-sky-400 transition-colors">
@@ -106,9 +109,9 @@ export function Footer() {
 
           {/* Corporate, About & Legal */}
           <div>
-            <h4 className="text-xs font-mono font-bold tracking-widest text-slate-200 uppercase mb-4">
+            <h2 className="text-xs font-mono font-bold tracking-widest text-slate-200 uppercase mb-4">
               {t.footer.aviationCorporate}
-            </h4>
+            </h2>
             <ul className="space-y-2.5 text-xs">
               <li>
                 <Link href="/pro" className="hover:text-sky-400 transition-colors">
@@ -138,7 +141,7 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/admin" className="hover:text-amber-400 transition-colors text-slate-500">
+                <Link href="/admin" className="hover:text-amber-400 transition-colors text-slate-400">
                   {t.nav.adminBoard}
                 </Link>
               </li>
@@ -147,9 +150,9 @@ export function Footer() {
 
           {/* Contact & Hours */}
           <div>
-            <h4 className="text-xs font-mono font-bold tracking-widest text-slate-200 uppercase mb-4">
+            <h2 className="text-xs font-mono font-bold tracking-widest text-slate-200 uppercase mb-4">
               {t.footer.locationHours}
-            </h4>
+            </h2>
             <ul className="space-y-3 text-xs">
               <li className="flex items-start gap-2.5">
                 <MapPin className="w-4 h-4 text-sky-400 shrink-0 mt-0.5" />
@@ -161,7 +164,7 @@ export function Footer() {
                 >
                   {t.contact.addressLine1}, {t.contact.addressLine2}
                   <br />
-                  <span className="text-[11px] text-slate-500">{t.contact.addressNote}</span>
+                  <span className="text-[11px] text-slate-400">{t.contact.addressNote}</span>
                 </a>
               </li>
               <li className="flex items-center gap-2.5">
@@ -259,10 +262,10 @@ export function Footer() {
         </div>
 
         {/* Bottom Bar & Disclaimer */}
-        <div className="border-t border-slate-900 mt-6 pt-6 flex flex-col md:flex-row items-center justify-between gap-4 text-[11px] text-slate-500">
+        <div className="border-t border-slate-900 mt-6 pt-6 flex flex-col md:flex-row items-center justify-between gap-4 text-[11px] text-slate-400">
           <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-4 gap-y-1">
             <p>
-              &copy; {new Date().getFullYear()} {FACILITY_INFO.legalNameEn} (ח.פ. / Reg.{' '}
+              &copy; {year} {FACILITY_INFO.legalNameEn} (ח.פ. / Reg.{' '}
               {FACILITY_INFO.companyRegistrationNumber}). {t.footer.rightsReserved}
             </p>
             <Link href="/rules" className="text-slate-400 hover:text-sky-400 underline underline-offset-2">

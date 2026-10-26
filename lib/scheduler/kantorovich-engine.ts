@@ -4,8 +4,10 @@ import {
   DailyScheduleBlock,
   FlightSlot,
   GapCollisionAlert,
+  PublicCapacityReport,
   SlotBlockPeriod,
 } from '@/types';
+import { hasDeparted } from './israel-clock';
 
 export const TURNAROUND_MINUTES = 15;
 
@@ -97,6 +99,20 @@ export function getDayOperatingConfig(dateString: string): DayOperatingConfig {
     isSaturday: false,
     isFriday: false,
   };
+}
+
+/**
+ * Longest mission (pure flight minutes, at least `baseMinutes`) such that every mission
+ * length up to it reserves no more than `windowMinutes`. The buffer map is not monotonic
+ * (a 120-minute mission reserves 150 minutes, a 121-minute one 136), so the limit stops
+ * at the first length that would overrun the window.
+ */
+export function longestMissionWithin(windowMinutes: number, baseMinutes: number): number {
+  let longest = baseMinutes;
+  for (let minutes = baseMinutes + 1; getReservedMinutesForFlight(minutes) <= windowMinutes; minutes++) {
+    longest = minutes;
+  }
+  return longest;
 }
 
 /**
@@ -487,8 +503,10 @@ export function generateKantorovichSlots(
     const gapBefore = startMin - prevBoundary;
     const gapAfter = nextBoundary - reservedEndMin;
 
-    const validBefore = canTileIntervalZeroWaste(gapBefore, pricing.isPrimeTime);
-    const validAfter = canTileIntervalZeroWaste(gapAfter, pricing.isPrimeTime);
+    // Judge each gap by where it starts, as evaluateDailyEfficiency does: a daytime departure
+    // can still leave a prime-time gap after it, which only prime-time blocks may fill.
+    const validBefore = canTileIntervalZeroWaste(gapBefore, config.isSaturday || prevBoundary >= 18 * 60);
+    const validAfter = canTileIntervalZeroWaste(gapAfter, config.isSaturday || reservedEndMin >= 18 * 60);
 
     if (!validBefore || !validAfter) {
       const badGap = !validBefore ? gapBefore : gapAfter;
@@ -555,10 +573,7 @@ export function generateKantorovichSlots(
         nextHardStop = b.startMin;
       }
     }
-    const maxAvailableMinutes = Math.max(
-      durationMinutes,
-      nextHardStop - startMin - TURNAROUND_MINUTES
-    );
+    const maxAvailableMinutes = longestMissionWithin(nextHardStop - startMin, durationMinutes);
 
     slots.push({
       id: `slot-${dateString}-${startTimeStr}`,
@@ -771,5 +786,45 @@ export function evaluateDailyEfficiency(
     gapAlerts,
     timelineBlocks,
   };
+}
+
+/**
+ * Projects the admin efficiency report onto what the public booking page may see:
+ * capacity figures and block geometry only. Booking objects, pilot names in labels,
+ * gap alerts (which cite booking references) and revenue figures are dropped.
+ */
+export function toPublicCapacityReport(report: DailyEfficiencyReport): PublicCapacityReport {
+  return {
+    date: report.date,
+    dayOfWeek: report.dayOfWeek,
+    operatingWindow: report.operatingWindow,
+    totalFundMinutes: report.totalFundMinutes,
+    bookedMinutes: report.bookedMinutes,
+    pureFlightMinutes: report.pureFlightMinutes,
+    turnaroundMinutes: report.turnaroundMinutes,
+    freeValidMinutes: report.freeValidMinutes,
+    orphanGapMinutes: report.orphanGapMinutes,
+    efficiencyPercent: report.efficiencyPercent,
+    isZeroWasteCompliant: report.isZeroWasteCompliant,
+    timelineBlocks: report.timelineBlocks.map(({ start, end, type, minutes }) => ({ start, end, type, minutes })),
+  };
+}
+
+/**
+ * Closes departures that have already left by Israel time. Slot generation is a pure
+ * function of the day's bookings; the caller supplies the clock.
+ */
+export function closeDepartedSlots(slots: FlightSlot[], now: Date): FlightSlot[] {
+  return slots.map((slot) =>
+    slot.available && hasDeparted(slot.date, slot.startTime, now)
+      ? {
+          ...slot,
+          available: false,
+          disabledReason: 'departed',
+          disabledNote: 'This departure has already left.',
+          smartRecommendation: null,
+        }
+      : slot
+  );
 }
 

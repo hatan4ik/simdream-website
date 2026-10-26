@@ -9,7 +9,8 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/admin/', '/api/'],
+        // Prefix rules: '/admin' also covers the bare /admin dashboard root ('/admin/' did not).
+        disallow: ['/admin', '/api'],
       },
       {
         userAgent: [
@@ -22,7 +23,7 @@ export default function robots(): MetadataRoute.Robots {
           'Applebot-Extended',
         ],
         allow: '/',
-        disallow: ['/admin/', '/api/'],
+        disallow: ['/admin', '/api'],
       },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,

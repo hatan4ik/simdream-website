@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useId, useState } from 'react';
 import {
   Users,
   Shield,
@@ -21,6 +21,7 @@ import { useLanguage } from '@/lib/i18n/language-context';
 
 export default function WorkshopsPage() {
   const { t, isRTL } = useLanguage();
+  const fieldId = useId();
   const [formData, setFormData] = useState({
     companyName: '',
     contactName: '',
@@ -45,11 +46,18 @@ export default function WorkshopsPage() {
       const res = await fetch('/api/workshops', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        // The API expects a numeric team size and omits optional fields left blank.
+        body: JSON.stringify({
+          ...formData,
+          teamSize: Number(formData.teamSize),
+          targetDate: formData.targetDate || undefined,
+          message: formData.message.trim() || undefined,
+        }),
       });
 
       if (!res.ok) {
-        throw new Error('Failed to submit inquiry');
+        const body = (await res.json().catch(() => null)) as { error?: string } | null;
+        throw new Error(body?.error || 'Failed to submit inquiry');
       }
 
       setSubmitSuccess(true);
@@ -61,7 +69,7 @@ export default function WorkshopsPage() {
   };
 
   return (
-    <div className="flex-1 py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-20">
+    <div className="flex-1 w-full min-w-0 py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-20">
       {/* Header */}
       <div className="text-center max-w-4xl mx-auto space-y-4">
         <Badge variant="amber">{t.workshops.badge}</Badge>
@@ -179,7 +187,7 @@ export default function WorkshopsPage() {
         ) : (
           <form onSubmit={handleSubmit} className="space-y-6">
             {errorMessage && (
-              <div className="p-4 rounded-lg bg-red-950/40 border border-red-500/30 text-red-300 text-sm flex items-center gap-2">
+              <div role="alert" className="p-4 rounded-lg bg-red-950/40 border border-red-500/30 text-red-300 text-sm flex items-center gap-2">
                 <AlertCircle className="w-5 h-5 shrink-0" />
                 <span>{errorMessage}</span>
               </div>
@@ -187,12 +195,13 @@ export default function WorkshopsPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className="text-xs font-mono uppercase text-slate-300 font-semibold">
+                <label htmlFor={`${fieldId}-company`} className="text-xs font-mono uppercase text-slate-300 font-semibold">
                   {t.workshops.companyName}
                 </label>
                 <div className="relative">
                   <Building2 className="w-4 h-4 text-slate-500 absolute left-3 rtl:left-auto rtl:right-3 top-3.5" />
                   <input
+                    id={`${fieldId}-company`}
                     type="text"
                     required
                     value={formData.companyName}
@@ -204,10 +213,11 @@ export default function WorkshopsPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-mono uppercase text-slate-300 font-semibold">
+                <label htmlFor={`${fieldId}-contact`} className="text-xs font-mono uppercase text-slate-300 font-semibold">
                   {t.workshops.contactName}
                 </label>
                 <input
+                  id={`${fieldId}-contact`}
                   type="text"
                   required
                   value={formData.contactName}
@@ -218,12 +228,13 @@ export default function WorkshopsPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-mono uppercase text-slate-300 font-semibold">
+                <label htmlFor={`${fieldId}-email`} className="text-xs font-mono uppercase text-slate-300 font-semibold">
                   {t.workshops.workEmail}
                 </label>
                 <div className="relative">
                   <Mail className="w-4 h-4 text-slate-500 absolute left-3 rtl:left-auto rtl:right-3 top-3.5" />
                   <input
+                    id={`${fieldId}-email`}
                     type="email"
                     required
                     value={formData.email}
@@ -235,12 +246,13 @@ export default function WorkshopsPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-mono uppercase text-slate-300 font-semibold">
+                <label htmlFor={`${fieldId}-phone`} className="text-xs font-mono uppercase text-slate-300 font-semibold">
                   {t.workshops.workPhone}
                 </label>
                 <div className="relative">
                   <Phone className="w-4 h-4 text-slate-500 absolute left-3 rtl:left-auto rtl:right-3 top-3.5" />
                   <input
+                    id={`${fieldId}-phone`}
                     type="tel"
                     required
                     value={formData.phone}
@@ -253,10 +265,11 @@ export default function WorkshopsPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-mono uppercase text-slate-300 font-semibold">
+                <label htmlFor={`${fieldId}-team-size`} className="text-xs font-mono uppercase text-slate-300 font-semibold">
                   {t.workshops.teamSize}
                 </label>
                 <select
+                  id={`${fieldId}-team-size`}
                   value={formData.teamSize}
                   onChange={(e) => setFormData({ ...formData, teamSize: e.target.value })}
                   className="w-full rounded-lg bg-slate-950 border border-slate-800 px-4 py-2.5 text-sm text-white focus:outline-none focus:border-sky-500"
@@ -269,12 +282,13 @@ export default function WorkshopsPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-mono uppercase text-slate-300 font-semibold">
+                <label htmlFor={`${fieldId}-target-date`} className="text-xs font-mono uppercase text-slate-300 font-semibold">
                   {t.workshops.targetDate}
                 </label>
                 <div className="relative">
                   <Calendar className="w-4 h-4 text-slate-500 absolute left-3 rtl:left-auto rtl:right-3 top-3.5" />
                   <input
+                    id={`${fieldId}-target-date`}
                     type="date"
                     value={formData.targetDate}
                     onChange={(e) => setFormData({ ...formData, targetDate: e.target.value })}
@@ -285,10 +299,11 @@ export default function WorkshopsPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-mono uppercase text-slate-300 font-semibold">
+              <label htmlFor={`${fieldId}-goal`} className="text-xs font-mono uppercase text-slate-300 font-semibold">
                 {t.workshops.primaryGoal}
               </label>
               <select
+                id={`${fieldId}-goal`}
                 value={formData.primaryGoal}
                 onChange={(e) => setFormData({ ...formData, primaryGoal: e.target.value as CorporateGoal })}
                 className="w-full rounded-lg bg-slate-950 border border-slate-800 px-4 py-2.5 text-sm text-white focus:outline-none focus:border-sky-500"
@@ -301,10 +316,11 @@ export default function WorkshopsPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-mono uppercase text-slate-300 font-semibold">
+              <label htmlFor={`${fieldId}-notes`} className="text-xs font-mono uppercase text-slate-300 font-semibold">
                 {t.workshops.additionalNotes}
               </label>
               <textarea
+                id={`${fieldId}-notes`}
                 rows={3}
                 value={formData.message}
                 onChange={(e) => setFormData({ ...formData, message: e.target.value })}

@@ -31,7 +31,7 @@ export default function HomePage() {
     .slice(0, 3);
 
   return (
-    <main className="flex-1 flex flex-col">
+    <div className="flex-1 flex flex-col">
       {/* 1. HERO SECTION */}
       <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden px-4 sm:px-6 lg:px-8 py-24 hud-grid">
         {/* Glowing atmospheric cockpit backdrops */}
@@ -308,7 +308,7 @@ export default function HomePage() {
                       <span className="text-3xl font-black text-white">{formatCurrency(pkg.priceIls)}</span>
                       <span className="text-xs text-slate-400 font-mono">{t.experiences.perFlight}</span>
                     </div>
-                    <span className="text-xs text-slate-500 font-mono">
+                    <span className="text-xs text-slate-400 font-mono">
                       {t.experiences.approxUsd} ${pkg.priceUsd} USD
                     </span>
                   </div>
@@ -427,7 +427,7 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-    </main>
+    </div>
   );
 }
 

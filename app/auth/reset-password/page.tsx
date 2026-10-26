@@ -58,7 +58,7 @@ export default function ResetPasswordPage() {
   };
 
   return (
-    <main className="flex-1 flex items-center justify-center py-16 px-4 hud-grid">
+    <div className="flex-1 flex items-center justify-center py-16 px-4 hud-grid">
       <Card className="max-w-md w-full p-8 space-y-6">
         <div className="text-center space-y-2">
           <div className="w-12 h-12 rounded-xl bg-sky-500 flex items-center justify-center mx-auto shadow-glow">
@@ -101,6 +101,6 @@ export default function ResetPasswordPage() {
         {!ready && !error && <p className="text-center text-sm text-slate-400">Validating your recovery link…</p>}
         <Link href="/login" className="block text-center text-xs text-sky-400 hover:underline">Return to member login</Link>
       </Card>
-    </main>
+    </div>
   );
 }

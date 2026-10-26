@@ -35,9 +35,10 @@ import {
   MissionManifestCalculation,
   SlotBlockPeriod,
 } from '@/types';
-import { formatCurrency, formatDate, formatLocalYMD } from '@/lib/utils';
+import { addDaysToYmd, formatCurrency, formatDate, formatLocalYMD } from '@/lib/utils';
+import { useModalFocus } from '@/lib/ui/use-modal-focus';
 import { useLanguage } from '@/lib/i18n/language-context';
-import { canAddonFitInSlot, sanitizePackageTitle } from '@/lib/scheduler/mission-calculator';
+import { canAddonFitInSlot, packageFromPriceIls, sanitizePackageTitle } from '@/lib/scheduler/mission-calculator';
 import { FACILITY_INFO } from '@/lib/config/facility-info';
 
 interface AmazonFlightStorefrontProps {
@@ -51,6 +52,9 @@ interface AmazonFlightStorefrontProps {
   onSelectSlot: (slot: FlightSlot) => void;
   durationAvailability: Record<number, { availableCount: number; minPriceIls: number }>;
   loadingSlots: boolean;
+  /** The last slots request failed; show a load error with a retry instead of a sold-out day. */
+  slotsLoadFailed?: boolean;
+  onRetrySlots?: () => void;
   addons: FlightAddon[];
   selectedAddons: string[];
   onToggleAddon: (addonId: string) => void;
@@ -106,15 +110,15 @@ const QUICK_COMBOS: QuickComboPreset[] = [
     id: 'combo-extreme-ops',
     badge: 'PRO PILOT CHALLENGE',
     title: 'Crosswind/IFR Storm + Extreme World Approaches',
-    subtitle: 'Battle live gusts & low-visibility ILS (+15m) plus Paro Valley, Lukla & Madeira (+25m)',
+    subtitle: 'Battle live gusts & low-visibility ILS (+15m) plus Paro, Hong Kong Kai Tak & Innsbruck (+25m)',
     addonIds: ['addon-xwind-ifr', 'addon-extreme-airports'],
   },
   {
     id: 'combo-med-video',
     badge: 'GIFT & VLOG FAVORITE',
     title: 'Mediterranean Islands Trio + Multi-Angle Video',
-    subtitle: 'Skiathos, Corfu & Santorini approaches (+40m) with full 1080p cockpit recording',
-    addonIds: ['addon-med-islands', 'addon-video'],
+    subtitle: 'Corfu, Skiathos & Nice approaches (+40m) with 4K multi-cam cockpit recording',
+    addonIds: ['addon-med-islands', 'addon-hd-video'],
   },
 ];
 
@@ -206,6 +210,8 @@ export function AmazonFlightStorefront({
   onSelectSlot,
   durationAvailability,
   loadingSlots,
+  slotsLoadFailed = false,
+  onRetrySlots,
   addons,
   selectedAddons,
   onToggleAddon,
@@ -239,6 +245,7 @@ export function AmazonFlightStorefront({
   const [addonFilter, setAddonFilter] = useState<AddonFilterTab>('all');
   const [calendarMode, setCalendarMode] = useState<'strip' | 'month'>('strip');
   const [blueprintPackage, setBlueprintPackage] = useState<SimulatorPackage | null>(null);
+  const blueprintPanelRef = useModalFocus<HTMLDivElement>(blueprintPackage !== null, () => setBlueprintPackage(null));
 
   const [viewMonthDate, setViewMonthDate] = useState<Date>(() => {
     const [y, m] = selectedDate.split('-').map(Number);
@@ -249,9 +256,9 @@ export function AmazonFlightStorefront({
   const horizonDays = useMemo(() => {
     const list: { dateStr: string; dayName: string; dayNum: number; monthShort: string; isSat: boolean }[] = [];
     const base = new Date();
-    base.setHours(0, 0, 0, 0);
     for (let i = 0; i < 14; i++) {
-      const d = new Date(base.getTime() + i * 86400000);
+      // Calendar arithmetic: 24h steps repeat or skip a day across a DST change.
+      const d = new Date(base.getFullYear(), base.getMonth(), base.getDate() + i);
       const dateStr = formatLocalYMD(d);
       const dow = d.getDay();
       list.push({
@@ -486,6 +493,7 @@ export function AmazonFlightStorefront({
                   <button
                     key={day.dateStr}
                     type="button"
+                    aria-pressed={isSelected}
                     onClick={() => onSelectDate(day.dateStr)}
                     className={`p-2 rounded-xl border text-center transition-all flex flex-col items-center justify-center ${
                       isSelected
@@ -495,7 +503,7 @@ export function AmazonFlightStorefront({
                   >
                     <span className="text-[9px] font-mono uppercase text-slate-400">{day.dayName}</span>
                     <span className="text-sm font-black font-mono text-white my-0.5">{day.dayNum}</span>
-                    <span className="text-[9px] font-mono text-slate-500">{day.monthShort}</span>
+                    <span className="text-[9px] font-mono text-slate-400">{day.monthShort}</span>
                   </button>
                 );
               })}
@@ -527,7 +535,7 @@ export function AmazonFlightStorefront({
               </div>
               <div className="grid grid-cols-7 gap-1 text-center">
                 {DAY_NAMES_SHORT.map((d) => (
-                  <div key={d} className="text-[10px] font-mono text-slate-500 py-1">
+                  <div key={d} className="text-[10px] font-mono text-slate-400 py-1">
                     {d}
                   </div>
                 ))}
@@ -565,20 +573,50 @@ export function AmazonFlightStorefront({
               </span>
               {selectedSlot && (
                 <span className="text-xs font-mono text-emerald-400 font-semibold">
-                  Selected Window: {selectedSlot.startTime}–{effectiveEndTime || selectedSlot.endTime} (Max{' '}
-                  {maxAvailableMinutes}m available)
+                  Selected Window:{' '}
+                  <bdi dir="ltr">
+                    {selectedSlot.startTime}–{effectiveEndTime || selectedSlot.endTime}
+                  </bdi>{' '}
+                  (Max {maxAvailableMinutes}m available)
                 </span>
               )}
             </div>
 
             {loadingSlots ? (
-              <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+              <div aria-busy="true" className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                <span role="status" className="sr-only">
+                  {t.booking.loadingDepartures}
+                </span>
                 {[1, 2, 3, 4, 5, 6].map((n) => (
                   <div
                     key={n}
+                    aria-hidden="true"
                     className="h-14 rounded-xl bg-slate-950/60 border border-slate-800/60 animate-pulse"
                   />
                 ))}
+              </div>
+            ) : slotsLoadFailed ? (
+              <div className="p-6 rounded-2xl bg-slate-950/90 border border-red-500/30 text-center space-y-4">
+                <div role="alert" className="space-y-1">
+                  <h3 className="text-sm sm:text-base font-bold text-white">{t.booking.slotsLoadError}</h3>
+                  <p className="text-xs text-slate-400 max-w-md mx-auto">{t.booking.slotsLoadErrorHint}</p>
+                </div>
+                <div className="flex flex-wrap justify-center gap-2 pt-1">
+                  {onRetrySlots && (
+                    <Button type="button" variant="secondary" size="sm" onClick={onRetrySlots} className="font-mono text-xs">
+                      {t.booking.retryLoad}
+                    </Button>
+                  )}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onSelectDate(addDaysToYmd(selectedDate, 1))}
+                    className="font-mono text-xs text-sky-400 border-sky-500/40 hover:bg-sky-500/10"
+                  >
+                    Check Next Day →
+                  </Button>
+                </div>
               </div>
             ) : availableSlotCount === 0 ? (
               <div className="p-6 rounded-2xl bg-slate-950/90 border border-amber-500/30 text-center space-y-4">
@@ -611,7 +649,7 @@ export function AmazonFlightStorefront({
                         onClick={() => onSelectPackage(altPkg)}
                         className="font-mono text-xs"
                       >
-                        Try {altPkg.durationMinutes}m ({formatCurrency(durationAvailability[altPkg.durationMinutes]?.minPriceIls || altPkg.priceIls)})
+                        Try {altPkg.durationMinutes}m ({formatCurrency(packageFromPriceIls(altPkg, durationAvailability[altPkg.durationMinutes]?.minPriceIls))})
                       </Button>
                     ))}
 
@@ -619,10 +657,7 @@ export function AmazonFlightStorefront({
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => {
-                      const next = new Date(new Date(selectedDate).getTime() + 86400000);
-                      onSelectDate(formatLocalYMD(next));
-                    }}
+                    onClick={() => onSelectDate(addDaysToYmd(selectedDate, 1))}
                     className="font-mono text-xs text-sky-400 border-sky-500/40 hover:bg-sky-500/10"
                   >
                     Check Next Day →
@@ -631,7 +666,7 @@ export function AmazonFlightStorefront({
 
                 {slots.some((s) => s.disabledReason === 'booked') && (
                   <div className="pt-3 border-t border-slate-900 text-left rtl:text-right">
-                    <span className="text-[10px] font-mono uppercase text-slate-500 block mb-1.5">
+                    <span className="text-[10px] font-mono uppercase text-slate-400 block mb-1.5">
                       Booked Slots on this Date:
                     </span>
                     <div className="flex flex-wrap gap-2">
@@ -640,7 +675,7 @@ export function AmazonFlightStorefront({
                         .map((slot) => (
                           <span
                             key={slot.id}
-                            className="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-[11px] font-mono text-slate-500 line-through"
+                            className="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-[11px] font-mono text-slate-400 line-through"
                           >
                             {slot.startTime} ({slot.disabledNote || 'Booked'})
                           </span>
@@ -673,6 +708,7 @@ export function AmazonFlightStorefront({
                             <button
                               key={slot.id}
                               type="button"
+                              aria-pressed={isSelected}
                               disabled={!slot.available}
                               onClick={() => onSelectSlot(slot)}
                               className={`relative px-3 py-2.5 rounded-xl border text-left rtl:text-right transition-all flex flex-col justify-between ${
@@ -740,28 +776,23 @@ export function AmazonFlightStorefront({
               const availInfo = durationAvailability[pkg.durationMinutes];
               const slotCount = availInfo ? availInfo.availableCount : (pkg.id === selectedPackage.id ? slots.filter((s) => s.available).length : 0);
               const isAvailable = availInfo ? availInfo.availableCount > 0 : true;
-              const displayPrice =
-                availInfo && availInfo.minPriceIls > 0 ? availInfo.minPriceIls : pkg.priceIls;
+              const displayPrice = packageFromPriceIls(pkg, availInfo?.minPriceIls);
               const cleanTitle = sanitizePackageTitle(pkg.title);
               const formulaBadge = getPackageFormulaBadge(pkg.durationMinutes, pkg.category);
 
               return (
-                <div
-                  key={pkg.id}
+                // The card is a real button; the blueprint trigger sits beside it, never inside it,
+                // so neither control is nested in the other (keyboard and screen readers work).
+                <div key={pkg.id} className="flex flex-col gap-1.5">
+                <button
+                  type="button"
+                  aria-pressed={isSelected}
                   onClick={() => onSelectPackage(pkg)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      onSelectPackage(pkg);
-                    }
-                  }}
-                  className={`p-4 rounded-xl border text-left rtl:text-right transition-all flex flex-col justify-between relative cursor-pointer ${
+                  className={`flex-1 p-4 rounded-xl border text-left rtl:text-right transition-all flex flex-col justify-between relative cursor-pointer ${
                     isSelected
                       ? 'border-amber-400 bg-amber-500/10 shadow-lg ring-1 ring-amber-400/50'
                       : !isAvailable
-                      ? 'border-slate-800/60 bg-slate-950/40 opacity-80 hover:border-slate-700'
+                      ? 'border-slate-800/60 bg-slate-950/40 hover:border-slate-700'
                       : 'border-slate-800 bg-slate-950/80 hover:border-slate-700'
                   }`}
                 >
@@ -800,20 +831,6 @@ export function AmazonFlightStorefront({
                       {pkg.shortDesc}
                     </p>
 
-                    {/* Mission Blueprint / What's Included Interactive Popup Trigger */}
-                    <div className="pt-1">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setBlueprintPackage(pkg);
-                        }}
-                        className="inline-flex items-center gap-1 text-[11px] font-mono text-sky-400 hover:text-sky-300 underline font-semibold transition-colors"
-                      >
-                        <Sparkles className="w-3 h-3 text-amber-400 shrink-0" />
-                        <span>What&apos;s Included / Mission Blueprint ↗</span>
-                      </button>
-                    </div>
                   </div>
 
                   <div className="pt-3 mt-3 border-t border-slate-800/80 flex items-baseline justify-between">
@@ -839,6 +856,16 @@ export function AmazonFlightStorefront({
                       {isSelected ? '✓ Selected' : 'Select'}
                     </span>
                   </div>
+                </button>
+                {/* Mission Blueprint / What's Included popup trigger (24px min target, WCAG 2.5.8) */}
+                <button
+                  type="button"
+                  onClick={() => setBlueprintPackage(pkg)}
+                  className="self-start inline-flex min-h-6 items-center gap-1 px-1 text-[11px] font-mono text-sky-400 hover:text-sky-300 underline font-semibold transition-colors"
+                >
+                  <Sparkles className="w-3 h-3 text-amber-400 shrink-0" />
+                  <span>What&apos;s Included / Mission Blueprint ↗</span>
+                </button>
                 </div>
               );
             })}
@@ -886,7 +913,7 @@ export function AmazonFlightStorefront({
                       ? 'border-amber-400 bg-amber-500/15 shadow-lg'
                       : fitsSlot
                       ? 'border-slate-800 bg-slate-950/85 hover:border-amber-500/50'
-                      : 'border-slate-800/50 bg-slate-950/40 opacity-55'
+                      : 'border-slate-800/50 bg-slate-950/40'
                   }`}
                 >
                   <div className="space-y-2">
@@ -999,7 +1026,7 @@ export function AmazonFlightStorefront({
                   key={addon.id}
                   className={`p-4 sm:p-5 rounded-xl border transition-all flex flex-col justify-between ${
                     !fitsSlot
-                      ? 'border-slate-800/50 bg-slate-950/40 opacity-55'
+                      ? 'border-slate-800/50 bg-slate-950/40'
                       : isChecked
                       ? 'border-amber-400 bg-amber-500/10 shadow-lg ring-1 ring-amber-400/40'
                       : 'border-slate-800 bg-slate-950/80 hover:border-slate-700'
@@ -1406,6 +1433,8 @@ export function AmazonFlightStorefront({
                       autoCapitalize="off"
                       spellCheck={false}
                       placeholder={t.booking.voucherPlaceholder}
+                      aria-invalid={voucherError ? true : undefined}
+                      aria-describedby={voucherError ? 'storefront-voucher-error' : undefined}
                       value={voucherCode}
                       onChange={(e) => onChangeVoucherCode(e.target.value)}
                       dir="ltr"
@@ -1438,7 +1467,11 @@ export function AmazonFlightStorefront({
               )}
 
               {voucherSuccess && <p className="text-[11px] text-emerald-400 font-mono">{voucherSuccess}</p>}
-              {voucherError && <p className="text-[11px] text-red-400 font-mono">{voucherError}</p>}
+              {voucherError && (
+                <p id="storefront-voucher-error" role="alert" className="text-[11px] text-red-400 font-mono">
+                  {voucherError}
+                </p>
+              )}
             </div>
 
             {/* Special Notes */}
@@ -1505,7 +1538,9 @@ export function AmazonFlightStorefront({
           onClick={() => setBlueprintPackage(null)}
         >
           <div
-            className="relative max-w-2xl w-full rounded-2xl border-2 border-sky-500/40 bg-slate-900 shadow-2xl p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto"
+            ref={blueprintPanelRef}
+            tabIndex={-1}
+            className="relative max-w-2xl w-full rounded-2xl border-2 border-sky-500/40 bg-slate-900 shadow-2xl p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto focus:outline-none"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}

@@ -36,7 +36,7 @@ export interface SimulatorPackage {
 
 export type SlotBlockPeriod = 'morning' | 'afternoon' | 'evening' | 'friday_closer' | 'saturday_prime';
 export type SlotSmartRecommendation = 'optimal_150_pair' | 'friday_30m_closer' | 'zero_waste_fit' | 'daytime_promo_fit' | null;
-export type SlotDisabledReason = 'booked' | 'orphan_gap' | 'daytime_only_promo' | 'friday_closer_30m_only' | 'exceeds_closing' | null;
+export type SlotDisabledReason = 'booked' | 'orphan_gap' | 'daytime_only_promo' | 'friday_closer_30m_only' | 'exceeds_closing' | 'departed' | null;
 
 export interface FlightSlot {
   id: string;
@@ -102,6 +102,27 @@ export interface DailyEfficiencyReport {
   timelineBlocks: DailyScheduleBlock[];
 }
 
+/**
+ * Capacity-only view of a day's schedule for the public booking page: no customer
+ * identities, booking ids or revenue. The full report is admin-only.
+ */
+export type PublicCapacityReport = Pick<
+  DailyEfficiencyReport,
+  | 'date'
+  | 'dayOfWeek'
+  | 'operatingWindow'
+  | 'totalFundMinutes'
+  | 'bookedMinutes'
+  | 'pureFlightMinutes'
+  | 'turnaroundMinutes'
+  | 'freeValidMinutes'
+  | 'orphanGapMinutes'
+  | 'efficiencyPercent'
+  | 'isZeroWasteCompliant'
+> & {
+  timelineBlocks: Pick<DailyScheduleBlock, 'start' | 'end' | 'type' | 'minutes'>[];
+};
+
 export interface FlightAddon {
   id: string;
   name: string;
@@ -165,6 +186,10 @@ export interface Booking {
   stripePaymentIntentId?: string;
   notes?: string;
   createdAt: string;
+  /** Set while a webhook delivery is sending the confirmation email (see claimConfirmation). */
+  confirmationClaimedAt?: string;
+  /** Set once the confirmation email was accepted; later deliveries send nothing. */
+  confirmationSentAt?: string;
 }
 
 export interface GiftVoucher {
@@ -185,6 +210,8 @@ export interface GiftVoucher {
   stripeCheckoutSessionId?: string;
   activatedAt?: string;
   createdAt: string;
+  confirmationClaimedAt?: string;
+  confirmationSentAt?: string;
 }
 
 export type CorporateGoal = 'leadership' | 'team_communication' | 'high_stress_decision_making' | 'vip_incentive';

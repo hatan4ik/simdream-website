@@ -113,7 +113,7 @@ export default function AdminBookingsPage() {
               onClick={() => setFilterStatus(status)}
               className={`px-3 py-1.5 rounded-lg uppercase tracking-wider transition-colors ${
                 filterStatus === status
-                  ? 'bg-sky-500 text-white font-bold'
+                  ? 'bg-sky-700 text-white font-bold'
                   : 'bg-slate-950 text-slate-400 hover:text-white'
               }`}
             >
@@ -145,7 +145,7 @@ export default function AdminBookingsPage() {
                   <td className="py-4 px-4">
                     <p className="font-bold text-white">{b.pilotName}</p>
                     <p className="text-[10px] text-slate-400">{b.pilotEmail}</p>
-                    <p className="text-[10px] text-slate-500">{b.pilotPhone}</p>
+                    <p className="text-[10px] text-slate-400">{b.pilotPhone}</p>
                   </td>
                   <td className="py-4 px-4">
                     <p className="font-semibold text-white">{b.packageTitle}</p>

@@ -25,6 +25,7 @@ import { getSupabaseAdmin, requireSupabaseAdmin } from './supabase-admin';
 import { generateBookingReference, generateVoucherCode } from '@/lib/utils';
 import { normalizeMemberEmail, type VerifiedMemberIdentity } from '@/lib/auth/member-ownership';
 import {
+  closeDepartedSlots,
   evaluateDailyEfficiency,
   generateKantorovichSlots,
   getDayOperatingConfig,
@@ -35,6 +36,10 @@ import {
 
 type DatabaseRow = Record<string, unknown>;
 
+/**
+ * Storage is unreachable, misconfigured or failing. Its message is for server logs
+ * only; routes answer with a generic 503 so clients retry and learn nothing internal.
+ */
 export class PersistenceError extends Error {
   constructor(message = 'Persistent storage is unavailable.') {
     super(message);
@@ -42,8 +47,36 @@ export class PersistenceError extends Error {
   }
 }
 
-function databaseError(error: { message?: string } | null): never {
-  throw new PersistenceError(error?.message || 'Persistent storage operation failed.');
+/** A scheduling rule refused the change (slot taken, outside hours). The message is user-safe; map to 409. */
+export class BookingConflictError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'BookingConflictError';
+  }
+}
+
+/** The requested record does not exist; map to 404. */
+export class RecordNotFoundError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'RecordNotFoundError';
+  }
+}
+
+// Postgres exclusion_violation: the bookings overlap constraint from migration 001.
+const EXCLUSION_VIOLATION = '23P01';
+
+export type ConfirmationKind = 'booking' | 'voucher';
+export type ConfirmationClaim = 'claimed' | 'sent' | 'busy';
+const CONFIRMATION_TABLES: Record<ConfirmationKind, string> = { booking: 'bookings', voucher: 'gift_vouchers' };
+const CONFIRMATION_CLAIM_TTL_MS = 10 * 60 * 1000;
+
+function databaseError(error: { message?: string; code?: string } | null): never {
+  if (error?.code === EXCLUSION_VIOLATION) {
+    throw new BookingConflictError('The selected departure slot is no longer available.');
+  }
+  console.error('Persistent storage operation failed', error?.message);
+  throw new PersistenceError('Persistent storage operation failed.');
 }
 
 function getValue(row: DatabaseRow, key: string): unknown {
@@ -54,6 +87,11 @@ function requiredString(row: DatabaseRow, key: string): string {
   const result = getValue(row, key);
   if (typeof result !== 'string') throw new PersistenceError(`Database row is missing ${key}.`);
   return result;
+}
+
+function optionalString(row: DatabaseRow, key: string): string | undefined {
+  const result = getValue(row, key);
+  return typeof result === 'string' ? result : undefined;
 }
 
 function asNumber(input: unknown, fallback = 0): number {
@@ -95,6 +133,8 @@ function toBooking(row: DatabaseRow): Booking {
         : undefined,
     notes: typeof getValue(row, 'notes') === 'string' ? String(getValue(row, 'notes')) : undefined,
     createdAt: requiredString(row, 'created_at'),
+    confirmationClaimedAt: optionalString(row, 'confirmation_claimed_at'),
+    confirmationSentAt: optionalString(row, 'confirmation_sent_at'),
   };
 }
 
@@ -149,6 +189,8 @@ function toVoucher(row: DatabaseRow): GiftVoucher {
         : undefined,
     activatedAt: typeof getValue(row, 'activated_at') === 'string' ? String(getValue(row, 'activated_at')) : undefined,
     createdAt: requiredString(row, 'created_at'),
+    confirmationClaimedAt: optionalString(row, 'confirmation_claimed_at'),
+    confirmationSentAt: optionalString(row, 'confirmation_sent_at'),
   };
 }
 
@@ -214,13 +256,15 @@ function toPackage(row: DatabaseRow): SimulatorPackage {
   };
 }
 
-function assertPersistentWrite(error: { message?: string } | null): void {
+function assertPersistentWrite(error: { message?: string; code?: string } | null): void {
   if (error) databaseError(error);
 }
 
 /**
- * Server-only repository. Development uses explicit seed data; production has
- * no silent in-memory fallback, preventing lost orders or divergent inventory.
+ * Server-only repository. Development and tests use the in-memory seed store.
+ * Production requires Supabase and fails closed without it, so a misconfigured
+ * deployment cannot take orders it would lose. ALLOW_IN_MEMORY_STORE=true is an
+ * explicit opt-in for demo and test servers only; never set it in a real deployment.
  */
 class SimDreamStore {
   private packages: SimulatorPackage[] = [...SIMULATOR_PACKAGES];
@@ -231,8 +275,12 @@ class SimDreamStore {
   private flightLogs: FlightLog[] = [...DEMO_FLIGHT_LOGS];
   private users: UserProfile[] = [...DEMO_USERS];
 
+  /** True when reads and writes go to Supabase; throws when production has no storage. */
   private get production(): boolean {
-    return isProduction && Boolean(getSupabaseAdmin());
+    if (!isProduction) return false;
+    if (getSupabaseAdmin()) return true;
+    if (process.env.ALLOW_IN_MEMORY_STORE === 'true') return false;
+    throw new PersistenceError('Persistent storage is not configured.');
   }
 
   async getPackages(): Promise<SimulatorPackage[]> {
@@ -260,17 +308,21 @@ class SimDreamStore {
   }
 
   async getAvailableSlots(dateString: string, durationMinutes = 60): Promise<FlightSlot[]> {
-    return generateKantorovichSlots(dateString, durationMinutes, await this.getBookings());
+    return closeDepartedSlots(
+      generateKantorovichSlots(dateString, durationMinutes, await this.getBookings()),
+      new Date()
+    );
   }
 
   async getDurationAvailability(
     dateString: string
   ): Promise<Record<number, { availableCount: number; minPriceIls: number }>> {
     const bookings = await this.getBookings();
+    const now = new Date();
     const durations = [20, 30, 45, 60, 90, 120];
     return Object.fromEntries(
       durations.map((duration) => {
-        const available = generateKantorovichSlots(dateString, duration, bookings).filter(
+        const available = closeDepartedSlots(generateKantorovichSlots(dateString, duration, bookings), now).filter(
           (slot) => slot.available
         );
         return [
@@ -301,13 +353,15 @@ class SimDreamStore {
   }
 
   async getBookingsByEmail(email: string): Promise<Booking[]> {
+    const normalized = normalizeMemberEmail(email);
     if (!this.production) {
-      return this.bookings.filter((booking) => booking.pilotEmail.toLowerCase() === email.toLowerCase());
+      return this.bookings.filter((booking) => normalizeMemberEmail(booking.pilotEmail) === normalized);
     }
+    // Exact match on the normalized column: ILIKE would treat "_" and "%" in an email as wildcards.
     const { data, error } = await requireSupabaseAdmin()
       .from('bookings')
       .select('*')
-      .ilike('pilot_email', email)
+      .eq('pilot_email', normalized)
       .order('created_at', { ascending: false });
     assertPersistentWrite(error);
     return (data as DatabaseRow[]).map(toBooking);
@@ -379,7 +433,7 @@ class SimDreamStore {
       .update({ user_id: member.id })
       .is('user_id', null)
       .eq('payment_status', 'paid')
-      .ilike('pilot_email', email)
+      .eq('pilot_email', email)
       .select('id');
     assertPersistentWrite(error);
     return Array.isArray(data) ? data.length : 0;
@@ -392,7 +446,7 @@ class SimDreamStore {
     const { data, error } = await requireSupabaseAdmin()
       .from('bookings')
       .select('*')
-      .ilike('booking_reference', ref)
+      .eq('booking_reference', ref.trim().toUpperCase())
       .maybeSingle();
     assertPersistentWrite(error);
     return data ? toBooking(data as DatabaseRow) : undefined;
@@ -412,11 +466,18 @@ class SimDreamStore {
   async createBooking(data: Omit<Booking, 'id' | 'bookingReference' | 'createdAt'>): Promise<Booking> {
     const booking: Booking = {
       ...data,
+      // Stored normalized so member linking can match it exactly (see migration 003).
+      pilotEmail: normalizeMemberEmail(data.pilotEmail),
       id: crypto.randomUUID(),
       bookingReference: generateBookingReference(),
       createdAt: new Date().toISOString(),
     };
     if (!this.production) {
+      // Mirrors the production exclusion constraint. Synchronous check-and-insert, so
+      // concurrent checkouts cannot interleave between the overlap check and the insert.
+      if (booking.status !== 'cancelled' && this.overlapsActiveBooking(booking)) {
+        throw new BookingConflictError('The selected departure slot is no longer available.');
+      }
       this.bookings.unshift(booking);
       return booking;
     }
@@ -483,10 +544,15 @@ class SimDreamStore {
     return data ? toBooking(data as DatabaseRow) : undefined;
   }
 
+  /**
+   * Confirms a booking whose payment completed, only while it is still pending. A booking
+   * the desk cancelled (its departure possibly re-sold) is never revived; see
+   * recordPaymentForCancelledBooking.
+   */
   async markBookingPaidIfPending(id: string, paymentIntentId: string): Promise<Booking | undefined> {
     if (!this.production) {
       const booking = this.bookings.find((item) => item.id === id);
-      if (!booking || booking.paymentStatus !== 'pending') return undefined;
+      if (!booking || booking.paymentStatus !== 'pending' || booking.status !== 'pending') return undefined;
       booking.paymentStatus = 'paid';
       booking.status = 'confirmed';
       booking.stripePaymentIntentId = paymentIntentId;
@@ -501,10 +567,148 @@ class SimDreamStore {
       })
       .eq('id', id)
       .eq('payment_status', 'pending')
+      .eq('status', 'pending')
       .select('*')
       .maybeSingle();
     assertPersistentWrite(error);
     return data ? toBooking(data as DatabaseRow) : undefined;
+  }
+
+  /**
+   * Records a payment that completed after its booking was cancelled. The booking stays
+   * cancelled; "cancelled + paid" tells the desk a refund is owed.
+   */
+  async recordPaymentForCancelledBooking(id: string, paymentIntentId: string): Promise<Booking | undefined> {
+    if (!this.production) {
+      const booking = this.bookings.find((item) => item.id === id);
+      if (!booking || booking.status !== 'cancelled' || booking.paymentStatus !== 'pending') return undefined;
+      booking.paymentStatus = 'paid';
+      booking.stripePaymentIntentId = paymentIntentId;
+      return booking;
+    }
+    const { data, error } = await requireSupabaseAdmin()
+      .from('bookings')
+      .update({ payment_status: 'paid', stripe_payment_intent: paymentIntentId })
+      .eq('id', id)
+      .eq('status', 'cancelled')
+      .eq('payment_status', 'pending')
+      .select('*')
+      .maybeSingle();
+    assertPersistentWrite(error);
+    return data ? toBooking(data as DatabaseRow) : undefined;
+  }
+
+  /**
+   * Records a gift-voucher payment that completed after its checkout was voided. The voucher
+   * stays void (unspendable); the recorded session tells the desk a refund is owed.
+   */
+  async recordPaymentForVoidedVoucher(id: string, checkoutSessionId: string): Promise<GiftVoucher | undefined> {
+    if (!this.production) {
+      const voucher = this.vouchers.find((item) => item.id === id);
+      if (!voucher || voucher.paymentStatus !== 'refunded' || voucher.stripeCheckoutSessionId) return undefined;
+      voucher.stripeCheckoutSessionId = checkoutSessionId;
+      return voucher;
+    }
+    const { data, error } = await requireSupabaseAdmin()
+      .from('gift_vouchers')
+      .update({ stripe_checkout_session_id: checkoutSessionId })
+      .eq('id', id)
+      .eq('payment_status', 'refunded')
+      .is('stripe_checkout_session_id', null)
+      .select('*')
+      .maybeSingle();
+    assertPersistentWrite(error);
+    return data ? toVoucher(data as DatabaseRow) : undefined;
+  }
+
+  /**
+   * Claims the right to send a confirmation email, so retried and concurrent webhook
+   * deliveries send it exactly once:
+   * - 'claimed': the caller must send, then complete or release the claim;
+   * - 'sent': nothing left to do;
+   * - 'busy': another delivery holds a fresh claim. The caller must not acknowledge
+   *   success, or the email is lost if that delivery crashed; a claim older than
+   *   CONFIRMATION_CLAIM_TTL_MS counts as abandoned and is taken over.
+   */
+  async claimConfirmation(kind: ConfirmationKind, id: string): Promise<ConfirmationClaim> {
+    const now = Date.now();
+    if (!this.production) {
+      const record = this.confirmationRecord(kind, id);
+      if (!record || record.confirmationSentAt) return 'sent';
+      if (record.confirmationClaimedAt && now - Date.parse(record.confirmationClaimedAt) < CONFIRMATION_CLAIM_TTL_MS) {
+        return 'busy';
+      }
+      record.confirmationClaimedAt = new Date(now).toISOString();
+      return 'claimed';
+    }
+    const table = CONFIRMATION_TABLES[kind];
+    const staleBefore = new Date(now - CONFIRMATION_CLAIM_TTL_MS).toISOString();
+    const { data, error } = await requireSupabaseAdmin()
+      .from(table)
+      .update({ confirmation_claimed_at: new Date(now).toISOString() })
+      .eq('id', id)
+      .is('confirmation_sent_at', null)
+      .or(`confirmation_claimed_at.is.null,confirmation_claimed_at.lt.${staleBefore}`)
+      .select('id');
+    assertPersistentWrite(error);
+    if (Array.isArray(data) && data.length > 0) return 'claimed';
+
+    const { data: current, error: readError } = await requireSupabaseAdmin()
+      .from(table)
+      .select('confirmation_sent_at')
+      .eq('id', id)
+      .maybeSingle();
+    assertPersistentWrite(readError);
+    return !current || (current as DatabaseRow).confirmation_sent_at ? 'sent' : 'busy';
+  }
+
+  async completeConfirmation(kind: ConfirmationKind, id: string): Promise<void> {
+    const sentAt = new Date().toISOString();
+    if (!this.production) {
+      const record = this.confirmationRecord(kind, id);
+      if (record) {
+        record.confirmationSentAt = sentAt;
+        record.confirmationClaimedAt = undefined;
+      }
+      return;
+    }
+    const { error } = await requireSupabaseAdmin()
+      .from(CONFIRMATION_TABLES[kind])
+      .update({ confirmation_sent_at: sentAt, confirmation_claimed_at: null })
+      .eq('id', id);
+    assertPersistentWrite(error);
+  }
+
+  /** Gives up a claim after a failed send so the next webhook delivery can retry. */
+  async releaseConfirmation(kind: ConfirmationKind, id: string): Promise<void> {
+    if (!this.production) {
+      const record = this.confirmationRecord(kind, id);
+      if (record && !record.confirmationSentAt) record.confirmationClaimedAt = undefined;
+      return;
+    }
+    const { error } = await requireSupabaseAdmin()
+      .from(CONFIRMATION_TABLES[kind])
+      .update({ confirmation_claimed_at: null })
+      .eq('id', id)
+      .is('confirmation_sent_at', null);
+    assertPersistentWrite(error);
+  }
+
+  private overlapsActiveBooking(candidate: Booking): boolean {
+    const start = timeToMinutes(candidate.startTime);
+    const end = start + getReservedMinutesForFlight(candidate.durationMinutes);
+    return this.bookings.some((existing) => {
+      if (existing.bookingDate !== candidate.bookingDate || existing.status === 'cancelled') return false;
+      const existingStart = timeToMinutes(existing.startTime);
+      const existingEnd = existingStart + getReservedMinutesForFlight(existing.durationMinutes);
+      return start < existingEnd && end > existingStart;
+    });
+  }
+
+  private confirmationRecord(kind: ConfirmationKind, id: string): Booking | GiftVoucher | undefined {
+    return kind === 'booking'
+      ? this.bookings.find((booking) => booking.id === id)
+      : this.vouchers.find((voucher) => voucher.id === id);
   }
 
   async getVouchers(): Promise<GiftVoucher[]> {
@@ -609,11 +813,14 @@ class SimDreamStore {
     }
     if (!this.production) {
       const voucher = await this.getVoucherByCode(code);
-      if (!voucher || voucher.paymentStatus !== 'paid' || voucher.isRedeemed || voucher.currentBalanceIls < amountToDeduct) {
+      // Integer agorot: floating-point shekels would leave residual dust (399.9 + 0.1 !== 400).
+      const balanceAgorot = voucher ? Math.round(voucher.currentBalanceIls * 100) : 0;
+      const deductionAgorot = Math.round(amountToDeduct * 100);
+      if (!voucher || voucher.paymentStatus !== 'paid' || voucher.isRedeemed || balanceAgorot < deductionAgorot) {
         return { success: false, newBalance: 0, message: 'Voucher cannot cover this purchase.' };
       }
-      voucher.currentBalanceIls -= amountToDeduct;
-      voucher.isRedeemed = voucher.currentBalanceIls === 0;
+      voucher.currentBalanceIls = (balanceAgorot - deductionAgorot) / 100;
+      voucher.isRedeemed = balanceAgorot === deductionAgorot;
       return { success: true, newBalance: voucher.currentBalanceIls, message: 'Voucher redeemed.' };
     }
 
@@ -707,22 +914,22 @@ class SimDreamStore {
     const config = getDayOperatingConfig(date);
     const startMinutes = timeToMinutes(startTime);
     if (!Number.isFinite(startMinutes) || startMinutes < config.openMinutes) {
-      throw new PersistenceError('The selected departure time is outside operating hours.');
+      throw new BookingConflictError('The selected departure time is outside operating hours.');
     }
     const slots = await this.getAvailableSlots(date, duration);
     const slot = slots.find((item) => item.startTime === startTime && item.available);
-    if (!slot) throw new PersistenceError('The selected departure slot is no longer available.');
+    if (!slot) throw new BookingConflictError('The selected departure slot is no longer available.');
     return slot;
   }
 
   async assertRescheduleAllowed(id: string, startTime: string): Promise<void> {
     const booking = await this.getBookingById(id);
-    if (!booking) throw new PersistenceError('Booking not found.');
+    if (!booking) throw new RecordNotFoundError('Booking not found.');
     const config = getDayOperatingConfig(booking.bookingDate);
     const start = timeToMinutes(startTime);
     const reservedEnd = start + getReservedMinutesForFlight(booking.durationMinutes);
     if (!Number.isFinite(start) || start < config.openMinutes || reservedEnd > config.closeMinutes) {
-      throw new PersistenceError('The proposed time is outside operating hours.');
+      throw new BookingConflictError('The proposed time is outside operating hours.');
     }
     const conflicts = (await this.getBookings()).some((item) => {
       if (item.id === id || item.bookingDate !== booking.bookingDate || item.status === 'cancelled') return false;
@@ -730,7 +937,7 @@ class SimDreamStore {
       const itemEnd = itemStart + getReservedMinutesForFlight(item.durationMinutes);
       return start < itemEnd && reservedEnd > itemStart;
     });
-    if (conflicts) throw new PersistenceError('The proposed time conflicts with another booking.');
+    if (conflicts) throw new BookingConflictError('The proposed time conflicts with another booking.');
   }
 }
 

@@ -146,6 +146,8 @@ export function GoogleReviewsRotator({
   const [activePage, setActivePage] = useState<number>(0);
   const [isPaused, setIsPaused] = useState<boolean>(false);
   const [isHovering, setIsHovering] = useState<boolean>(false);
+  // Rotation remounts the cards, so it must pause while keyboard focus is inside the carousel.
+  const [hasFocusWithin, setHasFocusWithin] = useState<boolean>(false);
 
   const nextPage = useCallback(() => {
     setActivePage((prev) => (prev + 1) % totalPages);
@@ -157,7 +159,7 @@ export function GoogleReviewsRotator({
 
   // Auto-rotate every 6 seconds unless paused, hovered, or reduced-motion enabled
   useEffect(() => {
-    if (isPaused || isHovering || totalPages <= 1) return;
+    if (isPaused || isHovering || hasFocusWithin || totalPages <= 1) return;
 
     const prefersReducedMotion =
       typeof window !== 'undefined' &&
@@ -169,7 +171,7 @@ export function GoogleReviewsRotator({
     }, 7000);
 
     return () => clearInterval(timer);
-  }, [isPaused, isHovering, totalPages, nextPage]);
+  }, [isPaused, isHovering, hasFocusWithin, totalPages, nextPage]);
 
   const visibleItems = sortedItems.slice(
     activePage * cardsPerPage,
@@ -181,6 +183,10 @@ export function GoogleReviewsRotator({
       className="py-24 px-4 sm:px-6 lg:px-8 bg-aviation-darkest relative overflow-hidden"
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
+      onFocus={() => setHasFocusWithin(true)}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setHasFocusWithin(false);
+      }}
     >
       <div className="max-w-7xl mx-auto space-y-12">
         {/* SECTION HEADER + GOOGLE MAPS LIVE VERIFICATION BANNER */}
@@ -316,7 +322,7 @@ export function GoogleReviewsRotator({
                         <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
                       ))}
                     </div>
-                    <span className="text-[11px] font-mono text-slate-500">
+                    <span className="text-[11px] font-mono text-slate-400">
                       {item.relativeTime || relativeDate}
                     </span>
                   </div>
@@ -352,17 +358,22 @@ export function GoogleReviewsRotator({
             {Array.from({ length: totalPages }).map((_, pageIdx) => {
               const isCurrent = pageIdx === activePage;
               return (
+                // 24x24 hit area around the small visual dot (WCAG 2.5.8 target size).
                 <button
                   key={pageIdx}
                   type="button"
                   onClick={() => setActivePage(pageIdx)}
                   aria-label={`${labels.slideGroupLabel} ${pageIdx + 1} / ${totalPages}`}
-                  className={`h-2.5 rounded-full transition-all ${
-                    isCurrent
-                      ? 'w-8 bg-sky-400'
-                      : 'w-2.5 bg-slate-800 hover:bg-slate-700'
-                  }`}
-                />
+                  aria-current={isCurrent ? 'true' : undefined}
+                  className="group inline-flex h-6 min-w-6 items-center justify-center"
+                >
+                  <span
+                    aria-hidden="true"
+                    className={`h-2.5 rounded-full transition-all ${
+                      isCurrent ? 'w-8 bg-sky-400' : 'w-2.5 bg-slate-800 group-hover:bg-slate-700'
+                    }`}
+                  />
+                </button>
               );
             })}
             <span className="text-xs font-mono text-slate-400 ml-2">
@@ -373,21 +384,21 @@ export function GoogleReviewsRotator({
 
           {/* Pause / Prev / Next Controls */}
           <div className="flex items-center gap-2">
+            {/* The visible, localized action is the accessible name (WCAG 2.5.3 label in name). */}
             <button
               type="button"
               onClick={() => setIsPaused((p) => !p)}
-              aria-label={isPaused ? labels.resumeRotation : labels.pauseRotation}
               className="px-3 py-2 rounded-xl border border-slate-800 bg-slate-900/80 hover:border-slate-700 text-xs font-mono text-slate-300 flex items-center gap-1.5 transition-colors"
             >
               {isPaused ? (
                 <>
                   <Play aria-hidden="true" className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Auto-Rotate</span>
+                  <span>{labels.resumeRotation}</span>
                 </>
               ) : (
                 <>
                   <Pause aria-hidden="true" className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Rotating (6s)</span>
+                  <span>{labels.pauseRotation}</span>
                 </>
               )}
             </button>

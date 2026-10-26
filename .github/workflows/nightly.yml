@@ -1,0 +1,48 @@
+name: Nightly security scan
+
+on:
+  schedule:
+    - cron: '0 2 * * *' # 02:00 UTC (04:00/05:00 Israel)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: 22
+  TZ: Asia/Jerusalem
+
+jobs:
+  zap-baseline:
+    name: OWASP ZAP baseline (passive scan)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - run: npm run test:build
+      - name: Start the sandboxed production server
+        run: |
+          npx tsx scripts/run-sandboxed.ts npx next start -p 3900 -H 0.0.0.0 &
+          for attempt in $(seq 1 60); do
+            curl -fsS http://localhost:3900/api/packages > /dev/null && exit 0
+            sleep 2
+          done
+          echo "Server did not start" && exit 1
+      - uses: zaproxy/action-baseline@v0.14.0
+        with:
+          target: http://localhost:3900
+          # Report-only until the first findings are triaged; the HTML report is attached below.
+          fail_action: false
+          allow_issue_writing: false
+          cmd_options: '-a'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: zap-baseline-report
+          path: report_*.*
+          if-no-files-found: ignore

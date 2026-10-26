@@ -110,13 +110,13 @@ export default function AdminWorkshopsPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-slate-300">
                 <div>
-                  <span className="text-slate-500 block text-[10px] uppercase">COMMUNICATION</span>
+                  <span className="text-slate-400 block text-[10px] uppercase">COMMUNICATION</span>
                   <p className="text-white mt-0.5">{lead.email}</p>
                   <p className="text-slate-400">{lead.phone}</p>
                 </div>
 
                 <div>
-                  <span className="text-slate-500 block text-[10px] uppercase">TEAM PROFILE</span>
+                  <span className="text-slate-400 block text-[10px] uppercase">TEAM PROFILE</span>
                   <p className="text-white mt-0.5">{lead.teamSize} Participants</p>
                   <p className="text-slate-400">
                     Target: {lead.targetDate ? formatDate(lead.targetDate) : 'Flexible'}
@@ -124,7 +124,7 @@ export default function AdminWorkshopsPage() {
                 </div>
 
                 <div>
-                  <span className="text-slate-500 block text-[10px] uppercase">PRIMARY GOAL</span>
+                  <span className="text-slate-400 block text-[10px] uppercase">PRIMARY GOAL</span>
                   <p className="text-sky-300 mt-0.5 font-bold uppercase">{lead.primaryGoal.replace(/_/g, ' ')}</p>
                 </div>
               </div>
@@ -137,7 +137,7 @@ export default function AdminWorkshopsPage() {
 
               {/* Status Updater Actions */}
               <div className="pt-2 flex flex-wrap items-center justify-between gap-3 border-t border-slate-800">
-                <span className="text-slate-500 text-[10px]">Update Pipeline State:</span>
+                <span className="text-slate-400 text-[10px]">Update Pipeline State:</span>
                 <div className="flex flex-wrap gap-1.5">
                   {(['new', 'contacted', 'quoted', 'confirmed'] as CorporateInquiryStatus[]).map((st) => (
                     <button

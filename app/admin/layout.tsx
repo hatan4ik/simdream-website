@@ -83,7 +83,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
 
         {/* Content Area */}
-        <main>{children}</main>
+        <div>{children}</div>
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useId, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Apple, ArrowRight, AlertCircle, Facebook, Lock, Mail, Plane, UserRound, type LucideIcon } from 'lucide-react';
@@ -18,6 +18,7 @@ const providerDetails: Array<{ provider: SocialAuthProvider; label: string; icon
 ];
 
 export default function LoginPage() {
+  const fieldId = useId();
   const router = useRouter();
   const { login, signup, loginWithProvider, resetPassword, setDemoUser } = useAuth();
   const [mode, setMode] = useState<MemberMode>('sign-in');
@@ -120,7 +121,7 @@ export default function LoginPage() {
                 <span>{label}</span>
               </Button>
             ))}
-            <div className="relative py-2 text-center text-[10px] font-mono text-slate-500 before:absolute before:left-0 before:right-0 before:top-1/2 before:border-t before:border-slate-800">
+            <div className="relative py-2 text-center text-[10px] font-mono text-slate-400 before:absolute before:left-0 before:right-0 before:top-1/2 before:border-t before:border-slate-800">
               <span className="relative bg-slate-900 px-3">OR CONTINUE WITH EMAIL</span>
             </div>
           </div>
@@ -129,10 +130,11 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           {isSignup && (
             <div className="space-y-1.5">
-              <label className="font-mono uppercase text-slate-400 font-semibold">Full Name</label>
+              <label htmlFor={`${fieldId}-full-name`} className="font-mono uppercase text-slate-400 font-semibold">Full Name</label>
               <div className="relative">
                 <UserRound className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
                 <input
+                  id={`${fieldId}-full-name`}
                   type="text"
                   required
                   maxLength={120}
@@ -146,10 +148,11 @@ export default function LoginPage() {
           )}
 
           <div className="space-y-1.5">
-            <label className="font-mono uppercase text-slate-400 font-semibold">Email Address</label>
+            <label htmlFor={`${fieldId}-email`} className="font-mono uppercase text-slate-400 font-semibold">Email Address</label>
             <div className="relative">
               <Mail className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
               <input
+                id={`${fieldId}-email`}
                 type="email"
                 required
                 value={email}
@@ -163,7 +166,7 @@ export default function LoginPage() {
           {!isRecovery && (
             <div className="space-y-1.5">
               <div className="flex justify-between items-center">
-                <label className="font-mono uppercase text-slate-400 font-semibold">Password</label>
+                <label htmlFor={`${fieldId}-password`} className="font-mono uppercase text-slate-400 font-semibold">Password</label>
                 {!isSignup && (
                   <button type="button" onClick={() => switchMode('recovery')} className="text-sky-400 hover:underline text-[10px]">
                     Forgot password?
@@ -173,6 +176,7 @@ export default function LoginPage() {
               <div className="relative">
                 <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
                 <input
+                  id={`${fieldId}-password`}
                   type="password"
                   required
                   minLength={isSignup ? 12 : undefined}

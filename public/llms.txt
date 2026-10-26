@@ -34,22 +34,29 @@
 - **Nature of Facility**: The simulator is a 1:1 scale experiential & entertainment Boeing 737 flight deck accompanied by an instructor; it is not an official pilot licensing institution.
 
 ## Flight Packages & Pricing (ILS)
-- **Basic Flight Session — Takeoff & Landing Exercise (20 Min)**: ₪250 ILS
-- **Discovery Flight — Introduction to Boeing 737 (30 Min)**: ₪399 ILS
-- **The Captain's Experience — Full Multi-Leg Flight (60 Min)**: ₪649 ILS
-- **Pro Airline Assessment & Cold/Dark Prep (90 Min)**: ₪949 ILS
-- **Fearless Flying — Overcoming Aviophobia (60 Min)**: ₪799 ILS
-- **World Airport Add-On Bundles**:
-  - Classical EU Airports Bundle (+40 Min): ₪450 ILS
-  - Extreme World Approaches (+30 Min): ₪350 ILS
-  - Middle East & Mediterranean Hubs (+30 Min): ₪300 ILS
-  - Iconic City Skylines & Night Approaches (+30 Min): ₪320 ILS
-  - Island Paradise & Caribbean Approaches (+30 Min): ₪320 ILS
-  - Alpine & Nordic Fjords Challenge (+30 Min): ₪340 ILS
-  - Asia-Pacific & Kai Tak Legend (+30 Min): ₪350 ILS
-  - North American Mega-Hubs (+30 Min): ₪320 ILS
-  - Latin America & Andean High-Altitude (+30 Min): ₪340 ILS
-  - Boeing 737 Cold & Dark Cockpit Startup (+20 Min): ₪200 ILS
+- **Basic Flight Session — Takeoff & Landing Exercise (20 Min)**: ₪250 ILS (Single airport circuit, modular base)
+- **Daytime Special Flight — 45m Promo (45 Min)**: ₪490 ILS (Available daytime Sun–Fri < 18:00, 2 full landings)
+- **The Captain's Command Flight (60 Min)**: ₪690 ILS (Bestseller • Takeoff/Landing + 1 World Airport Trio included)
+- **Captains' Challenge & Multi-Trio Odyssey (90 Min)**: ₪850 ILS Daytime / ₪950 ILS Prime-Time (Takeoff/Landing + 2 World Trios + Emergencies, 1–2 pilots)
+- **Fear of Flying Overcoming Course (60 Min)**: ₪690 ILS (Therapeutic aviophobia coaching with airline captain)
+- **Airline Interview Prep 60 PRO (60 Min)**: ₪890 ILS (Raw Data, steep turns, ILS screening prep)
+- **Airline Interview Prep 90 PRO (90 Min)**: ₪1,250 ILS (Full airline screening profile, V1 Cut, single-engine ILS)
+- **Airline Interview Prep 120 PRO (120 Min)**: ₪1,590 ILS (Comprehensive airline assessment & abnormal QRH checkride)
+- **Corporate CRM Leadership Workshop (240 Min)**: ₪4,500 ILS (Executive CRM team offsite, 5–12 participants)
+
+### Flight Mission Upgrades & Add-Ons
+- **Boeing 737 Cold & Dark Cockpit Startup (+20 Min)**: ₪200 ILS
+- **Extreme World Approaches — Paro, Kai Tak & Innsbruck (+25 Min)**: ₪450 ILS
+- **Live METAR / Crosswind / IFR Storm Conditions (+15 Min)**: ₪250 ILS
+- **7 Curated 3-Airport World Trios (+40 Min each)**: ₪450 ILS
+  - Classical EU Hubs (Heathrow, CDG, Amsterdam)
+  - Mediterranean Islands & Riviera (Corfu, Skiathos, Nice)
+  - American Megacities Skyline (LaGuardia, Reagan DCA, San Francisco)
+  - City-Center & Night Neon (London City 5.5°, Tokyo Haneda, Las Vegas Strip)
+  - Alpine & Fjord Mountain Masters (Queenstown, Geneva, Salzburg)
+  - Tropical Caribbean & Ocean Runways (St. Maarten, Rio Santos Dumont, Maldives)
+  - Aviation Legends & Iconic Hubs (Dubai, Gibraltar Rock, Larnaca)
+- **Multi-Camera 4K Cockpit Video Recording**: ₪150 ILS
 
 ## Key URLs
 - [Home](https://www.simdream.co.il/)

@@ -128,7 +128,7 @@ export default function AdminVouchersPage() {
             onKeyDown={(e) => e.key === 'Enter' && handleLookup()}
             className="flex-1 rounded-lg bg-slate-950 border border-slate-800 px-4 py-2.5 text-sm text-white font-mono uppercase focus:outline-none focus:border-purple-500"
           />
-          <Button onClick={() => handleLookup()} className="bg-purple-600 hover:bg-purple-500 font-bold">
+          <Button onClick={() => handleLookup()} className="bg-purple-600 hover:bg-purple-700 font-bold">
             <Search className="w-4 h-4" />
             <span>Verify</span>
           </Button>
@@ -160,29 +160,29 @@ export default function AdminVouchersPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <span className="text-slate-500 text-[10px] uppercase">PASSENGER NAME</span>
+                <span className="text-slate-400 text-[10px] uppercase">PASSENGER NAME</span>
                 <p className="text-white font-bold">{verifiedVoucher.recipientName}</p>
                 <p className="text-slate-400 text-[11px]">{verifiedVoucher.recipientEmail}</p>
               </div>
 
               <div>
-                <span className="text-slate-500 text-[10px] uppercase">GIFTED BY</span>
+                <span className="text-slate-400 text-[10px] uppercase">GIFTED BY</span>
                 <p className="text-white font-bold">{verifiedVoucher.senderName}</p>
                 <p className="text-slate-400 text-[11px]">{verifiedVoucher.senderEmail}</p>
               </div>
 
               <div>
-                <span className="text-slate-500 text-[10px] uppercase">REMAINING BALANCE</span>
+                <span className="text-slate-400 text-[10px] uppercase">REMAINING BALANCE</span>
                 <p className="text-emerald-400 font-bold text-base">
                   {formatCurrency(verifiedVoucher.currentBalanceIls)}
                 </p>
-                <span className="text-[10px] text-slate-500">
+                <span className="text-[10px] text-slate-400">
                   Initial: {formatCurrency(verifiedVoucher.initialValueIls)}
                 </span>
               </div>
 
               <div>
-                <span className="text-slate-500 text-[10px] uppercase">EXPIRY DATE</span>
+                <span className="text-slate-400 text-[10px] uppercase">EXPIRY DATE</span>
                 <p className="text-white font-bold">{formatDate(verifiedVoucher.expiryDate)}</p>
               </div>
             </div>
@@ -209,7 +209,7 @@ export default function AdminVouchersPage() {
                   />
                   <Button
                     onClick={handleRedeem}
-                    className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold"
+                    className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold"
                   >
                     Deduct & Redeem
                   </Button>

@@ -38,7 +38,7 @@ export default function ExperiencesPage() {
       : packages.filter((p) => p.category === selectedCategory);
 
   return (
-    <div className="flex-1 py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-16">
+    <div className="flex-1 w-full min-w-0 py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-16">
       {/* Header */}
       <div className="text-center max-w-3xl mx-auto space-y-5">
         <Badge variant="sky">{t.experiences.badge}</Badge>
@@ -69,7 +69,7 @@ export default function ExperiencesPage() {
             onClick={() => setSelectedCategory(cat.id)}
             className={`px-4 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all ${
               selectedCategory === cat.id
-                ? 'bg-sky-500 text-white shadow-glow'
+                ? 'bg-sky-700 text-white shadow-glow'
                 : 'bg-slate-900/60 text-slate-400 hover:text-white hover:bg-slate-800'
             }`}
           >
@@ -111,7 +111,7 @@ export default function ExperiencesPage() {
                     <span className="text-3xl font-black text-white">{formatCurrency(pkg.priceIls)}</span>
                     <span className="text-xs text-slate-400 font-mono ml-1 rtl:mr-1">{t.experiences.perFlight}</span>
                   </div>
-                  <span className="text-xs font-mono text-slate-500">{t.experiences.approxUsd} ${pkg.priceUsd} USD</span>
+                  <span className="text-xs font-mono text-slate-400">{t.experiences.approxUsd} ${pkg.priceUsd} USD</span>
                 </div>
                 <div className="flex items-center gap-4 mt-2 text-[11px] text-slate-400">
                   <span className="flex items-center gap-1">
@@ -199,7 +199,8 @@ export default function ExperiencesPage() {
           </p>
         </div>
         <Link href="/vouchers">
-          <Button size="lg" className="font-bold whitespace-nowrap">
+          {/* Wraps on phones: a no-wrap label made the page ~359px wide at 320px. */}
+          <Button size="lg" className="font-bold text-center sm:whitespace-nowrap">
             <Gift className="w-5 h-5" />
             <span>{t.experiences.customizeVoucher}</span>
           </Button>

@@ -466,7 +466,7 @@ export function ProSessionsView() {
   const moduleIcons = [Gauge, Compass, ShieldCheck, Users];
 
   return (
-    <main className="flex-1 py-14 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-16">
+    <div className="flex-1 w-full min-w-0 py-14 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-16">
       {/* 1. PROFESSIONAL TRAINING HERO */}
       <section className="text-center max-w-4xl mx-auto space-y-5">
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/15 border border-amber-500/40 text-xs font-mono text-amber-300 font-bold">
@@ -537,7 +537,7 @@ export function ProSessionsView() {
                         {copy.perSession}
                       </span>
                     </div>
-                    <span className="text-xs font-mono text-slate-500">~${pkg.priceUsd} USD</span>
+                    <span className="text-xs font-mono text-slate-400">~${pkg.priceUsd} USD</span>
                   </div>
                   <div className="flex items-center gap-4 mt-2.5 text-[11px] text-emerald-400 font-mono">
                     <span className="flex items-center gap-1">
@@ -726,6 +726,6 @@ export function ProSessionsView() {
           </Link>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

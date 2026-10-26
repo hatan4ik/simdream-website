@@ -6,17 +6,14 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { AlertCircle, CheckCircle2, Plane } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { safeRedirectPath } from '@/lib/auth/safe-redirect';
 import { isSupabaseConfigured, supabase } from '@/lib/supabaseClient';
-
-function safeNext(value: string | null): string {
-  return value?.startsWith('/') && !value.startsWith('//') ? value : '/dashboard';
-}
 
 function AuthCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [error, setError] = useState('');
-  const next = useMemo(() => safeNext(searchParams.get('next')), [searchParams]);
+  const next = useMemo(() => safeRedirectPath(searchParams.get('next')), [searchParams]);
   const code = searchParams.get('code');
 
   useEffect(() => {
@@ -76,7 +73,7 @@ function AuthCallbackContent() {
 
 export default function AuthCallbackPage() {
   return (
-    <main className="flex-1 flex items-center justify-center py-16 px-4 hud-grid">
+    <div className="flex-1 flex items-center justify-center py-16 px-4 hud-grid">
       <Suspense
         fallback={
           <Card className="max-w-md w-full p-8 space-y-4 text-center">
@@ -87,6 +84,6 @@ export default function AuthCallbackPage() {
       >
         <AuthCallbackContent />
       </Suspense>
-    </main>
+    </div>
   );
 }

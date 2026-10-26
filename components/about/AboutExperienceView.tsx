@@ -467,7 +467,7 @@ export function AboutExperienceView() {
   const profileAccents = ['sky', 'emerald', 'amber', 'purple'] as const;
 
   return (
-    <main className="flex-1 py-14 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-16">
+    <div className="flex-1 w-full min-w-0 py-14 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-16">
       {/* 1. HERO: ABOUT SIM DREAM ISRAEL & THE FLIGHT EXPERIENCE */}
       <section className="text-center max-w-4xl mx-auto space-y-5">
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-sky-500/10 border border-sky-500/30 text-xs font-mono text-sky-400">
@@ -641,6 +641,6 @@ export function AboutExperienceView() {
           </div>
         </details>
       </section>
-    </main>
+    </div>
   );
 }

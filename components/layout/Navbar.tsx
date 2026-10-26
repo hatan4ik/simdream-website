@@ -41,12 +41,12 @@ export function Navbar() {
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="text-xl font-black tracking-tight text-white">SIM DREAM</span>
-                <span className="text-[10px] bg-sky-500/20 text-sky-400 border border-sky-500/30 px-1.5 py-0.5 rounded font-mono font-bold">
+                <span className="text-xl font-black tracking-tight text-white whitespace-nowrap">SIM DREAM</span>
+                <span className="hidden sm:inline text-[10px] bg-sky-500/20 text-sky-400 border border-sky-500/30 px-1.5 py-0.5 rounded font-mono font-bold">
                   737 MAX
                 </span>
               </div>
-              <p className="text-[10px] tracking-widest text-slate-400 uppercase font-mono">
+              <p className="hidden min-[400px]:block text-[10px] tracking-widest text-slate-400 uppercase font-mono">
                 {t.nav.brandSub}
               </p>
             </div>
@@ -119,7 +119,7 @@ export function Navbar() {
                   )}
 
                   {demoModeEnabled && <div className="px-3 py-1.5 border-t border-slate-800 mt-1">
-                    <p className="text-[10px] text-slate-500 mb-1">Quick Demo Switcher:</p>
+                    <p className="text-[10px] text-slate-400 mb-1">Quick Demo Switcher:</p>
                     <div className="flex gap-1.5">
                       <button
                         onClick={() => {
@@ -167,17 +167,26 @@ export function Navbar() {
             </Link>
           </div>
 
-          {/* Mobile Menu & Language Toggle */}
-          <div className="flex items-center gap-1.5 md:hidden">
-            <UiThemeSwitcher variant="compact" />
-            <LanguageSelector />
-            <Link href="/book">
-              <Button variant="primary" size="sm">
-                {t.nav.bookFlight.split(' ')[0]}
-              </Button>
-            </Link>
+          {/* Compact actions below lg: the drawer toggle covers tablets too, where the inline links are hidden. */}
+          <div className="flex items-center gap-1.5 lg:hidden">
+            <div className="flex items-center gap-1.5 md:hidden">
+              {/* Phones narrower than sm get these two inside the drawer instead, so the header fits 320px. */}
+              <div className="hidden sm:flex items-center gap-1.5">
+                <UiThemeSwitcher variant="compact" />
+                <LanguageSelector />
+              </div>
+              <Link href="/book">
+                <Button variant="primary" size="sm">
+                  {t.nav.bookFlight.split(' ')[0]}
+                </Button>
+              </Link>
+            </div>
             <button
+              type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label={mobileMenuOpen ? t.nav.closeMenu : t.nav.openMenu}
+              aria-expanded={mobileMenuOpen}
+              aria-controls="mobile-navigation"
               className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -186,9 +195,9 @@ export function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Drawer */}
+      {/* Mobile & Tablet Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-slate-800 bg-slate-950 px-4 pt-3 pb-6 space-y-3">
+        <div id="mobile-navigation" className="lg:hidden border-t border-slate-800 bg-slate-950 px-4 pt-3 pb-6 space-y-3">
           <div className="space-y-1">
             {navLinks.map((link) => (
               <Link
@@ -220,9 +229,12 @@ export function Navbar() {
             )}
           </div>
 
-          {/* UI Interface Switcher for Mobile Drawer */}
-          <div className="pt-2 border-t border-slate-800">
+          {/* UI Interface Switcher (and, on the narrowest phones, the language selector) */}
+          <div className="pt-2 border-t border-slate-800 space-y-2">
             <UiThemeSwitcher variant="full" />
+            <div className="sm:hidden">
+              <LanguageSelector />
+            </div>
           </div>
 
           {demoModeEnabled && <div className="pt-3 border-t border-slate-800 flex items-center justify-between">

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
-import test from 'node:test';
-import { Booking } from '../types';
-import { optimizeTiledCapacity } from '../lib/scheduler/tiled-interval-optimizer';
+import { test } from 'vitest';
+import { Booking } from '@/types';
+import { optimizeTiledCapacity } from '@/lib/scheduler/tiled-interval-optimizer';
 
 function booking(overrides: Partial<Booking>): Booking {
   return {

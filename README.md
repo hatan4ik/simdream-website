@@ -7,6 +7,8 @@
 
 Production-grade website, multi-step booking engine, Amazon-style flight storefront, gift-voucher terminal, corporate CRM workshop portal, member purchase dashboard, and flight-dispatch command system for **Sim Dream LTD** (`simdream.co.il`), located at **Gershon Shatz St 36, Tel Aviv-Yafo, Israel** (Yehudit Light Rail / HaShalom Train Station • `055-507-1307` • `desk@simdream.co.il`).
 
+> 📐 **System Architecture & Visual Diagrams**: See [`ARCHITECTURE.md`](ARCHITECTURE.md) for full Mermaid sequence, workflow, topology, and interval-scheduling engine diagrams.
+
 ---
 
 ## Key Features

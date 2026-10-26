@@ -26,11 +26,10 @@ import { useLanguage, SupportedLanguage } from '@/lib/i18n/language-context';
 import {
   FACILITY_INFO,
   ROUTE_ORIGIN_PRESETS,
-  getLiveFacilityStatus,
   calculateDynamicRouteFromCoords,
-  LiveFacilityStatus,
   RouteOriginPreset,
 } from '@/lib/config/facility-info';
+import { useLiveFacilityStatus } from '@/lib/config/use-live-facility-status';
 
 type TravelMode = 'transit' | 'driving' | 'walking';
 
@@ -369,19 +368,12 @@ export default function ContactPage() {
   const { t, language } = useLanguage();
   const c = CONTACT_COPY[language] || CONTACT_COPY.en;
 
-  // Live Israel Time & Facility Open/Closed Status
-  const [liveStatus, setLiveStatus] = useState<LiveFacilityStatus>(() => getLiveFacilityStatus());
+  // Live Israel Time & Facility Open/Closed Status (browser-only; null until mounted)
+  const liveStatus = useLiveFacilityStatus(30_000);
 
-  useEffect(() => {
-    setLiveStatus(getLiveFacilityStatus());
-    const timer = setInterval(() => {
-      setLiveStatus(getLiveFacilityStatus());
-    }, 30000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const liveStatusHeadline =
-    language === 'he'
+  const liveStatusHeadline = !liveStatus
+    ? ''
+    : language === 'he'
       ? liveStatus.statusHeadlineHe
       : language === 'ru'
       ? (liveStatus.isOpen ? 'ОТКРЫТО • По предварительной записи' : 'СЕЙЧАС ЗАКРЫТО • Бронирование 24/7')
@@ -391,8 +383,9 @@ export default function ContactPage() {
       ? (liveStatus.isOpen ? 'مفتوح ويعمل • يتطلب حجزاً مسبقاً' : 'مغلق حالياً • الحجز الإلكتروني متاح 24/7')
       : liveStatus.statusHeadlineEn;
 
-  const liveStatusSubline =
-    language === 'he'
+  const liveStatusSubline = !liveStatus
+    ? ''
+    : language === 'he'
       ? liveStatus.statusSublineHe
       : language === 'ru'
       ? `Время в Тель-Авиве: ${liveStatus.israelTimeFormatted} IST • Онлайн-бронирование 24/7`
@@ -500,7 +493,7 @@ export default function ContactPage() {
       : activePreset.transitMinutes;
 
   return (
-    <div className="flex-1 py-12 sm:py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-14">
+    <div className="flex-1 w-full min-w-0 py-12 sm:py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-14">
       {/* 1. HEADER */}
       <div className="text-center max-w-3xl mx-auto space-y-4">
         <Badge variant="sky">{t.contact.badge}</Badge>
@@ -607,20 +600,22 @@ export default function ContactPage() {
               <div className="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center">
                 <Clock aria-hidden="true" className="w-5 h-5" />
               </div>
-              <span
-                className={`inline-flex items-center gap-1.5 text-[10px] font-mono uppercase px-2.5 py-0.5 rounded-full font-bold border ${
-                  liveStatus.isOpen
-                    ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300'
-                    : 'bg-amber-500/15 border-amber-500/40 text-amber-300'
-                }`}
-              >
+              {liveStatus && (
                 <span
-                  className={`w-1.5 h-1.5 rounded-full ${
-                    liveStatus.isOpen ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'
+                  className={`inline-flex items-center gap-1.5 text-[10px] font-mono uppercase px-2.5 py-0.5 rounded-full font-bold border ${
+                    liveStatus.isOpen
+                      ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300'
+                      : 'bg-amber-500/15 border-amber-500/40 text-amber-300'
                   }`}
-                />
-                <span>{liveStatus.isOpen ? c.openNow : c.closedNow}</span>
-              </span>
+                >
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full ${
+                      liveStatus.isOpen ? 'bg-emerald-400 motion-safe:animate-pulse' : 'bg-amber-400'
+                    }`}
+                  />
+                  <span>{liveStatus.isOpen ? c.openNow : c.closedNow}</span>
+                </span>
+              )}
             </div>
 
             <h2 className="text-lg font-bold text-white">{t.contact.hoursTitle}</h2>
@@ -641,8 +636,8 @@ export default function ContactPage() {
             </div>
           </div>
 
-          <div className="pt-3 border-t border-slate-800/80 space-y-0.5 font-mono text-[11px]">
-            <p className={liveStatus.isOpen ? 'text-emerald-400 font-bold' : 'text-amber-400 font-bold'}>
+          <div className="pt-3 border-t border-slate-800/80 space-y-0.5 font-mono text-[11px] min-h-12">
+            <p className={liveStatus?.isOpen ? 'text-emerald-400 font-bold' : 'text-amber-400 font-bold'}>
               {liveStatusHeadline}
             </p>
             <p className="text-slate-400">

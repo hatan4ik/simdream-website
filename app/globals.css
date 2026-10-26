@@ -21,6 +21,23 @@ html[data-ui="brand"] {
   --brand-navy: #0369a1;
 }
 
+/* Keeps focused or anchored content clear of the sticky navbar (WCAG 2.4.11). */
+html {
+  scroll-padding-top: 6rem;
+}
+
+/* Honour reduced-motion preferences for every animation and transition (WCAG 2.3.3). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 body {
   background-color: var(--background);
   color: var(--foreground);
@@ -67,8 +84,31 @@ html[data-ui="brand"] .bg-slate-950 {
   background-color: #f8fafc !important;
 }
 
+/* Translucent cockpit wells & cards (bg-slate-950/NN). Without an override these
+   render as mid-grey (#353846-#4e515d) under the darkened daylight text (WCAG 1.4.3).
+   Low-alpha wells become cloud grey, high-alpha cards and bars become white. */
+html[data-ui="brand"] .bg-slate-950\/30,
+html[data-ui="brand"] .bg-slate-950\/40,
+html[data-ui="brand"] .bg-slate-950\/55,
+html[data-ui="brand"] .bg-slate-950\/60 {
+  background-color: #f8fafc !important;
+}
+
+html[data-ui="brand"] .bg-slate-950\/70,
+html[data-ui="brand"] .bg-slate-950\/80,
+html[data-ui="brand"] .bg-slate-950\/85,
+html[data-ui="brand"] .bg-slate-950\/95 {
+  background-color: #ffffff !important;
+}
+
+/* Full-screen dialog scrims carry no text: keep them dimming the page behind the dialog. */
+html[data-ui="brand"] .fixed.inset-0.bg-slate-950\/80 {
+  background-color: rgba(15, 23, 42, 0.45) !important;
+}
+
 /* Navigation Bar & Header Glass */
-html[data-ui="brand"] nav {
+html[data-ui="brand"] nav,
+html[data-ui="brand"] nav.bg-slate-950\/85 {
   background-color: rgba(255, 255, 255, 0.92) !important;
   border-bottom-color: #e2e8f0 !important;
   box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
@@ -91,6 +131,13 @@ html[data-ui="brand"] .bg-slate-900\/90 {
   box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.06), 0 4px 6px -2px rgba(15, 23, 42, 0.03);
 }
 
+/* Sticky buy box: keeps its amber accent border */
+html[data-ui="brand"] .bg-slate-900\/85,
+html[data-ui="brand"] .bg-slate-900\/95 {
+  background-color: #ffffff !important;
+}
+
+html[data-ui="brand"] .bg-slate-900\/30,
 html[data-ui="brand"] .bg-slate-900\/50,
 html[data-ui="brand"] .bg-slate-900\/40 {
   background-color: rgba(255, 255, 255, 0.9) !important;
@@ -100,20 +147,160 @@ html[data-ui="brand"] .bg-slate-900\/40 {
 html[data-ui="brand"] .bg-slate-800,
 html[data-ui="brand"] .bg-slate-800\/60,
 html[data-ui="brand"] .bg-slate-800\/70,
-html[data-ui="brand"] .bg-slate-800\/80 {
+html[data-ui="brand"] .bg-slate-800\/80,
+html[data-ui="brand"] .bg-slate-800\/90 {
   background-color: #f1f5f9 !important;
   border-color: #cbd5e1 !important;
+}
+
+html[data-ui="brand"] .bg-slate-800\/30,
+html[data-ui="brand"] .bg-slate-800\/40,
+html[data-ui="brand"] .bg-slate-800\/50 {
+  background-color: #f1f5f9 !important;
+}
+
+/* Hover surfaces (dark hover fills would sit under daylight text) */
+html[data-ui="brand"] .hover\:bg-slate-900:hover,
+html[data-ui="brand"] .hover\:bg-slate-900\/60:hover,
+html[data-ui="brand"] .hover\:bg-slate-800\/30:hover,
+html[data-ui="brand"] .hover\:bg-slate-800\/60:hover {
+  background-color: #f1f5f9 !important;
+}
+
+html[data-ui="brand"] .hover\:bg-slate-800:hover,
+html[data-ui="brand"] .hover\:bg-slate-700:hover,
+html[data-ui="brand"] .group:hover .group-hover\:bg-slate-700 {
+  background-color: #e2e8f0 !important;
+}
+
+/* Gradient panels: dark stops become cloud white / light tints */
+html[data-ui="brand"] .from-slate-900,
+html[data-ui="brand"] .from-slate-900\/80,
+html[data-ui="brand"] .from-slate-900\/95 {
+  --tw-gradient-from: #ffffff !important;
+}
+html[data-ui="brand"] .via-slate-900,
+html[data-ui="brand"] .via-slate-900\/80,
+html[data-ui="brand"] .via-slate-900\/90 {
+  --tw-gradient-via: #ffffff !important;
+}
+html[data-ui="brand"] .to-slate-900,
+html[data-ui="brand"] .to-slate-900\/90 {
+  --tw-gradient-to: #ffffff !important;
+}
+html[data-ui="brand"] .from-slate-950 {
+  --tw-gradient-from: #f8fafc !important;
+}
+html[data-ui="brand"] .via-slate-950 {
+  --tw-gradient-via: #f8fafc !important;
+}
+html[data-ui="brand"] .to-slate-950,
+html[data-ui="brand"] .to-aviation-darkest {
+  --tw-gradient-to: #f8fafc !important;
+}
+/* Hero backdrop overlay keeps its translucency so the daylight HUD grid shows through */
+html[data-ui="brand"] .from-sky-950\/20 {
+  --tw-gradient-from: rgba(224, 242, 254, 0.6) !important;
+}
+html[data-ui="brand"] .via-slate-950\/80 {
+  --tw-gradient-via: rgba(248, 250, 252, 0.85) !important;
+}
+html[data-ui="brand"] .from-sky-900\/30,
+html[data-ui="brand"] .from-sky-950\/40,
+html[data-ui="brand"] .from-sky-950\/60 {
+  --tw-gradient-from: #e0f2fe !important;
+}
+html[data-ui="brand"] .to-sky-900\/30,
+html[data-ui="brand"] .to-sky-950\/60,
+html[data-ui="brand"] .to-sky-950\/70,
+html[data-ui="brand"] .to-sky-950\/80 {
+  --tw-gradient-to: #e0f2fe !important;
+}
+html[data-ui="brand"] .from-amber-950\/15,
+html[data-ui="brand"] .from-amber-950\/20,
+html[data-ui="brand"] .from-amber-950\/40 {
+  --tw-gradient-from: #fffbeb !important;
+}
+html[data-ui="brand"] .to-amber-950\/40 {
+  --tw-gradient-to: #fffbeb !important;
+}
+/* Hero headline gradient text (large text, >= 3:1 on the daylight hero) */
+html[data-ui="brand"] .from-sky-400 {
+  --tw-gradient-from: #0369a1 !important;
+}
+html[data-ui="brand"] .via-sky-200 {
+  --tw-gradient-via: #0284c7 !important;
+}
+html[data-ui="brand"] .to-cyan-400 {
+  --tw-gradient-to: #0e7490 !important;
+}
+
+/* Tinted status panels (dark translucent fills -> light tints) */
+html[data-ui="brand"] .bg-sky-950\/20 {
+  background-color: #f0f9ff !important;
+}
+html[data-ui="brand"] .bg-sky-950\/40 {
+  background-color: #e0f2fe !important;
+}
+html[data-ui="brand"] .bg-emerald-950\/20 {
+  background-color: #ecfdf5 !important;
+}
+html[data-ui="brand"] .bg-emerald-950\/30,
+html[data-ui="brand"] .bg-emerald-950\/40,
+html[data-ui="brand"] .hover\:bg-emerald-950\/30:hover {
+  background-color: #d1fae5 !important;
+}
+html[data-ui="brand"] .bg-amber-950\/40,
+html[data-ui="brand"] .bg-amber-950\/60,
+html[data-ui="brand"] .hover\:bg-amber-950\/20:hover,
+html[data-ui="brand"] .hover\:bg-amber-950\/40:hover {
+  background-color: #fef3c7 !important;
+}
+html[data-ui="brand"] .hover\:bg-amber-900\/60:hover {
+  background-color: #fde68a !important;
+}
+html[data-ui="brand"] .bg-red-950\/30 {
+  background-color: #fef2f2 !important;
+}
+html[data-ui="brand"] .bg-red-950\/40,
+html[data-ui="brand"] .bg-red-950\/50,
+html[data-ui="brand"] .bg-red-500\/10,
+html[data-ui="brand"] .bg-red-500\/20,
+html[data-ui="brand"] .hover\:bg-red-500\/20:hover,
+html[data-ui="brand"] .hover\:bg-red-500\/30:hover {
+  background-color: #fee2e2 !important;
+}
+html[data-ui="brand"] .bg-cyan-500\/15 {
+  background-color: #cffafe !important;
 }
 
 /* Borders */
 html[data-ui="brand"] .border-slate-800,
 html[data-ui="brand"] .border-slate-800\/80,
-html[data-ui="brand"] .border-slate-800\/60 {
+html[data-ui="brand"] .border-slate-800\/60,
+html[data-ui="brand"] .border-slate-800\/40,
+html[data-ui="brand"] .border-slate-800\/50,
+html[data-ui="brand"] .border-slate-800\/70,
+html[data-ui="brand"] .border-slate-800\/90,
+html[data-ui="brand"] .border-slate-900,
+html[data-ui="brand"] .before\:border-slate-800::before,
+html[data-ui="brand"] .divide-slate-800 > :not(:last-child) {
   border-color: #e2e8f0 !important;
 }
 
-html[data-ui="brand"] .border-slate-700 {
+html[data-ui="brand"] .border-slate-700,
+html[data-ui="brand"] .border-slate-700\/80,
+html[data-ui="brand"] .hover\:border-slate-700:hover {
   border-color: #cbd5e1 !important;
+}
+
+html[data-ui="brand"] .border-sky-900\/50,
+html[data-ui="brand"] .border-sky-900\/60 {
+  border-color: #bae6fd !important;
+}
+
+html[data-ui="brand"] .focus\:ring-offset-slate-900:focus {
+  --tw-ring-offset-color: #ffffff !important;
 }
 
 /* Typography & Contrast */
@@ -130,39 +317,45 @@ html[data-ui="brand"] .text-slate-300 {
   color: #334155 !important;
 }
 
+/* Muted greys: #475569 holds >= 6.1:1 on every daylight surface and tint
+   (#ffffff, #f8fafc, #f1f5f9, #e2e8f0, #e0f2fe, #d1fae5, #fef3c7, #fee2e2). */
 html[data-ui="brand"] .text-slate-400,
-html[data-ui="brand"] .text-slate-500 {
-  color: #64748b !important;
+html[data-ui="brand"] .text-slate-500,
+html[data-ui="brand"] .text-slate-600 {
+  color: #475569 !important;
 }
 
-/* Preserve White Text on Solid Buttons & Badges */
-html[data-ui="brand"] button.bg-sky-500,
-html[data-ui="brand"] a.bg-sky-500,
-html[data-ui="brand"] .bg-sky-500,
-html[data-ui="brand"] .bg-sky-600,
-html[data-ui="brand"] .bg-blue-600,
-html[data-ui="brand"] .bg-red-600 {
-  color: #ffffff !important;
+/* Hover text: cockpit hovers brighten to white, which vanishes on daylight surfaces */
+html[data-ui="brand"] .hover\:text-white:hover {
+  color: #0f172a !important;
+}
+html[data-ui="brand"] .hover\:text-slate-200:hover {
+  color: #1e293b !important;
 }
 
-html[data-ui="brand"] button.bg-sky-500 *,
-html[data-ui="brand"] a.bg-sky-500 *,
-html[data-ui="brand"] .bg-sky-500 *,
-html[data-ui="brand"] .bg-sky-600 * {
-  color: #ffffff !important;
-}
-
-/* Brand Accent Colors (simdream.co.il Royal Aviation Blue) */
-html[data-ui="brand"] .text-sky-400 {
-  color: #0284c7 !important;
-}
-
+/* Brand Accent Colors (simdream.co.il Royal Aviation Blue)
+   Cockpit accents (300-500) map to the 700-800 range so they pass on white and on
+   their own tinted panel: #0369a1 >= 5.17:1 on #e0f2fe, 5.93:1 on white. */
+html[data-ui="brand"] .text-sky-300,
+html[data-ui="brand"] .text-sky-400,
 html[data-ui="brand"] .text-sky-500 {
   color: #0369a1 !important;
 }
+html[data-ui="brand"] .text-sky-200,
+html[data-ui="brand"] .hover\:text-sky-300:hover,
+html[data-ui="brand"] .hover\:text-sky-400:hover {
+  color: #075985 !important;
+}
+html[data-ui="brand"] .text-cyan-300 {
+  color: #0e7490 !important;
+}
 
 html[data-ui="brand"] .bg-sky-500\/10,
-html[data-ui="brand"] .bg-sky-500\/20 {
+html[data-ui="brand"] .bg-sky-500\/15,
+html[data-ui="brand"] .bg-sky-500\/20,
+html[data-ui="brand"] .hover\:bg-sky-500\/10:hover,
+html[data-ui="brand"] .hover\:bg-sky-500\/20:hover,
+html[data-ui="brand"] .hover\:bg-sky-500\/25:hover {
   background-color: #e0f2fe !important;
 }
 
@@ -172,12 +365,16 @@ html[data-ui="brand"] .border-sky-500\/50 {
   border-color: #7dd3fc !important;
 }
 
-/* Status Accents (Emerald / Amber / Purple) in Daylight */
+/* Status Accents (Emerald / Amber / Red / Purple) in Daylight */
+html[data-ui="brand"] .text-emerald-300,
 html[data-ui="brand"] .text-emerald-400 {
-  color: #059669 !important;
+  color: #047857 !important;
 }
 html[data-ui="brand"] .bg-emerald-500\/10,
-html[data-ui="brand"] .bg-emerald-500\/20 {
+html[data-ui="brand"] .bg-emerald-500\/15,
+html[data-ui="brand"] .bg-emerald-500\/20,
+html[data-ui="brand"] .hover\:bg-emerald-500\/25:hover,
+html[data-ui="brand"] .hover\:bg-emerald-500\/30:hover {
   background-color: #d1fae5 !important;
 }
 html[data-ui="brand"] .border-emerald-500\/30,
@@ -185,11 +382,22 @@ html[data-ui="brand"] .border-emerald-500\/40 {
   border-color: #6ee7b7 !important;
 }
 
-html[data-ui="brand"] .text-amber-400 {
-  color: #d97706 !important;
+html[data-ui="brand"] .text-amber-200,
+html[data-ui="brand"] .text-amber-300,
+html[data-ui="brand"] .text-amber-400,
+html[data-ui="brand"] .text-amber-400\/80,
+html[data-ui="brand"] .text-amber-400\/90 {
+  color: #92400e !important;
+}
+html[data-ui="brand"] .hover\:text-amber-200:hover,
+html[data-ui="brand"] .hover\:text-amber-300:hover,
+html[data-ui="brand"] .hover\:text-amber-400:hover {
+  color: #78350f !important;
 }
 html[data-ui="brand"] .bg-amber-500\/10,
-html[data-ui="brand"] .bg-amber-500\/20 {
+html[data-ui="brand"] .bg-amber-500\/15,
+html[data-ui="brand"] .bg-amber-500\/20,
+html[data-ui="brand"] .hover\:bg-amber-500\/20:hover {
   background-color: #fef3c7 !important;
 }
 html[data-ui="brand"] .border-amber-500\/30,
@@ -197,16 +405,81 @@ html[data-ui="brand"] .border-amber-500\/40 {
   border-color: #fcd34d !important;
 }
 
+html[data-ui="brand"] .text-red-200,
+html[data-ui="brand"] .text-red-300,
+html[data-ui="brand"] .text-red-300\/90,
+html[data-ui="brand"] .text-red-400 {
+  color: #b91c1c !important;
+}
+html[data-ui="brand"] .hover\:text-red-300:hover {
+  color: #991b1b !important;
+}
+html[data-ui="brand"] .text-rose-400 {
+  color: #be123c !important;
+}
+
+html[data-ui="brand"] .text-purple-300,
 html[data-ui="brand"] .text-purple-400 {
-  color: #7c3aed !important;
+  color: #6d28d9 !important;
 }
 html[data-ui="brand"] .bg-purple-500\/10,
-html[data-ui="brand"] .bg-purple-500\/20 {
+html[data-ui="brand"] .bg-purple-500\/20,
+html[data-ui="brand"] .hover\:bg-purple-500\/30:hover {
   background-color: #f3e8ff !important;
 }
 html[data-ui="brand"] .border-purple-500\/30,
 html[data-ui="brand"] .border-purple-500\/40 {
   border-color: #c4b5fd !important;
+}
+
+/* Solid fills behind white text. Declared after the accent rules so white wins
+   inside a fill. #0369a1 = 5.93:1 with white (sky-500 was 2.7:1); hover #075985 = 7.56:1. */
+html[data-ui="brand"] .bg-sky-500,
+html[data-ui="brand"] .bg-sky-600,
+html[data-ui="brand"] .bg-sky-700 {
+  background-color: #0369a1 !important;
+}
+html[data-ui="brand"] .hover\:bg-sky-400:hover,
+html[data-ui="brand"] .hover\:bg-sky-500:hover,
+html[data-ui="brand"] .hover\:bg-sky-600:hover,
+html[data-ui="brand"] .hover\:bg-sky-700:hover,
+html[data-ui="brand"] .hover\:bg-sky-800:hover,
+html[data-ui="brand"] .focus\:bg-sky-700:focus {
+  background-color: #075985 !important;
+}
+html[data-ui="brand"] .bg-emerald-700 {
+  background-color: #047857 !important;
+}
+html[data-ui="brand"] .hover\:bg-emerald-800:hover {
+  background-color: #065f46 !important;
+}
+html[data-ui="brand"] .bg-red-600 {
+  background-color: #b91c1c !important;
+}
+html[data-ui="brand"] .hover\:bg-red-500:hover {
+  background-color: #991b1b !important;
+}
+html[data-ui="brand"] .bg-purple-600 {
+  background-color: #6d28d9 !important;
+}
+html[data-ui="brand"] .hover\:bg-purple-700:hover {
+  background-color: #5b21b6 !important;
+}
+
+html[data-ui="brand"] .bg-sky-500,
+html[data-ui="brand"] .bg-sky-600,
+html[data-ui="brand"] .bg-sky-700,
+html[data-ui="brand"] .bg-blue-600,
+html[data-ui="brand"] .bg-red-600,
+html[data-ui="brand"] .bg-emerald-700,
+html[data-ui="brand"] .bg-purple-600 {
+  color: #ffffff !important;
+}
+
+html[data-ui="brand"] .bg-sky-500 *,
+html[data-ui="brand"] .bg-sky-600 *,
+html[data-ui="brand"] .bg-sky-700 * {
+  color: #ffffff !important;
 }
 
 /* Daylight HUD Grid & Horizon Coordinates */

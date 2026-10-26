@@ -42,7 +42,7 @@ const RULES_COPY: Record<
   en: {
     badge: 'OFFICIAL FACILITY RULES & TERMS OF USE',
     title: 'Facility Rules, Terms & Conditions — Sim Dream Israel',
-    reg: `Company Reg. (ח.פ.) ${FACILITY_INFO.companyRegistrationNumber}`,
+    reg: `Company Reg. ${FACILITY_INFO.companyRegistrationNumber}`,
     address: `Facility Address: ${FACILITY_INFO.address.streetEn}, ${FACILITY_INFO.address.cityEn} | Official Domains: simdream.co.il, simdream.aero`,
     ageBadge: 'Age Requirements',
     ageTitle: 'Simulator Entry: Age 10+',
@@ -80,7 +80,7 @@ const RULES_COPY: Record<
   ru: {
     badge: 'ОФИЦИАЛЬНЫЙ РЕГЛАМЕНТ И ПРАВИЛА • SIM DREAM ISRAEL',
     title: 'Правила и условия посещения — Sim Dream Israel',
-    reg: `Рег. номер компании (ח.פ.): ${FACILITY_INFO.companyRegistrationNumber}`,
+    reg: `Рег. номер компании: ${FACILITY_INFO.companyRegistrationNumber}`,
     address: `Адрес: ${FACILITY_INFO.address.streetEn}, Тель-Авив | Официальные сайты: simdream.co.il, simdream.aero`,
     ageBadge: 'Возрастные ограничения',
     ageTitle: 'Вход в симулятор: от 10 лет и старше',
@@ -99,7 +99,7 @@ const RULES_COPY: Record<
   fr: {
     badge: 'RÈGLEMENT OFFICIEL DU CENTRE • SIM DREAM ISRAEL',
     title: 'Règlement Intérieur et Conditions Générales — Sim Dream Israel',
-    reg: `N° d'enregistrement (ח.פ.) : ${FACILITY_INFO.companyRegistrationNumber}`,
+    reg: `N° d'enregistrement : ${FACILITY_INFO.companyRegistrationNumber}`,
     address: `Adresse : ${FACILITY_INFO.address.streetEn}, Tel Aviv | Domaines officiels : simdream.co.il, simdream.aero`,
     ageBadge: 'Conditions d’âge',
     ageTitle: 'Accès au simulateur : dès 10 ans et plus',
@@ -118,7 +118,7 @@ const RULES_COPY: Record<
   ar: {
     badge: 'اللائحة الرسمية وشروط الاستخدام • SIM DREAM ISRAEL',
     title: 'شروط الاستخدام واللوائح الرسمية — سيم دريم إسرائيل',
-    reg: `رقم تسجيل الشركة (ח.פ.): ${FACILITY_INFO.companyRegistrationNumber}`,
+    reg: `رقم تسجيل الشركة: ${FACILITY_INFO.companyRegistrationNumber}`,
     address: `العنوان: ${FACILITY_INFO.address.streetEn}، تل أبيب | المواقع الرسمية: simdream.co.il, simdream.aero`,
     ageBadge: 'شروط العمر والمرافقة',
     ageTitle: 'دخول قمرة المحاكاة: من عمر 10 سنوات فما فوق',
@@ -142,7 +142,7 @@ export function RulesContentView() {
   const c = RULES_COPY[language] || RULES_COPY.en;
 
   return (
-    <main className="flex-1 py-14 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto space-y-10">
+    <div className="flex-1 w-full min-w-0 py-14 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto space-y-10">
       {/* Header */}
       <header className="space-y-4 border-b border-slate-800 pb-8">
         <Badge variant="sky">{c.badge}</Badge>
@@ -416,7 +416,7 @@ export function RulesContentView() {
           {c.privacyLink}
         </Link>
       </div>
-    </main>
+    </div>
   );
 }
 

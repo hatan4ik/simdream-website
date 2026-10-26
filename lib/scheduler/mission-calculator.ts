@@ -5,9 +5,38 @@ import {
   MissionManifestCalculation,
   SimulatorPackage,
 } from '@/types';
-import { minutesToTime, timeToMinutes } from './kantorovich-engine';
+import { getKantorovichPricing, minutesToTime, timeToMinutes } from './kantorovich-engine';
 
 const DEFAULT_MAX_SLOT_MINUTES = 180;
+
+/** Professional training and Fear of Flying run a noise-free flow with no add-ons (AGENTS.md section 3). */
+export function packageAllowsAddons(pkg: Pick<SimulatorPackage, 'category'>): boolean {
+  return pkg.category !== 'training' && pkg.category !== 'fear_of_flying';
+}
+
+/**
+ * Catalog price of a package at a departure: its prime-time tariff when it defines one
+ * and the departure is in prime time, otherwise its standard price. The package registry
+ * is authoritative; scheduler slot prices are duration-level and ignore package tiers.
+ */
+export function packagePriceForSlot(
+  pkg: Pick<SimulatorPackage, 'priceIls' | 'primeTimePriceIls'>,
+  isPrimeTime: boolean
+): number {
+  return isPrimeTime && pkg.primeTimePriceIls ? pkg.primeTimePriceIls : pkg.priceIls;
+}
+
+/**
+ * "From" price for a package card, given the cheapest open departure tariff of its
+ * duration. When that tariff exceeds the daytime one, only prime-time departures remain.
+ */
+export function packageFromPriceIls(
+  pkg: Pick<SimulatorPackage, 'durationMinutes' | 'priceIls' | 'primeTimePriceIls'>,
+  cheapestDepartureIls?: number
+): number {
+  const daytimeTariff = getKantorovichPricing(pkg.durationMinutes, 10 * 60, false).dynamicPriceIls;
+  return packagePriceForSlot(pkg, Boolean(cheapestDepartureIls && cheapestDepartureIls > daytimeTariff));
+}
 const DURATION_SUFFIX_REGEX = /\s*\(\d+m(?:\s+Promo)?\)/gi;
 
 /**
@@ -69,8 +98,8 @@ export function pruneAddonsExceedingSlot(
 }
 
 export interface CalculateMissionManifestInput {
-  pkg: Pick<SimulatorPackage, 'title' | 'durationMinutes' | 'priceIls'>;
-  slot?: Pick<FlightSlot, 'startTime' | 'endTime' | 'dynamicPriceIls' | 'maxAvailableMinutes'> | null;
+  pkg: Pick<SimulatorPackage, 'title' | 'durationMinutes' | 'priceIls' | 'primeTimePriceIls'>;
+  slot?: (Pick<FlightSlot, 'startTime' | 'endTime' | 'maxAvailableMinutes'> & Partial<Pick<FlightSlot, 'isPrimeTime'>>) | null;
   selectedAddonIds: readonly string[];
   availableAddons: readonly FlightAddon[];
   voucherDiscountIls?: number;
@@ -96,7 +125,7 @@ export function calculateMissionManifest(
 
   const cleanPackageTitle = sanitizePackageTitle(pkg.title);
   const baseDurationMinutes = pkg.durationMinutes;
-  const basePriceIls = slot?.dynamicPriceIls || pkg.priceIls;
+  const basePriceIls = packagePriceForSlot(pkg, Boolean(slot?.isPrimeTime));
   const maxAvailableMinutes = slot?.maxAvailableMinutes ?? DEFAULT_MAX_SLOT_MINUTES;
 
   const selectedAddonItems: MissionManifestAddonItem[] = [];

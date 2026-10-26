@@ -31,7 +31,7 @@ const PRIVACY_COPY: Record<
   en: {
     badge: 'OFFICIAL PRIVACY & COOKIE POLICY',
     title: 'Privacy & Cookie Policy — Sim Dream Israel',
-    reg: `Company Reg. (ח.פ.) ${FACILITY_INFO.companyRegistrationNumber}`,
+    reg: `Company Reg. ${FACILITY_INFO.companyRegistrationNumber}`,
     address: `Address: ${FACILITY_INFO.address.streetEn}, ${FACILITY_INFO.address.cityEn} | Privacy Contact: ${FACILITY_INFO.contact.email}`,
     contactOfficer: 'Privacy & Data Protection Officer Contact',
     rulesLink: 'View Facility Rules & Terms →',
@@ -47,7 +47,7 @@ const PRIVACY_COPY: Record<
   ru: {
     badge: 'ПОЛИТИКА КОНФИДЕНЦИАЛЬНОСТИ И COOKIE • SIM DREAM ISRAEL',
     title: 'Политика конфиденциальности и защита данных — Sim Dream Israel',
-    reg: `Рег. номер компании (ח.פ.): ${FACILITY_INFO.companyRegistrationNumber}`,
+    reg: `Рег. номер компании: ${FACILITY_INFO.companyRegistrationNumber}`,
     address: `Адрес: ${FACILITY_INFO.address.streetEn}, Тель-Авив | Контакт по данным: ${FACILITY_INFO.contact.email}`,
     contactOfficer: 'Служба защиты персональных данных',
     rulesLink: 'Регламент и правила посещения →',
@@ -55,7 +55,7 @@ const PRIVACY_COPY: Record<
   fr: {
     badge: 'POLITIQUE DE CONFIDENTIALITÉ & COOKIES • SIM DREAM ISRAEL',
     title: 'Protection des Données et Confidentialité — Sim Dream Israel',
-    reg: `N° d'enregistrement (ח.פ.) : ${FACILITY_INFO.companyRegistrationNumber}`,
+    reg: `N° d'enregistrement : ${FACILITY_INFO.companyRegistrationNumber}`,
     address: `Adresse : ${FACILITY_INFO.address.streetEn}, Tel Aviv | Contact : ${FACILITY_INFO.contact.email}`,
     contactOfficer: 'Contact délégué à la protection des données',
     rulesLink: 'Consulter le règlement intérieur →',
@@ -63,7 +63,7 @@ const PRIVACY_COPY: Record<
   ar: {
     badge: 'سياسة الخصوصية وملفات تعريف الارتباط • SIM DREAM ISRAEL',
     title: 'سياسة الخصوصية وأمان البيانات — سيم دريم إسرائيل',
-    reg: `رقم تسجيل الشركة (ח.פ.): ${FACILITY_INFO.companyRegistrationNumber}`,
+    reg: `رقم تسجيل الشركة: ${FACILITY_INFO.companyRegistrationNumber}`,
     address: `العنوان: ${FACILITY_INFO.address.streetEn}، تل أبيب | بريد الخصوصية: ${FACILITY_INFO.contact.email}`,
     contactOfficer: 'مسؤول حماية البيانات والخصوصية',
     rulesLink: 'عرض اللائحة الرسمية وشروط الاستخدام ←',
@@ -76,7 +76,7 @@ export function PrivacyPolicyContentView() {
   const c = PRIVACY_COPY[language] || PRIVACY_COPY.en;
 
   return (
-    <main className="flex-1 py-14 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto space-y-10">
+    <div className="flex-1 w-full min-w-0 py-14 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto space-y-10">
       {/* Header */}
       <header className="space-y-4 border-b border-slate-800 pb-8">
         <Badge variant="emerald">{c.badge}</Badge>
@@ -190,7 +190,7 @@ export function PrivacyPolicyContentView() {
           {c.rulesLink}
         </Link>
       </div>
-    </main>
+    </div>
   );
 }
 

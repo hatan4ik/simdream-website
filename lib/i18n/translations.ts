@@ -23,6 +23,9 @@ export const translations = {
   en: {
     nav: {
       brandSub: 'FLIGHT CENTER • TEL AVIV',
+      openMenu: 'Open menu',
+      closeMenu: 'Close menu',
+      skipToContent: 'Skip to main content',
       experiences: 'Flight Experiences',
       simulator: 'Professional Training',
       workshops: 'Corporate CRM (B2B)',
@@ -323,6 +326,11 @@ export const translations = {
       commercial: 'Commercial / ATPL pilot (Screening or recurrent prep)',
     },
     booking: {
+      slotsLoadError: 'We couldn\'t load departures for this date.',
+      slotsLoadErrorHint: 'Check your connection and try again, or choose another date.',
+      retryLoad: 'Try again',
+      loadingDepartures: 'Loading departures…',
+      offlineError: 'You appear to be offline. Check your internet connection and try again. You have not been charged.',
       step1: '1. MISSION',
       step2: '2. DATE & SLOT',
       step3: '3. ADD-ONS',
@@ -640,6 +648,9 @@ export const translations = {
   he: {
     nav: {
       brandSub: 'מרכז סימולציה • תל אביב',
+      openMenu: 'פתיחת תפריט',
+      closeMenu: 'סגירת תפריט',
+      skipToContent: 'דילוג לתוכן הראשי',
       experiences: 'חבילות טיסה',
       simulator: 'הדרכה מקצועית לטייסים',
       workshops: 'סדנאות CRM לחברות (B2B)',
@@ -940,6 +951,11 @@ export const translations = {
       commercial: 'טייס מסחרי / ATPL (הכנה למיונים או שמירת כשירות)',
     },
     booking: {
+      slotsLoadError: 'לא הצלחנו לטעון את מועדי ההמראה לתאריך זה.',
+      slotsLoadErrorHint: 'בדקו את החיבור ונסו שוב, או בחרו תאריך אחר.',
+      retryLoad: 'נסו שוב',
+      loadingDepartures: 'טוען מועדי המראה…',
+      offlineError: 'נראה שאין חיבור לאינטרנט. בדקו את החיבור ונסו שוב. לא בוצע חיוב.',
       step1: '1. משימת טיסה',
       step2: '2. תאריך ושעה',
       step3: '3. שדרוגים ותוספות',
@@ -1257,6 +1273,9 @@ export const translations = {
   ru: {
     nav: {
       brandSub: 'ЛЕТНЫЙ ЦЕНТР • ТЕЛЬ-АВИВ',
+      openMenu: 'Открыть меню',
+      closeMenu: 'Закрыть меню',
+      skipToContent: 'Перейти к основному содержимому',
       experiences: 'Летные программы',
       simulator: 'Профессиональная подготовка',
       workshops: 'Корпоративный CRM (B2B)',
@@ -1557,6 +1576,11 @@ export const translations = {
       commercial: 'Действующий пилот (ATPL / подготовка к собеседованию)',
     },
     booking: {
+      slotsLoadError: 'Не удалось загрузить вылеты на эту дату.',
+      slotsLoadErrorHint: 'Проверьте подключение и повторите попытку или выберите другую дату.',
+      retryLoad: 'Повторить',
+      loadingDepartures: 'Загрузка вылетов…',
+      offlineError: 'Похоже, вы не в сети. Проверьте подключение к интернету и повторите попытку. Оплата не списана.',
       step1: '1. ПОЛЕТ',
       step2: '2. ДАТА И ВРЕМЯ',
       step3: '3. ОПЦИИ',
@@ -1874,6 +1898,9 @@ export const translations = {
   fr: {
     nav: {
       brandSub: 'CENTRE DE VOL • TEL AVIV',
+      openMenu: 'Ouvrir le menu',
+      closeMenu: 'Fermer le menu',
+      skipToContent: 'Aller au contenu principal',
       experiences: 'Expériences de vol',
       simulator: 'Formation Professionnelle',
       workshops: 'CRM Entreprises (B2B)',
@@ -2174,6 +2201,11 @@ export const translations = {
       commercial: 'Pilote professionnel / ATPL (Préparation aux sélections)',
     },
     booking: {
+      slotsLoadError: 'Impossible de charger les départs pour cette date.',
+      slotsLoadErrorHint: 'Vérifiez votre connexion et réessayez, ou choisissez une autre date.',
+      retryLoad: 'Réessayer',
+      loadingDepartures: 'Chargement des départs…',
+      offlineError: 'Vous semblez hors ligne. Vérifiez votre connexion Internet et réessayez. Vous n\'avez pas été débité.',
       step1: '1. MISSION',
       step2: '2. DATE & CRÉNEAU',
       step3: '3. OPTIONS',
@@ -2491,6 +2523,9 @@ export const translations = {
   ar: {
     nav: {
       brandSub: 'مركز محاكاة الطيران • تل أبيب',
+      openMenu: 'فتح القائمة',
+      closeMenu: 'إغلاق القائمة',
+      skipToContent: 'تخطَّ إلى المحتوى الرئيسي',
       experiences: 'تجارب الطيران',
       simulator: 'تدريب احترافي للطيارين',
       workshops: 'ورش عمل CRM للشركات (B2B)',
@@ -2791,6 +2826,11 @@ export const translations = {
       commercial: 'طيار تجاري / ATPL (استعداد لاختبارات القبول أو الكفاءة)',
     },
     booking: {
+      slotsLoadError: 'تعذّر تحميل مواعيد الإقلاع لهذا التاريخ.',
+      slotsLoadErrorHint: 'تحقق من اتصالك وحاول مرة أخرى، أو اختر تاريخاً آخر.',
+      retryLoad: 'حاول مرة أخرى',
+      loadingDepartures: 'جارٍ تحميل مواعيد الإقلاع…',
+      offlineError: 'يبدو أنك غير متصل بالإنترنت. تحقق من اتصالك وحاول مرة أخرى. لم يتم خصم أي مبلغ.',
       step1: '1. الرحلة',
       step2: '2. الموعد والوقت',
       step3: '3. الإضافات',

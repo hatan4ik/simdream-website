@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
-import test from 'node:test';
-import { memberIdForBooking, memberOwnsBooking, normalizeMemberEmail } from '../lib/auth/member-ownership';
+import { test } from 'vitest';
+import { memberIdForBooking, memberOwnsBooking, normalizeMemberEmail } from '@/lib/auth/member-ownership';
 
 test('a verified member can attach only a booking made with the same email address', () => {
   const member = {

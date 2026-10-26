@@ -22,7 +22,8 @@ export async function GET(request: Request) {
 
     return NextResponse.json(packages);
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch packages' }, { status: 500 });
+    console.error('Package catalog lookup failed', error);
+    return NextResponse.json({ error: 'The package catalog is temporarily unavailable.' }, { status: 503 });
   }
 }
 

@@ -78,7 +78,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </aside>
 
         {/* Dashboard Content Area */}
-        <main className="lg:col-span-9">{children}</main>
+        <div className="lg:col-span-9">{children}</div>
       </div>
     </div>
   );

@@ -76,27 +76,36 @@ function BookingSuccessContent() {
         spread: 70,
         origin: { y: 0.6 },
         colors: ['#38bdf8', '#0284c7', '#10b981', '#ffffff'],
+        disableForReducedMotion: true,
       });
     } catch {}
   }, [booking?.paymentStatus, booking?.status]);
 
   const paid = booking?.paymentStatus === 'paid' && booking.status === 'confirmed';
+  // Without a booking there is no payment to confirm; say so instead of "confirming your payment".
+  const notFound = Boolean(error) && !booking;
   const selectedAddons = booking?.addons ?? [];
 
   return (
-    <div className="flex-1 py-16 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto space-y-10 text-center">
+    <div className="flex-1 w-full min-w-0 py-16 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto space-y-10 text-center">
       <div className="space-y-4">
         <div className={`w-16 h-16 rounded-full border flex items-center justify-center mx-auto ${
           paid ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400' : 'bg-amber-500/20 border-amber-500/40 text-amber-300'
         }`}>
           {paid ? <CheckCircle2 className="w-8 h-8" /> : <Clock3 className="w-8 h-8" />}
         </div>
-        <Badge variant={paid ? 'emerald' : 'amber'}>{paid ? t.bookingSuccess.badge : 'PAYMENT PROCESSING'}</Badge>
+        <Badge variant={paid ? 'emerald' : 'amber'}>
+          {paid ? t.bookingSuccess.badge : notFound ? 'BOOKING NOT FOUND' : 'PAYMENT PROCESSING'}
+        </Badge>
         <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight">
-          {paid ? t.bookingSuccess.title : 'We are confirming your payment'}
+          {paid ? t.bookingSuccess.title : notFound ? "We couldn't find this booking" : 'We are confirming your payment'}
         </h1>
         <p className="text-slate-300 text-sm sm:text-base max-w-lg mx-auto">
-          {paid ? t.bookingSuccess.subtitle : 'Your boarding pass will update automatically once the secure payment confirmation arrives.'}
+          {paid
+            ? t.bookingSuccess.subtitle
+            : notFound
+            ? 'Check the link in your confirmation email, or contact us and we will look it up for you.'
+            : 'Your boarding pass will update automatically once the secure payment confirmation arrives.'}
         </p>
       </div>
 
@@ -117,11 +126,11 @@ function BookingSuccessContent() {
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-5 text-xs font-mono">
-            <div className="col-span-2 sm:col-span-1"><p className="text-slate-500 uppercase text-[10px]">{t.bookingSuccess.missionPackage}</p><p className="text-white font-bold text-sm mt-1">{booking.packageTitle}</p></div>
-            <div><p className="text-slate-500 uppercase text-[10px]">{t.bookingSuccess.date}</p><p className="text-white font-bold text-sm mt-1">{formatDate(booking.bookingDate)}</p></div>
-            <div><p className="text-slate-500 uppercase text-[10px]">{t.bookingSuccess.time}</p><p className="text-sky-400 font-black text-sm mt-1" dir="ltr">{booking.startTime}–{booking.endTime} IST</p></div>
-            <div><p className="text-slate-500 uppercase text-[10px]">{t.bookingSuccess.duration}</p><p className="text-emerald-400 font-black text-sm mt-1">{booking.durationMinutes} min</p></div>
-            <div><p className="text-slate-500 uppercase text-[10px]">{t.bookingSuccess.pilotInCommand}</p><p className="text-white font-bold text-sm mt-1">{booking.pilotName}</p></div>
+            <div className="col-span-2 sm:col-span-1"><p className="text-slate-400 uppercase text-[10px]">{t.bookingSuccess.missionPackage}</p><p className="text-white font-bold text-sm mt-1">{booking.packageTitle}</p></div>
+            <div><p className="text-slate-400 uppercase text-[10px]">{t.bookingSuccess.date}</p><p className="text-white font-bold text-sm mt-1">{formatDate(booking.bookingDate)}</p></div>
+            <div><p className="text-slate-400 uppercase text-[10px]">{t.bookingSuccess.time}</p><p className="text-sky-400 font-black text-sm mt-1" dir="ltr">{booking.startTime}–{booking.endTime} IST</p></div>
+            <div><p className="text-slate-400 uppercase text-[10px]">{t.bookingSuccess.duration}</p><p className="text-emerald-400 font-black text-sm mt-1">{booking.durationMinutes} min</p></div>
+            <div><p className="text-slate-400 uppercase text-[10px]">{t.bookingSuccess.pilotInCommand}</p><p className="text-white font-bold text-sm mt-1">{booking.pilotName}</p></div>
           </div>
 
           <div className="p-4 rounded-xl bg-slate-900/70 border border-sky-500/30 space-y-3 text-xs font-mono">

@@ -1,8 +1,19 @@
 import { z } from 'zod';
 
-const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Use YYYY-MM-DD.');
+/** True only for dates that exist on the calendar (rejects 2027-02-30, 2026-13-01, ...). */
+export function isCalendarDate(value: string): boolean {
+  const [year, month, day] = value.split('-').map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
+}
+
+export const isoDate = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, 'Use YYYY-MM-DD.')
+  .refine(isCalendarDate, 'Use a real calendar date (YYYY-MM-DD).');
 const time = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Use HH:mm.');
-const money = z.number().finite().nonnegative().max(100_000);
+// Shekel amounts with agora (0.01) precision; finer amounts would leave unspendable dust.
+const money = z.number().finite().nonnegative().max(100_000).multipleOf(0.01, 'Use at most two decimal places.');
 const safeText = (max: number) => z.string().trim().min(1).max(max);
 
 export const bookingCheckoutSchema = z.object({
@@ -23,7 +34,11 @@ export const voucherCheckoutSchema = z.object({
   kind: z.literal('voucher'),
   amountIls: money.min(100),
   recipientName: safeText(120),
-  recipientEmail: z.string().trim().email().max(254),
+  // Optional: left blank, the voucher is emailed to the buyer to print and present.
+  recipientEmail: z.preprocess(
+    (value) => (typeof value === 'string' ? value.trim() : value),
+    z.union([z.literal(''), z.email().max(254)]).optional()
+  ),
   senderName: safeText(120),
   senderEmail: z.string().trim().email().max(254),
   personalMessage: z.string().trim().max(1_500).default(''),

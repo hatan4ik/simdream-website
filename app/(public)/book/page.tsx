@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, useId, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import {
@@ -18,8 +18,8 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import { formatCurrency, formatDate, formatLocalYMD, extractErrorMessage } from '@/lib/utils';
-import { FlightSlot, SimulatorPackage, DailyEfficiencyReport, PilotExperienceLevel } from '@/types';
+import { addDaysToYmd, formatCurrency, formatDate, formatLocalYMD, extractErrorMessage } from '@/lib/utils';
+import { FlightSlot, SimulatorPackage, PublicCapacityReport, PilotExperienceLevel } from '@/types';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { getLocalizedPackages, getLocalizedAddons } from '@/lib/i18n/translations';
 import { KantorovichCalendarScheduler } from '@/components/scheduler/KantorovichCalendarScheduler';
@@ -29,13 +29,26 @@ import { isSupabaseConfigured, supabase } from '@/lib/supabaseClient';
 import {
   calculateMissionManifest,
   canAddonFitInSlot,
+  packageAllowsAddons,
   pruneAddonsExceedingSlot,
 } from '@/lib/scheduler/mission-calculator';
+
+// Documented deep links (AGENTS.md, official service pages) use these names for the PRO tiers.
+const PACKAGE_SLUG_ALIASES: Record<string, string> = {
+  'airline-interview-prep-60-pro': 'airline-prep-60-pro',
+  'airline-interview-prep-90-pro': 'airline-prep-90-pro',
+  'airline-interview-prep-120-pro': 'airline-assessment-prep',
+};
+
+function resolvePackageSlug(slug: string): string {
+  return PACKAGE_SLUG_ALIASES[slug] ?? slug;
+}
 
 function BookContent() {
   const searchParams = useSearchParams();
   const { t, language, isRTL } = useLanguage();
   const { user } = useAuth();
+  const formId = useId();
 
   const localizedPackages = getLocalizedPackages(language);
   const localizedAddons = getLocalizedAddons(language);
@@ -51,14 +64,15 @@ function BookContent() {
   const [currentStep, setCurrentStep] = useState<number>(1);
 
   // Selected package (synced with ?package= query param when coming from Homepage or /experiences)
-  const defaultPackageSlug = searchParams.get('package') || 'captains-command-60';
+  const defaultPackageSlug = resolvePackageSlug(searchParams.get('package') || 'captains-command-60');
   const initialPackage =
     localizedPackages.find((p) => p.slug === defaultPackageSlug) || localizedPackages[2] || localizedPackages[0];
   const [selectedPackage, setSelectedPackage] = useState<SimulatorPackage>(initialPackage);
 
   useEffect(() => {
-    const pkgSlug = searchParams.get('package');
-    if (pkgSlug) {
+    const requestedSlug = searchParams.get('package');
+    if (requestedSlug) {
+      const pkgSlug = resolvePackageSlug(requestedSlug);
       const matched = localizedPackages.find((p) => p.slug === pkgSlug);
       if (matched) {
         setSelectedPackage(matched);
@@ -69,43 +83,19 @@ function BookContent() {
   const activePackage =
     localizedPackages.find((p) => p.id === selectedPackage.id) || selectedPackage;
 
-  // Check if booking is for Professional Airline Training or Fear of Flying
-  const isProBooking =
-    activePackage.category === 'training' ||
-    activePackage.id.startsWith('pkg-pro') ||
-    activePackage.id.includes('assessment') ||
-    activePackage.slug.includes('prep') ||
-    activePackage.slug.includes('assessment');
-
-  const isFearOfFlyingBooking =
-    activePackage.category === 'fear_of_flying' ||
-    activePackage.id === 'pkg-fear-of-flying-90' ||
-    activePackage.slug === 'fear-of-flying-course';
-
-  const isNoiseFreeBooking = isProBooking || isFearOfFlyingBooking;
+  // The package category is authoritative (id/slug heuristics misclassified 'pkg-promo-45'
+  // as PRO). The server enforces the same noise-free rule through packageAllowsAddons.
+  const isProBooking = activePackage.category === 'training';
+  const isFearOfFlyingBooking = activePackage.category === 'fear_of_flying';
+  const isNoiseFreeBooking = !packageAllowsAddons(activePackage);
 
   // Scoped packages:
   // - PRO: strictly show the 3 PRO training tiers (60, 90, 120 PRO)
   // - Fear of Flying: strictly show the Fear of Flying course
   // - Recreational: show recreational consumer packages (20m, 45m, 60m, 90m)
   const scopedPackages = React.useMemo(() => {
-    if (isProBooking) {
-      return localizedPackages.filter(
-        (p) =>
-          p.category === 'training' ||
-          p.id.startsWith('pkg-pro') ||
-          p.id.includes('assessment') ||
-          p.slug.includes('prep')
-      );
-    }
-    if (isFearOfFlyingBooking) {
-      return localizedPackages.filter(
-        (p) =>
-          p.category === 'fear_of_flying' ||
-          p.id === 'pkg-fear-of-flying-90' ||
-          p.slug === 'fear-of-flying-course'
-      );
-    }
+    if (isProBooking) return localizedPackages.filter((p) => p.category === 'training');
+    if (isFearOfFlyingBooking) return localizedPackages.filter((p) => p.category === 'fear_of_flying');
     return localizedPackages.filter((p) => p.category === 'recreational');
   }, [localizedPackages, isProBooking, isFearOfFlyingBooking]);
 
@@ -118,15 +108,17 @@ function BookContent() {
   }, [localizedAddons, isNoiseFreeBooking]);
 
   // Selected Date & Slot (using local calendar YYYY-MM-DD to prevent UTC timezone day-shift)
-  const tomorrow = formatLocalYMD(new Date(Date.now() + 86400000));
+  const tomorrow = addDaysToYmd(formatLocalYMD(new Date()), 1);
   const [selectedDate, setSelectedDate] = useState<string>(tomorrow);
   const [availableSlots, setAvailableSlots] = useState<FlightSlot[]>([]);
-  const [efficiencyReport, setEfficiencyReport] = useState<DailyEfficiencyReport | null>(null);
+  const [efficiencyReport, setEfficiencyReport] = useState<PublicCapacityReport | null>(null);
   const [durationAvailability, setDurationAvailability] = useState<
     Record<number, { availableCount: number; minPriceIls: number }>
   >({});
   const [selectedSlot, setSelectedSlot] = useState<FlightSlot | null>(null);
   const [loadingSlots, setLoadingSlots] = useState<boolean>(false);
+  const [slotsLoadFailed, setSlotsLoadFailed] = useState<boolean>(false);
+  const [slotsReloadKey, setSlotsReloadKey] = useState<number>(0);
 
   // Add-ons (strictly empty for noise-free specialized bookings)
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
@@ -183,12 +175,18 @@ function BookContent() {
 
   // Fetch Kantorovich-optimized slots & daily efficiency whenever selected date or package changes
   useEffect(() => {
+    // A newer date or package selection aborts this request, so a slow, stale
+    // response can never overwrite the slots of the current selection.
+    const controller = new AbortController();
     async function fetchSlots() {
       setLoadingSlots(true);
+      setSlotsLoadFailed(false);
       try {
         const res = await fetch(
-          `/api/slots?date=${selectedDate}&duration=${selectedPackage.durationMinutes}&includeEfficiency=true`
+          `/api/slots?date=${selectedDate}&duration=${selectedPackage.durationMinutes}&includeEfficiency=true`,
+          { signal: controller.signal }
         );
+        if (!res.ok) throw new Error(`Slots request failed with ${res.status}`);
         const data = await res.json();
         const slotList: FlightSlot[] = Array.isArray(data)
           ? data
@@ -222,13 +220,18 @@ function BookContent() {
           return firstAvailable;
         });
       } catch (err) {
+        if (controller.signal.aborted) return;
+        // Show a load error with a retry, never an empty "sold out" day.
         console.error('Failed to load slots', err);
+        setAvailableSlots([]);
+        setSlotsLoadFailed(true);
       } finally {
-        setLoadingSlots(false);
+        if (!controller.signal.aborted) setLoadingSlots(false);
       }
     }
     fetchSlots();
-  }, [selectedDate, selectedPackage]);
+    return () => controller.abort();
+  }, [selectedDate, selectedPackage, slotsReloadKey]);
 
   // Canonical Single-Source-of-Truth Mission Manifest calculation
   const manifest = React.useMemo(
@@ -388,15 +391,19 @@ function BookContent() {
       }
       throw new Error('Payment could not be initialized. Your card was not charged.');
     } catch (err: unknown) {
+      // fetch rejects with a TypeError on network loss; never show the raw "Failed to fetch".
+      const offline = err instanceof TypeError || (typeof navigator !== 'undefined' && !navigator.onLine);
       setBookingError(
-        extractErrorMessage(err, 'An error occurred while creating your reservation.')
+        offline ? t.booking.offlineError : extractErrorMessage(err, 'An error occurred while creating your reservation.')
       );
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="flex-1 py-8 sm:py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-8">
+    // w-full min-w-0: with mx-auto inside the flex-column main, the page otherwise
+    // shrink-wraps to the 14-day ribbon and becomes ~1056px wide on phones.
+    <div className="flex-1 w-full min-w-0 py-8 sm:py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-8">
       {/* Top View-Mode Switcher: Amazon-Style 1-Page Express Storefront vs Guided 3-Step Wizard */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pb-4 border-b border-slate-800/80">
         <div>
@@ -436,7 +443,8 @@ function BookContent() {
         </div>
       </div>
 
-      {bookingError && (
+      {/* The storefront announces checkout errors in its buy box; one alert per failure. */}
+      {bookingError && bookingViewMode === 'wizard' && (
         <div
           role="alert"
           aria-live="assertive"
@@ -475,6 +483,8 @@ function BookContent() {
           onSelectSlot={setSelectedSlot}
           durationAvailability={durationAvailability}
           loadingSlots={loadingSlots}
+          slotsLoadFailed={slotsLoadFailed}
+          onRetrySlots={() => setSlotsReloadKey((key) => key + 1)}
           addons={scopedAddons}
           selectedAddons={selectedAddons}
           onToggleAddon={toggleAddon}
@@ -537,7 +547,7 @@ function BookContent() {
                       ? 'border-sky-400 text-sky-400 font-bold'
                       : currentStep > item.step
                       ? 'border-emerald-500 text-emerald-400'
-                      : 'border-slate-800 text-slate-600'
+                      : 'border-slate-800 text-slate-400'
                   }`}
                 >
                   {item.label}
@@ -628,7 +638,7 @@ function BookContent() {
                   onClick={() => !exceedsSlotWindow && toggleAddon(addon.id)}
                   className={`p-5 rounded-xl border transition-all flex flex-col justify-between ${
                     exceedsSlotWindow
-                      ? 'border-slate-800/50 bg-slate-950/40 opacity-55 cursor-not-allowed'
+                      ? 'border-slate-800/50 bg-slate-950/40 cursor-not-allowed'
                       : isChecked
                       ? 'border-sky-400 bg-sky-500/10 shadow-glow cursor-pointer'
                       : isMissionModule
@@ -661,7 +671,7 @@ function BookContent() {
                         Needs +{addonMin}m (Max {maxSlotMinutes}m available at {selectedSlot?.startTime})
                       </span>
                     ) : (
-                      <span className={isChecked ? 'text-sky-400 font-bold' : 'text-slate-500'}>
+                      <span className={isChecked ? 'text-sky-400 font-bold' : 'text-slate-400'}>
                         {isChecked
                           ? `${t.booking.addedToFlight}${addonMin > 0 ? ` (+${addonMin} min)` : ''}`
                           : t.booking.clickToAdd}
@@ -669,6 +679,7 @@ function BookContent() {
                     )}
                     <input
                       type="checkbox"
+                      aria-label={addon.name}
                       checked={isChecked}
                       disabled={exceedsSlotWindow}
                       onChange={() => {}}
@@ -722,7 +733,7 @@ function BookContent() {
         <form onSubmit={handleCompleteBooking} className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start max-w-6xl mx-auto">
           <div className="lg:col-span-7 space-y-6">
             <div className="space-y-1 border-b border-slate-800 pb-4">
-              <h2 className="text-2xl font-black text-white">{t.booking.step4Title}</h2>
+              <h1 className="text-2xl font-black text-white">{t.booking.step4Title}</h1>
               <p className="text-xs text-slate-400">
                 {t.booking.step4Subtitle}
               </p>
@@ -730,10 +741,11 @@ function BookContent() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5 sm:col-span-2">
-                <label className="text-xs font-mono uppercase text-slate-400 font-semibold">
+                <label htmlFor={`${formId}-pilot-name`} className="text-xs font-mono uppercase text-slate-400 font-semibold">
                   {t.booking.pilotName}
                 </label>
                 <input
+                  id={`${formId}-pilot-name`}
                   type="text"
                   required
                   value={pilotName}
@@ -744,10 +756,11 @@ function BookContent() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-mono uppercase text-slate-400 font-semibold">
+                <label htmlFor={`${formId}-pilot-email`} className="text-xs font-mono uppercase text-slate-400 font-semibold">
                   {t.booking.pilotEmail}
                 </label>
                 <input
+                  id={`${formId}-pilot-email`}
                   type="email"
                   required
                   value={pilotEmail}
@@ -758,10 +771,11 @@ function BookContent() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-mono uppercase text-slate-400 font-semibold">
+                <label htmlFor={`${formId}-pilot-phone`} className="text-xs font-mono uppercase text-slate-400 font-semibold">
                   {t.booking.pilotPhone}
                 </label>
                 <input
+                  id={`${formId}-pilot-phone`}
                   type="tel"
                   required
                   value={pilotPhone}
@@ -774,10 +788,11 @@ function BookContent() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-mono uppercase text-slate-400 font-semibold">
+              <label htmlFor={`${formId}-pilot-experience`} className="text-xs font-mono uppercase text-slate-400 font-semibold">
                 {t.booking.pilotExperience}
               </label>
               <select
+                id={`${formId}-pilot-experience`}
                 value={experienceLevel}
                 onChange={(e) => setExperienceLevel(e.target.value as PilotExperienceLevel)}
                 className="w-full rounded-lg bg-slate-950 border border-slate-800 p-2.5 text-sm text-white focus:outline-none focus:border-sky-500"
@@ -790,10 +805,11 @@ function BookContent() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-mono uppercase text-slate-400 font-semibold">
+              <label htmlFor={`${formId}-special-requests`} className="text-xs font-mono uppercase text-slate-400 font-semibold">
                 {t.booking.specialRequests}
               </label>
               <textarea
+                id={`${formId}-special-requests`}
                 rows={2}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
@@ -844,6 +860,9 @@ function BookContent() {
                   <div className="flex gap-2">
                     <input
                       type="text"
+                      aria-label={t.booking.voucherPromoTitle}
+                      aria-invalid={voucherError ? true : undefined}
+                      aria-describedby={voucherError ? `${formId}-voucher-error` : undefined}
                       placeholder={t.booking.voucherPlaceholder}
                       value={voucherCode}
                       onChange={(e) => setVoucherCode(e.target.value)}
@@ -877,7 +896,11 @@ function BookContent() {
               )}
 
               {voucherSuccess && <p className="text-xs text-emerald-400 font-mono">{voucherSuccess}</p>}
-              {voucherError && <p className="text-xs text-red-400 font-mono">{voucherError}</p>}
+              {voucherError && (
+                <p id={`${formId}-voucher-error`} role="alert" className="text-xs text-red-400 font-mono">
+                  {voucherError}
+                </p>
+              )}
             </div>
           </div>
 
@@ -1008,7 +1031,9 @@ function BookContent() {
 
 export default function BookPage() {
   return (
-    <Suspense fallback={<div className="py-24 text-center text-slate-400 font-mono text-sm">Initializing Boeing 737 MAX Flight Deck...</div>}>
+    // The fallback reserves a viewport of height so the storefront replacing it does not
+    // shove the footer up the screen (cumulative layout shift).
+    <Suspense fallback={<div className="min-h-screen py-24 text-center text-slate-400 font-mono text-sm">Initializing Boeing 737 MAX Flight Deck...</div>}>
       <BookContent />
     </Suspense>
   );

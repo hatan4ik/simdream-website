@@ -26,16 +26,19 @@ export function LanguageSelector({ variant = 'compact' }: { variant?: 'compact' 
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-800 bg-slate-900/80 hover:bg-slate-800 text-xs text-slate-200 font-mono transition-colors shadow-sm"
-        aria-label="Select Language"
+        aria-haspopup="true"
+        aria-expanded={isOpen}
       >
-        <span className="text-sm leading-none">{currentLanguageInfo.flag}</span>
+        {/* The visible code plus the native language name form the accessible name (WCAG 2.5.3). */}
+        <span className="text-sm leading-none" aria-hidden="true">{currentLanguageInfo.flag}</span>
         <span className="font-bold uppercase">{currentLanguageInfo.code}</span>
+        <span className="sr-only">{currentLanguageInfo.nativeName}</span>
         <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (
         <div className="absolute right-0 rtl:right-auto rtl:left-0 mt-2 w-44 rounded-xl border border-slate-800 bg-slate-900 shadow-2xl py-1.5 z-50 text-xs font-mono">
-          <div className="px-3 py-1.5 text-[10px] text-slate-500 uppercase tracking-wider border-b border-slate-800/80">
+          <div className="px-3 py-1.5 text-[10px] text-slate-400 uppercase tracking-wider border-b border-slate-800/80">
             Select Language
           </div>
 

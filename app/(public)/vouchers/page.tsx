@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useId, useState } from 'react';
 import {
   Gift,
   Plane,
@@ -13,6 +13,7 @@ import { useLanguage } from '@/lib/i18n/language-context';
 
 export default function VouchersPage() {
   const { t, isRTL } = useLanguage();
+  const fieldId = useId();
   const [selectedTier, setSelectedTier] = useState<number>(890);
   const [customAmount, setCustomAmount] = useState<string>('');
   const [recipientName, setRecipientName] = useState<string>('Aviad Stern');
@@ -64,14 +65,18 @@ export default function VouchersPage() {
       // The voucher code is revealed only after verified payment, never before checkout.
       window.location.href = checkoutData.url;
     } catch (err: unknown) {
-      setPurchaseMessage(err instanceof Error ? err.message : 'Payment initialization failed.');
+      // fetch rejects with a TypeError on network loss; never show the raw "Failed to fetch".
+      const offline = err instanceof TypeError || (typeof navigator !== 'undefined' && !navigator.onLine);
+      setPurchaseMessage(
+        offline ? t.booking.offlineError : err instanceof Error ? err.message : 'Payment initialization failed.'
+      );
     } finally {
       setIsProcessing(false);
     }
   };
 
   return (
-    <div className="flex-1 py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-16">
+    <div className="flex-1 w-full min-w-0 py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-16">
       {/* Header */}
       <div className="text-center max-w-3xl mx-auto space-y-4">
         <Badge variant="sky">{t.experiences.giftTeaserBadge}</Badge>
@@ -126,8 +131,9 @@ export default function VouchersPage() {
 
               {/* Custom amount */}
               <div className="relative pt-2">
-                <label className="text-xs font-mono text-slate-400 block mb-1.5">{t.vouchers.customAmountLabel}</label>
+                <label htmlFor={`${fieldId}-amount`} className="text-xs font-mono text-slate-400 block mb-1.5">{t.vouchers.customAmountLabel}</label>
                 <input
+                  id={`${fieldId}-amount`}
                   type="number"
                   placeholder={t.vouchers.customAmountPlaceholder}
                   value={customAmount}
@@ -154,8 +160,9 @@ export default function VouchersPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-mono text-slate-400 uppercase">{t.vouchers.recipientNameLabel}</label>
+                  <label htmlFor={`${fieldId}-recipient-name`} className="text-xs font-mono text-slate-400 uppercase">{t.vouchers.recipientNameLabel}</label>
                   <input
+                    id={`${fieldId}-recipient-name`}
                     type="text"
                     required
                     value={recipientName}
@@ -166,20 +173,22 @@ export default function VouchersPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-mono text-slate-400 uppercase">{t.vouchers.recipientEmailLabel}</label>
+                  <label htmlFor={`${fieldId}-recipient-email`} className="text-xs font-mono text-slate-400 uppercase">{t.vouchers.recipientEmailLabel}</label>
                   <input
+                    id={`${fieldId}-recipient-email`}
                     type="email"
                     value={recipientEmail}
                     onChange={(e) => setRecipientEmail(e.target.value)}
                     placeholder={t.vouchers.recipientEmailPlaceholder}
                     className="w-full rounded-lg bg-slate-950 border border-slate-800 p-2.5 text-sm text-white focus:outline-none focus:border-sky-500"
                   />
-                  <p className="text-[11px] text-slate-500">{t.vouchers.recipientEmailHint}</p>
+                  <p className="text-[11px] text-slate-400">{t.vouchers.recipientEmailHint}</p>
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-mono text-slate-400 uppercase">{t.vouchers.senderNameLabel}</label>
+                  <label htmlFor={`${fieldId}-sender-name`} className="text-xs font-mono text-slate-400 uppercase">{t.vouchers.senderNameLabel}</label>
                   <input
+                    id={`${fieldId}-sender-name`}
                     type="text"
                     required
                     value={senderName}
@@ -190,8 +199,9 @@ export default function VouchersPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-mono text-slate-400 uppercase">{t.vouchers.senderEmailLabel}</label>
+                  <label htmlFor={`${fieldId}-sender-email`} className="text-xs font-mono text-slate-400 uppercase">{t.vouchers.senderEmailLabel}</label>
                   <input
+                    id={`${fieldId}-sender-email`}
                     type="email"
                     required
                     value={senderEmail}
@@ -203,8 +213,9 @@ export default function VouchersPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-mono text-slate-400 uppercase">{t.vouchers.greetingLabel}</label>
+                <label htmlFor={`${fieldId}-greeting`} className="text-xs font-mono text-slate-400 uppercase">{t.vouchers.greetingLabel}</label>
                 <textarea
+                  id={`${fieldId}-greeting`}
                   rows={3}
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
