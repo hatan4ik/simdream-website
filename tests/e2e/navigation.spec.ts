@@ -97,7 +97,7 @@ test('opens the customer story from the About & How It Works call to action', as
   await expect(page.getByRole('heading', { level: 1, name: /Where Aviation Dreams Take Flight/ })).toBeVisible();
 });
 
-test('publishes the official Instagram and Facebook profiles on the customer story page', async ({ page }) => {
+test('publishes the official social profiles on the customer story page', async ({ page }) => {
   await page.goto('/about');
 
   await expect(page.getByRole('link', { name: 'Instagram' })).toHaveAttribute(
@@ -107,6 +107,10 @@ test('publishes the official Instagram and Facebook profiles on the customer sto
   await expect(page.getByRole('link', { name: 'Facebook' })).toHaveAttribute(
     'href',
     'https://www.facebook.com/Sim-Dream-Israel-104268755679413'
+  );
+  await expect(page.getByRole('link', { name: 'YouTube' })).toHaveAttribute(
+    'href',
+    'https://www.youtube.com/@SimDreamIsrael'
   );
 });
 

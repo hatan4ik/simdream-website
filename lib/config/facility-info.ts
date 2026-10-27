@@ -43,6 +43,7 @@ export const FACILITY_INFO = {
   social: {
     instagramUrl: 'https://www.instagram.com/simdream_israel/',
     facebookUrl: 'https://www.facebook.com/Sim-Dream-Israel-104268755679413',
+    youtubeUrl: 'https://www.youtube.com/@SimDreamIsrael',
   },
   requirements: {
     minimumAgeYears: 10,
