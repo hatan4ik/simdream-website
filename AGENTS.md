@@ -13,6 +13,7 @@ Comprehensive source of truth and professional prompt instructions for all engin
 
 > 📐 **Visual Architecture Diagrams**: Visual system topology, adaptive booking workflows, scheduler engine pipelines, and payment sequence diagrams are maintained in [`ARCHITECTURE.md`](ARCHITECTURE.md).
 > 🎛️ **Dashboard Reproduction Specification**: The complete master AI prompt and architectural blueprint for reproducing the Member Flight Deck (`/dashboard`) and Admin Dispatch Command Center (`/admin`) is documented in [`DASHBOARD_REPRODUCTION_SPEC.md`](DASHBOARD_REPRODUCTION_SPEC.md).
+> 🧬 **Master Genesis Prompt & Reverse-Engineering Blueprint**: Start with the source-verified [`FULL_CODEBASE_REVIEW.md`](FULL_CODEBASE_REVIEW.md), then use [`WEBSITE_GENESIS.md`](WEBSITE_GENESIS.md) as the one-shot prompt for building the entire platform from scratch.
 
 ---
 

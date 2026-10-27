@@ -17,8 +17,8 @@ flowchart TD
     end
 
     subgraph RoutingLayer["Edge Routing & Next.js 16 App Router"]
-        CanonicalRedirects["Canonical 301 Permanent Redirects<br/>/about, /simulator, /training ➔ /pro"]
-        PublicPages["Public Pages<br/>/ • /pro • /experiences • /book<br/>/workshops • /vouchers • /contact"]
+        CanonicalRedirects["Canonical 301 Permanent Redirects<br/>/simulator, /training ➔ /pro"]
+        PublicPages["Public Pages<br/>/ • /about • /pro • /experiences • /book<br/>/workshops • /vouchers • /contact"]
         MemberPages["Member Dashboard<br/>/dashboard • /login • /auth"]
         AdminPages["Admin Dispatch Hub<br/>/admin (Bookings, Vouchers, CRM)"]
     end
@@ -41,12 +41,13 @@ flowchart TD
     subgraph PersistenceLayer["Persistence & External Services"]
         SupabaseDB[("Supabase PostgreSQL<br/>Row-Level Security & Exclusion Constraints")]
         InMemoryFallback[("In-Memory Store Fallback<br/>Local Dev & Non-500 Demo Resilience")]
-        StripeService["Stripe Hosted Checkout<br/>Credit Cards & Apple Pay"]
-        GooglePlaces["Google Places API<br/>Live 4.9★ Reviews Ticker"]
+        StripeService["Stripe Hosted Checkout<br/>Card payment flow"]
+        GooglePlaces["Google Places API<br/>24h cached snapshot + local fallback"]
     end
 
     User --> ThemeEngine --> I18nEngine --> StorefrontUI
-    StorefrontUI --> CanonicalRedirects --> PublicPages
+    CanonicalRedirects --> PublicPages
+    StorefrontUI --> PublicPages
     PublicPages --> NoiseFreeAdapter
     PublicPages --> MemberPages
     PublicPages --> AdminPages
@@ -166,7 +167,7 @@ sequenceDiagram
         Server->>DB: Mark Voucher Redeemed & Create Confirmed Booking
         Server-->>Browser: HTTP 200 { success: true, bookingReference: "SD-..." }
         Browser-->>Customer: Redirect to /book/success
-    else Credit Card / Apple Pay Checkout
+    else Card Checkout
         Server->>DB: Create Pending Booking with UUID
         Server->>Stripe: Create Stripe Checkout Session (metadata: booking_id, slot_id)
         Stripe-->>Server: Checkout URL (stripe.com/pay/cs_test_...)
@@ -174,14 +175,14 @@ sequenceDiagram
         deactivate Server
         Browser-->>Customer: Redirect to Stripe Hosted Checkout
         Customer->>Stripe: Completes Card Payment
-        Stripe-->>Customer: Redirects to /book/success?session_id=...
+        Stripe-->>Customer: Redirects to /book/success?ref=...&session_id=...
 
         Note over Stripe,Webhook: Asynchronous Secure Webhook
         Stripe->>Webhook: POST /api/webhooks/stripe (checkout.session.completed)
         activate Webhook
         Webhook->>Webhook: Verify Stripe-Signature header
         Webhook->>DB: UPDATE bookings SET status='confirmed', payment_status='paid'
-        Webhook->>Admin: Live Realtime Broadcast to Dispatch Screen
+        Admin->>Server: Refreshes dispatch data through protected APIs
         Webhook-->>Stripe: HTTP 200 { received: true }
         deactivate Webhook
     end
@@ -265,4 +266,3 @@ flowchart TD
     Stage3 --> Stage4
     Stage4 --> QualityReport(["Comprehensive Quality Report<br/>test-results/quality-report.md"])
 ```
-

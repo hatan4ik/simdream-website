@@ -8,6 +8,7 @@
 Production-grade website, multi-step booking engine, Amazon-style flight storefront, gift-voucher terminal, corporate CRM workshop portal, member purchase dashboard, and flight-dispatch command system for **Sim Dream LTD** (`simdream.co.il`), located at **Gershon Shatz St 36, Tel Aviv-Yafo, Israel** (Yehudit Light Rail / HaShalom Train Station • `055-507-1307` • `desk@simdream.co.il`).
 
 > 📐 **System Architecture & Visual Diagrams**: See [`ARCHITECTURE.md`](ARCHITECTURE.md) for full Mermaid sequence, workflow, topology, and interval-scheduling engine diagrams.
+> 🧬 **Master Genesis Prompt & System Blueprint**: Start with the source-verified [`FULL_CODEBASE_REVIEW.md`](FULL_CODEBASE_REVIEW.md), then use [`WEBSITE_GENESIS.md`](WEBSITE_GENESIS.md) as the one-shot prompt to reproduce this platform from scratch.
 
 ---
 
@@ -65,7 +66,7 @@ Production-grade website, multi-step booking engine, Amazon-style flight storefr
      - Every displayed choice remains server-validated at checkout; unavailable dates, changed inventory, or add-ons that no longer fit produce a clear in-context error rather than a stale reservation.
    - **Quiet UI & Mobile/iPhone Optimization (`KantorovichCalendarScheduler.tsx`)**:
      - **Zero Technical Clutter**: Capacity rules run silently in the backend; customer-facing date cells, duration pills, and slot buttons display clean, human-readable times, prices, and **`★ Best Match`** badges without internal jargon.
-     - **iPhone & Modern Smartphone Ergonomics**: Horizontal touch-snap 14-day ribbon (`overflow-x-auto snap-x snap-mandatory`), 2-column generous mobile time-slot grid (`min-h-[64px]`), floating sticky bottom confirmation bar (`sticky bottom-3`), and `touch-action: manipulation` (zero 300ms tap delay).
+     - **iPhone & Modern Smartphone Ergonomics**: Localized **month calendar by default** with an optional compact week view, 2-column generous mobile time-slot grid (`min-h-[64px]`), floating sticky bottom confirmation bar (`sticky bottom-3`), and `touch-action: manipulation` (zero 300ms tap delay).
      - **100% Browser-Blocker Immunity**: Built with semantic first-party `<button type="button">` elements and inline React state—zero iframes, popups, or ad-triggering class names.
    - **35-Day Pre-Populated QA Seed Dataset (`lib/db/seed-data.ts`)**:
      - `generateMonthAheadBookings()` pre-populates **105+ realistic flight bookings across the next 35 days** covering all 5 packages and rotating Sunday–Thursday, Friday (`09:00–16:00` with `15:15` 30m closer), and Saturday (`19:00–24:00` Prime-Time) schedules.
