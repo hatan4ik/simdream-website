@@ -24,6 +24,12 @@ const contentSecurityPolicy = [
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // `next dev` starts on localhost by default, while developers sometimes open
+  // the same loopback server through 127.0.0.1. Next 16 blocks that alternate
+  // origin for HMR/dev assets unless it is explicitly allowlisted. Without the
+  // client bundle, interactive controls such as the language selector cannot
+  // hydrate and the server-rendered English default remains visible.
+  allowedDevOrigins: ['127.0.0.1'],
   // Do not advertise the framework (X-Powered-By: Next.js).
   poweredByHeader: false,
   // Lets a test build go to a separate folder (NEXT_DIST_DIR) without disturbing .next.

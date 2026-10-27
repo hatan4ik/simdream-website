@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:9c5be991c94026e7de14f829576ebcb58705f54e1d80fa087d96785022a33dfb -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:9f59b31e8235159c3197cc9c14f398c935becd7ebd583aa76a18ff06a1de3f33 -->
 
 ## Verification contract
 
@@ -54,6 +54,8 @@ No repository review can prove Supabase OAuth providers, Stripe webhook delivery
 | Reviews | Google Places API, cached 24 h with ISR | Live rating and review excerpts with a checked-in fallback snapshot. |
 | Testing | Vitest 5 (+ v8 coverage), fast-check, Playwright 1.64, axe-core, autocannon, Lighthouse CI (via `npx`) | The four quality gates (see Phase 2). |
 | Runtime | Node 22, hosted on Vercel (serverless functions and static prerender) | |
+
+**Local development origin:** Next 16's dev resource guard permits the explicit loopback hostname `127.0.0.1` in `next.config.mjs` in addition to Next's default `localhost`. This is deliberately local-only development configuration: it keeps HMR and client hydration working when a developer opens `http://127.0.0.1:3000`, without allowing tunnels or arbitrary network origins.
 
 ### 2. System architecture
 
