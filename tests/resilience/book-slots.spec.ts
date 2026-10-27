@@ -37,12 +37,12 @@ const fullyBooked = (route: Route) =>
     ),
   });
 
-/** A strip date at least two days out, so it is never the initially selected (tomorrow) date. */
+/** A visible calendar date at least two days out, so it is never the initially selected (tomorrow) date. */
 const laterStripDay = (predicate: (weekday: number) => boolean = () => true) => {
   const day = israelStripDays()
     .slice(2)
     .find((candidate) => predicate(candidate.weekday));
-  if (!day) throw new Error('No matching day in the 14-day strip');
+  if (!day) throw new Error('No matching date in the current calendar range');
   return day;
 };
 
@@ -220,22 +220,24 @@ test.describe('/book when the slots API is slow', () => {
   });
 });
 
-test.describe('/book date strip', () => {
-  test('lists 14 distinct consecutive days starting today (control)', async ({ page, baseURL }) => {
+test.describe('/book month calendar', () => {
+  test('defaults to a month grid with upcoming dates selectable (control)', async ({ page, baseURL }) => {
     const midNovember = new Date('2026-11-10T12:00:00+02:00');
     await page.clock.setFixedTime(midNovember);
     await openBookingPage(page, baseURL);
+    await expect(page.getByRole('button', { name: 'Month', exact: true })).toHaveAttribute('aria-pressed', 'true');
 
     for (const day of israelStripDays(midNovember)) {
       await expect(page.getByRole('button', { name: day.name })).toHaveCount(1);
     }
   });
 
-  test('lists 14 distinct consecutive days across the October DST change (REL-14)', async ({ page, baseURL }) => {
+  test('keeps upcoming dates unique across the October DST change (REL-14)', async ({ page, baseURL }) => {
     test.slow();
     const beforeFallBack = new Date('2026-10-20T12:00:00+03:00');
     await page.clock.setFixedTime(beforeFallBack);
     await openBookingPage(page, baseURL);
+    await expect(page.getByRole('button', { name: 'Month', exact: true })).toHaveAttribute('aria-pressed', 'true');
 
     for (const day of israelStripDays(beforeFallBack)) {
       await expect(page.getByRole('button', { name: day.name })).toHaveCount(1);

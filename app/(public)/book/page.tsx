@@ -402,7 +402,7 @@ function BookContent() {
 
   return (
     // w-full min-w-0: with mx-auto inside the flex-column main, the page otherwise
-    // shrink-wraps to the 14-day ribbon and becomes ~1056px wide on phones.
+    // shrink-wraps to calendar controls and becomes too wide on phones.
     <div className="flex-1 w-full min-w-0 py-8 sm:py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-8">
       {/* Top View-Mode Switcher: Amazon-Style 1-Page Express Storefront vs Guided 3-Step Wizard */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pb-4 border-b border-slate-800/80">

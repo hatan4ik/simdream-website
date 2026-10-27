@@ -20,10 +20,19 @@ import {
   PublicCapacityReport,
   SlotBlockPeriod,
 } from '@/types';
-import { formatCurrency, formatDate, formatLocalYMD } from '@/lib/utils';
+import { formatCurrency, formatLocalYMD } from '@/lib/utils';
 import { useModalFocus } from '@/lib/ui/use-modal-focus';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { Language } from '@/lib/i18n/translations';
+import {
+  calendarMonthCells,
+  calendarWeekDays,
+  calendarWeekdayNames,
+  formatCalendarDate,
+  formatCalendarDayNumber,
+  formatCalendarMonth,
+  monthStartForYmd,
+} from '@/lib/i18n/calendar-presentation';
 import { addMinutesToTime, packageFromPriceIls, packagePriceForSlot } from '@/lib/scheduler/mission-calculator';
 
 interface KantorovichCalendarSchedulerProps {
@@ -46,8 +55,11 @@ const CLEAN_COPY: Record<
     selectDuration: string;
     selectDate: string;
     selectTime: string;
-    viewStrip: string;
+    viewWeek: string;
     viewMonth: string;
+    previousMonth: string;
+    nextMonth: string;
+    checkNextDay: string;
     morning: string;
     afternoon: string;
     evening: string;
@@ -67,8 +79,11 @@ const CLEAN_COPY: Record<
     selectDate: '1. Select Date',
     selectDuration: '2. Available Flight Durations',
     selectTime: '3. Select Departure Time',
-    viewStrip: '14 Days',
-    viewMonth: 'Full Month',
+    viewWeek: 'Week',
+    viewMonth: 'Month',
+    previousMonth: 'Previous month',
+    nextMonth: 'Next month',
+    checkNextDay: 'Check Next Day →',
     morning: 'Morning',
     afternoon: 'Afternoon',
     evening: 'Evening',
@@ -100,8 +115,11 @@ const CLEAN_COPY: Record<
     selectDate: '1. בחירת תאריך',
     selectDuration: '2. משך הטיסה (זמין ליום זה)',
     selectTime: '3. בחירת שעת המראה',
-    viewStrip: '14 ימים',
-    viewMonth: 'חודש מלא',
+    viewWeek: 'שבוע',
+    viewMonth: 'חודש',
+    previousMonth: 'החודש הקודם',
+    nextMonth: 'החודש הבא',
+    checkNextDay: 'בדיקת היום הבא ←',
     morning: 'בוקר',
     afternoon: 'צהריים',
     evening: 'ערב',
@@ -133,8 +151,11 @@ const CLEAN_COPY: Record<
     selectDate: '1. Выберите дату',
     selectDuration: '2. Доступная длительность полёта',
     selectTime: '3. Время вылета',
-    viewStrip: '14 дней',
+    viewWeek: 'Неделя',
     viewMonth: 'Месяц',
+    previousMonth: 'Предыдущий месяц',
+    nextMonth: 'Следующий месяц',
+    checkNextDay: 'Следующий день →',
     morning: 'Утро',
     afternoon: 'День',
     evening: 'Вечер',
@@ -166,8 +187,11 @@ const CLEAN_COPY: Record<
     selectDate: '1. Choisir la Date',
     selectDuration: '2. Durées Disponibles',
     selectTime: '3. Heure de Départ',
-    viewStrip: '14 Jours',
+    viewWeek: 'Semaine',
     viewMonth: 'Mois',
+    previousMonth: 'Mois précédent',
+    nextMonth: 'Mois suivant',
+    checkNextDay: 'Jour suivant →',
     morning: 'Matin',
     afternoon: 'Après-midi',
     evening: 'Soirée',
@@ -199,8 +223,11 @@ const CLEAN_COPY: Record<
     selectDate: '1. اختر التاريخ',
     selectDuration: '2. مدد الطيران المتاحة',
     selectTime: '3. وقت الإقلاع',
-    viewStrip: '14 يوماً',
+    viewWeek: 'أسبوع',
     viewMonth: 'الشهر',
+    previousMonth: 'الشهر السابق',
+    nextMonth: 'الشهر التالي',
+    checkNextDay: 'فحص اليوم التالي ←',
     morning: 'الصباح',
     afternoon: 'الظهيرة',
     evening: 'المساء',
@@ -459,17 +486,13 @@ export function KantorovichCalendarScheduler({
   const copy = CLEAN_COPY[language] || CLEAN_COPY.en;
   const bpCopy = BLUEPRINT_COPY[language] || BLUEPRINT_COPY.en;
 
-  const [calendarMode, setCalendarMode] = useState<'horizon' | 'month'>('horizon');
+  const [calendarMode, setCalendarMode] = useState<'week' | 'month'>('month');
   const [blueprintModalPackage, setBlueprintModalPackage] = useState<SimulatorPackage | null>(null);
   const blueprintPanelRef = useModalFocus<HTMLDivElement>(blueprintModalPackage !== null, () =>
     setBlueprintModalPackage(null)
   );
 
-  // Month cursor for Full Month Grid view
-  const [viewMonthDate, setViewMonthDate] = useState<Date>(() => {
-    const [y, m, d] = selectedDate.split('-').map(Number);
-    return new Date(y, m - 1, d || 1);
-  });
+  const [viewMonthDate, setViewMonthDate] = useState<Date>(() => monthStartForYmd(selectedDate));
 
   // Deduplicate packages by duration
   const durationOptions = useMemo(() => {
@@ -488,62 +511,12 @@ export function KantorovichCalendarScheduler({
     );
   }, [packages, selectedPackage.id]);
 
-  // 14-day swipeable strip
-  const horizonDays = useMemo(() => {
-    const list: {
-      dateStr: string;
-      dayNum: number;
-      dowIndex: number;
-      monthShort: string;
-    }[] = [];
-    const base = new Date();
-
-    for (let i = 0; i < 14; i++) {
-      // Calendar arithmetic: 24h steps repeat or skip a day across a DST change.
-      const d = new Date(base.getFullYear(), base.getMonth(), base.getDate() + i);
-      list.push({
-        dateStr: formatLocalYMD(d),
-        dayNum: d.getDate(),
-        dowIndex: d.getDay(),
-        monthShort: copy.monthNames[d.getMonth()]?.slice(0, 3) || '',
-      });
-    }
-    return list;
-  }, [copy.monthNames]);
-
-  // Full Month Calendar Grid
-  const monthGridDays = useMemo(() => {
-    const year = viewMonthDate.getFullYear();
-    const month = viewMonthDate.getMonth();
-    const firstDayOfMonth = new Date(year, month, 1);
-    const lastDayOfMonth = new Date(year, month + 1, 0);
-    const startDow = firstDayOfMonth.getDay();
-    const totalDays = lastDayOfMonth.getDate();
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const cells: Array<{
-      dateStr: string | null;
-      dayNum: number | null;
-      isPast: boolean;
-    }> = [];
-
-    for (let i = 0; i < startDow; i++) {
-      cells.push({ dateStr: null, dayNum: null, isPast: true });
-    }
-
-    for (let day = 1; day <= totalDays; day++) {
-      const cellDate = new Date(year, month, day);
-      cells.push({
-        dateStr: formatLocalYMD(cellDate),
-        dayNum: day,
-        isPast: cellDate < today,
-      });
-    }
-
-    return cells;
-  }, [viewMonthDate]);
+  const weekDays = useMemo(() => calendarWeekDays(selectedDate, language), [language, selectedDate]);
+  const weekdayNames = useMemo(() => calendarWeekdayNames(language), [language]);
+  const monthGridDays = useMemo(
+    () => calendarMonthCells(viewMonthDate, language, formatLocalYMD(new Date())),
+    [language, viewMonthDate]
+  );
 
   // Group available & booked slots cleanly into Morning, Afternoon, Evening
   // (Silently filtering out internal anti-gap locked slots so the UI stays 100% clean)
@@ -586,6 +559,11 @@ export function KantorovichCalendarScheduler({
     if (target) onSelectPackage(target);
   };
 
+  const handleSelectDate = (date: string) => {
+    setViewMonthDate(monthStartForYmd(date));
+    onSelectDate(date);
+  };
+
   return (
     <div className="space-y-6 select-none" style={{ touchAction: 'manipulation' }}>
       {/* SECTION 1: MOBILE-OPTIMIZED CALENDAR PICKER */}
@@ -596,21 +574,23 @@ export function KantorovichCalendarScheduler({
             <span>{copy.selectDate}</span>
           </h2>
 
-          {/* Clean 14-Day vs Month Switcher */}
+          {/* Month is the default; a compact local-week view remains one tap away. */}
           <div className="inline-flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800">
             <button
               type="button"
-              onClick={() => setCalendarMode('horizon')}
+              aria-pressed={calendarMode === 'week'}
+              onClick={() => setCalendarMode('week')}
               className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
-                calendarMode === 'horizon'
+                calendarMode === 'week'
                   ? 'bg-sky-500 text-slate-950'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
-              {copy.viewStrip}
+              {copy.viewWeek}
             </button>
             <button
               type="button"
+              aria-pressed={calendarMode === 'month'}
               onClick={() => setCalendarMode('month')}
               className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
                 calendarMode === 'month'
@@ -623,16 +603,18 @@ export function KantorovichCalendarScheduler({
           </div>
         </div>
 
-        {/* 14-DAY STRIP: Horizontal swipe on iPhone/Mobile, 7-col grid on Desktop */}
-        {calendarMode === 'horizon' && (
+        {/* LOCAL WEEK: seven consecutive days, ordered for the active locale. */}
+        {calendarMode === 'week' && (
           <div className="flex md:grid md:grid-cols-7 gap-2 overflow-x-auto pb-1 -mx-1 px-1 snap-x snap-mandatory">
-            {horizonDays.map((day) => {
+            {weekDays.map((day) => {
               const isSelected = day.dateStr === selectedDate;
               return (
                 <button
                   key={day.dateStr}
                   type="button"
-                  onClick={() => onSelectDate(day.dateStr)}
+                  aria-label={day.dayLabel}
+                  aria-pressed={isSelected}
+                  onClick={() => handleSelectDate(day.dateStr)}
                   className={`snap-start shrink-0 min-w-[68px] sm:min-w-0 min-h-[72px] p-2.5 rounded-xl border text-center transition-all flex flex-col items-center justify-center ${
                     isSelected
                       ? 'border-sky-400 bg-sky-500/20 text-white ring-2 ring-sky-400 shadow-glow'
@@ -644,12 +626,12 @@ export function KantorovichCalendarScheduler({
                       isSelected ? 'text-sky-300 font-bold' : 'text-slate-400'
                     }`}
                   >
-                    {copy.dayNamesShort[day.dowIndex]}
+                    {day.weekdayLabel}
                   </span>
                   <span className="text-lg sm:text-xl font-black text-white leading-tight my-0.5">
-                    {day.dayNum}
+                    {formatCalendarDayNumber(day.dayNumber, language)}
                   </span>
-                  <span className="text-[10px] text-slate-400">{day.monthShort}</span>
+                  <span className="text-[10px] text-slate-400">{day.monthShortLabel}</span>
                 </button>
               );
             })}
@@ -662,6 +644,7 @@ export function KantorovichCalendarScheduler({
             <div className="flex items-center justify-between px-1">
               <button
                 type="button"
+                aria-label={copy.previousMonth}
                 onClick={() =>
                   setViewMonthDate(
                     new Date(viewMonthDate.getFullYear(), viewMonthDate.getMonth() - 1, 1)
@@ -672,10 +655,11 @@ export function KantorovichCalendarScheduler({
                 <ChevronLeft className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
               </button>
               <span className="text-sm font-bold text-white">
-                {copy.monthNames[viewMonthDate.getMonth()]} {viewMonthDate.getFullYear()}
+                {formatCalendarMonth(viewMonthDate, language)}
               </span>
               <button
                 type="button"
+                aria-label={copy.nextMonth}
                 onClick={() =>
                   setViewMonthDate(
                     new Date(viewMonthDate.getFullYear(), viewMonthDate.getMonth() + 1, 1)
@@ -688,7 +672,7 @@ export function KantorovichCalendarScheduler({
             </div>
 
             <div className="grid grid-cols-7 gap-1 text-center text-[11px] font-medium text-slate-400">
-              {copy.dayNamesShort.map((dName, idx) => (
+              {weekdayNames.map((dName, idx) => (
                 <div key={idx} className="py-1">
                   {dName}
                 </div>
@@ -696,26 +680,27 @@ export function KantorovichCalendarScheduler({
             </div>
 
             <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
-              {monthGridDays.map((cell, idx) => {
-                if (!cell.dateStr || !cell.dayNum) {
-                  return <div key={`empty-${idx}`} className="h-11 sm:h-12" />;
-                }
+              {monthGridDays.map((cell) => {
                 const isSelected = cell.dateStr === selectedDate;
                 return (
                   <button
                     key={cell.dateStr}
                     type="button"
+                    aria-label={cell.dayLabel}
+                    aria-pressed={isSelected}
                     disabled={cell.isPast}
-                    onClick={() => onSelectDate(cell.dateStr!)}
+                    onClick={() => handleSelectDate(cell.dateStr)}
                     className={`h-11 sm:h-12 rounded-xl border text-center font-semibold text-sm transition-all flex items-center justify-center ${
                       cell.isPast
                         ? 'opacity-25 border-transparent text-slate-600 cursor-not-allowed'
                         : isSelected
                         ? 'border-sky-400 bg-sky-500 text-slate-950 font-black shadow-glow'
-                        : 'border-slate-800/80 bg-slate-950/70 text-white hover:border-slate-700'
+                        : cell.isCurrentMonth
+                        ? 'border-slate-800/80 bg-slate-950/70 text-white hover:border-slate-700'
+                        : 'border-slate-800/50 bg-slate-950/40 text-slate-400 hover:border-slate-700'
                     }`}
                   >
-                    {cell.dayNum}
+                    {formatCalendarDayNumber(cell.dayNumber, language)}
                   </button>
                 );
               })}
@@ -821,7 +806,7 @@ export function KantorovichCalendarScheduler({
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <h2 className="text-sm sm:text-base font-bold text-white">
-              {copy.selectTime} — <span className="text-sky-400">{formatDate(selectedDate)}</span>
+              {copy.selectTime} — <span className="text-sky-400">{formatCalendarDate(selectedDate, language)}</span>
             </h2>
           </div>
           <span className="text-xs font-mono text-emerald-400">
@@ -850,10 +835,10 @@ export function KantorovichCalendarScheduler({
                 onClick={() => {
                   const [y, m, d] = selectedDate.split('-').map(Number);
                   const nextDate = new Date(y, (m || 1) - 1, (d || 1) + 1);
-                  onSelectDate(formatLocalYMD(nextDate));
+                  handleSelectDate(formatLocalYMD(nextDate));
                 }}
               >
-                {language === 'he' ? 'בדוק יום הבא ←' : language === 'ru' ? 'Проверить след. день →' : language === 'fr' ? 'Jour suivant →' : language === 'ar' ? 'فحص اليوم التالي ←' : 'Check Next Day →'}
+                {copy.checkNextDay}
               </Button>
               {selectedPackage.durationMinutes !== 60 && (
                 <Button

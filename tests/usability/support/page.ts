@@ -65,14 +65,14 @@ export async function gotoSettled(page: Page, route: string): Promise<void> {
   }
 }
 
-/** Departure-slot buttons of the default one-page storefront, e.g. "11:15 Up to 210m fit". */
+/** Departure-slot buttons of the default one-page storefront, whatever the active UI language. */
 export function storefrontSlotButtons(page: Page): Locator {
-  return page.getByRole('button', { name: /^\d{2}:\d{2} Up to \d+m fit$/ });
+  return page.getByRole('button', { name: /^\d{2}:\d{2}\s/ });
 }
 
 /** Heading of the actionable zero-slots recovery panel in the storefront. */
 export function zeroSlotHeading(page: Page): Locator {
-  return page.getByRole('heading', { name: /^No open runway slots for / });
+  return page.getByRole('heading', { name: /open runway slots|משבצות מסלול|свободных слотов|créneau de piste|مواعيد مسار/i });
 }
 
 /** Text of the element that currently has keyboard focus, for failure messages. */

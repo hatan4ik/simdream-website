@@ -115,7 +115,7 @@ export interface StripDay {
   name: RegExp;
 }
 
-/** The 14 consecutive Israel calendar days the /book date strip should offer, starting today. */
+/** Upcoming Israel calendar dates used by booking resilience journeys. */
 export function israelStripDays(now = new Date()): StripDay[] {
   const today = new Intl.DateTimeFormat('en-CA', {
     timeZone: 'Asia/Jerusalem',

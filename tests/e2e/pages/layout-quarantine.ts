@@ -3,7 +3,7 @@ import type { Page } from '@playwright/test';
 /**
  * Two known phone-layout defects make pages wider than the screen:
  *   E2E-15  the compact header row needs ~456px (Navbar.tsx:171);
- *   E2E-16  /book's root shrink-wraps the wizard's 14-day ribbon, so the
+ *   E2E-16  /book's root shrink-wraps the wizard's calendar, so the
  *           wizard is ~1056px wide (book/page.tsx:399 with
  *           KantorovichCalendarScheduler.tsx:628).
  * On Android Chrome the page then renders zoomed out (~37%), which also breaks

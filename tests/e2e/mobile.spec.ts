@@ -32,24 +32,16 @@ test.describe('mobile affordances', () => {
     await expect(chrome.navbar.getByRole('button', { name: /menu/i })).toBeVisible();
   });
 
-  test('scrolls the wizard date ribbon horizontally and selects an off-screen day by touch', async ({ page, booking }) => {
+  test('defaults to a month calendar and selects a date by touch', async ({ page, booking }) => {
     const farDay = israelDate(12);
     await booking.goto();
     const wizard = await booking.openWizard();
     const dayButton = booking.dateButton(farDay);
-    const ribbon = dayButton.locator('..');
-
-    const layout = await ribbon.evaluate((element) => ({
-      overflowX: getComputedStyle(element).overflowX,
-      snap: getComputedStyle(element).scrollSnapType,
-      scrollable: element.scrollWidth > element.clientWidth,
-    }));
-    expect(layout).toEqual({ overflowX: 'auto', snap: expect.stringContaining('x'), scrollable: true });
-    await expect(dayButton).not.toBeInViewport();
+    await expect(page.getByRole('button', { name: 'Month', exact: true })).toHaveAttribute('aria-pressed', 'true');
+    await expect(dayButton).toBeVisible();
 
     await dayButton.tap();
 
-    await expect(dayButton).toBeInViewport();
     await expect(wizard.departureHeading(farDay)).toBeVisible();
   });
 

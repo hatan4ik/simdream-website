@@ -57,7 +57,7 @@ function dynamicRegions(page: Page): Locator[] {
       .locator('section')
       .filter({ has: page.getByRole('button', { name: /\d+ \/ \d+$/ }) })
       .last(),
-    // Calendar day buttons of the 14-day strips.
+    // Calendar day buttons are clock-driven and masked in visual snapshots.
     page.getByRole('button', { name: /^(Sun|Mon|Tue|Wed|Thu|Fri|Sat) \d{1,2} [A-Z][a-z]{2}$/ }),
     // Footer live opening status.
     page.locator('footer').getByText(/OPEN NOW|CURRENTLY CLOSED|פתוח כעת|סגור כעת/),

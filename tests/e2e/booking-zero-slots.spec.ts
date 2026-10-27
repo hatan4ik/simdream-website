@@ -149,20 +149,27 @@ test.describe('zero-slot recovery (AGENTS.md section 4), guided wizard', () => {
   });
 });
 
-test.describe('14-day date ribbon', () => {
+test.describe('localized calendar views', () => {
   // Israel leaves daylight saving time on Sunday 25 October 2026, inside this window. A
   // 2026 weekday at noon keeps the prerendered footer (year, "OPEN NOW") identical to the
   // client render, so a footer hydration regression (E2E-12) cannot fail this test for an unrelated reason.
   const TUESDAY_BEFORE_DST_END = new Date('2026-10-20T12:00:00+03:00');
 
-  test('lists 14 consecutive days when the window crosses the autumn clock change (E2E-6)', async ({
+  test('defaults to the month view and offers a seven-day week across the autumn clock change (E2E-6)', async ({
     page,
     booking,
   }) => {
     await page.clock.setFixedTime(TUESDAY_BEFORE_DST_END);
     await booking.goto();
 
-    const expected = Array.from({ length: 14 }, (_, offset) => ribbonLabel(addDays('2026-10-20', offset)));
+    const month = page.getByRole('button', { name: 'Month', exact: true });
+    const week = page.getByRole('button', { name: 'Week', exact: true });
+    await expect(month).toHaveAttribute('aria-pressed', 'true');
+    await week.click();
+    await expect(week).toHaveAttribute('aria-pressed', 'true');
+
+    // The selected date is tomorrow (Wednesday 21 Oct), so the local Sunday-first week is 18–24 Oct.
+    const expected = Array.from({ length: 7 }, (_, offset) => ribbonLabel(addDays('2026-10-18', offset)));
     const ribbon = page.getByRole('button', { name: /^(Sun|Mon|Tue|Wed|Thu|Fri|Sat) \d{1,2} [A-Z][a-z]{2}$/ });
     await expect(ribbon).toHaveText(expected.map((label) => new RegExp(`^${label.replace(/ /g, '\\s*')}$`)));
   });

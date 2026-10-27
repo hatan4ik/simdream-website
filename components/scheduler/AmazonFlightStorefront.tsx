@@ -35,9 +35,19 @@ import {
   MissionManifestCalculation,
   SlotBlockPeriod,
 } from '@/types';
-import { addDaysToYmd, formatCurrency, formatDate, formatLocalYMD } from '@/lib/utils';
+import { addDaysToYmd, formatCurrency, formatLocalYMD } from '@/lib/utils';
 import { useModalFocus } from '@/lib/ui/use-modal-focus';
 import { useLanguage } from '@/lib/i18n/language-context';
+import type { Language } from '@/lib/i18n/translations';
+import {
+  calendarMonthCells,
+  calendarWeekDays,
+  calendarWeekdayNames,
+  formatCalendarDate,
+  formatCalendarDayNumber,
+  formatCalendarMonth,
+  monthStartForYmd,
+} from '@/lib/i18n/calendar-presentation';
 import { canAddonFitInSlot, packageFromPriceIls, sanitizePackageTitle } from '@/lib/scheduler/mission-calculator';
 import { FACILITY_INFO } from '@/lib/config/facility-info';
 
@@ -134,21 +144,141 @@ const WORLD_BUNDLE_IDS = new Set([
 
 const COCKPIT_OPS_IDS = new Set(['addon-cold-dark', 'addon-xwind-ifr', 'addon-extreme-airports']);
 
-const DAY_NAMES_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const MONTH_NAMES = [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December',
-];
+interface StorefrontCalendarCopy {
+  departureTitle: string;
+  departureSubtitle: string;
+  viewWeek: string;
+  viewMonth: string;
+  previousMonth: string;
+  nextMonth: string;
+  departureSlots: (date: string) => string;
+  selectedWindow: string;
+  maxAvailable: (minutes: number) => string;
+  checkNextDay: string;
+  noSlots: (packageTitle: string, date: string) => string;
+  noSlotsHint: string;
+  tryFlight: (minutes: number, price: string) => string;
+  bookedSlots: string;
+  booked: string;
+  morning: string;
+  afternoon: string;
+  evening: string;
+  upToFit: (minutes: number) => string;
+  packagesAvailable: (date: string) => string;
+}
+
+const STOREFRONT_CALENDAR_COPY: Record<Language, StorefrontCalendarCopy> = {
+  en: {
+    departureTitle: 'Select Departure Date & Runway Slot',
+    departureSubtitle: 'Real-time cockpit availability • Choose a date and departure time',
+    viewWeek: 'Week',
+    viewMonth: 'Month',
+    previousMonth: 'Previous month',
+    nextMonth: 'Next month',
+    departureSlots: (date) => `Departure Slots for ${date}:`,
+    selectedWindow: 'Selected window:',
+    maxAvailable: (minutes) => `Max ${minutes}m available`,
+    checkNextDay: 'Check Next Day →',
+    noSlots: (packageTitle, date) => `No open runway slots for ${packageTitle} on ${date}`,
+    noSlotsHint: 'All departure windows for this duration are currently booked or reserved. Choose another date or try an available duration today:',
+    tryFlight: (minutes, price) => `Try ${minutes}m (${price})`,
+    bookedSlots: 'Booked slots on this date:',
+    booked: 'Booked',
+    morning: 'Morning',
+    afternoon: 'Afternoon',
+    evening: 'Evening',
+    upToFit: (minutes) => `Up to ${minutes}m fit`,
+    packagesAvailable: (date) => `Showing packages with available runway time on ${date}`,
+  },
+  he: {
+    departureTitle: 'בחירת תאריך המראה ומשבצת מסלול',
+    departureSubtitle: 'זמינות תא טייס בזמן אמת • בחרו תאריך ושעת המראה',
+    viewWeek: 'שבוע',
+    viewMonth: 'חודש',
+    previousMonth: 'החודש הקודם',
+    nextMonth: 'החודש הבא',
+    departureSlots: (date) => `משבצות המראה עבור ${date}:`,
+    selectedWindow: 'חלון שנבחר:',
+    maxAvailable: (minutes) => `עד ${minutes} דקות זמינות`,
+    checkNextDay: 'בדיקת היום הבא ←',
+    noSlots: (packageTitle, date) => `אין משבצות מסלול פנויות עבור ${packageTitle} בתאריך ${date}`,
+    noSlotsHint: 'כל חלונות ההמראה למשך זה כבר תפוסים או שמורים. בחרו תאריך אחר או משך טיסה זמין להיום:',
+    tryFlight: (minutes, price) => `נסו ${minutes} דקות (${price})`,
+    bookedSlots: 'משבצות תפוסות בתאריך זה:',
+    booked: 'תפוס',
+    morning: 'בוקר',
+    afternoon: 'צהריים',
+    evening: 'ערב',
+    upToFit: (minutes) => `מתאים לעד ${minutes} דקות`,
+    packagesAvailable: (date) => `הצגת חבילות עם זמן מסלול זמין בתאריך ${date}`,
+  },
+  ru: {
+    departureTitle: 'Выберите дату и время вылета',
+    departureSubtitle: 'Доступность кабины в реальном времени • выберите дату и время вылета',
+    viewWeek: 'Неделя',
+    viewMonth: 'Месяц',
+    previousMonth: 'Предыдущий месяц',
+    nextMonth: 'Следующий месяц',
+    departureSlots: (date) => `Слоты вылета на ${date}:`,
+    selectedWindow: 'Выбранное окно:',
+    maxAvailable: (minutes) => `Доступно до ${minutes} мин.`,
+    checkNextDay: 'Следующий день →',
+    noSlots: (packageTitle, date) => `Нет свободных слотов для ${packageTitle} на ${date}`,
+    noSlotsHint: 'Все окна вылета для этой длительности заняты или зарезервированы. Выберите другую дату или доступную длительность сегодня:',
+    tryFlight: (minutes, price) => `Попробовать ${minutes} мин. (${price})`,
+    bookedSlots: 'Занятые слоты на эту дату:',
+    booked: 'Занято',
+    morning: 'Утро',
+    afternoon: 'День',
+    evening: 'Вечер',
+    upToFit: (minutes) => `Помещается до ${minutes} мин.`,
+    packagesAvailable: (date) => `Пакеты с доступным временем на ${date}`,
+  },
+  fr: {
+    departureTitle: 'Choisir la date et le créneau de départ',
+    departureSubtitle: 'Disponibilités du cockpit en temps réel • choisissez une date et une heure de départ',
+    viewWeek: 'Semaine',
+    viewMonth: 'Mois',
+    previousMonth: 'Mois précédent',
+    nextMonth: 'Mois suivant',
+    departureSlots: (date) => `Créneaux de départ pour le ${date} :`,
+    selectedWindow: 'Créneau sélectionné :',
+    maxAvailable: (minutes) => `Jusqu’à ${minutes} min disponibles`,
+    checkNextDay: 'Jour suivant →',
+    noSlots: (packageTitle, date) => `Aucun créneau de piste disponible pour ${packageTitle} le ${date}`,
+    noSlotsHint: 'Tous les créneaux de cette durée sont réservés. Choisissez une autre date ou une durée disponible aujourd’hui :',
+    tryFlight: (minutes, price) => `Essayer ${minutes} min (${price})`,
+    bookedSlots: 'Créneaux réservés à cette date :',
+    booked: 'Réservé',
+    morning: 'Matin',
+    afternoon: 'Après-midi',
+    evening: 'Soir',
+    upToFit: (minutes) => `Jusqu’à ${minutes} min possibles`,
+    packagesAvailable: (date) => `Forfaits avec temps de piste disponible le ${date}`,
+  },
+  ar: {
+    departureTitle: 'اختر تاريخ وموعد الإقلاع',
+    departureSubtitle: 'توفر قمرة القيادة في الوقت الفعلي • اختر التاريخ ووقت الإقلاع',
+    viewWeek: 'أسبوع',
+    viewMonth: 'الشهر',
+    previousMonth: 'الشهر السابق',
+    nextMonth: 'الشهر التالي',
+    departureSlots: (date) => `مواعيد الإقلاع ليوم ${date}:`,
+    selectedWindow: 'النافذة المختارة:',
+    maxAvailable: (minutes) => `متاح حتى ${minutes} دقيقة`,
+    checkNextDay: 'فحص اليوم التالي ←',
+    noSlots: (packageTitle, date) => `لا توجد مواعيد مسار متاحة لـ ${packageTitle} في ${date}`,
+    noSlotsHint: 'جميع نوافذ الإقلاع لهذه المدة محجوزة أو محجوزة مسبقاً. اختر تاريخاً آخر أو مدة متاحة اليوم:',
+    tryFlight: (minutes, price) => `جرّب ${minutes} دقيقة (${price})`,
+    bookedSlots: 'المواعيد المحجوزة في هذا التاريخ:',
+    booked: 'محجوز',
+    morning: 'صباح',
+    afternoon: 'بعد الظهر',
+    evening: 'مساء',
+    upToFit: (minutes) => `يتسع حتى ${minutes} دقيقة`,
+    packagesAvailable: (date) => `الباقات ذات وقت المسار المتاح في ${date}`,
+  },
+};
 
 function getPackageFormulaBadge(duration: number, category: string) {
   if (category === 'training') {
@@ -241,68 +371,25 @@ export function AmazonFlightStorefront({
   checkoutError,
   onSubmitBooking,
 }: AmazonFlightStorefrontProps) {
-  const { t, isRTL } = useLanguage();
+  const { t, language, isRTL } = useLanguage();
+  const calendarCopy = STOREFRONT_CALENDAR_COPY[language] || STOREFRONT_CALENDAR_COPY.en;
   const [addonFilter, setAddonFilter] = useState<AddonFilterTab>('all');
-  const [calendarMode, setCalendarMode] = useState<'strip' | 'month'>('strip');
+  const [calendarMode, setCalendarMode] = useState<'week' | 'month'>('month');
   const [blueprintPackage, setBlueprintPackage] = useState<SimulatorPackage | null>(null);
   const blueprintPanelRef = useModalFocus<HTMLDivElement>(blueprintPackage !== null, () => setBlueprintPackage(null));
 
-  const [viewMonthDate, setViewMonthDate] = useState<Date>(() => {
-    const [y, m] = selectedDate.split('-').map(Number);
-    return new Date(y || new Date().getFullYear(), (m || 1) - 1, 1);
-  });
+  const [viewMonthDate, setViewMonthDate] = useState<Date>(() => monthStartForYmd(selectedDate));
+  const weekDays = useMemo(() => calendarWeekDays(selectedDate, language), [language, selectedDate]);
+  const weekdayNames = useMemo(() => calendarWeekdayNames(language), [language]);
+  const monthGridDays = useMemo(
+    () => calendarMonthCells(viewMonthDate, language, formatLocalYMD(new Date())),
+    [language, viewMonthDate]
+  );
 
-  // 14-day quick strip
-  const horizonDays = useMemo(() => {
-    const list: { dateStr: string; dayName: string; dayNum: number; monthShort: string; isSat: boolean }[] = [];
-    const base = new Date();
-    for (let i = 0; i < 14; i++) {
-      // Calendar arithmetic: 24h steps repeat or skip a day across a DST change.
-      const d = new Date(base.getFullYear(), base.getMonth(), base.getDate() + i);
-      const dateStr = formatLocalYMD(d);
-      const dow = d.getDay();
-      list.push({
-        dateStr,
-        dayName: DAY_NAMES_SHORT[dow],
-        dayNum: d.getDate(),
-        monthShort: MONTH_NAMES[d.getMonth()].slice(0, 3),
-        isSat: dow === 6,
-      });
-    }
-    return list;
-  }, []);
-
-  // Full month grid
-  const monthGridDays = useMemo(() => {
-    const year = viewMonthDate.getFullYear();
-    const month = viewMonthDate.getMonth();
-    const firstDayOfMonth = new Date(year, month, 1);
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const startDow = firstDayOfMonth.getDay();
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const cells: Array<{
-      dateStr: string | null;
-      dayNum: number | null;
-      isPast: boolean;
-    }> = [];
-
-    for (let i = 0; i < startDow; i++) {
-      cells.push({ dateStr: null, dayNum: null, isPast: true });
-    }
-    for (let d = 1; d <= daysInMonth; d++) {
-      const cellDate = new Date(year, month, d);
-      cellDate.setHours(0, 0, 0, 0);
-      cells.push({
-        dateStr: formatLocalYMD(cellDate),
-        dayNum: d,
-        isPast: cellDate < today,
-      });
-    }
-    return cells;
-  }, [viewMonthDate]);
+  const selectCalendarDate = (date: string) => {
+    setViewMonthDate(monthStartForYmd(date));
+    onSelectDate(date);
+  };
 
   // Filter packages that are available on the selected date
   const nonCorporatePackages = useMemo(
@@ -450,10 +537,10 @@ export function AmazonFlightStorefront({
               <div>
                 <h2 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
                   <CalendarIcon className="w-4 h-4 text-sky-400" />
-                  <span>Select Departure Date & Runway Slot</span>
+                  <span>{calendarCopy.departureTitle}</span>
                 </h2>
                 <p className="text-xs text-slate-400">
-                  Real-time cockpit availability • Click any date and departure time
+                  {calendarCopy.departureSubtitle}
                 </p>
               </div>
             </div>
@@ -461,17 +548,19 @@ export function AmazonFlightStorefront({
             <div className="inline-flex rounded-lg bg-slate-950 p-1 border border-slate-800">
               <button
                 type="button"
-                onClick={() => setCalendarMode('strip')}
+                aria-pressed={calendarMode === 'week'}
+                onClick={() => setCalendarMode('week')}
                 className={`px-3 py-1 rounded-md text-xs font-mono font-semibold transition-all ${
-                  calendarMode === 'strip'
+                  calendarMode === 'week'
                     ? 'bg-sky-500 text-slate-950 font-bold'
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
-                14 Days
+                {calendarCopy.viewWeek}
               </button>
               <button
                 type="button"
+                aria-pressed={calendarMode === 'month'}
                 onClick={() => setCalendarMode('month')}
                 className={`px-3 py-1 rounded-md text-xs font-mono font-semibold transition-all ${
                   calendarMode === 'month'
@@ -479,31 +568,32 @@ export function AmazonFlightStorefront({
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
-                Full Month
+                {calendarCopy.viewMonth}
               </button>
             </div>
           </div>
 
-          {/* 14-Day Horizontal Strip OR Full Month Grid */}
-          {calendarMode === 'strip' ? (
-            <div className="grid grid-cols-7 sm:grid-cols-7 md:grid-cols-14 gap-1.5">
-              {horizonDays.map((day) => {
+          {/* The month view is primary; seven-day view keeps a compact alternative. */}
+          {calendarMode === 'week' ? (
+            <div className="grid grid-cols-7 gap-1.5">
+              {weekDays.map((day) => {
                 const isSelected = day.dateStr === selectedDate;
                 return (
                   <button
                     key={day.dateStr}
                     type="button"
+                    aria-label={day.dayLabel}
                     aria-pressed={isSelected}
-                    onClick={() => onSelectDate(day.dateStr)}
+                    onClick={() => selectCalendarDate(day.dateStr)}
                     className={`p-2 rounded-xl border text-center transition-all flex flex-col items-center justify-center ${
                       isSelected
                         ? 'border-amber-400 bg-amber-500/15 text-white shadow-md ring-1 ring-amber-400/50'
                         : 'border-slate-800/90 bg-slate-950/70 hover:border-slate-700 text-slate-300'
                     }`}
                   >
-                    <span className="text-[9px] font-mono uppercase text-slate-400">{day.dayName}</span>
-                    <span className="text-sm font-black font-mono text-white my-0.5">{day.dayNum}</span>
-                    <span className="text-[9px] font-mono text-slate-400">{day.monthShort}</span>
+                    <span className="text-[9px] font-mono uppercase text-slate-400">{day.weekdayLabel}</span>
+                    <span className="text-sm font-black font-mono text-white my-0.5">{formatCalendarDayNumber(day.dayNumber, language)}</span>
+                    <span className="text-[9px] font-mono text-slate-400">{day.monthShortLabel}</span>
                   </button>
                 );
               })}
@@ -513,6 +603,7 @@ export function AmazonFlightStorefront({
               <div className="flex items-center justify-between">
                 <button
                   type="button"
+                  aria-label={calendarCopy.previousMonth}
                   onClick={() =>
                     setViewMonthDate(new Date(viewMonthDate.getFullYear(), viewMonthDate.getMonth() - 1, 1))
                   }
@@ -521,10 +612,11 @@ export function AmazonFlightStorefront({
                   <ChevronLeft className="w-4 h-4" />
                 </button>
                 <span className="text-sm font-bold text-white font-mono">
-                  {MONTH_NAMES[viewMonthDate.getMonth()]} {viewMonthDate.getFullYear()}
+                  {formatCalendarMonth(viewMonthDate, language)}
                 </span>
                 <button
                   type="button"
+                  aria-label={calendarCopy.nextMonth}
                   onClick={() =>
                     setViewMonthDate(new Date(viewMonthDate.getFullYear(), viewMonthDate.getMonth() + 1, 1))
                   }
@@ -534,29 +626,32 @@ export function AmazonFlightStorefront({
                 </button>
               </div>
               <div className="grid grid-cols-7 gap-1 text-center">
-                {DAY_NAMES_SHORT.map((d) => (
+                {weekdayNames.map((d) => (
                   <div key={d} className="text-[10px] font-mono text-slate-400 py-1">
                     {d}
                   </div>
                 ))}
-                {monthGridDays.map((cell, idx) => {
-                  if (!cell.dateStr) return <div key={`empty-${idx}`} className="h-9" />;
+                {monthGridDays.map((cell) => {
                   const isSelected = cell.dateStr === selectedDate;
                   return (
                     <button
                       key={cell.dateStr}
                       type="button"
+                      aria-label={cell.dayLabel}
+                      aria-pressed={isSelected}
                       disabled={cell.isPast}
-                      onClick={() => onSelectDate(cell.dateStr!)}
+                      onClick={() => selectCalendarDate(cell.dateStr)}
                       className={`h-9 rounded-lg font-mono text-xs transition-all ${
                         cell.isPast
                           ? 'text-slate-700 cursor-not-allowed'
-                          : isSelected
-                          ? 'bg-amber-400 text-slate-950 font-black'
-                          : 'bg-slate-900/70 text-slate-200 hover:bg-slate-800'
+                        : isSelected
+                        ? 'bg-amber-400 text-slate-950 font-black'
+                        : cell.isCurrentMonth
+                        ? 'bg-slate-900/70 text-slate-200 hover:bg-slate-800'
+                        : 'bg-slate-950/50 text-slate-400 hover:bg-slate-800'
                       }`}
                     >
-                      {cell.dayNum}
+                      {formatCalendarDayNumber(cell.dayNumber, language)}
                     </button>
                   );
                 })}
@@ -569,15 +664,15 @@ export function AmazonFlightStorefront({
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="text-xs font-mono uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
                 <Clock className="w-3.5 h-3.5 text-sky-400" />
-                <span>Departure Slots for {formatDate(selectedDate)}:</span>
+                <span>{calendarCopy.departureSlots(formatCalendarDate(selectedDate, language))}</span>
               </span>
               {selectedSlot && (
                 <span className="text-xs font-mono text-emerald-400 font-semibold">
-                  Selected Window:{' '}
+                  {calendarCopy.selectedWindow}{' '}
                   <bdi dir="ltr">
                     {selectedSlot.startTime}–{effectiveEndTime || selectedSlot.endTime}
                   </bdi>{' '}
-                  (Max {maxAvailableMinutes}m available)
+                  ({calendarCopy.maxAvailable(maxAvailableMinutes)})
                 </span>
               )}
             </div>
@@ -611,10 +706,10 @@ export function AmazonFlightStorefront({
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => onSelectDate(addDaysToYmd(selectedDate, 1))}
+                    onClick={() => selectCalendarDate(addDaysToYmd(selectedDate, 1))}
                     className="font-mono text-xs text-sky-400 border-sky-500/40 hover:bg-sky-500/10"
                   >
-                    Check Next Day →
+                    {calendarCopy.checkNextDay}
                   </Button>
                 </div>
               </div>
@@ -625,10 +720,10 @@ export function AmazonFlightStorefront({
                 </div>
                 <div className="space-y-1">
                   <h3 className="text-sm sm:text-base font-bold text-white">
-                    No open runway slots for {cleanPackageTitle} on {formatDate(selectedDate)}
+                    {calendarCopy.noSlots(cleanPackageTitle, formatCalendarDate(selectedDate, language))}
                   </h3>
                   <p className="text-xs text-slate-400 max-w-md mx-auto">
-                    All departure windows for this duration are currently booked or reserved. Choose another date or try an available duration today:
+                    {calendarCopy.noSlotsHint}
                   </p>
                 </div>
 
@@ -649,7 +744,10 @@ export function AmazonFlightStorefront({
                         onClick={() => onSelectPackage(altPkg)}
                         className="font-mono text-xs"
                       >
-                        Try {altPkg.durationMinutes}m ({formatCurrency(packageFromPriceIls(altPkg, durationAvailability[altPkg.durationMinutes]?.minPriceIls))})
+                        {calendarCopy.tryFlight(
+                          altPkg.durationMinutes,
+                          formatCurrency(packageFromPriceIls(altPkg, durationAvailability[altPkg.durationMinutes]?.minPriceIls))
+                        )}
                       </Button>
                     ))}
 
@@ -657,17 +755,17 @@ export function AmazonFlightStorefront({
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => onSelectDate(addDaysToYmd(selectedDate, 1))}
+                    onClick={() => selectCalendarDate(addDaysToYmd(selectedDate, 1))}
                     className="font-mono text-xs text-sky-400 border-sky-500/40 hover:bg-sky-500/10"
                   >
-                    Check Next Day →
+                    {calendarCopy.checkNextDay}
                   </Button>
                 </div>
 
                 {slots.some((s) => s.disabledReason === 'booked') && (
                   <div className="pt-3 border-t border-slate-900 text-left rtl:text-right">
                     <span className="text-[10px] font-mono uppercase text-slate-400 block mb-1.5">
-                      Booked Slots on this Date:
+                      {calendarCopy.bookedSlots}
                     </span>
                     <div className="flex flex-wrap gap-2">
                       {slots
@@ -677,7 +775,7 @@ export function AmazonFlightStorefront({
                             key={slot.id}
                             className="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-[11px] font-mono text-slate-400 line-through"
                           >
-                            {slot.startTime} ({slot.disabledNote || 'Booked'})
+                            {slot.startTime} ({slot.disabledNote || calendarCopy.booked})
                           </span>
                         ))}
                     </div>
@@ -689,8 +787,7 @@ export function AmazonFlightStorefront({
                 {(['morning', 'afternoon', 'evening'] as const).map((period) => {
                   const periodSlots = groupedSlots[period];
                   if (periodSlots.length === 0) return null;
-                  const periodLabel =
-                    period === 'morning' ? 'Morning' : period === 'afternoon' ? 'Afternoon' : 'Evening';
+                  const periodLabel = calendarCopy[period];
 
                   return (
                     <div key={period} className="space-y-1.5">
@@ -732,7 +829,7 @@ export function AmazonFlightStorefront({
                                 ) : null}
                               </div>
                               <div className="text-[10px] font-mono text-slate-400 mt-0.5">
-                                {slot.available ? `Up to ${maxWin}m fit` : 'Booked'}
+                                {slot.available ? calendarCopy.upToFit(maxWin) : calendarCopy.booked}
                               </div>
                             </button>
                           );
@@ -761,7 +858,7 @@ export function AmazonFlightStorefront({
                   <span>Select Base Flight Package (Edition / Duration)</span>
                 </h2>
                 <p className="text-xs text-slate-400">
-                  Showing packages with available runway time on {formatDate(selectedDate)}
+                  {calendarCopy.packagesAvailable(formatCalendarDate(selectedDate, language))}
                 </p>
               </div>
             </div>
@@ -1178,7 +1275,7 @@ export function AmazonFlightStorefront({
             </div>
             <div className="flex justify-between items-center">
               <span className="text-slate-400">DATE:</span>
-              <span className="text-white font-bold">{formatDate(selectedDate)}</span>
+              <span className="text-white font-bold">{formatCalendarDate(selectedDate, language)}</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-slate-400">RUNWAY WINDOW:</span>

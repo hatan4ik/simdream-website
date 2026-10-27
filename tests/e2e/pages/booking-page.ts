@@ -11,7 +11,7 @@ export interface PilotDetails {
   phone: string;
 }
 
-/** Shared /book controls: view switcher, 14-day ribbon, page-level alerts. */
+/** Shared /book controls: view switcher, localized calendar, page-level alerts. */
 export class BookingPage {
   readonly wizard: WizardView;
   readonly storefront: StorefrontView;
@@ -35,7 +35,7 @@ export class BookingPage {
     return this.wizard;
   }
 
-  /** A ribbon day. Days are unique since E2E-6; the 14-day ribbon test asserts that directly. */
+  /** A calendar day. Dates remain unique through the October DST boundary (E2E-6). */
   dateButton(isoDate: string): Locator {
     return this.page.getByRole('button', { name: ribbonLabel(isoDate), exact: true });
   }
