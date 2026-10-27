@@ -5,9 +5,6 @@ import { gotoSettled, storefrontSlotButtons, zeroSlotHeading } from './page';
 /** Error the production checkout returns while card payments are disabled. */
 export const PAYMENTS_UNAVAILABLE_MESSAGE = 'Online payments are temporarily unavailable. Please contact us to book.';
 
-const SHORT_DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const SHORT_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
 interface SlotsResponse {
   slots: Array<{ startTime: string; available: boolean }>;
 }
@@ -25,14 +22,19 @@ export function israelDatePlus(offsetDays: number, from = new Date()): string {
   return date.toISOString().slice(0, 10);
 }
 
-/** Accessible name of a storefront 14-day strip button, e.g. "Sun 1 Nov". */
-export function stripDayLabel(isoDate: string): string {
-  const date = new Date(`${isoDate}T12:00:00Z`);
-  return `${SHORT_DAYS[date.getUTCDay()]} ${date.getUTCDate()} ${SHORT_MONTHS[date.getUTCMonth()]}`;
+export function stripDayButton(page: Page, isoDate: string): Locator {
+  return page.locator(`[data-calendar-date="${isoDate}"]`);
 }
 
-export function stripDayButton(page: Page, isoDate: string): Locator {
-  return page.getByRole('button', { name: stripDayLabel(isoDate), exact: true });
+/** Ensures an ISO date is visible without coupling browser checks to a displayed language. */
+export async function ensureStorefrontDateVisible(page: Page, isoDate: string): Promise<Locator> {
+  const dateButton = stripDayButton(page, isoDate);
+  for (let step = 0; step < 3; step += 1) {
+    if ((await dateButton.count()) > 0) return dateButton;
+    await page.locator('[data-calendar-next-month]').click();
+  }
+  await expect(dateButton, `calendar should render ${isoDate}`).toBeVisible();
+  return dateButton;
 }
 
 /**
@@ -60,7 +62,8 @@ export async function findBookableDate(
 /** Opens the default one-page storefront with the given date selected and its slots loaded. */
 export async function openStorefrontOn(page: Page, date: string): Promise<void> {
   await gotoSettled(page, '/book');
-  await selectStorefrontDate(page, date, () => stripDayButton(page, date).click());
+  const dateButton = await ensureStorefrontDateVisible(page, date);
+  await selectStorefrontDate(page, date, () => dateButton.click());
 }
 
 /** Runs `choose` (a click or key press on a strip day) and waits for that date's slots to render. */
@@ -77,7 +80,8 @@ export async function selectStorefrontDate(page: Page, date: string, choose: () 
 export async function showZeroSlotState(page: Page): Promise<void> {
   await gotoSettled(page, '/book');
   await page.getByRole('button', { name: /^45 MIN / }).click();
-  await stripDayButton(page, nextIsraelWeekday(6)).click();
+  const saturdayButton = await ensureStorefrontDateVisible(page, nextIsraelWeekday(6));
+  await saturdayButton.click();
   await expect(zeroSlotHeading(page)).toBeVisible();
 }
 

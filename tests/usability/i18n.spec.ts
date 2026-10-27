@@ -128,7 +128,7 @@ test.describe('LTR isolation of aviation telemetry on RTL pages', () => {
       });
 
       test('keeps slot time ranges left-to-right in the guided wizard', async ({ page, request }) => {
-        // The storefront strip is English in every language, so pick the date there; the wizard keeps it.
+        // The shared ISO selector keeps the chosen date stable across localized storefront and wizard calendars.
         const { date } = await findBookableDate(request);
         await openStorefrontOn(page, date);
         await expectLanguageRendered(page, language);

@@ -612,6 +612,7 @@ export function KantorovichCalendarScheduler({
                 <button
                   key={day.dateStr}
                   type="button"
+                  data-calendar-date={day.dateStr}
                   aria-label={day.dayLabel}
                   aria-pressed={isSelected}
                   onClick={() => handleSelectDate(day.dateStr)}
@@ -644,6 +645,7 @@ export function KantorovichCalendarScheduler({
             <div className="flex items-center justify-between px-1">
               <button
                 type="button"
+                data-calendar-previous-month
                 aria-label={copy.previousMonth}
                 onClick={() =>
                   setViewMonthDate(
@@ -659,6 +661,7 @@ export function KantorovichCalendarScheduler({
               </span>
               <button
                 type="button"
+                data-calendar-next-month
                 aria-label={copy.nextMonth}
                 onClick={() =>
                   setViewMonthDate(
@@ -686,6 +689,7 @@ export function KantorovichCalendarScheduler({
                   <button
                     key={cell.dateStr}
                     type="button"
+                    data-calendar-date={cell.dateStr}
                     aria-label={cell.dayLabel}
                     aria-pressed={isSelected}
                     disabled={cell.isPast}

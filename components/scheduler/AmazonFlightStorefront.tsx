@@ -176,7 +176,7 @@ const STOREFRONT_CALENDAR_COPY: Record<Language, StorefrontCalendarCopy> = {
     previousMonth: 'Previous month',
     nextMonth: 'Next month',
     departureSlots: (date) => `Departure Slots for ${date}:`,
-    selectedWindow: 'Selected window:',
+    selectedWindow: 'Selected Window:',
     maxAvailable: (minutes) => `Max ${minutes}m available`,
     checkNextDay: 'Check Next Day →',
     noSlots: (packageTitle, date) => `No open runway slots for ${packageTitle} on ${date}`,
@@ -582,6 +582,7 @@ export function AmazonFlightStorefront({
                   <button
                     key={day.dateStr}
                     type="button"
+                    data-calendar-date={day.dateStr}
                     aria-label={day.dayLabel}
                     aria-pressed={isSelected}
                     onClick={() => selectCalendarDate(day.dateStr)}
@@ -603,26 +604,28 @@ export function AmazonFlightStorefront({
               <div className="flex items-center justify-between">
                 <button
                   type="button"
+                  data-calendar-previous-month
                   aria-label={calendarCopy.previousMonth}
                   onClick={() =>
                     setViewMonthDate(new Date(viewMonthDate.getFullYear(), viewMonthDate.getMonth() - 1, 1))
                   }
                   className="p-1.5 rounded-lg border border-slate-800 hover:border-slate-700 text-slate-300"
                 >
-                  <ChevronLeft className="w-4 h-4" />
+                  <ChevronLeft className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
                 </button>
                 <span className="text-sm font-bold text-white font-mono">
                   {formatCalendarMonth(viewMonthDate, language)}
                 </span>
                 <button
                   type="button"
+                  data-calendar-next-month
                   aria-label={calendarCopy.nextMonth}
                   onClick={() =>
                     setViewMonthDate(new Date(viewMonthDate.getFullYear(), viewMonthDate.getMonth() + 1, 1))
                   }
                   className="p-1.5 rounded-lg border border-slate-800 hover:border-slate-700 text-slate-300"
                 >
-                  <ChevronRight className="w-4 h-4" />
+                  <ChevronRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
                 </button>
               </div>
               <div className="grid grid-cols-7 gap-1 text-center">
@@ -637,6 +640,7 @@ export function AmazonFlightStorefront({
                     <button
                       key={cell.dateStr}
                       type="button"
+                      data-calendar-date={cell.dateStr}
                       aria-label={cell.dayLabel}
                       aria-pressed={isSelected}
                       disabled={cell.isPast}

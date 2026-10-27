@@ -2,6 +2,7 @@ import type { Page } from '@playwright/test';
 import { expect, preferTheme, type UiTheme } from '../support/e2e';
 import {
   checkoutButton,
+  ensureStorefrontDateVisible,
   findBookableDate,
   openStorefrontOn,
   openWizardStep,
@@ -44,6 +45,7 @@ test.describe('keyboard-only booking journey', () => {
     const { date, openStartTimes } = await findBookableDate(request);
     await gotoSettled(page, '/book');
 
+    await ensureStorefrontDateVisible(page, date);
     await tabTo(page, stripDayButton(page, date));
     await selectStorefrontDate(page, date, () => page.keyboard.press('Enter'));
     const selectedWindow = page.getByText(/^Selected Window: \d{2}:\d{2}–/);
@@ -90,6 +92,7 @@ test.describe('keyboard-only booking journey', () => {
     await tabTo(page, wizardToggle(page));
     await page.keyboard.press('Enter');
     await expect(page.getByRole('heading', { level: 1, name: 'Choose Flight Date & Operational Slot' })).toBeVisible();
+    await ensureStorefrontDateVisible(page, date);
     await tabTo(page, stripDayButton(page, date));
     const slotsLoaded = page.waitForResponse((response) => response.url().includes(`/api/slots?date=${date}`));
     await page.keyboard.press('Enter');
