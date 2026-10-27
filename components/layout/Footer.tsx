@@ -2,8 +2,9 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { MapPin, Phone, Mail, Clock, UserCheck, ChevronDown, FileText, ShieldCheck } from 'lucide-react';
+import { MapPin, Phone, Mail, Clock, UserCheck, ChevronDown, FileText, ShieldCheck, Instagram, Facebook, Youtube } from 'lucide-react';
 import { BrandLogo } from '@/components/brand/BrandLogo';
+import { useAuth } from '@/lib/auth/auth-context';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { LanguageSelector } from './LanguageSelector';
 import { UiThemeSwitcher } from './UiThemeSwitcher';
@@ -13,6 +14,7 @@ import { useClientValue } from '@/lib/ui/use-client-value';
 
 export function Footer() {
   const { t, language } = useLanguage();
+  const { isAdmin } = useAuth();
   const liveStatus = useLiveFacilityStatus();
   // Read in the browser: a render-time read froze the build year into prerendered pages (E2E-12).
   const year = useClientValue(() => new Date().getFullYear());
@@ -58,6 +60,27 @@ export function Footer() {
               )}
             </div>
 
+            {/* Official channels, as on the live site's header. Brand names need no translation. */}
+            <ul className="flex items-center gap-2" aria-label="Sim Dream social channels">
+              {[
+                { name: 'Instagram', href: FACILITY_INFO.social.instagramUrl, Icon: Instagram },
+                { name: 'Facebook', href: FACILITY_INFO.social.facebookUrl, Icon: Facebook },
+                { name: 'YouTube', href: FACILITY_INFO.social.youtubeUrl, Icon: Youtube },
+              ].map(({ name, href, Icon }) => (
+                <li key={name}>
+                  <a
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={name}
+                    className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-800 bg-slate-900/70 text-slate-300 hover:border-sky-500 hover:text-sky-400 transition-colors"
+                  >
+                    <Icon aria-hidden="true" className="h-4 w-4" />
+                  </a>
+                </li>
+              ))}
+            </ul>
+
             <div className="pt-2 flex items-center gap-2 flex-wrap">
               <UiThemeSwitcher variant="compact" />
               <LanguageSelector />
@@ -71,27 +94,27 @@ export function Footer() {
             </h2>
             <ul className="space-y-2.5 text-xs">
               <li>
-                <Link href="/experiences" className="hover:text-sky-400 transition-colors">
+                <Link href="/book?package=discovery-30" className="hover:text-sky-400 transition-colors">
                   {t.packages['pkg-discovery-30'].title}
                 </Link>
               </li>
               <li>
-                <Link href="/experiences" className="hover:text-sky-400 transition-colors">
+                <Link href="/book?package=captains-command-60" className="hover:text-sky-400 transition-colors">
                   {t.packages['pkg-captain-60'].title}
                 </Link>
               </li>
               <li>
-                <Link href="/experiences" className="hover:text-sky-400 transition-colors">
+                <Link href="/book?package=ultimate-aviator-90" className="hover:text-sky-400 transition-colors">
                   {t.packages['pkg-ultimate-90'].title}
                 </Link>
               </li>
               <li>
-                <Link href="/experiences" className="hover:text-sky-400 transition-colors">
+                <Link href="/book?package=airline-assessment-prep" className="hover:text-sky-400 transition-colors">
                   {t.packages['pkg-assessment-prep-120'].title}
                 </Link>
               </li>
               <li>
-                <Link href="/experiences" className="hover:text-sky-400 transition-colors">
+                <Link href="/book?package=fear-of-flying-course" className="hover:text-sky-400 transition-colors">
                   {t.packages['pkg-fear-of-flying-90'].title}
                 </Link>
               </li>
@@ -141,11 +164,13 @@ export function Footer() {
                   {t.nav.logbook}
                 </Link>
               </li>
-              <li>
-                <Link href="/admin" className="hover:text-amber-400 transition-colors text-slate-400">
-                  {t.nav.adminBoard}
-                </Link>
-              </li>
+              {isAdmin && (
+                <li>
+                  <Link href="/admin" className="hover:text-amber-400 transition-colors text-slate-400">
+                    {t.nav.adminBoard}
+                  </Link>
+                </li>
+              )}
             </ul>
           </div>
 

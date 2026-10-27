@@ -91,12 +91,21 @@ export function wizardToggle(page: Page): Locator {
 
 /** Opens the guided wizard at step 1 (calendar), 2 (add-ons) or 3 (pilot manifest). */
 export async function openWizardStep(page: Page, step: 1 | 2 | 3): Promise<void> {
-  await gotoSettled(page, '/book');
+  // Step 1 is usable before the asynchronous availability request settles: it
+  // contains only the calendar and package chooser. Do not make structural
+  // wizard tests depend on every concurrent worker receiving that API response
+  // within the generic 10-second locator timeout. Steps 2 and 3 still wait for
+  // the enabled Continue action, which proves a real selectable departure was
+  // received before continuing.
+  const response = await page.goto('/book');
+  expect(response?.status(), 'HTTP status of /book').toBe(200);
+  await expect(wizardToggle(page)).toBeVisible();
   await wizardToggle(page).click();
   await expect(page.getByRole('heading', { level: 1, name: 'Choose Flight Date & Operational Slot' })).toBeVisible();
-  const continueToAddons = page.getByRole('button', { name: 'Continue to Add-ons' });
-  await expect(continueToAddons).toBeEnabled();
   if (step === 1) return;
+
+  const continueToAddons = page.getByRole('button', { name: 'Continue to Add-ons' });
+  await expect(continueToAddons).toBeEnabled({ timeout: 20_000 });
   await continueToAddons.click();
   await expect(page.getByRole('heading', { level: 1, name: 'Cockpit Upgrades & Commemoratives' })).toBeVisible();
   if (step === 2) return;
