@@ -13,6 +13,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: '', changeFrequency: 'daily', priority: 1.0 },
     { path: '/book', changeFrequency: 'daily', priority: 0.95 },
     { path: '/experiences', changeFrequency: 'weekly', priority: 0.9 },
+    { path: '/about', changeFrequency: 'monthly', priority: 0.8 },
     { path: '/pro', changeFrequency: 'weekly', priority: 0.9 },
     { path: '/vouchers', changeFrequency: 'weekly', priority: 0.85 },
     { path: '/workshops', changeFrequency: 'weekly', priority: 0.85 },
@@ -28,4 +29,3 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: route.priority,
   }));
 }
-

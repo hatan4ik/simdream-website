@@ -95,17 +95,16 @@ export const PAGE_SEO_DEFINITIONS: Record<SeoPageKey, PageSeoDefinition> = {
   },
   about: {
     path: '/about',
-    title: 'Professional Training & Airline Assessment Preparation | Sim Dream Tel Aviv (הדרכה מקצועית לטייסים)',
+    title: 'About Sim Dream & How Your Boeing 737 Flight Works | Tel Aviv',
     description:
-      'Professional Boeing 737 MAX flight training for commercial pilots and airline applicants in Tel Aviv (Gershon Shatz 36). Airline Interview Prep 60, 90, and 120 PRO packages covering Raw Data manual flying, V1 Cut, Single-Engine ILS, and QRH procedures.',
+      'Discover Sim Dream Israel’s Boeing 737 experience in Tel Aviv: meet your pilot, choose a mission, take the Captain’s seat, fly an iconic approach, and share the moment with up to two cockpit guests.',
     keywords: [
       ...COMMON_KEYWORDS,
-      'airline interview prep 60 pro',
-      'airline interview prep 90 pro',
-      'airline interview prep 120 pro',
-      'professional flight training Tel Aviv',
-      'הדרכה מקצועית לטייסים',
-      'הכנה למבדקי חברות תעופה',
+      'about Sim Dream Israel',
+      'how Boeing 737 simulator experience works',
+      'Boeing 737 cockpit experience Tel Aviv',
+      'simulator experience for families Tel Aviv',
+      'חוויה בסימולטור בואינג 737 תל אביב',
     ],
   },
   simulator: {
@@ -258,4 +257,3 @@ export function buildPageMetadata(pageKey: SeoPageKey): Metadata {
     other: COMMON_GEO_AND_BUSINESS_META,
   };
 }
-

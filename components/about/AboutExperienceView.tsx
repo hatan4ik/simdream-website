@@ -15,6 +15,9 @@ import {
   Globe,
   ArrowRight,
   ChevronDown,
+  ExternalLink,
+  Facebook,
+  Instagram,
   MapPin,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -55,6 +58,8 @@ interface AboutCopy {
   locTitle: string;
   locVal: string;
   locDesc: string;
+  socialTitle: string;
+  socialSubtitle: string;
   specsSummary: string;
   specsVisualsTitle: string;
   specsVisualsDesc: string;
@@ -135,6 +140,9 @@ const ABOUT_COPY: Record<Language, AboutCopy> = {
     locVal: 'Gershon Shatz St 36, Tel Aviv-Yafo',
     locDesc:
       '4-minute walk from Yehudit Light Rail Station (Red Line) & 8-minute walk from HaShalom Train Station.',
+    socialTitle: 'Follow the Next Flight',
+    socialSubtitle:
+      'See cockpit moments, customer landings, behind-the-scenes updates, and new flight missions on our official channels.',
     specsSummary:
       'Fine-Print Simulator Specifications & Environment Summary (Optional Technical Note)',
     specsVisualsTitle: 'Visual & Cabin Environment',
@@ -213,6 +221,8 @@ const ABOUT_COPY: Record<Language, AboutCopy> = {
     locTitle: 'מיקום ונגישות תחבורתית',
     locVal: 'גרשון ש"ץ 36, תל אביב-יפו',
     locDesc: '4 דקות הליכה מתחנת הרכבת הקלה יהודית (הקו האדום) ו-8 דקות מתחנת רכבת השלום.',
+    socialTitle: 'הטיסה הבאה מתחילה כאן',
+    socialSubtitle: 'עקבו אחרי רגעים מהקוקפיט, נחיתות של אורחים, עדכונים מאחורי הקלעים ומשימות טיסה חדשות בערוצים הרשמיים שלנו.',
     specsSummary: 'מפרט טכני כללי של תא הטייס (באותיות קטנות לחובבי תעופה)',
     specsVisualsTitle: 'תצוגה פנורמית ומבנה',
     specsVisualsDesc:
@@ -290,6 +300,8 @@ const ABOUT_COPY: Record<Language, AboutCopy> = {
     locTitle: 'Удобная локация в Тель-Авиве',
     locVal: 'ул. Гершон Шац 36, Тель-Авив-Яффо',
     locDesc: '4 минуты пешком от станции красной линии трамвая Йегудит и 8 минут от ЖД-станции Ха-Шалом.',
+    socialTitle: 'Следите за следующим полётом',
+    socialSubtitle: 'Смотрите моменты из кабины, посадки гостей, новости из-за кулис и новые полётные миссии в наших официальных каналах.',
     specsSummary: 'Технические характеристики симулятора (краткая справка)',
     specsVisualsTitle: 'Визуализация и кабина',
     specsVisualsDesc:
@@ -370,6 +382,9 @@ const ABOUT_COPY: Record<Language, AboutCopy> = {
     locVal: '36 rue Gershon Shatz, Tel Aviv-Yafo',
     locDesc:
       'À 4 minutes à pied du tramway Yehudit (ligne rouge) et 8 minutes de la gare HaShalom.',
+    socialTitle: 'Suivez le prochain vol',
+    socialSubtitle:
+      'Découvrez des moments dans le cockpit, les atterrissages de nos clients, les coulisses et les nouvelles missions sur nos canaux officiels.',
     specsSummary: 'Spécifications techniques du simulateur (note informative)',
     specsVisualsTitle: 'Système visuel & Cabine',
     specsVisualsDesc:
@@ -447,6 +462,8 @@ const ABOUT_COPY: Record<Language, AboutCopy> = {
     locTitle: 'موقع استراتيجي في تل أبيب',
     locVal: 'شارع غيرشون شاتس 36، تل أبيب-يافا',
     locDesc: '4 دقائق سيراً على الأقدام من محطة القطار الخفيف يهوديت و8 دقائق من محطة قطار ههشالوم.',
+    socialTitle: 'تابعوا الرحلة القادمة',
+    socialSubtitle: 'شاهدوا لحظات من قمرة القيادة وهبوط الضيوف والتحديثات من وراء الكواليس ومهام الطيران الجديدة عبر قنواتنا الرسمية.',
     specsSummary: 'المواصفات الفنية لجهاز المحاكاة (ملاحظة فنية)',
     specsVisualsTitle: 'نظام العرض البانورامي والقمرة',
     specsVisualsDesc:
@@ -590,7 +607,39 @@ export function AboutExperienceView() {
         </div>
       </section>
 
-      {/* 5. CTA BOX */}
+      {/* 5. Official Social Channels */}
+      <section aria-labelledby="official-socials" className="rounded-2xl border border-sky-500/30 bg-sky-950/20 p-6 sm:p-8 text-center space-y-5">
+        <div className="max-w-2xl mx-auto space-y-2">
+          <h2 id="official-socials" className="text-2xl sm:text-3xl font-black text-white">
+            {copy.socialTitle}
+          </h2>
+          <p className="text-sm text-slate-300 leading-relaxed">{copy.socialSubtitle}</p>
+        </div>
+        <div className="flex flex-wrap justify-center gap-3">
+          <a
+            href={FACILITY_INFO.social.instagramUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-950/70 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:border-orange-500 hover:bg-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
+          >
+            <Instagram aria-hidden="true" className="h-5 w-5 text-orange-500" />
+            <span>Instagram</span>
+            <ExternalLink aria-hidden="true" className="h-3.5 w-3.5 text-slate-400" />
+          </a>
+          <a
+            href={FACILITY_INFO.social.facebookUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-950/70 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:border-sky-500 hover:bg-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
+          >
+            <Facebook aria-hidden="true" className="h-5 w-5 text-sky-400" />
+            <span>Facebook</span>
+            <ExternalLink aria-hidden="true" className="h-3.5 w-3.5 text-slate-400" />
+          </a>
+        </div>
+      </section>
+
+      {/* 6. CTA BOX */}
       <section className="text-center bg-gradient-to-r from-sky-900/30 via-slate-900/80 to-sky-900/30 border border-sky-500/30 rounded-2xl p-8 sm:p-10 space-y-6">
         <h2 className="text-2xl sm:text-3xl font-black text-white">{t.cta.title}</h2>
         <p className="text-slate-300 max-w-xl mx-auto text-sm">{t.cta.subtitle}</p>
@@ -609,7 +658,7 @@ export function AboutExperienceView() {
         </div>
       </section>
 
-      {/* 6. SMALL-PRINT TECHNICAL SPECIFICATIONS (COMPACT COLLAPSIBLE <details> FOOTNOTE) */}
+      {/* 7. SMALL-PRINT TECHNICAL SPECIFICATIONS (COMPACT COLLAPSIBLE <details> FOOTNOTE) */}
       <section className="pt-4 border-t border-slate-900">
         <details className="group rounded-xl border border-slate-800/80 bg-slate-950/60 px-4 py-3 text-[11px] text-slate-400">
           <summary className="cursor-pointer list-none flex items-center justify-between gap-2 font-mono text-xs text-slate-400 hover:text-slate-200">

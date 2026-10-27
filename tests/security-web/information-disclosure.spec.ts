@@ -201,7 +201,7 @@ test.describe('cookies', () => {
 });
 
 test.describe('redirects', () => {
-  for (const alias of ['/about', '/simulator', '/training']) {
+  for (const alias of ['/simulator', '/training']) {
     test(`${alias} redirects permanently to /pro on the same origin, even with a hostile forwarded host`, async ({ request, baseURL }) => {
       const response = await request.get(alias, {
         maxRedirects: 0,

@@ -68,7 +68,7 @@ export default function HomePage() {
                 <span>{t.hero.bookFlight}</span>
               </Button>
             </Link>
-            <Link href="/pro" className="w-full sm:w-auto">
+            <Link href="/about" className="w-full sm:w-auto">
               <Button variant="secondary" size="lg" className="w-full sm:w-auto font-semibold text-base px-8 py-4">
                 <span>{t.hero.cockpitSpecs}</span>
                 <ChevronRight className={`w-5 h-5 ${isRTL ? 'rotate-180' : ''}`} />

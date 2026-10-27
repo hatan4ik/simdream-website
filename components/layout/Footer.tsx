@@ -110,6 +110,11 @@ export function Footer() {
             </h2>
             <ul className="space-y-2.5 text-xs">
               <li>
+                <Link href="/about" className="hover:text-sky-400 transition-colors">
+                  {t.nav.about}
+                </Link>
+              </li>
+              <li>
                 <Link href="/pro" className="hover:text-sky-400 transition-colors">
                   {t.nav.simulator}
                 </Link>

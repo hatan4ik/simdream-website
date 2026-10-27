@@ -10,6 +10,7 @@ const FROZEN_NOW = new Date('2026-11-04T12:00:00+02:00');
 
 const PAGES = [
   { route: '/', name: 'home' },
+  { route: '/about', name: 'about' },
   { route: '/pro', name: 'pro' },
   { route: '/book', name: 'book' },
   { route: '/vouchers', name: 'vouchers' },

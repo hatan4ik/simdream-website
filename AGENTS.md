@@ -45,10 +45,11 @@ The visual identity is the official **simdream.co.il** logo: an **orange airplan
 ## 2. Canonical Routing & URL Discipline
 
 - **Canonical Professional Training Route**: [`app/(public)/pro/page.tsx`](app/(public)/pro/page.tsx) (`/pro`) is the single source of truth for commercial assessment training.
+- **Canonical Customer Story Route**: [`app/(public)/about/page.tsx`](app/(public)/about/page.tsx) (`/about`) explains Sim Dream’s story, the consumer flight experience, and official social channels. It is intentionally separate from professional training.
 - **Permanent Redirects (301)**:
-  - `/about`, `/simulator`, and `/training` must permanently redirect (`permanent: true` in `next.config.mjs`) to `/pro`.
-  - Server components [`app/(public)/about/page.tsx`](app/(public)/about/page.tsx) and [`app/(public)/simulator/page.tsx`](app/(public)/simulator/page.tsx) invoke Next.js `redirect('/pro')`.
-  - **Never re-create `/about` or `/simulator` as standalone pages.** Navigation pointers in Navbar, Footer, and Sitemap point directly to `/pro`.
+  - `/simulator` and `/training` must permanently redirect (`permanent: true` in `next.config.mjs`) to `/pro`.
+  - The server component [`app/(public)/simulator/page.tsx`](app/(public)/simulator/page.tsx) invokes Next.js `redirect('/pro')`.
+  - Navigation pointers must route customer-story calls to `/about` and professional-training calls to `/pro`; the two routes must not be conflated.
 - **Content on `/pro`**:
   - Highlights airline interview preparation (El Al, Arkia, Israir, Wizz Air, Ryanair).
   - Features the 3 official commercial tiers:

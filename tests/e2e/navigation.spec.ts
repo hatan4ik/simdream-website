@@ -10,11 +10,12 @@ const PRIMARY_NAV = [
 ] as const;
 
 const FOOTER_NAV = [
+  { link: 'About Us', path: '/about', heading: /Where Aviation Dreams Take Flight/ },
   { link: 'Facility Rules & Terms', path: '/rules', heading: /^Facility Rules, Terms & Conditions/ },
   { link: 'Privacy & Cookie Policy', path: '/privacy-policy', heading: /^Privacy & Cookie Policy/ },
 ] as const;
 
-const LEGACY_ALIASES = ['/about', '/simulator', '/training'] as const;
+const LEGACY_ALIASES = ['/simulator', '/training'] as const;
 
 test.describe('primary navigation', () => {
   for (const target of PRIMARY_NAV) {
@@ -86,6 +87,27 @@ test.describe('legacy routes', () => {
       await expect(page.getByRole('heading', { level: 1, name: /^Professional Training — Airline Assessment/ })).toBeVisible();
     });
   }
+});
+
+test('opens the customer story from the About & How It Works call to action', async ({ page }) => {
+  await page.goto('/');
+  await follow(page.getByRole('link', { name: 'About & How It Works' }), '/about');
+
+  await expect(page).toHaveURL('/about');
+  await expect(page.getByRole('heading', { level: 1, name: /Where Aviation Dreams Take Flight/ })).toBeVisible();
+});
+
+test('publishes the official Instagram and Facebook profiles on the customer story page', async ({ page }) => {
+  await page.goto('/about');
+
+  await expect(page.getByRole('link', { name: 'Instagram' })).toHaveAttribute(
+    'href',
+    'https://www.instagram.com/simdream_israel/'
+  );
+  await expect(page.getByRole('link', { name: 'Facebook' })).toHaveAttribute(
+    'href',
+    'https://www.facebook.com/Sim-Dream-Israel-104268755679413'
+  );
 });
 
 test.describe('unknown routes', () => {

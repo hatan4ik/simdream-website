@@ -40,6 +40,10 @@ export const FACILITY_INFO = {
     email: 'desk@simdream.co.il',
     emailHref: 'mailto:desk@simdream.co.il',
   },
+  social: {
+    instagramUrl: 'https://www.instagram.com/simdream_israel/',
+    facebookUrl: 'https://www.facebook.com/Sim-Dream-Israel-104268755679413',
+  },
   requirements: {
     minimumAgeYears: 10,
     adultSupervisionAgeRange: '10–15',
@@ -333,4 +337,3 @@ export function calculateDynamicRouteFromCoords(lat: number, lng: number) {
     transitMinutes,
   };
 }
-

@@ -29,7 +29,7 @@ export function Navbar() {
   ];
 
   const isActive = (path: string) =>
-    pathname === path || (path === '/pro' && (pathname === '/about' || pathname === '/simulator'));
+    pathname === path || (path === '/pro' && pathname === '/simulator');
 
   return (
     <nav className="sticky top-0 z-50 bg-slate-950/85 backdrop-blur-lg border-b border-slate-800/80">
