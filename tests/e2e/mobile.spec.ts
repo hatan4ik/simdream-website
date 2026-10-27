@@ -38,6 +38,8 @@ test.describe('mobile affordances', () => {
     const wizard = await booking.openWizard();
     const dayButton = booking.dateButton(farDay);
     await expect(page.getByRole('button', { name: 'Month', exact: true })).toHaveAttribute('aria-pressed', 'true');
+    // Twelve days ahead can fall in next month's grid near a month end.
+    await booking.revealDate(farDay);
     await expect(dayButton).toBeVisible();
 
     await dayButton.tap();

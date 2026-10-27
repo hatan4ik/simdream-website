@@ -47,9 +47,32 @@ export class BookingPage {
   async selectDate(isoDate: string, how: 'click' | 'tap' = 'click'): Promise<void> {
     // Every rendering of the long-form date reflects the selected day; re-selecting it fetches nothing.
     if ((await this.page.getByText(displayDatePattern(isoDate)).count()) > 0) return;
+    await this.revealDate(isoDate);
     const loaded = this.slotsResponse({ date: isoDate });
     await (how === 'tap' ? this.dateButton(isoDate).tap() : this.dateButton(isoDate).click());
     await loaded;
+  }
+
+  /**
+   * Pages the month calendar to the month that shows `isoDate`. The grid opens on the current
+   * month, so a date in another month (near a month end, or after selecting a day elsewhere)
+   * is only reachable through the previous/next month controls.
+   */
+  async revealDate(isoDate: string): Promise<void> {
+    const day = this.dateButton(isoDate);
+    for (let step = 0; step < 24 && !(await day.isVisible()); step += 1) {
+      const shown = await this.page
+        .locator('[data-calendar-date]')
+        .filter({ visible: true })
+        .evaluateAll((cells) => cells.map((cell) => cell.getAttribute('data-calendar-date') ?? '').sort());
+      const forward = shown.length === 0 || isoDate > shown[shown.length - 1];
+      await this.page
+        .locator(forward ? '[data-calendar-next-month]' : '[data-calendar-previous-month]')
+        .filter({ visible: true })
+        .first()
+        .click();
+    }
+    await expect(day).toBeVisible();
   }
 
   slotsResponse(query: { date?: string; duration?: number }): Promise<Response> {

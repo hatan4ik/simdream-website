@@ -1,7 +1,9 @@
-# SimDream Codebase Review — Source-Verified Snapshot
+# SimDream Codebase Review — Source-Verified Snapshot (Historical) — 2026-10-27
+
+> **Archived for traceability.** Its findings and evidence boundaries have been incorporated into the canonical [`GENESIS.md`](../../GENESIS.md).
 
 **Reviewed:** 2026-10-27  
-**Review basis:** the current local working tree, tracked project instructions, runtime source, schema and migrations, configuration, and automated-test contracts. This is the factual companion to [`WEBSITE_GENESIS.md`](WEBSITE_GENESIS.md).
+**Review basis:** the working tree captured on 2026-10-27, tracked project instructions, runtime source, schema and migrations, configuration, and automated-test contracts.
 
 ## Scope and confidence
 

@@ -133,7 +133,8 @@ test.describe('keyboard-only booking journey', () => {
   });
 
   const SELECTION_CONTROLS = [
-    { control: 'departure slot', pick: (page: Page) => storefrontSlotButtons(page).nth(1) },
+    // The second *open* slot: findBookableDate guarantees two, but booked slots are listed (disabled) too.
+    { control: 'departure slot', pick: (page: Page) => storefrontSlotButtons(page).and(page.locator('button:enabled')).nth(1) },
     { control: 'calendar day', pick: (page: Page, date: string) => stripDayButton(page, date) },
   ];
   for (const { control, pick } of SELECTION_CONTROLS) {

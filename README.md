@@ -8,7 +8,7 @@
 Production-grade website, multi-step booking engine, Amazon-style flight storefront, gift-voucher terminal, corporate CRM workshop portal, member purchase dashboard, and flight-dispatch command system for **Sim Dream LTD** (`simdream.co.il`), located at **Gershon Shatz St 36, Tel Aviv-Yafo, Israel** (Yehudit Light Rail / HaShalom Train Station • `055-507-1307` • `desk@simdream.co.il`).
 
 > 📐 **System Architecture & Visual Diagrams**: See [`ARCHITECTURE.md`](ARCHITECTURE.md) for full Mermaid sequence, workflow, topology, and interval-scheduling engine diagrams.
-> 🧬 **Master Genesis Prompt & System Blueprint**: Start with the source-verified [`FULL_CODEBASE_REVIEW.md`](FULL_CODEBASE_REVIEW.md), then use [`WEBSITE_GENESIS.md`](WEBSITE_GENESIS.md) as the one-shot prompt to reproduce this platform from scratch.
+> 🧬 **Canonical Genesis & System Blueprint**: [`GENESIS.md`](GENESIS.md) is the sole current architecture/reconstruction prompt. Its source-coverage and fingerprint verification runs in CI; historical drafts live in [`docs/archive/`](docs/archive/README.md).
 
 ---
 

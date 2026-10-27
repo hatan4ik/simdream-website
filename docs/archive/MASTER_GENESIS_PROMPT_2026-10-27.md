@@ -1,6 +1,6 @@
-# SimDream — Master Genesis Prompt
+# SimDream — Master Genesis Prompt (Historical) — 2026-10-27
 
-> **Verification status:** This is a working companion prompt. For the source-verified architecture, known documentation corrections, and external configuration boundaries, read [`FULL_CODEBASE_REVIEW.md`](FULL_CODEBASE_REVIEW.md) before using this file. [`WEBSITE_GENESIS.md`](WEBSITE_GENESIS.md) is the reviewed one-shot recreation prompt.
+> **Archived — do not use.** This was a working companion prompt. The source-verified architecture, reconstruction prompt, coverage gate, and external configuration boundaries now live in the canonical [`GENESIS.md`](../../GENESIS.md).
 
 > **Purpose.** This is a reverse-engineered, implementation-ready blueprint for rebuilding the current SimDream website from scratch. It is based on the repository's source, configuration, schema, API handlers, tests, and maintained engineering documentation as inspected on 2026-10-27. It is both a record of the discovered system and a one-shot prompt for an AI engineering agent.
 

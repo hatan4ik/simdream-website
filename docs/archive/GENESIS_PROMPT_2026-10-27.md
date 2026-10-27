@@ -1,8 +1,8 @@
-# Historical Genesis Draft
+# Historical Genesis Draft — 2026-10-27
 
-> **Status — superseded.** This first draft was written before the full source-led review and contains material inaccuracies: it says `/about` redirects to `/pro`, represents a 14-day calendar as default, and claims Apple Pay and PDF boarding-pass delivery. The current source does not implement those behaviors.
+> **Archived — do not use.** This first draft was written before the full source-led review and contains material inaccuracies: it says `/about` redirects to `/pro`, represents a 14-day calendar as default, and claims Apple Pay and PDF boarding-pass delivery. The current source does not implement those behaviors.
 >
-> Use [`WEBSITE_GENESIS.md`](WEBSITE_GENESIS.md) as the reviewed one-shot recreation prompt and read [`FULL_CODEBASE_REVIEW.md`](FULL_CODEBASE_REVIEW.md) first for scope, evidence, corrections, and production-readiness boundaries. This document remains only for historical traceability; it is **not** an authoritative implementation specification.
+> Use the canonical [`GENESIS.md`](../../GENESIS.md). This document remains only for historical traceability; it is **not** an authoritative implementation specification.
 
 ---
 

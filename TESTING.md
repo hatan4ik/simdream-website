@@ -46,6 +46,8 @@ No secrets, Stripe account or Supabase project are needed. Every test runs in a 
 | `npm run test:a11y:baseline` | Re-records the accessibility baseline after a fix |
 | `npm run test:visual:update` | Re-records Linux screenshot baselines in the pinned Playwright Docker image. The build runs on a private copy inside the container; only the snapshots are copied back. |
 | `npm run test:load` / `test:lighthouse` | Starts a sandboxed server and runs the load smoke or Lighthouse |
+| `npm run docs:verify` / `docs:genesis` | Fails unless canonical [`GENESIS.md`](GENESIS.md) still covers every route, table, migration, environment variable, catalog price, domain function, module, component, test script and AGENTS.md invariant—and has a reviewed source fingerprint. Also runs in `test:all`, `test:quick` and CI. |
+| `npm run docs:genesis:stamp` | Re-stamps the canonical document after a human source review. Use only after verifying the code change is accurately reflected in `GENESIS.md`; CI rejects a stale fingerprint. |
 
 Browser tests run against a sandboxed **production build** in `.next-test`. That's a separate folder from `.next`, so tests never disturb a server you started with `npm run start`. Run `npm run test:build` after changing app code; a direct `npx playwright test` refuses to run on a missing or out-of-date test build (`PW_ALLOW_STALE_BUILD=1` overrides it). `test:all` rebuilds for you.
 

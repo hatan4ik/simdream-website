@@ -30,6 +30,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx tsc --noEmit -p .
+      # GENESIS.md must keep covering the codebase and retain a reviewed source fingerprint.
+      - run: npm run docs:verify
       - name: Vitest with coverage ratchet
         run: npx vitest run --coverage --reporter=default --reporter=junit --outputFile.junit=test-results/vitest-junit.xml
       - run: npm audit --audit-level=high

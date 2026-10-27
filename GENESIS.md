@@ -1,11 +1,40 @@
-# One-Shot Website Genesis: Sim Dream
+# SimDream — Canonical Genesis
 
-A reverse-engineered blueprint of this repository, in two parts:
+The **single canonical architecture and reconstruction document** for this repository. It has two parts:
 
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-Source-reviewed against the local working tree on 2026-10-27. Read [`FULL_CODEBASE_REVIEW.md`](FULL_CODEBASE_REVIEW.md) first: it defines the review scope, source-backed corrections, known implementation drift, and external-provider boundaries. Where this file and [`AGENTS.md`](AGENTS.md) disagree, `AGENTS.md` wins: it is the maintained source of truth, and this file is a snapshot. Related documents: [`ARCHITECTURE.md`](ARCHITECTURE.md) (diagrams), [`KANTOROVICH_SCHEDULER_SPEC.md`](KANTOROVICH_SCHEDULER_SPEC.md) (scheduler), [`CALENDAR_LOCALIZATION.md`](CALENDAR_LOCALIZATION.md) (booking calendar), [`TESTING.md`](TESTING.md) (quality framework).
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:9c5be991c94026e7de14f829576ebcb58705f54e1d80fa087d96785022a33dfb -->
+
+## Verification contract
+
+### Authority order
+
+1. **Current runtime source, schema, migrations, and configuration** are authoritative for what the product does.
+2. [`AGENTS.md`](AGENTS.md) is authoritative for the intended engineering, UX, brand, i18n, security, and QA constraints.
+3. This document is the sole canonical explanation and reconstruction prompt. It must be updated when either authority changes.
+4. Supporting references—[`ARCHITECTURE.md`](ARCHITECTURE.md), [`KANTOROVICH_SCHEDULER_SPEC.md`](KANTOROVICH_SCHEDULER_SPEC.md), [`CALENDAR_LOCALIZATION.md`](CALENDAR_LOCALIZATION.md), and [`TESTING.md`](TESTING.md)—supply diagrams and operational detail. Historical drafts are retained only in [`docs/archive/`](docs/archive/README.md); they are never authoritative.
+
+### Mechanical completeness gate
+
+Run `npm run docs:verify` (also run by `test:quick`, `test:all`, and CI). [`scripts/check-genesis-coverage.ts`](scripts/check-genesis-coverage.ts) derives a checklist from the repository and fails if this document omits any current page/API route, database table/function/migration, environment variable, catalog ID/price, exported domain function, library module, component, quality script/project/workflow, or AGENTS invariant. It also rejects known false claims such as `/about` redirecting to `/pro` or a 14-day default calendar.
+
+The fingerprint above covers the reviewed source/configuration/test/docs surface. Any covered file change makes verification fail until a human reviews the diff and deliberately runs `npm run docs:genesis:stamp`. The hash is a **review ratchet**, not a claim that prose is automatically semantically correct.
+
+### Evidence map and confidence boundaries
+
+| Subject | Source evidence | Confidence |
+| --- | --- | --- |
+| Route map and protection | [`app/`](app), [`proxy.ts`](proxy.ts), [`next.config.mjs`](next.config.mjs) | Code-verified |
+| Booking, pricing, payments, webhooks | [`lib/booking/checkout-service.ts`](lib/booking/checkout-service.ts), [`lib/stripe.ts`](lib/stripe.ts), [`app/api/`](app/api) | Code-verified; provider activation still external |
+| Scheduling and calendar | [`lib/scheduler/`](lib/scheduler), [`components/scheduler/`](components/scheduler), [`lib/i18n/calendar-presentation.ts`](lib/i18n/calendar-presentation.ts) | Code-verified |
+| Auth, membership, ownership | [`lib/auth/`](lib/auth), [`lib/supabaseClient.ts`](lib/supabaseClient.ts), [`app/dashboard/page.tsx`](app/dashboard/page.tsx) | Code-verified; OAuth provider setup still external |
+| Database and data integrity | [`lib/db/schema.sql`](lib/db/schema.sql), [`lib/db/migrations/`](lib/db/migrations), [`lib/db/store.ts`](lib/db/store.ts) | Code-verified; applied production migrations still external |
+| Brand and customer UX | [`app/globals.css`](app/globals.css), [`components/brand/`](components/brand), [`components/about/`](components/about) | Code-verified |
+| Test/CI quality gates | [`tests/`](tests), [`scripts/test-all.ts`](scripts/test-all.ts), [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | Code-verified; a passing remote CI run is external state |
+
+No repository review can prove Supabase OAuth providers, Stripe webhook delivery, SendGrid sender verification, Google Places access, or applied production migrations. Those must pass the live verification checklist in **Definition of Done** before launch.
 
 ---
 
@@ -88,6 +117,12 @@ TypeScript types in `types/index.ts` mirror the Postgres tables in `lib/db/schem
 - Open, tracked risks (see [`tests/KNOWN_DEFECTS.md`](tests/KNOWN_DEFECTS.md)): no rate limiting on voucher verification or admin login (SEC-3, SEC-4, deferred by the owner); the CSP allows inline scripts because App Router streams inline RSC payloads (SEC-8, accepted risk).
 - Production requires migrations **001–004** applied in order on an existing database (or `schema.sql` plus 003–004 on a new one).
 - Only `/login` sets `noindex`. `/dashboard` and `/auth/*` are indexable (they hold no private data when signed out), so consider `noindex` there too.
+- **Catalog authority is split**: `GET /api/packages` reads the production `packages` table, while checkout prices from the static `SIMULATOR_PACKAGES` in `lib/db/seed-data.ts`. A database price edit can show one price and charge another. A rebuild must use one server-side catalog authority.
+- **i18n is not yet total**: the dictionary has five-language parity and tests, but hard-coded English remains in the navbar user menu, the booking-success page, the reviews UI, and some legal and admin surfaces.
+- **Brand drift**: the success-page confetti and review-avatar gradients still use colours outside the Sim Dream tokens.
+- **Flight logs are not a live feature**: `flight_logs` exists in SQL and seed data, but production reads and writes stay in memory and no dashboard renders them.
+- **Types**: a few `any` escapes remain (Stripe API-version typing, some catch handlers).
+- **Provider configuration cannot be proven from code**: OAuth providers, Stripe events, SendGrid sender verification and live reviews need the verification run in **Definition of Done** before launch.
 
 ---
 
@@ -128,6 +163,7 @@ Build **simdream.co.il**, the booking and marketing platform for **Sim Dream LTD
    - The visual identity is the official logo: an **orange airplane `#FF5500`** and a **cerulean "SIM DREAM" wordmark `#2096C7`**, with the tagline "Simulation Systems (Israel)" ("מערכות סימולציה (ישראל)") rendered as translated text.
    - Remap Tailwind's `sky-*` scale to a cerulean scale (500 = `#2096C7`) and `orange-*` to an orange scale (500 = `#FF5500`).
    - Render the logo only from the official image assets. Never recolour it, rebuild it from text, or mirror it in RTL.
+   - Decorative colours (confetti, avatars, gradients) also come from the brand tokens.
 2. **Canonical URL discipline.**
    - `/pro` is the single page for professional airline-assessment training.
    - `/about` is the customer story, kept separate from `/pro`.
@@ -142,7 +178,8 @@ Build **simdream.co.il**, the booking and marketing platform for **Sim Dream LTD
    - Never choose display text with an `isRTL` ternary; `isRTL` is for layout only.
    - No Hebrew letters in non-Hebrew copy and no Arabic letters in non-Arabic copy.
    - Telemetry stays `dir="ltr"` inside RTL text: METAR, frequencies, booking references, times, slot ranges, prices, emails.
-   - Dates and numbers come from `Intl`. Arabic uses Latin digits (`ar-IL` with the `latn` numbering system).
+   - Dates and numbers come from `Intl`. Arabic uses Latin digits (`ar-IL` with the `latn` numbering system). Keep ISO `YYYY-MM-DD` dates internally; localize only at display. Wrap telemetry in `<bdi>` or `dir="ltr"`.
+   - No hard-coded English anywhere a customer or operator can see it: navbar menus, the success page, reviews, legal pages and admin included.
 5. **Fail-closed production integrity.**
    - Production never falls back to in-memory data. Without a database, availability, catalog and checkout answer 503.
    - Without Stripe keys, card checkout answers 503.
@@ -172,7 +209,7 @@ Seed 13 add-ons in three groups:
 - 3-airport "world trio" route modules (+40 min, ₪450 each), each naming its three airports with ICAO codes;
 - media and guest upgrades: 4K multi-camera recording, signed logbook, extra jumpseat passenger.
 
-Add 3 curated one-click combos. Localize every package and add-on in all five languages.
+Add 3 curated one-click combos. Localize every package and add-on in all five languages. Keep **one server-side catalog authority**: the catalog API and checkout must read prices and durations from the same source.
 
 #### Scheduling engine (`lib/scheduler/`, pure functions, fully unit-tested)
 
@@ -203,6 +240,11 @@ Add 3 curated one-click combos. Localize every package and add-on in all five la
   Never offer a departure that would leave an unsellable gap ("anti-gap"/zero-waste tiling).
 - **Departed slots**: `closeDepartedSlots()` closes any departure at or before the current **Israel** minute (`lib/scheduler/israel-clock.ts`, using `Intl` with `Asia/Jerusalem`, DST-correct), whatever the server time zone.
 - **Pricing**: `packagePriceForSlot()` applies prime-time pricing. `calculateMissionManifest()` totals the package and add-ons and rejects add-ons that would run past the next booking or the window close.
+- **Building blocks** (keep these as small, separately tested functions):
+  - time: `timeToMinutes()`, `minutesToTime()`, `addMinutesToTime()`, and the Israel clock's `israelToday()`, `israelMinutesNow()`, `hasDeparted()`;
+  - days and capacity: `getDayOperatingConfig()`, `longestMissionWithin()`, `canTileIntervalZeroWaste()`, `getKantorovichPricing()`;
+  - packages and add-ons: `packageAllowsAddons()`, `packageFromPriceIls()`, `sanitizePackageTitle()`, `canAddonFitInSlot()`, `pruneAddonsExceedingSlot()`;
+  - checkout orchestration (`lib/booking/checkout-service.ts`): `startBookingCheckout()` and `startVoucherCheckout()`.
 - **Efficiency and optimization**: `evaluateDailyEfficiency()` builds the admin day report (blocks, gap collisions, revenue). `toPublicCapacityReport()` strips all customer data for public use. `optimizeTiledCapacity()` is a dynamic-programming dry-run that recommends a zero-waste tiling for the remaining capacity.
 
 #### Booking UI (`/book`)
@@ -235,6 +277,7 @@ Add 3 curated one-click combos. Localize every package and add-on in all five la
   - on `expired` or `async_payment_failed`: cancel.
 
   Late payment for a cancelled booking or voided voucher is recorded and flagged for refund, never revived. Webhook-delivered confirmation emails use an outbox (`claimed`/`sent` timestamps, 10-minute claim TTL). A delivery that finds the claim busy answers 503 so Stripe retries. Every payment state transition is idempotent.
+- Public responses carry no personal data: the capacity report has no customer or revenue fields, the success-page lookup by booking reference returns a narrow projection, and voucher verification returns balance and validity only.
 - Booking references are `SD-737-` plus 16 characters from `A-Z2-9`; voucher codes are `SD-VOUCH-` plus 18. Generate both with a CSPRNG.
 
 #### Members (Supabase Auth)
@@ -290,7 +333,7 @@ Add 3 curated one-click combos. Localize every package and add-on in all five la
   - Dialogs open from the keyboard and close on Escape.
   - Reduced motion is honoured.
   - Contrast ≥ 4.5:1. Use `orange-500` only for the logo, icons, borders and large text, and `orange-700` for small orange text on light surfaces.
-  - Touch targets ≥ 24 px.
+  - Touch targets at least 24 × 24 px (WCAG 2.2 AA, enforced by the tests); aim for 44 × 44 px on primary mobile controls.
 - **SEO**:
   - per-page metadata and canonical URLs;
   - a sitemap of canonical routes, and `robots.txt` disallowing `/admin` and `/api`;
@@ -299,7 +342,7 @@ Add 3 curated one-click combos. Localize every package and add-on in all five la
 
 #### Security headers and hygiene
 
-- `poweredByHeader: false`.
+- Configure in `next.config.mjs`: `poweredByHeader: false`, the 301 redirects, and the headers below.
 - Headers: HSTS (`max-age=63072000; includeSubDomains`), `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` denying camera, microphone and geolocation.
 - A static CSP (`script-src 'self' 'unsafe-inline'`, required by App Router's inline RSC payloads).
 - Escape all user content in pages and emails. Never log secrets or payment metadata.
@@ -325,7 +368,30 @@ Add 3 curated one-click combos. Localize every package and add-on in all five la
    Run against a sandboxed production build in a separate build folder.
 4. **Load and performance**: autocannon p99 budgets on hot endpoints. Lighthouse budgets: accessibility ≥ 0.95, SEO ≥ 0.95, performance ≥ 0.8, best practices ≥ 0.9, LCP ≤ 2.5 s, CLS ≤ 0.1.
 
-Wire all four gates into one command (`npm run test:all`) and into CI jobs that merge their results into a quality report.
+Playwright projects: `chromium`, `firefox`, `webkit`, `mobile-chrome` (Pixel 7), `mobile-safari` (iPhone 15), `a11y`, `usability`, `security-web`, `resilience`, `visual`.
+
+Wire all four gates into one command (`npm run test:all`) and into CI jobs that merge their results into a quality report. Provide these scripts:
+
+| Script | Runs |
+| --- | --- |
+| `test:all` / `test:quick` / `test:full` / `test:report` | Orchestrator: everything / typecheck + Vitest / all browsers + Lighthouse / rebuild the report |
+| `test:unit`, `test:integration`, `test:security`, `test:reliability`, `test:coverage` | Vitest projects (security and reliability add their browser projects) |
+| `test:build` | Sandboxed production build into `.next-test` |
+| `test:e2e`, `test:a11y`, `test:a11y:baseline`, `test:usability`, `test:visual`, `test:visual:update` | Playwright projects; baseline and screenshot re-recording (Linux baselines in Docker) |
+| `test:load`, `test:lighthouse` | autocannon smoke and Lighthouse against a sandboxed server |
+| `start:local` | `next start` with the demo store opt-in, for laptops without Supabase |
+| `docs:genesis` | Fails unless this blueprint still covers the codebase |
+
+### CLOSE THESE KNOWN GAPS (do not reproduce them)
+
+The current system tracks these as open. A rebuild should fix them:
+
+1. Rate-limit voucher verification per IP and per code, and failed admin logins per client and username, answering `429` with `Retry-After`.
+2. Replace interim admin Basic auth with Supabase Auth, server-side roles and MFA.
+3. Decide the CSP explicitly: static pages with `'unsafe-inline'` for RSC payloads, or a per-request nonce with dynamic rendering, and document the trade-off.
+4. Run integration tests against real Postgres to prove the exclusion constraint, `redeem_gift_voucher`, the `23P01` → 409 mapping and every migration.
+5. Extend browser coverage to admin mutations, signed-in receipts, success-page polling, booked-slot transparency, every day's slot grid, SEO metadata and email rendering.
+6. Use one catalog authority; remove the remaining hard-coded English; keep decorative colours on the brand tokens; either finish flight-log persistence or leave the feature out.
 
 ### DATABASE SCHEMA
 
@@ -344,7 +410,8 @@ CREATE TABLE public.profiles (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
--- Trigger on auth.users insert: create the profile (lowercased email, name from metadata).
+-- handle_new_auth_user(): SECURITY DEFINER trigger on auth.users insert that creates the profile
+-- (lowercased email, name from metadata) via on_auth_user_created.
 
 CREATE TABLE public.packages (
   id TEXT PRIMARY KEY,
@@ -476,7 +543,7 @@ CREATE TABLE public.flight_logs (
 );
 ```
 
-Ship the schema as `lib/db/schema.sql` for new projects and as ordered, reviewed migrations for existing ones (production hardening, member accounts, exact email matching, confirmation outbox).
+Ship the schema as `lib/db/schema.sql` for new projects and as ordered, reviewed migrations for existing ones: `001_production_hardening.sql`, `002_member_accounts.sql`, `003_exact_pilot_email_matching.sql`, `004_confirmation_outbox.sql`.
 
 ### FILE STRUCTURE
 
@@ -495,7 +562,8 @@ components/
   brand/BrandLogo.tsx            # BrandLogo (airplane + wordmark), BrandMark (airplane)
   layout/  Navbar Footer LanguageSelector UiThemeSwitcher LiveMetarBar SkipLink
   scheduler/ AmazonFlightStorefront KantorovichCalendarScheduler
-  about/ pro/ legal/ reviews/ seo/StructuredDataJsonLd  ui/ Button Card Badge
+  about/AboutExperienceView  pro/ProSessionsView  legal/ PrivacyPolicyContentView RulesContentView
+  reviews/GoogleReviewsRotator  seo/StructuredDataJsonLd  ui/ Button Card Badge
 lib/
   scheduler/ kantorovich-engine mission-calculator tiled-interval-optimizer israel-clock
   booking/checkout-service       db/ store schema.sql seed-data supabase-admin migrations/
@@ -503,12 +571,13 @@ lib/
   i18n/ translations language-context calendar-presentation
   config/ facility-info server-env use-live-facility-status
   theme/ui-theme-context  ui/ use-client-value use-modal-focus  seo/seo-config
-  reviews/google-reviews-cache   stripe.ts  sendgrid.ts  validation.ts  utils.ts  supabaseClient.ts
+  reviews/google-reviews-cache  data/google-reviews-data (fallback snapshot)
+  stripe.ts  sendgrid.ts  validation.ts  utils.ts  supabaseClient.ts
 types/index.ts
 proxy.ts                          # /admin guard
 public/brand/                     # official logo assets; theme-bootstrap.js
 tests/  unit/ integration/ security/ reliability/ e2e/ a11y/ usability/ security-web/ resilience/ visual/ load/ perf/ support/
-scripts/ test-all.ts run-sandboxed.ts with-server.ts update-visual-baselines.sh
+scripts/ test-all.ts run-sandboxed.ts with-server.ts update-visual-baselines.sh check-genesis-coverage.ts
 .github/workflows/ ci.yml nightly.yml (OWASP ZAP baseline)
 AGENTS.md  ARCHITECTURE.md  README.md  TESTING.md  KANTOROVICH_SCHEDULER_SPEC.md
 ```
@@ -523,5 +592,11 @@ AGENTS.md  ARCHITECTURE.md  README.md  TESTING.md  KANTOROVICH_SCHEDULER_SPEC.md
   - all five languages with no mixed scripts or missing keys;
   - both themes with the official logo and no off-brand colours.
 - Production without Supabase or Stripe fails closed (503), never with fake data.
+- Before launch, verify the providers, which no build or test can prove:
+  - migrations 001–004 are applied and `ALLOW_IN_MEMORY_STORE` is absent in production;
+  - Google, Facebook and Apple are enabled in Supabase Auth with callback URLs for the deployed origin;
+  - the Stripe keys are set and the webhook receives `checkout.session.completed`, `checkout.session.expired` and `checkout.session.async_payment_failed`;
+  - the SendGrid sender is verified;
+  - a test booking, signed webhook, member claim, history read and receipt all work in a non-production environment.
 
 <!-- END GENESIS PROMPT -->

@@ -7,7 +7,7 @@ import { join } from 'node:path';
  *
  *   npm run test:all                    typecheck, Vitest + coverage, sandboxed build, e2e (Chromium),
  *                                       a11y / usability / security-web / resilience, visual, load smoke
- *   npm run test:all -- --quick         typecheck + Vitest only (seconds; no browser, no build)
+ *   npm run test:all -- --quick         typecheck, blueprint coverage + Vitest (seconds; no browser, no build)
  *   npm run test:all -- --full          e2e on all five browser projects
  *   npm run test:all -- --no-build      reuse an up-to-date .next-test instead of rebuilding
  *   npm run test:all -- --lighthouse    add the Lighthouse budgets stage
@@ -51,6 +51,8 @@ const playwright = (name: string, port: number, projects: string[]): Stage => ({
 
 const stages: Stage[] = [
   { name: 'Typecheck', command: 'npx', args: ['tsc', '--noEmit', '-p', '.'] },
+  // The canonical blueprint must still describe every route, table, script and invariant.
+  { name: 'Genesis blueprint coverage', command: 'npx', args: ['tsx', 'scripts/check-genesis-coverage.ts', '--require', 'GENESIS.md'] },
   {
     name: 'Vitest (unit, integration, security, reliability) + coverage',
     command: 'npx',

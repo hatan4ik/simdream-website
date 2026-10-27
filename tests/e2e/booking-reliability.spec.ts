@@ -33,6 +33,7 @@ test.describe('booking reliability', () => {
     });
 
     const staleRequest = page.waitForRequest((request) => isWeekdaySlots(new URL(request.url())));
+    await booking.revealDate(weekday.date);
     await booking.dateButton(weekday.date).click();
     await booking.selectDate(saturday);
     await expect(wizard.departureHeading(saturday)).toBeVisible();
