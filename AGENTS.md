@@ -148,6 +148,11 @@ The platform supports 5 languages with zero cross-language contamination:
    - Guest checkouts remain permitted; an authenticated member may later claim matching **paid** guest bookings. Anonymous email lookups must never expose purchase history or Stripe receipts.
 6. **Isolated Test Build Sandboxing**:
    - Sandboxed test runs and Playwright servers must use `.next-test` (`NEXT_DIST_DIR: '.next-test'`, see `tests/support/test-env.ts`), ensuring test builds never mutate or clobber the developer's working `.next` build.
+7. **Wix Headless Backend Adapter (`lib/wix/`)**:
+   - Target architecture: this Next.js frontend + Wix Headless business backend ([`docs/WIX_HEADLESS_ARCHITECTURE.md`](docs/WIX_HEADLESS_ARCHITECTURE.md)). The Wix project is the **"Sim Dream Israel"** headless site (metasite `4c5e1c7a-163c-48ce-8278-cdc42e4deed4`); the live Editor site on simdream.co.il is never written to from this repo.
+   - All Wix calls go through [`lib/wix/`](lib/wix/index.ts): one `@wix/sdk` client authenticated as an anonymous **visitor** with the public `NEXT_PUBLIC_WIX_CLIENT_ID`; Bookings is called over REST via `fetchWithAuth` (`@wix/bookings` is not installed — its React 18 peer dependency conflicts with React 19). `WIX_SITE_ID` is informational. No client secret, API key or PayPlus credential ever enters the repo or the browser.
+   - [`lib/wix/catalog.ts`](lib/wix/catalog.ts) maps every `SIMULATOR_PACKAGES` id to its Wix Bookings service id; `reconcileCatalog()` must report 0 mismatches. Run `npm run wix:smoke` after touching the catalog or the Wix services (it lists services, reconciles, and reads tomorrow's bookable slots).
+   - Agent know-how for Wix work comes from `npx skills add wix/skills` (installed under `.agents/skills/`, git-ignored) plus the Wix MCP connector; confirm every endpoint from the docs, never from memory.
 
 ---
 

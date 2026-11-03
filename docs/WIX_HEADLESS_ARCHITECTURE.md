@@ -8,6 +8,8 @@
 
 SimDream should treat Wix Headless as a business platform, not as a replacement for the SimDream customer experience. The existing frontend owns the aviation product experience, multilingual UX, accessibility, package education, and custom scheduling presentation. Wix owns the business records and native operations that it is good at: Bookings, Members, checkout, payment-provider configuration, CMS content, notifications, and staff dashboards.
 
+**Subscriptions are a separate commercial domain from one-off simulator bookings.** Wix Pricing Plans is the proposed authority for plan catalogue, recurring billing terms, trials, plan orders (called subscriptions by Wix), cancellation state, and plan-to-Booking benefits. The SimDream frontend renders the membership offer and member experience; it must not create a second recurring-billing system.
+
 For the existing application, the safest first implementation is **self-managed Next.js frontend + Wix Headless business backend**:
 
 - Keep the existing Next.js application and its tests intact.
@@ -52,10 +54,12 @@ flowchart LR
 
     Wix --> Bookings[Wix Bookings\nservices · resources · availability]
     Wix --> Members[Wix Members\nidentity · profiles]
+    Wix --> Plans[Wix Pricing Plans\nplans · subscriptions · benefits]
     Wix --> CMS[Wix CMS + Multilingual\ncontent]
     Wix --> Checkout[Wix-hosted checkout]
     Checkout --> PayPlus[PayPlus\nconfigured in Wix]
     Checkout -->|approved return URL| Web
+    Plans -->|eligible service entitlement| Bookings
 
     Legacy[Legacy Supabase + Stripe\nhistorical records only during transition] -. controlled read/migration .-> BFF
 ```
@@ -112,7 +116,33 @@ This is a controlled rewrite. Astro provides the richest Wix-managed experience,
 | Marketing, legal, FAQ, translated content | Wix CMS + Wix Multilingual | Establish a single publishing owner for each content field; do not maintain conflicting copies in code and CMS. |
 | Corporate workshops | Wix Bookings or a separate structured workflow after discovery | Keep B2B CRM concerns separate from B2C simulator-session operations. |
 | Gift vouchers | Wix native discount/promotion feature only if it satisfies partial-balance and expiry requirements | If it cannot reproduce the current voucher rules, keep a small audited server-side voucher domain instead of forcing an incorrect model. |
+| Membership and subscriptions | Wix Pricing Plans + Wix Members + Wix Bookings | Wix Pricing Plans owns plan terms, recurring lifecycle, trials, and subscription state. Connect only approved Bookings services/benefits. |
 | Operations admin | Wix Dashboard first | Build a custom dashboard only for capabilities absent from the native dashboard, such as SimDream-specific gap analysis. |
+
+### Subscription product model
+
+Pricing Plans should be used for recurring commercial commitments, not as a substitute for every package selector. A one-off 60-minute flight remains a normal Bookings checkout. A subscription becomes useful when the customer receives recurring membership value, such as priority booking, an ongoing member rate, a defined number of eligible sessions per cycle, training-program access, or members-only content.
+
+| Subscription shape | Wix pricing model | Example SimDream use | Important design rule |
+| --- | --- | --- | --- |
+| Recurring membership | Recurring subscription | Monthly Flight Club membership, recurring PRO practice programme | Wix controls payment cycle, trial, renewal, cancellation, and subscription status. |
+| Prepaid package | Single payment for a defined duration | Four sessions valid for 90 days | Use when the customer buys a finite package, not a recurring commitment. |
+| Perpetual one-time entitlement | Single payment, unlimited duration | A permanent alumni-content entitlement | Rarely appropriate for simulator capacity; require explicit business approval. |
+| Trial/community access | Free plan or free trial | One introductory benefit before paid membership | Enforce one-trial policy and define whether the benefit includes a flight, a discount, or content only. |
+
+### Entitlements: decide before implementation
+
+The word “subscription” is incomplete without a benefit contract. Before creating a plan, approve the answers to these questions:
+
+1. Does the plan provide **access/discount**, **session credits**, or both?
+2. Which Bookings services are eligible: recreational, PRO, fear-of-flying, workshops, or a subset?
+3. How many sessions/minutes are included per billing cycle? Do unused credits roll over? When do they expire?
+4. Can a plan be used in prime time, and is there a co-pay or supplement?
+5. How do add-ons, gift vouchers, promotions, cancellations, no-shows, pauses, refunds, and failed renewals affect entitlement?
+6. Is a customer required to be a Wix Member before purchase, or may a guest checkout create/claim membership during the flow?
+7. Who can grant, revoke, or compensate a benefit, and what audit trail is required?
+
+If native Pricing Plans + Bookings configuration expresses the approved benefit exactly, use it. If it does not—for example, a complicated rolling credit wallet—keep billing and subscription status in Wix Pricing Plans, then build only a narrow, trusted **entitlement adapter**. The adapter must be idempotent, keyed by the Wix member and subscription/order IDs, and must never independently charge, renew, or cancel a subscription.
 
 ## 6. Customer booking lifecycle
 
@@ -151,6 +181,48 @@ The success route must never treat `?success=true`, a client-side redirect, or a
 4. The frontend queries only the current member's permitted booking/order history.
 5. Any legacy guest-to-member linking is a deliberate server-side migration operation using exact, verified identity matching; it is never an anonymous “search by email” endpoint.
 
+## 6A. Subscription lifecycle
+
+```mermaid
+sequenceDiagram
+    participant C as Customer
+    participant F as SimDream membership frontend
+    participant W as Wix Pricing Plans + Members
+    participant P as Wix checkout + PayPlus
+    participant B as Wix Bookings
+
+    C->>F: Compare and select plan
+    F->>W: Query public plans and current-member eligibility
+    W-->>F: Plan terms, price, trial/benefit metadata
+    F->>W: Create Pricing Plans checkout redirect
+    W-->>F: Secure paid-plan checkout URL
+    F->>P: Redirect customer
+    C->>P: Accept recurring card payment or one-time plan payment
+    P->>W: Create/update subscription order and payment state
+    P-->>F: Redirect to approved membership return URL
+    F->>W: Re-query current member's subscription status
+    W-->>F: Active / pending / cancelled / expired state
+    C->>F: Attempt eligible flight booking
+    F->>B: Request availability with member/subscription context
+    B-->>F: Eligible booking or normal paid booking path
+```
+
+### Subscription frontend responsibilities
+
+- Render plan comparison, benefits, terms, trial disclosure, renewal frequency, and cancellation policy from an approved plan catalogue.
+- Treat the post-checkout return as an instruction to **re-query** status, never as proof of activation.
+- Show the current member their active plan, current billing/benefit period, included benefits, and the correct Wix-managed path for plan management/cancellation when applicable.
+- Keep guest checkout for one-off simulator bookings. For subscriptions, the product team must explicitly choose the identity path because an ongoing entitlement and self-service cancellation require a reliably associated member identity.
+- Do not calculate recurring renewal dates or payment state in the browser.
+
+### Subscription backend responsibilities
+
+- Treat Wix Pricing Plans' plan and subscription/order identifiers, status, cycle dates, and payment state as authoritative.
+- Use the current member identity, not browser-supplied email, when deciding subscription eligibility.
+- Resolve the active entitlement immediately before reserving a Bookings slot; a cached UI badge is never sufficient.
+- Record immutable audit entries for manual entitlement adjustments, with actor, reason, source subscription/order ID, and expiry.
+- Reconcile active subscriptions, cancelled subscriptions, failed renewals, and consumed benefits on a scheduled operational report.
+
 ## 7. Authentication and secret model
 
 ### Identities
@@ -183,6 +255,19 @@ The success route must never treat `?success=true`, a client-side redirect, or a
 
 Do not point a pull request or local laptop at production booking capacity or live payment credentials. A staging environment is not merely a different frontend URL: it must have separate operational test data and payment configuration.
 
+### Subscription-payment prerequisites
+
+Before enabling a recurring plan in production, validate all of the following in the Wix Dashboard and with the business/payment owner:
+
+- Wix Pricing Plans is installed on both staging and production sites.
+- The Wix site plan supports accepting online payments.
+- PayPlus is connected to the correct environment and recurring card payments are enabled for the merchant account.
+- The Wix site currency matches the configured PayPlus account currency.
+- The selected recurring schedule, free trial, setup fee, cancellation policy, and customer-facing terms are approved.
+- A non-production recurring-plan lifecycle has been tested: first charge, renewal simulation where available, cancellation, failed payment, benefit expiry, and member self-service visibility.
+
+Wix documents that recurring Pricing Plans need a payment provider that supports recurring payments. It lists PayPlus as recurring-card capable, but provider activation, eligibility, commercial terms, and final acceptance remain an account-level configuration check. Pricing Plans cannot use manual/offline payment. Changing the payment provider later requires all active recurring plans to be cancelled and customers to repurchase, so provider changes require a formal migration runbook.
+
 ### Git strategy
 
 ```text
@@ -210,8 +295,9 @@ Recommended branch protections for `main`:
 4. Build the Next.js application.
 5. Run a lightweight browser smoke test against a preview deployment and Wix staging.
 6. Exercise a non-charging booking test: package → slot → checkout redirect creation → return-state verification.
-7. Publish a deployment preview and attach its URL to the pull request.
-8. After approval, promote the exact tested commit—not a rebuilt, unreviewed local directory.
+7. Exercise a non-charging subscription test: plan display → pricing-plan checkout redirect → verified active/pending state → eligible benefit evaluation → cancellation/failure-path state.
+8. Publish a deployment preview and attach its URL to the pull request.
+9. After approval, promote the exact tested commit—not a rebuilt, unreviewed local directory.
 
 For a Wix-managed frontend, the release step is: build with the framework's own tooling, then release the prepared output through the Wix CLI. For a self-managed frontend, the hosting platform performs the deploy step while Wix remains the business backend.
 
@@ -247,6 +333,8 @@ For a Wix-managed frontend, the release step is: build with the framework's own 
 - Authorised member can see only their own past/future bookings.
 - Payment success, cancellation, expiry, and duplicated-callback/idempotency paths.
 - PayPlus sandbox failure and recovery paths.
+- Recurring-plan first charge, free-trial expiry, renewal, cancellation, payment failure, entitlement revocation, and no-double-credit paths.
+- A member with an expired/cancelled subscription cannot consume a subscription-only booking benefit; a member with an active subscription can consume only the approved benefit.
 - Mobile viewport, keyboard navigation, screen-reader alerts, and empty accessibility baseline.
 
 ### Operational signals
@@ -258,6 +346,7 @@ Alert on the following, with no personal data in logs:
 - availability/reservation conflicts;
 - authentication callback failures;
 - payment failure rate and webhook/event delivery failures;
+- recurring-payment failures, cancellations, unexpectedly-expiring plans, and entitlement-reconciliation mismatches;
 - elevated/admin API failures;
 - frontend error rate, response latency, and broken multilingual routes.
 
@@ -279,6 +368,16 @@ The first increment is complete only when all of the following are true:
 - No secret is committed, logged, or exposed to the browser.
 - Staging acceptance, rollback procedure, monitoring ownership, and production approval are documented.
 
+### Additional definition of done for subscription launch
+
+- Every live plan has approved customer-facing terms, benefits, duration, price, renewal schedule, cancellation policy, and owner.
+- PayPlus recurring-card capability, Wix payment plan, and currency compatibility are confirmed for production.
+- The active plan/subscription order is visible in Wix Dashboard and correctly associated with the intended member.
+- The customer can see their current subscription status and the permitted plan-management/cancellation route.
+- Booking eligibility is rechecked server-side immediately before reservation.
+- The first production plan has been reviewed carefully before publication. Wix notes that Pricing Plans cannot currently be deleted; do not use production plans as experiments.
+- A support runbook covers cancellation, refund/credit policy, failed renewals, manual benefit corrections, payment-provider migration, and reconciliation.
+
 ## 12. Official Wix references
 
 - [Choose a Wix Headless development path](https://dev.wix.com/docs/go-headless/get-started/choose-your-development-path)
@@ -287,6 +386,10 @@ The first increment is complete only when all of the following are true:
 - [Set up a Headless client](https://dev.wix.com/docs/go-headless/authentication/setup/set-up-a-headless-client)
 - [Allowed redirect URIs and domains](https://dev.wix.com/docs/go-headless/authentication/setup/allow-redirect-uris-and-domains)
 - [Wix Bookings Headless quick start](https://dev.wix.com/docs/go-headless/self-managed-headless/tutorials/java-script-sdk-tutorials/bookings-quick-start)
+- [Wix Pricing Plans API and subscription models](https://dev.wix.com/docs/api-reference/business-solutions/pricing-plans/introduction?apiView=SDK)
+- [Wix Plans V3 API](https://dev.wix.com/docs/api-reference/business-solutions/pricing-plans/plans-v3/introduction?apiView=SDK)
+- [Wix hosted Pricing Plans checkout](https://dev.wix.com/docs/go-headless/business-solutions/wix-hosted-pages/about-wix-hosted-pages)
+- [Wix recurring-payment support](https://support.wix.com/en/article/accepting-recurring-payments)
+- [Wix PayPlus payment-provider setup (Hebrew)](https://support.wix.com/he/article/%D7%97%D7%99%D7%91%D7%95%D7%A8-payplus-%D7%9B%D7%A1%D7%A4%D7%A7-%D7%AA%D7%A9%D7%9C%D7%95%D7%9D)
 - [Redirect to Wix-hosted checkout/login pages](https://dev.wix.com/docs/go-headless/business-solutions/wix-hosted-pages/redirect-using-the-js-sdk)
 - [Deploy an existing frontend to Wix-managed Headless](https://dev.wix.com/docs/go-headless/wix-managed-headless/other-frameworks/your-own-frontend/deploy-your-own-frontend-with-the-cli)
-

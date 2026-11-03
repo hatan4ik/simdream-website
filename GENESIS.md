@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:23d590ffc7201263cdffcb97aaaba14486e0315f94fc47f87a443a259c363589 -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:30a780cff9c75716a23a929ffd2314a9258f67f8d3da7a5265b2ee5266fc82e8 -->
 
 ## Verification contract
 
@@ -79,6 +79,7 @@ Browser (5 languages, 2 themes)
 
 - **Entry points**: `app/layout.tsx` (providers: language, theme, auth; navbar, skip link, single `<main>`, footer), `proxy.ts` (admin guard), `app/api/**/route.ts` (13 route modules), `app/sitemap.ts`, `app/robots.ts`.
 - **Repository pattern**: `lib/db/store.ts` is the only data access layer. A `production` getter chooses Supabase when production is configured, the seeded in-memory store in development and tests, and **throws `PersistenceError` (answered as HTTP 503)** in production without a database, unless `ALLOW_IN_MEMORY_STORE=true` (demo servers only).
+- **Wix Headless adapter** (`lib/wix/`, target architecture in `docs/WIX_HEADLESS_ARCHITECTURE.md`): a single `@wix/sdk` client (`lib/wix/client.ts`) authenticated as an anonymous visitor with the public `NEXT_PUBLIC_WIX_CLIENT_ID`; `lib/wix/bookings.ts` reads Bookings services and bookable time slots over REST through `fetchWithAuth` (`@wix/bookings` is deliberately not installed: its React 18 peer dependency conflicts with React 19); `lib/wix/catalog.ts` maps every `SIMULATOR_PACKAGES` id to its Wix service id and `reconcileCatalog()` asserts name, duration and price parity. `npm run wix:smoke` (`scripts/wix-smoke.ts`) exercises the live connection; `tests/unit/wix-catalog.test.ts` covers the map and reconciliation. The Wix project is the "Sim Dream Israel" headless site (`WIX_SITE_ID`), never the live Editor site.
 - **Error taxonomy**: `PersistenceError` → 503 with a generic message; `BookingConflictError` → 409; `RecordNotFoundError` → 404. Clients never see stack traces or database messages.
 - **Server authority**: the browser sends only IDs (package, date, start time, add-on IDs) and pilot details. Prices, durations, end times and discounts are always recomputed on the server.
 
@@ -151,7 +152,7 @@ Build **simdream.co.il**, the booking and marketing platform for **Sim Dream LTD
 - **Stripe** Checkout (hosted) and a signature-verified webhook. **SendGrid** for email. **Google Places API** for reviews, cached 24 h with ISR.
 - Testing: **Vitest** (+ coverage, **fast-check**), **Playwright** (+ **axe-core**), **autocannon**, **Lighthouse CI**.
 - Node 22. Deploy to **Vercel**. CI on **GitHub Actions**.
-- Environment variables (document them in `.env.example`, never commit values): `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `ADMIN_USER`, `ADMIN_PASSWORD` (≥16 chars in production), `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `SENDGRID_API_KEY`, `NEXT_PUBLIC_SUPPORT_EMAIL`, `GOOGLE_PLACES_API_KEY`, and the demo-only opt-in `ALLOW_IN_MEMORY_STORE`.
+- Environment variables (document them in `.env.example`, never commit values): `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `ADMIN_USER`, `ADMIN_PASSWORD` (≥16 chars in production), `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `SENDGRID_API_KEY`, `NEXT_PUBLIC_SUPPORT_EMAIL`, `GOOGLE_PLACES_API_KEY`, the demo-only opt-in `ALLOW_IN_MEMORY_STORE`, and the two public Wix Headless identifiers `NEXT_PUBLIC_WIX_CLIENT_ID` (OAuth client id, visitor tokens only) and `WIX_SITE_ID` (metasite id of the "Sim Dream Israel" headless site).
 
 ### NON-NEGOTIABLE INVARIANTS (the five pillars of this build)
 

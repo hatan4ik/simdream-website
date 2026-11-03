@@ -5,7 +5,6 @@ import Link from 'next/link';
 import {
   Clock,
   Award,
-  CheckCircle2,
   ArrowRight,
   Compass,
   ShieldCheck,
@@ -16,7 +15,7 @@ import {
   ExternalLink,
   ChevronDown,
 } from 'lucide-react';
-import { getLocalizedPackages, Language } from '@/lib/i18n/translations';
+import { Language } from '@/lib/i18n/translations';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
@@ -25,24 +24,50 @@ import { useLanguage } from '@/lib/i18n/language-context';
 import { FACILITY_INFO } from '@/lib/config/facility-info';
 
 const SIMDREAM_SERVICE_URLS: Record<string, string> = {
-  'pkg-pro-60': 'https://www.simdream.co.il/service-page/airline-interview-prep-60-pro?referral=service_list_widget',
-  'pkg-pro-90': 'https://www.simdream.co.il/service-page/airline-interview-prep-90-pro?referral=service_list_widget',
-  'pkg-assessment-prep-120': 'https://www.simdream.co.il/service-page/airline-interview-prep-120-pro?referral=service_list_widget',
+  'airline-prep-60-pro':
+    'https://www.simdream.co.il/service-page/airline-interview-prep-60-pro?referral=service_list_widget',
+  'airline-prep-90-pro':
+    'https://www.simdream.co.il/service-page/airline-interview-prep-90-pro?referral=service_list_widget',
+  'airline-assessment-prep':
+    'https://www.simdream.co.il/service-page/airline-interview-prep-120-pro?referral=service_list_widget',
+  'pkg-pro-60':
+    'https://www.simdream.co.il/service-page/airline-interview-prep-60-pro?referral=service_list_widget',
+  'pkg-pro-90':
+    'https://www.simdream.co.il/service-page/airline-interview-prep-90-pro?referral=service_list_widget',
+  'pkg-assessment-prep-120':
+    'https://www.simdream.co.il/service-page/airline-interview-prep-120-pro?referral=service_list_widget',
 };
 
 interface ProCopy {
   heroBadge: string;
   heroTitle: string;
   heroSubtitle: string;
-  packagesBadge: string;
-  packagesHeading: string;
+  heroCtaPrimary: string;
+  heroCtaSecondary: string;
+  trustFMC: string;
+  trustMentors: string;
+  trustIOS: string;
+  trustZeroNoise: string;
+  whyBadge: string;
+  whyHeading: string;
+  whySubtitle: string;
+  whyCalloutTitle: string;
+  whyCalloutDesc: string;
+  whyPillars: Array<{
+    title: string;
+    desc: string;
+  }>;
+  bookDirectTitle: string;
+  bookDirectSubtitle: string;
+  bookDirectCta: string;
+  bookDirect60: string;
+  bookDirect120: string;
   recreationalLink: string;
-  minutesLabel: string;
   perSession: string;
   iosReset: string;
-  syllabusLabel: string;
   bookBtn: (title: string, price: string) => string;
   officialServicePage: string;
+  recommendedBadge: string;
   interviewGuideBadge: string;
   interviewGuideTitle: string;
   interviewGuideDesc: string;
@@ -50,16 +75,12 @@ interface ProCopy {
   interviewPackages: Array<{
     duration: string;
     title: string;
+    slug: string;
+    priceIls: number;
     bestFor: string;
     flow: string;
   }>;
   interviewNote: string;
-  methodologyBadge: string;
-  methodologyTitle: string;
-  proModules: Array<{
-    title: string;
-    desc: string;
-  }>;
   techSpecsSummary: string;
   techSpecsVisualsTitle: string;
   techSpecsVisualsDesc: string;
@@ -75,19 +96,53 @@ interface ProCopy {
 
 const PRO_COPY: Record<Language, ProCopy> = {
   en: {
-    heroBadge: 'PROFESSIONAL TRAINING • AIRLINE INTERVIEW PREPARATION (60 / 90 / 120 MIN)',
+    heroBadge: 'PROFESSIONAL TRAINING • AIRLINE ASSESSMENT SCREENING',
     heroTitle: 'Professional Training — Airline Assessment & Pilot Screening Prep',
     heroSubtitle:
       'Tailored for licensed commercial pilots (PPL / CPL / ATPL), cadets, and airline applicants preparing for simulator screening evaluations (El Al, Arkia, Israir, Ryanair, Wizz Air & international carriers). Personalized visual and instrument flight training in a 1:1 scale Boeing 737 MAX flight deck.',
-    packagesBadge: 'OFFICIAL AIRLINE INTERVIEW PREP PACKAGES',
-    packagesHeading: 'Select Your Airline Interview Prep Block',
+    heroCtaPrimary: 'Book Airline Assessment Prep (90 PRO)',
+    heroCtaSecondary: 'Why Pilots Need Prep ↓',
+    trustFMC: '1:1 Scale Boeing 737 MAX Cockpit',
+    trustMentors: 'Active Airline Captain Mentors',
+    trustIOS: 'Instant IOS Approach Resets',
+    trustZeroNoise: 'Dedicated Noise-Free Sessions',
+    whyBadge: 'CRITICAL SCREENING PREPARATION',
+    whyHeading: 'Why Commercial Pilots Need Simulator Assessment Preparation',
+    whySubtitle:
+      'Airline simulator checkrides are elimination assessments with zero margin for error. A single failed screening often results in a 6-to-12-month re-application freeze. Here is why structured prep in our 1:1 Boeing 737 MAX flight deck gives you the decisive edge:',
+    whyCalloutTitle: 'High-Stakes Checkride Reality',
+    whyCalloutDesc:
+      'Airline recruiters do not assess your overall logbook hours — they evaluate how you handle 70 tons of swept-wing jet under extreme stress on day one. Pre-interview cockpit practice turns anxiety into automated muscle memory.',
+    whyPillars: [
+      {
+        title: 'Raw Data Manual Flight Mastery (FD OFF, A/T OFF)',
+        desc: 'Checkride examiners evaluate how you hand-fly without automation. Master Boeing 737 pitch & power tables, 45° steep turns, and raw-data ILS tracking under strict airline tolerances.',
+      },
+      {
+        title: 'V1 Cut Engine Failure & QRH Discipline',
+        desc: 'Engine failure at V1 decision speed requires immediate directional control, precise rudder trim, single-engine go-around capability, and structured Quick Reference Handbook (QRH) checklist discipline under pressure.',
+      },
+      {
+        title: 'Precision & Non-Precision Instrument IFR',
+        desc: 'Full FMS/CDU initialization, SID/STAR departures, published holding entries, LOC/DME and RNAV/RNP-AR approaches in low visibility and gusty crosswinds.',
+      },
+      {
+        title: 'Active Airline Captain Mentorship & PM Coordination',
+        desc: 'Train 1-on-1 with real commercial airline pilots who know current airline assessment profiles. Your instructor can act as Pilot Monitoring (PM) or step aside for your crew partner to rehearse your carrier’s exact MCC profile.',
+      },
+    ],
+    bookDirectTitle: 'Ready to Secure Your Airline Assessment Slot?',
+    bookDirectSubtitle:
+      'Choose your preparation duration below to enter the streamlined 2-step airline booking flow with zero add-on distractions.',
+    bookDirectCta: 'Book Recommended 90-Minute Rehearsal (₪1,250)',
+    bookDirect60: '60m Focus · ₪890',
+    bookDirect120: '120m Extended · ₪1,590',
     recreationalLink: 'Looking for Recreational & Gift Flight Packages? View Standard Packages →',
-    minutesLabel: 'MINUTES PROFESSIONAL TRAINING',
     perSession: '/ session',
     iosReset: 'Instant IOS Approach Resets',
-    syllabusLabel: 'PRO Syllabus & Included Profiles:',
     bookBtn: (title, price) => `Book ${title} (${price})`,
     officialServicePage: 'View Service Page on simdream.co.il',
+    recommendedBadge: 'RECOMMENDED FOR AIRLINE SCREENINGS',
     interviewGuideBadge: 'ATP / ATPL INTERVIEW PREPARATION',
     interviewGuideTitle: 'Practice for the simulator interview — not just cockpit time',
     interviewGuideDesc:
@@ -96,45 +151,34 @@ const PRO_COPY: Record<Language, ProCopy> = {
     interviewPackages: [
       {
         duration: '60 minutes',
-        title: 'ATP / ATPL Interview Focus',
-        bestFor: 'Targeting one or two priorities before an interview or simulator assessment.',
+        title: 'Airline Interview Prep 60 PRO',
+        slug: 'airline-prep-60-pro',
+        priceIls: 890,
+        bestFor:
+          'Targeting one or two priorities before an interview or simulator assessment (Raw data, steep turns, specific profile).',
         flow: 'Short brief → focused raw-data or instrument profile → debrief with next steps.',
       },
       {
         duration: '90 minutes',
-        title: 'Airline Simulator Interview Rehearsal',
-        bestFor: 'Candidates who want a balanced, end-to-end practice run before their assessment.',
+        title: 'Airline Interview Prep 90 PRO',
+        slug: 'airline-prep-90-pro',
+        priceIls: 1250,
+        bestFor:
+          'Candidates who want a balanced, end-to-end rehearsal before their evaluation (Recommended standard for airline screenings).',
         flow: 'FMS setup → departure and raw data → engine or approach scenario → structured debrief.',
       },
       {
         duration: '120 minutes',
-        title: 'ATP / ATPL Assessment Intensive',
-        bestFor: 'Deep preparation, PF/PM crew practice, and time to repeat improvement areas.',
+        title: 'Airline Interview Prep 120 PRO',
+        slug: 'airline-assessment-prep',
+        priceIls: 1590,
+        bestFor:
+          'Deep preparation, PF/PM crew practice, full emergency scenarios, and time to repeat improvement areas.',
         flow: 'Multiple practice profiles → two-pilot workflow → repeat key exercises → detailed debrief.',
       },
     ],
     interviewNote:
       'Preparation is practical coaching tailored to your goals conducted on the Boeing 737 MAX simulator at Gershon Shatz 36 Tel Aviv with instructor / PM flexibility.',
-    methodologyBadge: 'AIRLINE CHECKRIDE METHODOLOGY',
-    methodologyTitle: 'What You Will Train in Your Professional Training Session',
-    proModules: [
-      {
-        title: 'Raw Data Manual Flight (Flight Director OFF)',
-        desc: 'Master Boeing 737 pitch-and-thrust power tables, steep 45° bank turns, altitude/airspeed tolerances, and stall recovery to strict airline checkride standards.',
-      },
-      {
-        title: 'Precision & Non-Precision IFR (ILS, RNAV, RNP-AR)',
-        desc: 'Full FMS/CDU route initialization, SID/STAR transitions, published holding patterns, and raw-data ILS & LOC/DME approaches in low-visibility crosswinds.',
-      },
-      {
-        title: 'V1 Engine Failure (V1 Cut) & QRH Abnormal Flows',
-        desc: 'Engine failure at takeoff decision speed, rudder trim discipline, Single-Engine ILS approach, single-engine go-around, and structured QRH checklist execution.',
-      },
-      {
-        title: 'Flexible Crew Seat: Instructor as PM or Bring Your Partner',
-        desc: 'Our instructor can serve as your Pilot Monitoring (PM) or cede the right seat to your crew partner or personal flight examiner for two-crew training.',
-      },
-    ],
     techSpecsSummary:
       'About Sim Dream & Boeing 737 MAX Simulator Technical Specifications (Click to Expand)',
     techSpecsVisualsTitle: 'Visual & Cockpit Shell',
@@ -155,15 +199,49 @@ const PRO_COPY: Record<Language, ProCopy> = {
     heroTitle: 'הדרכה מקצועית לטייסים והכנה למבדקי סימולטור בחברות תעופה',
     heroSubtitle:
       'מיועד לטייסים בעלי רישיון (PPL / CPL / ATPL), בוגרי קורסי טיס ומועמדים למיוני קבלה בחברות תעופה (אל על, ישראייר, ארקיע, Wizz Air וחברות אירופאיות). אימונים מותאמים אישית בטיסה חזותית וטיסת מכשירים בתא טייס בואינג 737 MAX בקנה מידה 1:1 ברחוב גרשון שץ 36 תל אביב.',
-    packagesBadge: 'חבילות הדרכה רשמיות להזמנה ישירה',
-    packagesHeading: 'חבילות הכנה למבדקי חברות תעופה',
+    heroCtaPrimary: 'הזמנת אימון מבדק (90 PRO)',
+    heroCtaSecondary: 'למה צריך הכנה למבדק? ↓',
+    trustFMC: 'תא טייס בואינג 737 MAX בקנה מידה 1:1',
+    trustMentors: 'קברניטי חברות תעופה פעילים כמדריכים',
+    trustIOS: 'איפוס גישות מיידי בעמדת מדריך (IOS)',
+    trustZeroNoise: 'סשן הדרכה ייעודי וממוקד ללא הסחות דעת',
+    whyBadge: 'חשיבות ההכנה למבדק',
+    whyHeading: 'למה טייסים מסחריים וקדטים חייבים הכנה מקצועית לסימולטור?',
+    whySubtitle:
+      'מבדקי סימולטור בחברות תעופה הם שלב סינון קריטי ללא פשרות. כישלון במבדק מוביל לרוב להקפאת מועמדות של 6 עד 12 חודשים. אימון ממוקד בסימולטור הבואינג 737 MAX מעניק לכם את היתרון המכריע לעבור בפעם הראשונה:',
+    whyCalloutTitle: 'המציאות של מבדקי סימולטור',
+    whyCalloutDesc:
+      'בוחני חברות התעופה לא בודקים כמה שעות צברתם בסך הכל — הם בודקים כיצד אתם מתפעלים מטוס סילון כבד תחת עומס קיצוני ביום המבחן. אימון מקדים הופך לחץ לזיכרון שריר מדויק.',
+    whyPillars: [
+      {
+        title: 'הטסת Raw Data ידנית מלאה (ללא Flight Director וללא מצערת אוטומטית)',
+        desc: 'הבוחנים בחברות התעופה בודקים הטסה ידנית של מטוס סילון כבד ללא אוטומציה. תרגול מדויק של טבלאות Pitch & Thrust לבואינג 737, פניות 45° חדות, ושמירת נתיב ILS לפי סטיות מותרות של חברות התעופה.',
+      },
+      {
+        title: 'תקלת מנוע ב-V1 (V1 Cut) ונהלי חירום QRH',
+        desc: 'אובדן מנוע במהירות ההחלטה V1 דורש תגובה מיידית לשמירת ציר, קיזוז הגה כיוון מדויק, הליכה סביב במנוע בודד ותפעול נהלי חירום וספרי בד״ח (QRH) תחת עומס גבוה.',
+      },
+      {
+        title: 'שליטה בגישות מכשירים מתקדמות (ILS, LOC/DME, RNP)',
+        desc: 'הזנת FMS מלאה, תהליכי יציאה והצטרפות (SID/STAR), מעגלי המתנה (Holdings) והנמכות בראות מוגבלת ורוחות צד חזקות.',
+      },
+      {
+        title: 'הדרכה עם קברניט פעיל ותיאום צוות (MCC)',
+        desc: 'אימון אחד-על-אחד עם טייס חברת תעופה מנוסה שמתפקד כטייס מנטר (PM) או פינוי המושב הימני לשותף צוות מטעמכם לתרגול פרופיל המיון המדויק של החברה.',
+      },
+    ],
+    bookDirectTitle: 'מוכנים לשריין מועד לאימון הכנה למבדק?',
+    bookDirectSubtitle:
+      'בחרו את משך האימון הרצוי למעבר ישיר למערכת ההזמנות המקצועית והשקטה ללא הסחות דעת.',
+    bookDirectCta: 'הזמנת אימון מבדק מומלץ (90 דק׳ — ₪1,250)',
+    bookDirect60: 'מיקוד 60 דק׳ · ₪890',
+    bookDirect120: 'אימון מקיף 120 דק׳ · ₪1,590',
     recreationalLink: 'מחפשים חבילות חוויה או מתנה לקהל הרחב? לחצו כאן ←',
-    minutesLabel: 'דקות אימון מקצועי',
     perSession: '/ סשן מקצועי',
     iosReset: 'עמדת IOS לאיפוס גישות מיידי',
-    syllabusLabel: 'סילבוס ודגשי האימון:',
     bookBtn: (title, price) => `הזמנת ${title} (${price})`,
     officialServicePage: 'דף השירות הרשמי ב-simdream.co.il',
+    recommendedBadge: 'המסלול המומלץ למיוני חברות תעופה',
     interviewGuideBadge: 'הכנה לראיון ולמבדק סימולטור',
     interviewGuideTitle: 'מתאמנים למבדק סימולטור — לא רק מזמינים זמן בתא הטייס',
     interviewGuideDesc:
@@ -172,45 +250,34 @@ const PRO_COPY: Record<Language, ProCopy> = {
     interviewPackages: [
       {
         duration: '60 דקות',
-        title: 'ATP / ATPL Interview Focus',
-        bestFor: 'למיקוד בנושא או שניים לפני ראיון או מבדק סימולטור.',
+        title: 'Airline Interview Prep 60 PRO',
+        slug: 'airline-prep-60-pro',
+        priceIls: 890,
+        bestFor:
+          'למיקוד בנושא או שניים לפני ראיון או מבדק סימולטור (Raw Data, פניות חדות, גישה ספציפית).',
         flow: 'תדריך קצר → Raw Data / גישת מכשירים ממוקדת → דיבריף עם נקודות עבודה.',
       },
       {
         duration: '90 דקות',
-        title: 'Airline Simulator Interview Rehearsal',
-        bestFor: 'למועמדים שרוצים חזרה מלאה ומאוזנת לפני מבדק.',
+        title: 'Airline Interview Prep 90 PRO',
+        slug: 'airline-prep-90-pro',
+        priceIls: 1250,
+        bestFor:
+          'למועמדים שרוצים חזרה מלאה ומאוזנת לפני מבדק (הסטנדרט המומלץ ביותר למיונים).',
         flow: 'הגדרת FMS → יציאה ו-Raw Data → תרחיש מנוע / גישה → דיבריף מובנה.',
       },
       {
         duration: '120 דקות',
-        title: 'ATP / ATPL Assessment Intensive',
-        bestFor: 'לתרגול מעמיק, עבודה בצוות PF/PM וזמן לחזרה על נקודות לשיפור.',
+        title: 'Airline Interview Prep 120 PRO',
+        slug: 'airline-assessment-prep',
+        priceIls: 1590,
+        bestFor:
+          'לתרגול מעמיק, עבודה בצוות PF/PM, חזרה על תקלות וזמן לעיבוד נקודות לשיפור.',
         flow: 'כמה פרופילי תרגול → תפעול שני טייסים → חזרה על תרגילים → דיבריף מפורט.',
       },
     ],
     interviewNote:
       'ההכנה היא אימון מעשי מותאם אישית למטרותיכם. האימון מועבר על גבי סימולטור בואינג 737 MAX ברחוב גרשון שץ 36 תל אביב עם אפשרות לצוות שני או מדריך אישי.',
-    methodologyBadge: 'מתודולוגיית אימון מקצועית',
-    methodologyTitle: 'מה מתרגלים בסשן ההדרכה המקצועית?',
-    proModules: [
-      {
-        title: 'הטסת Raw Data ידנית (ללא Flight Director)',
-        desc: 'תרגול מדויק של טבלאות Pitch & Thrust, שמירת גובה ומהירות בפניות 45°, היחלצות מהזדקרות ועבודת אוויר לפי דרישות בוחני חברות התעופה.',
-      },
-      {
-        title: 'גישות מכשירים: ILS, RNAV ו-RNP-AR',
-        desc: 'הזנת תוכנית טיסה מלאה ב-FMS/CDU, תהליכי יציאה והצטרפות (SID/STAR), מעגלי המתנה (Holdings) והנמכות מכשירים בראות מוגבלת ורוחות צד.',
-      },
-      {
-        title: 'תקלת מנוע ב-V1 (V1 Cut) ונהלי QRH',
-        desc: 'תרגול אובדן מנוע בהמראה, שמירת ציר מסלול, גישת ILS במנוע בודד (Single-Engine ILS), הליכה סביב (Go-Around) וחלוקת עבודה בצוות (PF/PM).',
-      },
-      {
-        title: 'גמישות צוותית: מדריך כ-PM או צוות של 2 טייסים',
-        desc: 'מדריך הסימולטור יכול לתפקד כקצין ראשון (PM/PNF) או לפנות את המושב הימני לטייס שותף / מדריך אישי מטעמכם לאימון MCC מלא.',
-      },
-    ],
     techSpecsSummary:
       'אודות מרכז הסימולטור ומפרט טכני של תא הטייס בואינג 737 MAX (לחצו לצפייה)',
     techSpecsVisualsTitle: 'תצוגה פנורמית ומבנה',
@@ -231,15 +298,49 @@ const PRO_COPY: Record<Language, ProCopy> = {
     heroTitle: 'Профессиональная подготовка пилотов — скрининги и чек-райды',
     heroSubtitle:
       'Специализированная программа для пилотов с лицензиями PPL / CPL / ATPL, выпускников летных школ и соискателей в авиакомпании (El Al, Arkia, Israir, Wizz Air, Ryanair и др.). Индивидуальные тренировки визуальных заходов и IFR в точной кабине Boeing 737 MAX масштаба 1:1 в Тель-Авиве.',
-    packagesBadge: 'ОФИЦИАЛЬНЫЕ ПРОГРАММЫ ПОДГОТОВКИ К СОБЕСЕДОВАНИЯМ',
-    packagesHeading: 'Выберите блок профессиональной подготовки',
+    heroCtaPrimary: 'Забронировать подготовку к скринингу (90 PRO)',
+    heroCtaSecondary: 'Зачем пилотам подготовка? ↓',
+    trustFMC: 'Кабина Boeing 737 MAX масштаба 1:1',
+    trustMentors: 'Действующие командиры авиакомпаний',
+    trustIOS: 'Мгновенный сброс заходов через пульт IOS',
+    trustZeroNoise: 'Целевые профессиональные сессии',
+    whyBadge: 'ЗНАЧЕНИЕ ПОДГОТОВКИ К СКРИНИНГУ',
+    whyHeading: 'Почему коммерческим пилотам необходима подготовка на симуляторе?',
+    whySubtitle:
+      'Отборочный чек-райд на симуляторе — решающий этап отбора в авиакомпанию, где оцениваются навыки без права на ошибку. Неудачный скрининг часто приводит к заморозке подачи резюме на 6–12 месяцев. Структурированная подготовка на симуляторе Boeing 737 MAX обеспечивает решающее преимущество:',
+    whyCalloutTitle: 'Реальность отборочных чек-райдов',
+    whyCalloutDesc:
+      'Экзаменаторы авиакомпаний оценивают не общий налет в летной книжке, а способность пилотировать тяжелый реактивный самолет в условиях стресса. Подготовка превращает волнение в автоматизированную мышечную память.',
+    whyPillars: [
+      {
+        title: 'Пилотирование Raw Data вручную (FD OFF, A/T OFF)',
+        desc: 'Экзаменаторы оценивают ручное пилотирование 70-тонного реактивного лайнера без директоров и автомата тяги. Отработка таблиц Pitch & Thrust для Boeing 737, виражей 45° и заходов по ILS в жестких допусках авиакомпаний.',
+      },
+      {
+        title: 'Отказ двигателя на V1 (V1 Cut) и процедуры QRH',
+        desc: 'Отказ двигателя на скорости принятия решения требует мгновенного удержания курса, балансировки рулем направления, ухода на второй круг на одном двигателе и действий по QRH под нагрузкой.',
+      },
+      {
+        title: 'Инструментальные заходы повышенной сложности (ILS, LOC, RNP)',
+        desc: 'Полная инициализация FMS/CDU, схемы SID/STAR, зоны ожидания и инструментальные заходы в условиях бокового ветра и низкой видимости.',
+      },
+      {
+        title: 'Наставничество действующих пилотов и работа в экипаже (MCC)',
+        desc: 'Тренировка один на один с опытным пилотом авиакомпании в роли Pilot Monitoring (PM) либо работа с вашим напарником по экипажу по конкретному профилю авиакомпании.',
+      },
+    ],
+    bookDirectTitle: 'Готовы забронировать тренировочный слот?',
+    bookDirectSubtitle:
+      'Выберите продолжительность сессии для перехода к прямой профессиональной записи без лишних опций.',
+    bookDirectCta: 'Забронировать рекомендуемую репетицию (90 мин — ₪1,250)',
+    bookDirect60: '60 мин фокус · ₪890',
+    bookDirect120: '120 мин полный курс · ₪1,590',
     recreationalLink: 'Ищете ознакомительные или подарочные полеты? Стандартные пакеты →',
-    minutesLabel: 'МИНУТ ПРОФЕССИОНАЛЬНОЙ ПОДГОТОВКИ',
     perSession: '/ сессия',
     iosReset: 'Мгновенный сброс заходов через пульт IOS',
-    syllabusLabel: 'Программа тренировки и отрабатываемые профили:',
     bookBtn: (title, price) => `Забронировать ${title} (${price})`,
     officialServicePage: 'Страница услуги на сайте simdream.co.il',
+    recommendedBadge: 'РЕКОМЕНДУЕМЫЙ СТАНДАРТ ДЛЯ СКРИНИНГОВ',
     interviewGuideBadge: 'ПОДГОТОВКА К ИНТЕРВЬЮ И ТРЕНАЖЕРУ ATP / ATPL',
     interviewGuideTitle: 'Тренируйтесь для реального скрининга — не просто время в кабине',
     interviewGuideDesc:
@@ -248,45 +349,34 @@ const PRO_COPY: Record<Language, ProCopy> = {
     interviewPackages: [
       {
         duration: '60 минут',
-        title: 'ATP / ATPL Interview Focus',
-        bestFor: 'Целевая отработка одного-двух ключевых навыков перед скринингом.',
+        title: 'Airline Interview Prep 60 PRO',
+        slug: 'airline-prep-60-pro',
+        priceIls: 890,
+        bestFor:
+          'Целевая отработка одного-двух ключевых навыков перед скринингом (Raw Data, виражи, конкретный заход).',
         flow: 'Краткий брифинг → профиль Raw Data / инструментальный заход → дебрифинг с рекомендациями.',
       },
       {
         duration: '90 минут',
-        title: 'Airline Simulator Interview Rehearsal',
-        bestFor: 'Полная сбалансированная репетиция контрольного полета перед отбором.',
+        title: 'Airline Interview Prep 90 PRO',
+        slug: 'airline-prep-90-pro',
+        priceIls: 1250,
+        bestFor:
+          'Полная сбалансированная репетиция контрольного полета перед отбором (Рекомендуемый стандарт).',
         flow: 'Инициализация FMS → взлет и Raw Data → отказ двигателя / заход → структурированный разбор.',
       },
       {
         duration: '120 минут',
-        title: 'ATP / ATPL Assessment Intensive',
-        bestFor: 'Глубокая проработка, командное взаимодействие PF/PM и повтор проблемных элементов.',
+        title: 'Airline Interview Prep 120 PRO',
+        slug: 'airline-assessment-prep',
+        priceIls: 1590,
+        bestFor:
+          'Глубокая проработка, командное взаимодействие PF/PM, отработка отказов и повтор упражнений.',
         flow: 'Несколько профилей полета → работа в два пилота → отработка ошибок → детальный дебрифинг.',
       },
     ],
     interviewNote:
       'Практическая подготовка, адаптированная под требования авиакомпаний, на симуляторе Boeing 737 MAX по адресу: Тель-Авив, ул. Гершон Шац 36.',
-    methodologyBadge: 'МЕТОДОЛОГИЯ ЧЕК-РАЙДОВ АВИАКОМПАНИЙ',
-    methodologyTitle: 'Что отрабатывается на профессиональной сессии?',
-    proModules: [
-      {
-        title: 'Ручное пилотирование Raw Data (FD OFF)',
-        desc: 'Таблицы Pitch & Thrust для Boeing 737, виражи 45°, выдерживание высоты и скорости, вывод из сваливания по жестким стандартам авиакомпаний.',
-      },
-      {
-        title: 'Заходы по приборам: ILS, RNAV и RNP-AR',
-        desc: 'Полная инициализация маршрута в FMS/CDU, схемы SID/STAR, зоны ожидания (Holdings) и точные заходы по ILS в условиях бокового ветра и низкой видимости.',
-      },
-      {
-        title: 'Отказ двигателя на V1 (V1 Cut) и действия по QRH',
-        desc: 'Отказ двигателя на скорости принятия решения, балансировка триммером руля направления, заход ILS на одном двигателе, уход на второй круг и чек-листы QRH.',
-      },
-      {
-        title: 'Гибкость экипажа: инструктор в роли PM или второй пилот',
-        desc: 'Наш инструктор может действовать как Pilot Monitoring (PM) либо уступить правое кресло вашему напарнику по экипажу для полноценного тренинга MCC.',
-      },
-    ],
     techSpecsSummary:
       'О центре Sim Dream и технические характеристики симулятора Boeing 737 MAX (нажмите для просмотра)',
     techSpecsVisualsTitle: 'Визуальная система и кабина',
@@ -307,15 +397,49 @@ const PRO_COPY: Record<Language, ProCopy> = {
     heroTitle: 'Entraînement Professionnel — Préparation aux Sélections et Évaluations',
     heroSubtitle:
       'Conçu pour les pilotes brevetés (PPL / CPL / ATPL), cadets et candidats préparant les sélections en compagnie aérienne (El Al, Arkia, Israir, Wizz Air, Ryanair et transporteurs internationaux). Entraînement personnalisé VFR et IFR dans un cockpit Boeing 737 MAX à l’échelle 1:1 à Tel Aviv.',
-    packagesBadge: 'PROGRAMMES OFFICIELS DE PRÉPARATION AUX SÉLECTIONS',
-    packagesHeading: 'Sélectionnez votre bloc d’entraînement professionnel',
+    heroCtaPrimary: 'Réserver la préparation aux sélections (90 PRO)',
+    heroCtaSecondary: 'Pourquoi une préparation est indispensable ↓',
+    trustFMC: 'Cockpit Boeing 737 MAX échelle 1:1',
+    trustMentors: 'Commandants de bord en activité',
+    trustIOS: 'Repositionnements instantanés via console IOS',
+    trustZeroNoise: 'Créneaux dédiés 100% professionnels',
+    whyBadge: 'ENJEUX DES SÉLECTIONS EN COMPAGNIE',
+    whyHeading: 'Pourquoi les pilotes professionnels ont besoin d’une préparation sur simulateur',
+    whySubtitle:
+      'L’évaluation en simulateur lors des sélections en compagnie aérienne est éliminatoire et sans compromis. Un échec entraîne généralement un gel des candidatures de 6 à 12 mois. Une préparation ciblée dans notre cockpit Boeing 737 MAX vous offre l’avantage décisif pour réussir dès la première tentative :',
+    whyCalloutTitle: 'La réalité des évaluations en simulateur',
+    whyCalloutDesc:
+      'Les examinateurs n’évaluent pas le volume total de votre carnet de vol — ils jugent votre capacité à piloter manuellement un jet lourd sous forte charge de travail. L’entraînement préalable transforme le stress en réflexes automatiques.',
+    whyPillars: [
+      {
+        title: 'Maîtrise du vol manuel en Raw Data (sans directeur de vol ni automanette)',
+        desc: 'Les examinateurs évaluent votre pilotage manuel d’un avion de ligne de 70 tonnes sans automatismes. Maîtrisez les assiettes et poussées Boeing 737, les virages à 45° et le suivi ILS manuel selon les tolérances strictes des compagnies.',
+      },
+      {
+        title: 'Panne moteur à V1 (V1 Cut) et gestion du QRH',
+        desc: 'La panne moteur à la vitesse de décision exige un contrôle directionnel immédiat, une compensation précise au palonnier, une remise de gaz monomoteur et l’exécution rigoureuse des listes QRH sous stress.',
+      },
+      {
+        title: 'Procédures aux instruments de précision et classiques (ILS, LOC, RNP)',
+        desc: 'Initialisation complète du FMS/CDU, départs SID/STAR, hippodromes d’attente et approches par fort vent de travers et faible visibilité.',
+      },
+      {
+        title: 'Coaching par des pilotes de ligne et coordination en équipage (MCC)',
+        desc: 'Entraînement individuel avec un pilote de ligne expérimenté agissant comme Pilot Monitoring (PM), ou venez avec votre binôme pour répéter le profil exact de votre compagnie cible.',
+      },
+    ],
+    bookDirectTitle: 'Prêt à réserver votre créneau de préparation ?',
+    bookDirectSubtitle:
+      'Sélectionnez la durée de votre session pour accéder directement au parcours de réservation professionnel sans options superflues.',
+    bookDirectCta: 'Réserver la répétition recommandée (90 min — ₪1,250)',
+    bookDirect60: 'Session ciblée 60 min · ₪890',
+    bookDirect120: 'Session complète 120 min · ₪1,590',
     recreationalLink: 'Vous cherchez des vols découverte ou cadeaux ? Formules grand public →',
-    minutesLabel: 'MINUTES DE FORMATION PROFESSIONNELLE',
     perSession: '/ session',
     iosReset: 'Repositionnements instantanés via console instructeur IOS',
-    syllabusLabel: 'Programme professionnel et profils inclus :',
     bookBtn: (title, price) => `Réserver ${title} (${price})`,
     officialServicePage: 'Voir la page officielle sur simdream.co.il',
+    recommendedBadge: 'STANDARD RECOMMANDÉ POUR LES SÉLECTIONS',
     interviewGuideBadge: 'PRÉPARATION AUX ENTRETIENS ET SÉLECTIONS ATP / ATPL',
     interviewGuideTitle: 'Entraînez-vous pour les sélections — pas seulement du temps de vol',
     interviewGuideDesc:
@@ -324,45 +448,34 @@ const PRO_COPY: Record<Language, ProCopy> = {
     interviewPackages: [
       {
         duration: '60 minutes',
-        title: 'ATP / ATPL Interview Focus',
-        bestFor: 'Ciblage d’une ou deux priorités avant un entretien ou une évaluation sur simulateur.',
+        title: 'Airline Interview Prep 60 PRO',
+        slug: 'airline-prep-60-pro',
+        priceIls: 890,
+        bestFor:
+          'Ciblage d’une ou deux priorités avant un entretien ou une évaluation sur simulateur (Raw data, virages serrés, approche spécifique).',
         flow: 'Briefing court → profil Raw Data ou instruments ciblé → débriefing structuré.',
       },
       {
         duration: '90 minutes',
-        title: 'Airline Simulator Interview Rehearsal',
-        bestFor: 'Répétition complète et équilibrée d’une évaluation en compagnie aérienne.',
+        title: 'Airline Interview Prep 90 PRO',
+        slug: 'airline-prep-90-pro',
+        priceIls: 1250,
+        bestFor:
+          'Répétition complète et équilibrée d’une évaluation en compagnie aérienne (Standard recommandé pour les sélections).',
         flow: 'Initialisation FMS → départ et Raw Data → panne moteur / approche → débriefing complet.',
       },
       {
         duration: '120 minutes',
-        title: 'ATP / ATPL Assessment Intensive',
-        bestFor: 'Préparation approfondie, coordination PF/PM et temps de reprise des exercices.',
+        title: 'Airline Interview Prep 120 PRO',
+        slug: 'airline-assessment-prep',
+        priceIls: 1590,
+        bestFor:
+          'Préparation approfondie, coordination PF/PM, gestion des pannes et répétition des exercices clés.',
         flow: 'Profils multiples → travail en équipage deux pilotes → répétition des points clés → débriefing détaillé.',
       },
     ],
     interviewNote:
       'Coaching pratique adapté à vos objectifs sur simulateur Boeing 737 MAX au 36 rue Gershon Shatz, Tel Aviv, avec flexibilité instructeur / PM.',
-    methodologyBadge: 'MÉTHODOLOGIE D’ÉVALUATION EN COMPAGNIE',
-    methodologyTitle: 'Ce que vous travaillerez lors de votre session professionnelle',
-    proModules: [
-      {
-        title: 'Vol manuel Raw Data (sans directeur de vol)',
-        desc: 'Tables d’assiette et poussée Boeing 737, virages à 45°, tenue d’altitude et de vitesse, sortie de décrochage selon les normes strictes des compagnies.',
-      },
-      {
-        title: 'Approches aux instruments : ILS, RNAV et RNP-AR',
-        desc: 'Programmation complète du FMS/CDU, trajectoires SID/STAR, hippodromes d’attente et approches de précision ILS par vent de travers et faible visibilité.',
-      },
-      {
-        title: 'Panne moteur à V1 (V1 Cut) et procédures QRH',
-        desc: 'Gestion de la panne à la vitesse de décision, compensation au palonnier, approche ILS monomoteur, remise de gaz et exécution méthodique du QRH.',
-      },
-      {
-        title: 'Configuration d’équipage : instructeur PM ou votre binôme',
-        desc: 'Notre instructeur peut agir comme Pilot Monitoring (PM) ou céder la place droite à votre binôme ou instructeur personnel pour un entraînement MCC.',
-      },
-    ],
     techSpecsSummary:
       'À propos de Sim Dream et spécifications techniques du simulateur Boeing 737 MAX (cliquer pour ouvrir)',
     techSpecsVisualsTitle: 'Système visuel et structure cockpit',
@@ -383,15 +496,49 @@ const PRO_COPY: Record<Language, ProCopy> = {
     heroTitle: 'تدريب احترافي للطيارين والتحضير لاختبارات المحاكاة في شركات الطيران',
     heroSubtitle:
       'مخصص للطيارين المرخصين (PPL / CPL / ATPL)، والخريجين الجدد، والطيارين المتقدمين لاختبارات التقييم في شركات الطيران (إل عال، أركيا، يسرائير، ويز إير، رايان إير وشركات الطيران الدولية). تدريب فردي مكثف على الطيران البصري والآلي في قمرة بوينغ 737 ماكس بمقياس 1:1 في تل أبيب.',
-    packagesBadge: 'باقات التدريب الرسمية للحجز المباشر',
-    packagesHeading: 'اختر باقة التدريب لاختبارات شركات الطيران',
+    heroCtaPrimary: 'حجز تدريب التقييم (90 PRO)',
+    heroCtaSecondary: 'لماذا يحتاج الطيارون إلى التحضير؟ ↓',
+    trustFMC: 'قمرة بوينغ 737 ماكس بمقياس 1:1',
+    trustMentors: 'مدربون من قادة طائرات الخطوط الجوية',
+    trustIOS: 'إعادة ضبط فورية لمسارات الاقتراب عبر محطة IOS',
+    trustZeroNoise: 'جلسات تدريب احترافية بدون مشتتات',
+    whyBadge: 'أهمية التحضير لاختبارات المحاكاة',
+    whyHeading: 'لماذا يحتاج الطيارون التجاريون والمتدربون إلى تحضير مسبق في جهاز المحاكاة؟',
+    whySubtitle:
+      'تعد اختبارات فحص المحاكاة في شركات الطيران مرحلة تصفية حاسمة لا مجال فيها للخطأ. وغالباً ما يؤدي الإخفاق في الفحص إلى تجميد تقديم الطلبات لمدة تتراوح بين 6 إلى 12 شهراً. التدريب المنهجي في قمرة بوينغ 737 ماكس يمنحكم الميزة الحاسمة للنجاح من المحاولة الأولى:',
+    whyCalloutTitle: 'واقع اختبارات الفحص في شركات الطيران',
+    whyCalloutDesc:
+      'لا ينظر فاحصو شركات الطيران إلى مجمل ساعات الطيران المسجلة لديك فحسب — بل يختبرون قدرتك الدقيقة على قيادة طائرة ركاب نفاثة ضخمة تحت وطأة الضغط العالي. التدريب المسبق يحول التوتر إلى ذاكرة عضلية وثقة مطلقة.',
+    whyPillars: [
+      {
+        title: 'إتقان الطيران اليدوي بدون أجهزة توجيه (FD OFF, A/T OFF)',
+        desc: 'يقيم الفاحصون قدرتك على قيادة طائرة ركاب نفاثة تزن 70 طناً يدوياً بدون طيار آلي أو موجهات. أتقن جداول زوايا الميل والدفع لطائرات بوينغ 737، والالتفاف بزاوية 45 درجة، وتتبع مسار ILS وفق معايير الشركات الدقيقة.',
+      },
+      {
+        title: 'عطل المحرك عند سرعة القرار V1 وإجراءات QRH',
+        desc: 'فقدان المحرك عند سرعة V1 يتطلب استجابة فورية لحفظ اتجاه المدرج، واستخدام دقيق لموازن التوجيه، وإجراء الذهاب حولاً بمحرك واحد، وتطبيق قوائم فحص QRH المنظمة تحت الضغط.',
+      },
+      {
+        title: 'إتقان اقترابات الطيران الآلي الدقيقة وغير الدقيقة',
+        desc: 'برمجة كاملة لـ FMS/CDU، مسارات SID/STAR، مناطق الانتظار، واقترابات ILS وRNAV/RNP في ظروف الرؤية المحدودة والرياح الجانبية.',
+      },
+      {
+        title: 'إرشاد من قادة طائرات مدنية وتنسيق الطاقم (MCC)',
+        desc: 'تدريب فردي مباشر مع كابتن طيران تجاري متمرس يعمل كطيار مراقب (PM)، أو التدرب مع شريكك في الطيران لتكرار ملف الاختبار الدقيق للشركة المستهدفة.',
+      },
+    ],
+    bookDirectTitle: 'هل أنت مستعد لتأكيد موعد تدريب التقييم؟',
+    bookDirectSubtitle:
+      'اختر مدة الجلسة المطلوبة للانتقال المباشر إلى نظام الحجز الاحترافي دون أي خيارات غير ضرورية.',
+    bookDirectCta: 'حجز جلسة التقييم الموصى بها (90 دقيقة — ₪1,250)',
+    bookDirect60: 'جلسة مركزة 60 دقيقة · ₪890',
+    bookDirect120: 'جلسة شاملة 120 دقيقة · ₪1,590',
     recreationalLink: 'هل تبحث عن باقات الطيران الترفيهية أو الهدايا؟ شاهد الباقات العامة ←',
-    minutesLabel: 'دقيقة تدريب احترافي',
     perSession: '/ جلسة',
     iosReset: 'إعادة ضبط فورية لمسارات الاقتراب عبر محطة المدرب IOS',
-    syllabusLabel: 'المنهاج التدريبي والمحاور المشمولة:',
     bookBtn: (title, price) => `حجز ${title} (${price})`,
     officialServicePage: 'عرض صفحة الخدمة على موقع simdream.co.il',
+    recommendedBadge: 'الخيار الموصى به لاختبارات شركات الطيران',
     interviewGuideBadge: 'التحضير لمقابلات واختبارات المحاكاة ATP / ATPL',
     interviewGuideTitle: 'تدرب على اختبار المحاكاة الفعلي — وليس مجرد قضاء وقت في القمرة',
     interviewGuideDesc:
@@ -400,45 +547,34 @@ const PRO_COPY: Record<Language, ProCopy> = {
     interviewPackages: [
       {
         duration: '60 دقيقة',
-        title: 'ATP / ATPL Interview Focus',
-        bestFor: 'للتركيز على موضوع أو موضوعين محددين قبل مقابلة التقييم.',
+        title: 'Airline Interview Prep 60 PRO',
+        slug: 'airline-prep-60-pro',
+        priceIls: 890,
+        bestFor:
+          'للتركيز على موضوع أو موضوعين محددين قبل مقابلة التقييم (Raw Data، الالتفاف الحاد، اقتراب محدد).',
         flow: 'موجز قصير → تدريب مركز على Raw Data أو الأجهزة → تحليل الأداء ونقاط التطوير.',
       },
       {
         duration: '90 دقيقة',
-        title: 'Airline Simulator Interview Rehearsal',
-        bestFor: 'محاكاة شاملة ومتوازنة لاختبار التقييم الكامل قبل موعد الفحص.',
+        title: 'Airline Interview Prep 90 PRO',
+        slug: 'airline-prep-90-pro',
+        priceIls: 1250,
+        bestFor:
+          'محاكاة شاملة ومتوازنة لاختبار التقييم الكامل قبل موعد الفحص (المعيار الموصى به).',
         flow: 'برمجة FMS → الإقلاع والطيران اليدوي → سيناريو عطل محرك / اقتراب → تقييم منهجي.',
       },
       {
         duration: '120 دقيقة',
-        title: 'ATP / ATPL Assessment Intensive',
-        bestFor: 'تدريب معمق، وممارسة العمل الثنائي PF/PM، مع وقت لإعادة تكرار النقاط الحرجة.',
+        title: 'Airline Interview Prep 120 PRO',
+        slug: 'airline-assessment-prep',
+        priceIls: 1590,
+        bestFor:
+          'تدريب معمق، وممارسة العمل الثنائي PF/PM، وإعادة تكرار حالات الطوارئ والنقاط الحرجة.',
         flow: 'عدة مسارات تدريبية → توزيع المهام كطاقم طيارين → تكرار التمارين → تقرير تفصيلي.',
       },
     ],
     interviewNote:
       'تدريب عملي مخصص وموجه لأهدافك على جهاز محاكاة بوينغ 737 ماكس في شارع غيرشون شاتس 36، تل أبيب، مع مرونة المدرب أو شريك الطيران.',
-    methodologyBadge: 'منهجية تقييم واختبارات شركات الطيران',
-    methodologyTitle: 'ماذا ستتدرب عليه في جلسة التدريب الاحترافي؟',
-    proModules: [
-      {
-        title: 'طيران يدوي كامل Raw Data (بدون Flight Director)',
-        desc: 'إتقان جداول زوايا الميل والدفع (Pitch & Thrust)، الالتفاف بزاوية 45 درجة، الحفاظ على الارتفاع والسرعة والتعافي من الانهيار وفق معايير فاحصي الشركات.',
-      },
-      {
-        title: 'اقترابات الطيران الآلي: ILS، RNAV وRNP-AR',
-        desc: 'برمجة خطة الرحلة في FMS/CDU، إجراءات الإقلاع والوصول SID/STAR، مسارات الانتظار Holdings، والاقتراب الآلي في ظروف الرؤية المنخفضة والرياح الجانبية.',
-      },
-      {
-        title: 'عطل المحرك عند سرعة القرار V1 وإجراءات QRH',
-        desc: 'التدرب على فقدان المحرك أثناء الإقلاع، المحافظة على اتجاه المدرج، اقتراب ILS بمحرك واحد، الذهاب حولاً، وتطبيق قوائم فحص QRH المنظمة.',
-      },
-      {
-        title: 'مرونة مقعد الطاقم: المدرب كمساعد طيار أو إحضار زميلك',
-        desc: 'يمكن لمدربنا أن يؤدي دور الطيار المراقب (PM) أو إتاحة المقعد الأيمن لزميلك أو مدربك الخاص للتدرب على العمل الجماعي في القمرة (MCC).',
-      },
-    ],
     techSpecsSummary:
       'حول مركز سيم دريم والمواصفات الفنية لقمرة بوينغ 737 ماكس (انقر للتوسيع)',
     techSpecsVisualsTitle: 'نظام العرض البانورامي وهيكل القمرة',
@@ -448,7 +584,7 @@ const PRO_COPY: Record<Language, ProCopy> = {
     techSpecsControlsDesc:
       'مقاود تحكم مزدوجة ومقترنة مع محاكاة الأحمال الهوائية الديناميكية، دواسات توجيه مقترنة، أذرع دفع آلية، جهازا FMS/CDU ولوحة الطيار الآلي MCP.',
     techSpecsLocationTitle: 'الموقع والتنسيق',
-    techSpecsLocationDesc: `يقع مركز Sim Dream في شارع ${FACILITY_INFO.address.streetHe} (بالقرب من محطة القطار الخفيف يهوديت ومحطة قطار ههشالوم). هاتف: ${FACILITY_INFO.contact.phoneDisplay}.`,
+    techSpecsLocationDesc: `يقع مركز Sim Dream في شارع ${FACILITY_INFO.address.streetEn} (بالقرب من محطة القطار الخفيف يهوديت ومحطة قطار ههشالوم). هاتف: ${FACILITY_INFO.contact.phoneDisplay}.`,
     b2cBridgeBadge: 'هل تبحث عن رحلات تجريبية أو ورش عمل للشركات؟',
     b2cBridgeTitle: 'اكتشف باقات الطيران العامة أو احجز ورشة عمل CRM لفرق القيادة',
     b2cBtn: 'تجارب الطيران والهدايا (B2C)',
@@ -460,15 +596,12 @@ export function ProSessionsView() {
   const { language, isRTL } = useLanguage();
   const copy = PRO_COPY[language] || PRO_COPY.en;
 
-  // Pull all PRO Training packages (60 PRO, 90 PRO, 120 PRO)
-  const proPackages = getLocalizedPackages(language).filter((p) => p.category === 'training');
-
-  const moduleIcons = [Gauge, Compass, ShieldCheck, Users];
+  const pillarIcons = [Gauge, ShieldCheck, Compass, Users];
 
   return (
-    <div className="flex-1 w-full min-w-0 py-14 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-16">
-      {/* 1. PROFESSIONAL TRAINING HERO */}
-      <section className="text-center max-w-4xl mx-auto space-y-5">
+    <div className="flex-1 w-full min-w-0 py-10 sm:py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-16 sm:space-y-20">
+      {/* 1. PROFESSIONAL TRAINING HERO WITH PROMINENT BOOK CTA */}
+      <section className="text-center max-w-4xl mx-auto space-y-6 sm:space-y-8">
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/15 border border-amber-500/40 text-xs font-mono text-amber-300 font-bold">
           <Award className="w-4 h-4 text-amber-400" />
           <span>{copy.heroBadge}</span>
@@ -481,129 +614,164 @@ export function ProSessionsView() {
         <p className="text-slate-300 text-base sm:text-lg leading-relaxed max-w-3xl mx-auto">
           {copy.heroSubtitle}
         </p>
-      </section>
 
-      {/* 2. PRO TRAINING PACKAGES GRID (60 PRO, 90 PRO, 120 PRO) */}
-      <section className="space-y-8">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-800 pb-4">
-          <div>
-            <Badge variant="amber">
-              {copy.packagesBadge}
-            </Badge>
-            <h2 className="text-2xl sm:text-4xl font-black text-white mt-2">
-              {copy.packagesHeading}
-            </h2>
-          </div>
-          <Link href="/experiences" className="text-xs font-mono text-sky-400 hover:underline">
-            {copy.recreationalLink}
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {proPackages.map((pkg) => (
-            <Card
-              key={pkg.id}
-              glow={pkg.featured}
-              borderAccent={pkg.featured ? 'amber' : 'sky'}
-              className="flex flex-col justify-between relative overflow-hidden"
+        {/* Primary Booking & Information Actions */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 sm:gap-4 pt-2">
+          <Link href="/book?package=airline-prep-90-pro" className="w-full sm:w-auto">
+            <Button
+              size="lg"
+              className="w-full sm:w-auto font-bold shadow-glow text-base px-8 py-4 bg-amber-400 hover:bg-amber-300 text-slate-950 border-amber-300"
             >
-              {pkg.badge && (
-                <div className="absolute top-4 right-4 rtl:right-auto rtl:left-4">
-                  <Badge variant={pkg.featured ? 'amber' : 'sky'}>{pkg.badge}</Badge>
-                </div>
-              )}
+              <span>{copy.heroCtaPrimary}</span>
+              <ArrowRight className={`w-5 h-5 ${isRTL ? 'rotate-180' : ''}`} />
+            </Button>
+          </Link>
+          <a href="#why-prep" className="w-full sm:w-auto">
+            <Button
+              variant="secondary"
+              size="lg"
+              className="w-full sm:w-auto font-semibold text-base px-6 py-4"
+            >
+              <span>{copy.heroCtaSecondary}</span>
+            </Button>
+          </a>
+        </div>
 
-              <div className="space-y-5">
-                <div className="space-y-1.5 pt-2">
-                  <div className="flex items-center gap-2 text-xs font-mono text-amber-400 font-bold">
-                    <Clock className="w-3.5 h-3.5" />
-                    <span>
-                      {pkg.durationMinutes} {copy.minutesLabel}
-                    </span>
-                  </div>
-                  <h3 className="text-2xl font-black text-white">{pkg.title}</h3>
-                </div>
-
-                <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">{pkg.description}</p>
-
-                {/* Price Box */}
-                <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800">
-                  <div className="flex items-baseline justify-between">
-                    <div>
-                      <span className="text-3xl font-black text-white font-mono">
-                        {formatCurrency(pkg.priceIls)}
-                      </span>
-                      <span className="text-xs text-slate-400 font-mono ml-1 rtl:mr-1">
-                        {copy.perSession}
-                      </span>
-                    </div>
-                    <span className="text-xs font-mono text-slate-400">~${pkg.priceUsd} USD</span>
-                  </div>
-                  <div className="flex items-center gap-4 mt-2.5 text-[11px] text-emerald-400 font-mono">
-                    <span className="flex items-center gap-1">
-                      <Radio className="w-3.5 h-3.5" />
-                      <span>{copy.iosReset}</span>
-                    </span>
-                  </div>
-                </div>
-
-                {/* Syllabus Highlights */}
-                <div className="space-y-2">
-                  <p className="text-[11px] font-mono uppercase text-amber-300 font-bold">
-                    {copy.syllabusLabel}
-                  </p>
-                  <ul className="space-y-2 text-xs text-slate-200">
-                    {pkg.features.map((feat, idx) => (
-                      <li key={idx} className="flex items-start gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                        <span>{feat}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-
-              {/* Direct Booking & Official Link */}
-              <div className="pt-8 mt-auto space-y-3">
-                <Link href={`/book?package=${pkg.slug}`}>
-                  <Button
-                    variant={pkg.featured ? 'primary' : 'secondary'}
-                    className={`w-full font-bold justify-between ${
-                      pkg.featured
-                        ? 'bg-amber-400 hover:bg-amber-300 text-slate-950 border-amber-300'
-                        : ''
-                    }`}
-                  >
-                    <span>
-                      {copy.bookBtn(pkg.title, formatCurrency(pkg.priceIls))}
-                    </span>
-                    <ArrowRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
-                  </Button>
-                </Link>
-
-                <div className="text-center pt-1">
-                  <a
-                    href={SIMDREAM_SERVICE_URLS[pkg.id] || 'https://www.simdream.co.il/booking'}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 text-[11px] font-mono text-slate-400 hover:text-amber-300 transition-colors"
-                  >
-                    <span>{copy.officialServicePage}</span>
-                    <ExternalLink className="w-3.5 h-3.5 text-amber-400/80" />
-                  </a>
-                </div>
-              </div>
-            </Card>
-          ))}
+        {/* Trust & Avionics Highlights Bar */}
+        <div className="pt-4 grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3.5 max-w-4xl mx-auto text-left rtl:text-right">
+          <div className="p-3 rounded-xl border border-slate-800/80 bg-slate-900/60 flex items-center gap-2.5">
+            <Compass className="w-4 h-4 text-sky-400 shrink-0" />
+            <span className="text-[11px] sm:text-xs font-mono text-slate-200 font-semibold leading-tight">
+              {copy.trustFMC}
+            </span>
+          </div>
+          <div className="p-3 rounded-xl border border-slate-800/80 bg-slate-900/60 flex items-center gap-2.5">
+            <Users className="w-4 h-4 text-amber-400 shrink-0" />
+            <span className="text-[11px] sm:text-xs font-mono text-slate-200 font-semibold leading-tight">
+              {copy.trustMentors}
+            </span>
+          </div>
+          <div className="p-3 rounded-xl border border-slate-800/80 bg-slate-900/60 flex items-center gap-2.5">
+            <Radio className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span className="text-[11px] sm:text-xs font-mono text-slate-200 font-semibold leading-tight">
+              {copy.trustIOS}
+            </span>
+          </div>
+          <div className="p-3 rounded-xl border border-slate-800/80 bg-slate-900/60 flex items-center gap-2.5">
+            <ShieldCheck className="w-4 h-4 text-sky-400 shrink-0" />
+            <span className="text-[11px] sm:text-xs font-mono text-slate-200 font-semibold leading-tight">
+              {copy.trustZeroNoise}
+            </span>
+          </div>
         </div>
       </section>
 
-      {/* 3. ATP / ATPL INTERVIEW PREPARATION GUIDE */}
+      {/* 2. WHY THEY NEED IT: HIGH-STAKES CHECKRIDE REALITY & EVALUATION DOMAINS */}
+      <section id="why-prep" className="space-y-10 scroll-mt-24">
+        <div className="text-center max-w-3xl mx-auto space-y-3">
+          <Badge variant="amber">{copy.whyBadge}</Badge>
+          <h2 className="text-2xl sm:text-4xl font-black text-white">
+            {copy.whyHeading}
+          </h2>
+          <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
+            {copy.whySubtitle}
+          </p>
+        </div>
+
+        {/* Screening Reality Callout Box */}
+        <div className="rounded-2xl border border-amber-500/30 bg-gradient-to-r from-amber-950/30 via-slate-900/90 to-slate-950 p-6 sm:p-7 flex flex-col sm:flex-row items-start gap-4">
+          <div className="w-12 h-12 rounded-xl bg-amber-500/15 border border-amber-500/40 flex items-center justify-center text-amber-400 shrink-0">
+            <ShieldCheck className="w-6 h-6" />
+          </div>
+          <div className="space-y-1.5">
+            <h3 className="text-lg font-bold text-white">
+              {copy.whyCalloutTitle}
+            </h3>
+            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+              {copy.whyCalloutDesc}
+            </p>
+          </div>
+        </div>
+
+        {/* The 4 Checkride Preparation Pillars */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {copy.whyPillars.map((pillar, idx) => {
+            const IconComp = pillarIcons[idx] || Gauge;
+            return (
+              <Card
+                key={idx}
+                glow
+                borderAccent="amber"
+                className="p-6 sm:p-7 space-y-3.5 flex flex-col justify-between"
+              >
+                <div className="space-y-3">
+                  <div className="w-11 h-11 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                    <IconComp className="w-5 h-5" />
+                  </div>
+                  <h3 className="text-lg sm:text-xl font-bold text-white leading-snug">
+                    {pillar.title}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                    {pillar.desc}
+                  </p>
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+
+        {/* Direct Booking Call-To-Action Banner */}
+        <div className="rounded-2xl border border-amber-400/40 bg-gradient-to-br from-amber-950/40 via-slate-900 to-slate-950 p-6 sm:p-8 text-center space-y-5 shadow-2xl">
+          <div className="max-w-2xl mx-auto space-y-1.5">
+            <h3 className="text-xl sm:text-2xl font-black text-white">
+              {copy.bookDirectTitle}
+            </h3>
+            <p className="text-xs sm:text-sm text-slate-300">
+              {copy.bookDirectSubtitle}
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
+            <Link href="/book?package=airline-prep-90-pro" className="w-full sm:w-auto">
+              <Button
+                variant="primary"
+                size="lg"
+                className="w-full sm:w-auto font-bold shadow-glow bg-amber-400 hover:bg-amber-300 text-slate-950 border-amber-300 px-8 py-4 text-base"
+              >
+                <span>{copy.bookDirectCta}</span>
+                <ArrowRight className={`w-5 h-5 ${isRTL ? 'rotate-180' : ''}`} />
+              </Button>
+            </Link>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
+            <Link href="/book?package=airline-prep-60-pro">
+              <Button variant="secondary" size="sm" className="font-mono text-xs">
+                <span>{copy.bookDirect60}</span>
+              </Button>
+            </Link>
+            <Link href="/book?package=airline-assessment-prep">
+              <Button variant="secondary" size="sm" className="font-mono text-xs">
+                <span>{copy.bookDirect120}</span>
+              </Button>
+            </Link>
+          </div>
+
+          <div className="pt-2">
+            <Link
+              href="/experiences"
+              className="text-xs font-mono text-sky-400 hover:underline"
+            >
+              {copy.recreationalLink}
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* 3. SESSION DEPTH BREAKDOWN & DIRECT BOOKING OPTIONS */}
       <section className="rounded-2xl border border-amber-400/25 bg-gradient-to-br from-amber-500/10 via-slate-900 to-slate-950 p-6 sm:p-8 space-y-8">
         <div className="max-w-4xl space-y-3">
-          <Badge variant="amber">
-            {copy.interviewGuideBadge}
-          </Badge>
+          <Badge variant="amber">{copy.interviewGuideBadge}</Badge>
           <h2 className="text-2xl sm:text-4xl font-black text-white">
             {copy.interviewGuideTitle}
           </h2>
@@ -612,21 +780,90 @@ export function ProSessionsView() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {copy.interviewPackages.map((pkg) => (
-            <div key={pkg.duration} className="rounded-xl border border-slate-700/80 bg-slate-950/55 p-5 space-y-3">
-              <div className="flex items-center gap-2 text-amber-300 font-mono text-xs font-bold">
-                <Clock className="w-4 h-4" />
-                <span>{pkg.duration}</span>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {copy.interviewPackages.map((pkg) => {
+            const isRecommended = pkg.slug === 'airline-prep-90-pro';
+            return (
+              <div
+                key={pkg.slug}
+                className={`rounded-2xl border p-6 flex flex-col justify-between space-y-5 transition-all ${
+                  isRecommended
+                    ? 'border-amber-400/80 bg-gradient-to-b from-amber-500/15 via-slate-950/90 to-slate-950 shadow-glowAmber'
+                    : 'border-slate-800 bg-slate-950/70'
+                }`}
+              >
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 text-amber-300 font-mono text-xs font-bold">
+                      <Clock className="w-4 h-4" />
+                      <span>{pkg.duration}</span>
+                    </div>
+                    {isRecommended && (
+                      <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-amber-400 bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-full">
+                        {copy.recommendedBadge}
+                      </span>
+                    )}
+                  </div>
+
+                  <div>
+                    <h3 className="text-xl font-bold text-white">{pkg.title}</h3>
+                    <div className="flex items-baseline gap-2 mt-2">
+                      <span className="text-2xl sm:text-3xl font-black font-mono text-white">
+                        {formatCurrency(pkg.priceIls)}
+                      </span>
+                      <span className="text-xs text-slate-400 font-mono">
+                        {copy.perSession}
+                      </span>
+                    </div>
+                  </div>
+
+                  <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                    {pkg.bestFor}
+                  </p>
+
+                  <div className="border-t border-slate-800/80 pt-3 text-xs text-sky-200 leading-relaxed">
+                    <span className="font-bold text-sky-300">
+                      {copy.sessionFlowLabel}
+                    </span>
+                    {pkg.flow}
+                  </div>
+                </div>
+
+                <div className="pt-4 space-y-2.5">
+                  <Link href={`/book?package=${pkg.slug}`}>
+                    <Button
+                      variant={isRecommended ? 'primary' : 'secondary'}
+                      className={`w-full font-bold justify-between ${
+                        isRecommended
+                          ? 'bg-amber-400 hover:bg-amber-300 text-slate-950 border-amber-300'
+                          : ''
+                      }`}
+                    >
+                      <span>
+                        {copy.bookBtn(pkg.title, formatCurrency(pkg.priceIls))}
+                      </span>
+                      <ArrowRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
+                    </Button>
+                  </Link>
+
+                  <div className="text-center pt-1">
+                    <a
+                      href={
+                        SIMDREAM_SERVICE_URLS[pkg.slug] ||
+                        'https://www.simdream.co.il/booking'
+                      }
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-[11px] font-mono text-slate-400 hover:text-amber-300 transition-colors"
+                    >
+                      <span>{copy.officialServicePage}</span>
+                      <ExternalLink className="w-3.5 h-3.5 text-amber-400/80" />
+                    </a>
+                  </div>
+                </div>
               </div>
-              <h3 className="text-lg font-bold text-white">{pkg.title}</h3>
-              <p className="text-sm text-slate-300 leading-relaxed">{pkg.bestFor}</p>
-              <p className="border-t border-slate-800 pt-3 text-xs text-sky-200 leading-relaxed">
-                <span className="font-bold text-sky-300">{copy.sessionFlowLabel}</span>
-                {pkg.flow}
-              </p>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         <p className="text-xs text-slate-400 leading-relaxed max-w-4xl">
@@ -634,40 +871,11 @@ export function ProSessionsView() {
         </p>
       </section>
 
-      {/* 4. CORE TRAINING MODULES FOR PILOTS */}
-      <section className="space-y-8">
-        <div className="text-center max-w-3xl mx-auto space-y-2">
-          <Badge variant="sky">{copy.methodologyBadge}</Badge>
-          <h2 className="text-2xl sm:text-4xl font-black text-white">
-            {copy.methodologyTitle}
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {copy.proModules.map((mod, i) => {
-            const IconComp = moduleIcons[i] || Gauge;
-            return (
-              <Card key={i} borderAccent="sky" className="p-6 flex items-start gap-4">
-                <div className="w-12 h-12 rounded-xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-400 shrink-0">
-                  <IconComp className="w-6 h-6" />
-                </div>
-                <div className="space-y-1.5">
-                  <h3 className="text-lg font-bold text-white">{mod.title}</h3>
-                  <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">{mod.desc}</p>
-                </div>
-              </Card>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* 5. FACILITY & BOEING 737 MAX COCKPIT SPECIFICATIONS */}
+      {/* 4. FACILITY & BOEING 737 MAX COCKPIT SPECIFICATIONS (CLEAN DISCLOSURE DRAWER) */}
       <section className="pt-4 border-t border-slate-900">
         <details className="group rounded-xl border border-slate-800/80 bg-slate-950/60 px-4 py-3 text-[11px] text-slate-400">
           <summary className="cursor-pointer list-none flex items-center justify-between gap-2 font-mono text-xs text-slate-400 hover:text-slate-200">
-            <span>
-              {copy.techSpecsSummary}
-            </span>
+            <span>{copy.techSpecsSummary}</span>
             <ChevronDown
               aria-hidden="true"
               className="w-4 h-4 text-slate-500 transition-transform group-open:rotate-180 shrink-0"
@@ -678,31 +886,25 @@ export function ProSessionsView() {
               <p className="font-mono text-slate-300 font-semibold mb-1">
                 {copy.techSpecsVisualsTitle}
               </p>
-              <p>
-                {copy.techSpecsVisualsDesc}
-              </p>
+              <p>{copy.techSpecsVisualsDesc}</p>
             </div>
             <div>
               <p className="font-mono text-slate-300 font-semibold mb-1">
                 {copy.techSpecsControlsTitle}
               </p>
-              <p>
-                {copy.techSpecsControlsDesc}
-              </p>
+              <p>{copy.techSpecsControlsDesc}</p>
             </div>
             <div>
               <p className="font-mono text-slate-300 font-semibold mb-1">
                 {copy.techSpecsLocationTitle}
               </p>
-              <p>
-                {copy.techSpecsLocationDesc}
-              </p>
+              <p>{copy.techSpecsLocationDesc}</p>
             </div>
           </div>
         </details>
       </section>
 
-      {/* 6. BOTTOM BRIDGE TO RECREATIONAL PACKAGES & B2B WORKSHOPS */}
+      {/* 5. BOTTOM BRIDGE TO RECREATIONAL PACKAGES & B2B WORKSHOPS */}
       <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6">
         <div className="space-y-1 text-center md:text-left rtl:md:text-right">
           <div className="inline-flex items-center gap-1.5 text-xs font-mono text-sky-400 font-bold uppercase">
