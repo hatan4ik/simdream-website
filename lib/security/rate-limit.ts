@@ -33,6 +33,21 @@ interface InMemoryBucket {
 
 const inMemoryBuckets = new Map<string, InMemoryBucket>();
 
+/**
+ * Browser suites issue hundreds of deliberately bad credentials in parallel.
+ * They exercise throttling in Vitest, while this triple opt-in keeps one test's
+ * synthetic attacker from blocking another test's authenticated browser.
+ * It is unreachable in a real deployment: only the sandbox uses `.next-test`
+ * and explicitly sets this marker alongside the in-memory store.
+ */
+function isBrowserTestSandbox(): boolean {
+  return (
+    process.env.SIMDREAM_TEST_RATE_LIMIT_BYPASS === 'true' &&
+    process.env.ALLOW_IN_MEMORY_STORE === 'true' &&
+    process.env.NEXT_DIST_DIR === '.next-test'
+  );
+}
+
 function validRule(rule: RateLimitRule): boolean {
   return (
     rule.scope.length > 0 &&
@@ -86,6 +101,8 @@ export function rateLimitClientAddress(request: Request): string {
  */
 export async function consumeRateLimit(rule: RateLimitRule): Promise<RateLimitDecision> {
   if (!validRule(rule)) throw new RateLimitUnavailableError();
+
+  if (isBrowserTestSandbox()) return { allowed: true, retryAfterSeconds: 1 };
 
   const subjectHash = await sha256(`${rule.scope}\u0000${rule.subject}`);
   // The sandboxed production build explicitly opts into the in-memory store so

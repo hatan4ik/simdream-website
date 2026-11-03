@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import { addDaysToYmd, formatCurrency, formatDate, formatLocalYMD, extractErrorMessage } from '@/lib/utils';
+import { addDaysToYmd, formatCurrency, formatDate, extractErrorMessage } from '@/lib/utils';
 import { FlightSlot, SimulatorPackage, PublicCapacityReport, PilotExperienceLevel } from '@/types';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { getLocalizedPackages, getLocalizedAddons } from '@/lib/i18n/translations';
@@ -32,6 +32,13 @@ import {
   packageAllowsAddons,
   pruneAddonsExceedingSlot,
 } from '@/lib/scheduler/mission-calculator';
+import { israelToday } from '@/lib/scheduler/israel-clock';
+import { useClientValue } from '@/lib/ui/use-client-value';
+
+// The server and a visitor can be in different time zones. This stable snapshot
+// hydrates first, then the browser swaps in Israel's live operating date.
+const SSR_CALENDAR_TODAY = '2099-01-01';
+const SSR_DEFAULT_BOOKING_DATE = addDaysToYmd(SSR_CALENDAR_TODAY, 1);
 
 // Documented deep links (AGENTS.md, official service pages) use these names for the PRO tiers.
 const PACKAGE_SLUG_ALIASES: Record<string, string> = {
@@ -49,6 +56,8 @@ function BookContent() {
   const { t, language, isRTL } = useLanguage();
   const { user } = useAuth();
   const formId = useId();
+  const browserIsraelToday = useClientValue(() => israelToday());
+  const calendarTodayYmd = browserIsraelToday ?? SSR_CALENDAR_TODAY;
 
   const localizedPackages = getLocalizedPackages(language);
   const localizedAddons = getLocalizedAddons(language);
@@ -108,8 +117,13 @@ function BookContent() {
   }, [localizedAddons, isNoiseFreeBooking]);
 
   // Selected Date & Slot (using local calendar YYYY-MM-DD to prevent UTC timezone day-shift)
-  const tomorrow = addDaysToYmd(formatLocalYMD(new Date()), 1);
-  const [selectedDate, setSelectedDate] = useState<string>(tomorrow);
+  const [selectedDate, setSelectedDate] = useState<string>(SSR_DEFAULT_BOOKING_DATE);
+
+  useEffect(() => {
+    if (!browserIsraelToday) return;
+    const liveTomorrow = addDaysToYmd(browserIsraelToday, 1);
+    setSelectedDate((current) => (current === SSR_DEFAULT_BOOKING_DATE ? liveTomorrow : current));
+  }, [browserIsraelToday]);
   const [availableSlots, setAvailableSlots] = useState<FlightSlot[]>([]);
   const [efficiencyReport, setEfficiencyReport] = useState<PublicCapacityReport | null>(null);
   const [durationAvailability, setDurationAvailability] = useState<
@@ -475,6 +489,7 @@ function BookContent() {
       {bookingViewMode === 'storefront' ? (
         <AmazonFlightStorefront
           selectedDate={selectedDate}
+          calendarTodayYmd={calendarTodayYmd}
           onSelectDate={setSelectedDate}
           selectedPackage={activePackage}
           packages={scopedPackages}
@@ -569,6 +584,7 @@ function BookContent() {
 
           <KantorovichCalendarScheduler
             selectedDate={selectedDate}
+            calendarTodayYmd={calendarTodayYmd}
             onSelectDate={setSelectedDate}
             selectedPackage={activePackage}
             packages={scopedPackages}

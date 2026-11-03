@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:a871fa04d1a576b8dd535cef250639aa6302c7f739ade18f0a6294a20bdeee95 -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:df13413229730f61eecf95e3ef11d6a96a12063c72e1301f76d528d4000016de -->
 
 ## Verification contract
 
@@ -119,7 +119,7 @@ TypeScript types in `types/index.ts` mirror the Postgres tables in `lib/db/schem
 
 - The Fear of Flying package id is `pkg-fear-of-flying-90`, but the product is a **60-minute** session (₪690). Keep the id for compatibility; do not trust the suffix.
 - Admin authentication is interim HTTP Basic auth; the documented target is Supabase Auth with server-side roles and MFA.
-- Voucher-code verification and failed admin Basic-auth attempts are rate-limited by a privacy-preserving, atomic database function (migration `005`); development and test use an equivalent in-process limiter. Production fails closed when rate-limit persistence is unavailable.
+- Voucher-code verification and failed admin Basic-auth attempts are rate-limited by a privacy-preserving, atomic database function (migration `005`); development and unit tests use an equivalent in-process limiter. The browser harness has a triple-gated `.next-test` isolation marker so parallel synthetic attackers cannot throttle unrelated authenticated journeys. Production fails closed when rate-limit persistence is unavailable.
 - HTML responses use a per-request CSP nonce from `proxy.ts`; this removes script-src `'unsafe-inline'`, but makes rendered pages dynamic rather than statically prerendered.
 - Production requires migrations **001–005** applied in order on an existing database (or `schema.sql` plus 003–005 on a new one).
 - Only `/login` sets `noindex`. `/dashboard` and `/auth/*` are indexable (they hold no private data when signed out), so consider `noindex` there too.
@@ -260,6 +260,7 @@ Add 3 curated one-click combos. Localize every package and add-on in all five la
   - `AmazonFlightStorefront` (one page, sticky buy box);
   - `KantorovichCalendarScheduler` (guided wizard).
 - The calendar defaults to a **localized month grid**, with an optional week view. Weeks start on Sunday for he, ar and en, and on Monday for ru and fr. RTL arrows are flipped.
+- `/book` first renders a stable calendar snapshot, then adopts the browser's live **Israel** date after hydration. Do not read the device clock in calendar render paths: a visitor west of UTC must never get a date-shift or React hydration mismatch.
 - **Never hide packages or durations** with zero open slots. Show them with a "0 slots open today" badge and keep the user's selection.
 - When a package has zero slots, show:
   - "No open runway slots for [Package] on [Date]";

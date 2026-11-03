@@ -35,7 +35,7 @@ import {
   MissionManifestCalculation,
   SlotBlockPeriod,
 } from '@/types';
-import { addDaysToYmd, formatCurrency, formatLocalYMD } from '@/lib/utils';
+import { addDaysToYmd, formatCurrency } from '@/lib/utils';
 import { useModalFocus } from '@/lib/ui/use-modal-focus';
 import { useLanguage } from '@/lib/i18n/language-context';
 import type { Language } from '@/lib/i18n/translations';
@@ -54,6 +54,8 @@ import { FACILITY_INFO } from '@/lib/config/facility-info';
 
 interface AmazonFlightStorefrontProps {
   selectedDate: string;
+  /** Hydration-safe Israel business date supplied by the booking page. */
+  calendarTodayYmd: string;
   onSelectDate: (date: string) => void;
   selectedPackage: SimulatorPackage;
   packages: SimulatorPackage[];
@@ -307,6 +309,7 @@ const STOREFRONT_CALENDAR_COPY: Record<Language, StorefrontCalendarCopy> = {
 
 export function AmazonFlightStorefront({
   selectedDate,
+  calendarTodayYmd,
   onSelectDate,
   selectedPackage,
   packages,
@@ -366,8 +369,8 @@ export function AmazonFlightStorefront({
   const weekDays = useMemo(() => calendarWeekDays(selectedDate, language), [language, selectedDate]);
   const weekdayNames = useMemo(() => calendarWeekdayNames(language), [language]);
   const monthGridDays = useMemo(
-    () => calendarMonthCells(viewMonthDate, language, formatLocalYMD(new Date())),
-    [language, viewMonthDate]
+    () => calendarMonthCells(viewMonthDate, language, calendarTodayYmd),
+    [calendarTodayYmd, language, viewMonthDate]
   );
 
   const selectCalendarDate = (date: string) => {

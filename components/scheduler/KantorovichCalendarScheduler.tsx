@@ -20,7 +20,7 @@ import {
   PublicCapacityReport,
   SlotBlockPeriod,
 } from '@/types';
-import { formatCurrency, formatLocalYMD } from '@/lib/utils';
+import { addDaysToYmd, formatCurrency } from '@/lib/utils';
 import { useModalFocus } from '@/lib/ui/use-modal-focus';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { Language } from '@/lib/i18n/translations';
@@ -38,6 +38,8 @@ import { getPackageFormulaBadge } from '@/lib/scheduler/package-presentation';
 
 interface KantorovichCalendarSchedulerProps {
   selectedDate: string;
+  /** Hydration-safe Israel business date supplied by the booking page. */
+  calendarTodayYmd: string;
   onSelectDate: (date: string) => void;
   selectedPackage: SimulatorPackage;
   packages: SimulatorPackage[];
@@ -388,6 +390,7 @@ const BLUEPRINT_COPY: Record<Language, {
 
 export function KantorovichCalendarScheduler({
   selectedDate,
+  calendarTodayYmd,
   onSelectDate,
   selectedPackage,
   packages,
@@ -435,8 +438,8 @@ export function KantorovichCalendarScheduler({
   const weekDays = useMemo(() => calendarWeekDays(selectedDate, language), [language, selectedDate]);
   const weekdayNames = useMemo(() => calendarWeekdayNames(language), [language]);
   const monthGridDays = useMemo(
-    () => calendarMonthCells(viewMonthDate, language, formatLocalYMD(new Date())),
-    [language, viewMonthDate]
+    () => calendarMonthCells(viewMonthDate, language, calendarTodayYmd),
+    [calendarTodayYmd, language, viewMonthDate]
   );
 
   // Group available & booked slots cleanly into Morning, Afternoon, Evening
@@ -774,9 +777,7 @@ export function KantorovichCalendarScheduler({
                 size="sm"
                 className="border-sky-500/50 text-sky-300 hover:bg-sky-500/10"
                 onClick={() => {
-                  const [y, m, d] = selectedDate.split('-').map(Number);
-                  const nextDate = new Date(y, (m || 1) - 1, (d || 1) + 1);
-                  handleSelectDate(formatLocalYMD(nextDate));
+                  handleSelectDate(addDaysToYmd(selectedDate, 1));
                 }}
               >
                 {copy.checkNextDay}

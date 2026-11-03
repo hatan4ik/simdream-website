@@ -7,6 +7,8 @@ async function loadRateLimit(env: Record<string, string> = {}) {
   vi.stubEnv('ALLOW_IN_MEMORY_STORE', env.ALLOW_IN_MEMORY_STORE ?? '');
   vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', env.NEXT_PUBLIC_SUPABASE_URL ?? '');
   vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', env.SUPABASE_SERVICE_ROLE_KEY ?? '');
+  vi.stubEnv('SIMDREAM_TEST_RATE_LIMIT_BYPASS', env.SIMDREAM_TEST_RATE_LIMIT_BYPASS ?? '');
+  vi.stubEnv('NEXT_DIST_DIR', env.NEXT_DIST_DIR ?? '');
   return import('@/lib/security/rate-limit');
 }
 
@@ -40,5 +42,13 @@ describe('rate-limit boundary', () => {
     await expect(
       consumeRateLimit({ scope: 'production-check', subject: '203.0.113.7', limit: 1, windowSeconds: 60 })
     ).rejects.toBeInstanceOf(RateLimitUnavailableError);
+  });
+
+  it('cannot bypass rate limiting unless all browser-sandbox markers are present', async () => {
+    const { consumeRateLimit } = await loadRateLimit({ SIMDREAM_TEST_RATE_LIMIT_BYPASS: 'true' });
+    const rule = { scope: 'bypass-check', subject: '203.0.113.7', limit: 1, windowSeconds: 60 };
+
+    await expect(consumeRateLimit(rule)).resolves.toMatchObject({ allowed: true });
+    await expect(consumeRateLimit(rule)).resolves.toMatchObject({ allowed: false });
   });
 });

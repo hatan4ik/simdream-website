@@ -68,6 +68,7 @@ npx playwright test --project=usability --ui      # interactive runner
 - The test admin is `qa-admin` with a fixed test password, used by the Basic-auth guard.
 - Stripe is replaced per test: mocked (it records the sessions it would create), disabled, or failing. Webhooks are signed with a test secret through Stripe's own `generateTestHeaderString`.
 - The production store fails closed without Supabase. Browser test servers opt into the in-memory store with `ALLOW_IN_MEMORY_STORE=true` (`SERVER_SANDBOX_ENV`). Production never sets it.
+- Browser test servers also use a triple-gated `.next-test` marker to isolate their parallel synthetic failed-admin attempts; Vitest continues to exercise the actual rate-limit boundary and production never receives that marker.
 - `TZ` is pinned to `Asia/Jerusalem`, the business's time zone. Vitest freezes the clock at 2026-11-01 08:00 Israel time unless a test chooses another moment. Browser tests read live availability through `tests/e2e/pages/schedule-api.ts` instead of hardcoding dates.
 
 ### Writing a Vitest test

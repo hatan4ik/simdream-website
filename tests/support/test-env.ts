@@ -53,6 +53,10 @@ export const SERVER_SANDBOX_ENV: Record<string, string> = {
   ...SANDBOX_ENV,
   ...IN_MEMORY_STORE_ENV,
   NEXT_DIST_DIR: TEST_DIST_DIR,
+  // Browser security tests create many hostile requests concurrently. Unit tests
+  // exercise the actual rate limiter; this isolates browser journeys from each
+  // other's synthetic attacker traffic.
+  SIMDREAM_TEST_RATE_LIMIT_BYPASS: 'true',
 };
 
 /** Enables online payments in non-production test runs; Stripe calls are mocked. */
