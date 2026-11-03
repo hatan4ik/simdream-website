@@ -47,6 +47,24 @@ test.describe('mobile affordances', () => {
     await expect(wizard.departureHeading(farDay)).toBeVisible();
   });
 
+  test('selects a storefront calendar date by touch and jumps to checkout', async ({ page, booking, schedule }) => {
+    const { date, slot } = await schedule.findOpenSlot({ duration: 60 });
+    await booking.goto();
+
+    await booking.selectDate(date, 'tap');
+    const dayButton = booking.dateButton(date);
+    await expect(dayButton).toHaveAttribute('aria-pressed', 'true');
+    const box = await dayButton.boundingBox();
+    expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
+
+    await page.getByRole('button', { name: new RegExp(`^${slot.startTime}\\s`) }).tap();
+    const jumpToCheckout = page.getByRole('button', { name: 'Continue to Checkout ↓' }).first();
+    await expect(jumpToCheckout).toBeVisible();
+    await jumpToCheckout.tap();
+
+    await expect(page.locator('#storefront-buy-box')).toBeInViewport();
+  });
+
   test('pins the wizard confirmation bar to the bottom of the screen', async ({ page, booking }) => {
     await booking.goto();
     const wizard = await booking.openWizard();

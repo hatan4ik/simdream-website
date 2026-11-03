@@ -403,9 +403,9 @@ function BookContent() {
   return (
     // w-full min-w-0: with mx-auto inside the flex-column main, the page otherwise
     // shrink-wraps to calendar controls and becomes too wide on phones.
-    <div className="flex-1 w-full min-w-0 py-8 sm:py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-8">
+    <div className="flex-1 w-full min-w-0 py-5 sm:py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-6 sm:space-y-8">
       {/* Top View-Mode Switcher: Amazon-Style 1-Page Express Storefront vs Guided 3-Step Wizard */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pb-4 border-b border-slate-800/80">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 pb-3.5 sm:pb-4 border-b border-slate-800/80">
         <div>
           <div className="text-xs font-mono uppercase tracking-widest text-amber-400 font-bold">
             BOEING 737 MAX-8 FLIGHT DISPATCH & STOREFRONT
@@ -415,30 +415,30 @@ function BookContent() {
           </p>
         </div>
 
-        <div className="inline-flex rounded-xl bg-slate-900 p-1 border border-slate-800 shrink-0">
+        <div className="grid grid-cols-2 w-full sm:w-auto sm:inline-flex rounded-xl bg-slate-900 p-1 border border-slate-800 shrink-0 gap-1 sm:gap-0">
           <button
             type="button"
             onClick={() => setBookingViewMode('storefront')}
-            className={`px-3.5 py-2 rounded-lg text-xs font-mono font-bold transition-all flex items-center gap-1.5 ${
+            className={`min-h-[40px] px-2.5 sm:px-3.5 py-2 rounded-lg text-[11px] sm:text-xs font-mono font-bold transition-all flex items-center justify-center gap-1.5 touch-manipulation cursor-pointer ${
               bookingViewMode === 'storefront'
                 ? 'bg-amber-400 text-slate-950 shadow-sm'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            <ShoppingCart className="w-3.5 h-3.5" />
-            <span>Express Shop View (1-Page)</span>
+            <ShoppingCart className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">Express Shop View (1-Page)</span>
           </button>
           <button
             type="button"
             onClick={() => setBookingViewMode('wizard')}
-            className={`px-3.5 py-2 rounded-lg text-xs font-mono font-bold transition-all flex items-center gap-1.5 ${
+            className={`min-h-[40px] px-2.5 sm:px-3.5 py-2 rounded-lg text-[11px] sm:text-xs font-mono font-bold transition-all flex items-center justify-center gap-1.5 touch-manipulation cursor-pointer ${
               bookingViewMode === 'wizard'
                 ? 'bg-sky-500 text-slate-950 shadow-sm'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            <ListOrdered className="w-3.5 h-3.5" />
-            <span>Guided Wizard (3-Step)</span>
+            <ListOrdered className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">Guided Wizard (3-Step)</span>
           </button>
         </div>
       </div>
@@ -751,7 +751,7 @@ function BookContent() {
                   value={pilotName}
                   onChange={(e) => setPilotName(e.target.value)}
                   placeholder={t.booking.pilotNamePlaceholder}
-                  className="w-full rounded-lg bg-slate-950 border border-slate-800 p-2.5 text-sm text-white focus:outline-none focus:border-sky-500"
+                  className="w-full rounded-lg bg-slate-950 border border-slate-800 p-2.5 text-base sm:text-sm text-white focus:outline-none focus:border-sky-500"
                 />
               </div>
 
@@ -766,7 +766,7 @@ function BookContent() {
                   value={pilotEmail}
                   onChange={(e) => setPilotEmail(e.target.value)}
                   placeholder="pilot@example.com"
-                  className="w-full rounded-lg bg-slate-950 border border-slate-800 p-2.5 text-sm text-white focus:outline-none focus:border-sky-500"
+                  className="w-full rounded-lg bg-slate-950 border border-slate-800 p-2.5 text-base sm:text-sm text-white focus:outline-none focus:border-sky-500"
                 />
               </div>
 
@@ -782,7 +782,7 @@ function BookContent() {
                   onChange={(e) => setPilotPhone(e.target.value)}
                   placeholder="+972-54-123-4567"
                   dir="ltr"
-                  className="w-full rounded-lg bg-slate-950 border border-slate-800 p-2.5 text-sm text-white focus:outline-none focus:border-sky-500 text-left rtl:text-right"
+                  className="w-full rounded-lg bg-slate-950 border border-slate-800 p-2.5 text-base sm:text-sm text-white focus:outline-none focus:border-sky-500 text-left rtl:text-right"
                 />
               </div>
             </div>
@@ -795,7 +795,7 @@ function BookContent() {
                 id={`${formId}-pilot-experience`}
                 value={experienceLevel}
                 onChange={(e) => setExperienceLevel(e.target.value as PilotExperienceLevel)}
-                className="w-full rounded-lg bg-slate-950 border border-slate-800 p-2.5 text-sm text-white focus:outline-none focus:border-sky-500"
+                className="w-full rounded-lg bg-slate-950 border border-slate-800 p-2.5 text-base sm:text-sm text-white focus:outline-none focus:border-sky-500"
               >
                 <option value="beginner">{t.experienceLevels.beginner}</option>
                 <option value="enthusiast">{t.experienceLevels.enthusiast}</option>
@@ -814,7 +814,7 @@ function BookContent() {
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder={t.booking.specialRequestsPlaceholder}
-                className="w-full rounded-lg bg-slate-950 border border-slate-800 p-2.5 text-sm text-white focus:outline-none focus:border-sky-500"
+                className="w-full rounded-lg bg-slate-950 border border-slate-800 p-2.5 text-base sm:text-sm text-white focus:outline-none focus:border-sky-500"
               />
             </div>
 
@@ -867,7 +867,7 @@ function BookContent() {
                       value={voucherCode}
                       onChange={(e) => setVoucherCode(e.target.value)}
                       dir="ltr"
-                      className="flex-1 rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm text-white uppercase font-mono focus:outline-none focus:border-sky-500"
+                      className="flex-1 min-w-0 rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-base sm:text-sm text-white uppercase font-mono focus:outline-none focus:border-sky-500"
                     />
                     <Button
                       type="button"

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
   Calendar as CalendarIcon,
   Clock,
@@ -493,6 +493,11 @@ export function KantorovichCalendarScheduler({
   );
 
   const [viewMonthDate, setViewMonthDate] = useState<Date>(() => monthStartForYmd(selectedDate));
+  const slotsSectionRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setViewMonthDate(monthStartForYmd(selectedDate));
+  }, [selectedDate]);
 
   // Deduplicate packages by duration
   const durationOptions = useMemo(() => {
@@ -652,11 +657,11 @@ export function KantorovichCalendarScheduler({
                     new Date(viewMonthDate.getFullYear(), viewMonthDate.getMonth() - 1, 1)
                   )
                 }
-                className="p-2 rounded-lg border border-slate-800 bg-slate-950 text-slate-300 hover:text-white"
+                className="min-w-[40px] min-h-[40px] p-2 rounded-xl border border-slate-800 bg-slate-950 text-slate-300 hover:text-white flex items-center justify-center touch-manipulation cursor-pointer active:scale-95 transition-all"
               >
                 <ChevronLeft className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
               </button>
-              <span className="text-sm font-bold text-white">
+              <span className="text-sm sm:text-base font-bold text-white">
                 {formatCalendarMonth(viewMonthDate, language)}
               </span>
               <button
@@ -668,7 +673,7 @@ export function KantorovichCalendarScheduler({
                     new Date(viewMonthDate.getFullYear(), viewMonthDate.getMonth() + 1, 1)
                   )
                 }
-                className="p-2 rounded-lg border border-slate-800 bg-slate-950 text-slate-300 hover:text-white"
+                className="min-w-[40px] min-h-[40px] p-2 rounded-xl border border-slate-800 bg-slate-950 text-slate-300 hover:text-white flex items-center justify-center touch-manipulation cursor-pointer active:scale-95 transition-all"
               >
                 <ChevronRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
               </button>
@@ -694,20 +699,36 @@ export function KantorovichCalendarScheduler({
                     aria-pressed={isSelected}
                     disabled={cell.isPast}
                     onClick={() => handleSelectDate(cell.dateStr)}
-                    className={`h-11 sm:h-12 rounded-xl border text-center font-semibold text-sm transition-all flex items-center justify-center ${
+                    className={`min-h-[44px] h-11 sm:h-12 rounded-xl border text-center font-semibold text-sm transition-colors flex items-center justify-center touch-manipulation select-none ${
                       cell.isPast
                         ? 'opacity-25 border-transparent text-slate-600 cursor-not-allowed'
                         : isSelected
-                        ? 'border-sky-400 bg-sky-500 text-slate-950 font-black shadow-glow'
+                        ? 'border-sky-400 bg-sky-500 text-slate-950 font-black shadow-glow cursor-pointer'
                         : cell.isCurrentMonth
-                        ? 'border-slate-800/80 bg-slate-950/70 text-white hover:border-slate-700'
-                        : 'border-slate-800/50 bg-slate-950/40 text-slate-400 hover:border-slate-700'
+                        ? 'border-slate-800/80 bg-slate-950/70 text-white hover:border-slate-700 cursor-pointer'
+                        : 'border-slate-800/50 bg-slate-950/60 text-slate-400 hover:border-slate-700 cursor-pointer'
                     }`}
                   >
                     {formatCalendarDayNumber(cell.dayNumber, language)}
                   </button>
                 );
               })}
+            </div>
+
+            {/* Mobile Active Date Status & Quick-Jump Strip inside Wizard Calendar */}
+            <div className="lg:hidden pt-2.5 border-t border-slate-800/80 flex items-center justify-between gap-2">
+              <div className="text-xs font-mono text-slate-300 flex items-center gap-1.5 min-w-0">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
+                <span className="font-bold text-white truncate">{formatCalendarDate(selectedDate, language)}</span>
+                <span className="text-emerald-400 shrink-0">• {openSlotCount} {copy.availableCount}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => slotsSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                className="shrink-0 px-3 py-1.5 rounded-lg bg-sky-500/20 border border-sky-500/40 text-sky-300 text-xs font-mono font-bold hover:bg-sky-500/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 touch-manipulation cursor-pointer"
+              >
+                {copy.selectTime} ↓
+              </button>
             </div>
           </div>
         )}
@@ -806,7 +827,7 @@ export function KantorovichCalendarScheduler({
       </div>
 
       {/* SECTION 3: CLEAN DEPARTURE TIME SLOTS */}
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-4 sm:p-6 space-y-5 shadow-lg">
+      <div ref={slotsSectionRef} className="rounded-2xl border border-slate-800 bg-slate-900/80 p-4 sm:p-6 space-y-5 shadow-lg">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <h2 className="text-sm sm:text-base font-bold text-white">

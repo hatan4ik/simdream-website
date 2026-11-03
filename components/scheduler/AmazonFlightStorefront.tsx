@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
   Calendar as CalendarIcon,
   Clock,
@@ -165,6 +165,10 @@ interface StorefrontCalendarCopy {
   evening: string;
   upToFit: (minutes: number) => string;
   packagesAvailable: (date: string) => string;
+  openSlotsCount: (count: number) => string;
+  jumpToTimes: string;
+  jumpToCheckout: string;
+  customizeFlight: string;
 }
 
 const STOREFRONT_CALENDAR_COPY: Record<Language, StorefrontCalendarCopy> = {
@@ -189,6 +193,10 @@ const STOREFRONT_CALENDAR_COPY: Record<Language, StorefrontCalendarCopy> = {
     evening: 'Evening',
     upToFit: (minutes) => `Up to ${minutes}m fit`,
     packagesAvailable: (date) => `Showing packages with available runway time on ${date}`,
+    openSlotsCount: (count) => `${count} slots open`,
+    jumpToTimes: 'Pick Time ↓',
+    jumpToCheckout: 'Continue to Checkout ↓',
+    customizeFlight: 'Packages & Add-ons ↓',
   },
   he: {
     departureTitle: 'בחירת תאריך המראה ומשבצת מסלול',
@@ -211,6 +219,10 @@ const STOREFRONT_CALENDAR_COPY: Record<Language, StorefrontCalendarCopy> = {
     evening: 'ערב',
     upToFit: (minutes) => `מתאים לעד ${minutes} דקות`,
     packagesAvailable: (date) => `הצגת חבילות עם זמן מסלול זמין בתאריך ${date}`,
+    openSlotsCount: (count) => `${count} משבצות פנויות`,
+    jumpToTimes: 'בחירת שעה ↓',
+    jumpToCheckout: 'המשך לתשלום ↓',
+    customizeFlight: 'חבילות ותוספות ↓',
   },
   ru: {
     departureTitle: 'Выберите дату и время вылета',
@@ -233,6 +245,10 @@ const STOREFRONT_CALENDAR_COPY: Record<Language, StorefrontCalendarCopy> = {
     evening: 'Вечер',
     upToFit: (minutes) => `Помещается до ${minutes} мин.`,
     packagesAvailable: (date) => `Пакеты с доступным временем на ${date}`,
+    openSlotsCount: (count) => `${count} слотов свободно`,
+    jumpToTimes: 'Выбрать время ↓',
+    jumpToCheckout: 'Перейти к оплате ↓',
+    customizeFlight: 'Пакеты и опции ↓',
   },
   fr: {
     departureTitle: 'Choisir la date et le créneau de départ',
@@ -255,6 +271,10 @@ const STOREFRONT_CALENDAR_COPY: Record<Language, StorefrontCalendarCopy> = {
     evening: 'Soir',
     upToFit: (minutes) => `Jusqu’à ${minutes} min possibles`,
     packagesAvailable: (date) => `Forfaits avec temps de piste disponible le ${date}`,
+    openSlotsCount: (count) => `${count} créneaux libres`,
+    jumpToTimes: 'Choisir l’heure ↓',
+    jumpToCheckout: 'Continuer vers le paiement ↓',
+    customizeFlight: 'Forfaits et options ↓',
   },
   ar: {
     departureTitle: 'اختر تاريخ وموعد الإقلاع',
@@ -277,6 +297,10 @@ const STOREFRONT_CALENDAR_COPY: Record<Language, StorefrontCalendarCopy> = {
     evening: 'مساء',
     upToFit: (minutes) => `يتسع حتى ${minutes} دقيقة`,
     packagesAvailable: (date) => `الباقات ذات وقت المسار المتاح في ${date}`,
+    openSlotsCount: (count) => `${count} مواعيد متاحة`,
+    jumpToTimes: 'اختر الوقت ↓',
+    jumpToCheckout: 'المتابعة للدفع ↓',
+    customizeFlight: 'الباقات والإضافات ↓',
   },
 };
 
@@ -379,6 +403,14 @@ export function AmazonFlightStorefront({
   const blueprintPanelRef = useModalFocus<HTMLDivElement>(blueprintPackage !== null, () => setBlueprintPackage(null));
 
   const [viewMonthDate, setViewMonthDate] = useState<Date>(() => monthStartForYmd(selectedDate));
+  const slotsContainerRef = useRef<HTMLDivElement>(null);
+  const packagesSectionRef = useRef<HTMLElement>(null);
+  const buyBoxFormRef = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    setViewMonthDate(monthStartForYmd(selectedDate));
+  }, [selectedDate]);
+
   const weekDays = useMemo(() => calendarWeekDays(selectedDate, language), [language, selectedDate]);
   const weekdayNames = useMemo(() => calendarWeekdayNames(language), [language]);
   const monthGridDays = useMemo(
@@ -389,6 +421,18 @@ export function AmazonFlightStorefront({
   const selectCalendarDate = (date: string) => {
     setViewMonthDate(monthStartForYmd(date));
     onSelectDate(date);
+  };
+
+  const scrollToSlotsPanel = () => {
+    slotsContainerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  };
+
+  const scrollToPackagesSection = () => {
+    packagesSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const scrollToBuyBox = () => {
+    buyBoxFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   // Filter packages that are available on the selected date
@@ -468,18 +512,19 @@ export function AmazonFlightStorefront({
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
       {/* =====================================================================
           LEFT 8 COLUMNS: AMAZON-STYLE PRODUCT CONFIGURATOR & FLIGHT CATALOG
          ===================================================================== */}
-      <div className="lg:col-span-8 space-y-8">
+      <div className="lg:col-span-8 min-w-0 space-y-6 sm:space-y-8">
         {/* PRODUCT HERO BAR (Amazon Product Header + Aviation Telemetry) */}
-        <div className="p-5 sm:p-6 rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900/95 via-slate-900/80 to-slate-950 shadow-xl space-y-3">
+        <div className="p-4 sm:p-6 rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900/95 via-slate-900/80 to-slate-950 shadow-xl space-y-2.5 sm:space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-amber-500/15 border border-amber-500/40 text-amber-300 text-[11px] font-mono font-bold uppercase tracking-wider">
-                <Zap className="w-3 h-3 fill-amber-400 text-amber-400" />
-                PRIME FLIGHT DECK • INSTANT CONFIRMATION
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-amber-500/15 border border-amber-500/40 text-amber-300 text-[10px] sm:text-[11px] font-mono font-bold uppercase tracking-wider">
+                <Zap className="w-3 h-3 fill-amber-400 text-amber-400 shrink-0" />
+                <span>PRIME FLIGHT DECK</span>
+                <span className="hidden sm:inline">• INSTANT CONFIRMATION</span>
               </span>
               <a
                 href={FACILITY_INFO.googleReviewsDirectUrl}
@@ -497,24 +542,24 @@ export function AmazonFlightStorefront({
                 </span>
               </a>
             </div>
-            <span className="text-[11px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/25 px-2.5 py-0.5 rounded-full">
+            <span className="hidden sm:inline-flex text-[11px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/25 px-2.5 py-0.5 rounded-full">
               ● 1:1 Scale Boeing 737 MAX-8 • Tel Aviv (Gershon Shatz 36) • Age 10+
             </span>
           </div>
 
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pt-1">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 sm:gap-4 pt-1">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+              <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight">
                 {cleanPackageTitle}
               </h1>
-              <p className="text-xs sm:text-sm text-slate-300 mt-1 leading-relaxed">
+              <p className="text-xs sm:text-sm text-slate-300 mt-1 leading-relaxed line-clamp-2 sm:line-clamp-none">
                 {selectedPackage.shortDesc}
               </p>
             </div>
-            <div className="shrink-0 flex sm:flex-col items-baseline sm:items-end justify-between gap-2 bg-slate-950/80 border border-slate-800 px-4 py-2.5 rounded-xl">
+            <div className="shrink-0 flex sm:flex-col items-baseline sm:items-end justify-between gap-2 bg-slate-950/80 border border-slate-800 px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl">
               <span className="text-[10px] font-mono uppercase text-slate-400">Base Package Price</span>
               <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-black font-mono text-white">
+                <span className="text-xl sm:text-2xl font-black font-mono text-white">
                   {formatCurrency(basePriceIls)}
                 </span>
                 <span className="text-xs font-mono text-sky-400 font-bold">
@@ -528,15 +573,15 @@ export function AmazonFlightStorefront({
         {/* ===================================================================
             SECTION 1: DEPARTURE DATE & RUNWAY TIME SLOT (1-CLICK SELECTION)
            =================================================================== */}
-        <section className="p-5 sm:p-6 rounded-2xl border border-slate-800 bg-slate-900/60 space-y-5">
+        <section className="p-4 sm:p-6 rounded-2xl border border-slate-800 bg-slate-900/60 space-y-4 sm:space-y-5">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/80 pb-3.5">
             <div className="flex items-center gap-2.5">
-              <span className="w-6 h-6 rounded-full bg-sky-500/20 border border-sky-500/40 text-sky-400 font-mono text-xs font-black flex items-center justify-center">
+              <span className="w-6 h-6 rounded-full bg-sky-500/20 border border-sky-500/40 text-sky-400 font-mono text-xs font-black flex items-center justify-center shrink-0">
                 1
               </span>
               <div>
                 <h2 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
-                  <CalendarIcon className="w-4 h-4 text-sky-400" />
+                  <CalendarIcon className="w-4 h-4 text-sky-400 shrink-0" />
                   <span>{calendarCopy.departureTitle}</span>
                 </h2>
                 <p className="text-xs text-slate-400">
@@ -545,12 +590,12 @@ export function AmazonFlightStorefront({
               </div>
             </div>
 
-            <div className="inline-flex rounded-lg bg-slate-950 p-1 border border-slate-800">
+            <div className="inline-flex rounded-xl bg-slate-950 p-1 border border-slate-800">
               <button
                 type="button"
                 aria-pressed={calendarMode === 'week'}
                 onClick={() => setCalendarMode('week')}
-                className={`px-3 py-1 rounded-md text-xs font-mono font-semibold transition-all ${
+                className={`min-h-[36px] px-3 py-1.5 rounded-lg text-xs font-mono font-semibold transition-all touch-manipulation cursor-pointer ${
                   calendarMode === 'week'
                     ? 'bg-sky-500 text-slate-950 font-bold'
                     : 'text-slate-400 hover:text-white'
@@ -562,7 +607,7 @@ export function AmazonFlightStorefront({
                 type="button"
                 aria-pressed={calendarMode === 'month'}
                 onClick={() => setCalendarMode('month')}
-                className={`px-3 py-1 rounded-md text-xs font-mono font-semibold transition-all ${
+                className={`min-h-[36px] px-3 py-1.5 rounded-lg text-xs font-mono font-semibold transition-all touch-manipulation cursor-pointer ${
                   calendarMode === 'month'
                     ? 'bg-sky-500 text-slate-950 font-bold'
                     : 'text-slate-400 hover:text-white'
@@ -575,7 +620,7 @@ export function AmazonFlightStorefront({
 
           {/* The month view is primary; seven-day view keeps a compact alternative. */}
           {calendarMode === 'week' ? (
-            <div className="grid grid-cols-7 gap-1.5">
+            <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
               {weekDays.map((day) => {
                 const isSelected = day.dateStr === selectedDate;
                 return (
@@ -586,22 +631,22 @@ export function AmazonFlightStorefront({
                     aria-label={day.dayLabel}
                     aria-pressed={isSelected}
                     onClick={() => selectCalendarDate(day.dateStr)}
-                    className={`p-2 rounded-xl border text-center transition-all flex flex-col items-center justify-center ${
+                    className={`min-h-[64px] py-2 px-1 sm:p-2 rounded-xl border text-center transition-all flex flex-col items-center justify-center touch-manipulation select-none cursor-pointer active:scale-95 ${
                       isSelected
                         ? 'border-amber-400 bg-amber-500/15 text-white shadow-md ring-1 ring-amber-400/50'
                         : 'border-slate-800/90 bg-slate-950/70 hover:border-slate-700 text-slate-300'
                     }`}
                   >
                     <span className="text-[9px] font-mono uppercase text-slate-400">{day.weekdayLabel}</span>
-                    <span className="text-sm font-black font-mono text-white my-0.5">{formatCalendarDayNumber(day.dayNumber, language)}</span>
+                    <span className="text-sm sm:text-base font-black font-mono text-white my-0.5">{formatCalendarDayNumber(day.dayNumber, language)}</span>
                     <span className="text-[9px] font-mono text-slate-400">{day.monthShortLabel}</span>
                   </button>
                 );
               })}
             </div>
           ) : (
-            <div className="p-4 rounded-xl border border-slate-800 bg-slate-950/80 space-y-3">
-              <div className="flex items-center justify-between">
+            <div className="p-3 sm:p-4 rounded-xl border border-slate-800 bg-slate-950/80 space-y-3">
+              <div className="flex items-center justify-between gap-2">
                 <button
                   type="button"
                   data-calendar-previous-month
@@ -609,11 +654,11 @@ export function AmazonFlightStorefront({
                   onClick={() =>
                     setViewMonthDate(new Date(viewMonthDate.getFullYear(), viewMonthDate.getMonth() - 1, 1))
                   }
-                  className="p-1.5 rounded-lg border border-slate-800 hover:border-slate-700 text-slate-300"
+                  className="min-w-[40px] min-h-[40px] p-2 rounded-xl border border-slate-800 bg-slate-900/90 hover:border-slate-700 text-slate-200 flex items-center justify-center touch-manipulation cursor-pointer active:scale-95 transition-all"
                 >
                   <ChevronLeft className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
                 </button>
-                <span className="text-sm font-bold text-white font-mono">
+                <span className="text-sm sm:text-base font-bold text-white font-mono">
                   {formatCalendarMonth(viewMonthDate, language)}
                 </span>
                 <button
@@ -623,14 +668,14 @@ export function AmazonFlightStorefront({
                   onClick={() =>
                     setViewMonthDate(new Date(viewMonthDate.getFullYear(), viewMonthDate.getMonth() + 1, 1))
                   }
-                  className="p-1.5 rounded-lg border border-slate-800 hover:border-slate-700 text-slate-300"
+                  className="min-w-[40px] min-h-[40px] p-2 rounded-xl border border-slate-800 bg-slate-900/90 hover:border-slate-700 text-slate-200 flex items-center justify-center touch-manipulation cursor-pointer active:scale-95 transition-all"
                 >
                   <ChevronRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
                 </button>
               </div>
-              <div className="grid grid-cols-7 gap-1 text-center">
+              <div className="grid grid-cols-7 gap-1 sm:gap-1.5 text-center">
                 {weekdayNames.map((d) => (
-                  <div key={d} className="text-[10px] font-mono text-slate-400 py-1">
+                  <div key={d} className="text-[10px] sm:text-[11px] font-mono font-semibold text-slate-400 py-1">
                     {d}
                   </div>
                 ))}
@@ -645,14 +690,14 @@ export function AmazonFlightStorefront({
                       aria-pressed={isSelected}
                       disabled={cell.isPast}
                       onClick={() => selectCalendarDate(cell.dateStr)}
-                      className={`h-9 rounded-lg font-mono text-xs transition-all ${
+                      className={`min-h-[44px] h-11 sm:h-12 rounded-xl border font-mono text-xs sm:text-sm font-semibold transition-colors flex items-center justify-center touch-manipulation select-none ${
                         cell.isPast
-                          ? 'text-slate-700 cursor-not-allowed'
+                          ? 'border-transparent text-slate-700 opacity-35 cursor-not-allowed'
                         : isSelected
-                        ? 'bg-amber-400 text-slate-950 font-black'
+                        ? 'border-amber-300 bg-amber-400 text-slate-950 font-black shadow-md ring-2 ring-amber-400/40 cursor-pointer'
                         : cell.isCurrentMonth
-                        ? 'bg-slate-900/70 text-slate-200 hover:bg-slate-800'
-                        : 'bg-slate-950/50 text-slate-400 hover:bg-slate-800'
+                        ? 'border-slate-800/80 bg-slate-900/80 text-slate-200 hover:bg-slate-800 hover:border-slate-700 cursor-pointer'
+                        : 'border-slate-800/40 bg-slate-950/60 text-slate-400 hover:bg-slate-800 cursor-pointer'
                       }`}
                     >
                       {formatCalendarDayNumber(cell.dayNumber, language)}
@@ -660,11 +705,27 @@ export function AmazonFlightStorefront({
                   );
                 })}
               </div>
+
+              {/* Mobile Active Date Status & Quick-Jump Strip inside Calendar Box */}
+              <div className="lg:hidden pt-2.5 border-t border-slate-800/80 flex items-center justify-between gap-2">
+                <div className="text-xs font-mono text-slate-300 flex items-center gap-1.5 min-w-0">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
+                  <span className="font-bold text-white truncate">{formatCalendarDate(selectedDate, language)}</span>
+                  <span className="text-emerald-400 shrink-0">• {calendarCopy.openSlotsCount(availableSlotCount)}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={scrollToSlotsPanel}
+                  className="shrink-0 px-3 py-1.5 rounded-lg bg-sky-500/20 border border-sky-500/40 text-sky-300 text-xs font-mono font-bold hover:bg-sky-500/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 touch-manipulation cursor-pointer"
+                >
+                  {calendarCopy.jumpToTimes}
+                </button>
+              </div>
             </div>
           )}
 
           {/* Departure Time Slots */}
-          <div className="pt-2 space-y-3">
+          <div ref={slotsContainerRef} className="pt-2 space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="text-xs font-mono uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
                 <Clock className="w-3.5 h-3.5 text-sky-400" />
@@ -812,14 +873,14 @@ export function AmazonFlightStorefront({
                               aria-pressed={isSelected}
                               disabled={!slot.available}
                               onClick={() => onSelectSlot(slot)}
-                              className={`relative px-3 py-2.5 rounded-xl border text-left rtl:text-right transition-all flex flex-col justify-between ${
+                              className={`relative min-h-[54px] px-3 py-2.5 rounded-xl border text-left rtl:text-right transition-all flex flex-col justify-between touch-manipulation select-none ${
                                 !slot.available
                                   ? 'border-slate-800/40 bg-slate-950/30 opacity-40 cursor-not-allowed line-through'
                                   : isSelected
-                                  ? 'border-amber-400 bg-amber-500/15 text-white shadow-md ring-1 ring-amber-400/50'
+                                  ? 'border-amber-400 bg-amber-500/15 text-white shadow-md ring-1 ring-amber-400/50 cursor-pointer active:scale-95'
                                   : isOptimal
-                                  ? 'border-emerald-500/40 bg-emerald-950/20 hover:border-emerald-400 text-white'
-                                  : 'border-slate-800 bg-slate-950/80 hover:border-sky-500/50 text-slate-200'
+                                  ? 'border-emerald-500/40 bg-emerald-950/20 hover:border-emerald-400 text-white cursor-pointer active:scale-95'
+                                  : 'border-slate-800 bg-slate-950/80 hover:border-sky-500/50 text-slate-200 cursor-pointer active:scale-95'
                               }`}
                             >
                               <div className="flex items-center justify-between gap-1">
@@ -842,6 +903,40 @@ export function AmazonFlightStorefront({
                     </div>
                   );
                 })}
+
+                {/* Mobile Quick-Action Confirmation Bar Immediately Below Departure Slots */}
+                {selectedSlot?.available && (
+                  <div className="lg:hidden mt-3 p-3.5 rounded-xl border border-amber-500/40 bg-slate-950/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="text-xs font-mono space-y-0.5">
+                      <div className="text-emerald-400 font-bold flex items-center gap-1.5">
+                        <Check className="w-3.5 h-3.5 shrink-0" />
+                        <span>{formatCalendarDate(selectedDate, language)}</span>
+                        <bdi dir="ltr" className="text-amber-400">
+                          • {selectedSlot.startTime}–{effectiveEndTime || selectedSlot.endTime}
+                        </bdi>
+                      </div>
+                      <div className="text-[11px] text-slate-300">
+                        {cleanPackageTitle} ({totalDurationMinutes}m • {formatCurrency(totalIls)})
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={scrollToPackagesSection}
+                        className="flex-1 sm:flex-initial px-3 py-2 rounded-lg border border-slate-700 bg-slate-900 text-slate-200 text-xs font-mono font-semibold hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 touch-manipulation cursor-pointer"
+                      >
+                        {calendarCopy.customizeFlight}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={scrollToBuyBox}
+                        className="flex-1 sm:flex-initial px-3.5 py-2 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-mono font-black shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 touch-manipulation cursor-pointer"
+                      >
+                        {calendarCopy.jumpToCheckout}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -850,7 +945,7 @@ export function AmazonFlightStorefront({
         {/* ===================================================================
             SECTION 2: AMAZON VARIATION SWATCHES — BASE FLIGHT PACKAGE
            =================================================================== */}
-        <section className="p-5 sm:p-6 rounded-2xl border border-slate-800 bg-slate-900/60 space-y-4">
+        <section ref={packagesSectionRef} className="p-4 sm:p-6 rounded-2xl border border-slate-800 bg-slate-900/60 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-3.5">
             <div className="flex items-center gap-2.5">
               <span className="w-6 h-6 rounded-full bg-sky-500/20 border border-sky-500/40 text-sky-400 font-mono text-xs font-black flex items-center justify-center">
@@ -1229,15 +1324,43 @@ export function AmazonFlightStorefront({
         </p>
       </div>
     )}
+
+        {/* STICKY MOBILE FLIGHT SUMMARY & QUICK-JUMP BAR (Parks above the Buy Box on scroll) */}
+        <div className="lg:hidden sticky bottom-3 z-30 p-3.5 rounded-2xl border border-amber-500/40 bg-slate-950/95 backdrop-blur-md shadow-2xl flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5 text-[11px] font-mono text-slate-300 truncate">
+              <span className="font-bold text-sky-400">{totalDurationMinutes}m</span>
+              <span>•</span>
+              <span className="truncate">{formatCalendarDate(selectedDate, language)}</span>
+              {selectedSlot?.available && (
+                <bdi dir="ltr" className="text-amber-400 font-bold shrink-0">
+                  • {selectedSlot.startTime}
+                </bdi>
+              )}
+            </div>
+            <div className="text-base font-mono font-black text-emerald-400 leading-tight">
+              {formatCurrency(totalIls)}
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={selectedSlot?.available ? scrollToBuyBox : scrollToSlotsPanel}
+            className="shrink-0 px-4 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-mono text-xs font-black shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 touch-manipulation cursor-pointer"
+          >
+            {selectedSlot?.available ? calendarCopy.jumpToCheckout : calendarCopy.jumpToTimes}
+          </button>
+        </div>
   </div>
 
       {/* =====================================================================
           RIGHT 4 COLUMNS: STICKY AMAZON "BUY BOX" & EXPRESS PILOT CHECKOUT
          ===================================================================== */}
-      <div className="lg:col-span-4 lg:sticky lg:top-24 space-y-5">
+      <div className="lg:col-span-4 min-w-0 lg:sticky lg:top-24 space-y-5">
         <form
+          ref={buyBoxFormRef}
+          id="storefront-buy-box"
           onSubmit={onSubmitBooking}
-          className="rounded-2xl border-2 border-amber-500/40 bg-slate-900/95 p-5 sm:p-6 space-y-5 shadow-2xl"
+          className="rounded-2xl border-2 border-amber-500/40 bg-slate-900/95 p-4 sm:p-6 space-y-5 shadow-2xl"
         >
           {/* BUY BOX HEADER: LIVE TOTAL PRICE & DURATION */}
           <div className="flex items-start justify-between gap-3 border-b border-slate-800 pb-4">
@@ -1539,7 +1662,7 @@ export function AmazonFlightStorefront({
                       value={voucherCode}
                       onChange={(e) => onChangeVoucherCode(e.target.value)}
                       dir="ltr"
-                      className="flex-1 rounded-lg bg-slate-950 border border-slate-700 px-3 py-2 text-sm text-white uppercase font-mono focus:outline-none focus:border-amber-400"
+                      className="flex-1 min-w-0 rounded-lg bg-slate-950 border border-slate-700 px-3 py-2 text-base sm:text-sm text-white uppercase font-mono focus:outline-none focus:border-amber-400"
                     />
                     <Button
                       type="button"
@@ -1590,7 +1713,7 @@ export function AmazonFlightStorefront({
                 value={notes}
                 onChange={(e) => onChangeNotes(e.target.value)}
                 placeholder={t.booking.specialRequestsPlaceholder}
-                className="w-full rounded-lg bg-slate-950 border border-slate-800 p-2.5 text-sm text-white focus:outline-none focus:border-amber-400"
+                className="w-full rounded-lg bg-slate-950 border border-slate-800 p-2.5 text-base sm:text-sm text-white focus:outline-none focus:border-amber-400"
               />
             </div>
           </fieldset>

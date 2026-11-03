@@ -78,6 +78,18 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   overflow-x: hidden;
   transition: background-color 0.25s ease, color 0.25s ease;
+  -webkit-tap-highlight-color: rgba(86, 185, 233, 0.15);
+}
+
+/* Eliminate iOS Safari double-tap-to-zoom delay across all interactive controls. */
+button,
+[role="button"],
+a,
+input,
+select,
+textarea,
+label {
+  touch-action: manipulation;
 }
 
 /* Cockpit HUD & Instrument Scanlines */
@@ -123,6 +135,7 @@ html[data-ui="brand"] .bg-slate-950 {
    Low-alpha wells become cloud grey, high-alpha cards and bars become white. */
 html[data-ui="brand"] .bg-slate-950\/30,
 html[data-ui="brand"] .bg-slate-950\/40,
+html[data-ui="brand"] .bg-slate-950\/50,
 html[data-ui="brand"] .bg-slate-950\/55,
 html[data-ui="brand"] .bg-slate-950\/60 {
   background-color: #f8fafc !important;

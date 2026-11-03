@@ -33,21 +33,21 @@ export default function HomePage() {
   return (
     <div className="flex-1 flex flex-col">
       {/* 1. HERO SECTION */}
-      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden px-4 sm:px-6 lg:px-8 py-24 hud-grid">
+      <section className="relative min-h-[75vh] sm:min-h-[90vh] flex items-center justify-center overflow-hidden px-4 sm:px-6 lg:px-8 py-12 sm:py-24 hud-grid">
         {/* Glowing atmospheric cockpit backdrops */}
         <div className="absolute inset-0 bg-gradient-to-b from-sky-950/20 via-slate-950/80 to-aviation-darkest pointer-events-none" />
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] bg-sky-500/10 blur-[130px] rounded-full pointer-events-none" />
         <div className="absolute bottom-10 right-10 w-96 h-96 bg-emerald-500/5 blur-[120px] rounded-full pointer-events-none" />
 
-        <div className="relative z-10 max-w-5xl mx-auto text-center space-y-8">
+        <div className="relative z-10 max-w-5xl mx-auto text-center space-y-6 sm:space-y-8">
           {/* Telemetry pill */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/90 border border-sky-500/30 text-xs font-mono text-sky-400 shadow-glow backdrop-blur-md">
-            <span className="w-2 h-2 rounded-full bg-sky-400 animate-pulse" />
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/90 border border-sky-500/30 text-[11px] sm:text-xs font-mono text-sky-400 shadow-glow backdrop-blur-md">
+            <span className="w-2 h-2 rounded-full bg-sky-400 animate-pulse shrink-0" />
             <span>{t.hero.badge}</span>
           </div>
 
           {/* Main Headline */}
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-white leading-[1.1]">
+          <h1 className="text-3xl sm:text-6xl lg:text-7xl font-black tracking-tight text-white leading-[1.12]">
             {t.hero.titlePart1}{' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-sky-200 to-sky-400">
               {t.hero.titleHighlight}
@@ -56,12 +56,12 @@ export default function HomePage() {
           </h1>
 
           {/* Subtitle */}
-          <p className="max-w-3xl mx-auto text-lg sm:text-xl text-slate-300 font-normal leading-relaxed">
+          <p className="max-w-3xl mx-auto text-base sm:text-xl text-slate-300 font-normal leading-relaxed">
             {t.hero.subtitle}
           </p>
 
           {/* Hero CTAs */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 pt-2 sm:pt-4">
             <Link href="/book" className="w-full sm:w-auto">
               <Button size="lg" className="w-full sm:w-auto font-bold text-base px-8 py-4 shadow-glow">
                 <Plane className="w-5 h-5 -rotate-45" />
@@ -77,49 +77,49 @@ export default function HomePage() {
           </div>
 
           {/* Avionics Metrics HUD */}
-          <div className="pt-12 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
-            <div className="p-4 rounded-xl border border-slate-800/80 bg-slate-900/40 backdrop-blur-md text-left rtl:text-right">
+          <div className="pt-6 sm:pt-12 grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4 max-w-4xl mx-auto">
+            <div className="p-3 sm:p-4 rounded-xl border border-slate-800/80 bg-slate-900/40 backdrop-blur-md text-left rtl:text-right">
               <div className="flex items-center justify-between text-slate-400 mb-1">
-                <span className="text-xs font-mono uppercase">{t.hero.hudScale}</span>
-                <Gauge className="w-4 h-4 text-sky-400" />
+                <span className="text-[10px] sm:text-xs font-mono uppercase">{t.hero.hudScale}</span>
+                <Gauge className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-sky-400 shrink-0" />
               </div>
-              <p className="text-2xl font-black text-white font-mono">{t.hero.scaleTitle}</p>
-              <p className="text-[11px] text-slate-400">{t.hero.scaleDesc}</p>
+              <p className="text-lg sm:text-2xl font-black text-white font-mono">{t.hero.scaleTitle}</p>
+              <p className="text-[10px] sm:text-[11px] text-slate-400">{t.hero.scaleDesc}</p>
             </div>
 
-            <div className="p-4 rounded-xl border border-slate-800/80 bg-slate-900/40 backdrop-blur-md text-left rtl:text-right">
+            <div className="p-3 sm:p-4 rounded-xl border border-slate-800/80 bg-slate-900/40 backdrop-blur-md text-left rtl:text-right">
               <div className="flex items-center justify-between text-slate-400 mb-1">
-                <span className="text-xs font-mono uppercase">{t.hero.hudVisual}</span>
-                <Compass className="w-4 h-4 text-sky-400" />
+                <span className="text-[10px] sm:text-xs font-mono uppercase">{t.hero.hudVisual}</span>
+                <Compass className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-sky-400 shrink-0" />
               </div>
-              <p className="text-2xl font-black text-white font-mono">{t.hero.visualTitle}</p>
-              <p className="text-[11px] text-slate-400">{t.hero.visualDesc}</p>
+              <p className="text-lg sm:text-2xl font-black text-white font-mono">{t.hero.visualTitle}</p>
+              <p className="text-[10px] sm:text-[11px] text-slate-400">{t.hero.visualDesc}</p>
             </div>
 
-            <div className="p-4 rounded-xl border border-slate-800/80 bg-slate-900/40 backdrop-blur-md text-left rtl:text-right">
+            <div className="p-3 sm:p-4 rounded-xl border border-slate-800/80 bg-slate-900/40 backdrop-blur-md text-left rtl:text-right">
               <div className="flex items-center justify-between text-slate-400 mb-1">
-                <span className="text-xs font-mono uppercase">{t.hero.hudAirports}</span>
-                <Radio className="w-4 h-4 text-emerald-400" />
+                <span className="text-[10px] sm:text-xs font-mono uppercase">{t.hero.hudAirports}</span>
+                <Radio className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 shrink-0" />
               </div>
-              <p className="text-2xl font-black text-emerald-400 font-mono">{t.hero.airportsTitle}</p>
-              <p className="text-[11px] text-slate-400">{t.hero.airportsDesc}</p>
+              <p className="text-lg sm:text-2xl font-black text-emerald-400 font-mono">{t.hero.airportsTitle}</p>
+              <p className="text-[10px] sm:text-[11px] text-slate-400">{t.hero.airportsDesc}</p>
             </div>
 
-            <div className="p-4 rounded-xl border border-slate-800/80 bg-slate-900/40 backdrop-blur-md text-left rtl:text-right">
+            <div className="p-3 sm:p-4 rounded-xl border border-slate-800/80 bg-slate-900/40 backdrop-blur-md text-left rtl:text-right">
               <div className="flex items-center justify-between text-slate-400 mb-1">
-                <span className="text-xs font-mono uppercase">{t.hero.hudInstructors}</span>
-                <ShieldCheck className="w-4 h-4 text-amber-400" />
+                <span className="text-[10px] sm:text-xs font-mono uppercase">{t.hero.hudInstructors}</span>
+                <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400 shrink-0" />
               </div>
-              <p className="text-2xl font-black text-amber-400 font-mono">{t.hero.instructorsTitle}</p>
-              <p className="text-[11px] text-slate-400">{t.hero.instructorsDesc}</p>
+              <p className="text-lg sm:text-2xl font-black text-amber-400 font-mono">{t.hero.instructorsTitle}</p>
+              <p className="text-[10px] sm:text-[11px] text-slate-400">{t.hero.instructorsDesc}</p>
             </div>
           </div>
         </div>
       </section>
 
       {/* 2. WHY CHOOSE SIM DREAM: THE CAPTAIN'S EXPERIENCE */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-slate-950 border-t border-b border-slate-900">
-        <div className="max-w-7xl mx-auto space-y-16">
+      <section className="py-14 sm:py-24 px-4 sm:px-6 lg:px-8 bg-slate-950 border-t border-b border-slate-900">
+        <div className="max-w-7xl mx-auto space-y-10 sm:space-y-16">
           <div className="text-center max-w-3xl mx-auto space-y-4">
             <Badge variant="sky">{t.whyUs.badge}</Badge>
             <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-white">
@@ -259,8 +259,8 @@ export default function HomePage() {
       </section>
 
       {/* 3. POPULAR FLIGHT EXPERIENCES */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-aviation-darkest">
-        <div className="max-w-7xl mx-auto space-y-16">
+      <section className="py-14 sm:py-24 px-4 sm:px-6 lg:px-8 bg-aviation-darkest">
+        <div className="max-w-7xl mx-auto space-y-10 sm:space-y-16">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
               <Badge variant="sky">{t.experiences.badge}</Badge>
@@ -341,8 +341,8 @@ export default function HomePage() {
       </section>
 
       {/* 4. CORPORATE CRM WORKSHOP SPOTLIGHT */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 border-t border-b border-slate-800">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <section className="py-14 sm:py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 border-t border-b border-slate-800">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 items-center">
           <div className="space-y-6">
             <Badge variant="amber">{t.workshops.badge}</Badge>
             <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-white leading-tight">
@@ -376,10 +376,10 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="relative rounded-2xl border border-slate-800 bg-slate-900/80 p-8 shadow-2xl space-y-6">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
-              <div className="flex items-center gap-3">
-                <Users className="w-5 h-5 text-amber-400" />
+          <div className="relative rounded-2xl border border-slate-800 bg-slate-900/80 p-5 sm:p-8 shadow-2xl space-y-5 sm:space-y-6">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-4">
+              <div className="flex items-center gap-2.5 sm:gap-3">
+                <Users className="w-5 h-5 text-amber-400 shrink-0" />
                 <span className="font-bold text-white text-sm">{t.workshops.caseStudyBadge}</span>
               </div>
               <span className="text-xs font-mono text-emerald-400">TEL AVIV B737 MAX</span>
@@ -390,7 +390,7 @@ export default function HomePage() {
             </blockquote>
 
             <div className="flex items-center gap-3 pt-2">
-              <div className="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-sky-400">
+              <div className="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-sky-400 shrink-0">
                 YS
               </div>
               <div>
@@ -403,7 +403,7 @@ export default function HomePage() {
       </section>
 
       {/* 5. CALL TO ACTION RIBBON */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-sky-950/40 border-t border-sky-900/60 relative overflow-hidden">
+      <section className="py-14 sm:py-20 px-4 sm:px-6 lg:px-8 bg-sky-950/40 border-t border-sky-900/60 relative overflow-hidden">
         <div className="max-w-4xl mx-auto text-center space-y-6">
           <Badge variant="sky">{t.cta.badge}</Badge>
           <h2 className="text-3xl sm:text-5xl font-black text-white">
@@ -412,14 +412,14 @@ export default function HomePage() {
           <p className="text-slate-300 text-base max-w-2xl mx-auto">
             {t.cta.subtitle}
           </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-            <Link href="/book">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 pt-2 sm:pt-4">
+            <Link href="/book" className="w-full sm:w-auto">
               <Button size="lg" className="w-full sm:w-auto font-bold text-base px-8 py-4">
                 <Plane className="w-5 h-5 -rotate-45" />
                 <span>{t.cta.bookFlight}</span>
               </Button>
             </Link>
-            <Link href="/vouchers">
+            <Link href="/vouchers" className="w-full sm:w-auto">
               <Button variant="outline" size="lg" className="w-full sm:w-auto font-semibold text-base px-8 py-4">
                 <span>{t.cta.buyVoucher}</span>
               </Button>
