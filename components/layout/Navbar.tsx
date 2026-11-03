@@ -73,8 +73,9 @@ export function Navbar() {
             {/* Quick Demo Switcher / User Profile */}
             <div className="relative">
               <button
+                type="button"
                 onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-800 bg-slate-900/70 hover:bg-slate-800 text-xs text-slate-300 transition-colors"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-800 bg-slate-900/70 hover:bg-slate-800 text-xs text-slate-300 transition-colors touch-manipulation cursor-pointer"
               >
                 <div className={`w-2 h-2 rounded-full ${isAdmin ? 'bg-amber-400' : 'bg-sky-400'}`} />
                 <User className="w-4 h-4" aria-hidden="true" />
@@ -182,7 +183,7 @@ export function Navbar() {
               aria-label={mobileMenuOpen ? t.nav.closeMenu : t.nav.openMenu}
               aria-expanded={mobileMenuOpen}
               aria-controls="mobile-navigation"
-              className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
+              className="min-w-[44px] min-h-[44px] inline-flex items-center justify-center p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 touch-manipulation cursor-pointer"
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>

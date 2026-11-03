@@ -25,7 +25,7 @@ export function LanguageSelector({ variant = 'compact' }: { variant?: 'compact' 
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-800 bg-slate-900/80 hover:bg-slate-800 text-xs text-slate-200 font-mono transition-colors shadow-sm"
+        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-800 bg-slate-900/80 hover:bg-slate-800 text-xs text-slate-200 font-mono transition-colors shadow-sm touch-manipulation cursor-pointer"
         aria-haspopup="true"
         aria-expanded={isOpen}
       >
@@ -48,11 +48,12 @@ export function LanguageSelector({ variant = 'compact' }: { variant?: 'compact' 
               return (
                 <button
                   key={lang.code}
+                  type="button"
                   onClick={() => {
                     setLanguage(lang.code as Language);
                     setIsOpen(false);
                   }}
-                  className={`w-full flex items-center justify-between px-3 py-2 text-left rtl:text-right hover:bg-slate-800 transition-colors ${
+                  className={`w-full flex items-center justify-between px-3 py-2 text-left rtl:text-right hover:bg-slate-800 transition-colors touch-manipulation cursor-pointer ${
                     isSelected ? 'text-sky-400 bg-sky-500/10 font-bold' : 'text-slate-300'
                   }`}
                 >

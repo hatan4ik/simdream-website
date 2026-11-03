@@ -17,7 +17,7 @@ export function UiThemeSwitcher({ variant = 'compact' }: { variant?: 'compact' |
       <button
         type="button"
         onClick={toggleTheme}
-        className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl border border-slate-800 bg-slate-900/80 hover:bg-slate-800 text-xs font-mono transition-all group"
+        className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl border border-slate-800 bg-slate-900/80 hover:bg-slate-800 text-xs font-mono transition-all group touch-manipulation cursor-pointer"
       >
         <div className="flex items-center gap-2.5">
           <div
@@ -61,7 +61,7 @@ export function UiThemeSwitcher({ variant = 'compact' }: { variant?: 'compact' |
     <button
       type="button"
       onClick={toggleTheme}
-      className="flex shrink-0 items-center gap-2 px-2.5 py-1.5 rounded-lg border border-slate-800 bg-slate-900/80 hover:bg-slate-800 text-xs font-mono transition-all duration-200 group shadow-sm"
+      className="flex shrink-0 items-center gap-2 px-2.5 py-1.5 rounded-lg border border-slate-800 bg-slate-900/80 hover:bg-slate-800 text-xs font-mono transition-all duration-200 group shadow-sm touch-manipulation cursor-pointer"
       title={switchLabel}
       // Icon and state pill only: a visible name crowded the header. The full variant (drawer, footer) shows it.
       aria-label={`${themeName}, ${switchLabel}`}

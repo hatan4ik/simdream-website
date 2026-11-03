@@ -1,4 +1,48 @@
+import os from 'node:os';
+
 const isDev = process.env.NODE_ENV === 'development';
+
+function collectAllowedDevOrigins() {
+  const origins = new Set([
+    '127.0.0.1',
+    '127.*.*.*',
+    '192.168.*.*',
+    '10.*.*.*',
+    '172.*.*.*',
+    '100.*.*.*',
+    '*.local',
+    '**.local',
+    '**.ngrok-free.app',
+    '**.ngrok-free.dev',
+    '**.ngrok.io',
+    '**.ngrok.app',
+    '**.trycloudflare.com',
+    '**.loca.lt',
+    '**.ts.net',
+    'simdream.co.il',
+    '**.simdream.co.il',
+  ]);
+
+  try {
+    const hostname = os.hostname();
+    if (hostname) {
+      origins.add(hostname);
+      origins.add(hostname.toLowerCase());
+    }
+    const interfaces = os.networkInterfaces();
+    for (const entries of Object.values(interfaces)) {
+      for (const entry of entries ?? []) {
+        if (entry && entry.address && entry.family === 'IPv4') {
+          origins.add(entry.address);
+        }
+      }
+    }
+  } catch {
+    // Ignore restricted OS interface lookups
+  }
+
+  return Array.from(origins);
+}
 
 // Static CSP (no per-request nonce, so pages stay statically rendered). The App Router
 // streams its RSC payload through inline scripts that differ per page and cannot be
@@ -12,7 +56,7 @@ const contentSecurityPolicy = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   "font-src 'self' data:",
-  "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
+  `connect-src 'self'${isDev ? ' ws: wss:' : ''} https://*.supabase.co wss://*.supabase.co`,
   // Google Maps embed on /contact.
   "frame-src https://www.google.com https://maps.google.com",
   "object-src 'none'",
@@ -24,12 +68,19 @@ const contentSecurityPolicy = [
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  // `next dev` starts on localhost by default, while developers sometimes open
-  // the same loopback server through 127.0.0.1. Next 16 blocks that alternate
-  // origin for HMR/dev assets unless it is explicitly allowlisted. Without the
-  // client bundle, interactive controls such as the language selector cannot
-  // hydrate and the server-rendered English default remains visible.
-  allowedDevOrigins: ['127.0.0.1'],
+  // `next dev` starts on localhost by default, while developers and mobile test
+  // devices (iPhone Safari, Samsung/Android browsers) often open the server over
+  // 127.0.0.1, Wi-Fi LAN IPs (192.168.x.x / 10.x.x.x), mDNS (.local), or tunnels.
+  // Next 16 blocks non-allowlisted origins for HMR/dev assets, which prevents the
+  // client bundle from hydrating interactive buttons.
+  allowedDevOrigins: collectAllowedDevOrigins(),
+  experimental: {
+    // Next 16's React debug channel blocks `await initialServerResponse` in
+    // app-index.js until the dev HMR WebSocket delivers REACT_DEBUG_CHUNK. If a
+    // mobile browser on LAN, tunnel, or cellular cannot open the dev WebSocket,
+    // hydrateRoot() never runs and all buttons remain unclickable.
+    reactDebugChannel: false,
+  },
   // Do not advertise the framework (X-Powered-By: Next.js).
   poweredByHeader: false,
   // Lets a test build go to a separate folder (NEXT_DIST_DIR) without disturbing .next.
