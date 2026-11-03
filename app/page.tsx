@@ -337,6 +337,25 @@ export default function HomePage() {
               </Card>
             ))}
           </div>
+
+          {/* Annual Simulator Subscriptions & Multi-Flight Passes Spotlight Banner */}
+          <div className="rounded-2xl border border-sky-500/30 bg-gradient-to-r from-sky-950/40 via-slate-900 to-aviation-darkest p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
+            <div className="space-y-2 text-center md:text-left rtl:md:text-right">
+              <Badge variant="sky">{t.experiences.subscriptionsBadge}</Badge>
+              <h3 className="text-xl sm:text-2xl font-black text-white">
+                {t.experiences.subscriptionsTitle}
+              </h3>
+              <p className="text-slate-300 text-xs sm:text-sm max-w-xl">
+                {t.experiences.subscriptionsSubtitle}
+              </p>
+            </div>
+            <Link href="/experiences?category=subscriptions" className="shrink-0">
+              <Button size="lg" className="font-bold shadow-glow min-h-[44px] touch-manipulation cursor-pointer">
+                <span>{t.experiences.subscriptions}</span>
+                <ChevronRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
+              </Button>
+            </Link>
+          </div>
         </div>
       </section>
 
