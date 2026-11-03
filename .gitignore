@@ -41,3 +41,21 @@ yarn-error.log*
 /test-results/
 /playwright-report*/
 /blob-report/
+
+# agent skills installed per machine by `npx skills add <owner>/<repo>` (e.g. wix/skills).
+# The CLI writes a copy into every agent's dot folder it detects plus a lockfile;
+# none of it is project source. `.github/` itself stays tracked (only its skills copy is ignored).
+/skills-lock.json
+/.agents/
+/.*/skills/
+/.claude/
+/.codex/
+/.codestudio/
+/.commandcode/
+/.cursor/
+/.gemini/
+/.grok/
+/.inferencesh/
+/.kiro/
+/.opencode/
+/.windsurf/

@@ -7,6 +7,8 @@
 
 Production-grade website, multi-step booking engine, Amazon-style flight storefront, gift-voucher terminal, corporate CRM workshop portal, member purchase dashboard, and flight-dispatch command system for **Sim Dream LTD** (`simdream.co.il`), located at **Gershon Shatz St 36, Tel Aviv-Yafo, Israel** (Yehudit Light Rail / HaShalom Train Station • `055-507-1307` • `desk@simdream.co.il`).
 
+> **Future Wix Headless reference:** [`docs/WIX_HEADLESS_ARCHITECTURE.md`](docs/WIX_HEADLESS_ARCHITECTURE.md) documents a proposed Wix Headless integration and DevOps plan. It does not describe the current production implementation and does not change the runtime stack by itself.
+
 > 📐 **System Architecture & Visual Diagrams**: See [`ARCHITECTURE.md`](ARCHITECTURE.md) for full Mermaid sequence, workflow, topology, and interval-scheduling engine diagrams.
 > 🧬 **Canonical Genesis & System Blueprint**: [`GENESIS.md`](GENESIS.md) is the sole current architecture/reconstruction prompt. Its source-coverage and fingerprint verification runs in CI; historical drafts live in [`docs/archive/`](docs/archive/README.md).
 
