@@ -42,6 +42,8 @@ export const voucherCheckoutSchema = z.object({
   senderName: safeText(120),
   senderEmail: z.string().trim().email().max(254),
   personalMessage: z.string().trim().max(1_500).default(''),
+  packageId: z.string().trim().max(80).optional(),
+  packageTitle: z.string().trim().max(160).optional(),
 });
 
 export const checkoutRequestSchema = z.discriminatedUnion('kind', [

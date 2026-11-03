@@ -152,7 +152,14 @@ export default function AdminVouchersPage() {
         {verifiedVoucher && (
           <div className="p-5 rounded-xl border border-purple-500/40 bg-slate-950/80 space-y-4 font-mono text-xs">
             <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-              <span className="text-purple-400 font-bold text-sm">{verifiedVoucher.code}</span>
+              <div>
+                <span className="text-purple-400 font-bold text-sm">{verifiedVoucher.code}</span>
+                <div className="text-[11px] text-sky-400 mt-0.5">
+                  {verifiedVoucher.packageTitle
+                    ? `Flight Certificate: ${verifiedVoucher.packageTitle}`
+                    : 'Flexible Monetary Gift Card'}
+                </div>
+              </div>
               <Badge variant={verifiedVoucher.isRedeemed ? 'red' : 'emerald'}>
                 {verifiedVoucher.isRedeemed ? 'Fully Redeemed' : 'Valid & Active'}
               </Badge>
@@ -240,7 +247,12 @@ export default function AdminVouchersPage() {
               <tbody className="divide-y divide-slate-800 text-slate-300">
                 {vouchers.map((v) => (
                   <tr key={v.id} className="hover:bg-slate-800/30 transition-colors">
-                    <td className="py-3.5 px-4 font-bold text-purple-400">{v.code}</td>
+                    <td className="py-3.5 px-4">
+                      <div className="font-bold text-purple-400">{v.code}</div>
+                      <div className="text-[10px] text-slate-400 mt-0.5">
+                        {v.packageTitle ? `Certificate • ${v.packageTitle}` : 'Flexible Gift Card'}
+                      </div>
+                    </td>
                     <td className="py-3.5 px-4 font-bold text-white">{v.recipientName}</td>
                     <td className="py-3.5 px-4 text-slate-400">{v.senderName}</td>
                     <td className="py-3.5 px-4">{formatCurrency(v.initialValueIls)}</td>

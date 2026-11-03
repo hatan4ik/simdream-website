@@ -115,12 +115,13 @@ export async function sendVoucherActivationEmail(voucher: GiftVoucher): Promise<
   const safeCode = escapeHtml(voucher.code);
   const safeValue = escapeHtml(voucher.initialValueIls);
   const safeMessage = escapeHtml(voucher.personalMessage);
+  const safePackage = voucher.packageTitle ? escapeHtml(voucher.packageTitle) : '';
   const html = `
     <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;padding:24px;color:#0f172a">
-      <h1>Sim Dream Gift Voucher</h1>
+      <h1>Sim Dream ${safePackage ? 'Flight Gift Certificate' : 'Gift Voucher'}</h1>
       <p>Dear ${safeRecipient},</p>
-      <p>${safeSender} has sent you a Boeing 737 MAX simulator gift voucher.</p>
-      <p><strong>Voucher code:</strong> ${safeCode}<br><strong>Value:</strong> ₪${safeValue}</p>
+      <p>${safeSender} has sent you a Boeing 737 MAX simulator ${safePackage ? `flight gift certificate (${safePackage})` : 'gift voucher'}.</p>
+      <p><strong>Voucher code:</strong> ${safeCode}<br>${safePackage ? `<strong>Flight Experience:</strong> ${safePackage}<br>` : ''}<strong>Value:</strong> ₪${safeValue}</p>
       ${safeMessage ? `<p><em>${safeMessage}</em></p>` : ''}
       <p>Your voucher is active for one year. Enter the code at checkout to redeem it.</p>
     </div>`;

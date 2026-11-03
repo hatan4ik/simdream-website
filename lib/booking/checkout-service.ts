@@ -182,6 +182,9 @@ export async function startVoucherCheckout(request: Request, input: z.infer<type
   const expiryDate = new Date();
   expiryDate.setFullYear(expiryDate.getFullYear() + 1);
 
+  const matchedPkg = SIMULATOR_PACKAGES.find((item) => item.id === input.packageId);
+  const resolvedPackageTitle = matchedPkg ? sanitizePackageTitle(matchedPkg.title) : input.packageTitle;
+
   const voucher = await store.createPendingVoucher({
     initialValueIls: input.amountIls,
     recipientName: input.recipientName,
@@ -190,13 +193,17 @@ export async function startVoucherCheckout(request: Request, input: z.infer<type
     senderName: input.senderName,
     senderEmail: input.senderEmail,
     personalMessage: input.personalMessage,
+    packageId: matchedPkg?.id,
+    packageTitle: resolvedPackageTitle,
     expiryDate: expiryDate.toISOString(),
   });
 
   try {
     const session = await createCheckoutSession({
       title: 'Sim Dream Flight Gift Voucher — ₪' + input.amountIls,
-      description: 'Digital gift voucher for ' + input.recipientName,
+      description: resolvedPackageTitle
+        ? `Flight Gift Certificate (${resolvedPackageTitle}) for ${input.recipientName}`
+        : 'Digital gift voucher for ' + input.recipientName,
       amountIls: input.amountIls,
       customerEmail: input.senderEmail,
       voucherId: voucher.id,

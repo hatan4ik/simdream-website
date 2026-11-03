@@ -87,4 +87,22 @@ test.describe('gift vouchers', () => {
     await expect(page.getByRole('alert').filter({ hasText: PAYMENTS_UNAVAILABLE })).toBeVisible();
     await expect(page.getByText('Invalid request.')).toHaveCount(0);
   });
+
+  test('supports both Flight Experience Gift Certificate (with price privacy toggle) and Flexible Monetary Gift Card', async ({ page, vouchers }) => {
+    await vouchers.goto();
+
+    // Certificate mode is active by default and allows hiding the price on the recipient boarding pass
+    await expect(page.getByText('OFFICIAL SIM DREAM GIFT VOUCHER')).toBeVisible();
+    const hidePriceToggle = page.getByRole('button', {
+      name: /Hide ₪ price on recipient Boarding Pass Certificate/,
+    });
+    await hidePriceToggle.click();
+    await expect(page.getByText('PRE-PAID CAPTAIN MISSION')).toBeVisible();
+
+    // Switch to Flexible Monetary Gift Card mode and pick a credit preset
+    await page.getByRole('button', { name: /Flexible Monetary Gift Card/ }).click();
+    await expect(page.getByText('SIM DREAM FLIGHT DECK GIFT CARD')).toBeVisible();
+    await page.getByRole('button', { name: ilsPattern(500) }).click();
+    await expect(vouchers.submit()).toHaveText(ilsPattern(500));
+  });
 });
