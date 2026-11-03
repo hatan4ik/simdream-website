@@ -306,7 +306,7 @@ describe('Authorization header fuzzing', () => {
     fc.tuple(printable, printable).map(([user, password]) => `Basic ${Buffer.from(`${user}:${password}`).toString('base64')}`)
   );
 
-  it('answers every forged or malformed admin Authorization header with 401 and a Basic challenge', async () => {
+  it('answers every forged or malformed admin Authorization header with a Basic challenge or safe throttling', async () => {
     const app = await loadApp();
     const { GET } = await app.routes.vouchers();
 
@@ -314,8 +314,12 @@ describe('Authorization header fuzzing', () => {
       fc.asyncProperty(header, async (authorization) => {
         const response = await readRaw(await GET(apiRequest('/api/vouchers', { headers: { authorization } })));
         expectSafeApiResponse(response);
-        expect(response.status).toBe(401);
-        expect(response.headers.get('www-authenticate')).toMatch(/^Basic /);
+        expect([401, 429]).toContain(response.status);
+        if (response.status === 401) {
+          expect(response.headers.get('www-authenticate')).toMatch(/^Basic /);
+        } else {
+          expect(response.headers.get('retry-after')).toMatch(/^\d+$/);
+        }
       }),
       propertyOptions(300)
     );

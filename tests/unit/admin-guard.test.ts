@@ -20,6 +20,24 @@ async function loadGuard(env: GuardEnv = {}) {
   return import('@/lib/auth/admin-guard');
 }
 
+/** Loads the guard with its durable throttle unavailable, without needing a real database. */
+async function loadGuardWithRateLimitFailure(error: Error) {
+  vi.resetModules();
+  vi.stubEnv('NODE_ENV', 'test');
+  vi.stubEnv('ADMIN_USER', TEST_ADMIN.user);
+  vi.stubEnv('ADMIN_PASSWORD', TEST_ADMIN.password);
+  vi.stubEnv('NEXT_PUBLIC_APP_URL', '');
+
+  class StubRateLimitUnavailableError extends Error {}
+  vi.doMock('@/lib/security/rate-limit', () => ({
+    consumeRateLimit: vi.fn().mockRejectedValue(error),
+    rateLimitClientAddress: vi.fn().mockReturnValue('203.0.113.7'),
+    rateLimitHeaders: vi.fn(),
+    RateLimitUnavailableError: StubRateLimitUnavailableError,
+  }));
+  return import('@/lib/auth/admin-guard');
+}
+
 function adminRequest(headers: Record<string, string> = {}, method = 'GET') {
   return apiRequest('/api/admin/schedule-optimization', { method, headers });
 }
@@ -42,7 +60,7 @@ async function expectNotConfigured(response: Response | null) {
 describe('requireAdmin: credentials', () => {
   it('lets correct Basic credentials through', async () => {
     const { requireAdmin } = await loadGuard();
-    expect(requireAdmin(adminRequest(adminHeaders()))).toBeNull();
+    expect(await requireAdmin(adminRequest(adminHeaders()))).toBeNull();
   });
 
   it.each([
@@ -56,19 +74,19 @@ describe('requireAdmin: credentials', () => {
     ['swapped user and password', { authorization: basicAuth(TEST_ADMIN.password, TEST_ADMIN.user) }],
   ])('challenges a request with %s', async (_label, headers) => {
     const { requireAdmin } = await loadGuard();
-    await expectUnauthorized(requireAdmin(adminRequest(headers)));
+    await expectUnauthorized(await requireAdmin(adminRequest(headers)));
   });
 
   it('accepts passwords containing colons, splitting only at the first one', async () => {
     const password = 'pass:with:colons:0123456789';
     const { requireAdmin } = await loadGuard({ ADMIN_PASSWORD: password });
-    expect(requireAdmin(adminRequest({ authorization: basicAuth(TEST_ADMIN.user, password) }))).toBeNull();
+    expect(await requireAdmin(adminRequest({ authorization: basicAuth(TEST_ADMIN.user, password) }))).toBeNull();
   });
 
   it('decodes UTF-8 credentials', async () => {
     const password = 'pässwörd-✈-ünïcödé-0123';
     const { requireAdmin } = await loadGuard({ ADMIN_USER: 'אדמין', ADMIN_PASSWORD: password });
-    expect(requireAdmin(adminRequest({ authorization: basicAuth('אדמין', password) }))).toBeNull();
+    expect(await requireAdmin(adminRequest({ authorization: basicAuth('אדמין', password) }))).toBeNull();
   });
 });
 
@@ -83,7 +101,7 @@ describe('requireAdmin: constant-time comparison', () => {
     ['a single changed last character', `${expected.slice(0, -1)}X`],
   ])('rejects %s of the real password', async (_label, attempt) => {
     const { requireAdmin } = await loadGuard();
-    await expectUnauthorized(requireAdmin(adminRequest({ authorization: basicAuth(TEST_ADMIN.user, attempt) })));
+    await expectUnauthorized(await requireAdmin(adminRequest({ authorization: basicAuth(TEST_ADMIN.user, attempt) })));
   });
 
   it('authorises exactly the configured password and nothing else', async () => {
@@ -94,9 +112,9 @@ describe('requireAdmin: constant-time comparison', () => {
         ([cut, tail]) => expected.slice(0, cut) + tail
       )
     );
-    fc.assert(
-      fc.property(nearMiss, (attempt) => {
-        const response = requireAdmin(adminRequest({ authorization: basicAuth(TEST_ADMIN.user, attempt) }));
+    await fc.assert(
+      fc.asyncProperty(nearMiss, async (attempt) => {
+        const response = await requireAdmin(adminRequest({ authorization: basicAuth(TEST_ADMIN.user, attempt) }));
         expect(response === null).toBe(attempt === expected);
       }),
       { numRuns: 300 }
@@ -113,33 +131,33 @@ describe('requireAdmin: configuration', () => {
     ['ADMIN_PASSWORD is a placeholder', { ADMIN_PASSWORD: 'changeme-0123456789abcdef' }],
   ])('disables admin access with 503 when %s', async (_label, env) => {
     const { requireAdmin } = await loadGuard(env);
-    await expectNotConfigured(requireAdmin(adminRequest(adminHeaders())));
+    await expectNotConfigured(await requireAdmin(adminRequest(adminHeaders())));
   });
 
   it('disables admin access in production when the password is shorter than 16 characters', async () => {
     const password = 'short-pass-0123';
     expect(password).toHaveLength(15);
     const { requireAdmin } = await loadGuard({ NODE_ENV: 'production', ADMIN_PASSWORD: password });
-    await expectNotConfigured(requireAdmin(adminRequest({ authorization: basicAuth(TEST_ADMIN.user, password) })));
+    await expectNotConfigured(await requireAdmin(adminRequest({ authorization: basicAuth(TEST_ADMIN.user, password) })));
   });
 
   it('accepts a 16-character password in production', async () => {
     const password = 'long-pass-012345';
     expect(password).toHaveLength(16);
     const { requireAdmin } = await loadGuard({ NODE_ENV: 'production', ADMIN_PASSWORD: password });
-    expect(requireAdmin(adminRequest({ authorization: basicAuth(TEST_ADMIN.user, password) }))).toBeNull();
+    expect(await requireAdmin(adminRequest({ authorization: basicAuth(TEST_ADMIN.user, password) }))).toBeNull();
   });
 
   it('allows a short password outside production for local work', async () => {
     const { requireAdmin } = await loadGuard({ ADMIN_PASSWORD: 'dev' });
-    expect(requireAdmin(adminRequest({ authorization: basicAuth(TEST_ADMIN.user, 'dev') }))).toBeNull();
+    expect(await requireAdmin(adminRequest({ authorization: basicAuth(TEST_ADMIN.user, 'dev') }))).toBeNull();
   });
 });
 
 describe('requireAdmin: cross-origin mutations', () => {
   it.each(['POST', 'PUT', 'PATCH', 'DELETE'])('forbids an authenticated cross-origin %s', async (method) => {
     const { requireAdmin } = await loadGuard();
-    const response = requireAdmin(adminRequest(adminHeaders({ origin: 'https://attacker.example' }), method));
+    const response = await requireAdmin(adminRequest(adminHeaders({ origin: 'https://attacker.example' }), method));
     expect(response).not.toBeNull();
     const { status, body } = await readJson(response!);
     expect(status).toBe(403);
@@ -153,7 +171,7 @@ describe('requireAdmin: cross-origin mutations', () => {
     ['a malformed origin', 'not a url'],
   ])('treats %s as cross-origin', async (_label, origin) => {
     const { requireAdmin } = await loadGuard();
-    const response = requireAdmin(adminRequest(adminHeaders({ origin }), 'POST'));
+    const response = await requireAdmin(adminRequest(adminHeaders({ origin }), 'POST'));
     expect(response).not.toBeNull();
     const { status, body } = await readJson(response!);
     expect(status).toBe(403);
@@ -162,22 +180,22 @@ describe('requireAdmin: cross-origin mutations', () => {
 
   it('allows a same-origin mutation', async () => {
     const { requireAdmin } = await loadGuard();
-    expect(requireAdmin(adminRequest(adminHeaders({ origin: TEST_ORIGIN }), 'POST'))).toBeNull();
+    expect(await requireAdmin(adminRequest(adminHeaders({ origin: TEST_ORIGIN }), 'POST'))).toBeNull();
   });
 
   it('allows a mutation without an Origin header, as sent by operations scripts', async () => {
     const { requireAdmin } = await loadGuard();
-    expect(requireAdmin(adminRequest(adminHeaders(), 'PATCH'))).toBeNull();
+    expect(await requireAdmin(adminRequest(adminHeaders(), 'PATCH'))).toBeNull();
   });
 
   it.each(['GET', 'HEAD', 'OPTIONS'])('allows a cross-origin %s, which cannot mutate', async (method) => {
     const { requireAdmin } = await loadGuard();
-    expect(requireAdmin(adminRequest(adminHeaders({ origin: 'https://attacker.example' }), method))).toBeNull();
+    expect(await requireAdmin(adminRequest(adminHeaders({ origin: 'https://attacker.example' }), method))).toBeNull();
   });
 
   it('challenges an unauthenticated cross-origin mutation before checking its origin', async () => {
     const { requireAdmin } = await loadGuard();
-    await expectUnauthorized(requireAdmin(adminRequest({ origin: 'https://attacker.example' }, 'POST')));
+    await expectUnauthorized(await requireAdmin(adminRequest({ origin: 'https://attacker.example' }, 'POST')));
   });
 });
 
@@ -197,7 +215,7 @@ describe('requireAdmin: receiving-origin allowlist for authenticated PATCH', () 
     ['the request URL when NEXT_PUBLIC_APP_URL is malformed', { NEXT_PUBLIC_APP_URL: 'book.simdream.co.il' }, { origin: TEST_ORIGIN }],
   ])('allows an Origin matching %s', async (_label, env, headers) => {
     const { requireAdmin } = await loadGuard(env);
-    expect(requireAdmin(adminRequest(adminHeaders(headers), 'PATCH'))).toBeNull();
+    expect(await requireAdmin(adminRequest(adminHeaders(headers), 'PATCH'))).toBeNull();
   });
 
   it.each<[string, GuardEnv, Record<string, string>]>([
@@ -213,7 +231,7 @@ describe('requireAdmin: receiving-origin allowlist for authenticated PATCH', () 
     ['a different port on the Host', {}, { host: '127.0.0.1:3000', origin: 'http://127.0.0.1:3001' }],
   ])('forbids an Origin matching %s', async (_label, env, headers) => {
     const { requireAdmin } = await loadGuard(env);
-    const response = requireAdmin(adminRequest(adminHeaders(headers), 'PATCH'));
+    const response = await requireAdmin(adminRequest(adminHeaders(headers), 'PATCH'));
     expect(response).not.toBeNull();
     const { status, body } = await readJson(response!);
     expect(status).toBe(403);
@@ -228,7 +246,7 @@ describe('requireAdmin: receiving-origin allowlist for authenticated PATCH', () 
     ['an upper-case X-Forwarded-Proto', { ...PROXY, 'x-forwarded-proto': 'HTTPS' }],
   ])('allows a same-origin PATCH when the forwarded host carries %s (UNIT-10)', async (_label, headers) => {
     const { requireAdmin } = await loadGuard();
-    expect(requireAdmin(adminRequest(adminHeaders({ ...headers, origin: 'https://simdream.co.il' }), 'PATCH'))).toBeNull();
+    expect(await requireAdmin(adminRequest(adminHeaders({ ...headers, origin: 'https://simdream.co.il' }), 'PATCH'))).toBeNull();
   });
 
   // URL parsing of "proto://host" must not let userinfo, a path or an odd scheme name another origin.
@@ -239,7 +257,23 @@ describe('requireAdmin: receiving-origin allowlist for authenticated PATCH', () 
     ['a sandboxed-frame "null" Origin', { 'x-forwarded-host': 'simdream.co.il', 'x-forwarded-proto': 'javascript' }, 'null'],
   ])('forbids a PATCH when %s would otherwise widen the allowlist', async (_label, headers, origin) => {
     const { requireAdmin } = await loadGuard();
-    const response = requireAdmin(adminRequest(adminHeaders({ ...headers, origin }), 'PATCH'));
+    const response = await requireAdmin(adminRequest(adminHeaders({ ...headers, origin }), 'PATCH'));
     expect(response?.status).toBe(403);
+  });
+});
+
+describe('requireAdmin: rate-limit availability', () => {
+  it('fails closed without disclosing an unexpected throttle persistence failure', async () => {
+    const log = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const { requireAdmin } = await loadGuardWithRateLimitFailure(new Error('database connection refused'));
+
+    const response = await requireAdmin(adminRequest({ authorization: 'Basic invalid' }));
+
+    expect(response).not.toBeNull();
+    const { status, headers, body } = await readJson<{ error: string }>(response!);
+    expect(status).toBe(503);
+    expect(headers.get('cache-control')).toBe('no-store');
+    expect(body).toEqual({ error: 'Admin authentication is temporarily unavailable.' });
+    expect(log).toHaveBeenCalledWith('Admin rate limiter failed', expect.any(Error));
   });
 });

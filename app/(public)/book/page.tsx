@@ -426,7 +426,8 @@ function BookContent() {
             }`}
           >
             <ShoppingCart className="w-3.5 h-3.5 shrink-0" />
-            <span className="truncate">Express Shop View (1-Page)</span>
+            {/* Phones wrap the label onto two lines; wider screens keep one line and clip. */}
+            <span className="text-center leading-tight sm:truncate">Express Shop View (1-Page)</span>
           </button>
           <button
             type="button"
@@ -438,7 +439,7 @@ function BookContent() {
             }`}
           >
             <ListOrdered className="w-3.5 h-3.5 shrink-0" />
-            <span className="truncate">Guided Wizard (3-Step)</span>
+            <span className="text-center leading-tight sm:truncate">Guided Wizard (3-Step)</span>
           </button>
         </div>
       </div>
@@ -581,7 +582,7 @@ function BookContent() {
           />
 
           {/* Sticky Mobile-First Action Bar */}
-          <div className="sticky bottom-3 z-30 p-3.5 sm:p-4 rounded-2xl border border-slate-800 bg-slate-950/95 backdrop-blur-md shadow-2xl flex items-center justify-between gap-3">
+          <div className="sticky bottom-safe-area-3 z-30 p-3.5 sm:p-4 rounded-2xl border border-slate-800 bg-slate-950/95 backdrop-blur-md shadow-2xl flex items-center justify-between gap-3">
             <div className="min-w-0">
               {selectedSlot && selectedSlot.available ? (
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
@@ -691,7 +692,7 @@ function BookContent() {
             })}
           </div>
 
-          <div className="sticky bottom-3 z-30 p-3.5 sm:p-4 rounded-2xl border border-slate-800 bg-slate-950/95 backdrop-blur-md shadow-2xl flex flex-wrap justify-between items-center gap-3">
+          <div className="sticky bottom-safe-area-3 z-30 p-3.5 sm:p-4 rounded-2xl border border-slate-800 bg-slate-950/95 backdrop-blur-md shadow-2xl flex flex-wrap justify-between items-center gap-3">
             <Button variant="secondary" onClick={() => setCurrentStep(1)}>
               <ChevronLeft className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
               <span>{t.booking.back}</span>

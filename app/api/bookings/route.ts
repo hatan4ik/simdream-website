@@ -41,7 +41,7 @@ export async function GET(request: Request) {
       });
     }
 
-    const denied = requireAdmin(request);
+    const denied = await requireAdmin(request);
     if (denied) return denied;
 
     const id = searchParams.get('id');
@@ -72,7 +72,7 @@ export async function POST() {
 }
 
 export async function PATCH(request: Request) {
-  const denied = requireAdmin(request);
+  const denied = await requireAdmin(request);
   if (denied) return denied;
 
   let body: unknown;

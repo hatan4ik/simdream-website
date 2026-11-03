@@ -9,7 +9,7 @@ import { adminScheduleOptimizationSchema, validationError } from '@/lib/validati
  * bookings remain immutable and the response is only a recommendation.
  */
 export async function POST(request: Request) {
-  const denied = requireAdmin(request);
+  const denied = await requireAdmin(request);
   if (denied) return denied;
 
   let body: unknown;

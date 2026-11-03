@@ -31,8 +31,9 @@ No secrets, Stripe account or Supabase project are needed. Every test runs in a 
 
 | Command | What it runs |
 | --- | --- |
-| `npm run test:all` | Typecheck, Vitest with coverage, sandboxed build, e2e on Chromium, a11y, usability, security-web, resilience, visual and load. Writes `test-results/quality-report.md`. |
-| `npm run test:quick` | Typecheck and Vitest only: seconds, no build, no browser |
+| `npm run lint` | Strict TypeScript check plus deterministic rejection of unsafe `any` escapes and TypeScript suppression directives in application source. |
+| `npm run test:all` | Typecheck and type hygiene, Vitest with coverage, sandboxed build, e2e on Chromium, a11y, usability, security-web, resilience, visual and load. Writes `test-results/quality-report.md`. |
+| `npm run test:quick` | Typecheck/type hygiene and Vitest only: seconds, no build, no browser |
 | `npm run test:full` | `test:all` on all five browser projects, plus Lighthouse |
 | `npm run test:all -- --no-build` | Reuses the current test build in `.next-test` |
 | `npm run test:all -- --bail` | Stops at the first failing stage |
@@ -121,7 +122,7 @@ Import `test` and `expect` from `tests/support/e2e.ts`, or from the folder's `fi
 
 | Job | Content |
 | --- | --- |
-| quality | Typecheck, Vitest with the coverage ratchet and JUnit, `npm audit --audit-level=high` |
+| quality | Typecheck/type hygiene, Vitest with the coverage ratchet and JUnit, `npm audit --audit-level=high` |
 | build | Sandboxed production build, shared with later jobs as an artifact |
 | e2e | Matrix over the five browser projects |
 | web-quality | a11y, usability, security-web, resilience, then visual against committed Linux baselines |
@@ -137,7 +138,7 @@ These are coverage gaps the framework review found that are not yet closed. Each
 
 | ID | Gap |
 | --- | --- |
-| GAP-4 | Production database defences are untested against real Postgres: the `EXCLUDE` overlap constraint, `redeem_gift_voucher`, the `23P01` → 409 mapping and migrations 001–004. This needs a Postgres service container. |
+| GAP-4 | Production database defences are untested against real Postgres: the `EXCLUDE` overlap constraint, `redeem_gift_voucher`, the `23P01` → 409 mapping, durable `consume_rate_limit`, and migrations 001–005. This needs a Postgres service container. |
 | GAP-6 | Admin back-office mutations (reschedule, cancel, voucher actions) aren't exercised in a browser |
 | GAP-7 | Signed-in member journeys (dashboard, receipts, auth callback, password reset) have no browser coverage |
 | GAP-8 | No resilience tests for the success page's polling of the payment status |

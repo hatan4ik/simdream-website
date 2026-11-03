@@ -88,8 +88,8 @@ export default function AdminVouchersPage() {
           : null
       );
       fetchVouchers();
-    } catch (err: any) {
-      alert(err.message || 'Redemption failed');
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Redemption failed');
     }
   };
 

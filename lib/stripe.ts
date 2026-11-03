@@ -26,7 +26,7 @@ export const PAYMENTS_DISABLED_MESSAGE =
 
 export const stripe = isStripeConfigured
   ? new Stripe(stripeSecretKey, {
-      apiVersion: '2024-09-30.acacia' as any,
+      apiVersion: '2025-02-24.acacia',
     })
   : null;
 

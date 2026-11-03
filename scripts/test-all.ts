@@ -50,7 +50,7 @@ const playwright = (name: string, port: number, projects: string[]): Stage => ({
 });
 
 const stages: Stage[] = [
-  { name: 'Typecheck', command: 'npx', args: ['tsc', '--noEmit', '-p', '.'] },
+  { name: 'Typecheck and type hygiene', command: 'npm', args: ['run', 'lint'] },
   // The canonical blueprint must still describe every route, table, script and invariant.
   { name: 'Genesis blueprint coverage', command: 'npx', args: ['tsx', 'scripts/check-genesis-coverage.ts', '--require', 'GENESIS.md'] },
   {

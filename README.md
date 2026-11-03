@@ -121,7 +121,8 @@ Production-grade website, multi-step booking engine, Amazon-style flight storefr
 
 ## Runtime and security model
 
-- **Production is fail-closed.** Supabase service credentials, `NEXT_PUBLIC_APP_URL`, Stripe webhook signing, and admin credentials must be configured before the related production features operate. The app never falls back to in-memory orders in production.
+- **Production is fail-closed.** Supabase service credentials, `NEXT_PUBLIC_APP_URL`, Stripe webhook signing, admin credentials, and migration `005_security_rate_limits.sql` must be configured before the related production features operate. The app never falls back to in-memory orders in production.
+- **Abuse and script-injection controls are enforced.** Voucher verification and failed admin sign-ins answer `429` with `Retry-After` after their scoped limits. `proxy.ts` supplies a per-request CSP nonce with no `script-src 'unsafe-inline'`; pages therefore render dynamically rather than relying on static HTML caching.
 - **Local simulation is development-only.** It is intended for UX development and is never a production persistence substitute.
 - **Server-authoritative checkout.** The browser submits a package, slot, add-on IDs, and pilot details; the server calculates duration and price, creates Stripe Checkout URLs, and confirms card payment only from a verified Stripe webhook.
 - **Payment configuration is mandatory for cards.** `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` must both be usable. Missing or invalid configuration returns a clear HTTP 503 at checkout; this is intentional, rather than a silent redirect failure.
@@ -172,7 +173,7 @@ To run the production build on your machine without Supabase, use `npm run start
 
 1. Create a project at [supabase.com](https://supabase.com).
 2. Open the **SQL Editor** in your Supabase dashboard.
-3. For a new project, apply [`lib/db/schema.sql`](lib/db/schema.sql). For an existing project, take a reviewed backup and apply [`lib/db/migrations/001_production_hardening.sql`](lib/db/migrations/001_production_hardening.sql), followed by [`lib/db/migrations/002_member_accounts.sql`](lib/db/migrations/002_member_accounts.sql). The first intentionally rejects unresolved overlapping bookings; the second adds member ownership and the `auth.users` profile trigger.
+3. For a new project, apply [`lib/db/schema.sql`](lib/db/schema.sql), then reviewed migrations [`001_production_hardening.sql`](lib/db/migrations/001_production_hardening.sql) through [`005_security_rate_limits.sql`](lib/db/migrations/005_security_rate_limits.sql) in numeric order. For an existing project, take a reviewed backup first. Migration 001 intentionally rejects unresolved overlapping bookings; 002 adds member ownership and the `auth.users` profile trigger; 005 provides durable, privacy-preserving abuse controls.
 4. In **Project Settings &rarr; API**, copy your project URL, anon key, and service role key into `.env.local`.
 5. To elevate an account to Administrator:
    ```sql
@@ -218,8 +219,8 @@ For production, register `https://your-domain/api/webhooks/stripe` for `checkout
 
 To verify TypeScript types, generate the optimized production build, and preview it locally:
 ```bash
-# Verify TypeScript strict type-checking
-npm run typecheck
+# Verify TypeScript strict type-checking and no unsafe type escapes
+npm run lint
 
 # Verify scheduling and checkout-domain contracts
 npm test

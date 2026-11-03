@@ -34,6 +34,7 @@ import {
   monthStartForYmd,
 } from '@/lib/i18n/calendar-presentation';
 import { addMinutesToTime, packageFromPriceIls, packagePriceForSlot } from '@/lib/scheduler/mission-calculator';
+import { getPackageFormulaBadge } from '@/lib/scheduler/package-presentation';
 
 interface KantorovichCalendarSchedulerProps {
   selectedDate: string;
@@ -256,91 +257,6 @@ const CLEAN_COPY: Record<
     ],
   },
 };
-
-function getPackageFormulaBadge(duration: number, category: string, lang: Language) {
-  if (category === 'training') {
-    const textMap: Record<Language, string> = {
-      en: '🎯 Airline Checkride • Raw Data & V1 Failure',
-      he: '🎯 הכנה למבדקי חברות תעופה • Raw Data ותקלות V1',
-      ru: '🎯 Скрининг в авиакомпании • Raw Data и отказ V1',
-      fr: '🎯 Sélection Compagnie • Raw Data & Panne V1',
-      ar: '🎯 اختبارات شركات الطيران • Raw Data وطوارئ V1',
-    };
-    return {
-      text: textMap[lang] || textMap.en,
-      cls: 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30 font-bold',
-    };
-  }
-  if (category === 'fear_of_flying') {
-    const textMap: Record<Language, string> = {
-      en: '🕊️ Private Therapy & Captain Coaching • Gentle Pacing',
-      he: '🕊️ טיפול מותאם והדרכת קברניט • בקצב רגוע ואישי',
-      ru: '🕊️ Терапия страха полетов и коучинг с капитаном',
-      fr: '🕊️ Gestion de la peur de l’avion • Rythme bienveillant',
-      ar: '🕊️ علاج الخوف من الطيران مع القبطان • وتيرة مريحة',
-    };
-    return {
-      text: textMap[lang] || textMap.en,
-      cls: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30 font-bold',
-    };
-  }
-  if (duration === 20) {
-    const textMap: Record<Language, string> = {
-      en: '🛫 1 Airport Takeoff & Landing Circuit',
-      he: '🛫 תרגול המראה ונחיתה בשדה תעופה בודד',
-      ru: '🛫 Взлет и посадка по кругу в 1 аэропорту',
-      fr: '🛫 Tour de piste décollage et atterrissage sur 1 aéroport',
-      ar: '🛫 تمرين إقلاع وهبوط ودوران في مطار واحد',
-    };
-    return {
-      text: textMap[lang] || textMap.en,
-      cls: 'bg-sky-500/15 text-sky-300 border-sky-500/30',
-    };
-  }
-  if (duration === 45) {
-    const textMap: Record<Language, string> = {
-      en: '🌤️ Daytime Flight • 2 Landings (until 18:00)',
-      he: '🌤️ מבצע יום • 2 נחיתות (עד 18:00)',
-      ru: '🌤️ Дневной полет • 2 посадки (до 18:00)',
-      fr: '🌤️ Vol journée • 2 atterrissages (jusqu’à 18h00)',
-      ar: '🌤️ رحلة نهارية • هبوطان كاملان (حتى 18:00)',
-    };
-    return {
-      text: textMap[lang] || textMap.en,
-      cls: 'bg-amber-500/15 text-amber-300 border-amber-500/30',
-    };
-  }
-  if (duration === 60) {
-    const textMap: Record<Language, string> = {
-      en: '⭐ Takeoff/Landing + 1 World Trio (3 Airports Included)',
-      he: '⭐ המראה/נחיתה + שלישיית שדות תעופה עולמית (3 יעדים)',
-      ru: '⭐ Взлет/посадка + 1 World Trio (3 аэропорта мира)',
-      fr: '⭐ Décollage/atterrissage + 1 trio mondial (3 aéroports)',
-      ar: '⭐ إقلاع/هبوط + باقة ثلاثية مطارات عالمية (3 مطارات)',
-    };
-    return {
-      text: textMap[lang] || textMap.en,
-      cls: 'bg-amber-500/20 text-amber-300 border-amber-500/40 font-bold',
-    };
-  }
-  if (duration === 90) {
-    const textMap: Record<Language, string> = {
-      en: '⚡ Takeoff/Landing + 2 World Trios + Emergencies (1–2 Pilots)',
-      he: '⚡ המראה/נחיתה + 2 שלישיות Trio + תקלות (1–2 טייסים)',
-      ru: '⚡ Взлет/посадка + 2 World Trios + особые случаи (1–2 пилота)',
-      fr: '⚡ Décollage/atterrissage + 2 trios mondiaux + pannes (1–2 pilotes)',
-      ar: '⚡ إقلاع/هبوط + باقتان ثلاثيتان + طوارئ (طيار أو طياران)',
-    };
-    return {
-      text: textMap[lang] || textMap.en,
-      cls: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 font-bold',
-    };
-  }
-  return {
-    text: `✈️ ${duration}m Boeing 737 Flight Session`,
-    cls: 'bg-slate-800 text-slate-300 border-slate-700',
-  };
-}
 
 const BLUEPRINT_COPY: Record<Language, {
   whatIncludedBtn: string;
@@ -988,7 +904,7 @@ export function KantorovichCalendarScheduler({
           role="dialog"
           aria-modal="true"
           aria-labelledby="blueprint-modal-title"
-          className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in"
+          className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 px-safe-area-4 pb-safe-area-4 animate-in fade-in"
           onClick={() => setBlueprintModalPackage(null)}
         >
           <div

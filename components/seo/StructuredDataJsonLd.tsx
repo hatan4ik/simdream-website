@@ -6,7 +6,7 @@ import { SIMULATOR_PACKAGES } from '@/lib/db/seed-data';
  * FAANG-Grade Schema.org JSON-LD Knowledge Graph for SEO & GEO (Generative Engine Optimization + Local Search)
  * Provides structured entity graphs for Google Local Pack, Rich Results, ChatGPT Search, Gemini, Perplexity & Claude.
  */
-export function StructuredDataJsonLd() {
+export function StructuredDataJsonLd({ nonce }: { nonce?: string }) {
   const baseUrl = FACILITY_INFO.primaryDomain;
 
   const schemaGraph = {
@@ -182,6 +182,7 @@ export function StructuredDataJsonLd() {
 
   return (
     <script
+      nonce={nonce}
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaGraph) }}
     />

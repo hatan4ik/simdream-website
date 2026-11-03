@@ -61,8 +61,8 @@ export default function WorkshopsPage() {
       }
 
       setSubmitSuccess(true);
-    } catch (err: any) {
-      setErrorMessage(err.message || 'Something went wrong. Please try again.');
+    } catch (err: unknown) {
+      setErrorMessage(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
     } finally {
       setIsSubmitting(false);
     }

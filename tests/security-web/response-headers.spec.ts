@@ -74,16 +74,12 @@ test.describe('technology disclosure and transport hardening', () => {
   });
 
   test('forbids inline scripts in the Content-Security-Policy', async ({ request }) => {
-    test.fail(
-      true,
-      "KNOWN-DEFECT SEC-8: script-src still allows 'unsafe-inline' because the App Router's inline RSC scripts cannot be hashed at build time; a strict policy needs per-request nonces (next.config.mjs)"
-    );
-
     const response = await request.get('/book');
     const scriptSrc = /script-src([^;]*)/.exec(response.headers()['content-security-policy'] ?? '')?.[1] ?? '';
 
     expect(scriptSrc).not.toBe('');
     expect(scriptSrc).not.toContain("'unsafe-inline'");
+    expect(scriptSrc).toMatch(/'nonce-[^']+'/);
   });
 
   // Plain test: this checks CSP only. Uncaught page errors (such as the E2E-12 hydration

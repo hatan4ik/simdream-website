@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:1c0f9df5406f97b93460e12e64ea04d9e2beafd951fddd56f868d477e1d27b08 -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:a871fa04d1a576b8dd535cef250639aa6302c7f739ade18f0a6294a20bdeee95 -->
 
 ## Verification contract
 
@@ -62,16 +62,17 @@ No repository review can prove Supabase OAuth providers, Stripe webhook delivery
 ```text
 Browser (5 languages, 2 themes)
   │
-  ├─ Static/prerendered pages ── app/(public)/*, app/page.tsx, app/(auth)/login, app/dashboard, app/auth/*
-  │     client components fetch live data from the API; clock-dependent text renders only in the browser
+  ├─ Request-rendered pages ──── app/(public)/*, app/page.tsx, app/(auth)/login, app/dashboard, app/auth/*
+  │     proxy.ts provides a per-request CSP nonce; clock-dependent text renders only in the browser
   │
-  ├─ proxy.ts ─────────────────── matcher /admin/:path* → HTTP Basic auth (ADMIN_USER / ADMIN_PASSWORD)
+  ├─ proxy.ts ─────────────────── strict nonce CSP on HTML; HTTP Basic auth for /admin/:path*
   │
   └─ Route handlers (app/api/*) ── zod validation → lib services → lib/db/store.ts (repository)
                                         │                     │
                                         │                     ├─ Supabase Postgres (production, service role)
                                         │                     └─ in-memory seed store (dev/test; explicit opt-in elsewhere)
                                         ├─ lib/scheduler/* (pure, deterministic scheduling and pricing)
+                                        ├─ lib/security/rate-limit.ts (durable abuse controls)
                                         ├─ lib/stripe.ts ──── Stripe Checkout + webhook verification
                                         ├─ lib/sendgrid.ts ── transactional email
                                         └─ lib/reviews/* ──── Google Places with 24 h ISR cache
@@ -101,7 +102,7 @@ Sim Dream LTD runs one full-size **Boeing 737 MAX 8 flight simulator** at Gersho
 
 ### 4. Data models
 
-TypeScript types in `types/index.ts` mirror the Postgres tables in `lib/db/schema.sql` (plus migrations 001–004):
+TypeScript types in `types/index.ts` mirror the Postgres tables in `lib/db/schema.sql` (plus migrations 001–005):
 
 | Type | Table | Key fields |
 | --- | --- | --- |
@@ -110,6 +111,7 @@ TypeScript types in `types/index.ts` mirror the Postgres tables in `lib/db/schem
 | `GiftVoucher` | `gift_vouchers` | code `SD-VOUCH-[A-Z2-9]{18}`, initial value, current balance, sender/recipient, expiry, paymentStatus, Stripe session |
 | `CorporateInquiry` | `corporate_inquiries` | company, contact, team size 1–500, goal, status pipeline |
 | `UserProfile` | `profiles` | id = `auth.users.id`, email, role (`user`/`admin`) |
+| `SecurityRateLimit` | `security_rate_limits` | hashed subject, fixed window, atomic attempt counter; no raw IP, username, or voucher code is stored |
 | `FlightLog` | `flight_logs` | Declared in the schema and seed data, but not currently a durable production repository/dashboard flow. |
 | `FlightSlot`, `DailyEfficiencyReport`, `PublicCapacityReport`, `MissionManifestCalculation` | computed | Scheduler outputs; the public report omits customer data. |
 
@@ -117,14 +119,15 @@ TypeScript types in `types/index.ts` mirror the Postgres tables in `lib/db/schem
 
 - The Fear of Flying package id is `pkg-fear-of-flying-90`, but the product is a **60-minute** session (₪690). Keep the id for compatibility; do not trust the suffix.
 - Admin authentication is interim HTTP Basic auth; the documented target is Supabase Auth with server-side roles and MFA.
-- Open, tracked risks (see [`tests/KNOWN_DEFECTS.md`](tests/KNOWN_DEFECTS.md)): no rate limiting on voucher verification or admin login (SEC-3, SEC-4, deferred by the owner); the CSP allows inline scripts because App Router streams inline RSC payloads (SEC-8, accepted risk).
-- Production requires migrations **001–004** applied in order on an existing database (or `schema.sql` plus 003–004 on a new one).
+- Voucher-code verification and failed admin Basic-auth attempts are rate-limited by a privacy-preserving, atomic database function (migration `005`); development and test use an equivalent in-process limiter. Production fails closed when rate-limit persistence is unavailable.
+- HTML responses use a per-request CSP nonce from `proxy.ts`; this removes script-src `'unsafe-inline'`, but makes rendered pages dynamic rather than statically prerendered.
+- Production requires migrations **001–005** applied in order on an existing database (or `schema.sql` plus 003–005 on a new one).
 - Only `/login` sets `noindex`. `/dashboard` and `/auth/*` are indexable (they hold no private data when signed out), so consider `noindex` there too.
 - **Catalog authority is split**: `GET /api/packages` reads the production `packages` table, while checkout prices from the static `SIMULATOR_PACKAGES` in `lib/db/seed-data.ts`. A database price edit can show one price and charge another. A rebuild must use one server-side catalog authority.
 - **i18n is not yet total**: the dictionary has five-language parity and tests, but hard-coded English remains in the navbar user menu, the booking-success page, the reviews UI, and some legal and admin surfaces.
 - **Brand drift**: the success-page confetti and review-avatar gradients still use colours outside the Sim Dream tokens.
 - **Flight logs are not a live feature**: `flight_logs` exists in SQL and seed data, but production reads and writes stay in memory and no dashboard renders them.
-- **Types**: a few `any` escapes remain (Stripe API-version typing, some catch handlers).
+- **Types**: TypeScript strict mode, typed external-boundary schemas and `unknown` error handling are used; production code has no `any` escape. `npm run lint` runs `tsc --noEmit` plus [`scripts/check-type-hygiene.ts`](scripts/check-type-hygiene.ts), which rejects `as any`, typed `any`, and TypeScript suppression directives in application source.
 - **Provider configuration cannot be proven from code**: OAuth providers, Stripe events, SendGrid sender verification and live reviews need the verification run in **Definition of Done** before launch.
 
 ---
@@ -247,6 +250,7 @@ Add 3 curated one-click combos. Localize every package and add-on in all five la
   - time: `timeToMinutes()`, `minutesToTime()`, `addMinutesToTime()`, and the Israel clock's `israelToday()`, `israelMinutesNow()`, `hasDeparted()`;
   - days and capacity: `getDayOperatingConfig()`, `longestMissionWithin()`, `canTileIntervalZeroWaste()`, `getKantorovichPricing()`;
   - packages and add-ons: `packageAllowsAddons()`, `packageFromPriceIls()`, `sanitizePackageTitle()`, `canAddonFitInSlot()`, `pruneAddonsExceedingSlot()`;
+  - shared customer presentation: `getPackageFormulaBadge()` supplies identical, localized formula labels to both booking interfaces;
   - checkout orchestration (`lib/booking/checkout-service.ts`): `startBookingCheckout()` and `startVoucherCheckout()`.
 - **Efficiency and optimization**: `evaluateDailyEfficiency()` builds the admin day report (blocks, gap collisions, revenue). `toPublicCapacityReport()` strips all customer data for public use. `optimizeTiledCapacity()` is a dynamic-programming dry-run that recommends a zero-waste tiling for the remaining capacity.
 
@@ -329,7 +333,7 @@ Add 3 curated one-click combos. Localize every package and add-on in all five la
   - logo, translated orange tagline, theme switch, language selector, icon-only login, and a **Book a Flight** call to action that never wraps;
   - inline links from 1536 px, a drawer below;
   - no horizontal overflow in any language.
-- **Hydration**: pages are prerendered, so never read the clock during render. Read it in the browser (`useSyncExternalStore` with a `null` server snapshot, or effects), so hydration never breaks on a later day than the build.
+- **Hydration**: request rendering is required for the CSP nonce, but time still must not be read during render. Read it in the browser (`useSyncExternalStore` with a `null` server snapshot, or effects), so hydration stays deterministic.
 - **Accessibility**: WCAG 2.2 AA in both themes and all languages.
   - Skip link and one `<main>`.
   - Labelled controls, named buttons and announced errors.
@@ -347,7 +351,7 @@ Add 3 curated one-click combos. Localize every package and add-on in all five la
 
 - Configure in `next.config.mjs`: `poweredByHeader: false`, the 301 redirects, and the headers below.
 - Headers: HSTS (`max-age=63072000; includeSubDomains`), `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` denying camera, microphone and geolocation.
-- A static CSP (`script-src 'self' 'unsafe-inline'`, required by App Router's inline RSC payloads).
+- `proxy.ts` generates a unique CSP nonce for every HTML response, forwards it through `x-nonce`, and emits `script-src 'self' 'nonce-…' 'strict-dynamic'`. Root-layout and JSON-LD scripts carry that nonce. This deliberately makes rendered pages dynamic; monitor the caching and latency trade-off.
 - Escape all user content in pages and emails. Never log secrets or payment metadata.
 
 #### Quality gates (automated; all must be green)
@@ -377,7 +381,8 @@ Wire all four gates into one command (`npm run test:all`) and into CI jobs that 
 
 | Script | Runs |
 | --- | --- |
-| `test:all` / `test:quick` / `test:full` / `test:report` | Orchestrator: everything / typecheck + Vitest / all browsers + Lighthouse / rebuild the report |
+| `lint` | Strict TypeScript check plus the deterministic type-hygiene guard. |
+| `test:all` / `test:quick` / `test:full` / `test:report` | Orchestrator: everything / typecheck + type hygiene + Vitest / all browsers + Lighthouse / rebuild the report |
 | `test:unit`, `test:integration`, `test:security`, `test:reliability`, `test:coverage` | Vitest projects (security and reliability add their browser projects) |
 | `test:build` | Sandboxed production build into `.next-test` |
 | `test:e2e`, `test:a11y`, `test:a11y:baseline`, `test:usability`, `test:visual`, `test:visual:update` | Playwright projects; baseline and screenshot re-recording (Linux baselines in Docker) |
@@ -389,12 +394,10 @@ Wire all four gates into one command (`npm run test:all`) and into CI jobs that 
 
 The current system tracks these as open. A rebuild should fix them:
 
-1. Rate-limit voucher verification per IP and per code, and failed admin logins per client and username, answering `429` with `Retry-After`.
-2. Replace interim admin Basic auth with Supabase Auth, server-side roles and MFA.
-3. Decide the CSP explicitly: static pages with `'unsafe-inline'` for RSC payloads, or a per-request nonce with dynamic rendering, and document the trade-off.
-4. Run integration tests against real Postgres to prove the exclusion constraint, `redeem_gift_voucher`, the `23P01` → 409 mapping and every migration.
-5. Extend browser coverage to admin mutations, signed-in receipts, success-page polling, booked-slot transparency, every day's slot grid, SEO metadata and email rendering.
-6. Use one catalog authority; remove the remaining hard-coded English; keep decorative colours on the brand tokens; either finish flight-log persistence or leave the feature out.
+1. Replace interim admin Basic auth with Supabase Auth, server-side roles and MFA.
+2. Run integration tests against real Postgres to prove the exclusion constraint, `redeem_gift_voucher`, the `23P01` → 409 mapping and every migration.
+3. Extend browser coverage to admin mutations, signed-in receipts, success-page polling, booked-slot transparency, every day's slot grid, SEO metadata and email rendering.
+4. Use one catalog authority; remove the remaining hard-coded English; keep decorative colours on the brand tokens; either finish flight-log persistence or leave the feature out.
 
 ### DATABASE SCHEMA
 
@@ -546,7 +549,7 @@ CREATE TABLE public.flight_logs (
 );
 ```
 
-Ship the schema as `lib/db/schema.sql` for new projects and as ordered, reviewed migrations for existing ones: `001_production_hardening.sql`, `002_member_accounts.sql`, `003_exact_pilot_email_matching.sql`, `004_confirmation_outbox.sql`.
+Ship the schema as `lib/db/schema.sql` for new projects and as ordered, reviewed migrations for existing ones: `001_production_hardening.sql`, `002_member_accounts.sql`, `003_exact_pilot_email_matching.sql`, `004_confirmation_outbox.sql`, `005_security_rate_limits.sql`.
 
 ### FILE STRUCTURE
 
@@ -568,9 +571,10 @@ components/
   about/AboutExperienceView  pro/ProSessionsView  legal/ PrivacyPolicyContentView RulesContentView
   reviews/GoogleReviewsRotator  seo/StructuredDataJsonLd  ui/ Button Card Badge
 lib/
-  scheduler/ kantorovich-engine mission-calculator tiled-interval-optimizer israel-clock
+  scheduler/ kantorovich-engine mission-calculator package-presentation tiled-interval-optimizer israel-clock
   booking/checkout-service       db/ store schema.sql seed-data supabase-admin migrations/
   auth/ admin-guard request-auth member-ownership safe-redirect auth-context
+  security/rate-limit
   i18n/ translations language-context calendar-presentation
   config/ facility-info server-env use-live-facility-status
   theme/ui-theme-context  ui/ use-client-value use-modal-focus  seo/seo-config
@@ -596,7 +600,7 @@ AGENTS.md  ARCHITECTURE.md  README.md  TESTING.md  KANTOROVICH_SCHEDULER_SPEC.md
   - both themes with the official logo and no off-brand colours.
 - Production without Supabase or Stripe fails closed (503), never with fake data.
 - Before launch, verify the providers, which no build or test can prove:
-  - migrations 001–004 are applied and `ALLOW_IN_MEMORY_STORE` is absent in production;
+  - migrations 001–005 are applied and `ALLOW_IN_MEMORY_STORE` is absent in production;
   - Google, Facebook and Apple are enabled in Supabase Auth with callback URLs for the deployed origin;
   - the Stripe keys are set and the webhook receives `checkout.session.completed`, `checkout.session.expired` and `checkout.session.async_payment_failed`;
   - the SendGrid sender is verified;

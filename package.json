@@ -13,7 +13,7 @@
     "docs:genesis:stamp": "tsx scripts/check-genesis-coverage.ts --stamp GENESIS.md",
     "preview": "next start",
     "typecheck": "tsc --noEmit",
-    "lint": "tsc --noEmit",
+    "lint": "npm run typecheck && tsx scripts/check-type-hygiene.ts",
     "test": "vitest run",
     "test:all": "tsx scripts/test-all.ts",
     "test:quick": "tsx scripts/test-all.ts --quick",

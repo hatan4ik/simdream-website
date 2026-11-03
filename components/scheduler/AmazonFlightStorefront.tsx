@@ -49,6 +49,7 @@ import {
   monthStartForYmd,
 } from '@/lib/i18n/calendar-presentation';
 import { canAddonFitInSlot, packageFromPriceIls, sanitizePackageTitle } from '@/lib/scheduler/mission-calculator';
+import { getPackageFormulaBadge } from '@/lib/scheduler/package-presentation';
 import { FACILITY_INFO } from '@/lib/config/facility-info';
 
 interface AmazonFlightStorefrontProps {
@@ -303,55 +304,6 @@ const STOREFRONT_CALENDAR_COPY: Record<Language, StorefrontCalendarCopy> = {
     customizeFlight: 'الباقات والإضافات ↓',
   },
 };
-
-function getPackageFormulaBadge(duration: number, category: string) {
-  if (category === 'training') {
-    return {
-      text: '🎯 Airline Checkride • Raw Data & V1 Failure',
-      cls: 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30 font-bold',
-    };
-  }
-  if (category === 'fear_of_flying') {
-    return {
-      text: '🕊️ Private Therapy & Captain Coaching • Gentle Pacing',
-      cls: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30 font-bold',
-    };
-  }
-  if (duration === 20) {
-    return {
-      text: '🛫 1 Airport Takeoff & Landing Circuit',
-      cls: 'bg-sky-500/15 text-sky-300 border-sky-500/30',
-    };
-  }
-  if (duration === 30) {
-    return {
-      text: '✈️ Discovery Flight • 2 Iconic Landings',
-      cls: 'bg-sky-500/15 text-sky-300 border-sky-500/30',
-    };
-  }
-  if (duration === 45) {
-    return {
-      text: '🌤️ Daytime Flight • 2 Landings (until 18:00)',
-      cls: 'bg-amber-500/15 text-amber-300 border-amber-500/30',
-    };
-  }
-  if (duration === 60) {
-    return {
-      text: '⭐ Takeoff/Landing + 1 World Trio (3 Airports Included)',
-      cls: 'bg-amber-500/20 text-amber-300 border-amber-500/40 font-bold',
-    };
-  }
-  if (duration === 90) {
-    return {
-      text: '⚡ Takeoff/Landing + 2 World Trios + Emergencies (1–2 Pilots)',
-      cls: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 font-bold',
-    };
-  }
-  return {
-    text: `✈️ ${duration}m Boeing 737 Flight Session`,
-    cls: 'bg-slate-800 text-slate-300 border-slate-700',
-  };
-}
 
 export function AmazonFlightStorefront({
   selectedDate,
@@ -974,7 +926,7 @@ export function AmazonFlightStorefront({
               const isAvailable = availInfo ? availInfo.availableCount > 0 : true;
               const displayPrice = packageFromPriceIls(pkg, availInfo?.minPriceIls);
               const cleanTitle = sanitizePackageTitle(pkg.title);
-              const formulaBadge = getPackageFormulaBadge(pkg.durationMinutes, pkg.category);
+              const formulaBadge = getPackageFormulaBadge(pkg.durationMinutes, pkg.category, language);
 
               return (
                 // The card is a real button; the blueprint trigger sits beside it, never inside it,
@@ -1326,7 +1278,7 @@ export function AmazonFlightStorefront({
     )}
 
         {/* STICKY MOBILE FLIGHT SUMMARY & QUICK-JUMP BAR (Parks above the Buy Box on scroll) */}
-        <div className="lg:hidden sticky bottom-3 z-30 p-3.5 rounded-2xl border border-amber-500/40 bg-slate-950/95 backdrop-blur-md shadow-2xl flex items-center justify-between gap-3">
+        <div className="lg:hidden sticky bottom-safe-area-3 z-30 p-3.5 rounded-2xl border border-amber-500/40 bg-slate-950/95 backdrop-blur-md shadow-2xl flex items-center justify-between gap-3">
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 text-[11px] font-mono text-slate-300 truncate">
               <span className="font-bold text-sky-400">{totalDurationMinutes}m</span>
@@ -1758,7 +1710,7 @@ export function AmazonFlightStorefront({
           role="dialog"
           aria-modal="true"
           aria-labelledby="blueprint-modal-title"
-          className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 px-safe-area-4 pb-safe-area-4"
           onClick={() => setBlueprintPackage(null)}
         >
           <div

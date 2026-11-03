@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth/admin-guard';
 import { store } from '@/lib/db/store';
 import { adminVoucherRedemptionSchema, validationError, voucherVerificationSchema } from '@/lib/validation';
+import { consumeRateLimit, rateLimitClientAddress, rateLimitHeaders, RateLimitUnavailableError } from '@/lib/security/rate-limit';
 
 function publicVoucherView(voucher: { code: string; currentBalanceIls: number; expiryDate: string }) {
   return { code: voucher.code, currentBalanceIls: voucher.currentBalanceIls, expiryDate: voucher.expiryDate };
@@ -9,7 +10,7 @@ function publicVoucherView(voucher: { code: string; currentBalanceIls: number; e
 
 export async function GET(request: Request) {
   try {
-    const denied = requireAdmin(request);
+    const denied = await requireAdmin(request);
     if (denied) return denied;
     return NextResponse.json(await store.getVouchers(), {
       headers: { 'Cache-Control': 'private, no-store' },
@@ -31,6 +32,27 @@ export async function POST(request: Request) {
   if (!parsed.success) return NextResponse.json(validationError(parsed.error), { status: 400 });
 
   try {
+    const client = rateLimitClientAddress(request);
+    const [byClient, byCode] = await Promise.all([
+      consumeRateLimit({ scope: 'voucher-verify-ip', subject: client, limit: 20, windowSeconds: 15 * 60 }),
+      consumeRateLimit({ scope: 'voucher-verify-code', subject: parsed.data.code, limit: 5, windowSeconds: 15 * 60 }),
+    ]);
+    const blocked = !byClient.allowed ? byClient : !byCode.allowed ? byCode : null;
+    if (blocked) {
+      return NextResponse.json(
+        { error: 'Too many voucher verification attempts. Please try again later.' },
+        { status: 429, headers: rateLimitHeaders(blocked) }
+      );
+    }
+  } catch (error) {
+    if (!(error instanceof RateLimitUnavailableError)) console.error('Voucher rate limiter failed', error);
+    return NextResponse.json(
+      { error: 'Voucher verification is temporarily unavailable.' },
+      { status: 503, headers: { 'Cache-Control': 'no-store' } }
+    );
+  }
+
+  try {
     // A code is an unguessable bearer credential. Never expose PII or payment metadata.
     const voucher = await store.getVoucherByCode(parsed.data.code);
     if (!voucher || voucher.paymentStatus !== 'paid') {
@@ -50,7 +72,7 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  const denied = requireAdmin(request);
+  const denied = await requireAdmin(request);
   if (denied) return denied;
 
   let body: unknown;

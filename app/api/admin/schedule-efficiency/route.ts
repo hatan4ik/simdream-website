@@ -9,7 +9,7 @@ import { isoDate } from '@/lib/validation';
  * serves a capacity-only projection of the same report.
  */
 export async function GET(request: Request) {
-  const denied = requireAdmin(request);
+  const denied = await requireAdmin(request);
   if (denied) return denied;
 
   const date = new URL(request.url).searchParams.get('date');

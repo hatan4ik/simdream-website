@@ -1,7 +1,5 @@
 import os from 'node:os';
 
-const isDev = process.env.NODE_ENV === 'development';
-
 function collectAllowedDevOrigins() {
   const origins = new Set([
     '127.0.0.1',
@@ -43,27 +41,6 @@ function collectAllowedDevOrigins() {
 
   return Array.from(origins);
 }
-
-// Static CSP (no per-request nonce, so pages stay statically rendered). The App Router
-// streams its RSC payload through inline scripts that differ per page and cannot be
-// hashed at build time, so scripts need 'unsafe-inline'; scripts from other origins,
-// framing, plugins, <base> hijacking and foreign form targets stay blocked. A strict
-// script policy requires per-request nonces from proxy.ts (dynamic rendering).
-const contentSecurityPolicy = [
-  "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''}`,
-  // Server-rendered style attributes need 'unsafe-inline'; styles cannot run code.
-  "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob:",
-  "font-src 'self' data:",
-  `connect-src 'self'${isDev ? ' ws: wss:' : ''} https://*.supabase.co wss://*.supabase.co`,
-  // Google Maps embed on /contact.
-  "frame-src https://www.google.com https://maps.google.com",
-  "object-src 'none'",
-  "base-uri 'self'",
-  "form-action 'self' https://checkout.stripe.com",
-  "frame-ancestors 'none'",
-].join('; ');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -115,7 +92,6 @@ const nextConfig = {
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
           // Browsers honour HSTS only over HTTPS, so this is inert on local http servers.
           { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains' },
-          { key: 'Content-Security-Policy', value: contentSecurityPolicy },
         ],
       },
     ];

@@ -15,6 +15,22 @@ const UiThemeContext = createContext<UiThemeContextType | undefined>(undefined);
 
 const THEME_STORAGE_KEY = 'simdream_ui_theme';
 
+/** Page backgrounds per theme (app/globals.css --background); also the browser-chrome tint. */
+export const THEME_COLORS: Record<UiTheme, string> = {
+  cockpit: '#070b14',
+  brand: '#f8fafc',
+};
+
+/**
+ * Applies the theme to the document: the data-ui attribute the stylesheet keys on, and the
+ * theme-color meta that Android Chrome paints its toolbar with (Safari samples the page
+ * instead, so the sticky navbar's own background carries the tint there).
+ */
+function applyThemeToDocument(theme: UiTheme): void {
+  document.documentElement.setAttribute('data-ui', theme);
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', THEME_COLORS[theme]);
+}
+
 export function UiThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<UiTheme>('cockpit');
 
@@ -23,11 +39,12 @@ export function UiThemeProvider({ children }: { children: React.ReactNode }) {
       const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) as UiTheme | null;
       if (savedTheme === 'brand' || savedTheme === 'cockpit') {
         setThemeState(savedTheme);
-        document.documentElement.setAttribute('data-ui', savedTheme);
+        applyThemeToDocument(savedTheme);
       } else {
         const currentAttr = document.documentElement.getAttribute('data-ui') as UiTheme | null;
         if (currentAttr === 'brand') {
           setThemeState('brand');
+          applyThemeToDocument('brand');
         }
       }
     } catch {
@@ -42,7 +59,7 @@ export function UiThemeProvider({ children }: { children: React.ReactNode }) {
     } catch {
       // Ignore storage errors
     }
-    document.documentElement.setAttribute('data-ui', newTheme);
+    applyThemeToDocument(newTheme);
   };
 
   const toggleTheme = () => {

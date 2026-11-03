@@ -4,7 +4,7 @@ import { store } from '@/lib/db/store';
 import { adminWorkshopPatchSchema, validationError, workshopInquirySchema } from '@/lib/validation';
 
 export async function GET(request: Request) {
-  const denied = requireAdmin(request);
+  const denied = await requireAdmin(request);
   if (denied) return denied;
   try {
     return NextResponse.json(await store.getCorporateInquiries(), {
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  const denied = requireAdmin(request);
+  const denied = await requireAdmin(request);
   if (denied) return denied;
   let body: unknown;
   try {

@@ -46,6 +46,101 @@
   --foreground: #f8fafc;
   --brand-primary: #56b9e9;
   --brand-navy: #1a87b4;
+
+  /* iOS safe areas, mirrored once (viewport-fit=cover in app/layout.tsx). Every inset is a
+     legitimate 0px: on the SE, in landscape, and on desktop. Never branch on "has a notch". */
+  --safe-area-inset-top: env(safe-area-inset-top, 0px);
+  --safe-area-inset-right: env(safe-area-inset-right, 0px);
+  --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-inset-left: env(safe-area-inset-left, 0px);
+}
+
+/* ==========================================================================
+   APPLE DEVICES: iPhone / iPad in Safari or added to the Home Screen
+   (.agents/skills/apple-web-app recipes, translated to Tailwind v4)
+   ========================================================================== */
+
+/* `standalone:` / `not-standalone:` follow the installed display mode. */
+@custom-variant standalone (@media (display-mode: standalone));
+@custom-variant not-standalone (@media not all and (display-mode: standalone));
+
+/* Padding that clears a safe-area inset: pb-safe-area-3 = inset + spacing(3). Insets are
+   physical, so the inline-start/end pair swaps under RTL (Hebrew, Arabic). */
+@utility pt-safe-area-* {
+  padding-top: calc(var(--safe-area-inset-top) + --spacing(--value(integer)));
+}
+@utility pb-safe-area-* {
+  padding-bottom: calc(var(--safe-area-inset-bottom) + --spacing(--value(integer)));
+}
+@utility px-safe-area-* {
+  padding-left: calc(var(--safe-area-inset-left) + --spacing(--value(integer)));
+  padding-right: calc(var(--safe-area-inset-right) + --spacing(--value(integer)));
+}
+@utility ps-safe-area-* {
+  padding-inline-start: calc(var(--safe-area-inset-left) + --spacing(--value(integer)));
+  &:dir(rtl) {
+    padding-inline-start: calc(var(--safe-area-inset-right) + --spacing(--value(integer)));
+  }
+}
+@utility pe-safe-area-* {
+  padding-inline-end: calc(var(--safe-area-inset-right) + --spacing(--value(integer)));
+  &:dir(rtl) {
+    padding-inline-end: calc(var(--safe-area-inset-left) + --spacing(--value(integer)));
+  }
+}
+/* A sticky bottom bar's offset from the screen edge, clear of the home indicator. */
+@utility bottom-safe-area-* {
+  bottom: calc(var(--safe-area-inset-bottom) + --spacing(--value(integer)));
+}
+
+/* Horizontal overflow: `clip` on both html and body. Unlike `hidden`, clip never turns body
+   into a scroll container (which would detach the sticky navbar from the viewport), and iOS
+   Safari honours it for touch panning where a viewport-propagated `hidden` is ignored. */
+html {
+  overflow-x: clip;
+}
+
+/* The native fieldset minimum is min-content, so a long <select> option pushed the /book
+   buy box 3px past a 320px screen. */
+fieldset {
+  min-width: 0;
+}
+
+/* Touch screens: a 44px floor for every control (WCAG 2.5.8 AAA / Apple HIG), without
+   touching inline text links. Phones also get an 11px floor for the smallest mono labels;
+   `sm:` text variants never apply below 640px, so nothing is overridden on tablets. */
+@media (pointer: coarse) {
+  button,
+  [role='button'],
+  select,
+  textarea,
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='hidden']),
+  a:where(.flex, .inline-flex, .block, .grid) {
+    min-height: 44px;
+  }
+
+  /* iOS Safari renders a native <select> at its own 22px height and ignores padding and
+     min-height until the native appearance is dropped; then it needs its own chevron. */
+  select:not([multiple]):not([size]) {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1rem 1rem;
+    padding-right: 2.5rem;
+  }
+  select:not([multiple]):not([size]):dir(rtl) {
+    background-position: left 0.75rem center;
+    padding-right: 1rem;
+    padding-left: 2.5rem;
+  }
+}
+@media (pointer: coarse) and (max-width: 639px) {
+  .text-\[9px\],
+  .text-\[10px\] {
+    font-size: 11px;
+  }
 }
 
 html[data-ui="brand"] {
@@ -76,9 +171,15 @@ body {
   background-color: var(--background);
   color: var(--foreground);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  overflow-x: hidden;
+  overflow-x: clip;
   transition: background-color 0.25s ease, color 0.25s ease;
   -webkit-tap-highlight-color: rgba(86, 185, 233, 0.15);
+  /* iOS Safari inflates text after rotating to landscape unless told not to. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  /* Under the notch in landscape Safari the page reaches the screen edge; keep content out. */
+  padding-left: var(--safe-area-inset-left);
+  padding-right: var(--safe-area-inset-right);
 }
 
 /* Eliminate iOS Safari double-tap-to-zoom delay across all interactive controls. */

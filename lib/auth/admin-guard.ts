@@ -1,5 +1,11 @@
 import { NextResponse } from 'next/server';
 import { hasUsableValue, isProduction } from '@/lib/config/server-env';
+import {
+  consumeRateLimit,
+  rateLimitClientAddress,
+  rateLimitHeaders,
+  RateLimitUnavailableError,
+} from '@/lib/security/rate-limit';
 
 /**
  * Interim server-side admin guard: HTTP Basic auth against the ADMIN_USER /
@@ -12,6 +18,11 @@ import { hasUsableValue, isProduction } from '@/lib/config/server-env';
 const ADMIN_REALM = 'Sim Dream Admin';
 
 type AdminAuthResult = 'authorized' | 'unauthorized' | 'not_configured';
+
+interface AdminAuthCheck {
+  result: AdminAuthResult;
+  attemptedUsername: string;
+}
 
 function constantTimeEqual(a: string, b: string): boolean {
   let mismatch = a.length ^ b.length;
@@ -35,22 +46,27 @@ function decodeBasicCredentials(header: string): { user: string; password: strin
   }
 }
 
-function checkAdminAuth(request: Request): AdminAuthResult {
+function checkAdminAuth(request: Request): AdminAuthCheck {
   const expectedUser = process.env.ADMIN_USER;
   const expectedPassword = process.env.ADMIN_PASSWORD;
   if (
     !hasUsableValue(expectedUser) ||
     !hasUsableValue(expectedPassword) ||
     (isProduction && expectedPassword.length < 16)
-  ) return 'not_configured';
+  ) return { result: 'not_configured', attemptedUsername: '' };
 
   const credentials = decodeBasicCredentials(request.headers.get('authorization') || '');
-  if (!credentials) return 'unauthorized';
+  if (!credentials) return { result: 'unauthorized', attemptedUsername: '' };
 
   // Evaluate both comparisons so timing does not reveal which one failed.
   const userMatches = constantTimeEqual(credentials.user, expectedUser);
   const passwordMatches = constantTimeEqual(credentials.password, expectedPassword);
-  return userMatches && passwordMatches ? 'authorized' : 'unauthorized';
+  return {
+    result: userMatches && passwordMatches ? 'authorized' : 'unauthorized',
+    // Username is hashed before persistence. Bound it to make a malformed header
+    // unable to create an oversized rate-limit subject.
+    attemptedUsername: credentials.user.trim().slice(0, 120),
+  };
 }
 
 /**
@@ -102,19 +118,45 @@ function isSameOriginMutation(request: Request): boolean {
  * Returns an error response when the request is not from an authenticated admin,
  * or `null` when the caller may proceed.
  */
-export function requireAdmin(request: Request): NextResponse | null {
-  const result = checkAdminAuth(request);
-  if (result === 'authorized') {
+export async function requireAdmin(request: Request): Promise<NextResponse | null> {
+  const auth = checkAdminAuth(request);
+  if (auth.result === 'authorized') {
     if (!isSameOriginMutation(request)) {
       return NextResponse.json({ error: 'Cross-origin admin mutations are not allowed.' }, { status: 403 });
     }
     return null;
   }
 
-  if (result === 'not_configured') {
+  if (auth.result === 'not_configured') {
     return NextResponse.json(
       { error: 'Admin access is disabled until ADMIN_USER and ADMIN_PASSWORD are configured.' },
       { status: 503 }
+    );
+  }
+
+  try {
+    const client = rateLimitClientAddress(request);
+    const [byClient, byUsername] = await Promise.all([
+      consumeRateLimit({ scope: 'admin-login-ip', subject: client, limit: 12, windowSeconds: 15 * 60 }),
+      consumeRateLimit({
+        scope: 'admin-login-username',
+        subject: auth.attemptedUsername || 'missing-username',
+        limit: 6,
+        windowSeconds: 15 * 60,
+      }),
+    ]);
+    const blocked = !byClient.allowed ? byClient : !byUsername.allowed ? byUsername : null;
+    if (blocked) {
+      return NextResponse.json(
+        { error: 'Too many failed admin sign-in attempts. Please try again later.' },
+        { status: 429, headers: rateLimitHeaders(blocked) }
+      );
+    }
+  } catch (error) {
+    if (!(error instanceof RateLimitUnavailableError)) console.error('Admin rate limiter failed', error);
+    return NextResponse.json(
+      { error: 'Admin authentication is temporarily unavailable.' },
+      { status: 503, headers: { 'Cache-Control': 'no-store' } }
     );
   }
 

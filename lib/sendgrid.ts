@@ -31,9 +31,9 @@ export async function sendBookingConfirmationEmail(booking: Booking): Promise<{ 
         <style>
           body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #0b1120; color: #f8fafc; margin: 0; padding: 20px; }
           .container { max-width: 600px; margin: 0 auto; background: #0f172a; border-radius: 12px; border: 1px solid #1e293b; overflow: hidden; }
-          .header { background: #0284c7; padding: 24px; text-align: center; }
+          .header { background: #176f95; padding: 24px; text-align: center; }
           .content { padding: 32px 24px; }
-          .badge { display: inline-block; background: #0284c7; color: #fff; padding: 4px 12px; border-radius: 9999px; font-weight: 600; font-size: 14px; }
+          .badge { display: inline-block; background: #176f95; color: #fff; padding: 4px 12px; border-radius: 9999px; font-weight: 600; font-size: 14px; }
           .details-table { width: 100%; border-collapse: collapse; margin: 24px 0; background: #1e293b; border-radius: 8px; overflow: hidden; }
           .details-table td { padding: 12px 16px; border-bottom: 1px solid #334155; font-size: 14px; }
           .footer { text-align: center; padding: 20px; font-size: 12px; color: #94a3b8; border-top: 1px solid #1e293b; }
@@ -47,7 +47,7 @@ export async function sendBookingConfirmationEmail(booking: Booking): Promise<{ 
           </div>
           <div class="content">
             <span class="badge">FLIGHT RESERVATION CONFIRMED</span>
-            <h2 style="color: #38bdf8; margin-top: 16px;">Flight Clearance: ${escapeHtml(booking.bookingReference)}</h2>
+            <h2 style="color: #2096C7; margin-top: 16px;">Flight Clearance: ${escapeHtml(booking.bookingReference)}</h2>
             <p style="color: #cbd5e1; line-height: 1.6;">
               Dear <strong>${escapeHtml(booking.pilotName)}</strong>,<br>
               Your flight deck reservation in our Boeing 737 MAX flight simulator has been confirmed. Please arrive 15 minutes before your scheduled departure time for pre-flight mission briefing.
@@ -64,7 +64,7 @@ export async function sendBookingConfirmationEmail(booking: Booking): Promise<{ 
               </tr>
               <tr>
                 <td style="color: #94a3b8;">Cockpit Slot</td>
-                <td style="color: #38bdf8; font-weight: bold;">${escapeHtml(booking.startTime)} - ${escapeHtml(booking.endTime)} (IST)</td>
+                <td style="color: #2096C7; font-weight: bold;">${escapeHtml(booking.startTime)} - ${escapeHtml(booking.endTime)} (IST)</td>
               </tr>
               <tr>
                 <td style="color: #94a3b8;">Center Location</td>
@@ -98,9 +98,9 @@ export async function sendBookingConfirmationEmail(booking: Booking): Promise<{ 
         html: emailHtml,
       });
       return { success: true, message: 'Confirmation email dispatched via SendGrid.' };
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('SendGrid confirmation dispatch failed');
-      return { success: false, message: err?.message || 'Failed to dispatch email.' };
+      return { success: false, message: err instanceof Error ? err.message : 'Failed to dispatch email.' };
     }
   }
 

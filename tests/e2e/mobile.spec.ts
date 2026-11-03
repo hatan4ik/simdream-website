@@ -133,6 +133,28 @@ test.describe('real phone layout', () => {
     await expect(chrome.menuToggle()).toBeInViewport();
   });
 
+  test('fits the home and booking pages within a 320px screen with 44px controls (UX-31)', async ({
+    page,
+    chrome,
+  }) => {
+    // iPhone SE width. The /book buy box once overflowed it by 3px (a fieldset's min-content floor).
+    await page.setViewportSize({ width: 320, height: 568 });
+    for (const route of ['/', '/book']) {
+      await page.goto(route);
+      await expect(chrome.homeLink()).toBeVisible();
+      const pageWidth = await page.evaluate(() =>
+        Math.max(document.documentElement.scrollWidth, document.body.scrollWidth)
+      );
+      expect(pageWidth, `${route} overflows a 320px screen`).toBeLessThanOrEqual(320);
+    }
+
+    // Touch screens get a 44px floor on every control, including the compact header "Book" button.
+    for (const control of [chrome.bookCta(), chrome.menuToggle(), chrome.homeLink()]) {
+      const box = await control.boundingBox();
+      expect(box?.height ?? 0, 'control height').toBeGreaterThanOrEqual(44);
+    }
+  });
+
   test('fits the guided wizard within the screen with its Continue button visible (E2E-16)', async ({
     page,
     booking,

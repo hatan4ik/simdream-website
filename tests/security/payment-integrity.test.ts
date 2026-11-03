@@ -279,7 +279,7 @@ describe('brute-force protection', () => {
   const ATTEMPTS = 50;
   const CLIENT = { 'x-forwarded-for': '203.0.113.7' };
 
-  it.fails('[KNOWN-DEFECT SEC-3] answers repeated failed voucher verifications from one client with HTTP 429', async () => {
+  it('answers repeated failed voucher verifications from one client with HTTP 429', async () => {
     const app = await loadApp();
     const { POST } = await app.routes.vouchers();
     const statuses: number[] = [];
@@ -294,7 +294,7 @@ describe('brute-force protection', () => {
     expect(statuses).toContain(429);
   });
 
-  it.fails('[KNOWN-DEFECT SEC-4] answers repeated failed admin logins from one client with HTTP 429', async () => {
+  it('answers repeated failed admin logins from one client with HTTP 429', async () => {
     const app = await loadApp();
     const { GET } = await app.routes.bookings();
     const statuses: number[] = [];
