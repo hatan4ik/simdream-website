@@ -202,7 +202,7 @@ export function Navbar() {
     >
       <div data-site-navbar-inner className="max-w-[96rem] mx-auto px-4 sm:px-6 lg:px-8">
         <div data-site-navbar-row className="flex items-center justify-between gap-3 h-20">
-          <Link href="/" className="flex items-center group shrink-0" aria-label="SIM DREAM">
+          <Link href="/" className="flex items-center group shrink-0" aria-label={`SIM DREAM — ${t.nav.brandSub}`}>
             <div>
               <BrandLogo className="h-6 sm:h-7 w-auto group-hover:opacity-90 transition-opacity" priority />
               <p className="hidden min-[400px]:block mt-1 text-[10px] tracking-widest text-orange-400 uppercase font-bold">

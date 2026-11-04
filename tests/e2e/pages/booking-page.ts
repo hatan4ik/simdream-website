@@ -182,9 +182,7 @@ export class StorefrontView {
   constructor(readonly page: Page) {}
 
   packageCard(minutes: number): Locator {
-    return this.page
-      .locator('[data-booking-package-card]')
-      .filter({ hasText: new RegExp(`^${minutes} min\\b`) });
+    return this.page.locator(`[data-booking-package-card="${minutes}"]`);
   }
 
   slot(startTime: string): Locator {

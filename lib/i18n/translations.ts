@@ -1393,7 +1393,7 @@ export const translations = {
       cardOptionPerk1: 'קרדיט כספי חופשי בשקלים',
       cardOptionPerk2: 'תקף לכל חבילות הטיסה והתוספות',
       cardOptionPerk3: 'ניתן למימוש רב-פעמי עד גמר היתרה',
-      hidePriceLabel: 'הסתירו את הסכום (₪) על גבי תעודת המתנה למקבל/ת (הצגת "משימת קברניט משולמת מראש")',
+      hidePriceLabel: 'הסתירו את הסכום (₪) על גבי שובר המתנה למקבל/ת (הצגת "משימת קברניט משולמת מראש")',
       prepaidMissionBadge: 'משימת קברניט משולמת מראש',
       missionPackageLabel: 'חבילת הטיסה',
       observersIncluded: 'כולל עד 2 מלווים בתא הטייס',

@@ -29,7 +29,7 @@ test.describe('zero-slot recovery (AGENTS.md section 4), storefront', () => {
         name: new RegExp(`^No open runway slots for Daytime Special Flight on ${displayDatePattern(saturday).source}$`),
       })
     ).toBeVisible();
-    await expect(store.packageCard(45)).toContainText('0 slots today');
+    await expect(store.packageCard(45)).toContainText('No open slots today');
     await expect(store.packageCard(45)).toContainText('✓ Selected');
   });
 

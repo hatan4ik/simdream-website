@@ -997,7 +997,7 @@ export function AmazonFlightStorefront({
                 <div key={pkg.id} className="flex flex-col gap-1.5">
                 <button
                   type="button"
-                  data-booking-package-card
+                  data-booking-package-card={pkg.durationMinutes}
                   aria-pressed={isSelected}
                   onClick={() => onSelectPackage(pkg)}
                   className={`flex-1 min-h-72 p-4 rounded-2xl border text-left rtl:text-right transition-all flex flex-col justify-between relative cursor-pointer ${
