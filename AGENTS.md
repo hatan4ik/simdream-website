@@ -98,7 +98,7 @@ Always reserve operating capacity via `getReservedMinutesForFlight()`:
    - Clear feedback: `No open runway slots for [Package Title] on [Selected Date]`.
    - **`Check Next Day →`** button advancing the calendar by 1 day.
    - Quick-switch buttons to available alternative durations on the same date (e.g., `Try 60m`).
-   - Strikethrough list of booked slots for transparency.
+   - **Open slots only**: the departure grid lists bookable slots and nothing else. Booked, reserved or internally locked slots are never rendered (no strikethrough or disabled tiles), so the visitor chooses from what is actually available.
 4. **Dual GUI Support**:
    - [`AmazonFlightStorefront.tsx`](components/scheduler/AmazonFlightStorefront.tsx): Amazon-style 1-page catalog view with sticky buy-box.
    - [`KantorovichCalendarScheduler.tsx`](components/scheduler/KantorovichCalendarScheduler.tsx): Guided 3-step wizard view.

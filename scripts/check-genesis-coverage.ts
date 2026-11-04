@@ -186,7 +186,7 @@ function checklist(): Item[] {
     ['45 min promo forbidden on Saturday', /promo[^\n]{0,80}(forbidden|not|never|Sun[–-]Fri)/i],
     ['zero-slot badge "0 slots open today"', /0 slots open/i],
     ['"Check Next Day" recovery', /Check Next Day/i],
-    ['strikethrough booked slots', /strikethrough/i],
+    ['open slots only (booked slots hidden)', /open slots only/i],
     ['never hide sold-out packages', /never hide|do not (filter|hide)/i],
     ['noise-free: zero add-ons for PRO / fear of flying', /zero add-on|addons\s*=\s*\[\]|no add-ons/i],
     ['default level atpl', /\batpl\b/],

@@ -56,7 +56,7 @@ The engine may mark a slot as a smart recommendation where it completes a 150-mi
 - **Actionable Zero-Slots Recovery**: When `openSlotCount === 0` on a date for the selected duration, the UI renders an actionable alert containing:
   - Direct 1-click **Check Next Day →** button advancing the calendar by 1 day.
   - Quick-switch buttons to other durations that have open slots on the same date.
-  - Strikethrough list of booked slots for operational transparency.
+- **Open Slots Only**: the departure grid renders bookable slots and nothing else. Booked, reserved or internally locked slots are never shown (no strikethrough or disabled tiles); the open-slot count and the zero-slot recovery alert carry the availability signal.
 - **Noise-Free Scope**: For `training` (PRO) and `fear_of_flying` packages, step 2 (recreational add-ons) is bypassed entirely in a serene 2-step flow.
 
 ## Pricing and mission calculation

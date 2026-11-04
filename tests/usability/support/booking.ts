@@ -29,12 +29,18 @@ export function stripDayButton(page: Page, isoDate: string): Locator {
 /** Ensures an ISO date is visible without coupling browser checks to a displayed language. */
 export async function ensureStorefrontDateVisible(page: Page, isoDate: string): Promise<Locator> {
   const dateButton = stripDayButton(page, isoDate);
-  // The month grid renders after the first slots response. Counting before it exists paged the
-  // calendar three months ahead (to February) and then failed to find a November date.
+  // The month grid renders after the first slots response, and /book first paints a stable calendar
+  // snapshot before adopting the live Israel date after hydration. A one-off count() during that
+  // hand-over saw 0 cells and paged the calendar three months ahead (to February), so give each
+  // month a short grace period before moving on.
   await page.locator('[data-calendar-date]').first().waitFor({ state: 'attached' });
   const rendered: string[] = [];
   for (let step = 0; step < 3; step += 1) {
-    if ((await dateButton.count()) > 0) return dateButton;
+    const appeared = await dateButton
+      .first()
+      .waitFor({ state: 'attached', timeout: 3_000 })
+      .then(() => true, () => false);
+    if (appeared) return dateButton;
     const dates = await page.locator('[data-calendar-date]').evaluateAll((cells) =>
       cells.map((cell) => cell.getAttribute('data-calendar-date') ?? '')
     );

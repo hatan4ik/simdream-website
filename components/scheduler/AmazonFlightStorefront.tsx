@@ -161,8 +161,6 @@ interface StorefrontCalendarCopy {
   noSlots: (packageTitle: string, date: string) => string;
   noSlotsHint: string;
   tryFlight: (minutes: number, price: string) => string;
-  bookedSlots: string;
-  booked: string;
   morning: string;
   afternoon: string;
   evening: string;
@@ -189,8 +187,6 @@ const STOREFRONT_CALENDAR_COPY: Record<Language, StorefrontCalendarCopy> = {
     noSlots: (packageTitle, date) => `No open runway slots for ${packageTitle} on ${date}`,
     noSlotsHint: 'All departure windows for this duration are currently booked or reserved. Choose another date or try an available duration today:',
     tryFlight: (minutes, price) => `Try ${minutes}m (${price})`,
-    bookedSlots: 'Booked slots on this date:',
-    booked: 'Booked',
     morning: 'Morning',
     afternoon: 'Afternoon',
     evening: 'Evening',
@@ -215,8 +211,6 @@ const STOREFRONT_CALENDAR_COPY: Record<Language, StorefrontCalendarCopy> = {
     noSlots: (packageTitle, date) => `אין משבצות מסלול פנויות עבור ${packageTitle} בתאריך ${date}`,
     noSlotsHint: 'כל חלונות ההמראה למשך זה כבר תפוסים או שמורים. בחרו תאריך אחר או משך טיסה זמין להיום:',
     tryFlight: (minutes, price) => `נסו ${minutes} דקות (${price})`,
-    bookedSlots: 'משבצות תפוסות בתאריך זה:',
-    booked: 'תפוס',
     morning: 'בוקר',
     afternoon: 'צהריים',
     evening: 'ערב',
@@ -241,8 +235,6 @@ const STOREFRONT_CALENDAR_COPY: Record<Language, StorefrontCalendarCopy> = {
     noSlots: (packageTitle, date) => `Нет свободных слотов для ${packageTitle} на ${date}`,
     noSlotsHint: 'Все окна вылета для этой длительности заняты или зарезервированы. Выберите другую дату или доступную длительность сегодня:',
     tryFlight: (minutes, price) => `Попробовать ${minutes} мин. (${price})`,
-    bookedSlots: 'Занятые слоты на эту дату:',
-    booked: 'Занято',
     morning: 'Утро',
     afternoon: 'День',
     evening: 'Вечер',
@@ -267,8 +259,6 @@ const STOREFRONT_CALENDAR_COPY: Record<Language, StorefrontCalendarCopy> = {
     noSlots: (packageTitle, date) => `Aucun créneau de piste disponible pour ${packageTitle} le ${date}`,
     noSlotsHint: 'Tous les créneaux de cette durée sont réservés. Choisissez une autre date ou une durée disponible aujourd’hui :',
     tryFlight: (minutes, price) => `Essayer ${minutes} min (${price})`,
-    bookedSlots: 'Créneaux réservés à cette date :',
-    booked: 'Réservé',
     morning: 'Matin',
     afternoon: 'Après-midi',
     evening: 'Soir',
@@ -293,8 +283,6 @@ const STOREFRONT_CALENDAR_COPY: Record<Language, StorefrontCalendarCopy> = {
     noSlots: (packageTitle, date) => `لا توجد مواعيد مسار متاحة لـ ${packageTitle} في ${date}`,
     noSlotsHint: 'جميع نوافذ الإقلاع لهذه المدة محجوزة أو محجوزة مسبقاً. اختر تاريخاً آخر أو مدة متاحة اليوم:',
     tryFlight: (minutes, price) => `جرّب ${minutes} دقيقة (${price})`,
-    bookedSlots: 'المواعيد المحجوزة في هذا التاريخ:',
-    booked: 'محجوز',
     morning: 'صباح',
     afternoon: 'بعد الظهر',
     evening: 'مساء',
@@ -405,9 +393,10 @@ export function AmazonFlightStorefront({
 
   const availableSlotCount = useMemo(() => slots.filter((s) => s.available).length, [slots]);
 
-  // Group visible slots by Morning, Afternoon, Evening
+  // Group open slots by Morning, Afternoon, Evening. Booked and internally locked slots are not
+  // listed at all: the visitor only ever sees departures they can actually pick.
   const groupedSlots = useMemo(() => {
-    const visible = slots.filter((s) => s.available || s.disabledReason === 'booked');
+    const visible = slots.filter((s) => s.available);
     const groups: Record<'morning' | 'afternoon' | 'evening', FlightSlot[]> = {
       morning: [],
       afternoon: [],
@@ -788,26 +777,6 @@ export function AmazonFlightStorefront({
                     {calendarCopy.checkNextDay}
                   </Button>
                 </div>
-
-                {slots.some((s) => s.disabledReason === 'booked') && (
-                  <div className="pt-3 border-t border-slate-900 text-left rtl:text-right">
-                    <span className="text-[10px] font-mono uppercase text-slate-400 block mb-1.5">
-                      {calendarCopy.bookedSlots}
-                    </span>
-                    <div className="flex flex-wrap gap-2">
-                      {slots
-                        .filter((s) => s.disabledReason === 'booked')
-                        .map((slot) => (
-                          <span
-                            key={slot.id}
-                            className="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-[11px] font-mono text-slate-400 line-through"
-                          >
-                            {slot.startTime} ({slot.disabledNote || calendarCopy.booked})
-                          </span>
-                        ))}
-                    </div>
-                  </div>
-                )}
               </div>
             ) : (
               <div className="space-y-3">
@@ -824,8 +793,7 @@ export function AmazonFlightStorefront({
                       <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-2">
                         {periodSlots.map((slot) => {
                           const isSelected = selectedSlot?.id === slot.id;
-                          const isOptimal =
-                            slot.available && slot.smartRecommendation === 'optimal_150_pair';
+                          const isOptimal = slot.smartRecommendation === 'optimal_150_pair';
                           const maxWin = slot.maxAvailableMinutes ?? slot.durationMinutes;
 
                           return (
@@ -833,12 +801,9 @@ export function AmazonFlightStorefront({
                               key={slot.id}
                               type="button"
                               aria-pressed={isSelected}
-                              disabled={!slot.available}
                               onClick={() => onSelectSlot(slot)}
                               className={`relative min-h-[54px] px-3 py-2.5 rounded-xl border text-left rtl:text-right transition-all flex flex-col justify-between touch-manipulation select-none ${
-                                !slot.available
-                                  ? 'border-slate-800/40 bg-slate-950/30 opacity-40 cursor-not-allowed line-through'
-                                  : isSelected
+                                isSelected
                                   ? 'border-amber-400 bg-amber-500/15 text-white shadow-md ring-1 ring-amber-400/50 cursor-pointer active:scale-95'
                                   : isOptimal
                                   ? 'border-emerald-500/40 bg-emerald-950/20 hover:border-emerald-400 text-white cursor-pointer active:scale-95'
@@ -856,7 +821,7 @@ export function AmazonFlightStorefront({
                                 ) : null}
                               </div>
                               <div className="text-[10px] font-mono text-slate-400 mt-0.5">
-                                {slot.available ? calendarCopy.upToFit(maxWin) : calendarCopy.booked}
+                                {calendarCopy.upToFit(maxWin)}
                               </div>
                             </button>
                           );

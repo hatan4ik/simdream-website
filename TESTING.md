@@ -144,7 +144,7 @@ These are coverage gaps the framework review found that are not yet closed. Each
 | GAP-7 | Signed-in member journeys (dashboard, receipts, auth callback, password reset) have no browser coverage |
 | GAP-8 | No resilience tests for the success page's polling of the payment status |
 | GAP-9 | Transactional email rendering (escaping, recipient routing, no PII in logs) is untested |
-| GAP-11 | No browser checks for booked-slot strikethrough, storefront/wizard parity or the Friday/Saturday grids (AGENTS.md §4) |
+| GAP-11 | No browser checks that booked slots stay hidden (open slots only), storefront/wizard parity or the Friday/Saturday grids (AGENTS.md §4) |
 | GAP-12 | The `/pro` page content required by AGENTS.md §2 is unverified |
 | GAP-13 | The SEO and metadata contract (sitemap, canonical, hreflang, OpenGraph, JSON-LD, noindex) is untested |
 | GAP-15 | CSP violations are checked on only four routes, in Chromium |

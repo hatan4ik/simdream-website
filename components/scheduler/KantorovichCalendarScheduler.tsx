@@ -67,7 +67,6 @@ const CLEAN_COPY: Record<
     afternoon: string;
     evening: string;
     recommended: string;
-    booked: string;
     availableCount: string;
     noSlotsForDuration: string;
     try60Min: string;
@@ -91,7 +90,6 @@ const CLEAN_COPY: Record<
     afternoon: 'Afternoon',
     evening: 'Evening',
     recommended: 'Best Match',
-    booked: 'Booked',
     availableCount: 'slots available',
     noSlotsForDuration: 'No open times for this duration on the selected date.',
     try60Min: 'Switch to 60 Min Flight',
@@ -127,7 +125,6 @@ const CLEAN_COPY: Record<
     afternoon: 'צהריים',
     evening: 'ערב',
     recommended: 'מומלץ',
-    booked: 'תפוס',
     availableCount: 'שעות פנויות',
     noSlotsForDuration: 'אין שעות פנויות למשך טיסה זה בתאריך שנבחר.',
     try60Min: 'עבור לטיסת 60 דקות',
@@ -163,7 +160,6 @@ const CLEAN_COPY: Record<
     afternoon: 'День',
     evening: 'Вечер',
     recommended: 'Рекомендуем',
-    booked: 'Занято',
     availableCount: 'свободных слотов',
     noSlotsForDuration: 'На выбранную дату нет свободных окон для этой длительности.',
     try60Min: 'Переключить на 60 минут',
@@ -199,7 +195,6 @@ const CLEAN_COPY: Record<
     afternoon: 'Après-midi',
     evening: 'Soirée',
     recommended: 'Recommandé',
-    booked: 'Complet',
     availableCount: 'créneaux disponibles',
     noSlotsForDuration: 'Aucun créneau disponible pour cette durée à cette date.',
     try60Min: 'Passer au vol 60 min',
@@ -235,7 +230,6 @@ const CLEAN_COPY: Record<
     afternoon: 'الظهيرة',
     evening: 'المساء',
     recommended: 'موصى به',
-    booked: 'محجوز',
     availableCount: 'مواعيد متاحة',
     noSlotsForDuration: 'لا توجد مواعيد متاحة لهذه المدة في التاريخ المختار.',
     try60Min: 'التبديل إلى رحلة 60 دقيقة',
@@ -445,12 +439,10 @@ export function KantorovichCalendarScheduler({
     [calendarTodayYmd, language, viewMonthDate]
   );
 
-  // Group available & booked slots cleanly into Morning, Afternoon, Evening
-  // (Silently filtering out internal anti-gap locked slots so the UI stays 100% clean)
+  // Group open slots into Morning, Afternoon, Evening. Booked and internal anti-gap locked
+  // slots are not listed at all, so the visitor only sees departures they can pick.
   const cleanPeriodGroups = useMemo(() => {
-    const visible = slots.filter(
-      (s) => s.available || s.disabledReason === 'booked'
-    );
+    const visible = slots.filter((s) => s.available);
 
     const morning: FlightSlot[] = [];
     const afternoon: FlightSlot[] = [];
@@ -823,25 +815,6 @@ export function KantorovichCalendarScheduler({
                       slot.smartRecommendation === 'optimal_150_pair' ||
                       slot.smartRecommendation === 'friday_30m_closer';
                     const slotPrice = packagePriceForSlot(selectedPackage, slot.isPrimeTime);
-
-                    if (!slot.available) {
-                      return (
-                        <div
-                          key={slot.id}
-                          className="min-h-[60px] px-3 py-2.5 rounded-xl border border-slate-800/50 bg-slate-950/40 flex items-center justify-between cursor-not-allowed"
-                        >
-                          <span
-                            className="text-sm font-mono text-slate-400 line-through"
-                            dir="ltr"
-                          >
-                            {slot.startTime}
-                          </span>
-                          <span className="text-[11px] text-slate-400 font-medium">
-                            {copy.booked}
-                          </span>
-                        </div>
-                      );
-                    }
 
                     return (
                       <button

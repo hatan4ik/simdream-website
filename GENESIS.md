@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:0c8e8b5fc44e27087a1635c541ff709d6c99aca606a49e0ab5b2ae0339921eae -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:4cf87281b4b3eb1b0bcc9dc185a79190aaaf72b5d1b1d1c967a35b88bd3df868 -->
 
 ## Verification contract
 
@@ -265,8 +265,8 @@ Add 3 curated one-click combos. Localize every package and add-on in all five la
 - When a package has zero slots, show:
   - "No open runway slots for [Package] on [Date]";
   - a **Check Next Day →** button;
-  - quick-switch buttons to durations that are available;
-  - a strikethrough list of booked slots.
+  - quick-switch buttons to durations that are available.
+- The departure grid lists **open slots only**: booked, reserved or internally locked slots are never rendered (no strikethrough or disabled tiles), so the visitor chooses from what is actually available.
 - Handle loading, failure ("departures could not be loaded" with retry, never a fake sold-out day) and offline states. Ignore out-of-order responses so the latest selected day wins.
 - The pilot manifest collects name, email, phone and experience level (beginner, enthusiast, student_pilot, atpl), plus an optional voucher code.
 
