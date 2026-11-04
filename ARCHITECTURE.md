@@ -27,7 +27,7 @@ flowchart TD
         NoiseFreeAdapter["Noise-Free Booking Adapter<br/>Suppresses recreational add-ons for PRO & Fear of Flying"]
         KantorovichEngine["Tiled Interval Scheduler Engine<br/>lib/scheduler/kantorovich-engine.ts"]
         MissionCalc["Mission Calculator<br/>Flight time + Addons + Voucher Manifest"]
-        ReviewsCache["Google Places Review Cache<br/>24h Revalidation; no local fallback claims"]
+        ReviewsCache["Google Places Review Cache<br/>15m browser feed; no local fallback claims"]
     end
 
     subgraph APILayer["Next.js Serverless API Routes"]

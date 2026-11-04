@@ -49,6 +49,7 @@ import {
 } from '@/lib/i18n/calendar-presentation';
 import { canAddonFitInSlot, packageFromPriceIls, sanitizePackageTitle } from '@/lib/scheduler/mission-calculator';
 import { getPackageFormulaBadge } from '@/lib/scheduler/package-presentation';
+import { BOOKING_BLUEPRINT_COPY } from '@/lib/i18n/booking-blueprint-copy';
 
 interface AmazonFlightStorefrontProps {
   selectedDate: string;
@@ -172,6 +173,14 @@ interface StorefrontCalendarCopy {
   customizeFlight: string;
   chooseTrainingDuration: string;
   reviewFlightDetails: string;
+  basePackagePrice: string;
+  selectPackageTitle: string;
+  edition: string;
+  minutes: (minutes: number) => string;
+  noSlotsToday: string;
+  slotsOpenToday: (count: number) => string;
+  selected: string;
+  select: string;
 }
 
 const STOREFRONT_CALENDAR_COPY: Record<Language, StorefrontCalendarCopy> = {
@@ -202,6 +211,14 @@ const STOREFRONT_CALENDAR_COPY: Record<Language, StorefrontCalendarCopy> = {
     customizeFlight: 'Packages & Add-ons ↓',
     chooseTrainingDuration: 'Choose Training Duration ↓',
     reviewFlightDetails: 'Review Flight Details ↓',
+    basePackagePrice: 'Base package price',
+    selectPackageTitle: 'Choose your flight package and duration',
+    edition: 'Selected duration',
+    minutes: (minutes) => `${minutes} min`,
+    noSlotsToday: 'No open slots today',
+    slotsOpenToday: (count) => `${count} slots open`,
+    selected: 'Selected',
+    select: 'Choose',
   },
   he: {
     departureTitle: 'בחירת תאריך המראה ומשבצת מסלול',
@@ -230,6 +247,14 @@ const STOREFRONT_CALENDAR_COPY: Record<Language, StorefrontCalendarCopy> = {
     customizeFlight: 'חבילות ותוספות ↓',
     chooseTrainingDuration: 'בחירת משך אימון ↓',
     reviewFlightDetails: 'לפרטי הטיסה ↓',
+    basePackagePrice: 'מחיר החבילה הבסיסית',
+    selectPackageTitle: 'בחירת חבילת הטיסה ומשך הטיסה',
+    edition: 'משך שנבחר',
+    minutes: (minutes) => `${minutes} דק׳`,
+    noSlotsToday: 'אין משבצות פנויות היום',
+    slotsOpenToday: (count) => `${count} משבצות פנויות`,
+    selected: 'נבחרה',
+    select: 'לבחירה',
   },
   ru: {
     departureTitle: 'Выберите дату и время вылета',
@@ -258,6 +283,14 @@ const STOREFRONT_CALENDAR_COPY: Record<Language, StorefrontCalendarCopy> = {
     customizeFlight: 'Пакеты и опции ↓',
     chooseTrainingDuration: 'Выбрать длительность подготовки ↓',
     reviewFlightDetails: 'Проверить детали полёта ↓',
+    basePackagePrice: 'Цена базового пакета',
+    selectPackageTitle: 'Выберите пакет и длительность полёта',
+    edition: 'Выбранная длительность',
+    minutes: (minutes) => `${minutes} мин.`,
+    noSlotsToday: 'Сегодня нет свободных слотов',
+    slotsOpenToday: (count) => `${count} слотов свободно`,
+    selected: 'Выбрано',
+    select: 'Выбрать',
   },
   fr: {
     departureTitle: 'Choisir la date et le créneau de départ',
@@ -286,6 +319,14 @@ const STOREFRONT_CALENDAR_COPY: Record<Language, StorefrontCalendarCopy> = {
     customizeFlight: 'Forfaits et options ↓',
     chooseTrainingDuration: 'Choisir la durée de préparation ↓',
     reviewFlightDetails: 'Voir les détails du vol ↓',
+    basePackagePrice: 'Prix de la formule de base',
+    selectPackageTitle: 'Choisir votre formule et sa durée',
+    edition: 'Durée sélectionnée',
+    minutes: (minutes) => `${minutes} min`,
+    noSlotsToday: 'Aucun créneau libre aujourd’hui',
+    slotsOpenToday: (count) => `${count} créneaux libres`,
+    selected: 'Sélectionné',
+    select: 'Choisir',
   },
   ar: {
     departureTitle: 'اختر تاريخ وموعد الإقلاع',
@@ -314,6 +355,14 @@ const STOREFRONT_CALENDAR_COPY: Record<Language, StorefrontCalendarCopy> = {
     customizeFlight: 'الباقات والإضافات ↓',
     chooseTrainingDuration: 'اختيار مدة التدريب ↓',
     reviewFlightDetails: 'مراجعة تفاصيل الرحلة ↓',
+    basePackagePrice: 'سعر الباقة الأساسية',
+    selectPackageTitle: 'اختر باقة الرحلة ومدتها',
+    edition: 'المدة المختارة',
+    minutes: (minutes) => `${minutes} دقيقة`,
+    noSlotsToday: 'لا توجد مواعيد متاحة اليوم',
+    slotsOpenToday: (count) => `${count} مواعيد متاحة`,
+    selected: 'تم الاختيار',
+    select: 'اختيار',
   },
 };
 
@@ -361,6 +410,7 @@ export function AmazonFlightStorefront({
   onSubmitBooking,
 }: AmazonFlightStorefrontProps) {
   const { t, language, isRTL } = useLanguage();
+  const bpCopy = BOOKING_BLUEPRINT_COPY[language] || BOOKING_BLUEPRINT_COPY.en;
   const calendarCopy = STOREFRONT_CALENDAR_COPY[language] || STOREFRONT_CALENDAR_COPY.en;
   const packagesActionLabel =
     selectedPackage.category === 'training'
@@ -519,13 +569,13 @@ export function AmazonFlightStorefront({
               </p>
             </div>
             <div className="shrink-0 flex sm:flex-col items-baseline sm:items-end justify-between gap-2 bg-slate-950/80 border border-slate-800 px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl">
-              <span className="text-[10px] font-mono uppercase text-slate-400">Base Package Price</span>
+              <span className="text-[10px] font-mono uppercase text-slate-400">{calendarCopy.basePackagePrice}</span>
               <div className="flex items-baseline gap-2">
                 <span className="text-xl sm:text-2xl font-black font-mono text-white">
                   {formatCurrency(basePriceIls)}
                 </span>
                 <span className="text-xs font-mono text-sky-400 font-bold">
-                  / {baseDurationMinutes} min
+                  / {calendarCopy.minutes(baseDurationMinutes)}
                 </span>
               </div>
             </div>
@@ -924,7 +974,7 @@ export function AmazonFlightStorefront({
               <div>
                 <h2 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
                   <Layers className="w-4 h-4 text-sky-400" />
-                  <span>Select Base Flight Package (Edition / Duration)</span>
+                  <span>{calendarCopy.selectPackageTitle}</span>
                 </h2>
                 <p className="text-xs text-slate-400">
                   {calendarCopy.packagesAvailable(formatCalendarDate(selectedDate, language))}
@@ -932,7 +982,7 @@ export function AmazonFlightStorefront({
               </div>
             </div>
             <span className="text-xs font-mono text-slate-400">
-              Edition: <strong className="text-amber-400">{selectedPackage.durationMinutes} Minutes</strong>
+              {calendarCopy.edition}: <strong className="text-amber-400">{calendarCopy.minutes(selectedPackage.durationMinutes)}</strong>
             </span>
           </div>
 
@@ -971,11 +1021,11 @@ export function AmazonFlightStorefront({
                             : 'bg-sky-500/15 text-sky-300 border border-sky-500/30'
                         }`}
                       >
-                        {pkg.durationMinutes} MIN
+                        {calendarCopy.minutes(pkg.durationMinutes)}
                       </span>
                       {!isAvailable ? (
                         <span className="text-[10px] font-mono text-amber-400 bg-amber-500/10 border border-amber-500/25 px-2 py-0.5 rounded">
-                          0 slots today
+                          {calendarCopy.noSlotsToday}
                         </span>
                       ) : pkg.badge ? (
                         <span className="text-[10px] font-mono font-bold text-amber-300 truncate">
@@ -1006,9 +1056,9 @@ export function AmazonFlightStorefront({
                       </span>
                       <div className="text-[10px] font-mono">
                         {!isAvailable ? (
-                          <span className="text-amber-400">● 0 slots open today</span>
+                          <span className="text-amber-400">● {calendarCopy.noSlotsToday}</span>
                         ) : (
-                          <span className="text-emerald-400">● {slotCount} slots open</span>
+                          <span className="text-emerald-400">● {calendarCopy.slotsOpenToday(slotCount)}</span>
                         )}
                       </div>
                     </div>
@@ -1019,18 +1069,19 @@ export function AmazonFlightStorefront({
                           : 'bg-slate-800 text-slate-300'
                       }`}
                     >
-                      {isSelected ? '✓ Selected' : 'Select'}
+                      {isSelected ? `✓ ${calendarCopy.selected}` : calendarCopy.select}
                     </span>
                   </div>
                 </button>
-                {/* Mission Blueprint / What's Included popup trigger (24px min target, WCAG 2.5.8) */}
+                {/* A visible, touch-friendly package-inclusions control separate from the card button. */}
                 <button
                   type="button"
                   onClick={() => setBlueprintPackage(pkg)}
-                  className="self-start inline-flex min-h-6 items-center gap-1 px-1 text-[11px] font-mono text-sky-400 hover:text-sky-300 underline font-semibold transition-colors"
+                  className="self-start inline-flex min-h-11 items-center gap-2 rounded-lg border border-sky-500/30 bg-sky-500/10 px-3 text-sm font-bold text-sky-200 hover:border-sky-400/60 hover:bg-sky-500/15 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 transition-colors touch-manipulation"
                 >
-                  <Sparkles className="w-3 h-3 text-amber-400 shrink-0" />
-                  <span>What&apos;s Included / Mission Blueprint ↗</span>
+                  <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
+                  <span>{bpCopy.whatIncludedBtn}</span>
+                  <ChevronRight className={`w-4 h-4 shrink-0 ${isRTL ? 'rotate-180' : ''}`} />
                 </button>
                 </div>
               );
@@ -1742,20 +1793,20 @@ export function AmazonFlightStorefront({
               <div>
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-sky-500/15 border border-sky-500/30 text-sky-300 text-xs font-mono font-bold">
                   <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                  <span>OFFICIAL FLIGHT BLUEPRINT • WHAT&apos;S INCLUDED</span>
+                  <span>{bpCopy.badge}</span>
                 </div>
                 <h3 id="blueprint-modal-title" className="text-xl sm:text-2xl font-black text-white mt-1">
                   {blueprintPackage.title}
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-300 font-mono mt-0.5">
-                  Duration: <strong className="text-amber-400">{blueprintPackage.durationMinutes} Minutes</strong> • {formatCurrency(blueprintPackage.priceIls)}
+                  <strong className="text-amber-400">{bpCopy.duration(blueprintPackage.durationMinutes)}</strong> • {formatCurrency(blueprintPackage.priceIls)}
                 </p>
               </div>
 
               <button
                 type="button"
                 onClick={() => setBlueprintPackage(null)}
-                aria-label="Close dialog"
+                aria-label={bpCopy.closeDialogLabel}
                 className="p-1.5 rounded-lg border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors"
               >
                 <X className="w-5 h-5" />
@@ -1767,44 +1818,48 @@ export function AmazonFlightStorefront({
               <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-3">
                 <h4 className="font-bold text-white flex items-center gap-2 text-sm">
                   <Plane className="w-4 h-4 text-sky-400" />
-                  <span>Cockpit Mission Architecture</span>
+                  <span>{bpCopy.missionArch}</span>
                 </h4>
                 <ul className="space-y-2 text-slate-300">
                   <li className="flex items-start gap-2">
                     <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
                     <span>
-                      <strong className="text-white">Hands-On Pilot-in-Command:</strong> Full {blueprintPackage.durationMinutes} minutes in the Left Seat (Captain) or Right Seat with motorized throttle levers, dual flight directors, and 220° 4K panoramic horizon.
+                      <strong className="text-white">{bpCopy.handsOnPic}</strong>{' '}
+                      {bpCopy.handsOnDesc(blueprintPackage.durationMinutes)}
                     </span>
                   </li>
                   <li className="flex items-start gap-2">
                     <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
                     <span>
-                      <strong className="text-white">Takeoff &amp; Landing Foundation:</strong> Guided takeoff roll, climbout navigation, pattern circuits, and smooth landings.
+                      <strong className="text-white">{bpCopy.takeoffTitle}</strong>{' '}
+                      {bpCopy.takeoffDesc}
                     </span>
                   </li>
                   <li className="flex items-start gap-2">
                     <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
                     <span>
-                      <strong className="text-white">World Route Inclusions:</strong>{' '}
+                      <strong className="text-white">{bpCopy.worldTitle}</strong>{' '}
                       {blueprintPackage.durationMinutes === 60
-                        ? 'Includes Takeoff & Landing exercise + 1 full World Trio theme of your choice (fly 3 iconic airports such as London Heathrow/Paris CDG/Amsterdam Schiphol, or Mediterranean Islands, or Innsbruck Alps) with customizable weather.'
+                        ? bpCopy.world60
                         : blueprintPackage.durationMinutes === 90
-                        ? 'Includes Takeoff & Landing exercise + up to 2 World Trio themes (4 to 6 dramatic international landings) + your choice of Cold & Dark Startup or V1 Engine-Out emergencies. Can be shared between 1 or 2 pilots taking turns!'
+                        ? bpCopy.world90
                         : blueprintPackage.category === 'training'
-                        ? 'Raw Data manual flying (FD OFF), steep 45° turns, V1 Cut engine failure, Single-Engine ILS, and QRH checklist drills.'
-                        : 'Single or multi-landing flight session with real-time weather and ATC communication.'}
+                        ? bpCopy.worldPro
+                        : bpCopy.worldBasic}
                     </span>
                   </li>
                   <li className="flex items-start gap-2">
                     <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
                     <span>
-                      <strong className="text-white">Free Cockpit Observers:</strong> Up to {blueprintPackage.guestSeats} family members or friends inside the cockpit jumpseats free of charge (photos &amp; video welcome!).
+                      <strong className="text-white">{bpCopy.observersTitle}</strong>{' '}
+                      {bpCopy.observersDesc}
                     </span>
                   </li>
                   <li className="flex items-start gap-2">
                     <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
                     <span>
-                      <strong className="text-white">Personal Airline Instructor:</strong> 1-on-1 personalized pre-flight briefing and continuous cockpit guidance from certified commercial pilots.
+                      <strong className="text-white">{bpCopy.guidanceTitle}</strong>{' '}
+                      {bpCopy.guidanceDesc}
                     </span>
                   </li>
                 </ul>
@@ -1813,7 +1868,7 @@ export function AmazonFlightStorefront({
               {/* Package Features List */}
               <div className="space-y-2">
                 <p className="text-[11px] font-mono uppercase text-slate-400 font-bold">
-                  Highlights &amp; Amenities:
+                  {bpCopy.highlightsTitle}
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-300">
                   {blueprintPackage.features.map((feat, idx) => (
@@ -1834,7 +1889,7 @@ export function AmazonFlightStorefront({
                 onClick={() => setBlueprintPackage(null)}
                 className="w-full sm:w-auto text-slate-400 hover:text-white"
               >
-                Close Blueprint
+                {bpCopy.closeBtn}
               </Button>
               <Button
                 type="button"
@@ -1844,8 +1899,8 @@ export function AmazonFlightStorefront({
                 }}
                 className="w-full sm:w-auto font-black bg-amber-400 hover:bg-amber-300 text-slate-950 px-6"
               >
-                <span>Select This Package ({formatCurrency(blueprintPackage.priceIls)})</span>
-                <ChevronRight className="w-4 h-4" />
+                <span>{bpCopy.selectBtn(formatCurrency(blueprintPackage.priceIls))}</span>
+                <ChevronRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
               </Button>
             </div>
           </div>

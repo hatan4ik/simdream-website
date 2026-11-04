@@ -469,6 +469,18 @@ export default function ContactPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const subject = new URLSearchParams(window.location.search).get('subject');
+    if (subject !== 'subscription') return;
+
+    setFormData((current) => ({
+      ...current,
+      subject: 'Multi-Flight Pass Interest',
+      message: current.message || t.contact.subscriptionInquiryPrefill,
+    }));
+  }, [t.contact.subscriptionInquiryPrefill]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -1017,6 +1029,7 @@ export default function ContactPage() {
                     <option value="Pilot Assessment Screening">{t.contact.subjectTraining}</option>
                     <option value="Corporate Offsite">{t.contact.subjectCorporate}</option>
                     <option value="Gift Voucher Support">{t.contact.subjectVoucher}</option>
+                    <option value="Multi-Flight Pass Interest">{t.contact.subjectSubscription}</option>
                   </select>
                 </div>
 

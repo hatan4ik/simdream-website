@@ -2,7 +2,8 @@ import 'server-only';
 
 import { FACILITY_INFO } from '@/lib/config/facility-info';
 
-const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+/** Browser-facing feed freshness: balance current feedback with Google Places API usage. */
+const CACHE_TTL_MS = 15 * 60 * 1000;
 const PLACEHOLDER_VALUES = ['your_', 'your-', 'example', 'placeholder', '...'];
 
 export interface GoogleReview {
@@ -10,7 +11,6 @@ export interface GoogleReview {
   author: string;
   rating: number;
   quote: string;
-  role: string;
   relativeTime: string;
   language: 'he' | 'en' | 'ru' | 'fr' | 'ar';
   characterCount: number;
@@ -76,7 +76,7 @@ async function fetchGooglePlacesSnapshot(now: number): Promise<GoogleReviewsSnap
       'X-Goog-Api-Key': key,
       'X-Goog-FieldMask': 'rating,userRatingCount,reviews',
     },
-    next: { revalidate: 86400 },
+    cache: 'no-store',
   });
   if (!response.ok) throw new Error(`Google Places returned ${response.status}.`);
 
@@ -84,13 +84,13 @@ async function fetchGooglePlacesSnapshot(now: number): Promise<GoogleReviewsSnap
   const reviews = (payload.reviews || [])
     .map((review, index): GoogleReview | null => {
       const quote = review.text?.text?.trim();
-      if (!quote) return null;
+      const author = review.authorAttribution?.displayName?.trim();
+      if (!quote || !author) return null;
       return {
         id: review.name || `google-${index}`,
-        author: review.authorAttribution?.displayName || 'Google reviewer',
+        author,
         rating: typeof review.rating === 'number' ? review.rating : 0,
         quote,
-        role: 'Google Maps review',
         relativeTime: review.relativePublishTimeDescription || '',
         language: reviewLanguage(review.text?.languageCode),
         characterCount: quote.length,

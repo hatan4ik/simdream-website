@@ -106,14 +106,14 @@ describe('POST /api/admin/schedule-optimization', () => {
 });
 
 describe('GET /api/reviews', () => {
-  it('serves the review snapshot publicly with a one-day shared cache', async () => {
+  it('serves the review snapshot publicly with a short shared cache for the browser carousel', async () => {
     const app = await loadApp();
     const { GET } = await app.routes.reviews();
 
     const response = await readJson(await GET());
 
     expect(response.status).toBe(200);
-    expect(response.headers.get('cache-control')).toBe('public, s-maxage=86400, stale-while-revalidate=43200');
+    expect(response.headers.get('cache-control')).toBe('public, s-maxage=900, stale-while-revalidate=300');
     const snapshot = expectContract(reviewsSnapshot, response.body);
     expect(snapshot.source).toMatch(/not configured/);
     expect(snapshot).toMatchObject({ overallRating: 0, totalReviewsCount: 0, reviews: [] });

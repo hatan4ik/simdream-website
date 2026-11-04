@@ -9,7 +9,6 @@ import {
   Radio,
   ShieldCheck,
   ChevronRight,
-  Star,
   Users,
   ArrowRight,
   UserCheck,
@@ -22,6 +21,7 @@ import { Card } from '@/components/ui/Card';
 import { getLocalizedPackages } from '@/lib/i18n/translations';
 import { formatCurrency } from '@/lib/utils';
 import { useLanguage } from '@/lib/i18n/language-context';
+import { GoogleReviewsCarousel } from '@/components/reviews/GoogleReviewsCarousel';
 
 export default function HomePage() {
   const { t, language, isRTL } = useLanguage();
@@ -247,6 +247,8 @@ export default function HomePage() {
 
         </div>
       </section>
+
+      <GoogleReviewsCarousel />
 
       {/* 3. POPULAR FLIGHT EXPERIENCES */}
       <section className="py-14 sm:py-24 px-4 sm:px-6 lg:px-8 bg-aviation-darkest">

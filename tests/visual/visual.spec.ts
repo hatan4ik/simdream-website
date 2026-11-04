@@ -51,12 +51,6 @@ function dynamicRegions(page: Page): Locator[] {
   return [
     // Live METAR / status bar rendered directly above the navbar.
     page.locator('nav').locator('xpath=preceding-sibling::div[1]'),
-    // Google reviews rotator: the innermost section holding its "n / total" page buttons
-    // (on / it is nested inside the "Why fly with us" section, which must stay visible).
-    page
-      .locator('section')
-      .filter({ has: page.getByRole('button', { name: /\d+ \/ \d+$/ }) })
-      .last(),
     // Calendar day buttons are clock-driven and masked in visual snapshots.
     page.getByRole('button', { name: /^(Sun|Mon|Tue|Wed|Thu|Fri|Sat) \d{1,2} [A-Z][a-z]{2}$/ }),
     // Footer live opening status.

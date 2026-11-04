@@ -22,7 +22,7 @@ import {
   tabTo,
 } from '../usability/support/page';
 
-const BLUEPRINT_TRIGGER = "What's Included / Mission Blueprint ↗";
+const BLUEPRINT_TRIGGER = "See what's included";
 /** Generous bound for focus effects that should be synchronous, so expected failures fail fast. */
 const FOCUS_SETTLE = { timeout: 2_000 };
 
@@ -328,7 +328,7 @@ test.describe('Mission Blueprint dialog', () => {
 
   test('keeps Tab focus inside the open dialog', async ({ page }) => {
     const dialog = await openWizardBlueprintByKeyboard(page);
-    await dialog.getByRole('button', { name: 'Close dialog' }).focus();
+    await dialog.getByRole('button', { name: 'Close package inclusions' }).focus();
 
     const escaped: string[] = [];
     for (let press = 0; press < 6; press += 1) {
@@ -342,7 +342,7 @@ test.describe('Mission Blueprint dialog', () => {
 
   test('closes on Escape in the guided wizard', async ({ page }) => {
     const dialog = await openWizardBlueprintByKeyboard(page);
-    await dialog.getByRole('button', { name: 'Close dialog' }).focus();
+    await dialog.getByRole('button', { name: 'Close package inclusions' }).focus();
     await page.keyboard.press('Escape');
 
     await expect(dialog).toBeHidden(FOCUS_SETTLE);
@@ -350,7 +350,7 @@ test.describe('Mission Blueprint dialog', () => {
 
   test('returns focus to the trigger when the dialog closes', async ({ page }) => {
     const dialog = await openWizardBlueprintByKeyboard(page);
-    await dialog.getByRole('button', { name: 'Close dialog' }).focus();
+    await dialog.getByRole('button', { name: 'Close package inclusions' }).focus();
     await page.keyboard.press('Enter');
     await expect(dialog).toBeHidden();
 
@@ -363,7 +363,7 @@ test.describe('Mission Blueprint dialog', () => {
     await page.getByRole('button', { name: BLUEPRINT_TRIGGER, exact: true }).first().click();
     const dialog = page.getByRole('dialog');
     await expect(dialog).toBeVisible();
-    await dialog.getByRole('button', { name: 'Close dialog' }).focus();
+    await dialog.getByRole('button', { name: 'Close package inclusions' }).focus();
     await page.keyboard.press('Escape');
 
     await expect(dialog).toBeHidden(FOCUS_SETTLE);
@@ -389,8 +389,21 @@ test.describe('review carousel', () => {
 
   test('keeps keyboard focus on a review link while the carousel would auto-rotate', async ({ page }) => {
     await page.clock.install();
+    await page.route('**/api/reviews', (route) =>
+      route.fulfill({
+        json: {
+          overallRating: 4.8,
+          totalReviewsCount: 2,
+          directReviewsUrl: 'https://search.google.com/local/reviews?placeid=test',
+          reviews: [
+            { id: 'one', author: 'Ari', rating: 5, quote: 'An actual Google review.', relativeTime: 'a week ago', language: 'en' },
+            { id: 'two', author: 'Maya', rating: 5, quote: 'A second actual Google review.', relativeTime: '2 weeks ago', language: 'en' },
+          ],
+        },
+      })
+    );
     await gotoSettled(page, '/');
-    const reviewLink = page.getByRole('link', { name: 'Read All 390+ Verified Reviews on Google Maps ↗' }).nth(1);
+    const reviewLink = page.getByRole('link', { name: 'Read all reviews on Google' });
     await tabTo(page, reviewLink, { maxPresses: 120 });
     expect(await isFocused(reviewLink)).toBe(true);
 

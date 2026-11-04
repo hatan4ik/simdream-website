@@ -309,7 +309,6 @@ const googleReview = z.strictObject({
   author: z.string().min(1),
   rating: z.number().min(0).max(5),
   quote: z.string().min(1),
-  role: z.string(),
   relativeTime: z.string(),
   language: z.enum(['he', 'en', 'ru', 'fr', 'ar']),
   characterCount: z.number().int().positive(),

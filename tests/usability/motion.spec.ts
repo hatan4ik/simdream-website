@@ -11,9 +11,26 @@ test.beforeEach(async ({ page, baseURL }) => {
   await isolateFromThirdParties(page, baseURL);
 });
 
-/** "1–3 / 9"-style position label of the Google reviews carousel. */
-function reviewPosition(page: Page, first: number) {
-  return page.getByText(new RegExp(`^${first}–${first + 2} / \\d+$`));
+async function mockLiveGoogleReviews(page: Page) {
+  await page.route('**/api/reviews', (route) =>
+    route.fulfill({
+      json: {
+        overallRating: 4.8,
+        totalReviewsCount: 3,
+        directReviewsUrl: 'https://search.google.com/local/reviews?placeid=test',
+        reviews: [
+          { id: 'one', author: 'Ari', rating: 5, quote: 'An actual Google review.', relativeTime: 'a week ago', language: 'en' },
+          { id: 'two', author: 'Maya', rating: 5, quote: 'A second actual Google review.', relativeTime: '2 weeks ago', language: 'en' },
+          { id: 'three', author: 'Noam', rating: 4, quote: 'A third actual Google review.', relativeTime: 'a month ago', language: 'en' },
+        ],
+      },
+    })
+  );
+}
+
+/** Position status exposed by the live-data carousel. */
+function reviewPosition(page: Page, current: number) {
+  return page.getByText(`Review ${current} of 3`, { exact: true });
 }
 
 /** Infinite (looping) animations currently running on the page, described for failure messages. */
@@ -35,6 +52,7 @@ test.describe('when the visitor requests reduced motion', () => {
 
   test('keeps the review carousel still', async ({ page }) => {
     await page.clock.install();
+    await mockLiveGoogleReviews(page);
     await gotoSettled(page, '/');
     await expect(reviewPosition(page, 1)).toBeVisible();
 
@@ -63,12 +81,13 @@ test.describe('when motion is allowed', () => {
 
   test('auto-rotates the review carousel', async ({ page }) => {
     await page.clock.install();
+    await mockLiveGoogleReviews(page);
     await gotoSettled(page, '/');
     await expect(reviewPosition(page, 1)).toBeVisible();
 
     await page.clock.runFor(8_000);
 
-    await expect(reviewPosition(page, 4)).toBeVisible();
+    await expect(reviewPosition(page, 2)).toBeVisible();
   });
 
   test('celebrates a confirmed boarding pass with confetti', async ({ page }) => {

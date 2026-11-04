@@ -102,9 +102,9 @@ Production-grade website, multi-step booking engine, Amazon-style flight storefr
    - **Fail-Closed Payment Feedback**: If card payments are not configured, the checkout API returns a safe error and the storefront displays it immediately beside the checkout button. It does not create a pending card reservation or redirect to an unconfigured payment provider.
 
 10. **Google Places Review Feed (`/api/reviews`)**:
-    - When `GOOGLE_PLACES_API_KEY` is configured, the route refreshes rating, count, and available review excerpts from the listed Google Maps Place ID every 24 hours.
+    - The home-page carousel is rendered in the browser and loads its data from `/api/reviews`; the route obtains rating, count, and available review excerpts from the listed Google Maps Place ID without exposing `GOOGLE_PLACES_API_KEY` to visitors.
     - If the API is absent or a refresh fails, it deliberately serves **no rating, count, or review excerpts**. The website never substitutes local or generated review content for Google data.
-    - **24-Hour Server Cache (ISR)**: Cached via [`lib/reviews/google-reviews-cache.ts`](lib/reviews/google-reviews-cache.ts) and `/api/reviews` (`revalidate = 86400`) so an enabled, attributable feed is efficient without overstating unavailable data.
+    - **15-Minute Server Cache**: [`lib/reviews/google-reviews-cache.ts`](lib/reviews/google-reviews-cache.ts) and `/api/reviews` refresh the attributable feed at most every 15 minutes. The carousel is intentionally absent when no live Google data is available.
 
 11. **Voucher Management & 1-Click Session Cache Reapply**:
     - **Instant Removal & Price Reset**: Customers can remove applied gift vouchers or promo codes at any time to verify the original package price without page reloads.

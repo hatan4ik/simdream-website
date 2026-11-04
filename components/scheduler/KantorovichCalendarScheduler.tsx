@@ -35,6 +35,7 @@ import {
 } from '@/lib/i18n/calendar-presentation';
 import { addMinutesToTime, packageFromPriceIls, packagePriceForSlot } from '@/lib/scheduler/mission-calculator';
 import { getPackageFormulaBadge } from '@/lib/scheduler/package-presentation';
+import { BOOKING_BLUEPRINT_COPY } from '@/lib/i18n/booking-blueprint-copy';
 
 interface KantorovichCalendarSchedulerProps {
   selectedDate: string;
@@ -266,134 +267,6 @@ const CLEAN_COPY: Record<
   },
 };
 
-const BLUEPRINT_COPY: Record<Language, {
-  whatIncludedBtn: string;
-  badge: string;
-  missionArch: string;
-  handsOnPic: string;
-  handsOnDesc: (m: number) => string;
-  takeoffTitle: string;
-  takeoffDesc: string;
-  worldTitle: string;
-  world60: string;
-  world90: string;
-  worldPro: string;
-  worldBasic: string;
-  observersTitle: string;
-  observersDesc: string;
-  guidanceTitle: string;
-  guidanceDesc: string;
-  highlightsTitle: string;
-  closeBtn: string;
-  selectBtn: (price: string) => string;
-}> = {
-  en: {
-    whatIncludedBtn: "What's Included / Mission Blueprint ↗",
-    badge: "OFFICIAL FLIGHT BLUEPRINT • WHAT'S INCLUDED",
-    missionArch: 'Cockpit Mission Architecture',
-    handsOnPic: 'Hands-On Pilot-in-Command:',
-    handsOnDesc: (m) => `${m} minutes in the Captain or First Officer seat with active controls feedback and 220° 4K visuals.`,
-    takeoffTitle: 'Takeoff & Landing Foundation:',
-    takeoffDesc: 'Guided takeoff roll, climbout navigation, visual pattern circuit, and manual touchdown.',
-    worldTitle: 'World Route Inclusions:',
-    world60: 'Includes Takeoff & Landing exercise + 1 full World Trio theme of your choice (fly 3 iconic airports such as London Heathrow/Paris CDG/Amsterdam Schiphol, or Mediterranean Islands, or Innsbruck Alps).',
-    world90: 'Includes Takeoff & Landing exercise + up to 2 World Trio themes (4 to 6 dramatic international landings) + Cold & Dark Startup or V1 Engine-Out emergencies. Can be shared between 1 or 2 pilots!',
-    worldPro: 'Raw Data manual flying (FD OFF), steep 45° turns, V1 Cut engine failure, Single-Engine ILS, and QRH checklist drills.',
-    worldBasic: 'Focused takeoff and landing flight session at a single international airport (such as Ben Gurion LLBG).',
-    observersTitle: 'Free Cockpit Observers:',
-    observersDesc: 'Up to 2 observers inside cockpit jumpseats free of charge (photos & video welcome!).',
-    guidanceTitle: 'Commercial Pilot Guidance:',
-    guidanceDesc: '1-on-1 personalized pre-flight briefing and active cockpit mentoring from commercial pilots.',
-    highlightsTitle: 'Highlights & Amenities:',
-    closeBtn: 'Close Blueprint',
-    selectBtn: (price) => `Select This Package (${price})`,
-  },
-  he: {
-    whatIncludedBtn: 'מה כוללת הטיסה? תוכנית משימה ↗',
-    badge: 'תוכנית משימה רשמית • מה כולל הסשן',
-    missionArch: 'מבנה משימת הטיסה בקוקפיט',
-    handsOnPic: 'הטסה בידיים שלכם (Pilot-in-Command):',
-    handsOnDesc: (m) => `${m} דקות מלאות בכיסא הקברניט עם מצערות ממונעות, מסך פנורמי 220° ושליטה מלאה בהגאים.`,
-    takeoffTitle: 'תרגול המראה ונחיתה:',
-    takeoffDesc: 'ריצת המראה מודרכת, המראה, ניווט בהקפה ונחיתה ידנית בשדה תעופה בינלאומי.',
-    worldTitle: 'שדות תעופה ויעדים בעולם:',
-    world60: 'כולל תרגול המראה ונחיתה + שלישיית שדות תעופה עולמית אחת (Trio) לבחירתכם (3 יעדים כגון שדות תעופה קלאסיים באירופה, איים יווניים, או אלפים).',
-    world90: 'כולל תרגול המראה ונחיתה + 2 שלישיות Trio עולמיות (4 עד 6 נחיתות בעולם) + תרגול תקלות מנוע V1 או Cold & Dark. ניתן לחלוק בין 1 או 2 טייסים!',
-    worldPro: 'הטסה ידנית ללא Flight Director (Raw Data), פניות 45°, תרגול V1 Cut, גישת ILS במנוע בודד ונוהלי QRH.',
-    worldBasic: 'תרגול המראה ונחיתה ממוקד בשדה תעופה בודד (כמו נתב״ג LLBG) עם תדריך קברניט אישי.',
-    observersTitle: 'מלווים בקוקפיט חינם:',
-    observersDesc: 'עד 2 מלווים (משפחה או חברים) יושבים בתוך תא הטייס ללא תשלום, צופים ומצלמים.',
-    guidanceTitle: 'מדריך טיסה צמוד:',
-    guidanceDesc: 'ליווי 1-על-1 של טייס מסחרי מקצועי לכל אורך הטיסה.',
-    highlightsTitle: 'עיקרי החבילה והטבות:',
-    closeBtn: 'סגור תוכנית',
-    selectBtn: (price) => `בחר חבילה זו (${price})`,
-  },
-  ru: {
-    whatIncludedBtn: 'Что входит в полёт? План миссии ↗',
-    badge: 'ОФИЦИАЛЬНЫЙ ПЛАН ПОЛЁТА • ЧТО ВКЛЮЧЕНО',
-    missionArch: 'Архитектура полётной сессии в кабине',
-    handsOnPic: 'Пилотирование своими руками (КВС):',
-    handsOnDesc: (m) => `${m} минут в кресле командира с моторизованным РУД, экраном 220° 4K и полной отдачей штурвала.`,
-    takeoffTitle: 'Базовые упражнения взлёта и посадки:',
-    takeoffDesc: 'Разбег, взлёт, полёт по аэродромному кругу и ручная посадка в международном аэропорту.',
-    worldTitle: 'Маршруты и аэропорты мира:',
-    world60: 'Взлёт и посадка + 1 комплект World Trio на выбор (3 аэропорта: Лондон/Париж/Амстердам, острова Средиземноморья или Альпы Инсбрука).',
-    world90: 'Взлёт и посадка + 2 комплекта World Trio (4–6 посадок) + запуск Cold & Dark или отказ двигателя V1. Можно разделить на 1 или 2 пилотов!',
-    worldPro: 'Ручное пилотирование Raw Data (FD OFF), виражи 45°, отказ двигателя V1 Cut, посадка по ILS на одном двигателе и работа по QRH.',
-    worldBasic: 'Интенсивный тренинг взлёта и посадки в одном выбранном аэропорту (например, Бен-Гурион LLBG).',
-    observersTitle: 'Гости в кабине бесплатно:',
-    observersDesc: 'До 2 гостей на откидных креслах в кабине бесплатно (фото и видеосъёмка приветствуются!).',
-    guidanceTitle: 'Сопровождение пилота-инструктора:',
-    guidanceDesc: 'Индивидуальный предполётный инструктаж 1-на-1 и постоянное наставничество в полёте.',
-    highlightsTitle: 'Преимущества и особенности пакета:',
-    closeBtn: 'Закрыть программу',
-    selectBtn: (price) => `Выбрать этот пакет (${price})`,
-  },
-  fr: {
-    whatIncludedBtn: 'Programme du vol & Inclusions ↗',
-    badge: 'PLAN DE VOL OFFICIEL • DÉTAIL DE LA SESSION',
-    missionArch: 'Déroulement de la mission cockpit',
-    handsOnPic: 'Aux commandes (Commandant de bord) :',
-    handsOnDesc: (m) => `${m} minutes aux commandes en place gauche ou droite avec commandes dynamiques et visuel 220° 4K.`,
-    takeoffTitle: 'Exercices de décollage et atterrissage :',
-    takeoffDesc: 'Roulage, décollage assisté, tour de piste visuel et atterrissage manuel sur aéroport international.',
-    worldTitle: 'Aéroports et destinations mondiales :',
-    world60: 'Décollage et atterrissage + 1 trio mondial au choix (3 aéroports majeurs : Londres/Paris/Amsterdam, îles grecques ou Alpes).',
-    world90: 'Décollage et atterrissage + 2 trios mondiaux (4 à 6 atterrissages) + démarrage Cold & Dark ou panne moteur V1. Partageable entre 1 ou 2 pilotes !',
-    worldPro: 'Vol manuel Raw Data (sans directeur de vol), virages à 45°, panne moteur V1 Cut, ILS monomoteur et procédures QRH.',
-    worldBasic: 'Session ciblée de décollage et atterrissage sur un aéroport unique (tel que Ben Gourion LLBG).',
-    observersTitle: 'Accompagnateurs gratuits :',
-    observersDesc: 'Jusqu’à 2 accompagnateurs dans le cockpit sans supplément (photos et vidéos bienvenues !).',
-    guidanceTitle: 'Instructeur pilote de ligne :',
-    guidanceDesc: 'Briefing pré-vol individuel et accompagnement actif par un pilote de ligne expérimenté.',
-    highlightsTitle: 'Points forts et prestations :',
-    closeBtn: 'Fermer le plan de vol',
-    selectBtn: (price) => `Choisir cette formule (${price})`,
-  },
-  ar: {
-    whatIncludedBtn: 'ماذا تشمل الرحلة؟ مخطط المهمة ↗',
-    badge: 'مخطط الرحلة الرسمي • تفاصيل الجلسة',
-    missionArch: 'هيكل مهمة الطيران في قمرة القيادة',
-    handsOnPic: 'التحكم الفعلي بالقيادة (قائد الطائرة):',
-    handsOnDesc: (m) => `${m} دقيقة كاملة في مقعد القبطان مع أذرع دفع آلية وشاشة بانورامية 220° بدقة 4K وتحكم كامل بالمقود.`,
-    takeoffTitle: 'تمرين الإقلاع والهبوط الأساسي:',
-    takeoffDesc: 'إقلاع موجه، ملاحة في مسار الدوران، وهبوط يدوي في مطار دولي.',
-    worldTitle: 'المطارات والوجهات العالمية:',
-    world60: 'تمرين الإقلاع والهبوط + باقة ثلاثية مطارات عالمية (3 مطارات كبرى مثل لندن/باريس/أمستردام أو جزر المتوسط أو الألب).',
-    world90: 'تمرين الإقلاع والهبوط + باقتان ثلاثيتان (4 إلى 6 عمليات هبوط) + تشغيل Cold & Dark أو طوارئ محرك V1. يمكن تقاسمها بين طيارين اثنين!',
-    worldPro: 'طيران يدوي كامل (Raw Data بدون Flight Director)، انعطافات حادة 45 درجة، عطل محرك V1 Cut، اقتراب ILS بمحرك واحد وقوائم QRH.',
-    worldBasic: 'جلسة مركزة لتمارين الإقلاع والهبوط في مطار واحد (مثل بن غوريون LLBG).',
-    observersTitle: 'مرافقون في القمرة مجاناً:',
-    observersDesc: 'ما يصل إلى مرافقين اثنين داخل قمرة القيادة مجاناً (التقاط الصور والفيديو مرحب به!).',
-    guidanceTitle: 'إشراف مدرب طيران معتمد:',
-    guidanceDesc: 'إرشاد وتدريب فردي 1-على-1 من قبل طيار تجاري طوال فترة الرحلة.',
-    highlightsTitle: 'أبرز مميزات ومزايا الباقة:',
-    closeBtn: 'إغلاق الخطة',
-    selectBtn: (price) => `اختيار هذه الباقة (${price})`,
-  },
-};
-
 export function KantorovichCalendarScheduler({
   selectedDate,
   calendarTodayYmd,
@@ -409,7 +282,7 @@ export function KantorovichCalendarScheduler({
 }: KantorovichCalendarSchedulerProps) {
   const { language, isRTL } = useLanguage();
   const copy = CLEAN_COPY[language] || CLEAN_COPY.en;
-  const bpCopy = BLUEPRINT_COPY[language] || BLUEPRINT_COPY.en;
+  const bpCopy = BOOKING_BLUEPRINT_COPY[language] || BOOKING_BLUEPRINT_COPY.en;
 
   const [calendarMode, setCalendarMode] = useState<'week' | 'month'>('month');
   const [blueprintModalPackage, setBlueprintModalPackage] = useState<SimulatorPackage | null>(null);
@@ -700,10 +573,11 @@ export function KantorovichCalendarScheduler({
           <button
             type="button"
             onClick={() => setBlueprintModalPackage(selectedPackage)}
-            className="inline-flex items-center gap-1.5 text-xs font-mono text-sky-400 hover:text-sky-300 underline font-semibold transition-colors"
+            className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-sky-500/30 bg-sky-500/10 px-3 text-sm font-bold text-sky-200 hover:border-sky-400/60 hover:bg-sky-500/15 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 transition-colors touch-manipulation"
           >
-            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+            <Sparkles className="w-4 h-4 text-amber-400" />
             <span>{bpCopy.whatIncludedBtn}</span>
+            <ChevronRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
           </button>
         </div>
 
@@ -943,14 +817,14 @@ export function KantorovichCalendarScheduler({
                   {blueprintModalPackage.title}
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-300 font-mono mt-0.5">
-                  Duration: <strong className="text-amber-400">{blueprintModalPackage.durationMinutes} Minutes</strong> • {formatCurrency(blueprintModalPackage.priceIls)}
+                  <strong className="text-amber-400">{bpCopy.duration(blueprintModalPackage.durationMinutes)}</strong> • {formatCurrency(blueprintModalPackage.priceIls)}
                 </p>
               </div>
 
               <button
                 type="button"
                 onClick={() => setBlueprintModalPackage(null)}
-                aria-label="Close dialog"
+                aria-label={bpCopy.closeDialogLabel}
                 className="p-1.5 rounded-lg border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors"
               >
                 <X className="w-5 h-5" />
