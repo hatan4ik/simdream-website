@@ -19,7 +19,6 @@ import {
   Plane,
   CloudLightning,
   Mountain,
-  Video,
   Zap,
   Globe,
   Layers,
@@ -102,7 +101,7 @@ interface AmazonFlightStorefrontProps {
   accountNotice?: React.ReactNode;
 }
 
-type AddonFilterTab = 'all' | 'world_bundles' | 'cockpit_ops' | 'media_vip';
+type AddonFilterTab = 'all' | 'world_bundles' | 'cockpit_ops' | 'guest_extras';
 
 interface QuickComboPreset {
   id: string;
@@ -128,11 +127,11 @@ const QUICK_COMBOS: QuickComboPreset[] = [
     addonIds: ['addon-xwind-ifr', 'addon-extreme-airports'],
   },
   {
-    id: 'combo-med-video',
-    badge: 'GIFT & VLOG FAVORITE',
-    title: 'Mediterranean Islands Trio + Multi-Angle Video',
-    subtitle: 'Corfu, Skiathos & Nice approaches (+40m) with 4K multi-cam cockpit recording',
-    addonIds: ['addon-med-islands', 'addon-hd-video'],
+    id: 'combo-med-guest',
+    badge: 'SHARED FLIGHT FAVORITE',
+    title: 'Mediterranean Islands Trio + Extra Cockpit Guest',
+    subtitle: 'Corfu, Skiathos & Nice approaches (+40m), shared with one additional cockpit observer',
+    addonIds: ['addon-med-islands', 'addon-extra-seat'],
   },
 ];
 
@@ -506,8 +505,8 @@ export function AmazonFlightStorefront({
     if (addonFilter === 'cockpit_ops') {
       return addons.filter((a) => COCKPIT_OPS_IDS.has(a.id));
     }
-    if (addonFilter === 'media_vip') {
-      return addons.filter((a) => !WORLD_BUNDLE_IDS.has(a.id) && !COCKPIT_OPS_IDS.has(a.id));
+    if (addonFilter === 'guest_extras') {
+      return addons.filter((a) => a.id === 'addon-extra-seat');
     }
     return addons;
   }, [addons, addonFilter]);
@@ -536,7 +535,6 @@ export function AmazonFlightStorefront({
     if (addon.icon === 'CloudLightning') return <CloudLightning className="w-4 h-4 text-amber-400" />;
     if (addon.icon === 'Compass') return <Mountain className="w-4 h-4 text-rose-400" />;
     if (addon.icon === 'Zap') return <Plane className="w-4 h-4 text-emerald-400" />;
-    if (addon.icon === 'Video') return <Video className="w-4 h-4 text-purple-400" />;
     if (addon.icon === 'Users') return <Users className="w-4 h-4 text-sky-400" />;
     return <Sparkles className="w-4 h-4 text-amber-400" />;
   };
@@ -1204,7 +1202,7 @@ export function AmazonFlightStorefront({
                 { id: 'all', label: `All (${addons.length})` },
                 { id: 'world_bundles', label: '🌍 3-Airport Trios (7)' },
                 { id: 'cockpit_ops', label: '✈️ Cockpit & Weather (3)' },
-                { id: 'media_vip', label: '🎥 Media & VIP (2)' },
+                { id: 'guest_extras', label: '👥 Guest Extras (1)' },
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -1250,7 +1248,7 @@ export function AmazonFlightStorefront({
                             ? '3-AIRPORT WORLD TOUR'
                             : addonMin > 0
                             ? 'COCKPIT MISSION MODULE'
-                            : 'MEDIA & VIP UPGRADE'}
+                            : 'GUEST EXPERIENCE'}
                         </span>
                       </div>
 

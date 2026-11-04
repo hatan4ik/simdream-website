@@ -183,7 +183,7 @@ const PRO_COPY: Record<Language, ProCopy> = {
       'About Sim Dream & Boeing 737 MAX Simulator Technical Specifications (Click to Expand)',
     techSpecsVisualsTitle: 'Visual & Cockpit Shell',
     techSpecsVisualsDesc:
-      '1:1 scale enclosed Boeing 737 MAX flight deck with 220° cylindrical laser projection, dynamic day/dusk/night visuals, and authentic spatial sounds.',
+      '1:1 scale enclosed Boeing 737 MAX flight deck with dynamic day/dusk/night conditions and authentic spatial sounds.',
     techSpecsControlsTitle: 'Flight Controls & Avionics',
     techSpecsControlsDesc:
       'Dual mechanically linked control columns with dynamic loading, linked rudder pedals, motorized autothrottle quadrant, dual Sismo FMS/CDUs, and CPflight MCP.',
@@ -282,7 +282,7 @@ const PRO_COPY: Record<Language, ProCopy> = {
       'אודות מרכז הסימולטור ומפרט טכני של תא הטייס בואינג 737 MAX (לחצו לצפייה)',
     techSpecsVisualsTitle: 'תצוגה פנורמית ומבנה',
     techSpecsVisualsDesc:
-      'תא טייס סגור בקנה מידה 1:1 של בואינג 737 MAX עם מסך הקרנה פנורמי מעוגל בזווית 220° ברזולוציית 4K, תאורת קוקפיט מלאה ומערכת שמע היקפית מתקדמת.',
+      'תא טייס סגור בקנה מידה 1:1 של בואינג 737 MAX עם תנאי יום/לילה דינמיים ומערכת שמע היקפית מתקדמת.',
     techSpecsControlsTitle: 'הגאים, מצערות ואוויוניקה',
     techSpecsControlsDesc:
       'שני הגאים מקושרים מכנית עם משוב עומס (Control Loading), דוושות כיוון מקושרות, מצערות ממונעות אוטומטית (Motorized Autothrottle), מחשב FMS/CDU כפול ופאנל טייס אוטומטי MCP.',
@@ -381,7 +381,7 @@ const PRO_COPY: Record<Language, ProCopy> = {
       'О центре Sim Dream и технические характеристики симулятора Boeing 737 MAX (нажмите для просмотра)',
     techSpecsVisualsTitle: 'Визуальная система и кабина',
     techSpecsVisualsDesc:
-      'Закрытая кабина Boeing 737 MAX масштаба 1:1 с цилиндрическим проекционным экраном 220° 4K, реалистичной сменой времени суток и пространственным звуком.',
+      'Закрытая кабина Boeing 737 MAX масштаба 1:1 с реалистичной сменой времени суток и пространственным звуком.',
     techSpecsControlsTitle: 'Органы управления и авионика',
     techSpecsControlsDesc:
       'Сдвоенные штурвальные колонки с динамической загрузкой усилий, связанные педали руля направления, моторизованный блок РУД, два FMC/CDU Sismo и панель автопилота CPflight MCP.',
@@ -480,7 +480,7 @@ const PRO_COPY: Record<Language, ProCopy> = {
       'À propos de Sim Dream et spécifications techniques du simulateur Boeing 737 MAX (cliquer pour ouvrir)',
     techSpecsVisualsTitle: 'Système visuel et structure cockpit',
     techSpecsVisualsDesc:
-      'Cockpit fermé échelle 1:1 de Boeing 737 MAX avec écran cylindrique 220° 4K laser, visuel dynamique jour/nuit et acoustique spatiale immersive.',
+      'Cockpit fermé échelle 1:1 de Boeing 737 MAX avec conditions dynamiques jour/nuit et acoustique spatiale immersive.',
     techSpecsControlsTitle: 'Commandes de vol et avionique',
     techSpecsControlsDesc:
       'Colonnes de commandes interconnectées avec retour d’effort dynamique, palonniers couplés, manette des gaz motorisée, double FMC/CDU Sismo et panneau MCP CPflight.',
@@ -579,7 +579,7 @@ const PRO_COPY: Record<Language, ProCopy> = {
       'حول مركز سيم دريم والمواصفات الفنية لقمرة بوينغ 737 ماكس (انقر للتوسيع)',
     techSpecsVisualsTitle: 'نظام العرض البانورامي وهيكل القمرة',
     techSpecsVisualsDesc:
-      'قمرة قيادة مغلقة بمقياس 1:1 لطائرة بوينغ 737 ماكس مع شاشة إسقاط ليزرية أسطوانية 220° بدقة 4K وتأثيرات صوتية واقعية.',
+      'قمرة قيادة مغلقة بمقياس 1:1 لطائرة بوينغ 737 ماكس مع ظروف إضاءة ديناميكية وتأثيرات صوتية واقعية.',
     techSpecsControlsTitle: 'أدوات التحكم وإلكترونيات الطيران',
     techSpecsControlsDesc:
       'مقاود تحكم مزدوجة ومقترنة مع محاكاة الأحمال الهوائية الديناميكية، دواسات توجيه مقترنة، أذرع دفع آلية، جهازا FMS/CDU ولوحة الطيار الآلي MCP.',

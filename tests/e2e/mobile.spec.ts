@@ -95,7 +95,7 @@ test.describe('mobile affordances', () => {
     await wizard.slot(slot.startTime).tap();
     await expect(wizard.actionBar()).toContainText(`${slot.startTime}–${addMinutes(slot.startTime, 60)}`);
     await wizard.continueToAddons().tap();
-    await wizard.addonCard('4K Cockpit Multi-Cam Video Recording').tap();
+    await wizard.addonCard('Extra Cockpit Jumpseat Passenger').tap();
     await expect(page.getByText('✓ Added to Flight')).toBeVisible();
     await wizard.continueToPilot().tap();
 
@@ -109,7 +109,7 @@ test.describe('mobile affordances', () => {
 
     await expect(booking.alert(PAYMENTS_UNAVAILABLE)).toBeVisible();
     await expect(wizard.pilotName()).toHaveValue('Touch Pilot');
-    await expect(page.getByText('+ 4K Cockpit Multi-Cam Video Recording')).toBeVisible();
+    await expect(page.getByText('+ Extra Cockpit Jumpseat Passenger')).toBeVisible();
   });
 });
 

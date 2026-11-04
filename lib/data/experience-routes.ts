@@ -316,7 +316,7 @@ export const WORLD_ROUTES: WorldRoute[] = [
           { name: 'Washington National', sight: 'River Visual to Runway 19 down the Potomac past the Monument and the Pentagon' },
           { name: 'San Francisco', sight: 'Descent over the Golden Gate Bridge into the Bay with Alcatraz below' },
         ],
-        bestFor: ['US travellers', 'City lovers', 'Photo and video fans'],
+        bestFor: ['US travellers', 'City lovers', 'Landmark lovers'],
       },
       he: {
         title: 'קווי הרקיע של הערים הגדולות באמריקה',
@@ -328,7 +328,7 @@ export const WORLD_ROUTES: WorldRoute[] = [
           { name: 'וושינגטון נשיונל', sight: 'River Visual למסלול 19 לאורך הפוטומק ליד האנדרטה והפנטגון' },
           { name: 'סן פרנסיסקו', sight: 'ירידה מעל גשר שער הזהב אל המפרץ עם אלקטרז מלמטה' },
         ],
-        bestFor: ['מטיילים לארה״ב', 'חובבי ערים', 'חובבי צילום ווידאו'],
+        bestFor: ['מטיילים לארה״ב', 'חובבי ערים', 'חובבי נקודות ציון'],
       },
       ru: {
         title: 'Небоскрёбы американских мегаполисов',
@@ -340,7 +340,7 @@ export const WORLD_ROUTES: WorldRoute[] = [
           { name: 'Вашингтон Нэшнл', sight: 'River Visual на полосу 19 вдоль Потомака мимо Монумента и Пентагона' },
           { name: 'Сан-Франциско', sight: 'Снижение над мостом Золотые Ворота в залив, Алькатрас внизу' },
         ],
-        bestFor: ['Путешественники в США', 'Любители городов', 'Фото- и видеолюбители'],
+        bestFor: ['Путешественники в США', 'Любители городов', 'Любители городских достопримечательностей'],
       },
       fr: {
         title: 'Skylines des mégapoles américaines',
@@ -352,7 +352,7 @@ export const WORLD_ROUTES: WorldRoute[] = [
           { name: 'Washington National', sight: 'River Visual piste 19 le long du Potomac, devant le Monument et le Pentagone' },
           { name: 'San Francisco', sight: 'Descente au-dessus du Golden Gate vers la baie, Alcatraz en dessous' },
         ],
-        bestFor: ['Voyageurs aux États-Unis', 'Amoureux des villes', 'Fans de photo et vidéo'],
+        bestFor: ['Voyageurs aux États-Unis', 'Amoureux des villes', 'Amateurs de monuments urbains'],
       },
       ar: {
         title: 'أفق المدن الأمريكية الكبرى',
@@ -364,7 +364,7 @@ export const WORLD_ROUTES: WorldRoute[] = [
           { name: 'واشنطن ناشيونال', sight: 'River Visual نحو المدرج 19 على طول بوتوماك بجوار النصب والبنتاغون' },
           { name: 'سان فرانسيسكو', sight: 'هبوط فوق جسر البوابة الذهبية نحو الخليج وألكاتراز في الأسفل' },
         ],
-        bestFor: ['المسافرون إلى أمريكا', 'عشاق المدن', 'محبو التصوير والفيديو'],
+        bestFor: ['المسافرون إلى أمريكا', 'عشاق المدن', 'محبو المعالم الحضرية'],
       },
     },
   },
@@ -390,7 +390,7 @@ export const WORLD_ROUTES: WorldRoute[] = [
           { name: 'Tokyo Haneda', sight: 'Over Rainbow Bridge and Tokyo Tower onto a runway built in the bay' },
           { name: 'Las Vegas', sight: 'Landing parallel to the Strip, the Sphere and the Bellagio fountains' },
         ],
-        bestFor: ['Evening sessions', 'Romantic gifts', '4K video keepsakes'],
+        bestFor: ['Evening sessions', 'Romantic gifts', 'Shared flight memories'],
       },
       he: {
         title: 'מרכזי ערים וניאון בלילה',
@@ -402,7 +402,7 @@ export const WORLD_ROUTES: WorldRoute[] = [
           { name: 'טוקיו הנדה', sight: 'מעל גשר הקשת ומגדל טוקיו אל מסלול שנבנה במפרץ' },
           { name: 'לאס וגאס', sight: 'נחיתה במקביל לסטריפ, לספרה ולמזרקות הבלאג׳יו' },
         ],
-        bestFor: ['מפגשי ערב', 'מתנות רומנטיות', 'זיכרון בווידאו 4K'],
+        bestFor: ['מפגשי ערב', 'מתנות רומנטיות', 'זיכרון משותף מהטיסה'],
       },
       ru: {
         title: 'Центры городов и ночной неон',
@@ -414,7 +414,7 @@ export const WORLD_ROUTES: WorldRoute[] = [
           { name: 'Токио Ханэда', sight: 'Над Радужным мостом и Токийской башней на полосу, построенную в заливе' },
           { name: 'Лас-Вегас', sight: 'Посадка параллельно Стрипу, Sphere и фонтанам «Белладжио»' },
         ],
-        bestFor: ['Вечерние сеансы', 'Романтический подарок', 'Видео 4K на память'],
+        bestFor: ['Вечерние сеансы', 'Романтический подарок', 'Совместные воспоминания о полете'],
       },
       fr: {
         title: 'Centres-villes et néons de nuit',
@@ -426,7 +426,7 @@ export const WORLD_ROUTES: WorldRoute[] = [
           { name: 'Tokyo Haneda', sight: 'Au-dessus du Rainbow Bridge et de la tour de Tokyo vers une piste construite dans la baie' },
           { name: 'Las Vegas', sight: 'Atterrissage parallèle au Strip, à la Sphere et aux fontaines du Bellagio' },
         ],
-        bestFor: ['Séances du soir', 'Cadeaux romantiques', 'Souvenir vidéo 4K'],
+        bestFor: ['Séances du soir', 'Cadeaux romantiques', 'Souvenirs partagés du vol'],
       },
       ar: {
         title: 'قلب المدن ونيون الليل',
@@ -438,7 +438,7 @@ export const WORLD_ROUTES: WorldRoute[] = [
           { name: 'طوكيو هانيدا', sight: 'فوق جسر قوس قزح وبرج طوكيو نحو مدرج مبني في الخليج' },
           { name: 'لاس فيغاس', sight: 'هبوط بمحاذاة الستريب وكرة Sphere ونوافير بيلاجيو' },
         ],
-        bestFor: ['جلسات المساء', 'هدايا رومانسية', 'ذكرى بفيديو 4K'],
+        bestFor: ['جلسات المساء', 'هدايا رومانسية', 'ذكريات مشتركة من الرحلة'],
       },
     },
   },
@@ -1640,7 +1640,7 @@ export const EXPERIENCE_ROUTES_COPY: Record<Language, ExperienceRoutesCopy> = {
     onRequestHint: 'Пока недоступно в онлайн-оплате. Запросите — и мы подтвердим брифинг по электронной почте.',
   },
   fr: {
-    badge: 'VOLS D’EXPÉRIENCE • DU CARNET DE VOL DU COMMANDANT',
+    badge: 'VOLS D’EXPÉRIENCE • CHOIX DU COMMANDANT',
     title: 'Routes, panoramas et aventures autour du monde',
     subtitle:
       'Chaque vol d’expérience comprend un exercice de décollage et d’atterrissage et un trio mondial : trois aéroports réels volés à la suite. Voici les routes que je proposerais à un invité, choisies après trente ans de cockpit.',

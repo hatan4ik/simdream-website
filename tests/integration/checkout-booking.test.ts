@@ -198,7 +198,7 @@ describe('POST /api/checkout: voucher-funded bookings', () => {
 describe('POST /api/checkout: card bookings', () => {
   it('keeps a card booking pending and charges Stripe exactly the server-computed manifest', async () => {
     const app = await loadApp({ stripe: 'mocked' });
-    const addons = ['addon-hd-video', 'addon-xwind-ifr'];
+    const addons = ['addon-extra-seat', 'addon-xwind-ifr'];
     const slot = await findSlotWhere(
       app,
       DAY,
@@ -430,7 +430,7 @@ describe('POST /api/checkout: catalogue and schedule rules', () => {
 
     const response = await postCheckout(
       app,
-      bookingCheckoutBody({ bookingDate: DAY, startTime: slot.startTime, addons: ['addon-hd-video', 'addon-free-upgrade'] })
+      bookingCheckoutBody({ bookingDate: DAY, startTime: slot.startTime, addons: ['addon-extra-seat', 'addon-free-upgrade'] })
     );
 
     expect(response.status).toBe(400);
@@ -444,13 +444,13 @@ describe('POST /api/checkout: catalogue and schedule rules', () => {
 
     const response = await postCheckout(
       app,
-      bookingCheckoutBody({ bookingDate: DAY, startTime: slot.startTime, addons: ['addon-hd-video', 'addon-hd-video'] })
+      bookingCheckoutBody({ bookingDate: DAY, startTime: slot.startTime, addons: ['addon-extra-seat', 'addon-extra-seat'] })
     );
 
     expect(response.status).toBe(201);
     const [session] = app.checkoutSessions;
-    expect(session.amountIls).toBe(slot.dynamicPriceIls + addonPrice(app, ['addon-hd-video']));
-    expect((await app.store.getBookingById(session.bookingId ?? ''))?.addons).toEqual(['addon-hd-video']);
+    expect(session.amountIls).toBe(slot.dynamicPriceIls + addonPrice(app, ['addon-extra-seat']));
+    expect((await app.store.getBookingById(session.bookingId ?? ''))?.addons).toEqual(['addon-extra-seat']);
   });
 
   it('rejects add-ons that overflow the departure window with 409 and keeps the slot open', async () => {
@@ -579,7 +579,7 @@ describe('POST /api/checkout: catalogue and schedule rules', () => {
   for (const packageId of ['pkg-pro-60', 'pkg-fear-of-flying-90']) {
     it(`rejects add-ons on the noise-free ${packageId} package with 400 (API-2)`, async () => {
       const app = await loadApp({ stripe: 'mocked' });
-      const addons = ['addon-hd-video'];
+      const addons = ['addon-extra-seat'];
       const duration = packageDuration(app, packageId);
       // A slot with room for the add-on, so only the category rule can reject the request.
       const slot = await findSlotWhere(

@@ -5,11 +5,7 @@ import Link from 'next/link';
 import {
   Plane,
   Gauge,
-  Compass,
-  Radio,
-  ShieldCheck,
   ChevronRight,
-  Users,
   ArrowRight,
   UserCheck,
   Globe,
@@ -75,44 +71,6 @@ export default function HomePage() {
             </Link>
           </div>
 
-          {/* Avionics Metrics HUD */}
-          <div className="pt-6 sm:pt-12 grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4 max-w-4xl mx-auto">
-            <div className="p-3 sm:p-4 rounded-xl border border-slate-800/80 bg-slate-900/40 backdrop-blur-md text-left rtl:text-right">
-              <div className="flex items-center justify-between text-slate-400 mb-1">
-                <span className="text-[10px] sm:text-xs font-mono uppercase">{t.hero.hudScale}</span>
-                <Gauge className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-sky-400 shrink-0" />
-              </div>
-              <p className="text-lg sm:text-2xl font-black text-white font-mono">{t.hero.scaleTitle}</p>
-              <p className="text-[10px] sm:text-[11px] text-slate-400">{t.hero.scaleDesc}</p>
-            </div>
-
-            <div className="p-3 sm:p-4 rounded-xl border border-slate-800/80 bg-slate-900/40 backdrop-blur-md text-left rtl:text-right">
-              <div className="flex items-center justify-between text-slate-400 mb-1">
-                <span className="text-[10px] sm:text-xs font-mono uppercase">{t.hero.hudVisual}</span>
-                <Compass className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-sky-400 shrink-0" />
-              </div>
-              <p className="text-lg sm:text-2xl font-black text-white font-mono">{t.hero.visualTitle}</p>
-              <p className="text-[10px] sm:text-[11px] text-slate-400">{t.hero.visualDesc}</p>
-            </div>
-
-            <div className="p-3 sm:p-4 rounded-xl border border-slate-800/80 bg-slate-900/40 backdrop-blur-md text-left rtl:text-right">
-              <div className="flex items-center justify-between text-slate-400 mb-1">
-                <span className="text-[10px] sm:text-xs font-mono uppercase">{t.hero.hudAirports}</span>
-                <Radio className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 shrink-0" />
-              </div>
-              <p className="text-lg sm:text-2xl font-black text-emerald-400 font-mono">{t.hero.airportsTitle}</p>
-              <p className="text-[10px] sm:text-[11px] text-slate-400">{t.hero.airportsDesc}</p>
-            </div>
-
-            <div className="p-3 sm:p-4 rounded-xl border border-slate-800/80 bg-slate-900/40 backdrop-blur-md text-left rtl:text-right">
-              <div className="flex items-center justify-between text-slate-400 mb-1">
-                <span className="text-[10px] sm:text-xs font-mono uppercase">{t.hero.hudInstructors}</span>
-                <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400 shrink-0" />
-              </div>
-              <p className="text-lg sm:text-2xl font-black text-amber-400 font-mono">{t.hero.instructorsTitle}</p>
-              <p className="text-[10px] sm:text-[11px] text-slate-400">{t.hero.instructorsDesc}</p>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -333,69 +291,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 4. CORPORATE CRM WORKSHOP SPOTLIGHT */}
-      <section className="py-14 sm:py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 border-t border-b border-slate-800">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 items-center">
-          <div className="space-y-6">
-            <Badge variant="amber">{t.workshops.badge}</Badge>
-            <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-white leading-tight">
-              {t.workshops.title}
-            </h2>
-            <p className="text-slate-300 text-base leading-relaxed">
-              {t.workshops.subtitle}
-            </p>
-            <p className="text-slate-400 text-sm leading-relaxed">
-              {t.workshops.description}
-            </p>
-
-            <div className="grid grid-cols-2 gap-4 pt-2">
-              <div className="p-3.5 rounded-lg border border-slate-800 bg-slate-900/70">
-                <p className="font-bold text-white text-sm">{t.workshops.pillar1Title}</p>
-                <p className="text-xs text-slate-400 mt-1">{t.workshops.pillar1Desc}</p>
-              </div>
-              <div className="p-3.5 rounded-lg border border-slate-800 bg-slate-900/70">
-                <p className="font-bold text-white text-sm">{t.workshops.pillar2Title}</p>
-                <p className="text-xs text-slate-400 mt-1">{t.workshops.pillar2Desc}</p>
-              </div>
-            </div>
-
-            <div className="pt-2">
-              <Link href="/workshops">
-                <Button size="lg" className="font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-glowAmber">
-                  <span>{t.workshops.exploreBtn}</span>
-                  <ArrowRight className={`w-4 h-4 text-slate-950 ${isRTL ? 'rotate-180' : ''}`} />
-                </Button>
-              </Link>
-            </div>
-          </div>
-
-          <div className="relative rounded-2xl border border-slate-800 bg-slate-900/80 p-5 sm:p-8 shadow-2xl space-y-5 sm:space-y-6">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-4">
-              <div className="flex items-center gap-2.5 sm:gap-3">
-                <Users className="w-5 h-5 text-amber-400 shrink-0" />
-                <span className="font-bold text-white text-sm">{t.workshops.caseStudyBadge}</span>
-              </div>
-              <span className="text-xs font-mono text-emerald-400">TEL AVIV B737 MAX</span>
-            </div>
-
-            <blockquote className="italic text-slate-300 text-sm leading-relaxed">
-              &ldquo;{t.workshops.caseStudyQuote}&rdquo;
-            </blockquote>
-
-            <div className="flex items-center gap-3 pt-2">
-              <div className="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-sky-400 shrink-0">
-                YS
-              </div>
-              <div>
-                <p className="text-sm font-bold text-white">Yoni Shaked</p>
-                <p className="text-xs text-slate-400">{t.workshops.caseStudyAuthor}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 5. CALL TO ACTION RIBBON */}
+      {/* 4. CALL TO ACTION RIBBON */}
       <section className="py-14 sm:py-20 px-4 sm:px-6 lg:px-8 bg-sky-950/40 border-t border-sky-900/60 relative overflow-hidden">
         <div className="max-w-4xl mx-auto text-center space-y-6">
           <Badge variant="sky">{t.cta.badge}</Badge>

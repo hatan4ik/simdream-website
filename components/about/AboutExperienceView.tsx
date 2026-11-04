@@ -93,7 +93,7 @@ const ABOUT_COPY: Record<Language, AboutCopy> = {
       {
         step: '02',
         title: 'Thrust Set & Takeoff Roll',
-        desc: 'Advance the dual thrust levers, track the runway centerline across the 220° wrap-around horizon, rotate at V-speed, and climb out under full manual control.',
+        desc: 'Advance the dual thrust levers, track the runway centerline through the forward flight-deck view, rotate at V-speed, and climb out under full manual control.',
         badge: 'Hands-On Flight Control',
       },
       {
@@ -148,7 +148,7 @@ const ABOUT_COPY: Record<Language, AboutCopy> = {
       'Fine-Print Simulator Specifications & Environment Summary (Optional Technical Note)',
     specsVisualsTitle: 'Visual & Cabin Environment',
     specsVisualsDesc:
-      '1:1 scale enclosed Boeing 737 flight deck shell with a 220° seamless curved 4K visual projection dome, dynamic day/dusk/night lighting, and spatial cockpit audio.',
+      '1:1 scale enclosed Boeing 737 flight deck shell with dynamic day/dusk/night conditions and spatial cockpit audio.',
     specsControlsTitle: 'Flight Controls & Avionics',
     specsControlsDesc:
       'Dual mechanically linked control columns and rudder pedals with control-loading feedback, motorized autothrottle levers, mode control panel, dual flight management computers, and digital flight displays.',
@@ -177,7 +177,7 @@ const ABOUT_COPY: Record<Language, AboutCopy> = {
       {
         step: '02',
         title: 'דחף מנועים והמראה (Takeoff & Climb)',
-        desc: 'מקבלים אישור המראה ממגדל הפיקוח, דוחפים את מצערות המנועים קדימה, חשים את האצת המטוס מול תצוגה פנורמית של 220° וממריאים לשחקים.',
+        desc: 'מקבלים אישור המראה ממגדל הפיקוח, דוחפים את מצערות המנועים קדימה, חשים את האצת המטוס וממריאים לשחקים.',
         badge: 'שליטה מלאה בידיים שלכם',
       },
       {
@@ -227,7 +227,7 @@ const ABOUT_COPY: Record<Language, AboutCopy> = {
     specsSummary: 'מפרט טכני כללי של תא הטייס (באותיות קטנות לחובבי תעופה)',
     specsVisualsTitle: 'תצוגה פנורמית ומבנה',
     specsVisualsDesc:
-      'תא טייס סגור בקנה מידה 1:1 של בואינג 737 עם מסך הקרנה פנורמי מעוגל בזווית 220° ברזולוציית 4K, תאורת יום/לילה דינמית ומערכת שמע היקפית.',
+      'תא טייס סגור בקנה מידה 1:1 של בואינג 737 עם תנאי יום/לילה דינמיים ומערכת שמע היקפית.',
     specsControlsTitle: 'הגאים, מצערות ומכשור',
     specsControlsDesc:
       'הגאים ודוושות כיוון מקושרים מכנית בעלי משוב עומס, מצערות ממונעות אוטומטית, פאנל טייס אוטומטי, מחשב ניווט וצגי טיסה דיגיטליים.',
@@ -256,7 +256,7 @@ const ABOUT_COPY: Record<Language, AboutCopy> = {
       {
         step: '02',
         title: 'Взлетный режим и отрыв от ВПП',
-        desc: 'Переводите рычаги тяги вперед, удерживаете лайнер по осевой линии перед панорамным экраном 220° 4K и на скорости Vr берете штурвал на себя.',
+        desc: 'Переводите рычаги тяги вперед, удерживаете лайнер по осевой линии через передний обзор кабины и на скорости Vr берете штурвал на себя.',
         badge: 'Полный контроль в руках',
       },
       {
@@ -306,7 +306,7 @@ const ABOUT_COPY: Record<Language, AboutCopy> = {
     specsSummary: 'Технические характеристики симулятора (краткая справка)',
     specsVisualsTitle: 'Визуализация и кабина',
     specsVisualsDesc:
-      'Кабина Boeing 737 масштаба 1:1 с бесшовным изогнутым экраном 220° 4K, динамической сменой освещения и реалистичной акустикой.',
+      'Кабина Boeing 737 масштаба 1:1 с динамической сменой освещения и реалистичной акустикой.',
     specsControlsTitle: 'Штурвалы, РУД и авионика',
     specsControlsDesc:
       'Связанные штурвалы и педали с загрузкой усилий, моторизованный автомат тяги, панель автопилота MCP, два компьютера FMS/CDU и дисплеи Glass Cockpit.',
@@ -335,7 +335,7 @@ const ABOUT_COPY: Record<Language, AboutCopy> = {
       {
         step: '02',
         title: 'Mise en poussée et décollage',
-        desc: 'Poussez les manettes de gaz, maintenez l’axe de piste face à l’écran panoramique 220° 4K et effectuez la rotation à la vitesse Vr.',
+        desc: 'Poussez les manettes de gaz, maintenez l’axe de piste à travers la vue avant du cockpit et effectuez la rotation à la vitesse Vr.',
         badge: 'Contrôle direct en mains',
       },
       {
@@ -389,7 +389,7 @@ const ABOUT_COPY: Record<Language, AboutCopy> = {
     specsSummary: 'Spécifications techniques du simulateur (note informative)',
     specsVisualsTitle: 'Système visuel & Cabine',
     specsVisualsDesc:
-      'Cabine fermée échelle 1:1 de Boeing 737 avec écran panoramique incurvé 220° 4K laser, cycle jour/nuit et environnement sonore réaliste.',
+      'Cabine fermée échelle 1:1 de Boeing 737 avec conditions jour/nuit dynamiques et environnement sonore réaliste.',
     specsControlsTitle: 'Commandes de vol & Avionique',
     specsControlsDesc:
       'Colonnes de commandes et palonniers couplés à retour d’effort, manettes motorisées, MCP, deux ordinateurs de vol FMS et instruments digitaux.',
@@ -418,7 +418,7 @@ const ABOUT_COPY: Record<Language, AboutCopy> = {
       {
         step: '02',
         title: 'تطبيق قوة الدفع والإقلاع',
-        desc: 'ادفع أذرع الدفع للأمام، وحافظ على مسار منتصف المدرج أمام شاشة العرض البانورامية 220° بدقة 4K، واسحب المقود للإقلاع.',
+        desc: 'ادفع أذرع الدفع للأمام، وحافظ على مسار منتصف المدرج من خلال الرؤية الأمامية للقمرة، واسحب المقود للإقلاع.',
         badge: 'تحكم كامل بين يديك',
       },
       {
@@ -468,7 +468,7 @@ const ABOUT_COPY: Record<Language, AboutCopy> = {
     specsSummary: 'المواصفات الفنية لجهاز المحاكاة (ملاحظة فنية)',
     specsVisualsTitle: 'نظام العرض البانورامي والقمرة',
     specsVisualsDesc:
-      'قمرة قيادة بوينغ 737 مغلقة بمقياس 1:1 مع شاشة بانورامية منحنية 220° بدقة 4K وتأثيرات صوتية وإضاءة واقعية.',
+      'قمرة قيادة بوينغ 737 مغلقة بمقياس 1:1 مع ظروف إضاءة ديناميكية وتأثيرات صوتية واقعية.',
     specsControlsTitle: 'أدوات التحكم وإلكترونيات الطيران',
     specsControlsDesc:
       'مقاود تحكم ودواسات توجيه مقترنة ميكانيكياً مع محاكاة الأحمال، أذرع دفع آلية، لوحة تحكم بالطيار الآلي MCP، وشاشات عرض رقمية.',

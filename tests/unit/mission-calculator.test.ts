@@ -170,14 +170,14 @@ describe('calculateMissionManifest', () => {
   it('itemises the selected add-ons in selection order with their own price and minutes', () => {
     const manifest = calculateMissionManifest({
       pkg: { title: 'Discovery Flight', durationMinutes: 30, priceIls: 450 },
-      selectedAddonIds: ['addon-hd-video', 'addon-cold-dark'],
+      selectedAddonIds: ['addon-extra-seat', 'addon-cold-dark'],
       availableAddons: FLIGHT_ADDONS,
     });
     expect(manifest.selectedAddonItems.map(({ addon, durationMinutes, priceIls }) => [addon.id, durationMinutes, priceIls])).toEqual([
-      ['addon-hd-video', 0, 120],
+      ['addon-extra-seat', 0, 90],
       ['addon-cold-dark', 20, 200],
     ]);
-    expect(manifest).toMatchObject({ startTime: '10:00', effectiveEndTime: '10:50', subtotalIls: 770, totalIls: 770 });
+    expect(manifest).toMatchObject({ startTime: '10:00', effectiveEndTime: '10:50', subtotalIls: 740, totalIls: 740 });
   });
 });
 
@@ -321,8 +321,8 @@ describe('pruneAddonsExceedingSlot', () => {
 
   it('drops the add-on that no longer fits a tighter slot', () => {
     expect(
-      pruneAddonsExceedingSlot(['addon-cold-dark', 'addon-classical-eu', 'addon-hd-video'], FLIGHT_ADDONS, 60, 100)
-    ).toEqual(['addon-cold-dark', 'addon-hd-video']);
+      pruneAddonsExceedingSlot(['addon-cold-dark', 'addon-classical-eu', 'addon-extra-seat'], FLIGHT_ADDONS, 60, 100)
+    ).toEqual(['addon-cold-dark', 'addon-extra-seat']);
   });
 });
 

@@ -42,7 +42,7 @@ export function StructuredDataJsonLd({ nonce }: { nonce?: string }) {
         currenciesAccepted: 'ILS, USD, EUR',
         paymentAccepted: 'Credit Card, Apple Pay, Google Pay, Bit, Gift Voucher',
         description:
-          'Experience flying a 1:1 scale Boeing 737 cockpit in central Tel Aviv (Gershon Shatz 36) alongside certified commercial pilot instructors. Suitable for ages 10+, families, aviation enthusiasts, fear-of-flying therapy, and corporate CRM leadership workshops.',
+          'Experience flying a 1:1 scale Boeing 737 cockpit in central Tel Aviv (Gershon Shatz 36) alongside certified commercial pilot instructors. Suitable for ages 10+, first-time flyers, families, aviation enthusiasts, unforgettable gifts, and fear-of-flying support.',
         address: {
           '@type': 'PostalAddress',
           streetAddress: FACILITY_INFO.address.streetEn,
@@ -102,7 +102,7 @@ export function StructuredDataJsonLd({ nonce }: { nonce?: string }) {
         hasOfferCatalog: {
           '@type': 'OfferCatalog',
           name: 'Boeing 737 Flight Simulator Packages',
-          itemListElement: SIMULATOR_PACKAGES.map((pkg) => ({
+          itemListElement: SIMULATOR_PACKAGES.filter((pkg) => pkg.category === 'recreational' || pkg.category === 'fear_of_flying').map((pkg) => ({
             '@type': 'Offer',
             name: pkg.title,
             description: pkg.shortDesc,

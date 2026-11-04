@@ -87,7 +87,7 @@ flowchart TD
     subgraph RecreationalFlow["Full 3-Step Storefront Flow (Recreational / Consumer)"]
         DetectPackage -->|category = 'recreational'| RecConfig["Display Full Catalog (30m, 45m, 60m, 90m)<br/>User Selects Pilot Level"]
         RecConfig --> Step1Rec["Step 1: Date & Slot Selection<br/>(Live Runway Capacity Bar)"]
-        Step1Rec --> Step2Rec["Step 2: Cockpit Add-ons & Combos<br/>(Cold & Dark, 7 World Trios, 4K Video)"]
+        Step1Rec --> Step2Rec["Step 2: Cockpit Add-ons & Combos<br/>(Cold & Dark, 7 World Trios, Extra Cockpit Guest)"]
         Step2Rec --> Step3Rec["Step 3: Pilot Manifest & Checkout<br/>(Voucher Reapply & Manifest Summary)"]
     end
 

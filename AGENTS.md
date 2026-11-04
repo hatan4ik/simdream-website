@@ -68,9 +68,9 @@ The booking engine adapts dynamically depending on the selected package category
 
 | Package Category | Allowed Packages | Add-ons & Combos | Booking Flow | Default Pilot Level |
 | :--- | :--- | :--- | :--- | :--- |
-| **Professional Training** (`training`) | Strictly the 3 PRO tiers (60 PRO, 90 PRO, 120 PRO). Consumer 30m & 45m suppressed. | **Zero add-on noise (`addons = []`)**. Tourist combos, extreme turbulence modules, and 4K video upsells are completely suppressed. | **2-Step Streamlined Flow**: `Date & Operational Slot` &rarr; `Pilot Manifest & Checkout`. (Step 2 Add-ons is completely bypassed). | `atpl` (Airline Transport Pilot) |
+| **Professional Training** (`training`) | Strictly the 3 PRO tiers (60 PRO, 90 PRO, 120 PRO). Consumer 30m & 45m suppressed. | **Zero add-on noise (`addons = []`)**. Tourist combos, extreme turbulence modules, and guest-experience upsells are completely suppressed. | **2-Step Streamlined Flow**: `Date & Operational Slot` &rarr; `Pilot Manifest & Checkout`. (Step 2 Add-ons is completely bypassed). | `atpl` (Airline Transport Pilot) |
 | **Fear of Flying** (`fear_of_flying`) | Strictly Fear of Flying Course (`pkg-fear-of-flying-90`). | **Zero add-on noise (`addons = []`)**. V1 engine failures, storms, and crosswind challenges are suppressed. | **2-Step Streamlined Flow**: `Date & Therapeutic Slot` &rarr; `Pilot Manifest & Checkout`. | `beginner` |
-| **Recreational / Consumer** (`recreational`) | Full consumer catalog (30m Discovery, 45m Daytime Promo, 60m Captain, 90m Odyssey). | Full e-commerce catalog with curated 1-click combos, 7 world trios, Cold & Dark startup, and 4K recording. | **3-Step Flow**: `Date & Slot` &rarr; `Cockpit Add-ons` &rarr; `Pilot Manifest & Checkout`. | User choice |
+| **Recreational / Consumer** (`recreational`) | Full consumer catalog (30m Discovery, 45m Daytime Promo, 60m Captain, 90m Odyssey). | Full e-commerce catalog with curated 1-click combos, 7 world trios, Cold & Dark startup, and optional guest seating. | **3-Step Flow**: `Date & Slot` &rarr; `Cockpit Add-ons` &rarr; `Pilot Manifest & Checkout`. | User choice |
 
 ---
 

@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:29c7ee300dcadc1ab5131f8afc926029f283aad979e3b4e569fad943e76b1a8c -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:720ef7d74be8c1997f1dda7df7044f00a96b84cca38f073c1cd5e4dc1e6283de -->
 
 ## Verification contract
 
@@ -213,7 +213,7 @@ Seed 13 add-ons in three groups:
 
 - procedure and weather modules, such as Cold & Dark startup (+20 min, ₪200) and Crosswind/IFR (+15 min, ₪250);
 - 3-airport "world trio" route modules (+40 min, ₪450 each), each naming its three airports with ICAO codes;
-- media and guest upgrades: 4K multi-camera recording, signed logbook, extra jumpseat passenger.
+- guest upgrades: extra jumpseat passenger.
 
 Add 3 curated one-click combos. Localize every package and add-on in all five languages. Keep **one server-side catalog authority**: the catalog API and checkout must read prices and durations from the same source.
 

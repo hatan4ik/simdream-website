@@ -311,7 +311,7 @@ export default function AdminOverviewPage() {
 
           <div className="flex flex-wrap gap-4 text-slate-400">
             <span className="flex items-center gap-1">
-              <span className="text-emerald-400">✓</span> 220° 4K Projectors (Online)
+              <span className="text-emerald-400">✓</span> Flight Deck Systems (Online)
             </span>
             <span className="flex items-center gap-1">
               <span className="text-emerald-400">✓</span> Control Loading Servos (Calibrated)

@@ -8,10 +8,10 @@ test('mission pricing and end time are calculated from server-owned package and 
   const manifest = calculateMissionManifest({
     pkg: { title: "Captain's Command Flight (60m)", durationMinutes: 60, priceIls: 690 },
     slot: { startTime: '18:00', endTime: '19:30', isPrimeTime: true, maxAvailableMinutes: 120 },
-    selectedAddonIds: ['weather', 'video'],
+    selectedAddonIds: ['weather', 'guest'],
     availableAddons: [
       { id: 'weather', name: 'Weather', description: '', priceIls: 250, durationMinutes: 15, icon: 'CloudLightning' },
-      { id: 'video', name: 'Video', description: '', priceIls: 120, durationMinutes: 0, icon: 'Video' },
+      { id: 'guest', name: 'Extra Cockpit Guest', description: '', priceIls: 120, durationMinutes: 0, icon: 'Users' },
     ],
   });
 

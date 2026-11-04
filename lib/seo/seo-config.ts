@@ -57,13 +57,13 @@ export const PAGE_SEO_DEFINITIONS: Record<SeoPageKey, PageSeoDefinition> = {
     path: '/',
     title: 'Sim Dream Israel | Boeing 737 Flight Simulator Experience in Tel Aviv (סימולטור טיסה)',
     description:
-      'Take the Captain’s seat in a 1:1 scale Boeing 737 cockpit at Gershon Shatz 36, Tel Aviv (near Yehudit Light Rail & HaShalom Train). Guided by commercial pilots for ages 10+, families, aviation lovers, fear-of-flying support, and corporate CRM workshops.',
+      'Take the Captain’s seat in a 1:1 scale Boeing 737 cockpit at Gershon Shatz 36, Tel Aviv (near Yehudit Light Rail & HaShalom Train). Guided by commercial pilots for ages 10+, first-time flyers, families, aviation lovers, unforgettable gifts, and fear-of-flying support.',
     keywords: [
       ...COMMON_KEYWORDS,
       'things to do in Tel Aviv',
       'Boeing 737 cockpit experience',
       'flight simulator gift voucher Israel',
-      'corporate team building Tel Aviv',
+      'family experience Tel Aviv',
     ],
   },
   book: {

@@ -161,7 +161,7 @@ describe('storefront quick combos', () => {
   const combos = readQuickCombos();
 
   it('parses the combos from the storefront source', () => {
-    expect(combos.map((combo) => combo.id)).toEqual(['combo-eu-captain', 'combo-extreme-ops', 'combo-med-video']);
+    expect(combos.map((combo) => combo.id)).toEqual(['combo-eu-captain', 'combo-extreme-ops', 'combo-med-guest']);
     expect(new Set(combos.map((combo) => combo.id)).size).toBe(combos.length);
   });
 

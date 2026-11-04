@@ -25,7 +25,7 @@ const CONSUMER_PACKAGES = [
   'pkg-fear-of-flying-90',
 ];
 // Add-ons that add no flight time, so any combination fits any departure window.
-const ZERO_DURATION_ADDONS = ['addon-hd-video', 'addon-logbook', 'addon-extra-seat'];
+const ZERO_DURATION_ADDONS = ['addon-extra-seat'];
 // Dates relative to DEFAULT_TEST_NOW (2026-11-01, before opening).
 const CANDIDATE_DATES = ['2026-11-01', '2026-11-02', '2026-11-03', '2026-11-04', '2026-11-05'];
 
@@ -118,12 +118,12 @@ describe('server-authoritative pricing', () => {
         body: bookingCheckoutBody({
           bookingDate: slot.date,
           startTime: slot.startTime,
-          addons: ['addon-hd-video', 'addon-hd-video', 'addon-hd-video'],
+          addons: ['addon-extra-seat', 'addon-extra-seat', 'addon-extra-seat'],
         }),
       })
     );
 
-    expect(app.checkoutSessions[0]?.amountIls).toBe(expectedTotal(app, 'pkg-discovery-30', slot, ['addon-hd-video']));
+    expect(app.checkoutSessions[0]?.amountIls).toBe(expectedTotal(app, 'pkg-discovery-30', slot, ['addon-extra-seat']));
   });
 
   it('creates a gift voucher worth exactly what is charged, ignoring injected balance fields', async () => {
@@ -167,7 +167,7 @@ describe('server-authoritative pricing', () => {
       await POST(
         apiRequest('/api/checkout', {
           body: {
-            ...bookingCheckoutBody({ bookingDate: slot.date, startTime: slot.startTime, addons: ['addon-logbook'], voucherCode: SEED_FULL_VOUCHER_CODE }),
+            ...bookingCheckoutBody({ bookingDate: slot.date, startTime: slot.startTime, addons: ['addon-extra-seat'], voucherCode: SEED_FULL_VOUCHER_CODE }),
             totalIls: 1,
             discountIls: 0,
             subtotalIls: 1,
@@ -176,7 +176,7 @@ describe('server-authoritative pricing', () => {
       )
     );
 
-    const total = expectedTotal(app, 'pkg-discovery-30', slot, ['addon-logbook']);
+    const total = expectedTotal(app, 'pkg-discovery-30', slot, ['addon-extra-seat']);
     expect(response.status).toBe(201);
     expect(await voucherBalance(app, SEED_FULL_VOUCHER_CODE)).toBe(SEED_FULL_VOUCHER_BALANCE_ILS - total);
     expect(await app.store.getBookingByRef(response.body.bookingReference)).toMatchObject({
