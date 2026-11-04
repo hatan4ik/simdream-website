@@ -67,6 +67,10 @@ flowchart TD
     MemberPages --> MemberAPI --> SupabaseDB
 ```
 
+### Checkout dependency boundary
+
+`POST /api/checkout` remains a Next.js Route Handler. It calls the provider-neutral business service in `lib/booking/checkout-service.ts`, which receives only the checkout repository, hosted-card gateway, authenticated-member lookup, confirmation notifier, origin resolver, and clock ports from `lib/booking/checkout-ports.ts`. The server-only `lib/booking/checkout-composition.ts` currently binds those ports to Supabase, Stripe, SendGrid, and Supabase Auth; `checkout-runtime.ts` is the route-facing composition. This preserves the server-authoritative schedule, pricing, voucher, guest-checkout, and webhook rules while allowing a Wix staging adapter to be introduced without changing the customer UI or the checkout policy.
+
 ---
 
 ## 2. Adaptive Booking Engine Architecture (Recreational vs Noise-Free PRO)

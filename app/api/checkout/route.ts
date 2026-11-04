@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { startBookingCheckout, startVoucherCheckout, CheckoutError } from '@/lib/booking/checkout-service';
+import { CheckoutError } from '@/lib/booking/checkout-service';
+import { startBookingCheckout, startVoucherCheckout } from '@/lib/booking/checkout-runtime';
 import { requirePaymentsEnabled } from '@/lib/stripe';
 import { checkoutRequestSchema, validationError } from '@/lib/validation';
 

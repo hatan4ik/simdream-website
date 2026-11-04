@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:523e36343e9f5fd7a898de48ef2c6c1a6fce790c4e97a043208bcc5a821fdbd2 -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:b0a59ad633763ba400d83dc895eb35228de66acd65b03bc4bdf09ebd9142dd97 -->
 
 ## Verification contract
 
@@ -27,7 +27,7 @@ The fingerprint above covers the reviewed source/configuration/test/docs surface
 | Subject | Source evidence | Confidence |
 | --- | --- | --- |
 | Route map and protection | [`app/`](app), [`proxy.ts`](proxy.ts), [`next.config.mjs`](next.config.mjs) | Code-verified |
-| Booking, pricing, payments, webhooks | [`lib/booking/checkout-service.ts`](lib/booking/checkout-service.ts), [`lib/stripe.ts`](lib/stripe.ts), [`app/api/`](app/api) | Code-verified; provider activation still external |
+| Booking, pricing, payments, webhooks | [`lib/booking/checkout-service.ts`](lib/booking/checkout-service.ts), [`lib/booking/checkout-ports.ts`](lib/booking/checkout-ports.ts), [`lib/booking/checkout-composition.ts`](lib/booking/checkout-composition.ts), [`lib/stripe.ts`](lib/stripe.ts), [`app/api/`](app/api) | Code-verified; provider activation still external |
 | Scheduling and calendar | [`lib/scheduler/`](lib/scheduler), [`components/scheduler/`](components/scheduler), [`lib/i18n/calendar-presentation.ts`](lib/i18n/calendar-presentation.ts) | Code-verified |
 | Auth, membership, ownership | [`lib/auth/`](lib/auth), [`lib/supabaseClient.ts`](lib/supabaseClient.ts), [`app/dashboard/page.tsx`](app/dashboard/page.tsx) | Code-verified; OAuth provider setup still external |
 | Database and data integrity | [`lib/db/schema.sql`](lib/db/schema.sql), [`lib/db/migrations/`](lib/db/migrations), [`lib/db/store.ts`](lib/db/store.ts) | Code-verified; applied production migrations still external |
@@ -80,6 +80,7 @@ Browser (5 languages, 2 themes)
 
 - **Entry points**: `app/layout.tsx` (providers: language, theme, auth; navbar, skip link, single `<main>`, footer), `proxy.ts` (admin guard), `app/api/**/route.ts` (13 route modules), `app/sitemap.ts`, `app/robots.ts`.
 - **Repository pattern**: `lib/db/store.ts` is the only data access layer. A `production` getter chooses Supabase when production is configured, the seeded in-memory store in development and tests, and **throws `PersistenceError` (answered as HTTP 503)** in production without a database, unless `ALLOW_IN_MEMORY_STORE=true` (demo servers only).
+- **Checkout dependency boundary**: `lib/booking/checkout-service.ts` owns pricing, scheduling, guest identity and lifecycle rules while depending only on the narrow `CheckoutDependencies` ports in `lib/booking/checkout-ports.ts`. `lib/booking/checkout-composition.ts` adapts the current Supabase store, Stripe hosted checkout, SendGrid and Supabase Auth; `lib/booking/checkout-runtime.ts` is the route-facing composition. A Wix adapter must implement those ports and pass the same contract tests before it can be selected—never bypass the service or write directly from the browser.
 - **Wix Headless adapter** (`lib/wix/`, target architecture in `docs/WIX_HEADLESS_ARCHITECTURE.md`): a single `@wix/sdk` client (`lib/wix/client.ts`) authenticated as an anonymous visitor with the public `NEXT_PUBLIC_WIX_CLIENT_ID`; `lib/wix/bookings.ts` reads Bookings services and bookable time slots over REST through `fetchWithAuth` (`@wix/bookings` is deliberately not installed: its React 18 peer dependency conflicts with React 19); `lib/wix/catalog.ts` maps every `SIMULATOR_PACKAGES` id to its Wix service id and `reconcileCatalog()` asserts name, duration and price parity. `npm run wix:smoke` (`scripts/wix-smoke.ts`) exercises the live connection; `tests/unit/wix-catalog.test.ts` covers the map and reconciliation. The Wix project is the "Sim Dream Israel" headless site (`WIX_SITE_ID`), never the live Editor site.
 - **Error taxonomy**: `PersistenceError` → 503 with a generic message; `BookingConflictError` → 409; `RecordNotFoundError` → 404. Clients never see stack traces or database messages.
 - **Server authority**: the browser sends only IDs (package, date, start time, add-on IDs) and pilot details. Prices, durations, end times and discounts are always recomputed on the server.
@@ -255,7 +256,7 @@ Add 3 curated one-click combos. Localize every package and add-on in all five la
   - days and capacity: `getDayOperatingConfig()`, `longestMissionWithin()`, `canTileIntervalZeroWaste()`, `getKantorovichPricing()`;
   - packages and add-ons: `packageAllowsAddons()`, `packageFromPriceIls()`, `sanitizePackageTitle()`, `canAddonFitInSlot()`, `pruneAddonsExceedingSlot()`;
   - shared customer presentation: `getPackageFormulaBadge()` supplies identical, localized formula labels to both booking interfaces;
-  - checkout orchestration (`lib/booking/checkout-service.ts`): `startBookingCheckout()` and `startVoucherCheckout()`.
+  - checkout orchestration (`lib/booking/checkout-service.ts`): `createCheckoutService()` applies the business rules; `checkout-ports.ts` holds provider-neutral contracts, and `checkout-runtime.ts` exposes the current Supabase/Stripe composition's `startBookingCheckout()` and `startVoucherCheckout()` route functions.
 - **Efficiency and optimization**: `evaluateDailyEfficiency()` builds the admin day report (blocks, gap collisions, revenue). `toPublicCapacityReport()` strips all customer data for public use. `optimizeTiledCapacity()` is a dynamic-programming dry-run that recommends a zero-waste tiling for the remaining capacity.
 
 #### Booking UI (`/book`)
@@ -285,6 +286,7 @@ Add 3 curated one-click combos. Localize every package and add-on in all five la
   5. creates a Stripe Checkout session, or confirms immediately when a voucher covers the total.
 
   Stripe or persistence failure answers 503 and leaves no orphaned hold or voucher debit. Success answers 201.
+- The checkout service has no direct import of the concrete store, Stripe, SendGrid, Supabase authentication, or origin configuration. Those integrations live in the server-only `checkout-composition.ts`; `tests/unit/checkout-service-ports.test.ts` proves that a substitute hosted-payment gateway and repository preserve the same redirect and 409 conflict contracts.
 - `POST /api/webhooks/stripe` verifies the signature, then:
   - on `checkout.session.completed` with `paid`: conditional `pending→paid`;
   - on `expired` or `async_payment_failed`: cancel.
@@ -581,7 +583,8 @@ components/
   seo/StructuredDataJsonLd  ui/ Button Card Badge
 lib/
   scheduler/ kantorovich-engine mission-calculator package-presentation tiled-interval-optimizer israel-clock
-  booking/checkout-service       catalog/gift-voucher-packages  db/ store schema.sql seed-data supabase-admin migrations/
+  booking/checkout-service checkout-ports checkout-composition checkout-runtime
+  catalog/gift-voucher-packages  db/ store schema.sql seed-data supabase-admin migrations/
   auth/ admin-guard request-auth member-ownership safe-redirect auth-context
   security/rate-limit
   i18n/ translations language-context calendar-presentation

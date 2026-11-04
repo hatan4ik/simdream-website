@@ -1,8 +1,7 @@
 import 'server-only';
 
-import { Booking, GiftVoucher } from '@/types';
+import type { Booking, GiftVoucher } from '@/types';
 import { FLIGHT_ADDONS, SIMULATOR_PACKAGES } from '@/lib/db/seed-data';
-import { BookingConflictError, store } from '@/lib/db/store';
 import { hasDeparted, israelToday } from '@/lib/scheduler/israel-clock';
 import { giftCertificateAmount, giftCertificatePackageById } from '@/lib/catalog/gift-voucher-packages';
 import {
@@ -10,12 +9,9 @@ import {
   packageAllowsAddons,
   sanitizePackageTitle,
 } from '@/lib/scheduler/mission-calculator';
-import { sendBookingConfirmationEmail } from '@/lib/sendgrid';
-import { createCheckoutSession } from '@/lib/stripe';
-import { getApplicationOrigin } from '@/lib/config/server-env';
 import { memberIdForBooking } from '@/lib/auth/member-ownership';
-import { requireAuthenticatedUser } from '@/lib/auth/request-auth';
 import { bookingCheckoutSchema, voucherCheckoutSchema } from '@/lib/validation';
+import { SlotReservationConflictError, type CheckoutDependencies } from './checkout-ports';
 import { z } from 'zod';
 
 export class CheckoutError extends Error {
@@ -28,11 +24,11 @@ export class CheckoutError extends Error {
   }
 }
 
-function validVoucherForAmount(voucher: GiftVoucher | undefined, amount: number): GiftVoucher {
+function validVoucherForAmount(voucher: GiftVoucher | undefined, amount: number, now: Date): GiftVoucher {
   if (!voucher || voucher.paymentStatus !== 'paid' || voucher.isRedeemed) {
     throw new CheckoutError('This voucher is not active.', 409);
   }
-  if (new Date(voucher.expiryDate).getTime() < Date.now()) {
+  if (new Date(voucher.expiryDate).getTime() < now.getTime()) {
     throw new CheckoutError('This voucher has expired.', 409);
   }
   if (voucher.currentBalanceIls < amount) {
@@ -49,12 +45,13 @@ async function conflictsAsCheckoutErrors<T>(operation: Promise<T>): Promise<T> {
   try {
     return await operation;
   } catch (error) {
-    if (error instanceof BookingConflictError) throw new CheckoutError(error.message, 409);
+    if (error instanceof SlotReservationConflictError) throw new CheckoutError(error.message, 409);
     throw error;
   }
 }
 
 async function createBookingFromRequest(
+  dependencies: CheckoutDependencies,
   request: Request,
   input: z.infer<typeof bookingCheckoutSchema>
 ): Promise<{
@@ -82,7 +79,7 @@ async function createBookingFromRequest(
   }
 
   const slot = await conflictsAsCheckoutErrors(
-    store.assertBookableStart(input.bookingDate, input.startTime, pkg.durationMinutes)
+    dependencies.repository.assertBookableStart(input.bookingDate, input.startTime, pkg.durationMinutes)
   );
 
   const manifest = calculateMissionManifest({
@@ -99,18 +96,22 @@ async function createBookingFromRequest(
   const isVoucherPayment = Boolean(input.voucherCode);
   let voucher: GiftVoucher | undefined;
   if (input.voucherCode) {
-    voucher = validVoucherForAmount(await store.getVoucherByCode(input.voucherCode), manifest.totalIls);
+    voucher = validVoucherForAmount(
+      await dependencies.repository.getVoucherByCode(input.voucherCode),
+      manifest.totalIls,
+      dependencies.clock.now()
+    );
   }
 
   // Authentication is optional. Guests always retain the same checkout path;
   // a booking is attached only when a verified member checks out using their
   // own verified email address.
-  const authenticatedMember = await requireAuthenticatedUser(request).catch(() => null);
+  const authenticatedMember = await dependencies.identity.getAuthenticatedMember(request).catch(() => null);
   const memberId = memberIdForBooking(authenticatedMember, input.pilotEmail);
-  if (authenticatedMember && memberId) await store.ensureMemberProfile(authenticatedMember);
+  if (authenticatedMember && memberId) await dependencies.repository.ensureMemberProfile(authenticatedMember);
 
   // A concurrent purchase of the same departure loses at the database exclusion constraint.
-  const booking = await conflictsAsCheckoutErrors(store.createBooking({
+  const booking = await conflictsAsCheckoutErrors(dependencies.repository.createBooking({
     userId: memberId,
     packageId: pkg.id,
     packageTitle: sanitizePackageTitle(pkg.title),
@@ -134,93 +135,106 @@ async function createBookingFromRequest(
   }));
 
   if (voucher) {
-    const redemption = await store.redeemVoucher(voucher.code, manifest.totalIls);
+    const redemption = await dependencies.repository.redeemVoucher(voucher.code, manifest.totalIls);
     if (!redemption.success) {
-      await store.updateBookingStatus(booking.id, 'cancelled');
+      await dependencies.repository.updateBookingStatus(booking.id, 'cancelled');
       throw new CheckoutError(redemption.message, 409);
     }
-    sendBookingConfirmationEmail(booking).catch(console.error);
+    dependencies.confirmations.sendBookingConfirmation(booking).catch(console.error);
   }
 
   return { booking, isVoucherPayment };
 }
 
-export async function startBookingCheckout(request: Request, input: z.infer<typeof bookingCheckoutSchema>) {
-  // Resolve every fallible setting before the first write, so a misconfiguration
-  // can never leave a spent voucher or an unexpiring pending hold behind.
-  const origin = getApplicationOrigin(request);
-  const result = await createBookingFromRequest(request, input);
-  const booking = result.booking;
-  const successUrl = origin + '/book/success?ref=' + encodeURIComponent(booking.bookingReference) + '&session_id={CHECKOUT_SESSION_ID}';
+/**
+ * Server-authoritative checkout rules. Infrastructure arrives through narrow
+ * ports so changing the persistence or hosted-payment provider cannot alter
+ * pricing, scheduling, guest checkout, or member-ownership invariants.
+ */
+export function createCheckoutService(dependencies: CheckoutDependencies) {
+  return {
+    async startBookingCheckout(request: Request, input: z.infer<typeof bookingCheckoutSchema>) {
+      // Resolve every fallible setting before the first write, so a misconfiguration
+      // can never leave a spent voucher or an unexpiring pending hold behind.
+      const origin = dependencies.origin.resolve(request);
+      const result = await createBookingFromRequest(dependencies, request, input);
+      const booking = result.booking;
+      const successUrl =
+        origin +
+        '/book/success?ref=' +
+        encodeURIComponent(booking.bookingReference) +
+        '&session_id={CHECKOUT_SESSION_ID}';
 
-  if (result.isVoucherPayment) {
-    return {
-      kind: 'voucher' as const,
-      bookingReference: booking.bookingReference,
-      successUrl: origin + '/book/success?ref=' + encodeURIComponent(booking.bookingReference),
-    };
-  }
+      if (result.isVoucherPayment) {
+        return {
+          kind: 'voucher' as const,
+          bookingReference: booking.bookingReference,
+          successUrl: origin + '/book/success?ref=' + encodeURIComponent(booking.bookingReference),
+        };
+      }
 
-  try {
-    const session = await createCheckoutSession({
-      title: 'Sim Dream: ' + booking.packageTitle + ' (' + booking.durationMinutes + ' min)',
-      description: booking.bookingDate + ' • ' + booking.startTime + '–' + booking.endTime + ' Israel time',
-      amountIls: booking.totalIls,
-      customerEmail: booking.pilotEmail,
-      bookingId: booking.id,
-      successUrl,
-      cancelUrl: origin + '/book?cancelled=true',
-    });
-    return { kind: 'stripe' as const, ...session };
-  } catch (error) {
-    await store.cancelPendingBooking(booking.id);
-    throw error;
-  }
-}
+      try {
+        const session = await dependencies.cardCheckout.createHostedCheckout({
+          title: 'Sim Dream: ' + booking.packageTitle + ' (' + booking.durationMinutes + ' min)',
+          description: booking.bookingDate + ' • ' + booking.startTime + '–' + booking.endTime + ' Israel time',
+          amountIls: booking.totalIls,
+          customerEmail: booking.pilotEmail,
+          bookingId: booking.id,
+          successUrl,
+          cancelUrl: origin + '/book?cancelled=true',
+        });
+        return { kind: 'stripe' as const, ...session };
+      } catch (error) {
+        await dependencies.repository.cancelPendingBooking(booking.id);
+        throw error;
+      }
+    },
 
-export async function startVoucherCheckout(request: Request, input: z.infer<typeof voucherCheckoutSchema>) {
-  const origin = getApplicationOrigin(request);
-  const expiryDate = new Date();
-  expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+    async startVoucherCheckout(request: Request, input: z.infer<typeof voucherCheckoutSchema>) {
+      const origin = dependencies.origin.resolve(request);
+      const expiryDate = new Date(dependencies.clock.now());
+      expiryDate.setFullYear(expiryDate.getFullYear() + 1);
 
-  const matchedPkg = giftCertificatePackageById(input.packageId);
-  if (input.packageId && !matchedPkg) {
-    throw new CheckoutError('Select a valid flight package for this gift certificate.');
-  }
+      const matchedPkg = giftCertificatePackageById(input.packageId);
+      if (input.packageId && !matchedPkg) {
+        throw new CheckoutError('Select a valid flight package for this gift certificate.');
+      }
 
-  // Named certificates always use the catalogue price. Flexible monetary cards retain
-  // the buyer's chosen amount. This makes the browser unable to alter package pricing.
-  const resolvedAmountIls = matchedPkg ? giftCertificateAmount(matchedPkg) : input.amountIls;
-  const resolvedPackageTitle = matchedPkg ? sanitizePackageTitle(matchedPkg.title) : undefined;
+      // Named certificates always use the catalogue price. Flexible monetary cards retain
+      // the buyer's chosen amount. This makes the browser unable to alter package pricing.
+      const resolvedAmountIls = matchedPkg ? giftCertificateAmount(matchedPkg) : input.amountIls;
+      const resolvedPackageTitle = matchedPkg ? sanitizePackageTitle(matchedPkg.title) : undefined;
 
-  const voucher = await store.createPendingVoucher({
-    initialValueIls: resolvedAmountIls,
-    recipientName: input.recipientName,
-    // No recipient email: the buyer receives the voucher to print and hand over.
-    recipientEmail: input.recipientEmail || input.senderEmail,
-    senderName: input.senderName,
-    senderEmail: input.senderEmail,
-    personalMessage: input.personalMessage,
-    packageId: matchedPkg?.id,
-    packageTitle: resolvedPackageTitle,
-    expiryDate: expiryDate.toISOString(),
-  });
+      const voucher = await dependencies.repository.createPendingVoucher({
+        initialValueIls: resolvedAmountIls,
+        recipientName: input.recipientName,
+        // No recipient email: the buyer receives the voucher to print and hand over.
+        recipientEmail: input.recipientEmail || input.senderEmail,
+        senderName: input.senderName,
+        senderEmail: input.senderEmail,
+        personalMessage: input.personalMessage,
+        packageId: matchedPkg?.id,
+        packageTitle: resolvedPackageTitle,
+        expiryDate: expiryDate.toISOString(),
+      });
 
-  try {
-    const session = await createCheckoutSession({
-      title: 'Sim Dream Flight Gift Voucher — ₪' + resolvedAmountIls,
-      description: resolvedPackageTitle
-        ? `Flight Gift Certificate (${resolvedPackageTitle}) for ${input.recipientName}`
-        : 'Digital gift voucher for ' + input.recipientName,
-      amountIls: resolvedAmountIls,
-      customerEmail: input.senderEmail,
-      voucherId: voucher.id,
-      successUrl: origin + '/vouchers?purchase=processing&session_id={CHECKOUT_SESSION_ID}',
-      cancelUrl: origin + '/vouchers?cancelled=true',
-    });
-    return { kind: 'stripe' as const, ...session };
-  } catch (error) {
-    await store.cancelPendingVoucher(voucher.id);
-    throw error;
-  }
+      try {
+        const session = await dependencies.cardCheckout.createHostedCheckout({
+          title: 'Sim Dream Flight Gift Voucher — ₪' + resolvedAmountIls,
+          description: resolvedPackageTitle
+            ? `Flight Gift Certificate (${resolvedPackageTitle}) for ${input.recipientName}`
+            : 'Digital gift voucher for ' + input.recipientName,
+          amountIls: resolvedAmountIls,
+          customerEmail: input.senderEmail,
+          voucherId: voucher.id,
+          successUrl: origin + '/vouchers?purchase=processing&session_id={CHECKOUT_SESSION_ID}',
+          cancelUrl: origin + '/vouchers?cancelled=true',
+        });
+        return { kind: 'stripe' as const, ...session };
+      } catch (error) {
+        await dependencies.repository.cancelPendingVoucher(voucher.id);
+        throw error;
+      }
+    },
+  };
 }
