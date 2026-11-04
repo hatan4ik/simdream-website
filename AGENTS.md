@@ -47,6 +47,7 @@ The visual identity is the official **simdream.co.il** logo: an **orange airplan
 
 - **Canonical Professional Training Route**: [`app/(public)/pro/page.tsx`](app/(public)/pro/page.tsx) (`/pro`) is the single source of truth for commercial assessment training.
 - **Canonical Customer Story Route**: [`app/(public)/about/page.tsx`](app/(public)/about/page.tsx) (`/about`) explains Sim Dream’s story, the consumer flight experience, and official social channels. It is intentionally separate from professional training.
+- **Experience Flights ("טיסות חוויה") Route Catalog**: `/experiences#world-routes` ([`components/experiences/WorldRoutesSection.tsx`](components/experiences/WorldRoutesSection.tsx)) is the only place that lists World Trio routes, sights and flight adventures. Its content lives in [`lib/data/experience-routes.ts`](lib/data/experience-routes.ts): every world-trio add-on appears exactly once and takes price and minutes from `FLIGHT_ADDONS` (never duplicate them); proposed trios and adventures are "on request" and link to `/contact?subject=route&route=<id>`, never to checkout. Every airport must be a real Boeing 737 destination with a real ICAO code (§1 pillar 5), and all copy ships in the five languages (§5). `tests/unit/experience-routes.test.ts` enforces these rules.
 - **Permanent Redirects (301)**:
   - `/simulator` and `/training` must permanently redirect (`permanent: true` in `next.config.mjs`) to `/pro`.
   - The server component [`app/(public)/simulator/page.tsx`](app/(public)/simulator/page.tsx) invokes Next.js `redirect('/pro')`.

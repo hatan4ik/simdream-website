@@ -587,19 +587,14 @@ export function AmazonFlightStorefront({
            =================================================================== */}
         <section className="p-4 sm:p-6 rounded-2xl border border-slate-800 bg-slate-900/60 space-y-4 sm:space-y-5">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/80 pb-3.5">
-            <div className="flex items-center gap-2.5">
-              <span className="w-6 h-6 rounded-full bg-sky-500/20 border border-sky-500/40 text-sky-400 font-mono text-xs font-black flex items-center justify-center shrink-0">
-                1
-              </span>
-              <div>
-                <h2 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
-                  <CalendarIcon className="w-4 h-4 text-sky-400 shrink-0" />
-                  <span>{calendarCopy.departureTitle}</span>
-                </h2>
-                <p className="text-xs text-slate-400">
-                  {calendarCopy.departureSubtitle}
-                </p>
-              </div>
+            <div>
+              <h2 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+                <CalendarIcon className="w-4 h-4 text-sky-400 shrink-0" />
+                <span>{calendarCopy.departureTitle}</span>
+              </h2>
+              <p className="text-xs text-slate-400">
+                {calendarCopy.departureSubtitle}
+              </p>
             </div>
 
             <div className="inline-flex rounded-xl bg-slate-950 p-1 border border-slate-800">
@@ -967,19 +962,14 @@ export function AmazonFlightStorefront({
            =================================================================== */}
         <section ref={packagesSectionRef} className="p-4 sm:p-6 rounded-2xl border border-slate-800 bg-slate-900/60 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-3.5">
-            <div className="flex items-center gap-2.5">
-              <span className="w-6 h-6 rounded-full bg-sky-500/20 border border-sky-500/40 text-sky-400 font-mono text-xs font-black flex items-center justify-center">
-                2
-              </span>
-              <div>
-                <h2 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
-                  <Layers className="w-4 h-4 text-sky-400" />
-                  <span>{calendarCopy.selectPackageTitle}</span>
-                </h2>
-                <p className="text-xs text-slate-400">
-                  {calendarCopy.packagesAvailable(formatCalendarDate(selectedDate, language))}
-                </p>
-              </div>
+            <div>
+              <h2 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+                <Layers className="w-4 h-4 text-sky-400" />
+                <span>{calendarCopy.selectPackageTitle}</span>
+              </h2>
+              <p className="text-xs text-slate-400">
+                {calendarCopy.packagesAvailable(formatCalendarDate(selectedDate, language))}
+              </p>
             </div>
             <span className="text-xs font-mono text-slate-400">
               {calendarCopy.edition}: <strong className="text-amber-400">{calendarCopy.minutes(selectedPackage.durationMinutes)}</strong>
@@ -1002,9 +992,10 @@ export function AmazonFlightStorefront({
                 <div key={pkg.id} className="flex flex-col gap-1.5">
                 <button
                   type="button"
+                  data-booking-package-card
                   aria-pressed={isSelected}
                   onClick={() => onSelectPackage(pkg)}
-                  className={`flex-1 p-4 rounded-xl border text-left rtl:text-right transition-all flex flex-col justify-between relative cursor-pointer ${
+                  className={`flex-1 min-h-72 p-4 rounded-2xl border text-left rtl:text-right transition-all flex flex-col justify-between relative cursor-pointer ${
                     isSelected
                       ? 'border-amber-400 bg-amber-500/10 shadow-lg ring-1 ring-amber-400/50'
                       : !isAvailable
@@ -1076,8 +1067,9 @@ export function AmazonFlightStorefront({
                 {/* A visible, touch-friendly package-inclusions control separate from the card button. */}
                 <button
                   type="button"
+                  data-package-details-trigger
                   onClick={() => setBlueprintPackage(pkg)}
-                  className="self-start inline-flex min-h-11 items-center gap-2 rounded-lg border border-sky-500/30 bg-sky-500/10 px-3 text-sm font-bold text-sky-200 hover:border-sky-400/60 hover:bg-sky-500/15 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 transition-colors touch-manipulation"
+                  className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-sky-500/30 bg-sky-500/10 px-3 text-sm font-bold text-sky-200 hover:border-sky-400/60 hover:bg-sky-500/15 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 transition-colors touch-manipulation"
                 >
                   <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
                   <span>{bpCopy.whatIncludedBtn}</span>
@@ -1192,18 +1184,13 @@ export function AmazonFlightStorefront({
            =================================================================== */}
         <section className="p-5 sm:p-6 rounded-2xl border border-slate-800 bg-slate-900/60 space-y-5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800/80 pb-4">
-            <div className="flex items-center gap-2.5">
-              <span className="w-6 h-6 rounded-full bg-sky-500/20 border border-sky-500/40 text-sky-400 font-mono text-xs font-black flex items-center justify-center">
-                3
-              </span>
-              <div>
-                <h2 className="text-base sm:text-lg font-bold text-white">
-                  Customize Flight Plan — World Airport Trios & Cockpit Modules
-                </h2>
-                <p className="text-xs text-slate-400">
-                  Mix & match 3-airport global tours (+40m), Cold & Dark startup (+20m), or IFR weather (+15m)
-                </p>
-              </div>
+            <div>
+              <h2 className="text-base sm:text-lg font-bold text-white">
+                Customize Flight Plan — World Airport Trios & Cockpit Modules
+              </h2>
+              <p className="text-xs text-slate-400">
+                Mix & match 3-airport global tours (+40m), Cold & Dark startup (+20m), or IFR weather (+15m)
+              </p>
             </div>
 
             {/* Category Filter Pills */}

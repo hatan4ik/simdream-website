@@ -1,4 +1,4 @@
-import { LANGUAGES, RTL_LANGUAGES, preferLanguage, preferTheme, type Language } from '../support/e2e';
+import { LANGUAGES, RTL_LANGUAGES, expectThemeApplied, preferLanguage, preferTheme, type Language } from '../support/e2e';
 import { expect, test } from './fixtures';
 import { follow } from './pages/hydration';
 
@@ -71,16 +71,22 @@ test.describe('interface theme switcher', () => {
     await expect(chrome.html()).toHaveAttribute('data-ui', 'brand');
   });
 
-  test('toggles back from brand to cockpit and keeps cockpit after reload', async ({ page, chrome }) => {
+  test('cycles cockpit → brand → studio → cockpit and keeps cockpit after reload', async ({ page, chrome }) => {
     await page.goto('/');
-    await chrome.toggleTheme();
-    await expect(chrome.html()).toHaveAttribute('data-ui', 'brand');
+    await expectThemeApplied(page, 'cockpit');
 
     await chrome.toggleTheme();
-    await expect(chrome.html()).toHaveAttribute('data-ui', 'cockpit');
+    await expectThemeApplied(page, 'brand');
+
+    // Clean Studio is layered on the daylight palette (AGENTS.md §1, theme 3 of 3).
+    await chrome.toggleTheme();
+    await expectThemeApplied(page, 'studio');
+
+    await chrome.toggleTheme();
+    await expectThemeApplied(page, 'cockpit');
 
     await page.reload();
-    await expect(chrome.html()).toHaveAttribute('data-ui', 'cockpit');
+    await expectThemeApplied(page, 'cockpit');
   });
 
   test('applies a previously chosen brand theme on the first page load', async ({ page, chrome }) => {

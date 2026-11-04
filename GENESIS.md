@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:514c17088487773e2ed9fbd04f1c96d67f20f1ff15adc62039dff5ee38664eb5 -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:53957786b94a3b8b9cceeb6ba127d2b05f600134154f1bb34a8d54526f7c570b -->
 
 ## Verification contract
 
@@ -216,6 +216,8 @@ Seed 13 add-ons in three groups:
 - media and guest upgrades: 4K multi-camera recording, signed logbook, extra jumpseat passenger.
 
 Add 3 curated one-click combos. Localize every package and add-on in all five languages. Keep **one server-side catalog authority**: the catalog API and checkout must read prices and durations from the same source.
+
+**Experience Flights route catalog** (`lib/data/experience-routes.ts`, rendered by `components/experiences/WorldRoutesSection.tsx` on `/experiences#world-routes`): the "טיסות חוויה" section written in the captain's voice. It lists every world-trio add-on (price and minutes resolved from `FLIGHT_ADDONS`, never duplicated) plus proposed on-request trios (Israel home skies, Atlantic outposts, Arctic lights, Himalaya, Africa, Pacific, Andes, North American wilderness) and scenario adventures (Dead Sea low pass, ETOPS crossing, Everest mountain flight, storm diversion, round-the-world, fly-home). Each trio names three real airports by ICAO and IATA code (ICAO rendered LTR), a 1–5 captain's handling rating, a first-person captain's note and "best for" tags, all in five languages. Bookable trios link to `/book`; on-request routes and adventures link to `/contact?subject=route&route=<id>`, which prefills the subject and message. Every airport is a real Boeing 737 destination (pillar 5). Pinned by `tests/unit/experience-routes.test.ts`.
 
 #### Scheduling engine (`lib/scheduler/`, pure functions, fully unit-tested)
 

@@ -638,6 +638,9 @@ export const translations = {
       subjectSubscription: 'Multi-Flight Pass Interest',
       subscriptionInquiryPrefill:
         'I would like to hear when multi-flight passes are available. Please contact me with the planned options and terms.',
+      subjectRoute: 'World Route or Adventure Request',
+      routeInquiryPrefill:
+        'I would like to fly the following route or adventure in my session: {{route}}. Please confirm the briefing and the best session length.',
       formMessage: 'Message *',
       formMessagePlaceholder: 'Type your message or special flight request...',
       formSubmit: 'Transmit Message',
@@ -1460,6 +1463,9 @@ export const translations = {
       subjectSubscription: 'התעניינות בכרטיסיית טיסות',
       subscriptionInquiryPrefill:
         'אשמח לקבל עדכון כאשר כרטיסיות הטיסה יהיו זמינות. אנא צרו איתי קשר עם האפשרויות והתנאים המתוכננים.',
+      subjectRoute: 'בקשה למסלול עולמי או הרפתקת טיסה',
+      routeInquiryPrefill:
+        'אשמח לטוס במפגש שלי את המסלול או ההרפתקה הבאים: {{route}}. אנא אשרו את התדריך ואת אורך המפגש המתאים ביותר.',
       formMessage: 'תוכן ההודעה *',
       formMessagePlaceholder: 'כתבו כאן את שאלתכם או בקשות מיוחדות לטיסה...',
       formSubmit: 'שליחת הודעה',
@@ -2277,6 +2283,9 @@ export const translations = {
       subjectSubscription: 'Интерес к мульти-пассу на полёты',
       subscriptionInquiryPrefill:
         'Я хочу узнать, когда будут доступны мульти-пассы на полёты. Пожалуйста, свяжитесь со мной с планируемыми вариантами и условиями.',
+      subjectRoute: 'Запрос мирового маршрута или приключения',
+      routeInquiryPrefill:
+        'Я хочу пролететь в своём сеансе следующий маршрут или приключение: {{route}}. Пожалуйста, подтвердите брифинг и оптимальную длительность сеанса.',
       formMessage: 'Текст сообщения *',
       formMessagePlaceholder: 'Напишите ваш вопрос или особые пожелания к полету...',
       formSubmit: 'Отправить в диспетчерскую',
@@ -3100,6 +3109,9 @@ export const translations = {
       subjectSubscription: 'Intérêt pour un Pass Multi-Vols',
       subscriptionInquiryPrefill:
         'Je souhaite être informé lorsque les Pass Multi-Vols seront disponibles. Merci de me contacter avec les options et conditions prévues.',
+      subjectRoute: 'Demande de route mondiale ou d’aventure',
+      routeInquiryPrefill:
+        'Je souhaite voler la route ou l’aventure suivante pendant ma séance : {{route}}. Merci de confirmer le briefing et la durée de séance la plus adaptée.',
       formMessage: 'Votre message *',
       formMessagePlaceholder: 'Indiquez ici votre demande ou vos souhaits particuliers...',
       formSubmit: 'Transmettre le message',
@@ -3929,6 +3941,9 @@ export const translations = {
       subjectSubscription: 'اهتمام ببطاقات الرحلات المتعددة',
       subscriptionInquiryPrefill:
         'أرغب في معرفة موعد توفر بطاقات الرحلات المتعددة. يرجى التواصل معي بشأن الخيارات والشروط المتوقعة.',
+      subjectRoute: 'طلب مسار عالمي أو مغامرة طيران',
+      routeInquiryPrefill:
+        'أرغب في الطيران في جلستي بالمسار أو المغامرة التالية: {{route}}. يرجى تأكيد الإحاطة وأفضل مدة للجلسة.',
       formMessage: 'نص الرسالة *',
       formMessagePlaceholder: 'اكتب استفسارك أو طلباتك الخاصة لرحلة الطيران...',
       formSubmit: 'إرسال الرسالة',

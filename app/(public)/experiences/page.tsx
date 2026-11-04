@@ -17,6 +17,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
 import { formatCurrency } from '@/lib/utils';
 import { useLanguage } from '@/lib/i18n/language-context';
+import { WorldRoutesSection } from '@/components/experiences/WorldRoutesSection';
 
 export default function ExperiencesPage() {
   const { t, language, isRTL } = useLanguage();
@@ -185,6 +186,9 @@ export default function ExperiencesPage() {
           ))}
         </div>
       )}
+
+      {/* 1b. Experience Flights: World Trio routes, sights and adventures in the captain's voice. */}
+      {showFlightPackages && <WorldRoutesSection />}
 
       {/* 2. Multi-flight passes — deliberately not a checkout until product terms are finalized. */}
       {showSubscriptions && (

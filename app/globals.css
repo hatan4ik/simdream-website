@@ -814,11 +814,19 @@ html[data-look="studio"] button:not([aria-label]):not([data-calendar-date]):not(
   padding-left: 1.1rem;
   padding-right: 1.1rem;
 }
-html[data-look="studio"] button:not([data-calendar-date]):not(.rounded-full):not([role="tab"]),
+html[data-look="studio"] button:not([data-calendar-date]):not(.rounded-full):not([role="tab"]):not([aria-pressed]),
 html[data-look="studio"] a > .rounded-lg,
 html[data-look="studio"] a.rounded-lg,
 html[data-look="studio"] a.rounded-xl {
   border-radius: 980px !important;
+}
+/* Selection cards are information-dense controls, not pills. Their dimensions must be
+   governed by the component so rows stay aligned in the Studio theme as well. */
+html[data-look="studio"] [data-booking-package-card] {
+  border-radius: 18px !important;
+}
+html[data-look="studio"] [data-package-details-trigger] {
+  border-radius: 12px !important;
 }
 html[data-look="studio"] input:not([type="checkbox"]):not([type="radio"]),
 html[data-look="studio"] select,
@@ -877,4 +885,3 @@ html[data-look="studio"] .bg-amber-500 * {
 html[data-look="studio"] ::-webkit-scrollbar-track {
   background: #ffffff !important;
 }
-

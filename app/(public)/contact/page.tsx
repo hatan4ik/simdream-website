@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   MapPin,
   Phone,
@@ -30,6 +30,7 @@ import {
   RouteOriginPreset,
 } from '@/lib/config/facility-info';
 import { useLiveFacilityStatus } from '@/lib/config/use-live-facility-status';
+import { ADVENTURES, WORLD_ROUTES } from '@/lib/data/experience-routes';
 
 type TravelMode = 'transit' | 'driving' | 'walking';
 
@@ -468,18 +469,39 @@ export default function ContactPage() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  /** The last message this page prefilled itself, so a language change can replace it safely. */
+  const autoPrefillRef = useRef('');
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const subject = new URLSearchParams(window.location.search).get('subject');
-    if (subject !== 'subscription') return;
-
-    setFormData((current) => ({
-      ...current,
-      subject: 'Multi-Flight Pass Interest',
-      message: current.message || t.contact.subscriptionInquiryPrefill,
-    }));
-  }, [t.contact.subscriptionInquiryPrefill]);
+    const params = new URLSearchParams(window.location.search);
+    const subject = params.get('subject');
+    let prefill: { subject: string; message: string } | undefined;
+    if (subject === 'subscription') {
+      prefill = { subject: 'Multi-Flight Pass Interest', message: t.contact.subscriptionInquiryPrefill };
+    } else if (subject === 'route') {
+      // /experiences#world-routes links here with the id of an on-request World Trio or adventure.
+      const requested = params.get('route') ?? '';
+      const route = WORLD_ROUTES.find((entry) => entry.id === requested);
+      const adventure = ADVENTURES.find((entry) => entry.id === requested);
+      const title = (route?.copy[language] ?? route?.copy.en)?.title ?? (adventure?.copy[language] ?? adventure?.copy.en)?.title;
+      if (title) {
+        prefill = {
+          subject: 'World Route or Adventure Request',
+          message: t.contact.routeInquiryPrefill.replace('{{route}}', title),
+        };
+      }
+    }
+    if (!prefill) return;
+    const next = prefill;
+    // The saved language is adopted after hydration, so this runs again; replace our own earlier
+    // prefill (never text the visitor typed) with the one in the final language.
+    setFormData((current) => {
+      const untouched = current.message === '' || current.message === autoPrefillRef.current;
+      return { ...current, subject: next.subject, message: untouched ? next.message : current.message };
+    });
+    autoPrefillRef.current = next.message;
+  }, [language, t.contact.subscriptionInquiryPrefill, t.contact.routeInquiryPrefill]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1030,6 +1052,7 @@ export default function ContactPage() {
                     <option value="Corporate Offsite">{t.contact.subjectCorporate}</option>
                     <option value="Gift Voucher Support">{t.contact.subjectVoucher}</option>
                     <option value="Multi-Flight Pass Interest">{t.contact.subjectSubscription}</option>
+                    <option value="World Route or Adventure Request">{t.contact.subjectRoute}</option>
                   </select>
                 </div>
 

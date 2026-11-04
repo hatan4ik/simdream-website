@@ -44,12 +44,26 @@ export { expect };
 
 /** Selects the UI language before any page script runs. */
 export async function preferLanguage(page: Page, language: Language): Promise<void> {
-  await page.addInitScript((value) => window.localStorage.setItem('simdream_lang', value), language);
+  // Init scripts also run inside third-party iframes (the /contact map), where storage access is
+  // denied and would surface as an uncaught page error.
+  await page.addInitScript((value) => {
+    try {
+      window.localStorage.setItem('simdream_lang', value);
+    } catch {
+      /* sandboxed frame */
+    }
+  }, language);
 }
 
 /** Selects the cockpit (night), brand (daylight) or studio interface before any page script runs. */
 export async function preferTheme(page: Page, theme: UiTheme): Promise<void> {
-  await page.addInitScript((value) => window.localStorage.setItem('simdream_ui_theme', value), theme);
+  await page.addInitScript((value) => {
+    try {
+      window.localStorage.setItem('simdream_ui_theme', value);
+    } catch {
+      /* sandboxed frame */
+    }
+  }, theme);
 }
 
 /**
