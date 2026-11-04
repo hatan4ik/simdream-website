@@ -49,7 +49,10 @@ export default defineConfig({
   forbidOnly: isCI,
   retries: isCI ? 2 : 0,
   failOnFlakyTests: isCI,
-  workers: isCI ? 2 : undefined,
+  // Local browser suites exercise 550+ pages, forms and API interactions against one
+  // production server. Four workers keeps that integration load realistic without
+  // starving individual client-side transitions; CI remains deliberately stricter.
+  workers: isCI ? 2 : 4,
   timeout: 45_000,
   // Screenshot baselines are per-platform. Locally a missing one is recorded (and the check
   // passes); in CI that would compare nothing, so a missing Linux baseline fails there instead.
