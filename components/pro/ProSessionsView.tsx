@@ -616,24 +616,12 @@ export function ProSessionsView() {
         </p>
 
         {/* Primary Booking & Information Actions */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 sm:gap-4 pt-2">
-          <Link href="/book?package=airline-prep-90-pro" className="w-full sm:w-auto">
-            <Button
-              size="lg"
-              className="w-full sm:w-auto font-bold shadow-glow text-base px-8 py-4 bg-amber-400 hover:bg-amber-300 text-slate-950 border-amber-300"
-            >
-              <span>{copy.heroCtaPrimary}</span>
-              <ArrowRight className={`w-5 h-5 ${isRTL ? 'rotate-180' : ''}`} />
-            </Button>
+        <div className="flex flex-row flex-wrap items-center justify-center gap-3 sm:gap-4 pt-2">
+          <Link href="/book?package=airline-prep-90-pro">
+            <Button size="lg">{copy.heroCtaPrimary}</Button>
           </Link>
-          <a href="#why-prep" className="w-full sm:w-auto">
-            <Button
-              variant="secondary"
-              size="lg"
-              className="w-full sm:w-auto font-semibold text-base px-6 py-4"
-            >
-              <span>{copy.heroCtaSecondary}</span>
-            </Button>
+          <a href="#why-prep">
+            <Button variant="outline" size="lg">{copy.heroCtaSecondary}</Button>
           </a>
         </div>
 
@@ -736,7 +724,7 @@ export function ProSessionsView() {
               <Button
                 variant="primary"
                 size="lg"
-                className="w-full sm:w-auto font-bold shadow-glow bg-amber-400 hover:bg-amber-300 text-slate-950 border-amber-300 px-8 py-4 text-base"
+                className="w-full sm:w-auto bg-amber-400 hover:bg-amber-300 text-slate-950 border-amber-300"
               >
                 <span>{copy.bookDirectCta}</span>
                 <ArrowRight className={`w-5 h-5 ${isRTL ? 'rotate-180' : ''}`} />

@@ -45,10 +45,11 @@ export class BookingPage {
    * the previous day's slot buttons while the new list is loading.
    */
   async selectDate(isoDate: string, how: 'click' | 'tap' = 'click'): Promise<void> {
-    // The week-range heading also contains some non-selected dates, so only the day button's
-    // pressed state tells us whether there is nothing to do.
-    if ((await this.dateButton(isoDate).getAttribute('aria-pressed')) === 'true') return;
     await this.revealDate(isoDate);
+    // The week-range heading also contains some non-selected dates, so only the day button's
+    // pressed state tells us whether there is nothing to do. The target must be
+    // revealed first: a later week is not in the DOM until its pager runs.
+    if ((await this.dateButton(isoDate).getAttribute('aria-pressed')) === 'true') return;
     const loaded = this.slotsResponse({ date: isoDate });
     await (how === 'tap' ? this.dateButton(isoDate).tap() : this.dateButton(isoDate).click());
     await loaded;

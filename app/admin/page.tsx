@@ -531,7 +531,7 @@ export default function AdminOverviewPage() {
 
             <div className="pt-3 border-t border-slate-800">
               <Link href="/admin/bookings">
-                <Button size="sm" className="w-full font-bold">
+                <Button size="sm" className="w-full">
                   <span>Manage All Bookings &rarr;</span>
                 </Button>
               </Link>

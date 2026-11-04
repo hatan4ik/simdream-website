@@ -808,50 +808,49 @@ html[data-look="studio"] .text-slate-500 {
 /* .text-white / .text-slate-100/200 are already darkened by the daylight overrides, except inside
    solid fills where they must stay white; nothing to add here. */
 
-/* Geometry is role-based. A former global selector converted every ordinary button and many
-   rounded links into a 980px pill, including dense booking cards. Only controls that opt into
-   the shared Button contract receive the Apple-style action treatment. */
-html[data-look="studio"] [data-ui-control="button"] {
-  min-height: 44px;
-  padding-inline: 1.1rem;
-  border-radius: 980px !important;
-  box-shadow: none !important;
-  letter-spacing: -0.01em;
-}
-html[data-look="studio"] [data-ui-control="button"][data-button-variant="primary"] {
+/* Action pills (apple.com store buttons) are role-based and owned by components/ui/Button.tsx:
+   the 980px pill, regular-weight label and padding are identical in every theme and viewport,
+   so this block only recolours the daylight variants (Studio inherits it). A former global
+   selector converted every ordinary button and many rounded links into pills, including dense
+   booking cards; only controls that opt into the shared Button contract get the treatment. */
+html[data-ui="brand"] [data-ui-control="button"][data-button-variant="primary"] {
   background-color: #136c91 !important;
   border-color: #136c91 !important;
   color: #ffffff !important;
 }
-html[data-look="studio"] [data-ui-control="button"][data-button-variant="primary"] * {
+html[data-ui="brand"] [data-ui-control="button"][data-button-variant="primary"] * {
   color: #ffffff !important;
 }
-html[data-look="studio"] [data-ui-control="button"][data-button-variant="primary"]:hover {
+html[data-ui="brand"] [data-ui-control="button"][data-button-variant="primary"]:hover {
   background-color: #195a77 !important;
   border-color: #195a77 !important;
 }
-html[data-look="studio"] [data-ui-control="button"][data-button-variant="outline"] {
+/* "Buy": cerulean outline that fills on hover, as apple.com's `.button-secondary`. */
+html[data-ui="brand"] [data-ui-control="button"][data-button-variant="outline"] {
   background-color: transparent !important;
   border-color: #136c91 !important;
   color: #136c91 !important;
 }
-html[data-look="studio"] [data-ui-control="button"][data-button-variant="outline"]:hover {
-  background-color: #e3f1f9 !important;
+html[data-ui="brand"] [data-ui-control="button"][data-button-variant="outline"]:hover {
+  background-color: #136c91 !important;
+  color: #ffffff !important;
 }
-html[data-look="studio"] [data-ui-control="button"][data-button-variant="secondary"] {
-  background-color: #f5f5f7 !important;
-  border-color: transparent !important;
+html[data-ui="brand"] [data-ui-control="button"][data-button-variant="outline"]:hover * {
+  color: #ffffff !important;
+}
+html[data-ui="brand"] [data-ui-control="button"][data-button-variant="secondary"] {
+  background-color: #e8e8ed !important;
+  border-color: #e8e8ed !important;
   color: #1d1d1f !important;
 }
-html[data-look="studio"] [data-ui-control="button"][data-button-variant="ghost"] {
+html[data-ui="brand"] [data-ui-control="button"][data-button-variant="secondary"]:hover {
+  background-color: #dcdce1 !important;
+  border-color: #dcdce1 !important;
+}
+html[data-ui="brand"] [data-ui-control="button"][data-button-variant="ghost"] {
   background-color: transparent !important;
   border-color: transparent !important;
   color: #136c91 !important;
-}
-@media (pointer: coarse) {
-  html[data-look="studio"] [data-ui-control="button"] {
-    min-height: 48px;
-  }
 }
 /* Selection cards are information-dense controls, not pills. Their dimensions must be
    governed by the component so rows stay aligned in the Studio theme as well. */

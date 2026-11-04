@@ -654,17 +654,12 @@ export function AboutExperienceView() {
       <section className="text-center bg-gradient-to-r from-sky-900/30 via-slate-900/80 to-sky-900/30 border border-sky-500/30 rounded-2xl p-8 sm:p-10 space-y-6">
         <h2 className="text-2xl sm:text-3xl font-black text-white">{t.cta.title}</h2>
         <p className="text-slate-300 max-w-xl mx-auto text-sm">{t.cta.subtitle}</p>
-        <div className="flex flex-wrap justify-center gap-4">
+        <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
           <Link href="/book">
-            <Button size="lg" className="font-bold">
-              <span>{t.cta.bookFlight}</span>
-              <ArrowRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
-            </Button>
+            <Button size="lg">{t.cta.bookFlight}</Button>
           </Link>
           <Link href="/experiences">
-            <Button variant="secondary" size="lg">
-              <span>{t.experiences.viewAll}</span>
-            </Button>
+            <Button variant="outline" size="lg">{t.experiences.viewAll}</Button>
           </Link>
         </div>
       </section>

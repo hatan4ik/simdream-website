@@ -252,14 +252,14 @@ export function WorldRoutesSection() {
                   )}
                   {addon ? (
                     <Link href={bookHref(route)} className="block">
-                      <Button className="w-full font-bold min-h-[44px]">
+                      <Button className="w-full min-h-[44px]">
                         <span>{copy.bookTrioCta}</span>
                         <ArrowRight className={`w-4 h-4 ${arrowFlip}`} aria-hidden="true" />
                       </Button>
                     </Link>
                   ) : (
                     <Link href={requestHref(route.id)} className="block">
-                      <Button variant="outline" className="w-full font-bold min-h-[44px]">
+                      <Button variant="outline" className="w-full min-h-[44px]">
                         <span>{copy.requestRouteCta}</span>
                         <ArrowRight className={`w-4 h-4 ${arrowFlip}`} aria-hidden="true" />
                       </Button>
@@ -308,7 +308,7 @@ export function WorldRoutesSection() {
                       <span>{copy.fromSession(adventure.minimumSessionMinutes)}</span>
                     </div>
                     <Link href={requestHref(adventure.id)} className="block">
-                      <Button variant="secondary" className="w-full font-bold min-h-[44px]">
+                      <Button variant="secondary" className="w-full min-h-[44px]">
                         <span>{copy.askCaptainCta}</span>
                         <ArrowRight className={`w-4 h-4 ${arrowFlip}`} aria-hidden="true" />
                       </Button>

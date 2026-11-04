@@ -1108,7 +1108,7 @@ function BookContent() {
                 type="submit"
                 size="lg"
                 isLoading={isSubmitting}
-                className="w-full font-bold text-base py-4 shadow-glow"
+                className="w-full"
               >
                 <CreditCard className="w-5 h-5" />
                 <span>{isSubmitting ? t.booking.processing : `${t.booking.proceedToPayment} (${formatCurrency(totalAmount)})`}</span>

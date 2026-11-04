@@ -400,8 +400,7 @@ export function Navbar() {
               data-button-variant="primary"
               className={buttonClassName('primary', 'sm', 'min-h-11 whitespace-nowrap')}
             >
-              <Calendar className="w-4 h-4" aria-hidden="true" />
-              <span>{t.nav.bookFlight}</span>
+              {t.nav.bookFlight}
             </Link>
           </div>
 
@@ -416,7 +415,7 @@ export function Navbar() {
                 href="/book"
                 data-ui-control="button"
                 data-button-variant="primary"
-                className={buttonClassName('primary', 'sm', 'min-h-11')}
+                className={buttonClassName('primary', 'sm', 'min-h-11 px-3')}
               >
                 {t.nav.bookFlight.split(' ')[0]}
               </Link>

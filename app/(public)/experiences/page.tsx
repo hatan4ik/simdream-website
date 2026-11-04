@@ -70,11 +70,7 @@ export default function ExperiencesPage() {
         {/* Direct Launch Bar to Live Kantorovich Calendar */}
         <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
           <Link href="/book">
-            <Button size="lg" className="font-bold shadow-glow">
-              <Calendar className="w-5 h-5" />
-              <span>{t.nav.bookFlight} — Live Calendar &amp; Slots</span>
-              <ArrowRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
-            </Button>
+            <Button size="lg">{t.nav.bookFlight}</Button>
           </Link>
         </div>
       </div>
@@ -171,7 +167,7 @@ export default function ExperiencesPage() {
                 >
                   <Button
                     variant={pkg.featured ? 'primary' : 'secondary'}
-                    className="w-full font-bold justify-between min-h-[44px] touch-manipulation cursor-pointer"
+                    className="w-full justify-between min-h-[44px]"
                   >
                     <span>
                       {pkg.category === 'corporate'
@@ -214,7 +210,7 @@ export default function ExperiencesPage() {
               </p>
             </div>
             <Link href="/contact?subject=subscription" className="inline-block">
-              <Button className="min-h-11 font-bold touch-manipulation">
+              <Button>
                 <span>{t.experiences.buySubscription}</span>
                 <ArrowRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
               </Button>
@@ -235,7 +231,7 @@ export default function ExperiencesPage() {
           </p>
         </div>
         <Link href="/pro" className="shrink-0">
-          <Button size="lg" className="font-bold bg-amber-400 hover:bg-amber-300 text-slate-950 shadow-glowAmber border-amber-300 min-h-[44px] touch-manipulation cursor-pointer">
+          <Button size="lg" className="bg-amber-400 hover:bg-amber-300 text-slate-950 border-amber-300 min-h-[44px]">
             <span>{t.experiences.proBridgeButton}</span>
             <ArrowRight className={`w-4 h-4 text-slate-950 ${isRTL ? 'rotate-180' : ''}`} />
           </Button>
@@ -254,7 +250,7 @@ export default function ExperiencesPage() {
           </p>
         </div>
         <Link href="/workshops" className="shrink-0">
-          <Button size="lg" className="font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-glowAmber min-h-[44px] touch-manipulation cursor-pointer">
+          <Button size="lg" className="bg-amber-500 hover:bg-amber-400 text-slate-950 min-h-[44px]">
             <span>{t.experiences.b2bButton}</span>
             <ArrowRight className={`w-4 h-4 text-slate-950 ${isRTL ? 'rotate-180' : ''}`} />
           </Button>
@@ -275,7 +271,7 @@ export default function ExperiencesPage() {
         </div>
         <Link href="/vouchers">
           {/* Wraps on phones: a no-wrap label made the page ~359px wide at 320px. */}
-          <Button size="lg" className="font-bold text-center sm:whitespace-nowrap min-h-[44px] touch-manipulation cursor-pointer">
+          <Button size="lg" className="text-center sm:whitespace-nowrap min-h-[44px]">
             <Gift className="w-5 h-5" />
             <span>{t.experiences.customizeVoucher}</span>
           </Button>

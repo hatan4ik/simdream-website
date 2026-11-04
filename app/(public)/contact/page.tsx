@@ -1075,7 +1075,7 @@ export default function ContactPage() {
                   />
                 </div>
 
-                <Button type="submit" size="md" isLoading={isSubmitting} className="w-full font-bold">
+                <Button type="submit" size="md" isLoading={isSubmitting} className="w-full">
                   <Send aria-hidden="true" className="w-4 h-4" />
                   <span>{isSubmitting ? t.contact.formSending : t.contact.formSubmit}</span>
                 </Button>

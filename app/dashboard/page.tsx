@@ -300,7 +300,7 @@ export default function DashboardPage() {
           <p className="text-xs text-slate-400"><span dir="ltr">{user.email}</span> · {copy.verifiedEmailScope}</p>
         </div>
         <Link href="/book">
-          <Button size="sm" className="font-bold whitespace-nowrap">
+          <Button size="sm" className="whitespace-nowrap">
             <Plane className="w-4 h-4 -rotate-45" />
             <span>{copy.bookNextMission}</span>
           </Button>

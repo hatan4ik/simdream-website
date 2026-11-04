@@ -216,7 +216,7 @@ export default function AdminVouchersPage() {
                   />
                   <Button
                     onClick={handleRedeem}
-                    className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold"
+                    className="bg-emerald-700 hover:bg-emerald-800 text-white"
                   >
                     Deduct & Redeem
                   </Button>

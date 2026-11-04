@@ -1834,7 +1834,7 @@ export function AmazonFlightStorefront({
             type="submit"
             size="lg"
             isLoading={isSubmitting}
-            className="w-full font-black text-base py-4 bg-amber-400 hover:bg-amber-300 text-slate-950 shadow-xl border border-amber-300"
+            className="w-full bg-amber-400 hover:bg-amber-300 text-slate-950 border-amber-300"
           >
             <CreditCard className="w-5 h-5" />
             <span>

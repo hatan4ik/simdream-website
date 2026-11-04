@@ -333,7 +333,7 @@ export default function WorkshopsPage() {
               type="submit"
               size="lg"
               isLoading={isSubmitting}
-              className="w-full font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-glowAmber"
+              className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950"
             >
               <Send className="w-4 h-4 text-slate-950" />
               <span>{isSubmitting ? t.workshops.submitting : t.workshops.submitInquiry}</span>

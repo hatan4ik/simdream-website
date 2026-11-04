@@ -56,18 +56,13 @@ export default function HomePage() {
           </p>
 
           {/* Hero CTAs */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 pt-2 sm:pt-4">
-            <Link href="/book" className="w-full sm:w-auto">
-              <Button size="lg" className="w-full sm:w-auto font-bold text-base px-8 py-4 shadow-glow">
-                <Plane className="w-5 h-5 -rotate-45" />
-                <span>{t.hero.bookFlight}</span>
-              </Button>
+          {/* apple.com hero pair: filled "Learn more" + outlined "Buy", side by side on phones too. */}
+          <div className="flex flex-row flex-wrap items-center justify-center gap-3 sm:gap-4 pt-2 sm:pt-4">
+            <Link href="/book">
+              <Button size="lg">{t.hero.bookFlight}</Button>
             </Link>
-            <Link href="/about" className="w-full sm:w-auto">
-              <Button variant="secondary" size="lg" className="w-full sm:w-auto font-semibold text-base px-8 py-4">
-                <span>{t.hero.cockpitSpecs}</span>
-                <ChevronRight className={`w-5 h-5 ${isRTL ? 'rotate-180' : ''}`} />
-              </Button>
+            <Link href="/about">
+              <Button variant="outline" size="lg">{t.hero.cockpitSpecs}</Button>
             </Link>
           </div>
 
@@ -277,7 +272,7 @@ export default function HomePage() {
                   <Link href={`/book?package=${pkg.slug}`}>
                     <Button
                       variant={pkg.featured ? 'primary' : 'secondary'}
-                      className="w-full font-bold"
+                      className="w-full"
                     >
                       <span>{t.experiences.bookThisFlight}</span>
                       <ArrowRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
@@ -303,13 +298,13 @@ export default function HomePage() {
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 pt-2 sm:pt-4">
             <Link href="/book" className="w-full sm:w-auto">
-              <Button size="lg" className="w-full sm:w-auto font-bold text-base px-8 py-4">
+              <Button size="lg" className="w-full sm:w-auto">
                 <Plane className="w-5 h-5 -rotate-45" />
                 <span>{t.cta.bookFlight}</span>
               </Button>
             </Link>
             <Link href="/vouchers" className="w-full sm:w-auto">
-              <Button variant="outline" size="lg" className="w-full sm:w-auto font-semibold text-base px-8 py-4">
+              <Button variant="outline" size="lg" className="w-full sm:w-auto">
                 <span>{t.cta.buyVoucher}</span>
               </Button>
             </Link>

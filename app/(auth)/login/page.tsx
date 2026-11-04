@@ -236,7 +236,7 @@ export default function LoginPage() {
             </div>
           )}
 
-          <Button type="submit" size="md" isLoading={isLoading} className="w-full font-bold">
+          <Button type="submit" size="md" isLoading={isLoading} className="w-full">
             <span>{isRecovery ? copy.recoverySubmit : isSignup ? copy.signUpSubmit : copy.signInSubmit}</span>
             {!isRecovery && <ArrowRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />}
           </Button>
