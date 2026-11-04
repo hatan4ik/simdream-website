@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:8c6079f4f263de8ee2183542b3ae101bce541cfe109cd3c8fe43af7b69246a67 -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:628e7afb1bec1937ed926497ab543c3dbc1c357bdbafba2614bd956371650e75 -->
 
 ## Verification contract
 
@@ -263,7 +263,8 @@ Add 3 curated one-click combos. Localize every package and add-on in all five la
 - Two interfaces over **identical** availability and recovery logic:
   - `AmazonFlightStorefront` (one page, sticky buy box);
   - `KantorovichCalendarScheduler` (guided wizard).
-- The calendar defaults to a **localized month grid**, with an optional week view. Weeks start on Sunday for he, ar and en, and on Monday for ru and fr. RTL arrows are flipped.
+- `BookingWeekPager` is their shared, five-language week-navigation boundary. It shifts the selected Israel date by exactly seven days, prevents travel before today, and flips only directional chevrons for RTL (not text).
+- The calendar defaults to a **localized week view**, with the month grid retained as an explicit toggle. Weeks start on Sunday for he, ar and en, and on Monday for ru and fr. RTL arrows are flipped.
 - `/book` first renders a stable calendar snapshot, then adopts the browser's live **Israel** date after hydration. Do not read the device clock in calendar render paths: a visitor west of UTC must never get a date-shift or React hydration mismatch.
 - **Never hide packages or durations** with zero open slots. Show them with a "0 slots open today" badge and keep the user's selection.
 - When a package has zero slots, show:

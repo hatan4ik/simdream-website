@@ -416,7 +416,6 @@ export function KantorovichCalendarScheduler({
                     key={day.dateStr}
                     type="button"
                     data-calendar-date={day.dateStr}
-                    aria-label={`${day.weekdayLabel} ${formatCalendarDayNumber(day.dayNumber, language)} ${day.monthShortLabel}`}
                     aria-pressed={isSelected}
                     onClick={() => handleSelectDate(day.dateStr)}
                     className={`snap-start shrink-0 min-w-[68px] sm:min-w-0 min-h-[72px] p-2.5 rounded-xl border text-center transition-all flex flex-col items-center justify-center ${
@@ -426,7 +425,7 @@ export function KantorovichCalendarScheduler({
                     }`}
                   >
                     <span
-                      className={`text-[11px] font-medium uppercase ${
+                      className={`text-[11px] font-medium ${
                         isSelected ? 'text-sky-300 font-bold' : 'text-slate-400'
                       }`}
                     >

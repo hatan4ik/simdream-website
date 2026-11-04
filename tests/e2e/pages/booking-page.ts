@@ -210,7 +210,7 @@ export class StorefrontView {
   }
 
   removeAddon(addonName: string): Locator {
-    return this.page.getByRole('button', { name: `Remove ${addonName}` });
+    return this.page.locator('#storefront-buy-box').getByRole('button', { name: `Remove ${addonName}`, exact: true });
   }
 
   pilotName(): Locator {

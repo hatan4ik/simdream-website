@@ -694,7 +694,6 @@ export function AmazonFlightStorefront({
                       key={day.dateStr}
                       type="button"
                       data-calendar-date={day.dateStr}
-                      aria-label={`${day.weekdayLabel} ${formatCalendarDayNumber(day.dayNumber, language)} ${day.monthShortLabel}`}
                       aria-pressed={isSelected}
                       onClick={() => selectCalendarDate(day.dateStr)}
                       className={`min-h-[64px] py-2 px-1 sm:p-2 rounded-xl border text-center transition-all flex flex-col items-center justify-center touch-manipulation select-none cursor-pointer active:scale-95 ${
@@ -703,7 +702,7 @@ export function AmazonFlightStorefront({
                           : 'border-slate-800/90 bg-slate-950/70 hover:border-slate-700 text-slate-300'
                       }`}
                     >
-                      <span className="text-[9px] font-mono uppercase text-slate-400">{day.weekdayLabel}</span>
+                      <span className="text-[9px] font-mono text-slate-400">{day.weekdayLabel}</span>
                       <span className="text-sm sm:text-base font-black font-mono text-white my-0.5">{formatCalendarDayNumber(day.dayNumber, language)}</span>
                       <span className="text-[9px] font-mono text-slate-400">{day.monthShortLabel}</span>
                     </button>

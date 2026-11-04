@@ -1,5 +1,5 @@
 import type { Route } from '@playwright/test';
-import { israelDate, nextWeekdayAfter, weekdayOf } from './pages/format';
+import { nextWeekdayAfter, weekdayOf } from './pages/format';
 import { expect, test } from './fixtures';
 
 const SATURDAY = 6;
@@ -12,7 +12,11 @@ test.describe('booking reliability', () => {
   }) => {
     // A Sunday–Thursday day has morning slots; Saturday is evening-only, so the two lists differ.
     const weekday = await schedule.findOpenSlot({ duration: 60, weekdays: [0, 1, 2, 3, 4] });
-    const saturday = nextWeekdayAfter(israelDate(1), SATURDAY);
+    // Derive the comparison date from the weekday returned by the same server
+    // that provides the slots. Node and a browser may straddle an Israel
+    // midnight, so deriving it from a separate local clock can point the page
+    // at last week's Saturday.
+    const saturday = nextWeekdayAfter(weekday.date, SATURDAY);
     expect(weekdayOf(saturday)).toBe(SATURDAY);
     const saturdaySlots = (await schedule.day(saturday, 60)).slots;
     const saturdayTimes = new Set(saturdaySlots.map((slot) => slot.startTime));

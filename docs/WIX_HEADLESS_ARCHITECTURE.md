@@ -115,7 +115,7 @@ This is a controlled rewrite. Astro provides the richest Wix-managed experience,
 | Checkout and payment | Wix-hosted Bookings checkout + PayPlus | Configure PayPlus in Wix. Do not add PayPlus credentials to frontend code. |
 | Marketing, legal, FAQ, translated content | Wix CMS + Wix Multilingual | Establish a single publishing owner for each content field; do not maintain conflicting copies in code and CMS. |
 | Corporate workshops | Wix Bookings or a separate structured workflow after discovery | Keep B2B CRM concerns separate from B2C simulator-session operations. |
-| Gift vouchers | Wix native discount/promotion feature only if it satisfies partial-balance and expiry requirements | If it cannot reproduce the current voucher rules, keep a small audited server-side voucher domain instead of forcing an incorrect model. |
+| Gift vouchers | Wix Gift Cards after staging proves partial-balance, expiry, refund, and booking-checkout parity | A coupon is a promotion, not stored value. If Wix Gift Cards cannot reproduce the current voucher rules, retain a small audited server-side voucher domain instead of forcing an incorrect model. |
 | Membership and subscriptions | Wix Pricing Plans + Wix Members + Wix Bookings | Wix Pricing Plans owns plan terms, recurring lifecycle, trials, and subscription state. Connect only approved Bookings services/benefits. |
 | Operations admin | Wix Dashboard first | Build a custom dashboard only for capabilities absent from the native dashboard, such as SimDream-specific gap analysis. |
 
