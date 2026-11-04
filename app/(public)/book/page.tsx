@@ -51,6 +51,10 @@ function resolvePackageSlug(slug: string): string {
   return PACKAGE_SLUG_ALIASES[slug] ?? slug;
 }
 
+function formatBookingTemplate(template: string, values: Record<string, string | number>): string {
+  return template.replace(/\{(\w+)\}/g, (match, key: string) => String(values[key] ?? match));
+}
+
 function BookContent() {
   const searchParams = useSearchParams();
   const { t, language, isRTL } = useLanguage();
@@ -320,22 +324,24 @@ function BookContent() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || 'Invalid voucher code.');
+        throw new Error(data.error || t.booking.voucherInvalid);
       }
 
       if (data.currentBalanceIls < subtotal) {
-        throw new Error('This voucher cannot cover the full online order. Please contact us for split payment.');
+        throw new Error(t.booking.voucherInsufficientBalance);
       }
       const applicableDiscount = subtotal;
       setVoucherCode(code);
       setVoucherDiscount(applicableDiscount);
-      setVoucherSuccess(`Voucher applied! ₪${applicableDiscount} discount applied.`);
+      setVoucherSuccess(
+        formatBookingTemplate(t.booking.voucherApplied, { amount: formatCurrency(applicableDiscount) })
+      );
       setCachedVoucherCode(code);
       try {
         sessionStorage.setItem('simdream_cached_voucher', code);
       } catch {}
     } catch (err: unknown) {
-      setVoucherError(extractErrorMessage(err, 'Could not verify voucher.'));
+      setVoucherError(extractErrorMessage(err, t.booking.voucherVerifyFailed));
       setVoucherDiscount(0);
     } finally {
       setIsVerifyingVoucher(false);
@@ -404,7 +410,7 @@ function BookContent() {
       });
 
       const checkout = await res.json();
-      if (!res.ok) throw new Error(checkout.error || 'Payment could not be started. Your card was not charged.');
+      if (!res.ok) throw new Error(checkout.error || t.booking.paymentStartFailed);
       if (checkout.kind === 'voucher' && typeof checkout.successUrl === 'string') {
         window.location.assign(checkout.successUrl);
         return;
@@ -413,12 +419,12 @@ function BookContent() {
         window.location.assign(checkout.url);
         return;
       }
-      throw new Error('Payment could not be initialized. Your card was not charged.');
+      throw new Error(t.booking.paymentInitializeFailed);
     } catch (err: unknown) {
       // fetch rejects with a TypeError on network loss; never show the raw "Failed to fetch".
       const offline = err instanceof TypeError || (typeof navigator !== 'undefined' && !navigator.onLine);
       setBookingError(
-        offline ? t.booking.offlineError : extractErrorMessage(err, 'An error occurred while creating your reservation.')
+        offline ? t.booking.offlineError : extractErrorMessage(err, t.booking.reservationCreateFailed)
       );
       setIsSubmitting(false);
     }
@@ -432,10 +438,10 @@ function BookContent() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 pb-3.5 sm:pb-4 border-b border-slate-800/80">
         <div>
           <div className="text-xs font-mono uppercase tracking-widest text-amber-400 font-bold">
-            BOEING 737 MAX-8 FLIGHT DISPATCH & STOREFRONT
+            {t.booking.storefrontTitle}
           </div>
           <p className="text-xs text-slate-400 mt-0.5">
-            Configure your base flight, departure slot, and global 3-airport bundles in one unified view.
+            {t.booking.storefrontSubtitle}
           </p>
         </div>
 
@@ -451,7 +457,7 @@ function BookContent() {
           >
             <ShoppingCart className="w-3.5 h-3.5 shrink-0" />
             {/* Phones wrap the label onto two lines; wider screens keep one line and clip. */}
-            <span className="text-center leading-tight sm:truncate">Express Shop View (1-Page)</span>
+            <span className="text-center leading-tight sm:truncate">{t.booking.storefrontView}</span>
           </button>
           <button
             type="button"
@@ -463,7 +469,7 @@ function BookContent() {
             }`}
           >
             <ListOrdered className="w-3.5 h-3.5 shrink-0" />
-            <span className="text-center leading-tight sm:truncate">Guided Wizard (3-Step)</span>
+            <span className="text-center leading-tight sm:truncate">{t.booking.wizardView}</span>
           </button>
         </div>
       </div>
@@ -484,14 +490,14 @@ function BookContent() {
         {user ? (
           <>
             <span>
-              Booking as <strong className="text-white">{user.email}</strong>. Keep this email on the reservation to save it in your Flight Deck.
+              {t.booking.bookingAs} <strong className="text-white">{user.email}</strong>. {t.booking.bookingAsSuffix}
             </span>
-            <Link href="/dashboard" className="font-semibold text-sky-400 hover:text-sky-300 whitespace-nowrap">View Flight Deck</Link>
+            <Link href="/dashboard" className="font-semibold text-sky-400 hover:text-sky-300 whitespace-nowrap">{t.booking.viewFlightDeck}</Link>
           </>
         ) : (
           <>
-            <span>Guest checkout is always available. No sign-in or member profile is required.</span>
-            <Link href="/login" className="font-semibold text-sky-400 hover:text-sky-300 whitespace-nowrap">Sign in to save bookings</Link>
+            <span>{t.booking.guestCheckoutNotice}</span>
+            <Link href="/login" className="font-semibold text-sky-400 hover:text-sky-300 whitespace-nowrap">{t.booking.signInToSaveBookings}</Link>
           </>
         )}
       </div>
@@ -613,8 +619,11 @@ function BookContent() {
               {selectedSlot && selectedSlot.available ? (
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
                   <span className="text-xs sm:text-sm font-bold text-white truncate">
-                    {totalDurationMinutes} min
-                    {addonsDuration > 0 ? ` (${baseDuration}m + ${addonsDuration}m)` : ''} • {formatDate(selectedDate)}
+                    {totalDurationMinutes} {t.booking.minutesShort}
+                    {addonsDuration > 0
+                      ? ` (${formatBookingTemplate(t.booking.baseAndAddons, { base: baseDuration, addons: addonsDuration })})`
+                      : ''}{' '}
+                    • {formatDate(selectedDate)}
                   </span>
                   <span className="text-xs sm:text-sm font-mono font-black text-sky-400" dir="ltr">
                     {selectedSlot.startTime}–{effectiveEndTime || selectedSlot.endTime}
@@ -681,7 +690,7 @@ function BookContent() {
                       <div className="flex items-center gap-1.5 shrink-0">
                         {addonMin > 0 && (
                           <span className="text-xs font-mono font-bold text-sky-300 px-2 py-0.5 rounded-md bg-sky-500/15 border border-sky-500/30">
-                            +{addonMin} min
+                            +{addonMin} {t.booking.minutesShort}
                           </span>
                         )}
                         <span className="text-sm font-mono font-black text-emerald-400 px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20">
@@ -695,12 +704,16 @@ function BookContent() {
                   <div className="pt-4 mt-2 border-t border-slate-800/70 flex items-center justify-between text-xs font-mono">
                     {exceedsSlotWindow ? (
                       <span className="text-amber-400 text-[11px]">
-                        Needs +{addonMin}m (Max {maxSlotMinutes}m available at {selectedSlot?.startTime})
+                        {formatBookingTemplate(t.booking.addonDoesNotFit, {
+                          minutes: addonMin,
+                          maxMinutes: maxSlotMinutes,
+                          startTime: selectedSlot?.startTime ?? '',
+                        })}
                       </span>
                     ) : (
                       <span className={isChecked ? 'text-sky-400 font-bold' : 'text-slate-400'}>
                         {isChecked
-                          ? `${t.booking.addedToFlight}${addonMin > 0 ? ` (+${addonMin} min)` : ''}`
+                          ? `${t.booking.addedToFlight}${addonMin > 0 ? ` (+${addonMin} ${t.booking.minutesShort})` : ''}`
                           : t.booking.clickToAdd}
                       </span>
                     )}
@@ -728,11 +741,11 @@ function BookContent() {
               <div className="text-right rtl:text-left">
                 <div className="text-[11px] font-mono text-slate-300">
                   <span className="text-sky-400 font-bold">
-                    {totalDurationMinutes} min
+                    {totalDurationMinutes} {t.booking.minutesShort}
                   </span>
                   {addonsDuration > 0 && (
                     <span className="text-slate-400">
-                      {' '}({baseDuration}m + {addonsDuration}m)
+                      {' '}({formatBookingTemplate(t.booking.baseAndAddons, { base: baseDuration, addons: addonsDuration })})
                     </span>
                   )}
                   {selectedSlot && (
@@ -942,7 +955,7 @@ function BookContent() {
                   </span>
                   {addonsDuration > 0 && (
                     <span className="text-[11px] font-mono text-slate-400">
-                      ({baseDuration}m base + {addonsDuration}m add-ons)
+                      {formatBookingTemplate(t.booking.baseAndAddons, { base: baseDuration, addons: addonsDuration })}
                     </span>
                   )}
                 </div>
@@ -960,8 +973,8 @@ function BookContent() {
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-400">CENTER:</span>
-                  <span className="text-white">Gershon Shatz 36, Tel Aviv (Yehudit Light Rail)</span>
+                  <span className="text-slate-400">{t.booking.centerLabel}:</span>
+                  <span className="text-white">{t.booking.centerAddress}</span>
                 </div>
               </div>
 
@@ -970,7 +983,7 @@ function BookContent() {
                   <div className="flex items-center gap-2 min-w-0">
                     <span className="truncate font-semibold">{t.booking.baseFlight}</span>
                     <span className="text-[11px] font-mono text-sky-400 px-1.5 py-0.5 rounded bg-sky-500/10 border border-sky-500/20 shrink-0">
-                      {baseDuration} min
+                      {baseDuration} {t.booking.minutesShort}
                     </span>
                   </div>
                   <span className="font-mono font-bold shrink-0">{formatCurrency(basePrice)}</span>
@@ -986,7 +999,7 @@ function BookContent() {
                         <span className="leading-snug">+ {addon.name}</span>
                         {addonMin > 0 && (
                           <span className="text-[10px] font-mono font-bold text-sky-300 px-1.5 py-0.5 rounded bg-sky-500/15 border border-sky-500/30 shrink-0">
-                            +{addonMin} min
+                            +{addonMin} {t.booking.minutesShort}
                           </span>
                         )}
                       </div>
@@ -1008,7 +1021,7 @@ function BookContent() {
                   <div className="flex justify-between items-center text-xs font-mono text-slate-300">
                     <span>{t.bookingSuccess.duration}:</span>
                     <span className="font-bold text-sky-400">
-                      {totalDurationMinutes} min ({selectedSlot?.startTime}–{effectiveEndTime || selectedSlot?.endTime})
+                      {totalDurationMinutes} {t.booking.minutesShort} ({selectedSlot?.startTime}–{effectiveEndTime || selectedSlot?.endTime})
                     </span>
                   </div>
 
@@ -1060,8 +1073,13 @@ export default function BookPage() {
   return (
     // The fallback reserves a viewport of height so the storefront replacing it does not
     // shove the footer up the screen (cumulative layout shift).
-    <Suspense fallback={<div className="min-h-screen py-24 text-center text-slate-400 font-mono text-sm">Initializing Boeing 737 MAX Flight Deck...</div>}>
+    <Suspense fallback={<BookLoadingFallback />}>
       <BookContent />
     </Suspense>
   );
+}
+
+function BookLoadingFallback() {
+  const { t } = useLanguage();
+  return <div className="min-h-screen py-24 text-center text-slate-400 font-mono text-sm">{t.booking.initializing}</div>;
 }

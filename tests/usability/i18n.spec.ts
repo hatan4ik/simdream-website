@@ -1,4 +1,5 @@
 import { FACILITY_INFO } from '@/lib/config/facility-info';
+import { translations } from '@/lib/i18n/translations';
 import { expect, LANGUAGES, preferLanguage, PUBLIC_ROUTES, RTL_LANGUAGES, type Language } from '../support/e2e';
 import { findBookableDate, openStorefrontOn, wizardToggle } from './support/booking';
 import { showPaidBoardingPass } from './support/boarding-pass';
@@ -78,6 +79,22 @@ for (const language of LANGUAGES) {
     }
   });
 }
+
+test.describe('/book page-level controls', () => {
+  for (const language of LANGUAGES) {
+    test(`uses localized controls and guest guidance in ${language}`, async ({ page }) => {
+      await preferLanguage(page, language);
+      await gotoSettled(page, '/book');
+
+      const copy = translations[language].booking;
+      await expect(page.getByText(copy.storefrontTitle, { exact: true })).toBeVisible();
+      await expect(page.getByRole('button', { name: copy.storefrontView, exact: true })).toBeVisible();
+      await expect(page.getByRole('button', { name: copy.wizardView, exact: true })).toBeVisible();
+      await expect(page.getByText(copy.guestCheckoutNotice, { exact: true })).toBeVisible();
+      await expect(page.getByRole('link', { name: copy.signInToSaveBookings, exact: true })).toBeVisible();
+    });
+  }
+});
 
 test.describe('no cross-script contamination', () => {
   const CASES = [
