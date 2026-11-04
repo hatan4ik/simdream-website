@@ -152,8 +152,16 @@ export default function GiftVouchersPage() {
         return;
       }
       window.location.assign(data.url);
-    } catch {
-      setCheckoutError('Network error while starting gift voucher checkout. Please try again.');
+    } catch (error: unknown) {
+      // Browser fetch rejects with TypeError on a dropped connection. Give customers
+      // an actionable, translated explanation instead of a browser-shaped error.
+      const offline =
+        error instanceof TypeError || (typeof navigator !== 'undefined' && !navigator.onLine);
+      setCheckoutError(
+        offline
+          ? t.booking.offlineError
+          : 'Unable to start gift voucher checkout. Please try again.'
+      );
     } finally {
       setIsSubmitting(false);
     }

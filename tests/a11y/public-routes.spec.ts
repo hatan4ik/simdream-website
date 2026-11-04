@@ -1,4 +1,4 @@
-import { expect, preferLanguage, preferTheme } from '../support/e2e';
+import { expectThemeApplied, preferLanguage, preferTheme } from '../support/e2e';
 import { test } from '../usability/support/fixtures';
 import { expectLanguageRendered, gotoSettled, isolateFromThirdParties } from '../usability/support/page';
 import { expectAxeBaseline } from './support/axe-baseline';
@@ -21,7 +21,7 @@ for (const theme of SCAN_THEMES) {
           await page.waitForLoadState('networkidle');
 
           // Guard the scan key: the scan must really run in the theme and language it is filed under.
-          await expect(page.locator('html')).toHaveAttribute('data-ui', theme);
+          await expectThemeApplied(page, theme);
           await expectLanguageRendered(page, language);
           await expectAxeBaseline(page, testInfo, publicScanKey(route, theme, language));
         });

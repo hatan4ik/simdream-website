@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs';
 import type { Locator, Page, TestInfo } from '@playwright/test';
-import { expect, preferLanguage, preferTheme, type Language, type UiTheme } from '../support/e2e';
+import { expect, expectThemeApplied, preferLanguage, preferTheme, type Language, type UiTheme } from '../support/e2e';
 import { test } from '../usability/support/fixtures';
 import { expectLanguageRendered, gotoSettled, isolateFromThirdParties } from '../usability/support/page';
 import { fixedSlotsResponse } from './support/slot-fixture';
@@ -66,7 +66,7 @@ function dynamicRegions(page: Page): Locator[] {
 
 async function openForScreenshot(page: Page, route: string, theme: UiTheme, language: Language) {
   await gotoSettled(page, route);
-  await expect(page.locator('html')).toHaveAttribute('data-ui', theme);
+  await expectThemeApplied(page, theme);
   await expectLanguageRendered(page, language);
   await page.evaluate(() => document.fonts.ready.then(() => undefined));
   // Chromium re-shapes Hebrew text (different line breaks, ~60-140px taller pages) until the

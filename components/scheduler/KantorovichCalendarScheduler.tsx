@@ -411,11 +411,14 @@ export function KantorovichCalendarScheduler({
     setBlueprintModalPackage(null)
   );
 
-  const [viewMonthDate, setViewMonthDate] = useState<Date>(() => monthStartForYmd(selectedDate));
+  // Keep only a manually browsed month in state. The normal month derives from the
+  // selected day so a post-hydration date update cannot leave a stale placeholder month.
+  const [viewMonthOverride, setViewMonthOverride] = useState<Date | null>(null);
+  const viewMonthDate = viewMonthOverride ?? monthStartForYmd(selectedDate);
   const slotsSectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setViewMonthDate(monthStartForYmd(selectedDate));
+    setViewMonthOverride(null);
   }, [selectedDate]);
 
   // Deduplicate packages by duration
@@ -484,7 +487,7 @@ export function KantorovichCalendarScheduler({
   };
 
   const handleSelectDate = (date: string) => {
-    setViewMonthDate(monthStartForYmd(date));
+    setViewMonthOverride(null);
     onSelectDate(date);
   };
 
@@ -572,7 +575,7 @@ export function KantorovichCalendarScheduler({
                 data-calendar-previous-month
                 aria-label={copy.previousMonth}
                 onClick={() =>
-                  setViewMonthDate(
+                  setViewMonthOverride(
                     new Date(viewMonthDate.getFullYear(), viewMonthDate.getMonth() - 1, 1)
                   )
                 }
@@ -588,7 +591,7 @@ export function KantorovichCalendarScheduler({
                 data-calendar-next-month
                 aria-label={copy.nextMonth}
                 onClick={() =>
-                  setViewMonthDate(
+                  setViewMonthOverride(
                     new Date(viewMonthDate.getFullYear(), viewMonthDate.getMonth() + 1, 1)
                   )
                 }

@@ -116,14 +116,19 @@ function BookContent() {
     return localizedAddons;
   }, [localizedAddons, isNoiseFreeBooking]);
 
-  // Selected Date & Slot (using local calendar YYYY-MM-DD to prevent UTC timezone day-shift)
-  const [selectedDate, setSelectedDate] = useState<string>(SSR_DEFAULT_BOOKING_DATE);
-
-  useEffect(() => {
-    if (!browserIsraelToday) return;
-    const liveTomorrow = addDaysToYmd(browserIsraelToday, 1);
-    setSelectedDate((current) => (current === SSR_DEFAULT_BOOKING_DATE ? liveTomorrow : current));
-  }, [browserIsraelToday]);
+  // Selected Date & Slot (using local calendar YYYY-MM-DD to prevent UTC timezone day-shift).
+  //
+  // Do not copy the SSR placeholder into state and replace it later. That created a brief
+  // window where a visitor saw live slots for Israel but a 2099 calendar month and could
+  // navigate away before the replacement effect ran. The default is instead derived from
+  // the client clock; state exists only after an explicit customer selection.
+  const [selectedDateOverride, setSelectedDateOverride] = useState<string | null>(null);
+  const selectedDate =
+    selectedDateOverride ??
+    (browserIsraelToday ? addDaysToYmd(browserIsraelToday, 1) : SSR_DEFAULT_BOOKING_DATE);
+  const setSelectedDate = React.useCallback((date: string) => {
+    setSelectedDateOverride(date);
+  }, []);
   const [availableSlots, setAvailableSlots] = useState<FlightSlot[]>([]);
   const [efficiencyReport, setEfficiencyReport] = useState<PublicCapacityReport | null>(null);
   const [durationAvailability, setDurationAvailability] = useState<
@@ -189,6 +194,11 @@ function BookContent() {
 
   // Fetch Kantorovich-optimized slots & daily efficiency whenever selected date or package changes
   useEffect(() => {
+    // The first server/client hydration pass deliberately uses the stable snapshot
+    // above. Do not request availability for that placeholder date; fetch only
+    // once the browser has supplied Israel's current operating day.
+    if (!browserIsraelToday) return;
+
     // A newer date or package selection aborts this request, so a slow, stale
     // response can never overwrite the slots of the current selection.
     const controller = new AbortController();
@@ -245,7 +255,7 @@ function BookContent() {
     }
     fetchSlots();
     return () => controller.abort();
-  }, [selectedDate, selectedPackage, slotsReloadKey]);
+  }, [browserIsraelToday, selectedDate, selectedPackage, slotsReloadKey]);
 
   // Canonical Single-Source-of-Truth Mission Manifest calculation
   const manifest = React.useMemo(

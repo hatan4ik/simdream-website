@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test';
 import { translations } from '@/lib/i18n/translations';
-import { expect, preferTheme } from '../support/e2e';
+import { expect, expectThemeApplied, preferTheme } from '../support/e2e';
 import { showPaidBoardingPass } from '../usability/support/boarding-pass';
 import { test } from '../usability/support/fixtures';
 import { afterNextPaint, gotoSettled, isolateFromThirdParties } from '../usability/support/page';
@@ -62,7 +62,7 @@ for (const theme of SCAN_THEMES) {
     for (const state of SECONDARY_SCAN_STATES) {
       test(`the ${state} has no new serious or critical WCAG A/AA violations`, async ({ page }, testInfo) => {
         await OPEN_STATE[state](page);
-        await expect(page.locator('html')).toHaveAttribute('data-ui', theme);
+        await expectThemeApplied(page, theme);
 
         await expectAxeBaseline(page, testInfo, secondaryScanKey(state, theme));
       });

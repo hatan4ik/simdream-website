@@ -12,6 +12,7 @@ test.use({ video: 'off' });
 
 const COCKPIT = '#070b14';
 const DAYLIGHT = '#f8fafc';
+const STUDIO = '#ffffff';
 
 test('declares the viewport, theme colour and web-app metadata, and keeps pinch zoom', async ({ page, baseURL }) => {
   await isolateFromThirdParties(page, baseURL);
@@ -41,6 +42,10 @@ test('retints the browser chrome when the interface theme switches', async ({ pa
   await expect(themeColor).toHaveAttribute('content', DAYLIGHT);
 
   await activate(page.getByRole('navigation').locator('button[aria-label^="SimDream Day,"]').first());
+  await expect(page.locator('html')).toHaveAttribute('data-look', 'studio');
+  await expect(themeColor).toHaveAttribute('content', STUDIO);
+
+  await activate(page.getByRole('navigation').locator('button[aria-label^="Clean Studio,"]').first());
   await expect(themeColor).toHaveAttribute('content', COCKPIT);
 });
 

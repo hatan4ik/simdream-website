@@ -1,9 +1,13 @@
 // Applies the saved interface theme before first paint (no flicker). Served as a
 // same-origin file rather than inline so the Content-Security-Policy needs no
 // 'unsafe-inline' or per-script hash for it.
+// Mirrors applyThemeToDocument in lib/theme/ui-theme-context.tsx: "studio" (Clean Studio) is the
+// daylight palette plus a data-look restyle, so it carries data-ui="brand" as well.
 try {
   var theme = localStorage.getItem('simdream_ui_theme');
-  document.documentElement.setAttribute('data-ui', theme === 'brand' ? 'brand' : 'cockpit');
+  var root = document.documentElement;
+  root.setAttribute('data-ui', theme === 'brand' || theme === 'studio' ? 'brand' : 'cockpit');
+  if (theme === 'studio') root.setAttribute('data-look', 'studio');
 } catch (e) {}
 
 // Progressive-enhancement guard for mobile browsers (iOS Safari, Android Chrome /

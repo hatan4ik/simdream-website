@@ -10,7 +10,7 @@ import { isolateFromThirdParties } from './support/page';
 // animating, so measurements see its resting position.
 test.use({ reducedMotion: 'reduce', video: 'off' });
 
-const themeName = (language: Language, theme: UiTheme) => translations[language].uiTheme[theme === 'brand' ? 'brand' : 'cockpit'];
+const themeName = (language: Language, theme: UiTheme) => translations[language].uiTheme[theme];
 
 /** The visible header switch, found by its accessible name, which starts with the current theme. */
 function headerSwitch(page: Page, language: Language, theme: UiTheme): Locator {
@@ -26,19 +26,21 @@ async function measure(button: Locator) {
     const track = element.lastElementChild as HTMLElement;
     const knob = track.firstElementChild as HTMLElement;
     const [b, t, k] = [element, track, knob].map((node) => node.getBoundingClientRect());
+    const offset = (k.left + k.right) / 2 - (t.left + t.right) / 2;
     return {
       height: Math.round(b.height),
       trackWidth: Math.round(t.width),
       knobInsideTrack: k.left >= t.left - 0.5 && k.right <= t.right + 0.5,
-      knobSide: (k.left + k.right) / 2 > (t.left + t.right) / 2 ? 'right' : 'left',
+      knobSide: Math.abs(offset) < 1.5 ? 'center' : offset > 0 ? 'right' : 'left',
     };
   });
 }
 
-// "On" (daylight) puts the knob at the inline end: right in LTR, left in RTL.
-const EXPECTED_SIDE: Record<'ltr' | 'rtl', Record<UiTheme, 'left' | 'right'>> = {
-  ltr: { cockpit: 'left', brand: 'right' },
-  rtl: { cockpit: 'right', brand: 'left' },
+// The knob walks the track through the three interfaces: night at the inline start, daylight in
+// the middle, studio at the inline end (right in LTR, left in RTL).
+const EXPECTED_SIDE: Record<'ltr' | 'rtl', Record<UiTheme, 'left' | 'center' | 'right'>> = {
+  ltr: { cockpit: 'left', brand: 'center', studio: 'right' },
+  rtl: { cockpit: 'right', brand: 'center', studio: 'left' },
 };
 
 for (const width of [1440, 1100]) {
@@ -46,7 +48,7 @@ for (const width of [1440, 1100]) {
     test.use({ viewport: { width, height: 900 } });
 
     for (const language of ['en', 'he'] as const) {
-      for (const theme of ['cockpit', 'brand'] as const) {
+      for (const theme of ['cockpit', 'brand', 'studio'] as const) {
         test(`keeps its knob inside the track on one line (${language}, ${theme})`, async ({ page, baseURL }) => {
           await isolateFromThirdParties(page, baseURL);
           await preferLanguage(page, language);
@@ -55,14 +57,18 @@ for (const width of [1440, 1100]) {
 
           const button = headerSwitch(page, language, theme);
           await expect(button).toBeVisible();
+          // The knob slides into place a frame after the label changes; poll until it has settled.
+          await expect
+            .poll(async () => {
+              const { height: _height, ...position } = await measure(button);
+              return position;
+            })
+            .toEqual({
+              trackWidth: 28,
+              knobInsideTrack: true,
+              knobSide: EXPECTED_SIDE[language === 'he' ? 'rtl' : 'ltr'][theme],
+            });
           const geometry = await measure(button);
-
-          expect(geometry).toEqual({
-            height: geometry.height,
-            trackWidth: 28,
-            knobInsideTrack: true,
-            knobSide: EXPECTED_SIDE[language === 'he' ? 'rtl' : 'ltr'][theme],
-          });
           // One line of text: the 11px label wrapping made the button 43-58px tall.
           expect(geometry.height).toBeLessThanOrEqual(36);
           const nav = page.getByRole('navigation').first();
@@ -73,18 +79,31 @@ for (const width of [1440, 1100]) {
   });
 }
 
-test('toggles between the night and daylight interfaces and remembers the choice', async ({ page, baseURL }) => {
+test('cycles night → daylight → studio → night and remembers the choice', async ({ page, baseURL }) => {
   await isolateFromThirdParties(page, baseURL);
   await preferLanguage(page, 'en');
   await page.goto('/');
+  const html = page.locator('html');
 
   await activate(headerSwitch(page, 'en', 'cockpit'));
-  await expect(page.locator('html')).toHaveAttribute('data-ui', 'brand');
+  await expect(html).toHaveAttribute('data-ui', 'brand');
+  await expect(html).not.toHaveAttribute('data-look', /./);
   await expect(headerSwitch(page, 'en', 'brand')).toBeVisible();
 
   await page.reload();
-  await expect(page.locator('html')).toHaveAttribute('data-ui', 'brand');
+  await expect(html).toHaveAttribute('data-ui', 'brand');
 
+  // Clean Studio keeps the daylight palette (data-ui="brand") and adds the studio restyle.
   await activate(headerSwitch(page, 'en', 'brand'));
-  await expect(page.locator('html')).toHaveAttribute('data-ui', 'cockpit');
+  await expect(html).toHaveAttribute('data-ui', 'brand');
+  await expect(html).toHaveAttribute('data-look', 'studio');
+  await expect(headerSwitch(page, 'en', 'studio')).toBeVisible();
+
+  await page.reload();
+  await expect(html).toHaveAttribute('data-look', 'studio');
+  await expect(html).toHaveAttribute('data-ui', 'brand');
+
+  await activate(headerSwitch(page, 'en', 'studio'));
+  await expect(html).toHaveAttribute('data-ui', 'cockpit');
+  await expect(html).not.toHaveAttribute('data-look', /./);
 });

@@ -43,6 +43,7 @@ export const translations = {
     uiTheme: {
       cockpit: 'Cockpit Night',
       brand: 'SimDream Day',
+      studio: 'Clean Studio',
       switchLabel: 'Switch UI Interface',
     },
     metar: {
@@ -891,6 +892,7 @@ export const translations = {
     uiTheme: {
       cockpit: 'קוקפיט לילה',
       brand: 'סים דרים מואר',
+      studio: 'סטודיו נקי',
       switchLabel: 'החלף ממשק תצוגה',
     },
     metar: {
@@ -1734,6 +1736,7 @@ export const translations = {
     uiTheme: {
       cockpit: 'Кабина Ночь',
       brand: 'SimDream День',
+      studio: 'Чистая студия',
       switchLabel: 'Переключить интерфейс',
     },
     metar: {
@@ -2583,6 +2586,7 @@ export const translations = {
     uiTheme: {
       cockpit: 'Cockpit Nuit',
       brand: 'SimDream Jour',
+      studio: 'Studio épuré',
       switchLabel: 'Changer d\'interface UI',
     },
     metar: {
@@ -3438,6 +3442,7 @@ export const translations = {
     uiTheme: {
       cockpit: 'قمرة القيادة الليلية',
       brand: 'سيم دريم النهاري',
+      studio: 'استوديو نظيف',
       switchLabel: 'تبديل واجهة العرض',
     },
     metar: {

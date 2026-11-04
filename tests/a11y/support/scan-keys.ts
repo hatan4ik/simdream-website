@@ -2,7 +2,7 @@ import { PUBLIC_ROUTES, type Language, type UiTheme } from '../../support/e2e';
 
 // Single source of the axe scan matrix, shared by the scanning specs and the baseline integrity check.
 
-export const SCAN_THEMES: readonly UiTheme[] = ['cockpit', 'brand'];
+export const SCAN_THEMES: readonly UiTheme[] = ['cockpit', 'brand', 'studio'];
 /**
  * Languages scanned per public route. Arabic is scanned on the main funnel only: RTL plus
  * Arabic shaping is a separate risk from Hebrew, while the remaining routes share its layout.

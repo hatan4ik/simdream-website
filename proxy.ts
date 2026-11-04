@@ -27,6 +27,28 @@ function applyContentSecurityPolicy(request: NextRequest, response: NextResponse
   return response;
 }
 
+/**
+ * Match the admin route family without treating look-alikes such as `/admin;x`
+ * as a protected route. Decode once first because path encodings otherwise let
+ * a genuine `/admin` request fall through the proxy matcher.
+ */
+function isAdminRoute(pathname: string): boolean {
+  let decoded = pathname;
+  try {
+    decoded = decodeURIComponent(pathname);
+  } catch {
+    // A malformed encoding cannot be a valid application route.
+    return false;
+  }
+
+  return (
+    decoded === '/admin' ||
+    decoded.startsWith('/admin/') ||
+    decoded === '/admin.rsc' ||
+    /^\/_next\/data\/[^/]+\/admin\.json$/.test(decoded)
+  );
+}
+
 // Next.js 16 proxy guard for the admin shell and a strict per-request CSP. Route
 // handlers repeat authorization so API data remains protected if a proxy is bypassed.
 export async function proxy(request: NextRequest) {
@@ -34,7 +56,7 @@ export async function proxy(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set('x-nonce', nonce);
 
-  if (request.nextUrl.pathname.startsWith('/admin')) {
+  if (isAdminRoute(request.nextUrl.pathname)) {
     const denied = await requireAdmin(request);
     if (denied) return applyContentSecurityPolicy(request, denied, nonce);
   }
@@ -50,10 +72,6 @@ export const config = {
   matcher: [
     {
       source: '/((?!api|_next/static|_next/image|favicon.ico).*)',
-      missing: [
-        { type: 'header', key: 'next-router-prefetch' },
-        { type: 'header', key: 'purpose', value: 'prefetch' },
-      ],
     },
   ],
 };

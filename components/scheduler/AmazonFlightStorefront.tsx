@@ -357,13 +357,16 @@ export function AmazonFlightStorefront({
   const [blueprintPackage, setBlueprintPackage] = useState<SimulatorPackage | null>(null);
   const blueprintPanelRef = useModalFocus<HTMLDivElement>(blueprintPackage !== null, () => setBlueprintPackage(null));
 
-  const [viewMonthDate, setViewMonthDate] = useState<Date>(() => monthStartForYmd(selectedDate));
+  // A manually browsed month is an override. Otherwise derive from the selected day so
+  // the calendar cannot briefly keep an SSR placeholder month while the booking date is live.
+  const [viewMonthOverride, setViewMonthOverride] = useState<Date | null>(null);
+  const viewMonthDate = viewMonthOverride ?? monthStartForYmd(selectedDate);
   const slotsContainerRef = useRef<HTMLDivElement>(null);
   const packagesSectionRef = useRef<HTMLElement>(null);
   const buyBoxFormRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
-    setViewMonthDate(monthStartForYmd(selectedDate));
+    setViewMonthOverride(null);
   }, [selectedDate]);
 
   const weekDays = useMemo(() => calendarWeekDays(selectedDate, language), [language, selectedDate]);
@@ -374,7 +377,7 @@ export function AmazonFlightStorefront({
   );
 
   const selectCalendarDate = (date: string) => {
-    setViewMonthDate(monthStartForYmd(date));
+    setViewMonthOverride(null);
     onSelectDate(date);
   };
 
@@ -607,7 +610,9 @@ export function AmazonFlightStorefront({
                   data-calendar-previous-month
                   aria-label={calendarCopy.previousMonth}
                   onClick={() =>
-                    setViewMonthDate(new Date(viewMonthDate.getFullYear(), viewMonthDate.getMonth() - 1, 1))
+                    setViewMonthOverride(
+                      new Date(viewMonthDate.getFullYear(), viewMonthDate.getMonth() - 1, 1)
+                    )
                   }
                   className="min-w-[40px] min-h-[40px] p-2 rounded-xl border border-slate-800 bg-slate-900/90 hover:border-slate-700 text-slate-200 flex items-center justify-center touch-manipulation cursor-pointer active:scale-95 transition-all"
                 >
@@ -621,7 +626,9 @@ export function AmazonFlightStorefront({
                   data-calendar-next-month
                   aria-label={calendarCopy.nextMonth}
                   onClick={() =>
-                    setViewMonthDate(new Date(viewMonthDate.getFullYear(), viewMonthDate.getMonth() + 1, 1))
+                    setViewMonthOverride(
+                      new Date(viewMonthDate.getFullYear(), viewMonthDate.getMonth() + 1, 1)
+                    )
                   }
                   className="min-w-[40px] min-h-[40px] p-2 rounded-xl border border-slate-800 bg-slate-900/90 hover:border-slate-700 text-slate-200 flex items-center justify-center touch-manipulation cursor-pointer active:scale-95 transition-all"
                 >

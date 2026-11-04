@@ -106,9 +106,11 @@ fieldset {
   min-width: 0;
 }
 
-/* Touch screens: a 44px floor for every control (WCAG 2.5.8 AAA / Apple HIG), without
-   touching inline text links. Phones also get an 11px floor for the smallest mono labels;
-   `sm:` text variants never apply below 640px, so nothing is overridden on tablets. */
+/* Touch screens: a 48px floor for every control (Material 48dp; Apple HIG asks 44), without
+   touching inline text links, and 8px between the packed calendar and slot targets (Material
+   spacing, Lighthouse tap-targets). Phones also get a 12px floor for the smallest mono labels
+   (Lighthouse legibility); `sm:` text variants never apply below 640px, so nothing is
+   overridden on tablets. */
 @media (pointer: coarse) {
   button,
   [role='button'],
@@ -116,7 +118,16 @@ fieldset {
   textarea,
   input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='hidden']),
   a:where(.flex, .inline-flex, .block, .grid) {
-    min-height: 44px;
+    min-height: 48px;
+  }
+  .grid-cols-7:has(> [data-calendar-date]),
+  .grid:has(> button[aria-pressed]) {
+    gap: 0.5rem;
+  }
+  /* Icon-only buttons (menu toggle, month arrows) also need the width. */
+  .min-w-\[44px\],
+  .min-w-\[40px\] {
+    min-width: 48px;
   }
 
   /* iOS Safari renders a native <select> at its own 22px height and ignores padding and
@@ -138,8 +149,9 @@ fieldset {
 }
 @media (pointer: coarse) and (max-width: 639px) {
   .text-\[9px\],
-  .text-\[10px\] {
-    font-size: 11px;
+  .text-\[10px\],
+  .text-\[11px\] {
+    font-size: 12px;
   }
 }
 
@@ -693,5 +705,176 @@ html[data-ui="brand"] ::-webkit-scrollbar-thumb {
 }
 html[data-ui="brand"] ::-webkit-scrollbar-thumb:hover {
   background: #1a87b4 !important;
+}
+
+/* ==========================================================================
+   CLEAN STUDIO LOOK (data-look="studio", layered on data-ui="brand")
+   The daylight palette restyled after apple.com's mobile site: white canvas with #f5f5f7
+   wells, 17px system type with tight semibold headlines, sentence-case labels, pill buttons,
+   borderless grey cards, a slim translucent navigation bar. Brand colours stay (AGENTS.md §1):
+   cerulean for actions and links, orange for the mark, tagline and highlights.
+   ========================================================================== */
+
+/* Type scale: every rem-based utility grows ~6% (16 → 17px), as apple.com's body copy. */
+html[data-look="studio"] {
+  font-size: 17px;
+  -webkit-font-smoothing: antialiased;
+}
+html[data-look="studio"] body {
+  background-color: #ffffff !important;
+  color: #1d1d1f !important;
+  letter-spacing: -0.012em;
+  line-height: 1.47;
+}
+html[data-look="studio"] h1,
+html[data-look="studio"] h2,
+html[data-look="studio"] h3 {
+  letter-spacing: -0.025em;
+  line-height: 1.08;
+  color: #1d1d1f;
+}
+html[data-look="studio"] .font-black,
+html[data-look="studio"] .font-extrabold {
+  font-weight: 700;
+}
+/* Apple sets labels in sentence case with normal tracking; telemetry stays as the cockpit prints it. */
+/* Telemetry is isolated in an element with its own dir="ltr" (AGENTS.md §5.3) and keeps its
+   capitals and mono face. The language wrapper (body > div[dir]) and the html element carry a
+   dir too, so only nested dir="ltr" elements count as telemetry. */
+html[data-look="studio"] .uppercase:not(:is(span, p, time, code, a)[dir="ltr"]):not(:is(span, p, time, code, a)[dir="ltr"] *):not(div[dir="ltr"]:not(body > div)):not(div[dir="ltr"]:not(body > div) *) {
+  text-transform: none;
+}
+html[data-look="studio"] .tracking-widest,
+html[data-look="studio"] .tracking-wider,
+html[data-look="studio"] .tracking-wide {
+  letter-spacing: -0.005em;
+}
+html[data-look="studio"] .font-mono:not(:is(span, p, time, code, a)[dir="ltr"]):not(:is(span, p, time, code, a)[dir="ltr"] *):not(div[dir="ltr"]:not(body > div)):not(div[dir="ltr"]:not(body > div) *) {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Canvas: white page, #f5f5f7 wells and cards, no hairline borders, no cockpit grid or glow. */
+html[data-look="studio"] .bg-aviation-darkest,
+html[data-look="studio"] .bg-slate-950,
+html[data-look="studio"] .bg-sky-950\/40,
+html[data-look="studio"] .bg-slate-950\/30,
+html[data-look="studio"] .bg-slate-950\/40,
+html[data-look="studio"] .bg-slate-950\/50,
+html[data-look="studio"] .bg-slate-950\/55,
+html[data-look="studio"] .bg-slate-950\/60 {
+  background-color: #ffffff !important;
+}
+html[data-look="studio"] .bg-slate-900,
+html[data-look="studio"] .bg-slate-900\/30,
+html[data-look="studio"] .bg-slate-900\/40,
+html[data-look="studio"] .bg-slate-900\/50,
+html[data-look="studio"] .bg-slate-900\/60,
+html[data-look="studio"] .bg-slate-900\/70,
+html[data-look="studio"] .bg-slate-900\/80,
+html[data-look="studio"] .bg-slate-900\/90,
+html[data-look="studio"] .bg-slate-800,
+html[data-look="studio"] .bg-slate-800\/50,
+html[data-look="studio"] .bg-slate-800\/60 {
+  background-color: #f5f5f7 !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+html[data-look="studio"] .border-slate-800,
+html[data-look="studio"] .border-slate-800\/80,
+html[data-look="studio"] .border-slate-800\/60,
+html[data-look="studio"] .border-slate-800\/50,
+html[data-look="studio"] .border-slate-800\/40,
+html[data-look="studio"] .border-slate-700,
+html[data-look="studio"] .border-slate-900,
+html[data-look="studio"] .border-sky-900\/60,
+html[data-look="studio"] .border-sky-900\/50 {
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+html[data-look="studio"] .hud-grid {
+  background-image: none;
+}
+html[data-look="studio"] .cockpit-glow,
+html[data-look="studio"] .fmc-green {
+  text-shadow: none;
+}
+html[data-look="studio"] .text-slate-300 {
+  color: #424245 !important;
+}
+html[data-look="studio"] .text-slate-400,
+html[data-look="studio"] .text-slate-500 {
+  /* apple.com's #6e6e73 is 4.39:1 on the sky-100 wells (/vouchers); #616166 clears 4.5:1 everywhere. */
+  color: #616166 !important;
+}
+/* .text-white / .text-slate-100/200 are already darkened by the daylight overrides, except inside
+   solid fills where they must stay white; nothing to add here. */
+
+/* Rounded geometry: pill buttons, 12px fields, 18px cards. Text pills get apple.com's wider
+   inline padding; icon-only controls (they carry aria-label) and calendar cells keep theirs. */
+html[data-look="studio"] button:not([aria-label]):not([data-calendar-date]):not([aria-pressed]) {
+  padding-left: 1.1rem;
+  padding-right: 1.1rem;
+}
+html[data-look="studio"] button:not([data-calendar-date]):not(.rounded-full):not([role="tab"]),
+html[data-look="studio"] a > .rounded-lg,
+html[data-look="studio"] a.rounded-lg,
+html[data-look="studio"] a.rounded-xl {
+  border-radius: 980px !important;
+}
+html[data-look="studio"] input:not([type="checkbox"]):not([type="radio"]),
+html[data-look="studio"] select,
+html[data-look="studio"] textarea {
+  border-radius: 12px !important;
+  background-color: #ffffff !important;
+  border-color: #d2d2d7 !important;
+  color: #1d1d1f !important;
+}
+html[data-look="studio"] .rounded-2xl,
+html[data-look="studio"] .rounded-3xl {
+  border-radius: 18px !important;
+}
+
+/* Slim translucent navigation and a quiet telemetry bar. */
+html[data-look="studio"] nav.sticky {
+  background-color: rgba(255, 255, 255, 0.72) !important;
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-bottom-color: rgba(0, 0, 0, 0.08) !important;
+  box-shadow: none !important;
+}
+html[data-look="studio"] nav .h-20 {
+  height: 4rem;
+}
+/* The logo keeps its 16px-root size: at 17px it grew 11px and the Russian header overflowed a 390px phone by 3px. */
+html[data-look="studio"] nav .h-6 {
+  height: 24px;
+}
+@media (min-width: 640px) {
+  html[data-look="studio"] nav .sm\:h-7 {
+    height: 28px;
+  }
+}
+html[data-look="studio"] footer {
+  background-color: #f5f5f7 !important;
+  border-top-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Actions: filled cerulean pills with white text (sky-700 keeps 4.5:1), quiet secondary pills. */
+html[data-look="studio"] .bg-sky-500,
+html[data-look="studio"] .bg-sky-600,
+html[data-look="studio"] .bg-amber-400,
+html[data-look="studio"] .bg-amber-500 {
+  background-color: #136c91 !important;
+  color: #ffffff !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+html[data-look="studio"] .bg-sky-500 *,
+html[data-look="studio"] .bg-sky-600 *,
+html[data-look="studio"] .bg-amber-400 *,
+html[data-look="studio"] .bg-amber-500 * {
+  color: #ffffff !important;
+}
+html[data-look="studio"] ::-webkit-scrollbar-track {
+  background: #ffffff !important;
 }
 

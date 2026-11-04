@@ -211,7 +211,7 @@ async function probeFocusIndicator(page: Page): Promise<{ label: string; indicat
 }
 
 test.describe('visible focus', () => {
-  const THEMES: readonly UiTheme[] = ['cockpit', 'brand'];
+  const THEMES: readonly UiTheme[] = ['cockpit', 'brand', 'studio'];
   const ROUTES = ['/', '/book', '/vouchers', '/contact', '/workshops', '/login'];
   const TAB_STOPS = 60;
 

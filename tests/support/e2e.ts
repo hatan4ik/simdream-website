@@ -2,7 +2,7 @@ import { test as base, expect, type Page } from '@playwright/test';
 import { TEST_ADMIN } from './test-env';
 
 export type Language = 'he' | 'en' | 'ru' | 'fr' | 'ar';
-export type UiTheme = 'cockpit' | 'brand';
+export type UiTheme = 'cockpit' | 'brand' | 'studio';
 
 export const LANGUAGES: readonly Language[] = ['he', 'en', 'ru', 'fr', 'ar'];
 export const RTL_LANGUAGES: readonly Language[] = ['he', 'ar'];
@@ -47,9 +47,20 @@ export async function preferLanguage(page: Page, language: Language): Promise<vo
   await page.addInitScript((value) => window.localStorage.setItem('simdream_lang', value), language);
 }
 
-/** Selects the cockpit (night) or brand (daylight) interface before any page script runs. */
+/** Selects the cockpit (night), brand (daylight) or studio interface before any page script runs. */
 export async function preferTheme(page: Page, theme: UiTheme): Promise<void> {
   await page.addInitScript((value) => window.localStorage.setItem('simdream_ui_theme', value), theme);
+}
+
+/**
+ * Asserts the document carries the theme. Studio is layered on the daylight palette, so it shows
+ * data-ui="brand" plus data-look="studio" (lib/theme/ui-theme-context.tsx).
+ */
+export async function expectThemeApplied(page: Page, theme: UiTheme): Promise<void> {
+  const html = page.locator('html');
+  await expect(html).toHaveAttribute('data-ui', theme === 'cockpit' ? 'cockpit' : 'brand');
+  if (theme === 'studio') await expect(html).toHaveAttribute('data-look', 'studio');
+  else await expect(html).not.toHaveAttribute('data-look', /./);
 }
 
 /** Aborts requests to any host other than the app under test, for deterministic rendering. */
