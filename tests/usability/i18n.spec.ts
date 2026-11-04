@@ -49,8 +49,8 @@ test.describe('document language and direction', () => {
     await gotoSettled(page, '/');
     await expect(page.locator('html')).toHaveAttribute('lang', 'en');
 
-    await page.locator('nav button[aria-haspopup="true"]').filter({ visible: true }).first().click();
-    await page.getByRole('button', { name: NATIVE_NAMES.ar }).click();
+    await page.locator('nav button[data-language-selector-trigger]').filter({ visible: true }).first().click();
+    await page.getByRole('option', { name: NATIVE_NAMES.ar }).click();
 
     await expect(page.locator('html')).toHaveAttribute('lang', 'ar');
     await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');

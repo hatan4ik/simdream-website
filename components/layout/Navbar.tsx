@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useId, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Menu, X, User, ShieldAlert, Award, Calendar, ChevronDown, LogOut } from 'lucide-react';
 import { BrandLogo } from '@/components/brand/BrandLogo';
-import { Button } from '@/components/ui/Button';
+import { buttonClassName } from '@/components/ui/Button';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { LanguageSelector } from './LanguageSelector';
@@ -13,12 +13,34 @@ import { UiThemeSwitcher } from './UiThemeSwitcher';
 
 const demoModeEnabled = process.env.NODE_ENV !== 'production' && !process.env.NEXT_PUBLIC_SUPABASE_URL;
 
+type NavigationGroupId = 'experiences' | 'professional' | 'visit';
+
+const NAVIGATION_GROUP_IDS: NavigationGroupId[] = ['experiences', 'professional', 'visit'];
+const HORIZONTAL_MENU_KEYS = {
+  ltr: { forward: 'ArrowRight', backward: 'ArrowLeft' },
+  rtl: { forward: 'ArrowLeft', backward: 'ArrowRight' },
+} as const;
+
+/**
+ * A compact, Apple-inspired navigation model: three clear categories with a full-width detail
+ * panel on larger screens. The actual labels and destinations stay in the i18n dictionary.
+ */
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [activeDesktopMenu, setActiveDesktopMenu] = useState<NavigationGroupId | null>(null);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const pathname = usePathname();
   const { user, isAdmin, logout, setDemoUser } = useAuth();
   const { t, isRTL } = useLanguage();
+  const navbarRef = useRef<HTMLElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+  const userTriggerRef = useRef<HTMLButtonElement>(null);
+  const desktopTriggerRefs = useRef<Record<NavigationGroupId, HTMLButtonElement | null>>({
+    experiences: null,
+    professional: null,
+    visit: null,
+  });
+  const menuUid = useId();
 
   const navLinks = [
     { name: t.nav.experiences, href: '/experiences' },
@@ -28,15 +50,159 @@ export function Navbar() {
     { name: t.nav.contact, href: '/contact' },
   ];
 
-  const isActive = (path: string) =>
-    pathname === path || (path === '/pro' && pathname === '/simulator');
+  const navigationGroups: Array<{
+    id: NavigationGroupId;
+    label: string;
+    items: Array<{ name: string; href: string }>;
+  }> = [
+    {
+      id: 'experiences',
+      label: t.nav.experiences,
+      items: [
+        { name: t.nav.experiences, href: '/experiences' },
+        { name: t.nav.vouchers, href: '/vouchers' },
+      ],
+    },
+    {
+      id: 'professional',
+      label: t.nav.simulator,
+      items: [
+        { name: t.nav.simulator, href: '/pro' },
+        { name: t.nav.workshops, href: '/workshops' },
+      ],
+    },
+    {
+      id: 'visit',
+      label: t.nav.contact,
+      items: [
+        { name: t.nav.contact, href: '/contact' },
+        { name: t.nav.about, href: '/about' },
+      ],
+    },
+  ];
+
+  const isActive = (path: string) => pathname === path || (path === '/pro' && pathname === '/simulator');
+  const activeGroup = (group: (typeof navigationGroups)[number]) => group.items.some((item) => isActive(item.href));
+  const desktopMenuId = (id: NavigationGroupId) => `desktop-navigation-${menuUid}-${id}`;
+
+  const focusDesktopMenuItem = (id: NavigationGroupId, edge: 'first' | 'last' = 'first') => {
+    requestAnimationFrame(() => {
+      const links = document.querySelectorAll<HTMLElement>(`#${CSS.escape(desktopMenuId(id))} [role="menuitem"]`);
+      const target = edge === 'last' ? links[links.length - 1] : links[0];
+      target?.focus();
+    });
+  };
+
+  const closeDesktopMenu = (restoreFocus = false) => {
+    const trigger = activeDesktopMenu ? desktopTriggerRefs.current[activeDesktopMenu] : null;
+    setActiveDesktopMenu(null);
+    if (restoreFocus) requestAnimationFrame(() => trigger?.focus());
+  };
+
+  const openDesktopMenu = (id: NavigationGroupId, focusItem = false) => {
+    setUserDropdownOpen(false);
+    setActiveDesktopMenu(id);
+    if (focusItem) focusDesktopMenuItem(id);
+  };
+
+  const closeUserMenu = (restoreFocus = false) => {
+    setUserDropdownOpen(false);
+    if (restoreFocus) requestAnimationFrame(() => userTriggerRef.current?.focus());
+  };
+
+  const openUserMenu = (focusItem = false) => {
+    setActiveDesktopMenu(null);
+    setUserDropdownOpen(true);
+    if (focusItem) {
+      requestAnimationFrame(() => userMenuRef.current?.querySelector<HTMLElement>('[role="menuitem"]')?.focus());
+    }
+  };
+
+  useEffect(() => {
+    // Navigation must never leave a previous route's menu or drawer open.
+    setMobileMenuOpen(false);
+    setActiveDesktopMenu(null);
+    setUserDropdownOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    const onPointerDown = (event: PointerEvent) => {
+      if (!navbarRef.current?.contains(event.target as Node)) {
+        setActiveDesktopMenu(null);
+        setUserDropdownOpen(false);
+      }
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      if (userDropdownOpen) {
+        event.preventDefault();
+        closeUserMenu(true);
+      } else if (activeDesktopMenu) {
+        event.preventDefault();
+        closeDesktopMenu(true);
+      }
+    };
+    document.addEventListener('pointerdown', onPointerDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [activeDesktopMenu, userDropdownOpen]);
+
+  const handleDesktopTriggerKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>, id: NavigationGroupId) => {
+    const position = NAVIGATION_GROUP_IDS.indexOf(id);
+    if (event.key === 'ArrowDown' || event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      openDesktopMenu(id, true);
+      return;
+    }
+    if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      openDesktopMenu(id);
+      focusDesktopMenuItem(id, 'last');
+      return;
+    }
+    if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
+      event.preventDefault();
+      // Direction is only used for physical keyboard layout, never to choose display text.
+      const direction = (['ltr', 'rtl'] as const)[Number(isRTL)];
+      const delta = event.key === HORIZONTAL_MENU_KEYS[direction].forward ? 1 : -1;
+      const targetId = NAVIGATION_GROUP_IDS[(position + delta + NAVIGATION_GROUP_IDS.length) % NAVIGATION_GROUP_IDS.length];
+      desktopTriggerRefs.current[targetId]?.focus();
+    }
+  };
+
+  const handleDesktopMenuKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    const menuItems = [...event.currentTarget.querySelectorAll<HTMLElement>('[role="menuitem"]')];
+    const currentIndex = menuItems.indexOf(document.activeElement as HTMLElement);
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeDesktopMenu(true);
+      return;
+    }
+    if (event.key === 'Home' || event.key === 'End') {
+      event.preventDefault();
+      menuItems[event.key === 'Home' ? 0 : menuItems.length - 1]?.focus();
+      return;
+    }
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault();
+      const delta = event.key === 'ArrowDown' ? 1 : -1;
+      menuItems[(currentIndex + delta + menuItems.length) % menuItems.length]?.focus();
+    }
+  };
 
   return (
-    <nav className="sticky top-0 z-50 bg-slate-950/85 backdrop-blur-lg border-b border-slate-800/80">
-      <div className="max-w-[96rem] mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between gap-4 h-20">
-          {/* Brand Logo */}
-          <Link href="/" className="flex items-center group shrink-0">
+    <nav
+      ref={navbarRef}
+      data-site-navbar
+      className="sticky top-0 z-50 relative bg-slate-950/85 backdrop-blur-lg border-b border-slate-800/80"
+      onMouseLeave={() => setActiveDesktopMenu(null)}
+    >
+      <div data-site-navbar-inner className="max-w-[96rem] mx-auto px-4 sm:px-6 lg:px-8">
+        <div data-site-navbar-row className="flex items-center justify-between gap-3 h-20">
+          <Link href="/" className="flex items-center group shrink-0" aria-label="SIM DREAM">
             <div>
               <BrandLogo className="h-6 sm:h-7 w-auto group-hover:opacity-90 transition-opacity" priority />
               <p className="hidden min-[400px]:block mt-1 text-[10px] tracking-widest text-orange-400 uppercase font-bold">
@@ -45,47 +211,74 @@ export function Navbar() {
             </div>
           </Link>
 
-          {/* Desktop Navigation Links (2xl+: below it they overflowed beside the logo and actions in long languages such as Russian, so the drawer takes over) */}
-          <div className="hidden 2xl:flex items-center gap-1">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`px-3 py-2 text-sm leading-tight font-medium rounded-lg border-b-2 transition-colors ${
-                  isActive(link.href)
-                    ? 'text-sky-400 bg-sky-500/10 border-orange-500'
-                    : 'text-slate-300 border-transparent hover:text-white hover:bg-slate-900/60'
-                }`}
-              >
-                {link.name}
-              </Link>
-            ))}
+          {/* Large layouts retain quiet top-level choices; each exposes a deliberate full-width panel. */}
+          <div className="hidden xl:flex flex-1 min-w-0 items-center justify-center gap-0.5">
+            {navigationGroups.map((group) => {
+              const isOpen = activeDesktopMenu === group.id;
+              return (
+                <button
+                  key={group.id}
+                  ref={(element) => {
+                    desktopTriggerRefs.current[group.id] = element;
+                  }}
+                  type="button"
+                  data-navbar-menu-trigger
+                  aria-haspopup="menu"
+                  aria-expanded={isOpen}
+                  aria-controls={desktopMenuId(group.id)}
+                  onMouseEnter={() => openDesktopMenu(group.id)}
+                  onClick={() => (isOpen ? closeDesktopMenu() : openDesktopMenu(group.id))}
+                  onKeyDown={(event) => handleDesktopTriggerKeyDown(event, group.id)}
+                  className={`inline-flex min-h-11 items-center gap-1 px-3 text-sm leading-tight font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 ${
+                    activeGroup(group) || isOpen ? 'text-sky-400' : 'text-slate-300 hover:text-white'
+                  }`}
+                >
+                  <span>{group.label}</span>
+                  <ChevronDown className={`h-3.5 w-3.5 transition-transform ${isOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
+                </button>
+              );
+            })}
           </div>
 
-          {/* Right Actions: UI Interface Switcher, Language Selector, User Menu & Book Button */}
-          <div className="hidden md:flex shrink-0 items-center gap-2.5">
-            {/* UI Interface Switcher */}
+          <div
+            data-navbar-actions
+            className="hidden md:flex shrink-0 items-center gap-1.5"
+            onFocus={() => setActiveDesktopMenu(null)}
+            onPointerDown={() => setActiveDesktopMenu(null)}
+          >
             <UiThemeSwitcher variant="compact" />
-
-            {/* Language Selector */}
             <LanguageSelector />
 
-            {/* Quick Demo Switcher / User Profile */}
             <div className="relative">
               <button
+                ref={userTriggerRef}
                 type="button"
-                onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-800 bg-slate-900/70 hover:bg-slate-800 text-xs text-slate-300 transition-colors touch-manipulation cursor-pointer"
+                data-user-menu-trigger
+                onClick={() => (userDropdownOpen ? closeUserMenu() : openUserMenu())}
+                onKeyDown={(event) => {
+                  if (event.key === 'ArrowDown' || event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    openUserMenu(true);
+                  }
+                }}
+                aria-haspopup="menu"
+                aria-expanded={userDropdownOpen}
+                aria-controls={`user-navigation-${menuUid}`}
+                className="flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-full text-slate-300 transition-colors hover:bg-slate-800 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 touch-manipulation cursor-pointer"
               >
-                <div className={`w-2 h-2 rounded-full ${isAdmin ? 'bg-amber-400' : 'bg-sky-400'}`} />
+                <span className={`w-2 h-2 rounded-full ${isAdmin ? 'bg-amber-400' : 'bg-sky-400'}`} aria-hidden="true" />
                 <User className="w-4 h-4" aria-hidden="true" />
-                {/* Icon-only: a visible label squeezed the inline links onto extra lines. The text stays the accessible name. */}
                 <span className="sr-only">{user ? user.fullName || t.member.dashboard.defaultPilotName : t.nav.pilotLogin}</span>
-                <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
               </button>
 
               {userDropdownOpen && (
-                <div className="absolute right-0 rtl:right-auto rtl:left-0 mt-2 w-56 rounded-xl border border-slate-800 bg-slate-900 shadow-2xl py-2 z-50 text-xs">
+                <div
+                  ref={userMenuRef}
+                  id={`user-navigation-${menuUid}`}
+                  role="menu"
+                  aria-label={user ? user.fullName || t.member.dashboard.defaultPilotName : t.nav.pilotLogin}
+                  className="absolute right-0 rtl:right-auto rtl:left-0 mt-2 w-60 rounded-xl border border-slate-800 bg-slate-900 shadow-2xl py-2 z-50 text-xs"
+                >
                   <div className="px-3 py-2 border-b border-slate-800">
                     <p className="text-[10px] text-slate-400 uppercase font-mono">Signed in as</p>
                     <p className="font-semibold text-white truncate">{user?.email || 'Guest'}</p>
@@ -96,8 +289,9 @@ export function Navbar() {
 
                   <Link
                     href="/dashboard"
-                    onClick={() => setUserDropdownOpen(false)}
-                    className="flex items-center gap-2 px-3 py-2 text-slate-300 hover:text-white hover:bg-slate-800"
+                    role="menuitem"
+                    onClick={() => closeUserMenu()}
+                    className="flex items-center gap-2 px-3 py-2 text-slate-300 hover:text-white hover:bg-slate-800 focus:outline-none focus-visible:bg-slate-800"
                   >
                     <Award className="w-4 h-4 text-sky-400" />
                     <span>{t.nav.logbook}</span>
@@ -106,45 +300,52 @@ export function Navbar() {
                   {isAdmin && (
                     <Link
                       href="/admin"
-                      onClick={() => setUserDropdownOpen(false)}
-                      className="flex items-center gap-2 px-3 py-2 text-amber-300 hover:text-amber-200 hover:bg-slate-800"
+                      role="menuitem"
+                      onClick={() => closeUserMenu()}
+                      className="flex items-center gap-2 px-3 py-2 text-amber-300 hover:text-amber-200 hover:bg-slate-800 focus:outline-none focus-visible:bg-slate-800"
                     >
                       <ShieldAlert className="w-4 h-4 text-amber-400" />
                       <span>{t.nav.adminBoard}</span>
                     </Link>
                   )}
 
-                  {demoModeEnabled && <div className="px-3 py-1.5 border-t border-slate-800 mt-1">
-                    <p className="text-[10px] text-slate-400 mb-1">Quick Demo Switcher:</p>
-                    <div className="flex gap-1.5">
-                      <button
-                        onClick={() => {
-                          setDemoUser('pilot');
-                          setUserDropdownOpen(false);
-                        }}
-                        className="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-[10px]"
-                      >
-                        {t.nav.pilotMode}
-                      </button>
-                      <button
-                        onClick={() => {
-                          setDemoUser('admin');
-                          setUserDropdownOpen(false);
-                        }}
-                        className="px-2 py-1 bg-amber-950/60 hover:bg-amber-900/60 text-amber-300 rounded text-[10px]"
-                      >
-                        {t.nav.adminMode}
-                      </button>
+                  {demoModeEnabled && (
+                    <div className="px-3 py-1.5 border-t border-slate-800 mt-1">
+                      <p className="text-[10px] text-slate-400 mb-1">Quick Demo Switcher:</p>
+                      <div className="flex gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setDemoUser('pilot');
+                            closeUserMenu();
+                          }}
+                          className="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-[10px]"
+                        >
+                          {t.nav.pilotMode}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setDemoUser('admin');
+                            closeUserMenu();
+                          }}
+                          className="px-2 py-1 bg-amber-950/60 hover:bg-amber-900/60 text-amber-300 rounded text-[10px]"
+                        >
+                          {t.nav.adminMode}
+                        </button>
+                      </div>
                     </div>
-                  </div>}
+                  )}
 
                   <div className="border-t border-slate-800 mt-1 pt-1">
                     <button
+                      type="button"
+                      role="menuitem"
                       onClick={() => {
                         logout();
-                        setUserDropdownOpen(false);
+                        closeUserMenu();
                       }}
-                      className="w-full flex items-center gap-2 px-3 py-1.5 text-red-400 hover:bg-slate-800 text-left rtl:text-right"
+                      className="w-full flex items-center gap-2 px-3 py-2 text-red-400 hover:bg-slate-800 text-left rtl:text-right focus:outline-none focus-visible:bg-slate-800"
                     >
                       <LogOut className="w-3.5 h-3.5" />
                       <span>{t.nav.logout}</span>
@@ -154,53 +355,96 @@ export function Navbar() {
               )}
             </div>
 
-            {/* Main Booking CTA */}
-            <Link href="/book">
-              <Button variant="primary" size="md" className="font-semibold whitespace-nowrap">
-                <Calendar className="w-4 h-4" />
-                <span>{t.nav.bookFlight}</span>
-              </Button>
+            <Link
+              href="/book"
+              data-ui-control="button"
+              data-button-variant="primary"
+              className={buttonClassName('primary', 'sm', 'min-h-11 whitespace-nowrap')}
+            >
+              <Calendar className="w-4 h-4" aria-hidden="true" />
+              <span>{t.nav.bookFlight}</span>
             </Link>
           </div>
 
-          {/* Compact actions below 2xl: the drawer toggle covers tablets and laptops, where the inline links are hidden. */}
-          <div className="flex items-center gap-1.5 2xl:hidden">
+          {/* Tablet and phone navigation stays deliberately simple and touch-first. */}
+          <div className="flex items-center gap-1.5 xl:hidden">
             <div className="flex items-center gap-1.5 md:hidden">
-              {/* Phones narrower than sm get these two inside the drawer instead, so the header fits 320px. */}
               <div className="hidden sm:flex items-center gap-1.5">
                 <UiThemeSwitcher variant="compact" />
                 <LanguageSelector />
               </div>
-              <Link href="/book">
-                <Button variant="primary" size="sm">
-                  {t.nav.bookFlight.split(' ')[0]}
-                </Button>
+              <Link
+                href="/book"
+                data-ui-control="button"
+                data-button-variant="primary"
+                className={buttonClassName('primary', 'sm', 'min-h-11')}
+              >
+                {t.nav.bookFlight.split(' ')[0]}
               </Link>
             </div>
             <button
               type="button"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              onClick={() => setMobileMenuOpen((open) => !open)}
               aria-label={mobileMenuOpen ? t.nav.closeMenu : t.nav.openMenu}
               aria-expanded={mobileMenuOpen}
               aria-controls="mobile-navigation"
-              className="min-w-[44px] min-h-[44px] inline-flex items-center justify-center p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 touch-manipulation cursor-pointer"
+              className="min-w-12 min-h-12 inline-flex items-center justify-center rounded-full text-slate-400 hover:text-white hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 touch-manipulation cursor-pointer"
             >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
       </div>
 
-      {/* Mobile & Tablet Drawer */}
+      {activeDesktopMenu && (
+        <div
+          id={desktopMenuId(activeDesktopMenu)}
+          role="menu"
+          aria-label={navigationGroups.find((group) => group.id === activeDesktopMenu)?.label}
+          data-navbar-menu-panel
+          onKeyDown={handleDesktopMenuKeyDown}
+          className="hidden xl:block absolute inset-x-0 top-full border-b border-slate-800 bg-slate-950/95 backdrop-blur-2xl shadow-2xl"
+        >
+          <div className="max-w-5xl mx-auto grid grid-cols-[minmax(13rem,1fr)_minmax(0,2fr)] gap-10 px-6 py-7">
+            <div>
+              <p data-navbar-menu-heading className="text-xs font-semibold tracking-wide text-sky-400">
+                {navigationGroups.find((group) => group.id === activeDesktopMenu)?.label}
+              </p>
+              <p className="mt-2 max-w-52 text-sm leading-6 text-slate-400">{t.nav.brandSub}</p>
+            </div>
+            <div className="grid gap-1">
+              {navigationGroups
+                .find((group) => group.id === activeDesktopMenu)
+                ?.items.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    role="menuitem"
+                    onClick={() => closeDesktopMenu()}
+                    className={`group flex min-h-12 items-center justify-between rounded-xl px-4 text-lg font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 ${
+                      isActive(item.href) ? 'bg-sky-500/10 text-sky-400' : 'text-slate-100 hover:bg-slate-900 hover:text-white'
+                    }`}
+                  >
+                    <span>{item.name}</span>
+                    <span aria-hidden="true" className="text-sky-400 transition-transform group-hover:translate-x-1 rtl:group-hover:-translate-x-1">
+                      →
+                    </span>
+                  </Link>
+                ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {mobileMenuOpen && (
-        <div id="mobile-navigation" className="2xl:hidden border-t border-slate-800 bg-slate-950 px-4 pt-3 pb-6 space-y-3">
+        <div id="mobile-navigation" className="xl:hidden border-t border-slate-800 bg-slate-950 px-4 pt-3 pb-6 space-y-3">
           <div className="space-y-1">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className={`block px-3 py-2 rounded-lg text-base font-medium ${
+                className={`block min-h-12 px-3 py-3 rounded-xl text-base font-medium ${
                   isActive(link.href) ? 'text-sky-400 bg-sky-500/10' : 'text-slate-300 hover:bg-slate-900'
                 }`}
               >
@@ -210,7 +454,7 @@ export function Navbar() {
             <Link
               href="/dashboard"
               onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-lg text-base font-medium text-slate-300 hover:bg-slate-900"
+              className="block min-h-12 px-3 py-3 rounded-xl text-base font-medium text-slate-300 hover:bg-slate-900"
             >
               {t.nav.logbook}
             </Link>
@@ -218,14 +462,13 @@ export function Navbar() {
               <Link
                 href="/admin"
                 onClick={() => setMobileMenuOpen(false)}
-                className="block px-3 py-2 rounded-lg text-base font-medium text-amber-400 hover:bg-slate-900"
+                className="block min-h-12 px-3 py-3 rounded-xl text-base font-medium text-amber-400 hover:bg-slate-900"
               >
                 {t.nav.adminBoard}
               </Link>
             )}
           </div>
 
-          {/* UI Interface Switcher (and, on the narrowest phones, the language selector) */}
           <div className="pt-2 border-t border-slate-800 space-y-2">
             <UiThemeSwitcher variant="full" />
             <div className="sm:hidden">
@@ -233,23 +476,27 @@ export function Navbar() {
             </div>
           </div>
 
-          {demoModeEnabled && <div className="pt-3 border-t border-slate-800 flex items-center justify-between">
-            <span className="text-xs text-slate-400">Demo Role:</span>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setDemoUser('pilot')}
-                className="px-2.5 py-1 text-xs rounded bg-sky-500/20 text-sky-400"
-              >
-                {t.nav.pilotMode}
-              </button>
-              <button
-                onClick={() => setDemoUser('admin')}
-                className="px-2.5 py-1 text-xs rounded bg-amber-500/20 text-amber-400"
-              >
-                {t.nav.adminMode}
-              </button>
+          {demoModeEnabled && (
+            <div className="pt-3 border-t border-slate-800 flex items-center justify-between">
+              <span className="text-xs text-slate-400">Demo Role:</span>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setDemoUser('pilot')}
+                  className="px-2.5 py-1 text-xs rounded bg-sky-500/20 text-sky-400"
+                >
+                  {t.nav.pilotMode}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDemoUser('admin')}
+                  className="px-2.5 py-1 text-xs rounded bg-amber-500/20 text-amber-400"
+                >
+                  {t.nav.adminMode}
+                </button>
+              </div>
             </div>
-          </div>}
+          )}
         </div>
       )}
     </nav>

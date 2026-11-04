@@ -2,8 +2,8 @@ import type { Locator, Page } from '@playwright/test';
 import { expect, type Language } from '../../support/e2e';
 import { waitUntilInteractive } from './hydration';
 
-/** Tailwind `2xl`: below it the inline links collapse into the drawer (tablets and laptops, E2E-11). */
-const DRAWER_BREAKPOINT_PX = 1536;
+/** Tailwind `xl`: the grouped desktop flyouts become the touch-first drawer below this width. */
+const DRAWER_BREAKPOINT_PX = 1280;
 /** Tailwind `sm`: below it the language and theme controls live inside the drawer (UX-1). */
 const DRAWER_CONTROLS_BREAKPOINT_PX = 640;
 
@@ -65,9 +65,20 @@ export class SiteChrome {
    * layout viewport below `xl` even in a 1280px window, so the drawer is showing there.
    */
   async primaryLink(name: string): Promise<Locator> {
-    const link = this.navbar.getByRole('link', { name, exact: true });
+    // Desktop flyout destinations follow the WAI menu-button model and therefore expose
+    // `menuitem`; the touch drawer remains ordinary links. Both are navigational destinations.
+    const link = this.navbar
+      .getByRole('link', { name, exact: true })
+      .or(this.navbar.getByRole('menuitem', { name, exact: true }));
     if (this.usesDrawer || (await this.menuToggle().isVisible())) {
       await this.openMenu();
+      await expect(link).toBeVisible();
+    } else if (!(await link.isVisible())) {
+      const triggers = this.navbar.locator('button[data-navbar-menu-trigger]');
+      for (let index = 0; index < (await triggers.count()); index += 1) {
+        await triggers.nth(index).click();
+        if (await link.isVisible()) break;
+      }
       await expect(link).toBeVisible();
     }
     return link;
@@ -84,14 +95,14 @@ export class SiteChrome {
 
   /** The visible language menu button (its name is the current code plus native language name). */
   languageButton(): Locator {
-    return this.navbar.locator('button[aria-haspopup="true"]').filter({ visible: true }).first();
+    return this.navbar.locator('button[data-language-selector-trigger]').filter({ visible: true }).first();
   }
 
   async switchLanguage(language: Language): Promise<void> {
     await this.revealHeaderControls();
     await waitUntilInteractive(this.languageButton());
     await this.languageButton().click();
-    await this.navbar.getByRole('button', { name: NATIVE_LANGUAGE_NAMES[language] }).click();
+    await this.navbar.getByRole('option', { name: NATIVE_LANGUAGE_NAMES[language] }).click();
   }
 
   themeButton(name: string | RegExp = /Switch UI Interface/): Locator {

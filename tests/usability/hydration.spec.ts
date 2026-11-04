@@ -12,7 +12,7 @@ test.describe.configure({ timeout: 90_000 });
  */
 async function waitForHydratedLayout(page: Page): Promise<void> {
   // aria-expanded flips only once React has attached the click handler.
-  const languageButton = page.locator('nav button[aria-haspopup="true"]').filter({ visible: true }).first();
+  const languageButton = page.locator('nav button[data-language-selector-trigger]').filter({ visible: true }).first();
   await expect(async () => {
     await languageButton.click();
     await expect(languageButton).toHaveAttribute('aria-expanded', 'true', { timeout: 1_000 });

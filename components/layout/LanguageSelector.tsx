@@ -1,74 +1,158 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useEffect, useId, useRef, useState } from 'react';
 import { Globe, ChevronDown, Check } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { LANGUAGES, Language } from '@/lib/i18n/translations';
 
+/**
+ * Language is a choice, not an action menu. The compact header control therefore exposes an
+ * accessible listbox with roving keyboard focus, while the visual treatment stays understated.
+ */
 export function LanguageSelector({ variant = 'compact' }: { variant?: 'compact' | 'full' }) {
   const { language, setLanguage, currentLanguageInfo } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
+  const [focusIndex, setFocusIndex] = useState<number | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const optionRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const listboxId = useId();
+  const selectedIndex = Math.max(0, LANGUAGES.findIndex((item) => item.code === language));
+
+  const close = (restoreFocus = false) => {
+    setIsOpen(false);
+    setFocusIndex(null);
+    if (restoreFocus) requestAnimationFrame(() => triggerRef.current?.focus());
+  };
+
+  const open = (index: number | null = null) => {
+    setIsOpen(true);
+    setFocusIndex(index);
+  };
+
+  const choose = (nextLanguage: Language) => {
+    setLanguage(nextLanguage);
+    close();
+  };
 
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
+    const onPointerDown = (event: PointerEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) close();
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && isOpen) {
+        event.preventDefault();
+        close(true);
       }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+    };
+    document.addEventListener('pointerdown', onPointerDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen || focusIndex === null) return;
+    requestAnimationFrame(() => optionRefs.current[focusIndex]?.focus());
+  }, [focusIndex, isOpen]);
+
+  const moveFocus = (from: number, delta: number) => {
+    const next = (from + delta + LANGUAGES.length) % LANGUAGES.length;
+    setFocusIndex(next);
+  };
 
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div data-language-selector className="relative" ref={dropdownRef}>
       <button
+        ref={triggerRef}
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-800 bg-slate-900/80 hover:bg-slate-800 text-xs text-slate-200 font-mono transition-colors shadow-sm touch-manipulation cursor-pointer"
-        aria-haspopup="true"
+        data-language-selector-trigger
+        onClick={() => (isOpen ? close() : open())}
+        onKeyDown={(event) => {
+          if (event.key === 'ArrowDown') {
+            event.preventDefault();
+            open(selectedIndex);
+          } else if (event.key === 'ArrowUp') {
+            event.preventDefault();
+            open(LANGUAGES.length - 1);
+          } else if (event.key === 'Escape') {
+            close(true);
+          }
+        }}
+        className={`flex min-h-11 items-center gap-1.5 rounded-full text-xs text-slate-200 transition-colors hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 touch-manipulation cursor-pointer ${
+          variant === 'full' ? 'w-full justify-between px-3 py-2.5' : 'min-w-11 justify-center px-2.5 py-1.5'
+        }`}
+        aria-haspopup="listbox"
         aria-expanded={isOpen}
+        aria-controls={listboxId}
       >
-        {/* The visible code plus the native language name form the accessible name (WCAG 2.5.3). */}
-        <span className="text-sm leading-none" aria-hidden="true">{currentLanguageInfo.flag}</span>
-        <span className="font-bold uppercase">{currentLanguageInfo.code}</span>
-        <span className="sr-only">{currentLanguageInfo.nativeName}</span>
-        <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <Globe className="h-4 w-4 text-sky-400" aria-hidden="true" />
+        {variant === 'full' && <span className="font-medium">{currentLanguageInfo.nativeName}</span>}
+        {variant === 'compact' && <span className="sr-only">{currentLanguageInfo.nativeName}</span>}
+        <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 rtl:right-auto rtl:left-0 mt-2 w-44 rounded-xl border border-slate-800 bg-slate-900 shadow-2xl py-1.5 z-50 text-xs font-mono">
-          <div className="px-3 py-1.5 text-[10px] text-slate-400 uppercase tracking-wider border-b border-slate-800/80">
-            Select Language
-          </div>
-
-          <div className="py-1">
-            {LANGUAGES.map((lang) => {
-              const isSelected = lang.code === language;
-              return (
-                <button
-                  key={lang.code}
-                  type="button"
-                  onClick={() => {
-                    setLanguage(lang.code as Language);
-                    setIsOpen(false);
-                  }}
-                  className={`w-full flex items-center justify-between px-3 py-2 text-left rtl:text-right hover:bg-slate-800 transition-colors touch-manipulation cursor-pointer ${
-                    isSelected ? 'text-sky-400 bg-sky-500/10 font-bold' : 'text-slate-300'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="text-base">{lang.flag}</span>
-                    <span>{lang.nativeName}</span>
-                  </div>
-                  {isSelected && <Check className="w-3.5 h-3.5 text-sky-400" />}
-                </button>
-              );
-            })}
-          </div>
+        <div
+          id={listboxId}
+          role="listbox"
+          aria-label={currentLanguageInfo.nativeName}
+          onKeyDown={(event) => {
+            const current = focusIndex ?? selectedIndex;
+            if (event.key === 'ArrowDown') {
+              event.preventDefault();
+              moveFocus(current, 1);
+            } else if (event.key === 'ArrowUp') {
+              event.preventDefault();
+              moveFocus(current, -1);
+            } else if (event.key === 'Home') {
+              event.preventDefault();
+              setFocusIndex(0);
+            } else if (event.key === 'End') {
+              event.preventDefault();
+              setFocusIndex(LANGUAGES.length - 1);
+            } else if (event.key === 'Escape') {
+              event.preventDefault();
+              close(true);
+            }
+          }}
+          className="absolute right-0 rtl:right-auto rtl:left-0 mt-2 w-48 rounded-xl border border-slate-800 bg-slate-900 shadow-2xl py-1.5 z-50 text-xs"
+        >
+          {LANGUAGES.map((lang, index) => {
+            const isSelected = lang.code === language;
+            return (
+              <button
+                key={lang.code}
+                ref={(element) => {
+                  optionRefs.current[index] = element;
+                }}
+                type="button"
+                role="option"
+                aria-selected={isSelected}
+                tabIndex={isSelected ? 0 : -1}
+                onClick={() => choose(lang.code as Language)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    choose(lang.code as Language);
+                  }
+                }}
+                className={`w-full min-h-11 flex items-center justify-between px-3 py-2 text-left rtl:text-right hover:bg-slate-800 focus:outline-none focus-visible:bg-slate-800 transition-colors touch-manipulation cursor-pointer ${
+                  isSelected ? 'text-sky-400 bg-sky-500/10 font-bold' : 'text-slate-300'
+                }`}
+              >
+                <span className="flex items-center gap-2">
+                  <span className="text-base" aria-hidden="true">{lang.flag}</span>
+                  <span>{lang.nativeName}</span>
+                </span>
+                {isSelected && <Check className="w-3.5 h-3.5 text-sky-400" aria-hidden="true" />}
+              </button>
+            );
+          })}
         </div>
       )}
     </div>
   );
 }
-

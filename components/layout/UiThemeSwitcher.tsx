@@ -36,6 +36,7 @@ export function UiThemeSwitcher({ variant = 'compact' }: { variant?: 'compact' |
     return (
       <button
         type="button"
+        data-ui-theme-switcher="full"
         onClick={toggleTheme}
         className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl border border-slate-800 bg-slate-900/80 hover:bg-slate-800 text-xs font-mono transition-all group touch-manipulation cursor-pointer"
       >
@@ -72,6 +73,7 @@ export function UiThemeSwitcher({ variant = 'compact' }: { variant?: 'compact' |
   return (
     <button
       type="button"
+      data-ui-theme-switcher="compact"
       onClick={toggleTheme}
       className="flex shrink-0 items-center gap-2 px-2.5 py-[6px] rounded-lg border border-slate-800 bg-slate-900/80 hover:bg-slate-800 text-xs font-mono transition-all duration-200 group shadow-sm touch-manipulation cursor-pointer"
       title={switchLabel}
