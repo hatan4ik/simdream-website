@@ -70,7 +70,7 @@ export const PAGE_SEO_DEFINITIONS: Record<SeoPageKey, PageSeoDefinition> = {
     path: '/book',
     title: 'Book Your Flight Simulator Session Online | Sim Dream Tel Aviv (הזמנת טיסה)',
     description:
-      'Instant online booking for the Sim Dream Boeing 737 flight simulator in Tel Aviv (Gershon Shatz 36). Choose 20, 30, 60, or 90-minute flights, add iconic world airport bundles, and get instant flight dispatch confirmation.',
+      'Instant online booking for the Sim Dream Boeing 737 flight simulator in Tel Aviv (Gershon Shatz 36). Choose 30, 45, 60, or 90-minute flights, add iconic world airport bundles, and get instant flight dispatch confirmation.',
     keywords: [
       ...COMMON_KEYWORDS,
       'book flight simulator Tel Aviv',
@@ -83,7 +83,7 @@ export const PAGE_SEO_DEFINITIONS: Record<SeoPageKey, PageSeoDefinition> = {
     path: '/experiences',
     title: 'Flight Simulator Packages, World Airport Bundles & Pricing | Sim Dream Tel Aviv',
     description:
-      'Compare Boeing 737 flight simulator packages in Tel Aviv: 20-min Takeoff & Landing (₪250), 30-min Discovery Flight (₪399), 60-min Captain’s Experience (₪649), 90-min Airline Assessment (₪949), Fearless Flying therapy, and 11 global airport bundles.',
+      'Compare Boeing 737 flight simulator packages in Tel Aviv: 30-min Discovery Flight (₪450), 45-min Daytime Flight (₪490), 60-min Captain’s Experience (₪690), 90-min Ultimate Aviator (₪850 daytime / ₪950 prime time), Fearless Flying therapy, and global airport bundles.',
     keywords: [
       ...COMMON_KEYWORDS,
       'flight simulator packages Israel',

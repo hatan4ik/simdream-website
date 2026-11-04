@@ -24,7 +24,7 @@ describe('gift voucher recipient', () => {
 describe('checkout lifecycle', () => {
   it('confirms a fully voucher-funded booking immediately and consumes its slot', async () => {
     const app = await loadApp();
-    const slot = await findOpenSlot(app, BOOKING_DATE, 20);
+    const slot = await findOpenSlot(app, BOOKING_DATE, 30);
     const { POST } = await app.routes.checkout();
 
     const response = await readJson<{ kind: string; bookingReference: string }>(
@@ -40,7 +40,7 @@ describe('checkout lifecycle', () => {
     const booking = await app.store.getBookingByRef(response.body.bookingReference);
     expect(booking).toMatchObject({ status: 'confirmed', paymentStatus: 'paid', paymentMethod: 'voucher', totalIls: 0 });
 
-    const after = await app.store.getAvailableSlots(BOOKING_DATE, 20);
+    const after = await app.store.getAvailableSlots(BOOKING_DATE, 30);
     expect(after.find((candidate) => candidate.startTime === slot.startTime)?.available).toBe(false);
   });
 

@@ -113,7 +113,7 @@ describe('slot engine completeness: the block-rhythm trade-off', () => {
    */
   const tuesday = WEEKDAY_DATES.tuesday;
   const fencedAfternoon = [
-    makeBooking({ bookingDate: tuesday, startTime: '15:15', durationMinutes: 20 }), // reserved until 16:00
+    makeBooking({ bookingDate: tuesday, startTime: '15:15', durationMinutes: 30 }), // reserved until 16:00
     makeBooking({ bookingDate: tuesday, startTime: '19:15', durationMinutes: 60 }), // reserved until 20:30
   ];
   const WINDOW = { start: 16 * 60, end: 19 * 60 + 15 };
@@ -126,20 +126,20 @@ describe('slot engine completeness: the block-rhythm trade-off', () => {
   });
 
   it('still sells the same window to standard flights on the block rhythm, for more revenue than the 90-minute path', () => {
-    // Engine path: 60m at 16:00, 20m at 17:15, 60m at 18:00 → 19:15, zero waste.
+    // Engine path: 60m at 16:00, 30m at 17:15, 60m at 18:00 → 19:15, zero waste.
     const after60 = [...fencedAfternoon, makeBooking({ bookingDate: tuesday, startTime: '16:00', durationMinutes: 60 })];
-    const after20 = [...after60, makeBooking({ bookingDate: tuesday, startTime: '17:15', durationMinutes: 20 })];
+    const after30 = [...after60, makeBooking({ bookingDate: tuesday, startTime: '17:15', durationMinutes: 30 })];
     expect(inWindow(offeredStarts(tuesday, 60, fencedAfternoon), 60)).toContain('16:00');
-    expect(inWindow(offeredStarts(tuesday, 20, after60), 20)).toContain('17:15');
-    expect(inWindow(offeredStarts(tuesday, 60, after20), 60)).toContain('18:00');
-    const enginePath = [690, 250, 690].reduce((sum, price) => sum + price, 0);
+    expect(inWindow(offeredStarts(tuesday, 30, after60), 30)).toContain('17:15');
+    expect(inWindow(offeredStarts(tuesday, 60, after30), 60)).toContain('18:00');
+    const enginePath = [690, 450, 690].reduce((sum, price) => sum + price, 0);
 
-    // Oracle path: 90m at 16:00 (reserved until 17:45), after which only two 20m entry flights tile the rest.
+    // Oracle path: 90m at 16:00 (reserved until 17:45), after which only two 30m discovery flights tile the rest.
     const after90 = [...fencedAfternoon, makeBooking({ bookingDate: tuesday, startTime: '16:00', durationMinutes: 90 })];
     expect(evaluateDailyEfficiency(tuesday, after90).orphanGapMinutes).toBe(0);
     expect(inWindow(safeStarts(tuesday, 60, after90), 60)).toEqual([]);
-    expect(inWindow(safeStarts(tuesday, 20, after90), 20)).toEqual(['17:45', '18:30']);
-    const oraclePath = [850, 250, 250].reduce((sum, price) => sum + price, 0);
+    expect(inWindow(safeStarts(tuesday, 30, after90), 30)).toEqual(['17:45', '18:30']);
+    const oraclePath = [850, 450, 450].reduce((sum, price) => sum + price, 0);
 
     expect(enginePath).toBeGreaterThan(oraclePath);
   });

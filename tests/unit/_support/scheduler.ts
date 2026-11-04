@@ -7,8 +7,8 @@ import {
   timeToMinutes,
 } from '@/lib/scheduler/kantorovich-engine';
 
-/** Durations the slots API accepts (30 is legacy/internal, still supported by the engine). */
-export const ENGINE_DURATIONS = [20, 30, 45, 60, 90, 120] as const;
+/** Durations the public slots API accepts. */
+export const ENGINE_DURATIONS = [30, 45, 60, 90, 120] as const;
 export type EngineDuration = (typeof ENGINE_DURATIONS)[number];
 
 /** One calendar date per weekday (0 = Sunday … 6 = Saturday) in the week of DEFAULT_TEST_NOW. */

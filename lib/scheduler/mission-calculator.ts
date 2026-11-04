@@ -40,7 +40,7 @@ export function packageFromPriceIls(
 const DURATION_SUFFIX_REGEX = /\s*\(\d+m(?:\s+Promo)?\)/gi;
 
 /**
- * Strips hardcoded duration suffixes such as "(20m)", "(60m)", or "(45m Promo)"
+ * Strips hardcoded duration suffixes such as "(30m)", "(60m)", or "(45m Promo)"
  * from package titles so the displayed title never contradicts the dynamically
  * expanded total session duration when mission add-ons are selected.
  */

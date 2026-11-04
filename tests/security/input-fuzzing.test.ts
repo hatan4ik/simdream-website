@@ -121,14 +121,14 @@ const JSON_ENDPOINTS: JsonEndpoint[] = [
     label: 'POST /api/checkout (booking)',
     route: 'checkout',
     method: 'POST',
-    valid: async (app) => bookingCheckoutBody({ startTime: (await findOpenSlot(app, BOOKING_DATE, 20)).startTime }),
+    valid: async (app) => bookingCheckoutBody({ startTime: (await findOpenSlot(app, BOOKING_DATE, 30)).startTime }),
   },
   {
     label: 'POST /api/checkout (voucher-funded booking)',
     route: 'checkout',
     method: 'POST',
     valid: async (app) =>
-      bookingCheckoutBody({ startTime: (await findOpenSlot(app, BOOKING_DATE, 20)).startTime, voucherCode: SEED_VOUCHER_CODE }),
+      bookingCheckoutBody({ startTime: (await findOpenSlot(app, BOOKING_DATE, 30)).startTime, voucherCode: SEED_VOUCHER_CODE }),
   },
   { label: 'POST /api/checkout (gift voucher)', route: 'checkout', method: 'POST', valid: async () => voucherCheckoutBody() },
   { label: 'POST /api/vouchers (verify)', route: 'vouchers', method: 'POST', valid: async () => ({ action: 'verify', code: SEED_VOUCHER_CODE }) },

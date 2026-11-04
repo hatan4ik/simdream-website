@@ -8,7 +8,7 @@ export const SOLD_OUT_HEADING = /No open runway slots/;
 /** Raw browser network errors (Chromium, Firefox, WebKit) that customers should never see verbatim. */
 export const RAW_NETWORK_ERROR = /Failed to fetch|NetworkError|Load failed/;
 
-const DURATIONS = [20, 30, 45, 60, 90, 120];
+const DURATIONS = [30, 45, 60, 90, 120];
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 

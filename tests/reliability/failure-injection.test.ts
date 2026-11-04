@@ -134,7 +134,7 @@ describe('misconfigured application URL during checkout', () => {
 
   it('answers 503 instead of crashing when the application URL is unusable', async () => {
     const app = await loadApp({ env: MALFORMED_APP_URL });
-    const slot = await findOpenSlot(app, BOOKING_DATE, 20);
+    const slot = await findOpenSlot(app, BOOKING_DATE, 30);
 
     const response = await postCheckout(
       app,
@@ -146,15 +146,15 @@ describe('misconfigured application URL during checkout', () => {
 
   it('keeps the voucher balance and the departure when checkout fails on the application URL (REL-7)', async () => {
     const app = await loadApp({ env: MALFORMED_APP_URL });
-    const slot = await findOpenSlot(app, BOOKING_DATE, 20);
+    const slot = await findOpenSlot(app, BOOKING_DATE, 30);
 
     await postCheckout(
       app,
       bookingCheckoutBody({ startTime: slot.startTime, voucherCode: SEED_VOUCHER_CODE, pilotEmail: 'config@example.test' })
     );
 
-    expect((await app.store.getVoucherByCode(SEED_VOUCHER_CODE))?.currentBalanceIls).toBe(400);
-    expect(await isSlotAvailable(app, BOOKING_DATE, 20, slot.startTime)).toBe(true);
+    expect((await app.store.getVoucherByCode(SEED_VOUCHER_CODE))?.currentBalanceIls).toBe(500);
+    expect(await isSlotAvailable(app, BOOKING_DATE, 30, slot.startTime)).toBe(true);
   });
 
   it('releases the departure when card checkout fails on the application URL (REL-7)', async () => {

@@ -250,7 +250,7 @@ describe('pruneAddonsExceedingSlot', () => {
   const pruneInput = registryArb.chain((choice) =>
     fc.record({
       choice: fc.constant(choice),
-      base: fc.constantFrom(20, 45, 60, 90, 120),
+      base: fc.constantFrom(30, 45, 60, 90, 120),
       extra: fc.integer({ min: 0, max: 200 }),
     })
   );

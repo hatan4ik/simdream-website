@@ -105,7 +105,7 @@ describe.each(SERVER_TIME_ZONES)('with the server clock in %s', (timeZone) => {
     const grid = (slots: FlightSlot[]) =>
       slots.map(({ startTime, endTime, reservedEndTime, available }) => ({ startTime, endTime, reservedEndTime, available }));
 
-    for (const duration of [20, 45, 60, 90, 120]) {
+    for (const duration of [30, 45, 60, 90, 120]) {
       const [onTransition, onWeekEarlier] = await Promise.all([
         getSlots(app, transition, duration),
         getSlots(app, weekEarlier, duration),
@@ -150,13 +150,13 @@ describe('departures earlier today', () => {
 
   it('stops offering departures once their start time has passed (REL-8)', async () => {
     const morning = await loadApp({ now: '2026-11-01T08:00:00+02:00' });
-    const offeredInTheMorning = (await getSlots(morning, '2026-11-01', 20)).body.filter(
+    const offeredInTheMorning = (await getSlots(morning, '2026-11-01', 30)).body.filter(
       (slot) => slot.available && slot.startTime < '20:00'
     );
     expect(offeredInTheMorning.length).toBeGreaterThan(0);
 
     const evening = await loadApp({ now: EVENING });
-    const offeredInTheEvening = (await getSlots(evening, '2026-11-01', 20)).body.filter(
+    const offeredInTheEvening = (await getSlots(evening, '2026-11-01', 30)).body.filter(
       (slot) => slot.available && slot.startTime < '20:00'
     );
 

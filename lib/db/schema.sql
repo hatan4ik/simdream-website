@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS public.packages (
   slug TEXT NOT NULL UNIQUE,
   title TEXT NOT NULL,
   category TEXT NOT NULL CHECK (category IN ('recreational', 'training', 'corporate', 'fear_of_flying')),
-  duration_minutes INTEGER NOT NULL CHECK (duration_minutes IN (20, 45, 60, 90, 120, 240)),
+  duration_minutes INTEGER NOT NULL CHECK (duration_minutes IN (30, 45, 60, 90, 120, 240)),
   price_ils NUMERIC(10, 2) NOT NULL CHECK (price_ils >= 0),
   prime_time_price_ils NUMERIC(10, 2) CHECK (prime_time_price_ils >= 0),
   price_usd NUMERIC(10, 2) NOT NULL CHECK (price_usd >= 0),

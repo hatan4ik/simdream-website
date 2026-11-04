@@ -3,7 +3,7 @@ import { store } from '@/lib/db/store';
 import { toPublicCapacityReport } from '@/lib/scheduler/kantorovich-engine';
 import { isoDate } from '@/lib/validation';
 
-const VALID_DURATIONS = new Set([20, 30, 45, 60, 90, 120]);
+const VALID_DURATIONS = new Set([30, 45, 60, 90, 120]);
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);

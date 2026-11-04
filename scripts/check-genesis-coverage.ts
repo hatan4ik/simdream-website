@@ -173,7 +173,7 @@ function checklist(): Item[] {
 
   // Invariants from AGENTS.md that a rebuild must reproduce exactly.
   const invariants: Array<[string, RegExp]> = [
-    ['buffer 20→45 min', buffer(20, 45)],
+    ['buffer 30→45 min', buffer(30, 45)],
     ['buffer 45→60 min', buffer(45, 60)],
     ['buffer 60→75 min', buffer(60, 75)],
     ['buffer 90→105 min', buffer(90, 105)],
@@ -213,7 +213,7 @@ function checklist(): Item[] {
   return items;
 }
 
-/** A flight of `flight` minutes reserving `reserved` minutes, written in prose ("20-minute … 45") or a table row. */
+/** A flight of `flight` minutes reserving `reserved` minutes, written in prose ("30-minute … 45") or a table row. */
 function buffer(flight: number, reserved: number): RegExp {
   return new RegExp(`\\b${flight}[\\s-]*(?:min|minute|m)\\w*\\b[^\\n]{0,60}?\\b${reserved}\\b(?![\\d,])`, 'i');
 }

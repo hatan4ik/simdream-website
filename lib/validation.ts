@@ -84,7 +84,7 @@ export const adminWorkshopPatchSchema = z.object({
 });
 
 const optimizableDuration = z.union([
-  z.literal(20),
+  z.literal(30),
   z.literal(45),
   z.literal(60),
   z.literal(90),

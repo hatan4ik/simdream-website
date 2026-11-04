@@ -106,11 +106,11 @@ describe('GET /api/slots', () => {
     const app = await loadApp();
     await createVoucherFundedBooking(app, { date: EMPTY_DAY.sunday });
 
-    const response = await slotsResponse(app, `?date=${EMPTY_DAY.sunday}&duration=20&includeEfficiency=true`);
+    const response = await slotsResponse(app, `?date=${EMPTY_DAY.sunday}&duration=30&includeEfficiency=true`);
 
     expect(response.status).toBe(200);
     const { efficiency } = expectContract(slotsWithEfficiency, response.body);
-    expect(efficiency).toMatchObject({ bookedMinutes: 45, pureFlightMinutes: 20, turnaroundMinutes: 25 });
+    expect(efficiency).toMatchObject({ bookedMinutes: 45, pureFlightMinutes: 30, turnaroundMinutes: 15 });
     expect(efficiency.timelineBlocks.filter((block) => block.type === 'booked')).toHaveLength(1);
   });
 
@@ -169,10 +169,10 @@ describe('GET /api/slots', () => {
     expect(closer).toMatchObject({ available: false, disabledReason: 'friday_closer_30m_only', blockPeriod: 'friday_closer' });
   });
 
-  it('offers the Friday 15:15 departure as the zero-waste closer for a 20-minute flight', async () => {
+  it('offers the Friday 15:15 departure as the zero-waste closer for a 30-minute flight', async () => {
     const app = await loadApp();
 
-    const closer = (await getSlots(app, EMPTY_DAY.friday, 20)).find((slot) => slot.startTime === '15:15');
+    const closer = (await getSlots(app, EMPTY_DAY.friday, 30)).find((slot) => slot.startTime === '15:15');
 
     expect(closer).toMatchObject({
       available: true,
@@ -188,7 +188,7 @@ describe('GET /api/slots', () => {
     const date = fc
       .integer({ min: 0, max: 380 })
       .map((offset) => new Date(firstEmptyDay + offset * 86_400_000).toISOString().slice(0, 10));
-    const duration = fc.constantFrom(20, 30, 45, 60, 90, 120);
+    const duration = fc.constantFrom(30, 45, 60, 90, 120);
 
     await fc.assert(
       fc.asyncProperty(date, duration, async (day, minutes) => {
@@ -222,7 +222,7 @@ describe('GET /api/slots', () => {
   it('lists departures that already left today (Israel time) as unavailable (API-3)', async () => {
     const app = await loadApp({ now: '2026-12-13T16:00:00+02:00' });
 
-    const slots = await getSlots(app, '2026-12-13', 20);
+    const slots = await getSlots(app, '2026-12-13', 30);
 
     const elapsed = slots.filter((slot) => slot.startTime < '16:00');
     expect(elapsed.length).toBeGreaterThan(0);

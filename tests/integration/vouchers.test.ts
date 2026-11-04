@@ -134,8 +134,8 @@ describe('PATCH /api/vouchers (admin redemption)', () => {
     const response = await redeem(app, { code: SEED_VOUCHER.code, amount: 150 });
 
     expect(response.status).toBe(200);
-    expect(expectContract(voucherRedemption, response.body).newBalance).toBe(250);
-    expect(await app.store.getVoucherByCode(SEED_VOUCHER.code)).toMatchObject({ currentBalanceIls: 250, isRedeemed: false });
+    expect(expectContract(voucherRedemption, response.body).newBalance).toBe(350);
+    expect(await app.store.getVoucherByCode(SEED_VOUCHER.code)).toMatchObject({ currentBalanceIls: 350, isRedeemed: false });
   });
 
   it('marks the voucher redeemed when its balance reaches exactly zero', async () => {
@@ -262,7 +262,7 @@ describe('POST /api/checkout (Gift Certificate vs Flexible Gift Card)', () => {
     const response = await postCheckout(
       app,
       voucherCheckoutBody({
-        amountIls: 1,
+        amountIls: 100,
         packageId: 'pkg-captain-60',
         packageTitle: 'Attacker-controlled title',
       })

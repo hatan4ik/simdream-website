@@ -68,9 +68,9 @@ The booking engine adapts dynamically depending on the selected package category
 
 | Package Category | Allowed Packages | Add-ons & Combos | Booking Flow | Default Pilot Level |
 | :--- | :--- | :--- | :--- | :--- |
-| **Professional Training** (`training`) | Strictly the 3 PRO tiers (60 PRO, 90 PRO, 120 PRO). Consumer 20m & 45m suppressed. | **Zero add-on noise (`addons = []`)**. Tourist combos, extreme turbulence modules, and 4K video upsells are completely suppressed. | **2-Step Streamlined Flow**: `Date & Operational Slot` &rarr; `Pilot Manifest & Checkout`. (Step 2 Add-ons is completely bypassed). | `atpl` (Airline Transport Pilot) |
+| **Professional Training** (`training`) | Strictly the 3 PRO tiers (60 PRO, 90 PRO, 120 PRO). Consumer 30m & 45m suppressed. | **Zero add-on noise (`addons = []`)**. Tourist combos, extreme turbulence modules, and 4K video upsells are completely suppressed. | **2-Step Streamlined Flow**: `Date & Operational Slot` &rarr; `Pilot Manifest & Checkout`. (Step 2 Add-ons is completely bypassed). | `atpl` (Airline Transport Pilot) |
 | **Fear of Flying** (`fear_of_flying`) | Strictly Fear of Flying Course (`pkg-fear-of-flying-90`). | **Zero add-on noise (`addons = []`)**. V1 engine failures, storms, and crosswind challenges are suppressed. | **2-Step Streamlined Flow**: `Date & Therapeutic Slot` &rarr; `Pilot Manifest & Checkout`. | `beginner` |
-| **Recreational / Consumer** (`recreational`) | Full consumer catalog (20m Discovery, 45m Daytime Promo, 60m Captain, 90m Odyssey). | Full e-commerce catalog with curated 1-click combos, 7 world trios, Cold & Dark startup, and 4K recording. | **3-Step Flow**: `Date & Slot` &rarr; `Cockpit Add-ons` &rarr; `Pilot Manifest & Checkout`. | User choice |
+| **Recreational / Consumer** (`recreational`) | Full consumer catalog (30m Discovery, 45m Daytime Promo, 60m Captain, 90m Odyssey). | Full e-commerce catalog with curated 1-click combos, 7 world trios, Cold & Dark startup, and 4K recording. | **3-Step Flow**: `Date & Slot` &rarr; `Cockpit Add-ons` &rarr; `Pilot Manifest & Checkout`. | User choice |
 
 ---
 
@@ -80,7 +80,7 @@ The scheduling system is defined in [`KANTOROVICH_SCHEDULER_SPEC.md`](KANTOROVIC
 
 ### Capacity Buffer Map
 Always reserve operating capacity via `getReservedMinutesForFlight()`:
-- `20 min` flight &rarr; `45 min` reserved block
+- `30 min` flight &rarr; `45 min` reserved block
 - `45 min` flight &rarr; `60 min` reserved block (Daytime Promo, `< 18:00` Sun–Fri only)
 - `60 min` flight &rarr; `75 min` reserved block
 - `90 min` flight &rarr; `105 min` reserved block
@@ -164,7 +164,7 @@ The platform supports 5 languages with zero cross-language contamination:
 
 Before completing any feature or code change:
 1. Run `npm run build` — must compile with 0 TypeScript or build errors across all 35 routes.
-2. Verify `/book` with consumer packages (20m, 45m, 60m, 90m) &rarr; 3-step flow with add-ons.
+2. Verify `/book` with consumer packages (30m, 45m, 60m, 90m) &rarr; 3-step flow with add-ons.
 3. Verify `/book` with PRO packages (`/book?package=airline-interview-prep-90-pro`) &rarr; 2-step noise-free flow.
 4. Verify calendar across Sunday (10:00–23:00), Friday (09:00–16:00), and Saturday (19:00–24:00 Prime-Time).
 5. Verify all 5 language switchers (`he`, `en`, `ru`, `fr`, `ar`) render correctly with zero mixed scripts or broken keys.

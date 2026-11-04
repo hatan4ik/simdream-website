@@ -8,8 +8,8 @@ import { adminHeaders, apiRequest, readJson, type ApiRequestInit } from '../supp
 import { signedWebhookRequest } from '../support/stripe';
 import { expectContract, slotList, type FlightSlotContract } from './contracts';
 
-/** Paid seed voucher with a partial balance (initial 500 ILS). */
-export const SEED_VOUCHER = { code: 'SD-VOUCH-DF7QK3MN8R2V6X9LPA', balanceIls: 400 } as const;
+/** Paid seed voucher with its full ₪500 balance. */
+export const SEED_VOUCHER = { code: 'SD-VOUCH-DF7QK3MN8R2V6X9LPA', balanceIls: 500 } as const;
 /** Paid seed voucher with its full balance. */
 export const SEED_FULL_VOUCHER = { code: 'SD-VOUCH-H5TZR8K2V9M3Q7LNXB', balanceIls: 890 } as const;
 

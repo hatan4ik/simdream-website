@@ -2,12 +2,17 @@ import fc from 'fast-check';
 import { describe, expect, it, vi } from 'vitest';
 import type { Booking } from '@/types';
 import { DEMO_VOUCHERS, FLIGHT_ADDONS, SIMULATOR_PACKAGES } from '@/lib/db/seed-data';
+import {
+  GIFT_CERTIFICATE_PACKAGE_IDS,
+  giftCertificateAmount,
+  orderGiftCertificatePackages,
+} from '@/lib/catalog/gift-voucher-packages';
 import { getDayOperatingConfig, getKantorovichPricing, timeToMinutes } from '@/lib/scheduler/kantorovich-engine';
 import { overlaps, reservedInterval } from './_support/scheduler';
 import { readConstLiteral } from './_support/source';
 
 const STOREFRONT = 'components/scheduler/AmazonFlightStorefront.tsx';
-const ALLOWED_DURATIONS = [20, 45, 60, 90, 120, 240];
+const ALLOWED_DURATIONS = [30, 45, 60, 90, 120, 240];
 
 interface QuickCombo {
   id: string;
@@ -83,10 +88,17 @@ describe('package catalog', () => {
     ]);
   });
 
-  it('offers the full consumer ladder of 20, 45, 60 and 90 minutes', () => {
+  it('offers the full consumer ladder of 30, 45, 60 and 90 minutes', () => {
     expect(
       SIMULATOR_PACKAGES.filter((pkg) => pkg.category === 'recreational').map((pkg) => pkg.durationMinutes)
-    ).toEqual([20, 45, 60, 90]);
+    ).toEqual([30, 45, 60, 90]);
+  });
+
+  it('keeps named gift certificates on the 30/60/90/120 package ladder at canonical prices', () => {
+    const certificates = orderGiftCertificatePackages(SIMULATOR_PACKAGES);
+    expect(certificates.map((pkg) => pkg.id)).toEqual(GIFT_CERTIFICATE_PACKAGE_IDS);
+    expect(certificates.map((pkg) => pkg.durationMinutes)).toEqual([30, 60, 90, 120]);
+    expect(certificates.map(giftCertificateAmount)).toEqual([450, 690, 950, 1590]);
   });
 
   it('marks only the 45-minute promo as daytime-only', () => {

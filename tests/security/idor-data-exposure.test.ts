@@ -122,7 +122,7 @@ describe('member isolation (IDOR)', () => {
 
   it("does not attach a booking to a member who checks out with another person's email", async () => {
     const app = await loadApp({ members: MEMBERS });
-    const slot = await findOpenSlot(app, BOOKING_DATE, 20);
+    const slot = await findOpenSlot(app, BOOKING_DATE, 30);
     const { POST } = await app.routes.checkout();
 
     const response = await readJson<{ bookingReference: string }>(
@@ -213,7 +213,7 @@ describe('public booking lookup by reference', () => {
 
   it('never leaks the voucher code used to pay for a booking', async () => {
     const app = await loadApp();
-    const slot = await findOpenSlot(app, BOOKING_DATE, 20);
+    const slot = await findOpenSlot(app, BOOKING_DATE, 30);
     const { POST } = await app.routes.checkout();
     const created = await readJson<{ bookingReference: string }>(
       await POST(apiRequest('/api/checkout', { body: bookingCheckoutBody({ startTime: slot.startTime, voucherCode: SEED_VOUCHER_CODE }) }))
@@ -336,7 +336,7 @@ describe('capability identifier entropy', () => {
 
   it('issues references through checkout that match the public lookup format', async () => {
     const app = await loadApp();
-    const slot = await findOpenSlot(app, BOOKING_DATE, 20);
+    const slot = await findOpenSlot(app, BOOKING_DATE, 30);
     const { POST } = await app.routes.checkout();
 
     const response = await readJson<{ bookingReference: string }>(

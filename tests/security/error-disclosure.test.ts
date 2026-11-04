@@ -30,7 +30,7 @@ interface FailureCase {
 }
 
 async function openSlotStart(app: TestApp): Promise<string> {
-  return (await findOpenSlot(app, BOOKING_DATE, 20)).startTime;
+  return (await findOpenSlot(app, BOOKING_DATE, 30)).startTime;
 }
 
 const CASES: Record<string, FailureCase> = {

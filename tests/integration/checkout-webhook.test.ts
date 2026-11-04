@@ -153,7 +153,7 @@ describe('POST /api/webhooks/stripe: booking transitions', () => {
     expect(ack.status).toBe(200);
     expectContract(webhookAck, ack.body);
     expect(await app.store.getBookingById(booking.id)).toMatchObject({ status: 'pending', paymentStatus: 'pending' });
-    expect(await isSlotOpen(app, DAY, 20, slot.startTime)).toBe(false);
+    expect(await isSlotOpen(app, DAY, 30, slot.startTime)).toBe(false);
   });
 
   it.each(['checkout.session.expired', 'checkout.session.async_payment_failed'] as const)(
@@ -161,14 +161,14 @@ describe('POST /api/webhooks/stripe: booking transitions', () => {
     async (type) => {
       const app = await loadApp({ stripe: 'mocked' });
       const { booking, slot } = await createPendingCardBooking(app, { date: DAY });
-      expect(await isSlotOpen(app, DAY, 20, slot.startTime)).toBe(false);
+      expect(await isSlotOpen(app, DAY, 30, slot.startTime)).toBe(false);
 
       const ack = await deliverWebhook(app, checkoutSessionEvent(type, { metadata: { bookingId: booking.id } }));
 
       expect(ack.status).toBe(200);
       expectContract(webhookAck, ack.body);
       expect(await app.store.getBookingById(booking.id)).toMatchObject({ status: 'cancelled', paymentStatus: 'pending' });
-      expect(await isSlotOpen(app, DAY, 20, slot.startTime)).toBe(true);
+      expect(await isSlotOpen(app, DAY, 30, slot.startTime)).toBe(true);
     }
   );
 
@@ -181,7 +181,7 @@ describe('POST /api/webhooks/stripe: booking transitions', () => {
 
     expect(ack.status).toBe(200);
     expect(await app.store.getBookingById(booking.id)).toMatchObject({ status: 'confirmed', paymentStatus: 'paid' });
-    expect(await isSlotOpen(app, DAY, 20, slot.startTime)).toBe(false);
+    expect(await isSlotOpen(app, DAY, 30, slot.startTime)).toBe(false);
   });
 
   it('acknowledges unrelated event types without changing any booking', async () => {

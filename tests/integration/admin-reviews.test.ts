@@ -62,7 +62,7 @@ describe('POST /api/admin/schedule-optimization', () => {
 
   it.each([
     { name: 'duplicate request ids', body: { date: EMPTY_DAY.sunday, requests: [draftRequest(), draftRequest()] }, field: 'requests' },
-    { name: 'an unsupported duration', body: { date: EMPTY_DAY.sunday, requests: [draftRequest({ durationMinutes: 30 })] }, field: 'requests.0.durationMinutes' },
+    { name: 'an unsupported duration', body: { date: EMPTY_DAY.sunday, requests: [draftRequest({ durationMinutes: 75 })] }, field: 'requests.0.durationMinutes' },
     { name: 'a start time off the quarter hour', body: { date: EMPTY_DAY.sunday, requests: [draftRequest({ candidateStartTimes: ['10:10'] })] }, field: 'requests.0.candidateStartTimes.0' },
     { name: 'more than four candidate times', body: { date: EMPTY_DAY.sunday, requests: [draftRequest({ candidateStartTimes: ['10:00', '11:15', '12:30', '13:45', '15:00'] })] }, field: 'requests.0.candidateStartTimes' },
     { name: 'a zero declared value', body: { date: EMPTY_DAY.sunday, requests: [draftRequest({ valueIls: 0 })] }, field: 'requests.0.valueIls' },

@@ -98,7 +98,7 @@ const CLEAN_COPY: Record<
     availableCount: 'slots available',
     noSlotsForDuration: 'No open times for this duration on the selected date.',
     try60Min: 'Switch to 60 Min Flight',
-    try30Min: 'Switch to 20 Min Flight',
+    try30Min: 'Switch to 30 Min Flight',
     guestsIncluded: 'Up to 2 guests included',
     captainIncluded: '1-on-1 Airline Captain Instructor',
     dayNamesShort: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
@@ -135,7 +135,7 @@ const CLEAN_COPY: Record<
     availableCount: 'שעות פנויות',
     noSlotsForDuration: 'אין שעות פנויות למשך טיסה זה בתאריך שנבחר.',
     try60Min: 'עבור לטיסת 60 דקות',
-    try30Min: 'עבור לטיסת 20 דקות',
+    try30Min: 'עבור לטיסת 30 דקות',
     guestsIncluded: 'עד 2 מלווים בקוקפיט ללא תוספת',
     captainIncluded: 'הדרכה אישית עם קברניט',
     dayNamesShort: ['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳', 'ש׳'],
@@ -172,7 +172,7 @@ const CLEAN_COPY: Record<
     availableCount: 'свободных слотов',
     noSlotsForDuration: 'На выбранную дату нет свободных окон для этой длительности.',
     try60Min: 'Переключить на 60 минут',
-    try30Min: 'Переключить на 20 минут',
+    try30Min: 'Переключить на 30 минут',
     guestsIncluded: 'До 2 гостей в кабине бесплатно',
     captainIncluded: 'Инструктор — действующий пилот',
     dayNamesShort: ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'],
@@ -209,7 +209,7 @@ const CLEAN_COPY: Record<
     availableCount: 'créneaux disponibles',
     noSlotsForDuration: 'Aucun créneau disponible pour cette durée à cette date.',
     try60Min: 'Passer au vol 60 min',
-    try30Min: 'Passer au vol 20 min',
+    try30Min: 'Passer au vol 30 min',
     guestsIncluded: 'Jusqu’à 2 accompagnants inclus',
     captainIncluded: 'Commandant de bord instructeur',
     dayNamesShort: ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'],
@@ -246,7 +246,7 @@ const CLEAN_COPY: Record<
     availableCount: 'مواعيد متاحة',
     noSlotsForDuration: 'لا توجد مواعيد متاحة لهذه المدة في التاريخ المختار.',
     try60Min: 'التبديل إلى رحلة 60 دقيقة',
-    try30Min: 'التبديل إلى رحلة 20 دقيقة',
+    try30Min: 'التبديل إلى رحلة 30 دقيقة',
     guestsIncluded: 'يشمل ضيفين في القمرة مجاناً',
     captainIncluded: 'مدرب طيران كابتن طائرة',
     dayNamesShort: ['أحد', 'إثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة', 'سبت'],
@@ -619,8 +619,8 @@ export function KantorovichCalendarScheduler({
                   </span>
                 ) : (
                   <span className="text-[10px] font-mono text-slate-400 truncate max-w-[130px]">
-                    {pkg.durationMinutes === 20
-                      ? (language === 'he' ? 'שדה בודד' : language === 'ru' ? '1 аэропорт' : language === 'fr' ? '1 aéroport' : language === 'ar' ? 'مطار واحد' : '1 Airport Circuit')
+                    {pkg.durationMinutes === 30
+                      ? (language === 'he' ? 'משימת היכרות מודרכת' : language === 'ru' ? 'Ознакомительная миссия с инструктором' : language === 'fr' ? 'Mission découverte guidée' : language === 'ar' ? 'مهمة استكشافية بإرشاد مدرب' : 'Guided Discovery Mission')
                       : pkg.durationMinutes === 60
                       ? '+1 World Trio'
                       : pkg.durationMinutes === 90
@@ -703,12 +703,12 @@ export function KantorovichCalendarScheduler({
                   {copy.try60Min}
                 </Button>
               )}
-              {selectedPackage.durationMinutes !== 20 && (
+              {selectedPackage.durationMinutes !== 30 && (
                 <Button
                   type="button"
                   variant="secondary"
                   size="sm"
-                  onClick={() => handleSwitchDuration(20)}
+                  onClick={() => handleSwitchDuration(30)}
                 >
                   {copy.try30Min}
                 </Button>

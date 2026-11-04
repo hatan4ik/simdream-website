@@ -1,7 +1,7 @@
 import type { SimulatorPackage } from '@/types';
 import type { Language } from '@/lib/i18n/translations';
 
-type FormulaKey = 'training' | 'fear_of_flying' | '20' | '45' | '60' | '90' | 'default';
+type FormulaKey = 'training' | 'fear_of_flying' | '30' | '45' | '60' | '90' | 'default';
 
 export interface PackageFormulaBadge {
   text: string;
@@ -12,7 +12,7 @@ const PACKAGE_FORMULA_COPY: Record<Language, Record<FormulaKey, string>> = {
   en: {
     training: '🎯 Airline Checkride • Raw Data & V1 Failure',
     fear_of_flying: '🕊️ Private Therapy & Captain Coaching • Gentle Pacing',
-    20: '🛫 1 Airport Takeoff & Landing Circuit',
+    30: '🛫 Guided Takeoff, Hands-On Flight & Landing',
     45: '🌤️ Daytime Flight • 2 Landings (until 18:00)',
     60: '⭐ Takeoff/Landing + 1 World Trio (3 Airports Included)',
     90: '⚡ Takeoff/Landing + 2 World Trios + Emergencies (1–2 Pilots)',
@@ -21,7 +21,7 @@ const PACKAGE_FORMULA_COPY: Record<Language, Record<FormulaKey, string>> = {
   he: {
     training: '🎯 הכנה למבדקי חברות תעופה • Raw Data ותקלות V1',
     fear_of_flying: '🕊️ טיפול מותאם והדרכת קברניט • בקצב רגוע ואישי',
-    20: '🛫 תרגול המראה ונחיתה בשדה תעופה בודד',
+    30: '🛫 המראה, הטסה מעשית ונחיתה בליווי קברניט',
     45: '🌤️ מבצע יום • 2 נחיתות (עד 18:00)',
     60: '⭐ המראה/נחיתה + שלישיית שדות תעופה עולמית (3 יעדים)',
     90: '⚡ המראה/נחיתה + 2 שלישיות Trio + תקלות (1–2 טייסים)',
@@ -30,7 +30,7 @@ const PACKAGE_FORMULA_COPY: Record<Language, Record<FormulaKey, string>> = {
   ru: {
     training: '🎯 Скрининг в авиакомпании • Raw Data и отказ V1',
     fear_of_flying: '🕊️ Терапия страха полетов и коучинг с капитаном',
-    20: '🛫 Взлет и посадка по кругу в 1 аэропорту',
+    30: '🛫 Взлет, ручное пилотирование и посадка с капитаном',
     45: '🌤️ Дневной полет • 2 посадки (до 18:00)',
     60: '⭐ Взлет/посадка + 1 World Trio (3 аэропорта мира)',
     90: '⚡ Взлет/посадка + 2 World Trios + особые случаи (1–2 пилота)',
@@ -39,7 +39,7 @@ const PACKAGE_FORMULA_COPY: Record<Language, Record<FormulaKey, string>> = {
   fr: {
     training: '🎯 Sélection Compagnie • Raw Data & Panne V1',
     fear_of_flying: '🕊️ Gestion de la peur de l’avion • Rythme bienveillant',
-    20: '🛫 Tour de piste décollage et atterrissage sur 1 aéroport',
+    30: '🛫 Décollage, pilotage manuel et atterrissage guidés',
     45: '🌤️ Vol journée • 2 atterrissages (jusqu’à 18h00)',
     60: '⭐ Décollage/atterrissage + 1 trio mondial (3 aéroports)',
     90: '⚡ Décollage/atterrissage + 2 trios mondiaux + pannes (1–2 pilotes)',
@@ -48,7 +48,7 @@ const PACKAGE_FORMULA_COPY: Record<Language, Record<FormulaKey, string>> = {
   ar: {
     training: '🎯 اختبارات شركات الطيران • Raw Data وطوارئ V1',
     fear_of_flying: '🕊️ علاج الخوف من الطيران مع القبطان • وتيرة مريحة',
-    20: '🛫 تمرين إقلاع وهبوط ودوران في مطار واحد',
+    30: '🛫 إقلاع وطيران عملي وهبوط بإرشاد كابتن',
     45: '🌤️ رحلة نهارية • هبوطان كاملان (حتى 18:00)',
     60: '⭐ إقلاع/هبوط + باقة ثلاثية مطارات عالمية (3 مطارات)',
     90: '⚡ إقلاع/هبوط + باقتان ثلاثيتان + طوارئ (طيار أو طياران)',
@@ -59,7 +59,7 @@ const PACKAGE_FORMULA_COPY: Record<Language, Record<FormulaKey, string>> = {
 const PACKAGE_FORMULA_CLASSES: Record<FormulaKey, string> = {
   training: 'bg-sky-500/15 text-sky-300 border-sky-500/30 font-bold',
   fear_of_flying: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30 font-bold',
-  20: 'bg-sky-500/15 text-sky-300 border-sky-500/30',
+  30: 'bg-sky-500/15 text-sky-300 border-sky-500/30',
   45: 'bg-amber-500/15 text-amber-300 border-amber-500/30',
   60: 'bg-amber-500/20 text-amber-300 border-amber-500/40 font-bold',
   90: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 font-bold',
@@ -69,8 +69,8 @@ const PACKAGE_FORMULA_CLASSES: Record<FormulaKey, string> = {
 function formulaKeyFor(durationMinutes: number, category: SimulatorPackage['category']): FormulaKey {
   if (category === 'training') return 'training';
   if (category === 'fear_of_flying') return 'fear_of_flying';
-  if (durationMinutes === 20 || durationMinutes === 45 || durationMinutes === 60 || durationMinutes === 90) {
-    return String(durationMinutes) as Extract<FormulaKey, '20' | '45' | '60' | '90'>;
+  if (durationMinutes === 30 || durationMinutes === 45 || durationMinutes === 60 || durationMinutes === 90) {
+    return String(durationMinutes) as Extract<FormulaKey, '30' | '45' | '60' | '90'>;
   }
   return 'default';
 }

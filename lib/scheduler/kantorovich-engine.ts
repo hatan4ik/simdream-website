@@ -35,7 +35,7 @@ export function minutesToTime(totalMinutes: number): string {
 
 export function getReservedMinutesForFlight(durationMinutes: number): number {
   if (durationMinutes <= 30) {
-    // 20m / 30m basic flight occupies a 45m slot block (20m flight + 25m briefing/turnaround)
+    // The active 30m discovery flight, plus any historical 20m booking, occupies one 45m block.
     return 45;
   }
   if (durationMinutes === 120) {
@@ -160,15 +160,6 @@ export function getKantorovichPricing(
 } {
   const isPrimeTime = isSaturday || startMinutes >= 18 * 60;
   const reserved = getReservedMinutesForFlight(durationMinutes);
-
-  if (durationMinutes === 20) {
-    return {
-      basePriceIls: 250,
-      dynamicPriceIls: 250,
-      isPrimeTime,
-      yieldPerMinIls: +(250 / reserved).toFixed(2), // 5.56 base (expands with Step 2 add-ons)
-    };
-  }
 
   if (durationMinutes === 30) {
     return {
@@ -412,7 +403,7 @@ export function generateKantorovichSlots(
         basePriceIls: pricing.basePriceIls,
         yieldPerMinIls: pricing.yieldPerMinIls,
         disabledReason: 'friday_closer_30m_only',
-        disabledNote: 'Friday 15:15–16:00 (45m) is reserved exclusively for a 20m/30m entry flight to close at 16:00 with 0m waste.',
+        disabledNote: 'Friday 15:15–16:00 (45m) is reserved exclusively for a 30m discovery flight to close at 16:00 with 0m waste.',
       });
       continue;
     }
@@ -827,4 +818,3 @@ export function closeDepartedSlots(slots: FlightSlot[], now: Date): FlightSlot[]
       : slot
   );
 }
-

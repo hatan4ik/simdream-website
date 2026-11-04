@@ -231,9 +231,9 @@ describe('PATCH /api/bookings (admin)', () => {
     const response = await patchBooking(app, { id: created.id, startTime: '18:00' });
 
     expect(response.status).toBe(200);
-    expect(expectContract(bookingContract, response.body)).toMatchObject({ startTime: '18:00', endTime: '18:20' });
-    expect(await isSlotOpen(app, DAY, 20, '10:00')).toBe(true);
-    expect(await isSlotOpen(app, DAY, 20, '18:00')).toBe(false);
+    expect(expectContract(bookingContract, response.body)).toMatchObject({ startTime: '18:00', endTime: '18:30' });
+    expect(await isSlotOpen(app, DAY, 30, '10:00')).toBe(true);
+    expect(await isSlotOpen(app, DAY, 30, '18:00')).toBe(false);
   });
 
   it('rejects a reschedule that overlaps another booking with 409 and leaves both untouched', async () => {

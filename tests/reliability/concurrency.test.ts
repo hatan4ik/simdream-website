@@ -60,7 +60,7 @@ describe('concurrent checkouts for one departure', () => {
 
   it('leaves at most one voucher-funded booking holding a departure when checkouts race (REL-1)', async () => {
     const app = await loadApp();
-    const slot = await findOpenSlot(app, BOOKING_DATE, 20);
+    const slot = await findOpenSlot(app, BOOKING_DATE, 30);
     const vouchers = await Promise.all(range(RACERS).map(() => createPaidVoucher(app, 500)));
 
     const responses = await Promise.all(
@@ -209,7 +209,7 @@ describe('concurrent voucher redemptions', () => {
     const app = await loadApp();
     const voucher = await createPaidVoucher(app, 600);
     const dates = ['2026-11-01', '2026-11-02', '2026-11-03', '2026-11-04'];
-    const slots = await Promise.all(dates.map((date) => findOpenSlot(app, date, 20)));
+    const slots = await Promise.all(dates.map((date) => findOpenSlot(app, date, 30)));
 
     const responses = await Promise.all(
       slots.map((slot, index) =>

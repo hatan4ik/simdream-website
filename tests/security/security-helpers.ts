@@ -5,8 +5,11 @@ import type { TestApp } from '../support/app';
 import { adminHeaders, basicAuth, bearer } from '../support/http';
 import { TEST_ADMIN } from '../support/test-env';
 
-/** Seed voucher with a 400 ILS balance (lib/db/seed-data.ts). */
+/** Seed voucher with a 500 ILS balance (lib/db/seed-data.ts). */
 export const SEED_VOUCHER_CODE = 'SD-VOUCH-DF7QK3MN8R2V6X9LPA';
+export const SEED_VOUCHER_BALANCE_ILS = 500;
+export const SEED_FULL_VOUCHER_CODE = 'SD-VOUCH-H5TZR8K2V9M3Q7LNXB';
+export const SEED_FULL_VOUCHER_BALANCE_ILS = 890;
 export const BOOKING_DATE = '2026-11-01';
 export const HOSTILE_ORIGIN = 'https://evil.example';
 export const PRODUCTION_ORIGIN = 'https://www.simdream.co.il';

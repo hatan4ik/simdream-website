@@ -40,7 +40,7 @@ function minutesAfter(time: string, minutes: number): string {
 describe('POST /api/checkout: voucher-funded bookings', () => {
   it('confirms a fully voucher-funded booking immediately, consumes the slot and debits the voucher', async () => {
     const app = await loadApp();
-    const slot = await findSlotWhere(app, DAY, 20, (candidate) => candidate.available, 'open');
+    const slot = await findSlotWhere(app, DAY, 30, (candidate) => candidate.available, 'open');
 
     const response = await postCheckout(
       app,
@@ -63,12 +63,12 @@ describe('POST /api/checkout: voucher-funded bookings', () => {
       currentBalanceIls: SEED_VOUCHER.balanceIls - slot.dynamicPriceIls,
       isRedeemed: false,
     });
-    expect(await isSlotOpen(app, DAY, 20, slot.startTime)).toBe(false);
+    expect(await isSlotOpen(app, DAY, 30, slot.startTime)).toBe(false);
   });
 
   it('accepts a voucher code regardless of letter case and surrounding whitespace', async () => {
     const app = await loadApp();
-    const slot = await findSlotWhere(app, DAY, 20, (candidate) => candidate.available, 'open');
+    const slot = await findSlotWhere(app, DAY, 30, (candidate) => candidate.available, 'open');
 
     const response = await postCheckout(
       app,
@@ -149,7 +149,7 @@ describe('POST /api/checkout: voucher-funded bookings', () => {
     // Seed vouchers expire one year after the frozen clock.
     vi.setSystemTime(new Date('2027-11-08T08:00:00+02:00'));
     const date = '2027-11-14';
-    const slot = await findSlotWhere(app, date, 20, (candidate) => candidate.available, 'open');
+    const slot = await findSlotWhere(app, date, 30, (candidate) => candidate.available, 'open');
 
     const response = await postCheckout(
       app,
@@ -159,7 +159,7 @@ describe('POST /api/checkout: voucher-funded bookings', () => {
     expect(response.status).toBe(409);
     expect(expectContract(errorBody, response.body).error).toBe('This voucher has expired.');
     expect((await app.store.getVoucherByCode(SEED_VOUCHER.code))?.currentBalanceIls).toBe(SEED_VOUCHER.balanceIls);
-    expect(await isSlotOpen(app, date, 20, slot.startTime)).toBe(true);
+    expect(await isSlotOpen(app, date, 30, slot.startTime)).toBe(true);
   });
 
   it('rejects a gift voucher whose purchase has not been paid with 409', async () => {
@@ -168,7 +168,7 @@ describe('POST /api/checkout: voucher-funded bookings', () => {
     expect(purchase.status).toBe(201);
     const pending = await app.store.getVoucherById(app.checkoutSessions[0].voucherId ?? '');
     expect(pending?.paymentStatus).toBe('pending');
-    const slot = await findSlotWhere(app, DAY, 20, (candidate) => candidate.available, 'open');
+    const slot = await findSlotWhere(app, DAY, 30, (candidate) => candidate.available, 'open');
 
     const response = await postCheckout(
       app,
@@ -177,12 +177,12 @@ describe('POST /api/checkout: voucher-funded bookings', () => {
 
     expect(response.status).toBe(409);
     expect(expectContract(errorBody, response.body).error).toBe('This voucher is not active.');
-    expect(await isSlotOpen(app, DAY, 20, slot.startTime)).toBe(true);
+    expect(await isSlotOpen(app, DAY, 30, slot.startTime)).toBe(true);
   });
 
   it('rejects an unknown voucher code with 409', async () => {
     const app = await loadApp();
-    const slot = await findSlotWhere(app, DAY, 20, (candidate) => candidate.available, 'open');
+    const slot = await findSlotWhere(app, DAY, 30, (candidate) => candidate.available, 'open');
 
     const response = await postCheckout(
       app,
@@ -191,7 +191,7 @@ describe('POST /api/checkout: voucher-funded bookings', () => {
 
     expect(response.status).toBe(409);
     expect(expectContract(errorBody, response.body).error).toBe('This voucher is not active.');
-    expect(await isSlotOpen(app, DAY, 20, slot.startTime)).toBe(true);
+    expect(await isSlotOpen(app, DAY, 30, slot.startTime)).toBe(true);
   });
 });
 
@@ -248,7 +248,7 @@ describe('POST /api/checkout: card bookings', () => {
 
   it('builds Stripe return URLs from the configured application origin, not the request host', async () => {
     const app = await loadApp({ stripe: 'mocked', env: { NEXT_PUBLIC_APP_URL: `${CONFIGURED_ORIGIN}/ignored/path` } });
-    const slot = await findSlotWhere(app, DAY, 20, (candidate) => candidate.available, 'open');
+    const slot = await findSlotWhere(app, DAY, 30, (candidate) => candidate.available, 'open');
 
     const response = await postCheckout(app, bookingCheckoutBody({ bookingDate: DAY, startTime: slot.startTime }));
 
@@ -263,7 +263,7 @@ describe('POST /api/checkout: card bookings', () => {
 
   it('falls back to the request origin for return URLs outside production', async () => {
     const app = await loadApp({ stripe: 'mocked' });
-    const slot = await findSlotWhere(app, DAY, 20, (candidate) => candidate.available, 'open');
+    const slot = await findSlotWhere(app, DAY, 30, (candidate) => candidate.available, 'open');
 
     const response = await postCheckout(app, bookingCheckoutBody({ bookingDate: DAY, startTime: slot.startTime }));
 
@@ -278,7 +278,7 @@ describe('POST /api/checkout: card bookings', () => {
       stripe: 'mocked',
       env: { NODE_ENV: 'production', STRIPE_SECRET_KEY: LIVE_STRIPE_KEY, NEXT_PUBLIC_APP_URL: CONFIGURED_ORIGIN },
     });
-    const slot = await findSlotWhere(app, DAY, 20, (candidate) => candidate.available, 'open');
+    const slot = await findSlotWhere(app, DAY, 30, (candidate) => candidate.available, 'open');
 
     const response = await postCheckout(app, bookingCheckoutBody({ bookingDate: DAY, startTime: slot.startTime }));
 
@@ -293,7 +293,7 @@ describe('POST /api/checkout: card bookings', () => {
     { name: 'test keys under production rules', options: { stripe: 'mocked' as const, env: { NODE_ENV: 'production' } } },
   ])('refuses card checkout with a friendly 503 and stores nothing when payments are off ($name)', async ({ options }) => {
     const app = await loadApp(options);
-    const slot = await findSlotWhere(app, DAY, 20, (candidate) => candidate.available, 'open');
+    const slot = await findSlotWhere(app, DAY, 30, (candidate) => candidate.available, 'open');
     const bookingsBefore = (await app.store.getBookings()).length;
 
     const response = await postCheckout(app, bookingCheckoutBody({ bookingDate: DAY, startTime: slot.startTime }));
@@ -302,13 +302,13 @@ describe('POST /api/checkout: card bookings', () => {
     expect(expectContract(errorBody, response.body).error).toBe(PAYMENTS_DISABLED);
     expect((await app.store.getBookings()).length).toBe(bookingsBefore);
     expect(app.checkoutSessions).toHaveLength(0);
-    expect(await isSlotOpen(app, DAY, 20, slot.startTime)).toBe(true);
+    expect(await isSlotOpen(app, DAY, 30, slot.startTime)).toBe(true);
   });
 
   it('cancels the pending booking and releases the slot when Stripe session creation fails', async () => {
     const app = await loadApp({ stripe: 'mocked', stripeFailure: new Error('Stripe API unreachable') });
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
-    const slot = await findSlotWhere(app, DAY, 20, (candidate) => candidate.available, 'open');
+    const slot = await findSlotWhere(app, DAY, 30, (candidate) => candidate.available, 'open');
 
     const response = await postCheckout(
       app,
@@ -319,12 +319,12 @@ describe('POST /api/checkout: card bookings', () => {
     expect(expectContract(errorBody, response.body).error).toBe('Unable to start checkout. Please try again.');
     const attempts = await app.store.getBookingsByEmail('outage@pilots.test');
     expect(attempts.map((booking) => booking.status)).toEqual(['cancelled']);
-    expect(await isSlotOpen(app, DAY, 20, slot.startTime)).toBe(true);
+    expect(await isSlotOpen(app, DAY, 30, slot.startTime)).toBe(true);
   });
 
   it('ignores unknown body fields, so clients cannot inject prices, payment state or ownership', async () => {
     const app = await loadApp({ stripe: 'mocked' });
-    const slot = await findSlotWhere(app, DAY, 20, (candidate) => candidate.available, 'open');
+    const slot = await findSlotWhere(app, DAY, 30, (candidate) => candidate.available, 'open');
 
     const response = await postCheckout(app, {
       ...bookingCheckoutBody({ bookingDate: DAY, startTime: slot.startTime }),
@@ -351,7 +351,7 @@ describe('POST /api/checkout: card bookings', () => {
       paymentMethod: 'stripe',
       totalIls: slot.dynamicPriceIls,
       discountIls: 0,
-      durationMinutes: 20,
+      durationMinutes: 30,
       endTime: slot.endTime,
     });
     expect(booking?.userId).toBeUndefined();
@@ -386,7 +386,7 @@ describe('POST /api/checkout: card bookings', () => {
 
     await fc.assert(
       fc.asyncProperty(fc.dictionary(injectedKey, injectedValue, { minKeys: 1 }), async (injected) => {
-        const slot = await findSlotWhere(app, DAY, 20, (candidate) => candidate.available, 'open');
+        const slot = await findSlotWhere(app, DAY, 30, (candidate) => candidate.available, 'open');
         const sessionsBefore = app.checkoutSessions.length;
 
         const response = await postCheckout(app, {
@@ -426,7 +426,7 @@ describe('POST /api/checkout: catalogue and schedule rules', () => {
 
   it('rejects an unknown add-on with 400', async () => {
     const app = await loadApp({ stripe: 'mocked' });
-    const slot = await findSlotWhere(app, DAY, 20, (candidate) => candidate.available, 'open');
+    const slot = await findSlotWhere(app, DAY, 30, (candidate) => candidate.available, 'open');
 
     const response = await postCheckout(
       app,
@@ -440,7 +440,7 @@ describe('POST /api/checkout: catalogue and schedule rules', () => {
 
   it('prices a duplicated add-on only once', async () => {
     const app = await loadApp({ stripe: 'mocked' });
-    const slot = await findSlotWhere(app, DAY, 20, (candidate) => candidate.available, 'open');
+    const slot = await findSlotWhere(app, DAY, 30, (candidate) => candidate.available, 'open');
 
     const response = await postCheckout(
       app,
@@ -518,7 +518,7 @@ describe('POST /api/checkout: catalogue and schedule rules', () => {
     expect(app.checkoutSessions).toHaveLength(0);
   });
 
-  it('sells the Friday 15:15 closer to a 20-minute flight', async () => {
+  it('sells the Friday 15:15 closer to a 30-minute flight', async () => {
     const app = await loadApp({ stripe: 'mocked' });
 
     const response = await postCheckout(app, bookingCheckoutBody({ bookingDate: EMPTY_DAY.friday, startTime: '15:15' }));
@@ -554,7 +554,7 @@ describe('POST /api/checkout: catalogue and schedule rules', () => {
 
   it('accepts a booking for the current Israel date just after midnight', async () => {
     const app = await loadApp({ stripe: 'mocked', now: '2026-11-02T00:30:00+02:00' });
-    const slot = await findSlotWhere(app, '2026-11-02', 20, (candidate) => candidate.available, 'open');
+    const slot = await findSlotWhere(app, '2026-11-02', 30, (candidate) => candidate.available, 'open');
 
     const response = await postCheckout(app, bookingCheckoutBody({ bookingDate: '2026-11-02', startTime: slot.startTime }));
 
@@ -608,7 +608,7 @@ describe('POST /api/checkout: catalogue and schedule rules', () => {
     const elapsed = await findSlotWhere(
       app,
       '2026-12-13',
-      20,
+      30,
       (candidate) => candidate.available && candidate.startTime < '16:00',
       'open and departing before 16:00'
     );
@@ -640,7 +640,7 @@ describe('POST /api/checkout: side effects stay consistent with the reported out
     // Production rules with NEXT_PUBLIC_APP_URL unset, exactly like the sandboxed browser-test server.
     const app = await loadApp({ env: { NODE_ENV: 'production' } });
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
-    const slot = await findSlotWhere(app, DAY, 20, (candidate) => candidate.available, 'open');
+    const slot = await findSlotWhere(app, DAY, 30, (candidate) => candidate.available, 'open');
 
     const response = await postCheckout(
       app,
@@ -650,14 +650,14 @@ describe('POST /api/checkout: side effects stay consistent with the reported out
     // Whatever the outcome, the voucher and inventory must agree with what the customer was told.
     const succeeded = response.status === 201;
     const voucherDebited = (await app.store.getVoucherByCode(SEED_VOUCHER.code))?.currentBalanceIls !== SEED_VOUCHER.balanceIls;
-    const slotTaken = !(await isSlotOpen(app, DAY, 20, slot.startTime));
+    const slotTaken = !(await isSlotOpen(app, DAY, 30, slot.startTime));
     expect({ voucherDebited, slotTaken }).toEqual({ voucherDebited: succeeded, slotTaken: succeeded });
   });
 
   it('holds the slot for a card checkout only when a Stripe session was created (API-5)', async () => {
     const app = await loadApp({ stripe: 'mocked', env: { NODE_ENV: 'production', STRIPE_SECRET_KEY: LIVE_STRIPE_KEY } });
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
-    const slot = await findSlotWhere(app, DAY, 20, (candidate) => candidate.available, 'open');
+    const slot = await findSlotWhere(app, DAY, 30, (candidate) => candidate.available, 'open');
 
     const response = await postCheckout(
       app,
@@ -669,7 +669,7 @@ describe('POST /api/checkout: side effects stay consistent with the reported out
     const pendingBookings = (await app.store.getBookingsByEmail('origin@pilots.test')).filter(
       (booking) => booking.status === 'pending'
     ).length;
-    const slotTaken = !(await isSlotOpen(app, DAY, 20, slot.startTime));
+    const slotTaken = !(await isSlotOpen(app, DAY, 30, slot.startTime));
     expect(response.status === 201).toBe(sessionCreated);
     expect({ pendingBookings, slotTaken }).toEqual({ pendingBookings: sessionCreated ? 1 : 0, slotTaken: sessionCreated });
   });

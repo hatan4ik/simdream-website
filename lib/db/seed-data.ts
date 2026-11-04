@@ -504,7 +504,7 @@ function generateMonthAheadBookings(): Booking[] {
       // SUNDAY - THURSDAY (10:00 - 23:00, 780m fund)
       const pattern = dayOffset % 4;
       if (dayOffset === 1 || pattern === 1) {
-        // Pattern 1 (Includes Tomorrow!): Morning 60m + Afternoon 45m Promo + Evening 18:00 20m (Triggers 18:45 Smart 90m Match!)
+        // Pattern 1 (Includes Tomorrow!): Morning 60m + Afternoon 45m Promo + Evening 18:00 30m (Triggers 18:45 Smart 90m Match!)
         templates = [
           {
             pkgId: 'pkg-captain-60',
@@ -535,7 +535,7 @@ function generateMonthAheadBookings(): Booking[] {
           },
         ];
       } else if (pattern === 2) {
-        // Pattern 2: Busy Day with 120m PRO & Evening 90m + 20m Smart Pair opportunity
+        // Pattern 2: Busy Day with 120m PRO & Evening 90m + 30m Smart Pair opportunity
         templates = [
           {
             pkgId: 'pkg-captain-60',
@@ -562,7 +562,7 @@ function generateMonthAheadBookings(): Booking[] {
             startTime: '18:00',
             endTime: '19:30',
             priceIls: 950,
-            notes: 'Prime-Time 90m (18:00–19:45). Leaves 19:45–20:30 (45m) open for 20m Smart Pairing!',
+            notes: 'Prime-Time 90m (18:00–19:45). Leaves 19:45–20:30 (45m) open for a 30m Discovery Flight.',
           },
           {
             pkgId: 'pkg-captain-60',
@@ -575,7 +575,7 @@ function generateMonthAheadBookings(): Booking[] {
           },
         ];
       } else if (pattern === 3) {
-        // Pattern 3: Morning 90m (leaving 11:45 for 20m pair) + Afternoon 20m sprint + Evening 60m
+        // Pattern 3: Morning 90m (leaving 11:45 for a 30m discovery flight) + Afternoon 30m mission + Evening 60m
         templates = [
           {
             pkgId: 'pkg-ultimate-90',
@@ -584,7 +584,7 @@ function generateMonthAheadBookings(): Booking[] {
             startTime: '10:00',
             endTime: '11:30',
             priceIls: 850,
-            notes: 'Daytime 90m (10:00–11:45). Leaves 11:45–12:30 (45m) open for 20m Smart Pairing!',
+            notes: 'Daytime 90m (10:00–11:45). Leaves 11:45–12:30 (45m) open for a 30m Discovery Flight.',
           },
           {
             pkgId: 'pkg-discovery-30',
@@ -679,7 +679,7 @@ export const DEMO_VOUCHERS: GiftVoucher[] = [
     id: 'vouch-01',
     code: 'SD-VOUCH-DF7QK3MN8R2V6X9LPA',
     initialValueIls: 500,
-    currentBalanceIls: 400,
+    currentBalanceIls: 500,
     recipientName: 'David Ben-Ami',
     recipientEmail: 'david@example.com',
     senderName: 'Michal Ben-Ami',

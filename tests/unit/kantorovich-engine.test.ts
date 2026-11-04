@@ -64,7 +64,6 @@ describe('time helpers', () => {
 
 describe('getReservedMinutesForFlight', () => {
   it.each([
-    [20, 45],
     [30, 45],
     [45, 60],
     [60, 75],
@@ -169,7 +168,6 @@ describe('canTileIntervalZeroWaste', () => {
 
 describe('getKantorovichPricing', () => {
   it.each([
-    [20, 250],
     [30, 450],
     [45, 490],
     [60, 690],
@@ -207,7 +205,7 @@ describe('getKantorovichPricing', () => {
 
   it('keeps every other tariff flat across the day', () => {
     fc.assert(
-      fc.property(fc.constantFrom(20, 30, 45, 60, 120), startMinutes, fc.boolean(), (duration, start, isSaturday) => {
+      fc.property(fc.constantFrom(30, 45, 60, 120), startMinutes, fc.boolean(), (duration, start, isSaturday) => {
         const pricing = getKantorovichPricing(duration, start, isSaturday);
         expect(pricing.dynamicPriceIls).toBe(pricing.basePriceIls);
         expect(pricing).toEqual({
@@ -428,7 +426,7 @@ describe('daytime promo (45 minutes)', () => {
 
 describe('Friday window', () => {
   it('opens 09:00–16:00 on a 75-minute step with a 15:15 closer for entry flights', () => {
-    const slots = generateKantorovichSlots(WEEKDAY_DATES.friday, 20, []);
+    const slots = generateKantorovichSlots(WEEKDAY_DATES.friday, 30, []);
     expect(availableStarts(slots)).toEqual(['09:00', '10:15', '11:30', '12:45', '14:00', '15:15']);
     expect(slotAt(slots, '15:15')).toMatchObject({
       available: true,
@@ -578,19 +576,19 @@ describe('scheduler known defects', () => {
   const sunday = WEEKDAY_DATES.sunday;
 
   it('offers the setup bookings used by the defect scenarios on an open Sunday', () => {
-    expect(slotAt(generateKantorovichSlots(sunday, 20, []), '15:45')?.available).toBe(true);
-    expect(slotAt(generateKantorovichSlots(sunday, 20, []), '17:15')?.available).toBe(true);
-    const afterEntryFlight = [makeBooking({ bookingDate: sunday, startTime: '15:45', durationMinutes: 20 })];
+    expect(slotAt(generateKantorovichSlots(sunday, 30, []), '15:45')?.available).toBe(true);
+    expect(slotAt(generateKantorovichSlots(sunday, 30, []), '17:15')?.available).toBe(true);
+    const afterEntryFlight = [makeBooking({ bookingDate: sunday, startTime: '15:45', durationMinutes: 30 })];
     expect(slotAt(generateKantorovichSlots(sunday, 60, afterEntryFlight), '19:15')?.available).toBe(true);
     const setup = [...afterEntryFlight, makeBooking({ bookingDate: sunday, startTime: '19:15', durationMinutes: 60 })];
     expect(evaluateDailyEfficiency(sunday, setup).orphanGapMinutes).toBe(0);
   });
 
   it('never offers a departure that leaves an unsellable prime-time window (UNIT-2)', () => {
-    // A 20m flight at 15:45 injects a 16:30 departure; a 90m flight there reserves until 18:15,
+    // A 30m discovery flight at 15:45 injects a 16:30 departure; a 90m flight there reserves until 18:15,
     // and the gap to a 19:15 flight is 60 minutes of prime time, which no prime-time block can fill.
     const bookings = [
-      makeBooking({ bookingDate: sunday, startTime: '15:45', durationMinutes: 20 }),
+      makeBooking({ bookingDate: sunday, startTime: '15:45', durationMinutes: 30 }),
       makeBooking({ bookingDate: sunday, startTime: '19:15', durationMinutes: 60 }),
     ];
     const strandingDepartures = ENGINE_DURATIONS.flatMap((duration) =>
@@ -611,7 +609,7 @@ describe('scheduler known defects', () => {
   it(
     'never lets an add-on mission that fits maxAvailableMinutes reserve past the next booking (UNIT-3)',
     () => {
-      const bookings = [makeBooking({ bookingDate: sunday, startTime: '17:15', durationMinutes: 20 })];
+      const bookings = [makeBooking({ bookingDate: sunday, startTime: '17:15', durationMinutes: 30 })];
       const timeExtending = FLIGHT_ADDONS.filter((addon) => addon.durationMinutes > 0);
       // One representative add-on selection per achievable extra-minutes total.
       const selectionsByMinutes = new Map<number, string[]>([[0, []]]);
@@ -678,7 +676,7 @@ describe('evaluateDailyEfficiency', () => {
     bookings: fc.array(
       fc.record({
         offset: fc.integer({ min: 0, max: 280 }),
-        duration: fc.constantFrom(20, 45, 60, 90, 120),
+        duration: fc.constantFrom(30, 45, 60, 90, 120),
         totalIls: fc.integer({ min: 0, max: 5_000 }),
         status: fc.constantFrom<BookingStatus>('confirmed', 'pending', 'completed', 'cancelled'),
       }),

@@ -105,7 +105,7 @@ function BookContent() {
   // Scoped packages:
   // - PRO: strictly show the 3 PRO training tiers (60, 90, 120 PRO)
   // - Fear of Flying: strictly show the Fear of Flying course
-  // - Recreational: show recreational consumer packages (20m, 45m, 60m, 90m)
+  // - Recreational: show recreational consumer packages (30m, 45m, 60m, 90m)
   const scopedPackages = React.useMemo(() => {
     if (isProBooking) return localizedPackages.filter((p) => p.category === 'training');
     if (isFearOfFlyingBooking) return localizedPackages.filter((p) => p.category === 'fear_of_flying');

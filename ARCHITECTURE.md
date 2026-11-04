@@ -85,7 +85,7 @@ flowchart TD
     end
 
     subgraph RecreationalFlow["Full 3-Step Storefront Flow (Recreational / Consumer)"]
-        DetectPackage -->|category = 'recreational'| RecConfig["Display Full Catalog (20m, 45m, 60m, 90m)<br/>User Selects Pilot Level"]
+        DetectPackage -->|category = 'recreational'| RecConfig["Display Full Catalog (30m, 45m, 60m, 90m)<br/>User Selects Pilot Level"]
         RecConfig --> Step1Rec["Step 1: Date & Slot Selection<br/>(Live Runway Capacity Bar)"]
         Step1Rec --> Step2Rec["Step 2: Cockpit Add-ons & Combos<br/>(Cold & Dark, 7 World Trios, 4K Video)"]
         Step2Rec --> Step3Rec["Step 3: Pilot Manifest & Checkout<br/>(Voucher Reapply & Manifest Summary)"]
@@ -108,7 +108,7 @@ flowchart LR
     end
 
     subgraph CapacityMap["2. Buffer Reservation Map"]
-        B20["20 min Flight ➔ 45 min Block"]
+        B30["30 min Flight ➔ 45 min Block"]
         B45["45 min Flight ➔ 60 min Block (Daytime Only)"]
         B60["60 min Flight ➔ 75 min Block"]
         B90["90 min Flight ➔ 105 min Block"]

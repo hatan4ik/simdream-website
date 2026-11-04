@@ -333,7 +333,7 @@ describe('adminScheduleOptimizationSchema', () => {
     ['nine requests', Array.from({ length: 9 }, (_, index) => optimizationRequest(`r${index}`)), 'requests'],
     ['five candidate starts', [optimizationRequest('a', { candidateStartTimes: ['10:00', '10:15', '10:30', '10:45', '11:00'] })], 'requests.0.candidateStartTimes'],
     ['no candidate starts', [optimizationRequest('a', { candidateStartTimes: [] })], 'requests.0.candidateStartTimes'],
-    ['an unsupported duration', [optimizationRequest('a', { durationMinutes: 30 })], 'requests.0.durationMinutes'],
+    ['an unsupported duration', [optimizationRequest('a', { durationMinutes: 75 })], 'requests.0.durationMinutes'],
     ['a zero value', [optimizationRequest('a', { valueIls: 0 })], 'requests.0.valueIls'],
   ])('rejects %s', (_label, requests, field) => {
     expect(failedFields(adminScheduleOptimizationSchema, { date: '2026-11-01', requests })).toEqual([field]);

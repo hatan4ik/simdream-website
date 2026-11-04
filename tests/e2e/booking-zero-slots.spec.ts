@@ -116,7 +116,7 @@ test.describe('zero-slot recovery (AGENTS.md section 4), guided wizard', () => {
     // The selected package's description stays on screen; the selection is not overwritten.
     await expect(page.getByText('🌤️ Daytime Flight • 2 Landings (until 18:00)')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Switch to 60 Min Flight' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Switch to 20 Min Flight' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Switch to 30 Min Flight' })).toBeVisible();
 
     await page.getByRole('button', { name: 'Check Next Day →' }).click();
     await expect(wizard.departureHeading(addDays(saturday, 1))).toBeVisible();

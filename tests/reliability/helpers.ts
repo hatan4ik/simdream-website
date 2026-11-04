@@ -24,7 +24,7 @@ export const MAIL_ENV: Record<string, string> = { SENDGRID_API_KEY: 'SG.qa-relia
 
 /** Package per flight duration, for picking whichever departure is open. */
 export const PACKAGE_FOR_DURATION: Record<number, string> = {
-  20: 'pkg-discovery-30',
+  30: 'pkg-discovery-30',
   45: 'pkg-promo-45',
   60: 'pkg-captain-60',
   90: 'pkg-ultimate-90',

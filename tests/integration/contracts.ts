@@ -152,7 +152,7 @@ export const dailyEfficiencyReport = z.strictObject({
   timelineBlocks: z.array(timelineBlock),
 });
 
-export const DURATION_KEYS = ['20', '30', '45', '60', '90', '120'] as const;
+export const DURATION_KEYS = ['30', '45', '60', '90', '120'] as const;
 export const durationAvailability = z.record(
   z.enum(DURATION_KEYS),
   z.strictObject({ availableCount: nonNegativeInt, minPriceIls: money })
@@ -192,7 +192,7 @@ export const simulatorPackage = z.strictObject({
   title: z.string().min(1),
   slug: z.string().regex(/^[a-z0-9-]+$/),
   category: z.enum(['recreational', 'training', 'corporate', 'fear_of_flying']),
-  durationMinutes: z.union([z.literal(20), z.literal(45), z.literal(60), z.literal(90), z.literal(120), z.literal(240)]),
+  durationMinutes: z.union([z.literal(30), z.literal(45), z.literal(60), z.literal(90), z.literal(120), z.literal(240)]),
   priceIls: z.number().positive(),
   primeTimePriceIls: z.number().positive().optional(),
   priceUsd: z.number().positive(),
@@ -286,7 +286,7 @@ const capacityRecommendation = z.strictObject({
   startTime: clockTime,
   endTime: clockTime,
   reservedEndTime: clockTime,
-  durationMinutes: z.union([z.literal(20), z.literal(45), z.literal(60), z.literal(90), z.literal(120), z.literal(240)]),
+  durationMinutes: z.union([z.literal(30), z.literal(45), z.literal(60), z.literal(90), z.literal(120), z.literal(240)]),
   valueIls: z.number().positive(),
 });
 

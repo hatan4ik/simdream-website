@@ -54,7 +54,7 @@ function expectProductionUrl(value: string | undefined, path: string): void {
 describe('checkout redirect URLs ignore request-controlled host data in production', () => {
   it.each(HOSTILE_REQUESTS)('keeps card booking success and cancel URLs on the configured origin with $label', async ({ url, headers }) => {
     const app = await loadApp({ stripe: 'mocked', env: PRODUCTION_PAYMENTS });
-    const slot = await findOpenSlot(app, BOOKING_DATE, 20);
+    const slot = await findOpenSlot(app, BOOKING_DATE, 30);
     const { POST } = await app.routes.checkout();
 
     const response = await POST(apiRequest(url, { headers, body: bookingCheckoutBody({ startTime: slot.startTime }) }));
@@ -78,7 +78,7 @@ describe('checkout redirect URLs ignore request-controlled host data in producti
 
   it.each(HOSTILE_REQUESTS)('returns a voucher-funded success URL on the configured origin with $label', async ({ url, headers }) => {
     const app = await loadApp({ env: PRODUCTION_PAYMENTS });
-    const slot = await findOpenSlot(app, BOOKING_DATE, 20);
+    const slot = await findOpenSlot(app, BOOKING_DATE, 30);
     const { POST } = await app.routes.checkout();
 
     const response = await readJson<{ successUrl: string }>(
@@ -91,7 +91,7 @@ describe('checkout redirect URLs ignore request-controlled host data in producti
 
   it('refuses to build redirect URLs from a plain-HTTP configured origin in production (503, no Stripe session)', async () => {
     const app = await loadApp({ stripe: 'mocked', env: { ...PRODUCTION_PAYMENTS, NEXT_PUBLIC_APP_URL: 'http://www.simdream.co.il' } });
-    const slot = await findOpenSlot(app, BOOKING_DATE, 20);
+    const slot = await findOpenSlot(app, BOOKING_DATE, 30);
     const { POST } = await app.routes.checkout();
 
     const response = await readJson(await POST(apiRequest('/api/checkout', { body: bookingCheckoutBody({ startTime: slot.startTime }) })));
@@ -103,7 +103,7 @@ describe('checkout redirect URLs ignore request-controlled host data in producti
 
   it('cannot be steered to another site through the booking reference embedded in the success URL', async () => {
     const app = await loadApp({ stripe: 'mocked', env: PRODUCTION_PAYMENTS });
-    const slot = await findOpenSlot(app, BOOKING_DATE, 20);
+    const slot = await findOpenSlot(app, BOOKING_DATE, 30);
     const { POST } = await app.routes.checkout();
 
     await POST(

@@ -319,7 +319,7 @@ class SimDreamStore {
   ): Promise<Record<number, { availableCount: number; minPriceIls: number }>> {
     const bookings = await this.getBookings();
     const now = new Date();
-    const durations = [20, 30, 45, 60, 90, 120];
+    const durations = [30, 45, 60, 90, 120];
     return Object.fromEntries(
       durations.map((duration) => {
         const available = closeDepartedSlots(generateKantorovichSlots(dateString, duration, bookings), now).filter(

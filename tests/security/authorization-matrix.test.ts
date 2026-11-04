@@ -236,7 +236,7 @@ function expectedOutcome(route: RouteCase, identity: Identity): Outcome {
 
 async function arrange(): Promise<Arranged> {
   const app = await loadApp({ stripe: 'mocked', members: MEMBERS });
-  const slot = await findOpenSlot(app, BOOKING_DATE, 20);
+  const slot = await findOpenSlot(app, BOOKING_DATE, 30);
   const owned = await seedBooking(app, { userId: MEMBER_A.id, pilotEmail: MEMBER_A.email });
 
   // The receipt route asks Stripe for the charge; answer in-process instead of over the network.
@@ -413,7 +413,7 @@ describe('production-mode rules', () => {
 
   it('keeps card payments disabled (503) in production when Stripe uses sk_test keys, creating nothing', async () => {
     const app = await loadApp({ env: PRODUCTION, stripe: 'mocked' });
-    const slot = await findOpenSlot(app, BOOKING_DATE, 20);
+    const slot = await findOpenSlot(app, BOOKING_DATE, 30);
     const before = await snapshotState(app);
     const { POST } = await app.routes.checkout();
 
@@ -429,7 +429,7 @@ describe('production-mode rules', () => {
 
   it('enables card payments in production only with a live-mode key (control)', async () => {
     const app = await loadApp({ env: { ...PRODUCTION, STRIPE_SECRET_KEY: FAKE_LIVE_STRIPE_KEY }, stripe: 'mocked' });
-    const slot = await findOpenSlot(app, BOOKING_DATE, 20);
+    const slot = await findOpenSlot(app, BOOKING_DATE, 30);
     const { POST } = await app.routes.checkout();
 
     const response = await readRaw(

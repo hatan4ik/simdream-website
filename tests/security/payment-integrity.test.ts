@@ -3,7 +3,16 @@ import { describe, expect, it } from 'vitest';
 import { bookingCheckoutBody, loadApp, voucherCheckoutBody, type TestApp } from '../support/app';
 import { apiRequest, basicAuth, readJson } from '../support/http';
 import { TEST_ADMIN } from '../support/test-env';
-import { PRODUCTION_ORIGIN, SEED_VOUCHER_CODE, propertyOptions, readRaw, snapshotState } from './security-helpers';
+import {
+  PRODUCTION_ORIGIN,
+  SEED_FULL_VOUCHER_BALANCE_ILS,
+  SEED_FULL_VOUCHER_CODE,
+  SEED_VOUCHER_BALANCE_ILS,
+  SEED_VOUCHER_CODE,
+  propertyOptions,
+  readRaw,
+  snapshotState,
+} from './security-helpers';
 
 const CONSUMER_PACKAGES = [
   'pkg-discovery-30',
@@ -101,7 +110,7 @@ describe('server-authoritative pricing', () => {
 
   it('charges a duplicated add-on only once', async () => {
     const app = await loadApp({ stripe: 'mocked' });
-    const slot = await openSlotFor(app, 20);
+    const slot = await openSlotFor(app, 30);
     const { POST } = await app.routes.checkout();
 
     await POST(
@@ -142,7 +151,7 @@ describe('server-authoritative pricing', () => {
           const voucher = await app.store.getVoucherById(app.checkoutSessions[0]?.voucherId ?? '');
           expect(voucher).toMatchObject({ initialValueIls: amountIls, currentBalanceIls: 0, paymentStatus: 'pending', isRedeemed: false });
           expect(voucher?.code).not.toBe(injected.code);
-          expect(await voucherBalance(app)).toBe(400);
+          expect(await voucherBalance(app)).toBe(SEED_VOUCHER_BALANCE_ILS);
         }
       ),
       propertyOptions(30)
@@ -151,14 +160,14 @@ describe('server-authoritative pricing', () => {
 
   it('deducts exactly the server-side total from a voucher, ignoring injected totals and discounts', async () => {
     const app = await loadApp();
-    const slot = await openSlotFor(app, 20);
+    const slot = await openSlotFor(app, 30);
     const { POST } = await app.routes.checkout();
 
     const response = await readJson<{ bookingReference: string }>(
       await POST(
         apiRequest('/api/checkout', {
           body: {
-            ...bookingCheckoutBody({ bookingDate: slot.date, startTime: slot.startTime, addons: ['addon-logbook'], voucherCode: SEED_VOUCHER_CODE }),
+            ...bookingCheckoutBody({ bookingDate: slot.date, startTime: slot.startTime, addons: ['addon-logbook'], voucherCode: SEED_FULL_VOUCHER_CODE }),
             totalIls: 1,
             discountIls: 0,
             subtotalIls: 1,
@@ -169,7 +178,7 @@ describe('server-authoritative pricing', () => {
 
     const total = expectedTotal(app, 'pkg-discovery-30', slot, ['addon-logbook']);
     expect(response.status).toBe(201);
-    expect(await voucherBalance(app)).toBe(400 - total);
+    expect(await voucherBalance(app, SEED_FULL_VOUCHER_CODE)).toBe(SEED_FULL_VOUCHER_BALANCE_ILS - total);
     expect(await app.store.getBookingByRef(response.body.bookingReference)).toMatchObject({
       subtotalIls: total,
       discountIls: total,
@@ -241,7 +250,7 @@ describe('fail-closed checkout when the application origin is misconfigured in p
 
   it('does not consume the voucher or confirm a booking when it answers 503 (SEC-2)', async () => {
     const app = await loadApp({ env: MISCONFIGURED });
-    const slot = await openSlotFor(app, 20);
+    const slot = await openSlotFor(app, 30);
     const before = await snapshotState(app);
     const { POST } = await app.routes.checkout();
 
@@ -252,7 +261,7 @@ describe('fail-closed checkout when the application origin is misconfigured in p
     );
 
     expect(response.status).toBe(503);
-    expect(await voucherBalance(app)).toBe(400);
+    expect(await voucherBalance(app)).toBe(SEED_VOUCHER_BALANCE_ILS);
     expect(await snapshotState(app)).toBe(before);
   });
 
@@ -261,7 +270,7 @@ describe('fail-closed checkout when the application origin is misconfigured in p
       stripe: 'mocked',
       env: { NODE_ENV: 'production', NEXT_PUBLIC_APP_URL: PRODUCTION_ORIGIN.replace('https:', 'http:'), STRIPE_SECRET_KEY: ['sk', 'live', 'qaOriginCheck000'].join('_') },
     });
-    const slot = await openSlotFor(app, 20);
+    const slot = await openSlotFor(app, 30);
     const { POST } = await app.routes.checkout();
 
     const response = await readRaw(
@@ -270,7 +279,7 @@ describe('fail-closed checkout when the application origin is misconfigured in p
 
     expect(response.status).toBe(503);
     expect(app.checkoutSessions).toHaveLength(0);
-    const after = await app.store.getAvailableSlots(slot.date, 20);
+    const after = await app.store.getAvailableSlots(slot.date, 30);
     expect(after.find((candidate) => candidate.startTime === slot.startTime)?.available).toBe(true);
   });
 });

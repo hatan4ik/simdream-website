@@ -58,7 +58,7 @@ test.describe('professional training booking', () => {
     for (const minutes of [60, 90, 120]) {
       await expect(booking.storefront.packageCard(minutes)).toContainText('Airline Interview Prep');
     }
-    await expect(booking.storefront.packageCard(20)).toHaveCount(0);
+    await expect(booking.storefront.packageCard(30)).toHaveCount(0);
   });
 
   test('offers only the three PRO tiers, without the consumer 45m promo (E2E-13)', async ({ booking }) => {

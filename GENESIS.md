@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:72bcd62804b9f9a6aa220a1cc6af9a83af5fff99c924cf9a0c95aba96d46d87c -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:015696d06fa96a6ca45c5600d98ea896fcae840032e7cddbfac6ec29e4045738 -->
 
 ## Verification contract
 
@@ -102,11 +102,11 @@ Sim Dream LTD runs one full-size **Boeing 737 MAX 8 flight simulator** at Gersho
 
 ### 4. Data models
 
-TypeScript types in `types/index.ts` mirror the Postgres tables in `lib/db/schema.sql` (plus migrations 001–005):
+TypeScript types in `types/index.ts` mirror the Postgres tables in `lib/db/schema.sql` (plus migrations 001–006):
 
 | Type | Table | Key fields |
 | --- | --- | --- |
-| `SimulatorPackage` | `packages` | id, category, durationMinutes (20/45/60/90/120/240), priceIls, primeTimePriceIls, daytimeOnly, kantorovichVar |
+| `SimulatorPackage` | `packages` | id, category, durationMinutes (30/45/60/90/120/240), priceIls, primeTimePriceIls, daytimeOnly, kantorovichVar |
 | `Booking` | `bookings` | bookingReference `SD-737-[A-Z2-9]{16}`, date, start/end, pilot details, addons, subtotal/discount/total, status, paymentStatus, paymentMethod, Stripe intent, confirmation outbox timestamps |
 | `GiftVoucher` | `gift_vouchers` | code `SD-VOUCH-[A-Z2-9]{18}`, initial value, current balance, sender/recipient, expiry, paymentStatus, Stripe session |
 | `CorporateInquiry` | `corporate_inquiries` | company, contact, team size 1–500, goal, status pipeline |
@@ -121,7 +121,7 @@ TypeScript types in `types/index.ts` mirror the Postgres tables in `lib/db/schem
 - Admin authentication is interim HTTP Basic auth; the documented target is Supabase Auth with server-side roles and MFA.
 - Voucher-code verification and failed admin Basic-auth attempts are rate-limited by a privacy-preserving, atomic database function (migration `005`); development and unit tests use an equivalent in-process limiter. The browser harness has a triple-gated `.next-test` isolation marker so parallel synthetic attackers cannot throttle unrelated authenticated journeys. Production fails closed when rate-limit persistence is unavailable.
 - HTML responses use a per-request CSP nonce from `proxy.ts`; this removes script-src `'unsafe-inline'`, but makes rendered pages dynamic rather than statically prerendered.
-- Production requires migrations **001–005** applied in order on an existing database (or `schema.sql` plus 003–005 on a new one).
+- Production requires migrations **001–006** applied in order on an existing database (or `schema.sql` plus 003–006 on a new one).
 - Only `/login` sets `noindex`. `/dashboard` and `/auth/*` are indexable (they hold no private data when signed out), so consider `noindex` there too.
 - **Catalog authority is split**: `GET /api/packages` reads the production `packages` table, while checkout prices from the static `SIMULATOR_PACKAGES` in `lib/db/seed-data.ts`. A database price edit can show one price and charge another. A rebuild must use one server-side catalog authority.
 - **i18n is not yet total**: the dictionary has five-language parity and tests, but hard-coded English remains in the navbar user menu, the booking-success page, and some legal and admin surfaces.
@@ -199,7 +199,7 @@ Build **simdream.co.il**, the booking and marketing platform for **Sim Dream LTD
 
 | id | Category | Flight | Price | Notes |
 | --- | --- | --- | --- | --- |
-| `pkg-discovery-30` | recreational | 20 min | 250 | Basic session |
+| `pkg-discovery-30` | recreational | 30 min | 450 | Guided Discovery Flight |
 | `pkg-promo-45` | recreational | 45 min | 490 | Daytime promo: Sun–Fri, starts before 18:00 only |
 | `pkg-captain-60` | recreational | 60 min | 690 | Most popular |
 | `pkg-ultimate-90` | recreational | 90 min | 850 | Saturday prime-time price 950 |
@@ -217,6 +217,8 @@ Seed 13 add-ons in three groups:
 
 Add 3 curated one-click combos. Localize every package and add-on in all five languages. Keep **one server-side catalog authority**: the catalog API and checkout must read prices and durations from the same source.
 
+**Named gift certificates** use the same registry, in this fixed order: Discovery 30 (₪450), Captain 60 (₪690), Ultimate 90 (₪950, including the prime-time tariff), and Airline Interview Prep 120 PRO (₪1,590). The browser sends only a package id; checkout resolves its amount and title server-side. Flexible monetary gift cards remain open-balance vouchers.
+
 **Experience Flights route catalog** (`lib/data/experience-routes.ts`, rendered by `components/experiences/WorldRoutesSection.tsx` on `/experiences#world-routes`): the "טיסות חוויה" section written in the captain's voice. It lists every world-trio add-on (price and minutes resolved from `FLIGHT_ADDONS`, never duplicated) plus proposed on-request trios (Israel home skies, Atlantic outposts, Arctic lights, Himalaya, Africa, Pacific, Andes, North American wilderness) and scenario adventures (Dead Sea low pass, ETOPS crossing, Everest mountain flight, storm diversion, round-the-world, fly-home). Each trio names three real airports by ICAO and IATA code (ICAO rendered LTR), a 1–5 captain's handling rating, a first-person captain's note and "best for" tags, all in five languages. Bookable trios link to `/book`; on-request routes and adventures link to `/contact?subject=route&route=<id>`, which prefills the subject and message. Every airport is a real Boeing 737 destination (pillar 5). Pinned by `tests/unit/experience-routes.test.ts`.
 
 #### Scheduling engine (`lib/scheduler/`, pure functions, fully unit-tested)
@@ -225,7 +227,7 @@ Add 3 curated one-click combos. Localize every package and add-on in all five la
 
   | Flight | Reserved block |
   | --- | --- |
-  | 20 min | 45 min |
+  | 30 min | 45 min |
   | 45 min | 60 min |
   | 60 min | 75 min |
   | 90 min | 105 min |
@@ -429,7 +431,7 @@ CREATE TABLE public.packages (
   slug TEXT NOT NULL UNIQUE,
   title TEXT NOT NULL,
   category TEXT NOT NULL CHECK (category IN ('recreational','training','corporate','fear_of_flying')),
-  duration_minutes INTEGER NOT NULL CHECK (duration_minutes IN (20,45,60,90,120,240)),
+  duration_minutes INTEGER NOT NULL CHECK (duration_minutes IN (30,45,60,90,120,240)),
   price_ils NUMERIC(10,2) NOT NULL CHECK (price_ils >= 0),
   prime_time_price_ils NUMERIC(10,2) CHECK (prime_time_price_ils >= 0),
   price_usd NUMERIC(10,2) NOT NULL CHECK (price_usd >= 0),
@@ -554,7 +556,7 @@ CREATE TABLE public.flight_logs (
 );
 ```
 
-Ship the schema as `lib/db/schema.sql` for new projects and as ordered, reviewed migrations for existing ones: `001_production_hardening.sql`, `002_member_accounts.sql`, `003_exact_pilot_email_matching.sql`, `004_confirmation_outbox.sql`, `005_security_rate_limits.sql`.
+Ship the schema as `lib/db/schema.sql` for new projects and as ordered, reviewed migrations for existing ones: `001_production_hardening.sql`, `002_member_accounts.sql`, `003_exact_pilot_email_matching.sql`, `004_confirmation_outbox.sql`, `005_security_rate_limits.sql`, `006_discovery_flight_30_minutes.sql`.
 
 ### FILE STRUCTURE
 
@@ -578,7 +580,7 @@ components/
   seo/StructuredDataJsonLd  ui/ Button Card Badge
 lib/
   scheduler/ kantorovich-engine mission-calculator package-presentation tiled-interval-optimizer israel-clock
-  booking/checkout-service       db/ store schema.sql seed-data supabase-admin migrations/
+  booking/checkout-service       catalog/gift-voucher-packages  db/ store schema.sql seed-data supabase-admin migrations/
   auth/ admin-guard request-auth member-ownership safe-redirect auth-context
   security/rate-limit
   i18n/ translations language-context calendar-presentation
@@ -607,7 +609,7 @@ AGENTS.md  ARCHITECTURE.md  README.md  TESTING.md  KANTOROVICH_SCHEDULER_SPEC.md
   - iPhone SE (320 px) to iPad landscape and Android phones/tablets with no horizontal overflow, 48 px controls and ≥12 px text.
 - Production without Supabase or Stripe fails closed (503), never with fake data.
 - Before launch, verify the providers, which no build or test can prove:
-  - migrations 001–005 are applied and `ALLOW_IN_MEMORY_STORE` is absent in production;
+  - migrations 001–006 are applied and `ALLOW_IN_MEMORY_STORE` is absent in production;
   - Google, Facebook and Apple are enabled in Supabase Auth with callback URLs for the deployed origin;
   - the Stripe keys are set and the webhook receives `checkout.session.completed`, `checkout.session.expired` and `checkout.session.async_payment_failed`;
   - the SendGrid sender is verified;

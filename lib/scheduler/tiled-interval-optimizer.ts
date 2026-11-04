@@ -15,7 +15,7 @@ import {
  * allocator evaluates a small queue of flexible requests and never persists or
  * moves an existing booking.
  */
-export const OPTIMIZABLE_DURATIONS = [20, 45, 60, 90, 120, 240] as const;
+export const OPTIMIZABLE_DURATIONS = [30, 45, 60, 90, 120, 240] as const;
 export type OptimizableDuration = (typeof OPTIMIZABLE_DURATIONS)[number];
 
 export interface CapacityDraftRequest {

@@ -31,7 +31,7 @@ The migration must preserve these non-negotiable behavioural rules:
 | Guest checkout | A customer can book without creating an account. |
 | Member ownership | Only a confirmed member identity may view that member's purchase history. Historical paid guest bookings may be linked only when the confirmed email exactly matches. |
 | Payment state | A return to a success page is not proof of payment. A provider-confirmed booking/order is authoritative. |
-| Scheduling | Reserved capacity is based on operating time, not only advertised flight duration. The 20/45/60/90/120-minute offers reserve 45/60/75/105/150 minutes respectively. |
+| Scheduling | Reserved capacity is based on operating time, not only advertised flight duration. The 30/45/60/90/120-minute offers reserve 45/60/75/105/150 minutes respectively. |
 | Package flows | Recreational bookings use the three-step experience; PRO and fear-of-flying flows omit consumer add-ons and use the two-step experience. |
 | i18n | Hebrew, English, Russian, French, and Arabic remain supported. Hebrew and Arabic are RTL; aviation telemetry remains LTR. |
 | Security | Prices, durations, discounts, availability, and confirmation state are server-authoritative. Production does not fall back to fake/in-memory orders. |

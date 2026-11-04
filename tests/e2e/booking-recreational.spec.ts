@@ -5,7 +5,7 @@ import { expect, recordRequests, test } from './fixtures';
 
 const CAPTAIN_60_PRICE = 690;
 /** Seeded paid voucher (lib/db/seed-data.ts); this suite only verifies it, never redeems it. */
-const SEED_VOUCHER = { code: 'SD-VOUCH-DF7QK3MN8R2V6X9LPA', balance: 400 } as const;
+const SEED_VOUCHER = { code: 'SD-VOUCH-DF7QK3MN8R2V6X9LPA', balance: 500 } as const;
 const XWIND = { name: 'X-Wind / Live METAR / IFR Instrument Conditions', minutes: 15, price: 250 } as const;
 
 /** Everything a booking checkout may send (lib/validation.ts bookingCheckoutSchema); no price fields. */
@@ -62,7 +62,7 @@ test.describe('recreational booking, guided 3-step wizard', () => {
     await expect(wizard.actionBar()).toContainText(`60 min • ${slot.startTime}–${endWithoutAddon}`);
     await wizard.addonCard(XWIND.name).click();
     await expect(page.getByText('✓ Added to Flight (+15 min)')).toBeVisible();
-    await expect(wizard.actionBar()).toContainText(`75 min (60m + 15m) • ${slot.startTime}–${endWithAddon}`);
+    await expect(wizard.actionBar()).toContainText(`75 min (60m base + 15m add-ons) • ${slot.startTime}–${endWithAddon}`);
     await expect(wizard.actionBar()).toContainText(ilsPattern(total));
     await wizard.continueToPilot().click();
 
@@ -127,7 +127,7 @@ test.describe('recreational booking, guided 3-step wizard', () => {
     await wizard.continueToAddons().click();
 
     await wizard.addonCard(XWIND.name).click();
-    await expect(wizard.actionBar()).toContainText('75 min (60m + 15m)');
+    await expect(wizard.actionBar()).toContainText('75 min (60m base + 15m add-ons)');
     await wizard.addonCard(XWIND.name).click();
 
     await expect(page.getByText('✓ Added to Flight (+15 min)')).toHaveCount(0);
