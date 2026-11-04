@@ -11,7 +11,6 @@ import {
   Users,
   Award,
   ShoppingCart,
-  Star,
   Plus,
   X,
   Tag,
@@ -50,7 +49,6 @@ import {
 } from '@/lib/i18n/calendar-presentation';
 import { canAddonFitInSlot, packageFromPriceIls, sanitizePackageTitle } from '@/lib/scheduler/mission-calculator';
 import { getPackageFormulaBadge } from '@/lib/scheduler/package-presentation';
-import { FACILITY_INFO } from '@/lib/config/facility-info';
 
 interface AmazonFlightStorefrontProps {
   selectedDate: string;
@@ -172,6 +170,8 @@ interface StorefrontCalendarCopy {
   jumpToTimes: string;
   jumpToCheckout: string;
   customizeFlight: string;
+  chooseTrainingDuration: string;
+  reviewFlightDetails: string;
 }
 
 const STOREFRONT_CALENDAR_COPY: Record<Language, StorefrontCalendarCopy> = {
@@ -200,6 +200,8 @@ const STOREFRONT_CALENDAR_COPY: Record<Language, StorefrontCalendarCopy> = {
     jumpToTimes: 'Pick Time ↓',
     jumpToCheckout: 'Continue to Checkout ↓',
     customizeFlight: 'Packages & Add-ons ↓',
+    chooseTrainingDuration: 'Choose Training Duration ↓',
+    reviewFlightDetails: 'Review Flight Details ↓',
   },
   he: {
     departureTitle: 'בחירת תאריך המראה ומשבצת מסלול',
@@ -226,6 +228,8 @@ const STOREFRONT_CALENDAR_COPY: Record<Language, StorefrontCalendarCopy> = {
     jumpToTimes: 'בחירת שעה ↓',
     jumpToCheckout: 'המשך לתשלום ↓',
     customizeFlight: 'חבילות ותוספות ↓',
+    chooseTrainingDuration: 'בחירת משך אימון ↓',
+    reviewFlightDetails: 'לפרטי הטיסה ↓',
   },
   ru: {
     departureTitle: 'Выберите дату и время вылета',
@@ -252,6 +256,8 @@ const STOREFRONT_CALENDAR_COPY: Record<Language, StorefrontCalendarCopy> = {
     jumpToTimes: 'Выбрать время ↓',
     jumpToCheckout: 'Перейти к оплате ↓',
     customizeFlight: 'Пакеты и опции ↓',
+    chooseTrainingDuration: 'Выбрать длительность подготовки ↓',
+    reviewFlightDetails: 'Проверить детали полёта ↓',
   },
   fr: {
     departureTitle: 'Choisir la date et le créneau de départ',
@@ -278,6 +284,8 @@ const STOREFRONT_CALENDAR_COPY: Record<Language, StorefrontCalendarCopy> = {
     jumpToTimes: 'Choisir l’heure ↓',
     jumpToCheckout: 'Continuer vers le paiement ↓',
     customizeFlight: 'Forfaits et options ↓',
+    chooseTrainingDuration: 'Choisir la durée de préparation ↓',
+    reviewFlightDetails: 'Voir les détails du vol ↓',
   },
   ar: {
     departureTitle: 'اختر تاريخ وموعد الإقلاع',
@@ -304,6 +312,8 @@ const STOREFRONT_CALENDAR_COPY: Record<Language, StorefrontCalendarCopy> = {
     jumpToTimes: 'اختر الوقت ↓',
     jumpToCheckout: 'المتابعة للدفع ↓',
     customizeFlight: 'الباقات والإضافات ↓',
+    chooseTrainingDuration: 'اختيار مدة التدريب ↓',
+    reviewFlightDetails: 'مراجعة تفاصيل الرحلة ↓',
   },
 };
 
@@ -352,6 +362,12 @@ export function AmazonFlightStorefront({
 }: AmazonFlightStorefrontProps) {
   const { t, language, isRTL } = useLanguage();
   const calendarCopy = STOREFRONT_CALENDAR_COPY[language] || STOREFRONT_CALENDAR_COPY.en;
+  const packagesActionLabel =
+    selectedPackage.category === 'training'
+      ? calendarCopy.chooseTrainingDuration
+      : selectedPackage.category === 'fear_of_flying'
+        ? calendarCopy.reviewFlightDetails
+        : calendarCopy.customizeFlight;
   const [addonFilter, setAddonFilter] = useState<AddonFilterTab>('all');
   const [calendarMode, setCalendarMode] = useState<'week' | 'month'>('month');
   const [blueprintPackage, setBlueprintPackage] = useState<SimulatorPackage | null>(null);
@@ -487,21 +503,6 @@ export function AmazonFlightStorefront({
                 <span>PRIME FLIGHT DECK</span>
                 <span className="hidden sm:inline">• INSTANT CONFIRMATION</span>
               </span>
-              <a
-                href={FACILITY_INFO.googleReviewsDirectUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-xs font-semibold text-amber-400 hover:underline"
-              >
-                <Star aria-hidden="true" className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                <Star aria-hidden="true" className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                <Star aria-hidden="true" className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                <Star aria-hidden="true" className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                <Star aria-hidden="true" className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                <span className="text-slate-300 font-mono text-[11px] ml-1">
-                  5.0 (390+ Google Reviews ↗)
-                </span>
-              </a>
             </div>
             <span className="hidden sm:inline-flex text-[11px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/25 px-2.5 py-0.5 rounded-full">
               ● 1:1 Scale Boeing 737 MAX-8 • Tel Aviv (Gershon Shatz 36) • Age 10+
@@ -589,7 +590,7 @@ export function AmazonFlightStorefront({
                   aria-label={calendarCopy.previousWeek}
                   disabled={!canNavigateToPreviousWeek}
                   onClick={() => selectCalendarDate(previousWeekDate)}
-                  className="min-w-[40px] min-h-[40px] p-2 rounded-xl border border-slate-800 bg-slate-950 text-slate-300 hover:text-white disabled:cursor-not-allowed disabled:opacity-35 flex items-center justify-center touch-manipulation cursor-pointer active:scale-95 transition-all"
+                  className="min-w-[48px] min-h-[48px] p-2 rounded-xl border border-slate-800 bg-slate-950 text-slate-300 hover:text-white disabled:cursor-not-allowed disabled:opacity-35 flex items-center justify-center touch-manipulation cursor-pointer active:scale-95 transition-all"
                 >
                   <ChevronLeft className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
                 </button>
@@ -601,7 +602,7 @@ export function AmazonFlightStorefront({
                   data-calendar-next-week
                   aria-label={calendarCopy.nextWeek}
                   onClick={() => selectCalendarDate(addDaysToYmd(selectedDate, 7))}
-                  className="min-w-[40px] min-h-[40px] p-2 rounded-xl border border-slate-800 bg-slate-950 text-slate-300 hover:text-white flex items-center justify-center touch-manipulation cursor-pointer active:scale-95 transition-all"
+                  className="min-w-[48px] min-h-[48px] p-2 rounded-xl border border-slate-800 bg-slate-950 text-slate-300 hover:text-white flex items-center justify-center touch-manipulation cursor-pointer active:scale-95 transition-all"
                 >
                   <ChevronRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
                 </button>
@@ -643,7 +644,7 @@ export function AmazonFlightStorefront({
                       new Date(viewMonthDate.getFullYear(), viewMonthDate.getMonth() - 1, 1)
                     )
                   }
-                  className="min-w-[40px] min-h-[40px] p-2 rounded-xl border border-slate-800 bg-slate-900/90 hover:border-slate-700 text-slate-200 flex items-center justify-center touch-manipulation cursor-pointer active:scale-95 transition-all"
+                  className="min-w-[48px] min-h-[48px] p-2 rounded-xl border border-slate-800 bg-slate-900/90 hover:border-slate-700 text-slate-200 flex items-center justify-center touch-manipulation cursor-pointer active:scale-95 transition-all"
                 >
                   <ChevronLeft className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
                 </button>
@@ -659,42 +660,44 @@ export function AmazonFlightStorefront({
                       new Date(viewMonthDate.getFullYear(), viewMonthDate.getMonth() + 1, 1)
                     )
                   }
-                  className="min-w-[40px] min-h-[40px] p-2 rounded-xl border border-slate-800 bg-slate-900/90 hover:border-slate-700 text-slate-200 flex items-center justify-center touch-manipulation cursor-pointer active:scale-95 transition-all"
+                  className="min-w-[48px] min-h-[48px] p-2 rounded-xl border border-slate-800 bg-slate-900/90 hover:border-slate-700 text-slate-200 flex items-center justify-center touch-manipulation cursor-pointer active:scale-95 transition-all"
                 >
                   <ChevronRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
                 </button>
               </div>
-              <div className="grid grid-cols-7 gap-1 sm:gap-1.5 text-center">
-                {weekdayNames.map((d) => (
-                  <div key={d} className="text-[10px] sm:text-[11px] font-mono font-semibold text-slate-400 py-1">
-                    {d}
-                  </div>
-                ))}
-                {monthGridDays.map((cell) => {
-                  const isSelected = cell.dateStr === selectedDate;
-                  return (
-                    <button
-                      key={cell.dateStr}
-                      type="button"
-                      data-calendar-date={cell.dateStr}
-                      aria-label={cell.dayLabel}
-                      aria-pressed={isSelected}
-                      disabled={cell.isPast}
-                      onClick={() => selectCalendarDate(cell.dateStr)}
-                      className={`min-h-[44px] h-11 sm:h-12 rounded-xl border font-mono text-xs sm:text-sm font-semibold transition-colors flex items-center justify-center touch-manipulation select-none ${
-                        cell.isPast
-                          ? 'border-transparent text-slate-700 opacity-35 cursor-not-allowed'
-                        : isSelected
-                        ? 'border-amber-300 bg-amber-400 text-slate-950 font-black shadow-md ring-2 ring-amber-400/40 cursor-pointer'
-                        : cell.isCurrentMonth
-                        ? 'border-slate-800/80 bg-slate-900/80 text-slate-200 hover:bg-slate-800 hover:border-slate-700 cursor-pointer'
-                        : 'border-slate-800/40 bg-slate-950/60 text-slate-400 hover:bg-slate-800 cursor-pointer'
-                      }`}
-                    >
-                      {formatCalendarDayNumber(cell.dayNumber, language)}
-                    </button>
-                  );
-                })}
+              <div className="overflow-x-auto pb-1 [-webkit-overflow-scrolling:touch]">
+                <div className="grid min-w-[384px] grid-cols-7 gap-2 text-center">
+                  {weekdayNames.map((d) => (
+                    <div key={d} className="text-[10px] sm:text-[11px] font-mono font-semibold text-slate-400 py-1">
+                      {d}
+                    </div>
+                  ))}
+                  {monthGridDays.map((cell) => {
+                    const isSelected = cell.dateStr === selectedDate;
+                    return (
+                      <button
+                        key={cell.dateStr}
+                        type="button"
+                        data-calendar-date={cell.dateStr}
+                        aria-label={cell.dayLabel}
+                        aria-pressed={isSelected}
+                        disabled={cell.isPast}
+                        onClick={() => selectCalendarDate(cell.dateStr)}
+                        className={`min-h-[48px] min-w-[48px] h-12 w-12 rounded-xl border font-mono text-xs sm:text-sm font-semibold transition-colors flex items-center justify-center touch-manipulation select-none ${
+                          cell.isPast
+                            ? 'border-transparent text-slate-700 opacity-35 cursor-not-allowed'
+                          : isSelected
+                          ? 'border-amber-300 bg-amber-400 text-slate-950 font-black shadow-md ring-2 ring-amber-400/40 cursor-pointer'
+                          : cell.isCurrentMonth
+                          ? 'border-slate-800/80 bg-slate-900/80 text-slate-200 hover:bg-slate-800 hover:border-slate-700 cursor-pointer'
+                          : 'border-slate-800/40 bg-slate-950/60 text-slate-400 hover:bg-slate-800 cursor-pointer'
+                        }`}
+                      >
+                        {formatCalendarDayNumber(cell.dayNumber, language)}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               {/* Mobile Active Date Status & Quick-Jump Strip inside Calendar Box */}
@@ -892,7 +895,7 @@ export function AmazonFlightStorefront({
                         onClick={scrollToPackagesSection}
                         className="flex-1 sm:flex-initial px-3 py-2 rounded-lg border border-slate-700 bg-slate-900 text-slate-200 text-xs font-mono font-semibold hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 touch-manipulation cursor-pointer"
                       >
-                        {calendarCopy.customizeFlight}
+                        {packagesActionLabel}
                       </button>
                       <button
                         type="button"

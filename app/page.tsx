@@ -22,7 +22,6 @@ import { Card } from '@/components/ui/Card';
 import { getLocalizedPackages } from '@/lib/i18n/translations';
 import { formatCurrency } from '@/lib/utils';
 import { useLanguage } from '@/lib/i18n/language-context';
-import { GoogleReviewsRotator } from '@/components/reviews/GoogleReviewsRotator';
 
 export default function HomePage() {
   const { t, language, isRTL } = useLanguage();
@@ -246,15 +245,6 @@ export default function HomePage() {
             </Link>
           </div>
 
-          {/* Social Proof: 5.0★ Google Reviews directly in Why Fly With Sim Dream */}
-          <div className="pt-6 border-t border-slate-900">
-            <GoogleReviewsRotator
-              badge={t.reviews.badge}
-              title={t.reviews.title}
-              subtitle={t.reviews.subtitle}
-              items={t.reviews.items}
-            />
-          </div>
         </div>
       </section>
 
@@ -338,24 +328,6 @@ export default function HomePage() {
             ))}
           </div>
 
-          {/* Annual Simulator Subscriptions & Multi-Flight Passes Spotlight Banner */}
-          <div className="rounded-2xl border border-sky-500/30 bg-gradient-to-r from-sky-950/40 via-slate-900 to-aviation-darkest p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
-            <div className="space-y-2 text-center md:text-left rtl:md:text-right">
-              <Badge variant="sky">{t.experiences.subscriptionsBadge}</Badge>
-              <h3 className="text-xl sm:text-2xl font-black text-white">
-                {t.experiences.subscriptionsTitle}
-              </h3>
-              <p className="text-slate-300 text-xs sm:text-sm max-w-xl">
-                {t.experiences.subscriptionsSubtitle}
-              </p>
-            </div>
-            <Link href="/experiences?category=subscriptions" className="shrink-0">
-              <Button size="lg" className="font-bold shadow-glow min-h-[44px] touch-manipulation cursor-pointer">
-                <span>{t.experiences.subscriptions}</span>
-                <ChevronRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
-              </Button>
-            </Link>
-          </div>
         </div>
       </section>
 

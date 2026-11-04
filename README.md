@@ -101,11 +101,10 @@ Production-grade website, multi-step booking engine, Amazon-style flight storefr
    - **Accessible Mission Blueprint Modal**: Semantic `<dialog>` (`role="dialog"`, `aria-modal="true"`) breaking down the exact minute-by-minute flight profile, free observer jumpseat policy, and included world airport options.
    - **Fail-Closed Payment Feedback**: If card payments are not configured, the checkout API returns a safe error and the storefront displays it immediately beside the checkout button. It does not create a pending card reservation or redirect to an unconfigured payment provider.
 
-10. **Google Reviews Snapshot & 24h Cache (`/api/reviews`)**:
-    - When `GOOGLE_PLACES_API_KEY` is configured, the route refreshes rating, count, and available review excerpts from the listed Google Maps Place ID every 24 hours. Without the key it clearly identifies the checked-in local fallback snapshot.
-    - **Descend-by-Length Sorting Algorithm**: Automatically floats the longest, most in-depth pilot and customer reviews to the top of the rotator for maximum credibility.
-    - **24-Hour Server Cache (ISR)**: Cached via [`lib/reviews/google-reviews-cache.ts`](lib/reviews/google-reviews-cache.ts) and `/api/reviews` (`revalidate = 86400`) to ensure fast page loads with fallback resiliency.
-    - **Direct Modal Link**: Deep-links straight to the Google Maps active reviews drawer (`https://search.google.com/local/reviews?placeid=...`).
+10. **Google Places Review Feed (`/api/reviews`)**:
+    - When `GOOGLE_PLACES_API_KEY` is configured, the route refreshes rating, count, and available review excerpts from the listed Google Maps Place ID every 24 hours.
+    - If the API is absent or a refresh fails, it deliberately serves **no rating, count, or review excerpts**. The website never substitutes local or generated review content for Google data.
+    - **24-Hour Server Cache (ISR)**: Cached via [`lib/reviews/google-reviews-cache.ts`](lib/reviews/google-reviews-cache.ts) and `/api/reviews` (`revalidate = 86400`) so an enabled, attributable feed is efficient without overstating unavailable data.
 
 11. **Voucher Management & 1-Click Session Cache Reapply**:
     - **Instant Removal & Price Reset**: Customers can remove applied gift vouchers or promo codes at any time to verify the original package price without page reloads.

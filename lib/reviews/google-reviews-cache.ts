@@ -1,10 +1,29 @@
 import 'server-only';
 
-import { GoogleReview, GoogleReviewsSnapshot, getSortedGoogleReviews } from '@/lib/data/google-reviews-data';
 import { FACILITY_INFO } from '@/lib/config/facility-info';
 
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 const PLACEHOLDER_VALUES = ['your_', 'your-', 'example', 'placeholder', '...'];
+
+export interface GoogleReview {
+  id: string;
+  author: string;
+  rating: number;
+  quote: string;
+  role: string;
+  relativeTime: string;
+  language: 'he' | 'en' | 'ru' | 'fr' | 'ar';
+  characterCount: number;
+}
+
+export interface GoogleReviewsSnapshot {
+  lastUpdated: string;
+  source: string;
+  overallRating: number;
+  totalReviewsCount: number;
+  directReviewsUrl: string;
+  reviews: GoogleReview[];
+}
 
 interface ReviewsCacheStore {
   timestamp: number;
@@ -37,14 +56,14 @@ function reviewLanguage(value: string | undefined): GoogleReview['language'] {
   return language === 'he' || language === 'ru' || language === 'fr' || language === 'ar' ? language : 'en';
 }
 
-function localFallbackSnapshot(now: number): GoogleReviewsSnapshot {
+function unavailableSnapshot(now: number, reason: string): GoogleReviewsSnapshot {
   return {
     lastUpdated: new Date(now).toISOString(),
-    source: 'Local review snapshot (Google Places API is not configured)',
-    overallRating: FACILITY_INFO.googleRating,
-    totalReviewsCount: FACILITY_INFO.googleRatingCount,
+    source: reason,
+    overallRating: 0,
+    totalReviewsCount: 0,
     directReviewsUrl: FACILITY_INFO.googleReviewsDirectUrl,
-    reviews: getSortedGoogleReviews(),
+    reviews: [],
   };
 }
 
@@ -83,16 +102,14 @@ async function fetchGooglePlacesSnapshot(now: number): Promise<GoogleReviewsSnap
   return {
     lastUpdated: new Date(now).toISOString(),
     source: `Google Places API (Place ID: ${FACILITY_INFO.placeId})`,
-    overallRating: typeof payload.rating === 'number' ? payload.rating : FACILITY_INFO.googleRating,
-    totalReviewsCount: typeof payload.userRatingCount === 'number'
-      ? payload.userRatingCount
-      : FACILITY_INFO.googleRatingCount,
+    overallRating: typeof payload.rating === 'number' ? payload.rating : 0,
+    totalReviewsCount: typeof payload.userRatingCount === 'number' ? payload.userRatingCount : 0,
     directReviewsUrl: FACILITY_INFO.googleReviewsDirectUrl,
-    reviews: reviews.length ? reviews : getSortedGoogleReviews(),
+    reviews,
   };
 }
 
-/** Returns a sorted Google Places snapshot, with an explicitly-labelled local fallback. */
+/** Returns only data supplied by Google Places; absent or failed refreshes return no review claims. */
 export async function getCachedGoogleReviews(forceRefresh = false): Promise<GoogleReviewsSnapshot> {
   const now = Date.now();
   if (!forceRefresh && memoryCache && now - memoryCache.timestamp < CACHE_TTL_MS) {
@@ -101,10 +118,12 @@ export async function getCachedGoogleReviews(forceRefresh = false): Promise<Goog
 
   let snapshot: GoogleReviewsSnapshot;
   try {
-    snapshot = (await fetchGooglePlacesSnapshot(now)) || localFallbackSnapshot(now);
+    snapshot =
+      (await fetchGooglePlacesSnapshot(now)) ||
+      unavailableSnapshot(now, 'Google Places API is not configured; no review data is served.');
   } catch (error) {
-    console.warn('Google Places refresh failed; using local review snapshot');
-    snapshot = localFallbackSnapshot(now);
+    console.warn('Google Places refresh failed; no review data is served');
+    snapshot = unavailableSnapshot(now, 'Google Places API refresh failed; no review data is served.');
   }
   memoryCache = { timestamp: now, snapshot };
   return snapshot;

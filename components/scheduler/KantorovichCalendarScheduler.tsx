@@ -546,7 +546,7 @@ export function KantorovichCalendarScheduler({
                 aria-label={copy.previousWeek}
                 disabled={!canNavigateToPreviousWeek}
                 onClick={() => handleSelectDate(previousWeekDate)}
-                className="min-w-[40px] min-h-[40px] p-2 rounded-xl border border-slate-800 bg-slate-950 text-slate-300 hover:text-white disabled:cursor-not-allowed disabled:opacity-35 flex items-center justify-center touch-manipulation cursor-pointer active:scale-95 transition-all"
+                className="min-w-[48px] min-h-[48px] p-2 rounded-xl border border-slate-800 bg-slate-950 text-slate-300 hover:text-white disabled:cursor-not-allowed disabled:opacity-35 flex items-center justify-center touch-manipulation cursor-pointer active:scale-95 transition-all"
               >
                 <ChevronLeft className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
               </button>
@@ -558,7 +558,7 @@ export function KantorovichCalendarScheduler({
                 data-calendar-next-week
                 aria-label={copy.nextWeek}
                 onClick={() => handleSelectDate(addDaysToYmd(selectedDate, 7))}
-                className="min-w-[40px] min-h-[40px] p-2 rounded-xl border border-slate-800 bg-slate-950 text-slate-300 hover:text-white flex items-center justify-center touch-manipulation cursor-pointer active:scale-95 transition-all"
+                className="min-w-[48px] min-h-[48px] p-2 rounded-xl border border-slate-800 bg-slate-950 text-slate-300 hover:text-white flex items-center justify-center touch-manipulation cursor-pointer active:scale-95 transition-all"
               >
                 <ChevronRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
               </button>
@@ -611,7 +611,7 @@ export function KantorovichCalendarScheduler({
                     new Date(viewMonthDate.getFullYear(), viewMonthDate.getMonth() - 1, 1)
                   )
                 }
-                className="min-w-[40px] min-h-[40px] p-2 rounded-xl border border-slate-800 bg-slate-950 text-slate-300 hover:text-white flex items-center justify-center touch-manipulation cursor-pointer active:scale-95 transition-all"
+                className="min-w-[48px] min-h-[48px] p-2 rounded-xl border border-slate-800 bg-slate-950 text-slate-300 hover:text-white flex items-center justify-center touch-manipulation cursor-pointer active:scale-95 transition-all"
               >
                 <ChevronLeft className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
               </button>
@@ -627,46 +627,48 @@ export function KantorovichCalendarScheduler({
                     new Date(viewMonthDate.getFullYear(), viewMonthDate.getMonth() + 1, 1)
                   )
                 }
-                className="min-w-[40px] min-h-[40px] p-2 rounded-xl border border-slate-800 bg-slate-950 text-slate-300 hover:text-white flex items-center justify-center touch-manipulation cursor-pointer active:scale-95 transition-all"
+                className="min-w-[48px] min-h-[48px] p-2 rounded-xl border border-slate-800 bg-slate-950 text-slate-300 hover:text-white flex items-center justify-center touch-manipulation cursor-pointer active:scale-95 transition-all"
               >
                 <ChevronRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
               </button>
             </div>
 
-            <div className="grid grid-cols-7 gap-1 text-center text-[11px] font-medium text-slate-400">
-              {weekdayNames.map((dName, idx) => (
-                <div key={idx} className="py-1">
-                  {dName}
-                </div>
-              ))}
-            </div>
+            <div className="overflow-x-auto pb-1 [-webkit-overflow-scrolling:touch]">
+              <div className="grid min-w-[384px] grid-cols-7 gap-2 text-center text-[11px] font-medium text-slate-400">
+                {weekdayNames.map((dName, idx) => (
+                  <div key={idx} className="py-1">
+                    {dName}
+                  </div>
+                ))}
+              </div>
 
-            <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
-              {monthGridDays.map((cell) => {
-                const isSelected = cell.dateStr === selectedDate;
-                return (
-                  <button
-                    key={cell.dateStr}
-                    type="button"
-                    data-calendar-date={cell.dateStr}
-                    aria-label={cell.dayLabel}
-                    aria-pressed={isSelected}
-                    disabled={cell.isPast}
-                    onClick={() => handleSelectDate(cell.dateStr)}
-                    className={`min-h-[44px] h-11 sm:h-12 rounded-xl border text-center font-semibold text-sm transition-colors flex items-center justify-center touch-manipulation select-none ${
-                      cell.isPast
-                        ? 'opacity-25 border-transparent text-slate-600 cursor-not-allowed'
-                        : isSelected
-                        ? 'border-sky-400 bg-sky-500 text-slate-950 font-black shadow-glow cursor-pointer'
-                        : cell.isCurrentMonth
-                        ? 'border-slate-800/80 bg-slate-950/70 text-white hover:border-slate-700 cursor-pointer'
-                        : 'border-slate-800/50 bg-slate-950/60 text-slate-400 hover:border-slate-700 cursor-pointer'
-                    }`}
-                  >
-                    {formatCalendarDayNumber(cell.dayNumber, language)}
-                  </button>
-                );
-              })}
+              <div className="grid min-w-[384px] grid-cols-7 gap-2">
+                {monthGridDays.map((cell) => {
+                  const isSelected = cell.dateStr === selectedDate;
+                  return (
+                    <button
+                      key={cell.dateStr}
+                      type="button"
+                      data-calendar-date={cell.dateStr}
+                      aria-label={cell.dayLabel}
+                      aria-pressed={isSelected}
+                      disabled={cell.isPast}
+                      onClick={() => handleSelectDate(cell.dateStr)}
+                      className={`min-h-[48px] min-w-[48px] h-12 w-12 rounded-xl border text-center font-semibold text-sm transition-colors flex items-center justify-center touch-manipulation select-none ${
+                        cell.isPast
+                          ? 'opacity-25 border-transparent text-slate-600 cursor-not-allowed'
+                          : isSelected
+                          ? 'border-sky-400 bg-sky-500 text-slate-950 font-black shadow-glow cursor-pointer'
+                          : cell.isCurrentMonth
+                          ? 'border-slate-800/80 bg-slate-950/70 text-white hover:border-slate-700 cursor-pointer'
+                          : 'border-slate-800/50 bg-slate-950/60 text-slate-400 hover:border-slate-700 cursor-pointer'
+                      }`}
+                    >
+                      {formatCalendarDayNumber(cell.dayNumber, language)}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Mobile Active Date Status & Quick-Jump Strip inside Wizard Calendar */}

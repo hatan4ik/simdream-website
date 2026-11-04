@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:abfedc682cdf5b2f0c1504c136b59f75e2cec7d082831a05646bd4cc0f5133d2 -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:28fda2a5df083284c9845f59e821014b53c5e79b2223af15a297f27c7c370683 -->
 
 ## Verification contract
 
@@ -51,7 +51,7 @@ No repository review can prove Supabase OAuth providers, Stripe webhook delivery
 | Database and auth | **Supabase** (`@supabase/supabase-js` 2): Postgres plus Supabase Auth | Bookings, vouchers, leads, profiles; member login (email/password, Google, Facebook, Apple). |
 | Payments | **Stripe** (`stripe` 17 on the server, `@stripe/stripe-js` 4) | Hosted Checkout; a signature-verified webhook is the only path to "paid". |
 | Email | `@sendgrid/mail` 8 | Booking confirmations and voucher activation emails (simulated when unconfigured). |
-| Reviews | Google Places API, cached 24 h with ISR | Live rating and review excerpts with a checked-in fallback snapshot. |
+| Reviews | Google Places API, cached 24 h with ISR | Live rating and excerpts only when attributable Google data is available; otherwise the API serves no review claims. |
 | Testing | Vitest 5 (+ v8 coverage), fast-check, Playwright 1.64, axe-core, autocannon, Lighthouse CI (via `npx`) | The four quality gates (see Phase 2). |
 | Runtime | Node 22, hosted on Vercel (serverless functions and static prerender) | |
 
@@ -152,7 +152,7 @@ Build **simdream.co.il**, the booking and marketing platform for **Sim Dream LTD
 - **Tailwind CSS 4** with brand colour tokens in an `@theme` block in `app/globals.css`.
 - **zod 4** for all request validation.
 - **Supabase** (Postgres + Auth) as the production database and member identity provider, accessed server-side with the service-role key only.
-- **Stripe** Checkout (hosted) and a signature-verified webhook. **SendGrid** for email. **Google Places API** for reviews, cached 24 h with ISR.
+- **Stripe** Checkout (hosted) and a signature-verified webhook. **SendGrid** for email. **Google Places API** for attributable reviews, cached 24 h with ISR and blank when unavailable.
 - Testing: **Vitest** (+ coverage, **fast-check**), **Playwright** (+ **axe-core**), **autocannon**, **Lighthouse CI**.
 - Node 22. Deploy to **Vercel**. CI on **GitHub Actions**.
 - Environment variables (document them in `.env.example`, never commit values): `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `ADMIN_USER`, `ADMIN_PASSWORD` (≥16 chars in production), `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `SENDGRID_API_KEY`, `NEXT_PUBLIC_SUPPORT_EMAIL`, `GOOGLE_PLACES_API_KEY`, the demo-only opt-in `ALLOW_IN_MEMORY_STORE`, and the two public Wix Headless identifiers `NEXT_PUBLIC_WIX_CLIENT_ID` (OAuth client id, visitor tokens only) and `WIX_SITE_ID` (metasite id of the "Sim Dream Israel" headless site).
@@ -572,7 +572,7 @@ components/
   layout/  Navbar Footer LanguageSelector UiThemeSwitcher LiveMetarBar SkipLink
   scheduler/ AmazonFlightStorefront KantorovichCalendarScheduler
   about/AboutExperienceView  pro/ProSessionsView  legal/ PrivacyPolicyContentView RulesContentView
-  reviews/GoogleReviewsRotator  seo/StructuredDataJsonLd  ui/ Button Card Badge
+  seo/StructuredDataJsonLd  ui/ Button Card Badge
 lib/
   scheduler/ kantorovich-engine mission-calculator package-presentation tiled-interval-optimizer israel-clock
   booking/checkout-service       db/ store schema.sql seed-data supabase-admin migrations/
@@ -581,7 +581,7 @@ lib/
   i18n/ translations language-context calendar-presentation
   config/ facility-info server-env use-live-facility-status
   theme/ui-theme-context  ui/ use-client-value use-modal-focus  seo/seo-config
-  reviews/google-reviews-cache  data/google-reviews-data (fallback snapshot)
+  reviews/google-reviews-cache
   stripe.ts  sendgrid.ts  validation.ts  utils.ts  supabaseClient.ts
 types/index.ts
 proxy.ts                          # /admin guard

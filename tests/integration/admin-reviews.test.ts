@@ -116,9 +116,7 @@ describe('GET /api/reviews', () => {
     expect(response.headers.get('cache-control')).toBe('public, s-maxage=86400, stale-while-revalidate=43200');
     const snapshot = expectContract(reviewsSnapshot, response.body);
     expect(snapshot.source).toMatch(/not configured/);
-    for (const review of snapshot.reviews) expect(review.characterCount).toBe(review.quote.length);
-    const lengths = snapshot.reviews.map((review) => review.characterCount);
-    expect(lengths).toEqual([...lengths].sort((a, b) => b - a));
+    expect(snapshot).toMatchObject({ overallRating: 0, totalReviewsCount: 0, reviews: [] });
   });
 });
 

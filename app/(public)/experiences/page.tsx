@@ -350,7 +350,7 @@ export default function ExperiencesPage() {
     if (typeof window === 'undefined') return;
     const params = new URLSearchParams(window.location.search);
     const cat = params.get('category');
-    if (cat === 'subscriptions' || cat === 'recreational' || cat === 'fear_of_flying') {
+    if (cat === 'recreational' || cat === 'fear_of_flying') {
       setSelectedCategory(cat);
     }
   }, []);
@@ -358,7 +358,6 @@ export default function ExperiencesPage() {
   const categories = [
     { id: 'all', label: t.experiences.all },
     { id: 'recreational', label: t.experiences.recreational },
-    { id: 'subscriptions', label: t.experiences.subscriptions },
     { id: 'fear_of_flying', label: t.experiences.fearOfFlying },
   ];
 
@@ -373,8 +372,10 @@ export default function ExperiencesPage() {
       ? packages
       : packages.filter((p) => p.category === selectedCategory);
 
-  const showFlightPackages = selectedCategory !== 'subscriptions';
-  const showSubscriptions = selectedCategory === 'all' || selectedCategory === 'subscriptions';
+  const showFlightPackages = true;
+  // Multi-flight passes do not yet have server-authoritative products, terms, or checkout.
+  // Keep them out of the public catalog until that complete purchase flow exists.
+  const showSubscriptions = false;
 
   return (
     <div className="flex-1 w-full min-w-0 py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-16">

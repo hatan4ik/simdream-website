@@ -27,7 +27,7 @@ flowchart TD
         NoiseFreeAdapter["Noise-Free Booking Adapter<br/>Suppresses recreational add-ons for PRO & Fear of Flying"]
         KantorovichEngine["Tiled Interval Scheduler Engine<br/>lib/scheduler/kantorovich-engine.ts"]
         MissionCalc["Mission Calculator<br/>Flight time + Addons + Voucher Manifest"]
-        ReviewsCache["Google Reviews ISR Cache<br/>24h Revalidation & Length Sort"]
+        ReviewsCache["Google Places Review Cache<br/>24h Revalidation; no local fallback claims"]
     end
 
     subgraph APILayer["Next.js Serverless API Routes"]
@@ -42,7 +42,7 @@ flowchart TD
         SupabaseDB[("Supabase PostgreSQL<br/>Row-Level Security & Exclusion Constraints")]
         InMemoryFallback[("In-Memory Store Fallback<br/>Local Dev & Non-500 Demo Resilience")]
         StripeService["Stripe Hosted Checkout<br/>Card payment flow"]
-        GooglePlaces["Google Places API<br/>24h cached snapshot + local fallback"]
+        GooglePlaces["Google Places API<br/>24h cached data; empty when unavailable"]
     end
 
     User --> ThemeEngine --> I18nEngine --> StorefrontUI

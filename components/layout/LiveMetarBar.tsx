@@ -9,7 +9,10 @@ export function LiveMetarBar() {
   const { t, isRTL } = useLanguage();
 
   return (
-    <div className="w-full bg-slate-950 border-b border-slate-800/80 text-[10px] sm:text-[11px] font-mono text-slate-400 py-1 sm:py-1.5 px-3 sm:px-4">
+    <aside
+      aria-label={t.metar.statusReady}
+      className="w-full bg-slate-950 border-b border-slate-800/80 text-[10px] sm:text-[11px] font-mono text-slate-400 py-1 sm:py-1.5 px-3 sm:px-4"
+    >
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-3">
         {/* Left: Operational Status */}
         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
@@ -48,6 +51,6 @@ export function LiveMetarBar() {
           </Link>
         </div>
       </div>
-    </div>
+    </aside>
   );
 }

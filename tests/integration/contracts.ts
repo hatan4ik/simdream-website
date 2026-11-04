@@ -322,7 +322,7 @@ export const reviewsSnapshot = z.strictObject({
   overallRating: z.number().min(0).max(5),
   totalReviewsCount: nonNegativeInt,
   directReviewsUrl: z.url(),
-  reviews: z.array(googleReview).min(1),
+  reviews: z.array(googleReview),
 });
 
 export const reviewsSync = z.strictObject({
@@ -330,7 +330,7 @@ export const reviewsSync = z.strictObject({
   syncedAt: isoDateTime,
   totalReviews: nonNegativeInt,
   rating: z.number().min(0).max(5),
-  reviews: z.array(googleReview).min(1),
+  reviews: z.array(googleReview),
 });
 
 export const webhookAck = z.strictObject({ received: z.literal(true) });

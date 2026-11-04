@@ -76,7 +76,7 @@ const ABOUT_COPY: Record<Language, AboutCopy> = {
     heroTitle: 'Where Aviation Dreams Take Flight in the Heart of Tel Aviv',
     heroSubtitle:
       'Founded in central Tel Aviv (Gershon Shatz 36), Sim Dream Israel opens the locked cockpit door of the world’s iconic commercial airliner — the Boeing 737 — to first-time flyers, families, aviation lovers, and corporate teams under 1-on-1 commercial pilot guidance.',
-    ratingLabel: '5.0★ Google Rating (390+ Verified Reviews)',
+    ratingLabel: '1:1 Boeing 737 MAX Cockpit Session',
     minAgePillar: 'Minimum Age: 10+ (Zero Experience Needed)',
     locationPillar: 'Gershon Shatz 36, Tel Aviv (4m from Yehudit Light Rail)',
     stepsBadge: 'HOW YOUR SESSION WORKS',
@@ -100,7 +100,7 @@ const ABOUT_COPY: Record<Language, AboutCopy> = {
         step: '03',
         title: 'Iconic World Approaches & Weather Challenges',
         desc: 'Fly thrilling approaches into Ben Gurion (TLV), St. Maarten Maho Beach, Innsbruck Alps, Madeira, JFK, or Hong Kong Kai Tak — in clear skies, golden sunset, or dramatic crosswinds.',
-        badge: '45,000+ Global Airports',
+        badge: '24,000+ Global Airports',
       },
       {
         step: '04',
@@ -153,14 +153,14 @@ const ABOUT_COPY: Record<Language, AboutCopy> = {
     specsControlsDesc:
       'Dual mechanically linked control columns and rudder pedals with control-loading feedback, motorized autothrottle levers, mode control panel, dual flight management computers, and digital flight displays.',
     specsNoticeTitle: 'Global Scenery & Facility Notice',
-    specsNoticeDesc: `Over 45,000 global airports with real-time weather synthesis. Operated by ${FACILITY_INFO.legalNameEn} (C.N. ${FACILITY_INFO.companyRegistrationNumber}) strictly as an experiential and entertainment facility.`,
+    specsNoticeDesc: `Over 24,000 global airports with real-time weather synthesis. Operated by ${FACILITY_INFO.legalNameEn} (C.N. ${FACILITY_INFO.companyRegistrationNumber}) strictly as an experiential and entertainment facility.`,
   },
   he: {
     heroBadge: 'אודות סים דרים ישראל • חווית הטסה בקנה מידה 1:1 בתל אביב',
     heroTitle: 'הגשמת חלום הטיסה בלב תל אביב – אתם במושב הקברניט',
     heroSubtitle:
       'מרכז Sim Dream (מערכות הדמיה סימולטורים ישראל סיםדרים בע״מ, גרשון ש"ץ 36 תל אביב) הוקם כדי לפתוח את דלת תא הטייס של מטוס הנוסעים הפופולרי בעולם – בואינג 737 – לקהל הרחב, למשפחות, לחובבי תעופה ולצוותי הנהלה, בליווי אישי של טייסים ומדריכים מנוסים.',
-    ratingLabel: 'דירוג 5.0★ מושלם ב-Google (מעל 390 ביקורות)',
+    ratingLabel: 'חוויית קוקפיט בואינג 737 MAX בקנה מידה 1:1',
     minAgePillar: 'גיל מינימלי: 10+ (ללא צורך בניסיון קודם)',
     locationPillar: 'גרשון ש"ץ 36, תל אביב (4 דק׳ מהרכבת הקלה יהודית)',
     stepsBadge: 'מהלך הטיסה שלכם',
@@ -184,7 +184,7 @@ const ABOUT_COPY: Record<Language, AboutCopy> = {
         step: '03',
         title: 'נחיתות אייקוניות ברחבי העולם (World Approaches)',
         desc: 'מטיסים את הבואינג 737 אל נחיתות מרהיבות בנתב״ג, סנט מארטן מעל החוף, אינסברוק בין הרי האלפים, ניו יורק JFK או דובאי.',
-        badge: '45,000+ שדות תעופה',
+        badge: '24,000+ שדות תעופה',
       },
       {
         step: '04',
@@ -232,14 +232,14 @@ const ABOUT_COPY: Record<Language, AboutCopy> = {
     specsControlsDesc:
       'הגאים ודוושות כיוון מקושרים מכנית בעלי משוב עומס, מצערות ממונעות אוטומטית, פאנל טייס אוטומטי, מחשב ניווט וצגי טיסה דיגיטליים.',
     specsNoticeTitle: 'מאגר שדות תעופה והבהרה רגולטורית',
-    specsNoticeDesc: `מעל 45,000 שדות תעופה בעולם וסימולציית מזג אוויר בזמן אמת. מופעל על ידי ${FACILITY_INFO.legalNameHe} (ח.פ. ${FACILITY_INFO.companyRegistrationNumber}) כמתקן חוויה ובידור.`,
+    specsNoticeDesc: `מעל 24,000 שדות תעופה בעולם וסימולציית מזג אוויר בזמן אמת. מופעל על ידי ${FACILITY_INFO.legalNameHe} (ח.פ. ${FACILITY_INFO.companyRegistrationNumber}) כמתקן חוויה ובידור.`,
   },
   ru: {
     heroBadge: 'О ЦЕНТРЕ SIM DREAM • ПОЛЕТНЫЙ КОМПЛЕКС В ТЕЛЬ-АВИВЕ',
     heroTitle: 'Мечта о небе становится реальностью в центре Тель-Авива',
     heroSubtitle:
       'Sim Dream Israel (ул. Гершон Шац 36, Тель-Авив) открывает двери кабины самого массового лайнера в истории — Boeing 737 — для каждого: семей, подростков, авиалюбителей и корпоративных команд с личным наставничеством опытных пилотов.',
-    ratingLabel: 'Рейтинг 5.0★ в Google (390+ отзывов)',
+    ratingLabel: 'Сессия в кабине Boeing 737 MAX масштаба 1:1',
     minAgePillar: 'Возраст: от 10 лет (опыт не требуется)',
     locationPillar: 'Гершон Шац 36, Тель-Авив (4 мин от трамвая Йегудит)',
     stepsBadge: 'КАК ПРОХОДИТ ВАШ ПОЛЕТ',
@@ -263,7 +263,7 @@ const ABOUT_COPY: Record<Language, AboutCopy> = {
         step: '03',
         title: 'Легендарные аэропорты мира и испытания',
         desc: 'Выполняйте посадки в Бен-Гурионе, Сен-Мартене над пляжем, Инсбруке среди Альп, Нью-Йорке или Дубае — в ясную погоду или при штормовом ветре.',
-        badge: '45,000+ аэропортов мира',
+        badge: '24 000+ аэропортов мира',
       },
       {
         step: '04',
@@ -311,14 +311,14 @@ const ABOUT_COPY: Record<Language, AboutCopy> = {
     specsControlsDesc:
       'Связанные штурвалы и педали с загрузкой усилий, моторизованный автомат тяги, панель автопилота MCP, два компьютера FMS/CDU и дисплеи Glass Cockpit.',
     specsNoticeTitle: 'Аэропорты и регламент',
-    specsNoticeDesc: `Свыше 45,000 аэропортов и реальная погода. SimDream Simulators (Israel) Ltd. действует как развлекательно-тренажерный центр.`,
+    specsNoticeDesc: `Свыше 24 000 аэропортов и реальная погода. SimDream Simulators (Israel) Ltd. действует как развлекательно-тренажерный центр.`,
   },
   fr: {
     heroBadge: 'À PROPOS DE SIM DREAM ISRAËL • CENTRE D’EXPÉRIENCE DE VOL TEL AVIV',
     heroTitle: 'Là où les rêves d’aviation prennent leur envol à Tel Aviv',
     heroSubtitle:
       'Installé au cœur de Tel Aviv (36 rue Gershon Shatz), Sim Dream Israël ouvre le cockpit du plus célèbre avion de ligne au monde — le Boeing 737 — au grand public, aux familles, aux passionnés et aux entreprises, accompagné par des pilotes professionnels.',
-    ratingLabel: 'Note 5.0★ sur Google (plus de 390 avis vérifiés)',
+    ratingLabel: 'Session dans un cockpit Boeing 737 MAX à l’échelle 1:1',
     minAgePillar: 'Âge minimum : 10 ans (aucune expérience requise)',
     locationPillar: '36 rue Gershon Shatz, Tel Aviv (à 4 min du tramway Yehudit)',
     stepsBadge: 'DÉROULEMENT DU VOL',
@@ -342,7 +342,7 @@ const ABOUT_COPY: Record<Language, AboutCopy> = {
         step: '03',
         title: 'Approches spectaculaires dans le monde',
         desc: 'Atterrissez à Ben Gourion, Saint-Martin au ras de la plage, Innsbruck dans les Alpes ou New York — par grand soleil ou vent de travers.',
-        badge: 'Plus de 45 000 aéroports',
+        badge: 'Plus de 24 000 aéroports',
       },
       {
         step: '04',
@@ -394,14 +394,14 @@ const ABOUT_COPY: Record<Language, AboutCopy> = {
     specsControlsDesc:
       'Colonnes de commandes et palonniers couplés à retour d’effort, manettes motorisées, MCP, deux ordinateurs de vol FMS et instruments digitaux.',
     specsNoticeTitle: 'Base mondiale & Mention légale',
-    specsNoticeDesc: `Plus de 45 000 aéroports avec météo temps réel. Exploité par ${FACILITY_INFO.legalNameEn} à titre de loisir et d’entraînement.`,
+    specsNoticeDesc: `Plus de 24 000 aéroports avec météo temps réel. Exploité par ${FACILITY_INFO.legalNameEn} à titre de loisir et d’entraînement.`,
   },
   ar: {
     heroBadge: 'عن مركز سيم دريم إسرائيل • مركز تجارب الطيران في تل أبيب',
     heroTitle: 'حيث تتحقق أحلام الطيران في قلب تل أبيب — أنت القبطان',
     heroSubtitle:
       'تأسس مركز Sim Dream في شارع غيرشون شاتس 36 بتل أبيب ليفتح باب قمرة القيادة لأشهر طائرة ركاب في العالم — بوينغ 737 — أمام الجميع: العائلات، والشباب، وعشاق الطيران وفرق الشركات برفقة طيارين ومدربين محترفين.',
-    ratingLabel: 'تقييم 5.0★ ممتاز على Google (أكثر من 390 تقييماً)',
+    ratingLabel: 'جلسة في قمرة بوينغ 737 ماكس بمقياس 1:1',
     minAgePillar: 'الحد الأدنى للعمر: 10+ (لا تشترط أي خبرة مسبقة)',
     locationPillar: 'غيرشون شاتس 36، تل أبيب (4 دقائق من القطار الخفيف يهوديت)',
     stepsBadge: 'مراحل رحلتك في القمرة',
@@ -425,7 +425,7 @@ const ABOUT_COPY: Record<Language, AboutCopy> = {
         step: '03',
         title: 'الهبوط في أشهر مطارات العالم وتحديات الطقس',
         desc: 'اهبط في مطار بن غوريون، أو سانت مارتن فوق الشاطئ، أو إنسبروك بين جبال الألب، أو نيويورك — في أجواء مشمسة أو رياح عاصفة.',
-        badge: 'أكثر من 45,000 مطار',
+        badge: 'أكثر من 24,000 مطار',
       },
       {
         step: '04',
@@ -473,7 +473,7 @@ const ABOUT_COPY: Record<Language, AboutCopy> = {
     specsControlsDesc:
       'مقاود تحكم ودواسات توجيه مقترنة ميكانيكياً مع محاكاة الأحمال، أذرع دفع آلية، لوحة تحكم بالطيار الآلي MCP، وشاشات عرض رقمية.',
     specsNoticeTitle: 'قاعدة المطارات والإشعار التنظيمي',
-    specsNoticeDesc: `أكثر من 45,000 مطار حول العالم مع محاكاة الطقس الحية. يُدار المركز كمنشأة ترفيهية وتدريبية متطورة.`,
+    specsNoticeDesc: `أكثر من 24,000 مطار حول العالم مع محاكاة الطقس الحية. يُدار المركز كمنشأة ترفيهية وتدريبية متطورة.`,
   },
 };
 

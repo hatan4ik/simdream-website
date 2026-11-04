@@ -35,21 +35,33 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               ) : (
                 <p className="text-[11px] font-mono text-slate-400 truncate">{nav.signInPrompt}</p>
               )}
-              <span className="inline-block mt-1 text-[10px] font-mono text-emerald-400 uppercase font-semibold">
-                &bull; {nav.statusActiveFlyer}
-              </span>
+              {user && (
+                <span className="inline-block mt-1 text-[10px] font-mono text-emerald-400 uppercase font-semibold">
+                  &bull; {nav.statusActiveFlyer}
+                </span>
+              )}
             </div>
           </div>
 
           {/* Navigation */}
           <nav className="space-y-1 text-xs">
-            <Link
-              href="/dashboard"
-              className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg bg-sky-500/10 text-sky-400 font-semibold"
-            >
-              <Award className="w-4 h-4" />
-              <span>{nav.logbook}</span>
-            </Link>
+            {user ? (
+              <Link
+                href="/dashboard"
+                className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg bg-sky-500/10 text-sky-400 font-semibold"
+              >
+                <Award className="w-4 h-4" />
+                <span>{nav.logbook}</span>
+              </Link>
+            ) : (
+              <Link
+                href="/login"
+                className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg bg-sky-500/10 text-sky-400 font-semibold"
+              >
+                <Plane className="w-4 h-4 -rotate-45" />
+                <span>{t.member.dashboard.signInCta}</span>
+              </Link>
+            )}
 
             <Link
               href="/book"
@@ -78,15 +90,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             )}
           </nav>
 
-          <div className="pt-4 border-t border-slate-800">
-            <button
-              onClick={logout}
-              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-red-400 hover:bg-slate-800 text-xs text-left transition-colors"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              <span>{nav.signOut}</span>
-            </button>
-          </div>
+          {user && (
+            <div className="pt-4 border-t border-slate-800">
+              <button
+                onClick={logout}
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-red-400 hover:bg-slate-800 text-xs text-left transition-colors"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span>{nav.signOut}</span>
+              </button>
+            </div>
+          )}
         </aside>
 
         {/* Dashboard Content Area */}

@@ -1,7 +1,7 @@
 import { FACILITY_INFO } from '@/lib/config/facility-info';
 import { translations } from '@/lib/i18n/translations';
 import { expect, LANGUAGES, preferLanguage, PUBLIC_ROUTES, RTL_LANGUAGES, type Language } from '../support/e2e';
-import { findBookableDate, openStorefrontOn, wizardToggle } from './support/booking';
+import { findBookableDate, openStorefrontOn } from './support/booking';
 import { showPaidBoardingPass } from './support/boarding-pass';
 import { test } from './support/fixtures';
 import { ARABIC_LETTERS, BROKEN_TEXT_PATTERNS, HEBREW_LETTERS, inspectTelemetryDirection } from './support/i18n';
@@ -149,7 +149,7 @@ test.describe('LTR isolation of aviation telemetry on RTL pages', () => {
         const { date } = await findBookableDate(request);
         await openStorefrontOn(page, date);
         await expectLanguageRendered(page, language);
-        await wizardToggle(page).click();
+        await page.getByRole('button', { name: translations[language].booking.wizardView, exact: true }).click();
         const wizardSlotRange = page.getByText(/^\d{2}:\d{2} – \d{2}:\d{2} \(60m\)$/).first();
         await expect(wizardSlotRange).toBeVisible();
         const report = await inspectTelemetryDirection(page);

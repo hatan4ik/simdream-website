@@ -77,14 +77,6 @@ export function StructuredDataJsonLd({ nonce }: { nonce?: string }) {
             closes: '23:59',
           },
         ],
-        aggregateRating: {
-          '@type': 'AggregateRating',
-          ratingValue: '5.0',
-          bestRating: '5',
-          worstRating: '1',
-          ratingCount: '390',
-          reviewCount: '390',
-        },
         amenityFeature: [
           {
             '@type': 'LocationFeatureSpecification',

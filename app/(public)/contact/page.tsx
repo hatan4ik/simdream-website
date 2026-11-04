@@ -552,16 +552,13 @@ export default function ContactPage() {
 
       {/* 3. CORE BUSINESS CARDS (ADDRESS, DYNAMIC HOURS, DIRECT PHONE & EMAIL) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Card 1: Verified Google Business Address */}
+        {/* Card 1: Facility address and directions */}
         <Card className="space-y-4 flex flex-col justify-between" borderAccent="sky">
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div className="w-10 h-10 rounded-lg bg-sky-500/10 border border-sky-500/30 text-sky-400 flex items-center justify-center">
                 <MapPin aria-hidden="true" className="w-5 h-5" />
               </div>
-              <span className="text-[10px] font-mono uppercase px-2.5 py-0.5 rounded-full bg-sky-500/10 border border-sky-500/30 text-sky-300 font-bold">
-                GOOGLE VERIFIED
-              </span>
             </div>
             <h2 className="text-lg font-bold text-white">{t.contact.addressTitle}</h2>
             <div className="text-slate-200 text-sm font-semibold space-y-0.5">

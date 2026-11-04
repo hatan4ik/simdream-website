@@ -609,7 +609,7 @@ export const translations = {
       badge: 'FLIGHT DISPATCH & LOCATION • GERSHON SHATZ 36',
       title: 'Visit Us in Tel Aviv',
       subtitle: "Israel's premier commercial flight simulation center at Gershon Shatz St 36, Tel Aviv-Yafo. Authentic 1:1 scale Boeing 737 MAX flight experiences, pilot assessment prep, and corporate CRM workshops. Minimum Pilot Age: 10+ (Advance booking required).",
-      addressTitle: 'Facility Address (Google Verified)',
+      addressTitle: 'Facility Address',
       addressLine1: 'Gershon Shatz St 36',
       addressLine2: 'Tel Aviv-Yafo, 6701772, Israel',
       addressNote: 'Montefiore Quarter • Near Yehudit Light Rail & HaShalom Train Station',
@@ -641,58 +641,6 @@ export const translations = {
       formSending: 'Transmitting...',
       formSuccessTitle: 'Message Received by Dispatch',
       formSuccessDesc: 'Thank you for contacting SimDream (desk@simdream.co.il). A flight operations coordinator will respond promptly.',
-    },
-    reviews: {
-      badge: 'VERIFIED GOOGLE MAPS REVIEWS • 5.0 ★ (390+)',
-      title: 'Trusted by Pilots & Flight Enthusiasts',
-      subtitle: 'Rated 5.0/5 across 390+ verified Google Reviews at our Boeing 737 MAX Flight Center in Tel Aviv (Gershon Shatz 36).',
-      items: [
-        {
-          quote: 'An incredible experience from start to finish! Max our instructor sat in the First Officer seat, explained every switch on the Boeing 737 MAX with endless patience and passion, and guided me through takeoffs and landings in challenging weather. Felt 100% like a real airliner cockpit!',
-          author: 'Omer R.',
-          role: 'Verified Google Review • Local Guide',
-        },
-        {
-          quote: 'I prepared for my El Al Boeing 737 simulator screening here. The fidelity of the control loading, motorized throttle quadrant, raw-data flight dynamics, and FMC programming was spot-on. Passed my airline assessment on the first attempt!',
-          author: 'Dan Cohen',
-          role: 'Verified Google Review • Commercial Pilot (ATPL)',
-        },
-        {
-          quote: 'Booked the 60-minute Captain for an Hour package as a surprise birthday gift for my husband. Every single button, overhead switch, and runway vibration works just like the real Boeing 737 MAX. He walked out of the cockpit with a huge smile that lasted all week!',
-          author: 'Noa Friedman',
-          role: 'Verified Google Review • Birthday Gift Session',
-        },
-        {
-          quote: 'Brought my 14-year-old son who is obsessed with aviation. The instructor tailored the difficulty to his level, let him start the engines from Cold & Dark, and fly approaches into Innsbruck and Ben Gurion. Easily the best attraction in Tel Aviv!',
-          author: 'Yaron Tal',
-          role: 'Verified Google Review • Father & Son Flight',
-        },
-        {
-          quote: 'The Fear of Flying program truly changed my life. Starting with a calm 1-on-1 talk and then sitting in the cockpit while the instructor demonstrated how the 737 handles turbulence, flap noises, and weather gave me back complete peace of mind.',
-          author: 'Michal Ben-Ami',
-          role: 'Verified Google Review • Fear of Flying Graduate',
-        },
-        {
-          quote: 'We came as two friends for the 90-minute Captains Challenge and took turns at the controls while sitting in the cockpit jumpseat. Landing at Paro Valley and Kai Tak in crosswinds with the motion feedback and wrap-around visuals was pure adrenaline!',
-          author: 'Idan & Roi',
-          role: 'Verified Google Review • 90m Captains Challenge',
-        },
-        {
-          quote: 'Amazing simulator at Gershon Shatz 36 in Tel Aviv! Even with zero prior flight experience, the briefing was super clear and eye-level. Within minutes I was rotating off Runway 26 at Ben Gurion and banking over the Tel Aviv coastline.',
-          author: 'Sarah Levi',
-          role: 'Verified Google Review • First-Time Flyer',
-        },
-        {
-          quote: 'As an avid MSFS and X-Plane home simmer, sitting inside an actual 1:1 scale Boeing 737 MAX deck with motorized trim wheels, linked yokes, and real overhead panels is on another planet. Worth every shekel!',
-          author: 'Alexey K.',
-          role: 'Verified Google Review • Flight Sim Enthusiast',
-        },
-        {
-          quote: 'We organized a small executive team event here and everyone was blown away. Handling an engine-out emergency together in the cockpit required real communication under pressure — unforgettable hospitality and top-tier professionalism.',
-          author: 'Guy Shaked',
-          role: 'Verified Google Review • Corporate Team Session',
-        },
-      ],
     },
     cta: {
       badge: 'FLIGHT DECK CLEARANCE',
@@ -1480,7 +1428,7 @@ export const translations = {
       badge: 'מבצעי טיסה ומיקום • גרשון ש"ץ 36 תל אביב',
       title: 'בקרו אותנו בתל אביב',
       subtitle: 'מרכז סימולטור הטיסה בואינג 737 MAX המוביל בישראל ברחוב גרשון ש"ץ 36, תל אביב-יפו. חוויות טיסה ביחס 1:1, הכנה למבדקים תעופתיים וטיפול בפחד טיסה. גיל מינימלי להטסה: 10+ (בתיאום והזמנה מראש).',
-      addressTitle: 'כתובת המרכז (מאומת ב-Google)',
+      addressTitle: 'כתובת המרכז',
       addressLine1: 'רחוב גרשון ש"ץ 36',
       addressLine2: 'תל אביב-יפו, 6701772, ישראל',
       addressNote: 'שכונת מונטיפיורי • בסמוך לתחנת הרכבת הקלה "יהודית" ורכבת "השלום"',
@@ -1512,58 +1460,6 @@ export const translations = {
       formSending: 'שולח הודעה...',
       formSuccessTitle: 'ההודעה התקבלה במרכז ההזמנות',
       formSuccessDesc: 'תודה שפניתם ל-SimDream (desk@simdream.co.il). נחזור אליכם בהקדם.',
-    },
-    reviews: {
-      badge: 'ביקורות מאומתות מ-GOOGLE MAPS • 5.0 ★ (+390)',
-      title: 'הבחירה של טייסים וחובבי תעופה',
-      subtitle: 'ציון מושלם 5.0/5 מתוך למעלה מ-390 ביקורות גוגל מאומתות במרכז סימולטור הבואינג 737 MAX שלנו בתל אביב (גרשון ש"ץ 36).',
-      items: [
-        {
-          quote: 'חוויה יוצאת דופן מההתחלה ועד הסוף! המדריך מקס ישב לצדי כקצין ראשון, הסביר בסבלנות ובגובה העיניים על כל מתג ומערכת בבואינג 737 MAX, וליווה אותי בהמראות ונחיתות במזג אוויר מאתגר. מרגיש 100% כמו הדבר האמיתי!',
-          author: 'עומר ר.',
-          role: 'ביקורת Google מאומתת • מדריך מקומי (Local Guide)',
-        },
-        {
-          quote: 'התכוננתי כאן לסימולטור המיונים של אל על לבואינג 737. הדיוק של עומס ההגאים, המצערת הממונעת, מודל הטיסה הידני וה-FMC היה מושלם ועזר לי לעבור את המבחן בניסיון הראשון!',
-          author: 'דן כהן',
-          role: 'ביקורת Google מאומתת • מועמד לטייס מסחרי (ATPL)',
-        },
-        {
-          quote: 'הזמנתי את חבילת "קברניט לשעה" (60 דקות) כמתנת יום הולדת מפתיעה לבעלי. כל כפתור, מתג בתקרה ורעידה בנחיתה עובדים בדיוק כמו במטוס אמיתי. הוא יצא מתא הטייס עם חיוך ענק שלא ירד כל השבוע!',
-          author: 'נועה פרידמן',
-          role: 'ביקורת Google מאומתת • מתנת יום הולדת',
-        },
-        {
-          quote: 'הגעתי עם הבן שלי בן ה-14 שמאוהב בעולם התעופה. המדריך התאים את הרמה בדיוק אליו, נתן לו להניע את המטוס ממצב Cold & Dark ולבצע נחיתות באינסברוק ובנתב״ג. ללא ספק האטרקציה הכי מיוחדת בתל אביב!',
-          author: 'ירון טל',
-          role: 'ביקורת Google מאומתת • חוויה משפחתית',
-        },
-        {
-          quote: 'התוכנית להתמודדות עם פחד טיסה פשוט שינתה לי את החיים. השילוב של שיחה מרגיעה ותרגול מעשי בתא הטייס שבו רואים ומבינים כל רעש וכיס אוויר החזיר לי את תחושת השליטה והביטחון לטוס שוב.',
-          author: 'מיכל בן עמי',
-          role: 'ביקורת Google מאומתת • בוגרת תוכנית פחד טיסה',
-        },
-        {
-          quote: 'הגענו שני חברים ל-90 דקות של "אתגר הקברניטים" והתחלפנו בהטסה. הנחיתות בעמק פארו ובהונג קונג קאי-טאק עם מערכת התנועה ורוחות הצד היו שעה וחצי של אדרנלין טהור ללא רגע דל!',
-          author: 'עידן ורועי',
-          role: 'ביקורת Google מאומתת • אתגר הקברניטים 90 דק׳',
-        },
-        {
-          quote: 'מקום מדהים ברחוב גרשון ש"ץ 36 בתל אביב! הגעתי ללא שום ניסיון קודם, התדריך היה ברור ומרתק, ותוך דקות כבר המראתי ממסלול 26 בנתב״ג מעל קו החוף של תל אביב והנחתתי את המטוס בעצמי.',
-          author: 'שרה לוי',
-          role: 'ביקורת Google מאומתת • טיסת היכרות',
-        },
-        {
-          quote: 'כמי שטס בסימולטורים ביתיים כבר שנים, לשבת בתוך קוקפיט 1:1 אמיתי של Boeing 737 MAX עם גלגלי קיזוז ממונעים, הגאים מקושרים ופאנל עילי מלא זו חוויה מעולם אחר. שווה כל שקל!',
-          author: 'אלכסיי ק.',
-          role: 'ביקורת Google מאומתת • חובב סימולטורים',
-        },
-        {
-          quote: 'עשינו כאן פעילות גיבוש לצוות הנהלה וכולם עפו על החוויה. התמודדות משותפת עם תקלת מנוע ומזג אוויר קיצוני בתא הטייס דרשה עבודת צוות אמיתית תחת לחץ — אירוח מושלם ומקצועיות ברמה הכי גבוהה.',
-          author: 'גיא שקד',
-          role: 'ביקורת Google מאומתת • פעילות צוות וחברות',
-        },
-      ],
     },
     cta: {
       badge: 'אישור המראה מקברניט',
@@ -2346,7 +2242,7 @@ export const translations = {
       badge: 'ДИСПЕТЧЕРСКАЯ И ЛОКАЦИЯ • ГЕРШОН ШАЦ 36',
       title: 'Посетите наш центр в Тель-Авиве',
       subtitle: 'Ведущий центр авиасимуляторов Boeing 737 MAX в масштабе 1:1 по адресу ул. Гершон Шац 36, Тель-Авив-Яффо. Минимальный возраст пилота: 10+ (требуется предварительная запись).',
-      addressTitle: 'Адрес центра (Google Verified)',
+      addressTitle: 'Адрес центра',
       addressLine1: 'ул. Гершон Шац 36 (Gershon Shatz 36)',
       addressLine2: 'Тель-Авив-Яффо, 6701772, Израиль',
       addressNote: 'Квартал Монтефиоре • Рядом со станцией трамвая «Йегудит» и ж/д «Ха-Шалом»',
@@ -2378,58 +2274,6 @@ export const translations = {
       formSending: 'Отправка...',
       formSuccessTitle: 'Сообщение принято диспетчером',
       formSuccessDesc: 'Благодарим за обращение в SimDream (desk@simdream.co.il). Мы ответим вам в ближайшее время.',
-    },
-    reviews: {
-      badge: 'ОТЗЫВЫ GOOGLE MAPS • 5.0 ★ (390+)',
-      title: 'Выбор профессионалов и любителей неба',
-      subtitle: 'Рейтинг 5.0/5 на основе 390+ проверенных отзывов Google о нашем центре Boeing 737 MAX в Тель-Авиве (Гершон Шац 36).',
-      items: [
-        {
-          quote: 'Потрясающий опыт от начала и до конца! Инструктор Макс в кресле второго пилота с невероятным терпением объяснил каждый тумблер Boeing 737 MAX и провел меня через взлеты и посадки в сложных метеоусловиях. Ощущение 100% реального лайнера!',
-          author: 'Омер Р.',
-          role: 'Проверенный отзыв Google • Местный эксперт',
-        },
-        {
-          quote: 'Готовился здесь к отбору в авиакомпанию El Al на Boeing 737. Отзывчивость штурвала, моторизованные РУДы, динамика полета без директорных стрелок (Raw Data) и логика FMC — на высшем уровне. Сдал чекаут с первой попытки!',
-          author: 'Дан Коэн',
-          role: 'Проверенный отзыв Google • Пилот (ATPL)',
-        },
-        {
-          quote: 'Подарила мужу на день рождения часовой полет «Капитан на час». Каждая кнопка, тумблер на оверхеде и вибрация на полосе работают как в настоящем Boeing 737 MAX. Муж вышел из кабины в полном восторге!',
-          author: 'Ноа Фридман',
-          role: 'Проверенный отзыв Google • Подарок на день рождения',
-        },
-        {
-          quote: 'Привел 14-летнего сына, который мечтает об авиации. Инструктор идеально подобрал программу: запустили двигатели из состояния Cold & Dark и совершили посадки в Инсбруке и Бен-Гурионе. Лучшее место в Тель-Авиве!',
-          author: 'Ярон Таль',
-          role: 'Проверенный отзыв Google • Полет отца и сына',
-        },
-        {
-          quote: 'Курс преодоления страха полетов буквально вернул меня к нормальной жизни. Спокойный разбор и практика в кабине, где видишь и понимаешь каждый звук, выпуск закрылков и турбулентность, навсегда сняли панику.',
-          author: 'Михаль Бен-Ами',
-          role: 'Проверенный отзыв Google • Курс преодоления аэрофобии',
-        },
-        {
-          quote: 'Пришли вдвоем с другом на 90-минутный «Вызов капитанов» и менялись за штурвалом. Посадки в долине Паро и в гонконгском Кай-Таке при боковом ветре с системой подвижности — чистый адреналин!',
-          author: 'Идан и Рои',
-          role: 'Проверенный отзыв Google • 90 мин Вызов капитанов',
-        },
-        {
-          quote: 'Потрясающий центр на улице Гершон Шац 36 в Тель-Авиве! Даже с нулевым опытом брифинг был понятным и увлекательным — уже через несколько минут я взлетала с полосы 26 в Бен-Гурионе над побережьем Тель-Авива.',
-          author: 'Сара Леви',
-          role: 'Проверенный отзыв Google • Первый полет',
-        },
-        {
-          quote: 'Как давний фанат домашних авиасимуляторов, скажу: оказаться в реальной кабине Boeing 737 MAX масштаба 1:1 с моторизованными колесами триммера и настоящим оверхедом — это космос. Стоит каждого шекеля!',
-          author: 'Алексей К.',
-          role: 'Проверенный отзыв Google • Энтузиаст авиасимуляторов',
-        },
-        {
-          quote: 'Провели здесь тимбилдинг для нашей команды руководителей — все под огромным впечатлением. Совместная посадка при отказе двигателя потребовала настоящего взаимодействия под давлением. Высший пилотаж!',
-          author: 'Гай Шакед',
-          role: 'Проверенный отзыв Google • Корпоративная сессия',
-        },
-      ],
     },
     cta: {
       badge: 'ДОПУСК К ВЫЛЕТУ',
@@ -3218,7 +3062,7 @@ export const translations = {
       badge: 'DISPATCH & LOCALISATION • GERSHON SHATZ 36',
       title: 'Visitez notre centre à Tel Aviv',
       subtitle: 'Premier centre de simulation Boeing 737 MAX échelle 1:1 au 36 rue Gershon Shatz, Tel Aviv-Yafo. Âge minimum : 10 ans et + (Sur réservation uniquement).',
-      addressTitle: 'Adresse du Centre (Google Verified)',
+      addressTitle: 'Adresse du Centre',
       addressLine1: '36 rue Gershon Shatz',
       addressLine2: 'Tel Aviv-Yafo, 6701772, Israël',
       addressNote: 'Quartier Montefiore • Près du tramway Yehudit & de la gare HaShalom',
@@ -3250,58 +3094,6 @@ export const translations = {
       formSending: 'Transmission...',
       formSuccessTitle: 'Message bien reçu au Dispatch',
       formSuccessDesc: 'Merci d’avoir contacté SimDream (desk@simdream.co.il). Notre équipe vous répondra rapidement.',
-    },
-    reviews: {
-      badge: 'AVIS GOOGLE MAPS CERTIFIÉS • 5.0 ★ (390+)',
-      title: 'Plébiscité par les pilotes et passionnés',
-      subtitle: 'Noté 5.0/5 sur plus de 390 avis Google vérifiés dans notre centre Boeing 737 MAX à Tel Aviv (Gershon Shatz 36).',
-      items: [
-        {
-          quote: 'Une expérience incroyable du début à la fin ! Notre instructeur Max, assis en place copilote, a expliqué chaque interrupteur du Boeing 737 MAX avec passion et patience, me guidant à travers décollages et atterrissages par météo difficile. On se croirait à 100 % dans un vrai avion de ligne !',
-          author: 'Omer R.',
-          role: 'Avis Google Vérifié • Local Guide',
-        },
-        {
-          quote: 'Je me suis préparé ici pour mon évaluation sur simulateur chez El Al sur Boeing 737. La restitution d’effort, les manettes motorisées, le vol Raw Data et la logique du FMC étaient d’une fidélité chirurgicale. Sélection réussie dès le premier essai !',
-          author: 'Dan Cohen',
-          role: 'Avis Google Vérifié • Pilote de Ligne (ATPL)',
-        },
-        {
-          quote: 'J’ai réservé le forfait Commandant d’une Heure (60 min) en cadeau d’anniversaire surprise pour mon mari. Chaque bouton, panneau supérieur et vibration de piste fonctionne comme sur un vrai 737 MAX. Il est ressorti avec un sourire immense !',
-          author: 'Noa Friedman',
-          role: 'Avis Google Vérifié • Cadeau d’Anniversaire',
-        },
-        {
-          quote: 'J’ai amené mon fils de 14 ans passionné d’aviation. L’instructeur s’est adapté à son niveau, lui a fait démarrer les moteurs en Cold & Dark et poser l’avion à Innsbruck et Ben Gourion. La meilleure activité de Tel Aviv !',
-          author: 'Yaron Tal',
-          role: 'Avis Google Vérifié • Vol Père & Fils',
-        },
-        {
-          quote: 'Le programme contre la peur en avion a changé ma vie. L’échange rassurant suivi de la pratique dans le cockpit pour comprendre chaque bruit mécanique et les turbulences m’a redonné une sérénité totale.',
-          author: 'Michal Ben-Ami',
-          role: 'Avis Google Vérifié • Stage Peur de l’Avion',
-        },
-        {
-          quote: 'Venus à deux amis pour le Défi des Commandants de 90 minutes, nous avons alterné aux commandes. Atterrir dans la vallée de Paro et à Kai Tak par vent de travers avec le système de mouvement était de l’adrénaline pure !',
-          author: 'Idan & Roi',
-          role: 'Avis Google Vérifié • Défi 90 min',
-        },
-        {
-          quote: 'Simulateur exceptionnel au 36 rue Gershon Shatz à Tel Aviv ! Sans aucune expérience préalable, le briefing était limpide et quelques minutes plus tard je décollais de Ben Gourion au-dessus de la côte de Tel Aviv.',
-          author: 'Sarah Levi',
-          role: 'Avis Google Vérifié • Baptême de Simulateur',
-        },
-        {
-          quote: 'En tant que passionné de simulateurs sur PC, s’asseoir dans un véritable cockpit 1:1 de Boeing 737 MAX avec roues de trim motorisées, manches couplés et panneau overhead complet est sur une autre planète !',
-          author: 'Alexey K.',
-          role: 'Avis Google Vérifié • Passionné de Simulation',
-        },
-        {
-          quote: 'Nous avons organisé une session d’équipe dirigeante ici et tout le monde a été bluffé. Gérer une panne moteur ensemble dans le cockpit a demandé une vraie communication sous pression — accueil et professionnalisme au top.',
-          author: 'Guy Shaked',
-          role: 'Avis Google Vérifié • Événement Entreprise',
-        },
-      ],
     },
     cta: {
       badge: 'AUTORISATION DE VOL',
@@ -4096,7 +3888,7 @@ export const translations = {
       badge: 'العمليات والموقع • غيرشون شاتس 36 تل أبيب',
       title: 'تفضل بزيارتنا في تل أبيب',
       subtitle: 'مركز محاكاة الطيران بوينغ 737 ماكس الرائد في شارع غيرشون شاتس 36، تل أبيب-يافا. الحد الأدنى للعمر: 10+ سنوات (يتطلب الحجز المسبق).',
-      addressTitle: 'عنوان المركز (موثق في Google)',
+      addressTitle: 'عنوان المركز',
       addressLine1: 'شارع غيرشون شاتس 36 (Gershon Shatz 36)',
       addressLine2: 'تل أبيب-يافا، 6701772، إسرائيل',
       addressNote: 'حي مونتفيوري • بالقرب من محطة القطار الخفيف "يهوديت" ومحطة قطار "هشالوم"',
@@ -4128,58 +3920,6 @@ export const translations = {
       formSending: 'جاري الإرسال...',
       formSuccessTitle: 'تم استلام الرسالة بنجاح',
       formSuccessDesc: 'شكراً لتواصلك مع SimDream (desk@simdream.co.il). سنرد عليك في أقرب وقت.',
-    },
-    reviews: {
-      badge: 'تقييمات GOOGLE MAPS موثقة • 5.0 ★ (+390)',
-      title: 'خيار الطيارين وعشاق الطيران',
-      subtitle: 'تقييم 5.0/5 بناءً على أكثر من 390 مراجعة Google موثقة في مركز محاكاة بوينغ 737 ماكس في تل أبيب (غيرشون شاتس 36).',
-      items: [
-        {
-          quote: 'تجربة مذهلة من البداية إلى النهاية! جلس المدرب ماكس في مقعد الضابط الأول وشرح كل مفتاح في بوينغ 737 ماكس بصبر وشغف كبيرين، ووجهني خلال الإقلاع والهبوط في طقس صعب. شعور مطابق 100% لقمرة طائرة حقيقية!',
-          author: 'عومر ر.',
-          role: 'تقييم Google موثق • مرشد محلي (Local Guide)',
-        },
-        {
-          quote: 'تدربت هنا لاختبارات القبول على بوينغ 737 في طيران إل عال. استجابة المقاود الواقعية، والمحركات الآلية، وديناميكيات الطيران اليدوي (Raw Data) وبرمجة الـ FMC كانت متطابقة تماماً. اجتزت الاختبار من المحاولة الأولى!',
-          author: 'دان كوهين',
-          role: 'تقييم Google موثق • طيار تجاري (ATPL)',
-        },
-        {
-          quote: 'حجزت باقة "قبطان لمدة ساعة" (60 دقيقة) كهدية مفاجئة لعيد ميلاد زوجي. كل زر ومفتاح علوي واهتزاز على المدرج يعمل تماماً مثل طائرة 737 ماكس الحقيقية. خرج من القمرة بابتسامة كبيرة لم تفارقه طوال الأسبوع!',
-          author: 'نوعا فريدمان',
-          role: 'تقييم Google موثق • هدية عيد ميلاد',
-        },
-        {
-          quote: 'أحضرت ابني البالغ من العمر 14 عاماً والعاشق للطيران. قام المدرب بتخصيص المستوى له، وسمح له بتشغيل المحركات من وضع Cold & Dark والهبوط في إنسبروك وبن غوريون. أفضل تجربة في تل أبيب بلا منازع!',
-          author: 'يارون تال',
-          role: 'تقييم Google موثق • رحلة أب وابنه',
-        },
-        {
-          quote: 'غيّر برنامج التغلب على الخوف من الطيران حياتي بالكامل. الجمع بين جلسة هادئة وتطبيق عملي داخل القمرة لفهم كل صوت وحركة للقلابات والمطبات الهوائية أعاد لي الثقة والطمأنينة في السفر.',
-          author: 'ميخال بن عامي',
-          role: 'تقييم Google موثق • برنامج التغلب على فوبيا الطيران',
-        },
-        {
-          quote: 'جئنا كصديقين في باقة "تحدي القباطنة" لمدة 90 دقيقة وتناوبنا على القيادة. الهبوط في وادي بارو ومطار كاي تاك وسط الرياح الجانبية مع نظام الحركة والشاشة البانورامية كان قمة الأدرينالين!',
-          author: 'عيدان وروعي',
-          role: 'تقييم Google موثق • تحدي القباطنة 90 دقيقة',
-        },
-        {
-          quote: 'مركز رائع في شارع غيرشون شاتس 36 بتل أبيب! رغم عدم وجود أي خبرة سابقة لدي، كان الشرح واضحاً وممتعاً، وخلال دقائق كنت أقلع من المدرج 26 في بن غوريون فوق ساحل تل أبيب.',
-          author: 'سارة ليفي',
-          role: 'تقييم Google موثق • تجربة طيران أولى',
-        },
-        {
-          quote: 'كهاوٍ لمحاكيات الطيران المنزلية لسنوات، فإن الجلوس داخل قمرة بوينغ 737 ماكس حقيقية بمقياس 1:1 مع عجلات التوازن الآلية والمقاود المرتبطة واللوحة العلوية الكاملة هو عالم آخر تماماً. يستحق كل شيكل!',
-          author: 'أليكسي ك.',
-          role: 'تقييم Google موثق • هاوي محاكاة الطيران',
-        },
-        {
-          quote: 'نظمنا فعالية لفريق الإدارة التنفيذية هنا وأُعجب الجميع بالتجربة. التعامل المشترك مع عطل محرك في القمرة تطلب تواصلاً حقيقياً تحت الضغط — ضيافة ممتازة واحترافية على أعلى مستوى.',
-          author: 'غاي شاكيد',
-          role: 'تقييم Google موثق • فعالية للشركات والفرق',
-        },
-      ],
     },
     cta: {
       badge: 'تصريح صعود قمرة القيادة',

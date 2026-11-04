@@ -11,8 +11,6 @@ export const FACILITY_INFO = {
   primaryDomain: 'https://www.simdream.co.il',
   alternateDomain: 'https://simdream.aero',
   placeId: 'ChIJAyYTsyJLHRURRrWPGuNnmn4',
-  googleRating: 5.0,
-  googleRatingCount: 390,
   googleMapsUrl: 'https://maps.app.goo.gl/DDvRhUhyPgnR8Pmc9',
   googleReviewsDirectUrl:
     'https://search.google.com/local/reviews?placeid=ChIJAyYTsyJLHRURRrWPGuNnmn4',
