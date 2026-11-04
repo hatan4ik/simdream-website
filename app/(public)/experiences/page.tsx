@@ -145,7 +145,7 @@ export default function ExperiencesPage() {
 
                 {/* Clear, localized session inclusions rather than a small generic highlights label. */}
                 <div className="space-y-3 rounded-xl border border-sky-500/20 bg-sky-500/5 p-4">
-                  <p className="text-sm sm:text-base font-bold text-sky-100">
+                  <p className="text-sm sm:text-base font-bold text-white">
                     {t.experiences.packageHighlights}
                   </p>
                   <ul className="space-y-2 text-sm text-slate-200">

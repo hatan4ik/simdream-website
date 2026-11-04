@@ -45,21 +45,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
           {/* Navigation */}
           <nav className="space-y-1 text-xs">
-            {user ? (
+            {user && (
               <Link
                 href="/dashboard"
                 className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg bg-sky-500/10 text-sky-400 font-semibold"
               >
                 <Award className="w-4 h-4" />
                 <span>{nav.logbook}</span>
-              </Link>
-            ) : (
-              <Link
-                href="/login"
-                className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg bg-sky-500/10 text-sky-400 font-semibold"
-              >
-                <Plane className="w-4 h-4 -rotate-45" />
-                <span>{t.member.dashboard.signInCta}</span>
               </Link>
             )}
 

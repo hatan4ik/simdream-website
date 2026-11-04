@@ -93,7 +93,7 @@ export async function selectStorefrontDate(page: Page, date: string, choose: () 
 /** Shows the zero-slots recovery state: the 45-minute daytime promo is never sold on Saturdays. */
 export async function showZeroSlotState(page: Page): Promise<void> {
   await gotoSettled(page, '/book');
-  await page.getByRole('button', { name: /^45 MIN / }).click();
+  await page.getByRole('button', { name: /^45 min\b/i }).click();
   const saturdayButton = await ensureStorefrontDateVisible(page, nextIsraelWeekday(6));
   await saturdayButton.click();
   await expect(zeroSlotHeading(page)).toBeVisible();
