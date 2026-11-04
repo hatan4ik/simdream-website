@@ -152,6 +152,8 @@ interface StorefrontCalendarCopy {
   departureSubtitle: string;
   viewWeek: string;
   viewMonth: string;
+  previousWeek: string;
+  nextWeek: string;
   previousMonth: string;
   nextMonth: string;
   departureSlots: (date: string) => string;
@@ -178,6 +180,8 @@ const STOREFRONT_CALENDAR_COPY: Record<Language, StorefrontCalendarCopy> = {
     departureSubtitle: 'Real-time cockpit availability • Choose a date and departure time',
     viewWeek: 'Week',
     viewMonth: 'Month',
+    previousWeek: 'Previous week',
+    nextWeek: 'Next week',
     previousMonth: 'Previous month',
     nextMonth: 'Next month',
     departureSlots: (date) => `Departure Slots for ${date}:`,
@@ -202,6 +206,8 @@ const STOREFRONT_CALENDAR_COPY: Record<Language, StorefrontCalendarCopy> = {
     departureSubtitle: 'זמינות תא טייס בזמן אמת • בחרו תאריך ושעת המראה',
     viewWeek: 'שבוע',
     viewMonth: 'חודש',
+    previousWeek: 'השבוע הקודם',
+    nextWeek: 'השבוע הבא',
     previousMonth: 'החודש הקודם',
     nextMonth: 'החודש הבא',
     departureSlots: (date) => `משבצות המראה עבור ${date}:`,
@@ -226,6 +232,8 @@ const STOREFRONT_CALENDAR_COPY: Record<Language, StorefrontCalendarCopy> = {
     departureSubtitle: 'Доступность кабины в реальном времени • выберите дату и время вылета',
     viewWeek: 'Неделя',
     viewMonth: 'Месяц',
+    previousWeek: 'Предыдущая неделя',
+    nextWeek: 'Следующая неделя',
     previousMonth: 'Предыдущий месяц',
     nextMonth: 'Следующий месяц',
     departureSlots: (date) => `Слоты вылета на ${date}:`,
@@ -250,6 +258,8 @@ const STOREFRONT_CALENDAR_COPY: Record<Language, StorefrontCalendarCopy> = {
     departureSubtitle: 'Disponibilités du cockpit en temps réel • choisissez une date et une heure de départ',
     viewWeek: 'Semaine',
     viewMonth: 'Mois',
+    previousWeek: 'Semaine précédente',
+    nextWeek: 'Semaine suivante',
     previousMonth: 'Mois précédent',
     nextMonth: 'Mois suivant',
     departureSlots: (date) => `Créneaux de départ pour le ${date} :`,
@@ -274,6 +284,8 @@ const STOREFRONT_CALENDAR_COPY: Record<Language, StorefrontCalendarCopy> = {
     departureSubtitle: 'توفر قمرة القيادة في الوقت الفعلي • اختر التاريخ ووقت الإقلاع',
     viewWeek: 'أسبوع',
     viewMonth: 'الشهر',
+    previousWeek: 'الأسبوع السابق',
+    nextWeek: 'الأسبوع التالي',
     previousMonth: 'الشهر السابق',
     nextMonth: 'الشهر التالي',
     departureSlots: (date) => `مواعيد الإقلاع ليوم ${date}:`,
@@ -358,6 +370,8 @@ export function AmazonFlightStorefront({
   }, [selectedDate]);
 
   const weekDays = useMemo(() => calendarWeekDays(selectedDate, language), [language, selectedDate]);
+  const previousWeekDate = addDaysToYmd(selectedDate, -7);
+  const canNavigateToPreviousWeek = previousWeekDate >= calendarTodayYmd;
   const weekdayNames = useMemo(() => calendarWeekdayNames(language), [language]);
   const monthGridDays = useMemo(
     () => calendarMonthCells(viewMonthDate, language, calendarTodayYmd),
@@ -567,29 +581,55 @@ export function AmazonFlightStorefront({
 
           {/* The month view is primary; seven-day view keeps a compact alternative. */}
           {calendarMode === 'week' ? (
-            <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
-              {weekDays.map((day) => {
-                const isSelected = day.dateStr === selectedDate;
-                return (
-                  <button
-                    key={day.dateStr}
-                    type="button"
-                    data-calendar-date={day.dateStr}
-                    aria-label={day.dayLabel}
-                    aria-pressed={isSelected}
-                    onClick={() => selectCalendarDate(day.dateStr)}
-                    className={`min-h-[64px] py-2 px-1 sm:p-2 rounded-xl border text-center transition-all flex flex-col items-center justify-center touch-manipulation select-none cursor-pointer active:scale-95 ${
-                      isSelected
-                        ? 'border-amber-400 bg-amber-500/15 text-white shadow-md ring-1 ring-amber-400/50'
-                        : 'border-slate-800/90 bg-slate-950/70 hover:border-slate-700 text-slate-300'
-                    }`}
-                  >
-                    <span className="text-[9px] font-mono uppercase text-slate-400">{day.weekdayLabel}</span>
-                    <span className="text-sm sm:text-base font-black font-mono text-white my-0.5">{formatCalendarDayNumber(day.dayNumber, language)}</span>
-                    <span className="text-[9px] font-mono text-slate-400">{day.monthShortLabel}</span>
-                  </button>
-                );
-              })}
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between gap-2 px-1">
+                <button
+                  type="button"
+                  data-calendar-previous-week
+                  aria-label={calendarCopy.previousWeek}
+                  disabled={!canNavigateToPreviousWeek}
+                  onClick={() => selectCalendarDate(previousWeekDate)}
+                  className="min-w-[40px] min-h-[40px] p-2 rounded-xl border border-slate-800 bg-slate-950 text-slate-300 hover:text-white disabled:cursor-not-allowed disabled:opacity-35 flex items-center justify-center touch-manipulation cursor-pointer active:scale-95 transition-all"
+                >
+                  <ChevronLeft className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
+                </button>
+                <span className="text-xs sm:text-sm font-bold text-white text-center">
+                  {formatCalendarDate(weekDays[0].dateStr, language)} – {formatCalendarDate(weekDays[6].dateStr, language)}
+                </span>
+                <button
+                  type="button"
+                  data-calendar-next-week
+                  aria-label={calendarCopy.nextWeek}
+                  onClick={() => selectCalendarDate(addDaysToYmd(selectedDate, 7))}
+                  className="min-w-[40px] min-h-[40px] p-2 rounded-xl border border-slate-800 bg-slate-950 text-slate-300 hover:text-white flex items-center justify-center touch-manipulation cursor-pointer active:scale-95 transition-all"
+                >
+                  <ChevronRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
+                </button>
+              </div>
+              <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
+                {weekDays.map((day) => {
+                  const isSelected = day.dateStr === selectedDate;
+                  return (
+                    <button
+                      key={day.dateStr}
+                      type="button"
+                      data-calendar-date={day.dateStr}
+                      aria-label={day.dayLabel}
+                      aria-pressed={isSelected}
+                      onClick={() => selectCalendarDate(day.dateStr)}
+                      className={`min-h-[64px] py-2 px-1 sm:p-2 rounded-xl border text-center transition-all flex flex-col items-center justify-center touch-manipulation select-none cursor-pointer active:scale-95 ${
+                        isSelected
+                          ? 'border-amber-400 bg-amber-500/15 text-white shadow-md ring-1 ring-amber-400/50'
+                          : 'border-slate-800/90 bg-slate-950/70 hover:border-slate-700 text-slate-300'
+                      }`}
+                    >
+                      <span className="text-[9px] font-mono uppercase text-slate-400">{day.weekdayLabel}</span>
+                      <span className="text-sm sm:text-base font-black font-mono text-white my-0.5">{formatCalendarDayNumber(day.dayNumber, language)}</span>
+                      <span className="text-[9px] font-mono text-slate-400">{day.monthShortLabel}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           ) : (
             <div className="p-3 sm:p-4 rounded-xl border border-slate-800 bg-slate-950/80 space-y-3">

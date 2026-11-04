@@ -244,3 +244,44 @@ test.describe('/book month calendar', () => {
     }
   });
 });
+
+test.describe('/book week calendar navigation', () => {
+  const selectedCalendarDate = async (page: Parameters<typeof openBookingPage>[0]): Promise<string> => {
+    const date = await page.locator('[data-calendar-date][aria-pressed="true"]').first().getAttribute('data-calendar-date');
+    if (!date) throw new Error('Expected a selected calendar date');
+    return date;
+  };
+
+  const exerciseWeekPaging = async (page: Parameters<typeof openBookingPage>[0]) => {
+    const selectedDate = await selectedCalendarDate(page);
+    const nextDate = addDays(selectedDate, 7);
+    const nextDepartureRequest = page.waitForResponse(
+      (response) => isSlotsApi(new URL(response.url())) && requestedDate(response.request()) === nextDate
+    );
+
+    await page.locator('[data-calendar-next-week]').click();
+    await nextDepartureRequest;
+    await expect(page.locator(`[data-calendar-date="${nextDate}"][aria-pressed="true"]`)).toBeVisible();
+    await expect(page.locator('[data-calendar-previous-week]')).toBeEnabled();
+
+    const previousDepartureRequest = page.waitForResponse(
+      (response) => isSlotsApi(new URL(response.url())) && requestedDate(response.request()) === selectedDate
+    );
+    await page.locator('[data-calendar-previous-week]').click();
+    await previousDepartureRequest;
+    await expect(page.locator(`[data-calendar-date="${selectedDate}"][aria-pressed="true"]`)).toBeVisible();
+  };
+
+  test('moves the storefront week forward and back', async ({ page, baseURL }) => {
+    await openBookingPage(page, baseURL, fulfillOpenSlots);
+    await page.getByRole('button', { name: 'Week', exact: true }).click();
+    await exerciseWeekPaging(page);
+  });
+
+  test('moves the guided calendar week forward and back', async ({ page, baseURL }) => {
+    await openBookingPage(page, baseURL, fulfillOpenSlots);
+    await page.getByRole('button', { name: 'Guided Wizard (3-Step)', exact: true }).click();
+    await page.getByRole('button', { name: 'Week', exact: true }).click();
+    await exerciseWeekPaging(page);
+  });
+});
