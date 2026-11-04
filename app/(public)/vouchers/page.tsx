@@ -26,6 +26,13 @@ import {
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { useLanguage } from '@/lib/i18n/language-context';
+import { getLocalizedPackages } from '@/lib/i18n/translations';
+import {
+  DEFAULT_GIFT_CERTIFICATE_AMOUNT,
+  giftCertificateAmount,
+  orderGiftCertificatePackages,
+  type GiftCertificatePackageId,
+} from '@/lib/catalog/gift-voucher-packages';
 import { BrandMark } from '@/components/brand/BrandLogo';
 
 type GiftFormatMode = 'certificate' | 'card';
@@ -39,19 +46,28 @@ interface VerifiedVoucherInfo {
 }
 
 export default function GiftVouchersPage() {
-  const { t, isRTL } = useLanguage();
+  const { t, isRTL, language } = useLanguage();
 
-  const VOUCHER_TIERS = [
-    { amount: 490, label: t.vouchers.tier1Label, popular: false, packageId: 'pkg-daytime-45' },
-    { amount: 890, label: t.vouchers.tier2Label, popular: true, packageId: 'pkg-captain-60' },
-    { amount: 1290, label: t.vouchers.tier3Label, popular: false, packageId: 'pkg-odyssey-90' },
-    { amount: 1690, label: t.vouchers.tier4Label, popular: false, packageId: 'pkg-pro-120' },
-  ];
+  const VOUCHER_TIERS = React.useMemo(() => {
+    const labels: Record<GiftCertificatePackageId, string> = {
+      'pkg-discovery-30': t.vouchers.tier1Label,
+      'pkg-captain-60': t.vouchers.tier2Label,
+      'pkg-ultimate-90': t.vouchers.tier3Label,
+      'pkg-assessment-prep-120': t.vouchers.tier4Label,
+    };
+
+    return orderGiftCertificatePackages(getLocalizedPackages(language)).map((pkg) => ({
+      amount: giftCertificateAmount(pkg),
+      label: labels[pkg.id as GiftCertificatePackageId],
+      popular: pkg.id === 'pkg-captain-60',
+      packageId: pkg.id,
+    }));
+  }, [language, t.vouchers.tier1Label, t.vouchers.tier2Label, t.vouchers.tier3Label, t.vouchers.tier4Label]);
 
   const CARD_PRESETS = [250, 500, 750, 1000];
 
   const [giftMode, setGiftMode] = useState<GiftFormatMode>('certificate');
-  const [selectedTier, setSelectedTier] = useState<number>(890);
+  const [selectedTier, setSelectedTier] = useState<number>(DEFAULT_GIFT_CERTIFICATE_AMOUNT);
   const [customAmount, setCustomAmount] = useState<string>('');
   const [hidePriceOnCertificate, setHidePriceOnCertificate] = useState<boolean>(false);
   const [deliveryMethod, setDeliveryMethod] = useState<'direct' | 'print'>('direct');
@@ -105,6 +121,7 @@ export default function GiftVouchersPage() {
   const activeTierObj = !customAmount ? VOUCHER_TIERS.find((tier) => tier.amount === selectedTier) : undefined;
 
   const handleSelectCertificateTier = (amount: number) => {
+    setGiftMode('certificate');
     setSelectedTier(amount);
     setCustomAmount('');
   };
@@ -137,7 +154,6 @@ export default function GiftVouchersPage() {
 
       if (giftMode === 'certificate' && activeTierObj) {
         payload.packageId = activeTierObj.packageId;
-        payload.packageTitle = activeTierObj.label;
       }
 
       const res = await fetch('/api/checkout', {
@@ -256,7 +272,7 @@ export default function GiftVouchersPage() {
               onClick={() => {
                 setGiftMode('certificate');
                 if (!VOUCHER_TIERS.some((tier) => tier.amount === selectedTier)) {
-                  setSelectedTier(890);
+                  setSelectedTier(DEFAULT_GIFT_CERTIFICATE_AMOUNT);
                 }
                 setCustomAmount('');
               }}

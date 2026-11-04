@@ -57,7 +57,7 @@ test.describe('primary navigation', () => {
   // Each footer package link once led to the generic catalog page; it must open the booking
   // engine with that package preselected, as the home page's package cards do.
   const FOOTER_PACKAGES = [
-    { link: 'Basic Flight Session — Single Airport Takeoff & Landing', slug: 'discovery-30' },
+    { link: 'Discovery Flight — 30-Minute Boeing 737 Experience', slug: 'discovery-30' },
     { link: "Captain's Command Flight (60m)", slug: 'captains-command-60' },
     { link: "Captains' Challenge & Multi-Trio Odyssey (90m)", slug: 'ultimate-aviator-90' },
     { link: 'Airline Interview Prep 120 PRO', slug: 'airline-assessment-prep' },

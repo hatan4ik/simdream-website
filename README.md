@@ -44,9 +44,9 @@ Production-grade website, multi-step booking engine, Amazon-style flight storefr
    - The legacy `kantorovich-engine.ts` module is a deterministic interval scheduler, not a linear-programming solver. It uses fixed reservation buffers, overlap checks, and dynamic-programming gap tiling. Its full specification is documented in [`KANTOROVICH_SCHEDULER_SPEC.md`](KANTOROVICH_SCHEDULER_SPEC.md).
    - **Zero-Duplication Calendar-First 3-Step Flow**:
      - Landing on `/book` (from the Navbar, Homepage, or `/experiences?package=...`) opens the **Smart Calendar immediately as Step 1** (`Step 1: Date, Duration & Departure Slot` &rarr; `Step 2: Cockpit Upgrades & Mission Add-Ons` &rarr; `Step 3: Pilot Manifest & Payment`).
-   - **Core Reservation Mapping (Under the Hood)**: capacity is reserved through the server's canonical duration map (`20m -> 45m`, `45m -> 60m`, `60m -> 75m`, `90m -> 105m`, `120m -> 150m`); integrations must not infer the buffer themselves.
+   - **Core Reservation Mapping (Under the Hood)**: capacity is reserved through the server's canonical duration map (`30m -> 45m`, `45m -> 60m`, `60m -> 75m`, `90m -> 105m`, `120m -> 150m`); integrations must not infer the buffer themselves.
    - **Tariff Matrix & Peak-Time Rules**:
-     - `20 min Basic Entry` (`45m` block): `₪250` (Single Airport Takeoff & Landing exercise — modular entry base customizable in Step 2).
+     - `30 min Discovery Flight` (`45m` block): `₪450` (Guided takeoff, hands-on flight and landing; customizable in Step 2).
      - `45 min Promo` (`60m` block): `₪490` (`₪8.17/min` — strictly Daytime `< 18:00`, automatically hidden in Evening Prime-Time & Saturdays).
      - `60 min Standard` (`75m` block): `₪690` (`₪9.20/min` — base anchor slot).
      - `90 min Long` (`105m` block): `₪850` Daytime (`₪8.10/min`) / `₪950` Evening Prime-Time (`>= 18:00` & Saturdays, `₪9.05/min`).

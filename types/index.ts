@@ -1,5 +1,5 @@
 export type PackageCategory = 'recreational' | 'training' | 'corporate' | 'fear_of_flying';
-export type FlightPackageDuration = 20 | 45 | 60 | 90 | 120 | 240;
+export type FlightPackageDuration = 30 | 45 | 60 | 90 | 120 | 240;
 export type PilotExperienceLevel = 'beginner' | 'enthusiast' | 'student_pilot' | 'atpl';
 export type AddonIconName =
   | 'Zap'

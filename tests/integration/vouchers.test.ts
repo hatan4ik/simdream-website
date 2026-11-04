@@ -257,14 +257,14 @@ describe('PATCH /api/vouchers (admin redemption)', () => {
 });
 
 describe('POST /api/checkout (Gift Certificate vs Flexible Gift Card)', () => {
-  it('records packageId and canonical packageTitle when purchasing a Flight Experience Gift Certificate', async () => {
+  it('resolves a named certificate amount and title from the canonical package, never the browser payload', async () => {
     const app = await loadApp({ stripe: 'mocked' });
     const response = await postCheckout(
       app,
       voucherCheckoutBody({
-        amountIls: 890,
+        amountIls: 1,
         packageId: 'pkg-captain-60',
-        packageTitle: "60-Min Captain's Command (Popular)",
+        packageTitle: 'Attacker-controlled title',
       })
     );
 
@@ -273,11 +273,24 @@ describe('POST /api/checkout (Gift Certificate vs Flexible Gift Card)', () => {
     expect(createdId).toBeTruthy();
     const stored = createdId ? await app.store.getVoucherById(createdId) : undefined;
     expect(stored).toMatchObject({
-      initialValueIls: 890,
+      initialValueIls: 690,
       packageId: 'pkg-captain-60',
       packageTitle: "Captain's Command Flight",
       paymentStatus: 'pending',
     });
+    expect(app.checkoutSessions[0]?.amountIls).toBe(690);
+  });
+
+  it('rejects a made-up package id instead of silently creating a flexible card', async () => {
+    const app = await loadApp({ stripe: 'mocked' });
+
+    const response = await postCheckout(app, voucherCheckoutBody({ packageId: 'pkg-not-real' }));
+
+    expect(response).toMatchObject({
+      status: 400,
+      body: { error: 'Select a valid flight package for this gift certificate.' },
+    });
+    expect(app.checkoutSessions).toHaveLength(0);
   });
 
   it('creates an open-balance Flexible Monetary Gift Card when packageId is omitted', async () => {

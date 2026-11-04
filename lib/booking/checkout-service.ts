@@ -4,6 +4,7 @@ import { Booking, GiftVoucher } from '@/types';
 import { FLIGHT_ADDONS, SIMULATOR_PACKAGES } from '@/lib/db/seed-data';
 import { BookingConflictError, store } from '@/lib/db/store';
 import { hasDeparted, israelToday } from '@/lib/scheduler/israel-clock';
+import { giftCertificateAmount, giftCertificatePackageById } from '@/lib/catalog/gift-voucher-packages';
 import {
   calculateMissionManifest,
   packageAllowsAddons,
@@ -182,11 +183,18 @@ export async function startVoucherCheckout(request: Request, input: z.infer<type
   const expiryDate = new Date();
   expiryDate.setFullYear(expiryDate.getFullYear() + 1);
 
-  const matchedPkg = SIMULATOR_PACKAGES.find((item) => item.id === input.packageId);
-  const resolvedPackageTitle = matchedPkg ? sanitizePackageTitle(matchedPkg.title) : input.packageTitle;
+  const matchedPkg = giftCertificatePackageById(input.packageId);
+  if (input.packageId && !matchedPkg) {
+    throw new CheckoutError('Select a valid flight package for this gift certificate.');
+  }
+
+  // Named certificates always use the catalogue price. Flexible monetary cards retain
+  // the buyer's chosen amount. This makes the browser unable to alter package pricing.
+  const resolvedAmountIls = matchedPkg ? giftCertificateAmount(matchedPkg) : input.amountIls;
+  const resolvedPackageTitle = matchedPkg ? sanitizePackageTitle(matchedPkg.title) : undefined;
 
   const voucher = await store.createPendingVoucher({
-    initialValueIls: input.amountIls,
+    initialValueIls: resolvedAmountIls,
     recipientName: input.recipientName,
     // No recipient email: the buyer receives the voucher to print and hand over.
     recipientEmail: input.recipientEmail || input.senderEmail,
@@ -200,11 +208,11 @@ export async function startVoucherCheckout(request: Request, input: z.infer<type
 
   try {
     const session = await createCheckoutSession({
-      title: 'Sim Dream Flight Gift Voucher — ₪' + input.amountIls,
+      title: 'Sim Dream Flight Gift Voucher — ₪' + resolvedAmountIls,
       description: resolvedPackageTitle
         ? `Flight Gift Certificate (${resolvedPackageTitle}) for ${input.recipientName}`
         : 'Digital gift voucher for ' + input.recipientName,
-      amountIls: input.amountIls,
+      amountIls: resolvedAmountIls,
       customerEmail: input.senderEmail,
       voucherId: voucher.id,
       successUrl: origin + '/vouchers?purchase=processing&session_id={CHECKOUT_SESSION_ID}',

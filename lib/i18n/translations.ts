@@ -201,16 +201,17 @@ export const translations = {
     },
     packages: {
       'pkg-discovery-30': {
-        title: 'Basic Flight Session — Single Airport Takeoff & Landing',
-        badge: 'Basic 20m • ₪250',
-        shortDesc: 'Includes: Cockpit Briefing + 1x Single-Airport Takeoff & Landing Exercise (e.g. Ben Gurion TLV). Expandable with World Airport Trio Add-ons.',
-        description: 'Step into our 1:1 scale Boeing 737 MAX cockpit for a focused 20-minute entry flight session. Includes a concise pre-flight controls briefing plus 1 full Takeoff & Landing exercise at a single airport of your choice (such as Ben Gurion LLBG). Want more airports? Add any 3-Airport World Trio bundle in Step 3!',
+        title: 'Discovery Flight — 30-Minute Boeing 737 Experience',
+        badge: 'Discovery 30m • ₪450',
+        shortDesc: 'A guided 30-minute Boeing 737 mission with takeoff, hands-on flight and landing. Add cockpit, weather or world-airport upgrades in Step 2.',
+        description: 'Take the Captain’s seat in our 1:1 scale Boeing 737 MAX cockpit for a complete 30-minute discovery mission. After a concise controls briefing, you will take off, hand-fly a visual route and land with an active airline captain beside you. Build a longer custom mission with optional upgrades in Step 2.',
         features: [
-          'Includes: Pre-Flight Briefing + 1x Single-Airport Takeoff & Landing Exercise',
+          '30 minutes of hands-on pilot-in-command flight time',
           '1:1 Scale Boeing 737 MAX Cockpit & 220° 4K wrap-around visuals',
-          'Takeoff roll, visual circuit & manual touchdown at Ben Gurion (LLBG)',
-          'Modular base — add any 3-Airport World Trio Bundle in Step 3',
-          'Up to 2 observers in cockpit jumpseats included FREE',
+          'Guided takeoff, visual navigation and manual landing',
+          'Pre-flight primary controls & safety briefing included',
+          'Build a longer mission with optional cockpit and route upgrades in Step 2',
+          '1 guest/observer seated in the cockpit jumpseat',
           '1-on-1 guidance from a commercial pilot instructor',
           'Commemorative Flight Certificate',
         ],
@@ -1026,16 +1027,17 @@ export const translations = {
     },
     packages: {
       'pkg-discovery-30': {
-        title: 'טיסת בסיס — תרגול המראה ונחיתה בשדה בודד (20 דק׳)',
-        badge: 'בסיס 20 דק׳ • ₪250',
-        shortDesc: 'כולל: תדריך קוקפיט + תרגול המראה ונחיתה מלא בשדה תעופה אחד (כגון נתב״ג). ניתן להרחיב עם חבילות שלישיית שדות תעופה בעולם.',
-        description: 'כניסה ממוקדת לתא הטייס של הבואינג 737 MAX ל-20 דקות. כולל תדריך קצר על הגאי המטוס ותרגול המראה, הקפה ונחיתה ידנית בשדה תעופה אחד לבחירתכם (כמו בן גוריון LLBG). רוצים לטוס ליעדים נוספים? הוסיפו בשלב 3 חבילת שלישיית שדות תעופה (Trio)!',
+        title: 'טיסת היכרות — חוויית בואינג 737 ל־30 דקות',
+        badge: 'טיסת היכרות 30 דק׳ • ₪450',
+        shortDesc: 'משימת בואינג 737 מודרכת בת 30 דקות הכוללת המראה, הטסה מעשית ונחיתה. בשלב 2 אפשר להוסיף שדרוגי קוקפיט, מזג אוויר ושדות תעופה בעולם.',
+        description: 'שבו במושב הקברניט בתא הטייס של בואינג 737 MAX בקנה מידה 1:1 למשימת היכרות מלאה של 30 דקות. אחרי תדריך קצר על ההגאים תמריאו, תטיסו נתיב ראייתי ותנחתו בליווי קברניט פעיל. אפשר לבנות משימה ארוכה יותר עם שדרוגים לבחירתכם בשלב 2.',
         features: [
-          'כולל: תדריך מקדים + תרגול המראה ונחיתה מלא בשדה תעופה בודד',
+          '30 דקות הטסה מעשית במושב הקברניט',
           'תא טייס ביחס 1:1 של בואינג 737 MAX והקרנת 220° 4K',
-          'המראה, הקפה ראייתית ונחיתה ידנית בנמל התעופה בן גוריון (LLBG)',
-          'בסיס מודולרי – ניתן להוסיף חבילות Trio של 3 שדות תעופה בעולם',
-          'עד 2 אורחים במושבי צופה (Jumpseat) ללא תוספת תשלום',
+          'המראה מודרכת, ניווט ראייתי ונחיתה ידנית',
+          'תדריך בטיחות והיכרות עם ההגאים לפני הטיסה',
+          'אפשרות להרחיב את המשימה עם שדרוגי קוקפיט ונתיבים בשלב 2',
+          'אורח/ת אחד/ת במושב הצופה בקוקפיט',
           'מדריך טיסה מוסמך המשמש כקצין ראשון לצידכם',
           'תעודת טיסה רשמית למזכרת',
         ],
@@ -1378,9 +1380,9 @@ export const translations = {
       processing: 'מייצר שובר...',
       securePaymentNotice: 'תשלום מוצפן ומאובטח בתקן 256-bit SSL באמצעות Stripe. השובר הדיגיטלי יישלח מיידית למייל בסיום הרכישה.',
       formatSectionTitle: 'בחרו את סוג המתנה',
-      formatSectionSubtitle: 'בחרו בין תעודת מתנה לחוויית טיסה (כרטיס עלייה למטוס לחבילה נבחרת) לבין גיפט קארד כספי גמיש (יתרה חופשית למימוש)',
+      formatSectionSubtitle: 'בחרו בין שובר מתנה לחוויית טיסה (כרטיס עלייה למטוס לחבילה נבחרת) לבין גיפט קארד כספי גמיש (יתרה חופשית למימוש)',
       certOptionBadge: 'הבחירה הפופולרית להפתעות ואירועים',
-      certOptionTitle: 'תעודת מתנה לחוויית טיסה (Gift Certificate)',
+      certOptionTitle: 'שובר מתנה לחוויית טיסה',
       certOptionDesc: 'העניקו חבילת טיסה יוקרתית ומוגדרת מראש בעיצוב כרטיס עלייה למטוס רשמי, כולל אפשרות להסתיר את המחיר מהמקבל/ת.',
       certOptionPerk1: 'משימת טיסה ומשך זמן מוגדרים',
       certOptionPerk2: 'אפשרות להסתרת המחיר בתעודה למקבל/ת',
@@ -1846,15 +1848,15 @@ export const translations = {
     },
     packages: {
       'pkg-discovery-30': {
-        title: 'Ознакомительный полет на Boeing 737 MAX',
-        badge: 'Для начинающих',
-        shortDesc: 'Возьмите штурвал в руки для вашего первого полета с вылетом из аэропорта Бен-Гурион вдоль побережья Тель-Авива.',
-        description: 'Испытайте волнующие ощущения от управления 70-тонным авиалайнером. После 15-минутного предполетного инструктажа по приборам PFD, сектору газа и штурвалу вы вырулите на ВПП 26 в Бен-Гурионе (LLBG), установите взлетный режим, поднимете нос самолета в небо Средиземноморья и выполните визуальную посадку вручную.',
+        title: 'Ознакомительный полёт на Boeing 737 MAX — 30 минут',
+        badge: '30 минут • ₪450',
+        shortDesc: '30-минутная управляемая миссия на Boeing 737: взлёт, самостоятельное пилотирование и посадка с капитаном рядом.',
+        description: 'Займите кресло командира в кабине Boeing 737 MAX масштаба 1:1 для полноценной 30-минутной ознакомительной миссии. После краткого брифинга вы взлетите, вручную проведёте самолёт по визуальному маршруту и выполните посадку вместе с действующим пилотом авиакомпании.',
         features: [
           'Кабина Boeing 737 MAX в точном масштабе 1:1',
           'Панорамный цилиндрический экран 220° с 4K проекцией',
-          'Взлет из аэропорта Бен-Гурион (LLBG)',
-          'Живописный полет над побережьем Тель-Авива и Яффо',
+          '30 минут практического пилотирования в кресле командира',
+          'Управляемые взлёт, визуальная навигация и ручная посадка',
           '1 гость на откидном кресле наблюдателя (Jumpseat)',
           'Опытный пилот-инструктор в роли второго пилота',
           'Памятный сертификат о совершенном полете',
@@ -2672,15 +2674,15 @@ export const translations = {
     },
     packages: {
       'pkg-discovery-30': {
-        title: 'Vol Découverte Boeing 737 MAX',
-        badge: 'Idéal Débutants',
-        shortDesc: 'Prenez les commandes pour votre tout premier vol au départ de l’aéroport Ben Gourion le long de la côte de Tel Aviv.',
-        description: 'Vivez la sensation exaltante de commander un avion de ligne commercial de 70 tonnes. Après un briefing de 15 minutes sur les écrans de vol PFD, la manette des gaz et les commandes de vol, vous vous alignerez sur la piste 26 de Tel Aviv (LLBG), afficherez la poussée de décollage, monterez au-dessus de la Méditerranée et réaliserez un atterrissage visuel manuel.',
+        title: 'Vol Découverte Boeing 737 MAX — 30 minutes',
+        badge: '30 minutes • ₪450',
+        shortDesc: 'Une mission guidée de 30 minutes sur Boeing 737 : décollage, pilotage manuel et atterrissage avec un commandant à vos côtés.',
+        description: 'Prenez place dans le siège commandant de notre Boeing 737 MAX à l’échelle 1:1 pour une mission découverte complète de 30 minutes. Après un briefing concis, vous décollerez, piloterez une route visuelle à la main et atterrirez avec un commandant de ligne à vos côtés.',
         features: [
           'Cockpit Boeing 737 MAX échelle 1:1 certifié',
           'Système visuel panoramique 220° en projection 4K',
-          'Décollage de l’aéroport Ben Gourion (LLBG)',
-          'Survol panoramique des plages de Tel Aviv et Jaffa',
+          '30 minutes de pilotage pratique depuis le siège commandant',
+          'Décollage guidé, navigation visuelle et atterrissage manuel',
           '1 invité / observateur installé en strapontin (Jumpseat)',
           'Instructeur de vol qualifié agissant comme copilote',
           'Certificat de vol officiel encadré en souvenir',
@@ -3504,15 +3506,15 @@ export const translations = {
     },
     packages: {
       'pkg-discovery-30': {
-        title: 'رحلة استكشاف بوينغ 737 ماكس',
-        badge: 'الأفضل للمبتدئين',
-        shortDesc: 'تول قيادة الطائرة في أول تجربة طيران حقيقية لك مع الإقلاع من مطار بن غوريون والتحليق فوق ساحل تل أبيب.',
-        description: 'عش متعة قيادة طائرة ركاب سيلونية نفاثة تزن 70 طناً. بعد موجز تعريفي مدته 15 دقيقة يغطي شاشات العرض الرئيسية وأذرع التحكم بالمحركات، ستتحرك بالطائرة نحو المدرج 26 في مطار بن غوريون (LLBG)، وتطبق قوة الدفع للإقلاع، وتصعد نحو سماء البحر الأبيض المتوسط فوق تل أبيب ويافا، ثم تنفذ هبوطاً بصرياً يدوياً ممتعاً.',
+        title: 'رحلة استكشاف بوينغ 737 ماكس — 30 دقيقة',
+        badge: '30 دقيقة • ₪450',
+        shortDesc: 'مهمة موجهة لمدة 30 دقيقة على بوينغ 737 تشمل الإقلاع والطيران العملي والهبوط بجوار كابتن طيران.',
+        description: 'اجلس في مقعد القبطان داخل قمرة بوينغ 737 ماكس بمقياس 1:1 لمهمة استكشافية كاملة مدتها 30 دقيقة. بعد موجز مختصر عن أدوات التحكم ستقلع، وتقود مساراً بصرياً يدوياً، وتهبط برفقة كابتن طيران فعلي.',
         features: [
           'قمرة قيادة حقيقية لطائرة بوينغ 737 ماكس بمقياس 1:1',
           'شاشة عرض أسطوانية بانورامية 220 درجة بدقة 4K',
-          'الإقلاع من مطار بن غوريون الدولي (LLBG)',
-          'جولة جوية خلابة فوق شواطئ تل أبيب وميناء يافا التاريخي',
+          '30 دقيقة من الطيران العملي من مقعد القبطان',
+          'إقلاع موجه وملاحة بصرية وهبوط يدوي',
           'مرافق واحد يجلس على مقعد الملاحظة (Jumpseat) داخل القمرة',
           'مدرب طيران معتمد يرافقك كمساعد طيار محترف',
           'شهادة طيران تذكارية رسمية ومؤطرة',
@@ -4222,97 +4224,6 @@ const PROMO_45_TRANSLATIONS: Record<
   },
 };
 
-const BASIC_20_TRANSLATIONS: Record<
-  Language,
-  { title: string; badge: string; shortDesc: string; description: string; features: string[] }
-> = {
-  en: {
-    title: 'Basic Flight Session — Single Airport Takeoff & Landing',
-    badge: 'Basic 20m • ₪250',
-    shortDesc:
-      '20-minute basic flight session with a single-airport Takeoff & Landing exercise. Customize your mission with Cold & Dark (+20m), Classical EU hubs (+40m), Crosswind/IFR (+15m), or Extreme Approaches (+25m) in Step 2.',
-    description:
-      'Step into our 1:1 scale Boeing 737 MAX cockpit for an accessible 20-minute entry flight session at a single airport of your choice (such as Ben Gurion LLBG). After a concise pre-flight controls briefing, you will line up on the active runway, advance the twin LEAP-1B throttles to takeoff thrust, rotate into the sky, fly a visual circuit, and execute a manual landing. Want a longer custom mission? Expand your flight time in Step 2 with Cold & Dark startup (+20m), Classical EU airports (+40m), Crosswind/IFR weather (+15m), or Extreme World Approaches (+25m)!',
-    features: [
-      '20 Minutes pilot-in-command flight time (Single Airport Takeoff & Landing exercise)',
-      '1:1 Scale Boeing 737 MAX Cockpit & 220° 4K wrap-around visuals',
-      'Pre-flight primary controls & safety briefing included',
-      'Modular entry base — add Cold & Dark (+20m), EU Hubs (+40m), IFR (+15m), or Extreme Airports (+25m) in Step 2',
-      '1 Guest/Observer seated in cockpit jumpseat',
-      'Certified flight instructor as your First Officer',
-      'Commemorative Flight Certificate',
-    ],
-  },
-  he: {
-    title: 'טיסת בסיס בואינג 737 MAX — תרגול המראה ונחיתה בשדה בודד',
-    badge: 'טיסת בסיס 20 דק׳ • ₪250',
-    shortDesc:
-      '20 דקות טיסת בסיס ותרגול המראה ונחיתה בשדה תעופה בודד. הרכיבו משימה מותאמת בשלב 2: התנעת Cold & Dark (+20 דק׳), שדות קלאסיים באירופה (+40 דק׳), מזג אוויר IFR/רוח צד (+15 דק׳) או נחיתות אקסטרים (+25 דק׳).',
-    description:
-      'חבילת בסיס בת 20 דקות טיסה בתא הטייס של הבואינג 737 MAX בקנה מידה 1:1 בשדה תעופה בודד לבחירתכם (כגון נתב״ג LLBG). תתיישבו בכיסא הקברניט, תפתחו מצערות להמראה, תבצעו הקפה מלאה ותנחתו ידנית על המסלול. בשלב 2 תוכלו להרחיב את זמן הטיסה עם התנעת Cold & Dark (+20 דק׳), חבילת שדות קלאסיים באירופה (+40 דק׳), תנאי מכשירים ורוחות צד (+15 דק׳) או נחיתות אקסטרים (+25 דק׳)!',
-    features: [
-      '20 דקות הטסה כקברניט — תרגול המראה ונחיתה בשדה תעופה בודד',
-      'תא טייס בואינג 737 MAX בקנה מידה 1:1 ומסך פנורמי 220° 4K',
-      'תדריך בטיחות והכרת הגאים לפני הטיסה',
-      'בסיס מודולרי — הוסיפו בשלב 2 התנעת Cold & Dark (+20 דק׳), אירופה (+40 דק׳), IFR או אקסטרים',
-      'מלווה / אורח אחד במושב הצופה בקוקפיט (Jumpseat)',
-      'מדריך טיסה מוסמך המתפקד כקצין ראשון לצדכם',
-      'תעודת טיסה רשמית למזכרת',
-    ],
-  },
-  ru: {
-    title: 'Базовый полёт Boeing 737 MAX — Взлёт и Посадка в одном аэропорту',
-    badge: 'Базовый 20 мин • ₪250',
-    shortDesc:
-      '20-минутный базовый полёт в одном аэропорту (упражнение взлёт и посадка). Соберите свою миссию на Шаге 2: запуск Cold & Dark (+20 мин), аэропорты Европы (+40 мин), боковой ветер/IFR (+15 мин) или экстрим (+25 мин).',
-    description:
-      'Доступный 20-минутный базовый полёт в кабине Boeing 737 MAX масштаба 1:1 с взлётом и посадкой в одном выбранном аэропорту (например, Бен-Гурион LLBG). На Шаге 2 вы можете расширить время полёта: добавить запуск Cold & Dark (+20 мин), пакет классических аэропортов Европы (+40 мин), метеоусловия METAR/IFR (+15 мин) или экстремальные посадки (+25 мин)!',
-    features: [
-      '20 минут чистого полёта (Взлёт и посадка в одном аэропорту)',
-      'Кабина Boeing 737 MAX масштаба 1:1 и панорамный экран 220° 4K',
-      'Предполётный инструктаж по основным приборам управления',
-      'Модульная база — добавьте Cold & Dark (+20м), Европу (+40м), IFR (+15м) или экстрим (+25м)',
-      '1 гость-наблюдатель в кабине (Jumpseat)',
-      'Сертифицированный пилот-инструктор в роли второго пилота',
-      'Памятный сертификат о полёте',
-    ],
-  },
-  fr: {
-    title: 'Session de Vol de Base — Décollage & Atterrissage 1 Aéroport',
-    badge: 'Base 20 min • ₪250',
-    shortDesc:
-      'Session de base de 20 minutes sur un seul aéroport (exercice décollage et atterrissage). Personnalisez votre mission à l’Étape 2 : Cold & Dark (+20m), hubs européens (+40m), vent de travers/IFR (+15m) ou approches extrêmes (+25m).',
-    description:
-      'Prenez place dans notre cockpit Boeing 737 MAX échelle 1:1 pour un vol de base de 20 minutes avec décollage, tour de piste et atterrissage sur un aéroport unique. À l’Étape 2, prolongez votre temps de vol en ajoutant le démarrage Cold & Dark (+20m), les grands aéroports européens (+40m), la météo METAR/IFR (+15m) ou les approches extrêmes (+25m) !',
-    features: [
-      '20 minutes aux commandes (Décollage et atterrissage sur 1 aéroport)',
-      'Cockpit Boeing 737 MAX échelle 1:1 et visuel panoramique 220° 4K',
-      'Briefing pré-vol sur les commandes principales inclus',
-      'Base modulable — ajoutez Cold & Dark (+20m), Europe (+40m), IFR (+15m) ou Extrême (+25m)',
-      '1 accompagnateur sur le strapontin du cockpit (Jumpseat)',
-      'Instructeur pilote de ligne comme copilote',
-      'Certificat de vol commémoratif',
-    ],
-  },
-  ar: {
-    title: 'رحلة طيران أساسية — تمرين إقلاع وهبوط في مطار واحد',
-    badge: 'الأساسية 20 دقيقة • ₪250',
-    shortDesc:
-      'رحلة أساسية لمدة 20 دقيقة في مطار واحد (تمرين إقلاع وهبوط). خصص مهمتك في الخطوة 2: تشغيل Cold & Dark (+20 د)، مطارات أوروبا (+40 د)، رياح جانبية/IFR (+15 د) أو مطارات خطرة (+25 د).',
-    description:
-      'اجلس في مقعد القبطان داخل قمرة بوينغ 737 MAX بمقياس 1:1 لرحلة أساسية مدتها 20 دقيقة تشمل الإقلاع والهبوط في مطار واحد. وفي الخطوة 2 يمكنك زيادة مدة الطيران بإضافة تشغيل Cold & Dark (+20 د)، باقة المطارات الأوروبية (+40 د)، ظروف الطيران الآلي والرياح الجانبية (+15 د)، أو الهبوط في أخطر مطارات العالم (+25 د)!',
-    features: [
-      '20 دقيقة طيران فعلي (تمرين إقلاع وهبوط في مطار واحد)',
-      'قمرة قيادة بوينغ 737 MAX بمقياس 1:1 وشاشة بانورامية 220° بدقة 4K',
-      'موجز إرشادي قبل الرحلة حول أدوات التحكم الأساسية',
-      'باقة مرنة — أضف Cold & Dark (+20 د) أو مطارات أوروبا (+40 د) أو IFR أو المطارات الخطرة',
-      'مرافق واحد في مقعد المراقب داخل القمرة (Jumpseat)',
-      'مدرب طيران معتمد يعمل كمساعد طيار بجانبك',
-      'شهادة طيران تذكارية',
-    ],
-  },
-};
-
 const MISSION_ADDONS_TRANSLATIONS: Record<
   Language,
   Record<string, { name: string; description: string }>
@@ -4582,13 +4493,6 @@ const MISSION_ADDONS_TRANSLATIONS: Record<
 export function getLocalizedPackages(lang: Language) {
   const dict = translations[lang] || translations.en;
   return SIMULATOR_PACKAGES.map((pkg) => {
-    if (pkg.id === 'pkg-discovery-30') {
-      const basicLoc = BASIC_20_TRANSLATIONS[lang] || BASIC_20_TRANSLATIONS.en;
-      return {
-        ...pkg,
-        ...basicLoc,
-      };
-    }
     if (pkg.id === 'pkg-promo-45') {
       const promoLoc = PROMO_45_TRANSLATIONS[lang] || PROMO_45_TRANSLATIONS.en;
       return {

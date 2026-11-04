@@ -41,7 +41,7 @@ const registryArb = fc
 
 const pkgArb = fc.record({
   title: fc.constantFrom("Captain's Command Flight (60m)", 'Daytime Special Flight (45m Promo)', 'Airline Interview Prep 90 PRO'),
-  durationMinutes: fc.constantFrom(20, 45, 60, 90, 120) as fc.Arbitrary<20 | 45 | 60 | 90 | 120>,
+  durationMinutes: fc.constantFrom(30, 45, 60, 90, 120) as fc.Arbitrary<30 | 45 | 60 | 90 | 120>,
   priceIls: fc.integer({ min: 1, max: 5_000 }),
 });
 
@@ -169,7 +169,7 @@ describe('calculateMissionManifest', () => {
 
   it('itemises the selected add-ons in selection order with their own price and minutes', () => {
     const manifest = calculateMissionManifest({
-      pkg: { title: 'Basic Flight Session', durationMinutes: 20, priceIls: 250 },
+      pkg: { title: 'Discovery Flight', durationMinutes: 30, priceIls: 450 },
       selectedAddonIds: ['addon-hd-video', 'addon-cold-dark'],
       availableAddons: FLIGHT_ADDONS,
     });
@@ -177,7 +177,7 @@ describe('calculateMissionManifest', () => {
       ['addon-hd-video', 0, 120],
       ['addon-cold-dark', 20, 200],
     ]);
-    expect(manifest).toMatchObject({ startTime: '10:00', effectiveEndTime: '10:40', subtotalIls: 570, totalIls: 570 });
+    expect(manifest).toMatchObject({ startTime: '10:00', effectiveEndTime: '10:50', subtotalIls: 770, totalIls: 770 });
   });
 });
 
@@ -331,7 +331,7 @@ describe('sanitizePackageTitle', () => {
     ["Captain's Command Flight (60m)", "Captain's Command Flight"],
     ['Daytime Special Flight (45m Promo)', 'Daytime Special Flight'],
     ['Odyssey (90M PROMO)', 'Odyssey'],
-    ['Basic Flight (20m) Session', 'Basic Flight Session'],
+    ['Discovery Flight (30m) Experience', 'Discovery Flight Experience'],
     ['Airline Interview Prep 60 PRO', 'Airline Interview Prep 60 PRO'],
     ['Fear of Flying (Private)', 'Fear of Flying (Private)'],
   ])('turns %j into %j', (raw, expected) => {

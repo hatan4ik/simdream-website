@@ -18,7 +18,7 @@ test.describe('gift vouchers', () => {
     await vouchers.recipientName().fill(ORDER.recipientName);
     await vouchers.senderName().fill(ORDER.senderName);
 
-    await expect(vouchers.submit()).toHaveText(ilsPattern(1290));
+    await expect(vouchers.submit()).toHaveText(ilsPattern(950));
     await expect(page.getByText(ORDER.recipientName, { exact: true })).toBeVisible();
     await expect(page.getByText(ORDER.senderName, { exact: true })).toBeVisible();
   });
@@ -65,7 +65,7 @@ test.describe('gift vouchers', () => {
     await vouchers.submit().click();
     const response = await checkoutResponse;
     expect(response.status()).toBe(503);
-    expect(response.request().postDataJSON()).toMatchObject({ kind: 'voucher', amountIls: 890, ...ORDER });
+    expect(response.request().postDataJSON()).toMatchObject({ kind: 'voucher', amountIls: 690, packageId: 'pkg-captain-60', ...ORDER });
 
     await expect(page.getByRole('alert').filter({ hasText: PAYMENTS_UNAVAILABLE })).toBeVisible();
     await expect(vouchers.submit()).toBeEnabled();

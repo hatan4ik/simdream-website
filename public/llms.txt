@@ -35,7 +35,7 @@
 - **Nature of Facility**: The simulator is a 1:1 scale experiential & entertainment Boeing 737 flight deck accompanied by an instructor; it is not an official pilot licensing institution.
 
 ## Flight Packages & Pricing (ILS)
-- **Basic Flight Session — Takeoff & Landing Exercise (20 Min)**: ₪250 ILS (Single airport circuit, modular base)
+- **Discovery Flight — 30-Minute Boeing 737 Experience**: ₪450 ILS (Guided takeoff, hands-on flight and landing)
 - **Daytime Special Flight — 45m Promo (45 Min)**: ₪490 ILS (Available daytime Sun–Fri < 18:00, 2 full landings)
 - **The Captain's Command Flight (60 Min)**: ₪690 ILS (Bestseller • Takeoff/Landing + 1 World Airport Trio included)
 - **Captains' Challenge & Multi-Trio Odyssey (90 Min)**: ₪850 ILS Daytime / ₪950 ILS Prime-Time (Takeoff/Landing + 2 World Trios + Emergencies, 1–2 pilots)
@@ -70,4 +70,3 @@
 - [Contact, Map & Arrival Calculator](https://www.simdream.co.il/contact)
 - [Facility Rules & Terms (תקנון)](https://www.simdream.co.il/rules)
 - [Privacy & Cookie Policy (מדיניות פרטיות)](https://www.simdream.co.il/privacy-policy)
-
