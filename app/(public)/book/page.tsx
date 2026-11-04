@@ -430,17 +430,33 @@ function BookContent() {
     }
   };
 
+  const accountNotice = user ? (
+    <>
+      <span>
+        {t.booking.bookingAs} <strong className="text-white">{user.email}</strong>. {t.booking.bookingAsSuffix}
+      </span>
+      <Link href="/dashboard" className="font-semibold text-sky-400 hover:text-sky-300 whitespace-nowrap">{t.booking.viewFlightDeck}</Link>
+    </>
+  ) : (
+    <>
+      <span>{t.booking.guestCheckoutNotice}</span>
+      <Link href="/login" className="font-semibold text-sky-400 hover:text-sky-300 whitespace-nowrap">{t.booking.signInToSaveBookings}</Link>
+    </>
+  );
+
   return (
     // w-full min-w-0: with mx-auto inside the flex-column main, the page otherwise
     // shrink-wraps to calendar controls and becomes too wide on phones.
-    <div className="flex-1 w-full min-w-0 py-5 sm:py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-6 sm:space-y-8">
+    // Desktop keeps the stack above the calendar short (slim kicker row, no banners), so the
+    // departure grid and the buy box sit inside the first screen on a 900px laptop.
+    <div className="flex-1 w-full min-w-0 py-5 sm:py-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-4 sm:space-y-5">
       {/* Top View-Mode Switcher: Amazon-Style 1-Page Express Storefront vs Guided 3-Step Wizard */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 pb-3.5 sm:pb-4 border-b border-slate-800/80">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 pb-3 border-b border-slate-800/80">
         <div>
           <div className="text-xs font-mono uppercase tracking-widest text-amber-400 font-bold">
             {t.booking.storefrontTitle}
           </div>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-slate-400 mt-0.5 sm:hidden">
             {t.booking.storefrontSubtitle}
           </p>
         </div>
@@ -486,24 +502,17 @@ function BookContent() {
         </div>
       )}
 
-      <div className="max-w-4xl mx-auto rounded-xl border border-slate-800 bg-slate-900/70 px-4 py-3 text-xs text-slate-300 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-        {user ? (
-          <>
-            <span>
-              {t.booking.bookingAs} <strong className="text-white">{user.email}</strong>. {t.booking.bookingAsSuffix}
-            </span>
-            <Link href="/dashboard" className="font-semibold text-sky-400 hover:text-sky-300 whitespace-nowrap">{t.booking.viewFlightDeck}</Link>
-          </>
-        ) : (
-          <>
-            <span>{t.booking.guestCheckoutNotice}</span>
-            <Link href="/login" className="font-semibold text-sky-400 hover:text-sky-300 whitespace-nowrap">{t.booking.signInToSaveBookings}</Link>
-          </>
-        )}
-      </div>
+      {/* The storefront shows the account notice inside its buy box, next to checkout where it
+          matters; the wizard keeps it here above the step bar. */}
+      {bookingViewMode === 'wizard' && (
+        <div className="max-w-4xl mx-auto rounded-xl border border-slate-800 bg-slate-900/70 px-4 py-3 text-xs text-slate-300 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          {accountNotice}
+        </div>
+      )}
 
       {bookingViewMode === 'storefront' ? (
         <AmazonFlightStorefront
+          accountNotice={accountNotice}
           selectedDate={selectedDate}
           calendarTodayYmd={calendarTodayYmd}
           onSelectDate={setSelectedDate}

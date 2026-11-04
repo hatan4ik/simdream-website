@@ -98,6 +98,8 @@ interface AmazonFlightStorefrontProps {
   isSubmitting: boolean;
   checkoutError?: string;
   onSubmitBooking: (e: React.FormEvent) => void;
+  /** Guest-checkout or signed-in notice, rendered under the checkout button. */
+  accountNotice?: React.ReactNode;
 }
 
 type AddonFilterTab = 'all' | 'world_bundles' | 'cockpit_ops' | 'media_vip';
@@ -408,6 +410,7 @@ export function AmazonFlightStorefront({
   isSubmitting,
   checkoutError,
   onSubmitBooking,
+  accountNotice,
 }: AmazonFlightStorefrontProps) {
   const { t, language, isRTL } = useLanguage();
   const bpCopy = BOOKING_BLUEPRINT_COPY[language] || BOOKING_BLUEPRINT_COPY.en;
@@ -543,9 +546,11 @@ export function AmazonFlightStorefront({
       {/* =====================================================================
           LEFT 8 COLUMNS: AMAZON-STYLE PRODUCT CONFIGURATOR & FLIGHT CATALOG
          ===================================================================== */}
-      <div className="lg:col-span-8 min-w-0 space-y-6 sm:space-y-8">
-        {/* PRODUCT HERO BAR (Amazon Product Header + Aviation Telemetry) */}
-        <div className="p-4 sm:p-6 rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900/95 via-slate-900/80 to-slate-950 shadow-xl space-y-2.5 sm:space-y-3">
+      <div className="lg:col-span-8 min-w-0 space-y-4 sm:space-y-5">
+        {/* PRODUCT HERO BAR (Amazon Product Header + Aviation Telemetry).
+            Compact on purpose: the title, a one-line summary and the base price, so the departure
+            calendar below starts inside the first desktop screen. */}
+        <div className="p-4 sm:p-5 rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900/95 via-slate-900/80 to-slate-950 shadow-xl space-y-2">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex flex-wrap items-center gap-2">
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-amber-500/15 border border-amber-500/40 text-amber-300 text-[10px] sm:text-[11px] font-mono font-bold uppercase tracking-wider">
@@ -559,16 +564,16 @@ export function AmazonFlightStorefront({
             </span>
           </div>
 
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 sm:gap-4 pt-1">
-            <div>
-              <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+            <div className="min-w-0">
+              <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
                 {cleanPackageTitle}
               </h1>
-              <p className="text-xs sm:text-sm text-slate-300 mt-1 leading-relaxed line-clamp-2 sm:line-clamp-none">
+              <p className="text-xs sm:text-sm text-slate-300 mt-0.5 leading-relaxed line-clamp-2 lg:line-clamp-1">
                 {selectedPackage.shortDesc}
               </p>
             </div>
-            <div className="shrink-0 flex sm:flex-col items-baseline sm:items-end justify-between gap-2 bg-slate-950/80 border border-slate-800 px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl">
+            <div className="shrink-0 flex sm:flex-col items-baseline sm:items-end justify-between gap-2 sm:gap-0.5 bg-slate-950/80 border border-slate-800 px-3.5 py-2 rounded-xl">
               <span className="text-[10px] font-mono uppercase text-slate-400">{calendarCopy.basePackagePrice}</span>
               <div className="flex items-baseline gap-2">
                 <span className="text-xl sm:text-2xl font-black font-mono text-white">
@@ -1755,6 +1760,11 @@ export function AmazonFlightStorefront({
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
             <span className="text-center">{t.booking.secureNotice}</span>
           </div>
+          {accountNotice && (
+            <div className="rounded-xl border border-slate-800 bg-slate-950/60 px-3 py-2.5 text-xs text-slate-300 flex flex-col gap-1.5">
+              {accountNotice}
+            </div>
+          )}
         </form>
       </div>
 
