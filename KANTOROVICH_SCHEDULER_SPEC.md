@@ -50,6 +50,12 @@ The engine generates candidate starts from these operating windows, calculates e
 
 The engine may mark a slot as a smart recommendation where it completes a 150-minute constructor pattern. This is a recommendation, not a promise of globally optimal revenue.
 
+### Block rhythm versus completeness (a deliberate trade-off)
+
+On Sunday–Thursday the engine tiles the day in three blocks (10:00–15:00, 15:00–18:00, 18:00–23:00) and judges a candidate's gaps against the nearest block boundary, not only against the nearest booking. It is therefore **stricter than `evaluateDailyEfficiency()`**, which judges the real gap to the next booking. The stricter rule keeps the evening anchored on the 75-minute rhythm of the standard 60-minute flight and refuses departures that would only tile with low-yield entry flights.
+
+The price is occasional incompleteness: in a free 16:00–19:15 window the engine offers no 90-minute departure even though 16:00, 16:45 and 17:30 would each keep the day zero-waste, because the remaining 90 minutes could then only be sold as two 20-minute flights (₪1,350 for the window) instead of 60m + 20m + 60m on the rhythm (₪1,630). `tests/unit/kantorovich-completeness.test.ts` holds the exact oracle: it proves soundness (everything offered is accepted by the oracle), pins this scenario, and ratchets the measured incompleteness (about 1% of day × duration pairs sell nothing although a safe start exists, about 2% of free windows are dark for some duration). Changing the block rule is a product decision; make it by editing that test's expectations, never by loosening the ratchet silently.
+
 ### Frontend Calendar Resilience & Recovery
 - **Package Visibility Invariant**: Packages and duration options must never be removed or filtered out from the customer view when `availableCount === 0` on a selected date. Instead, they remain visible with a status badge (`0 slots open today` / `0 מקומות היום`).
 - **Selection Preservation**: Switching dates must preserve the user's selected package; client state must never forcibly overwrite the user's choice to a default package.
