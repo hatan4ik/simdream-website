@@ -32,13 +32,13 @@ test.describe('mobile affordances', () => {
     await expect(chrome.navbar.getByRole('button', { name: /menu/i })).toBeVisible();
   });
 
-  test('defaults to a month calendar and selects a date by touch', async ({ page, booking }) => {
+  test('defaults to a week calendar and selects a date by touch', async ({ page, booking }) => {
     const farDay = israelDate(12);
     await booking.goto();
     const wizard = await booking.openWizard();
     const dayButton = booking.dateButton(farDay);
-    await expect(page.getByRole('button', { name: 'Month', exact: true })).toHaveAttribute('aria-pressed', 'true');
-    // Twelve days ahead can fall in next month's grid near a month end.
+    await expect(page.getByRole('button', { name: 'Week', exact: true })).toHaveAttribute('aria-pressed', 'true');
+    // Twelve days ahead can fall in a later week near a month end.
     await booking.revealDate(farDay);
     await expect(dayButton).toBeVisible();
 

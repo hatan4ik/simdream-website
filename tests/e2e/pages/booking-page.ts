@@ -56,7 +56,7 @@ export class BookingPage {
 
   /**
    * Pages the default week ribbon until it shows `isoDate`. If a test has explicitly opened the
-   * month calendar, fall back to that view's month controls instead.
+   * month calendar, falls back to that view's month controls instead.
    */
   async revealDate(isoDate: string): Promise<void> {
     const day = this.dateButton(isoDate);

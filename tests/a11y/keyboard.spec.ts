@@ -1,5 +1,6 @@
 import type { Page } from '@playwright/test';
 import { expect, preferTheme, type UiTheme } from '../support/e2e';
+import { waitUntilInteractive } from '../e2e/pages/hydration';
 import {
   checkoutButton,
   ensureStorefrontDateVisible,
@@ -379,6 +380,7 @@ test.describe('mobile navigation menu', () => {
     const menuToggle = page.getByRole('button', { name: /menu/i });
 
     await expect(menuToggle).toHaveAttribute('aria-expanded', 'false', FOCUS_SETTLE);
+    await waitUntilInteractive(menuToggle);
     await menuToggle.click();
     await expect(menuToggle).toHaveAttribute('aria-expanded', 'true');
   });

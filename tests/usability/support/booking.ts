@@ -29,13 +29,13 @@ export function stripDayButton(page: Page, isoDate: string): Locator {
 /** Ensures an ISO date is visible without coupling browser checks to a displayed language. */
 export async function ensureStorefrontDateVisible(page: Page, isoDate: string): Promise<Locator> {
   const dateButton = stripDayButton(page, isoDate);
-  // The month grid renders after the first slots response, and /book first paints a stable calendar
-  // snapshot before adopting the live Israel date after hydration. A one-off count() during that
-  // hand-over saw 0 cells and paged the calendar three months ahead (to February), so give each
-  // month a short grace period before moving on.
+  // The week strip renders after the first slots response, and /book first paints a stable calendar
+  // snapshot before adopting the live Israel date after hydration. Give each rendered range a
+  // short grace period before paging so the helper never outruns that hand-over. The optional
+  // month grid remains supported for tests that intentionally toggle it.
   await page.locator('[data-calendar-date]').first().waitFor({ state: 'attached' });
   const rendered: string[] = [];
-  for (let step = 0; step < 3; step += 1) {
+  for (let step = 0; step < 8; step += 1) {
     const appeared = await dateButton
       .first()
       .waitFor({ state: 'attached', timeout: 3_000 })
@@ -45,7 +45,15 @@ export async function ensureStorefrontDateVisible(page: Page, isoDate: string): 
       cells.map((cell) => cell.getAttribute('data-calendar-date') ?? '')
     );
     rendered.push(`${dates[0]}..${dates[dates.length - 1]} (${dates.length})`);
-    await page.locator('[data-calendar-next-month]').click();
+    const forward = dates.length === 0 || isoDate > dates[dates.length - 1]!;
+    const weekControl = page.locator(
+      forward ? '[data-calendar-next-week]:visible' : '[data-calendar-previous-week]:visible'
+    );
+    if (await weekControl.count()) {
+      await weekControl.click();
+    } else {
+      await page.locator(forward ? '[data-calendar-next-month]:visible' : '[data-calendar-previous-month]:visible').click();
+    }
   }
   await expect(dateButton, `calendar should render ${isoDate}; it showed ${rendered.join(' → ')}`).toBeVisible();
   return dateButton;

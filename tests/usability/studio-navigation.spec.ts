@@ -1,4 +1,5 @@
 import { expect, preferTheme } from '../support/e2e';
+import { waitUntilInteractive } from '../e2e/pages/hydration';
 import { test } from './support/fixtures';
 import { gotoSettled, isolateFromThirdParties } from './support/page';
 
@@ -12,6 +13,7 @@ test.beforeEach(async ({ page, baseURL }) => {
 test('opens the desktop flyout with the keyboard and restores focus on Escape', async ({ page }) => {
   await gotoSettled(page, '/');
   const trigger = page.locator('[data-navbar-menu-trigger]').first();
+  await waitUntilInteractive(trigger);
   await trigger.focus();
   await page.keyboard.press('ArrowDown');
 

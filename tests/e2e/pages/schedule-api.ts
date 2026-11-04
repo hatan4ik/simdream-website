@@ -17,7 +17,7 @@ export interface OpenSlot {
 }
 
 /**
- * The calendar exposes upcoming dates in its month grid. Journeys stay near the current month so a date chosen
+ * The calendar exposes upcoming dates in its default week strip. Journeys stay near the current range so a date chosen
  * just before midnight is still on the ribbon when the browser renders it.
  */
 const LAST_RIBBON_OFFSET = 12;

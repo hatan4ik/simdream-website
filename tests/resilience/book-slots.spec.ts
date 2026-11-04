@@ -46,6 +46,12 @@ const laterStripDay = (predicate: (weekday: number) => boolean = () => true) => 
   return day;
 };
 
+async function visibleWeekDates(page: Parameters<typeof openBookingPage>[0]): Promise<string[]> {
+  return page.locator('[data-calendar-date]:visible').evaluateAll((buttons) =>
+    buttons.map((button) => button.getAttribute('data-calendar-date') ?? '').filter(Boolean)
+  );
+}
+
 // The storefront renders its empty "sold-out" panel before the first slots response
 // arrives, so every test below waits until the page has actually received its
 // first (failed or fulfilled) response before asserting or changing behaviour.
@@ -184,18 +190,30 @@ test.describe('/book when the slots API is slow', () => {
 
   test('ignores a late response for a previously selected date (REL-11)', async ({ page, baseURL }) => {
     test.slow();
-    const saturday = laterStripDay((weekday) => weekday === 6);
-    const weekday = laterStripDay((candidate) => candidate <= 4);
     const holdSaturday = gate();
     const urlByDate = new Map<string, string>();
+    let heldSaturdayDate: string | null = null;
     await openBookingPage(page, baseURL, async (route) => {
       const date = requestedDate(route.request());
       urlByDate.set(date, route.request().url());
-      if (date === saturday.date) await holdSaturday.promise;
+      if (date === heldSaturdayDate) await holdSaturday.promise;
       // The page may already have aborted the superseded Saturday request.
       await fulfillOpenSlots(route).catch(() => undefined);
     });
     await expectDepartureSelected(page);
+
+    const weekDates = await visibleWeekDates(page);
+    const saturdayDate = weekDates.find((date) => new Date(`${date}T12:00:00Z`).getUTCDay() === 6);
+    const weekdayDate = weekDates.find((date) => new Date(`${date}T12:00:00Z`).getUTCDay() <= 4);
+    if (!saturdayDate || !weekdayDate) throw new Error(`Expected a Saturday and weekday in ${weekDates.join(', ')}`);
+    const saturday = { date: saturdayDate, name: new RegExp(`^Sat\\s*${Number(saturdayDate.slice(-2))}\\s*`) };
+    heldSaturdayDate = saturday.date;
+    const weekdayDateObject = new Date(`${weekdayDate}T12:00:00Z`);
+    const weekdayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu'];
+    const weekday = {
+      date: weekdayDate,
+      name: new RegExp(`^${weekdayNames[weekdayDateObject.getUTCDay()]}\\s*${Number(weekdayDate.slice(-2))}\\s*`),
+    };
 
     // The superseded Saturday request settles either way: aborted by the page the moment the
     // weekday is chosen (requestfailed), or answered late and discarded (requestfinished).
@@ -220,16 +238,18 @@ test.describe('/book when the slots API is slow', () => {
   });
 });
 
-test.describe('/book month calendar', () => {
-  test('defaults to a month grid with upcoming dates selectable (control)', async ({ page, baseURL }) => {
+test.describe('/book default week calendar', () => {
+  test('defaults to a week strip with its seven upcoming dates selectable (control)', async ({ page, baseURL }) => {
     const midNovember = new Date('2026-11-10T12:00:00+02:00');
     await page.clock.setFixedTime(midNovember);
     await openBookingPage(page, baseURL);
-    await expect(page.getByRole('button', { name: 'Month', exact: true })).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByRole('button', { name: 'Week', exact: true })).toHaveAttribute('aria-pressed', 'true');
+    await expect.poll(visibleWeekDates.bind(null, page)).toContain('2026-11-10');
 
-    for (const day of israelStripDays(midNovember)) {
-      await expect(page.getByRole('button', { name: day.name })).toHaveCount(1);
-    }
+    const visibleDates = await visibleWeekDates(page);
+    expect(visibleDates).toHaveLength(7);
+    expect([...new Set(visibleDates)]).toHaveLength(7);
+    expect(visibleDates).toContain('2026-11-10');
   });
 
   test('keeps upcoming dates unique across the October DST change (REL-14)', async ({ page, baseURL }) => {
@@ -237,11 +257,13 @@ test.describe('/book month calendar', () => {
     const beforeFallBack = new Date('2026-10-20T12:00:00+03:00');
     await page.clock.setFixedTime(beforeFallBack);
     await openBookingPage(page, baseURL);
-    await expect(page.getByRole('button', { name: 'Month', exact: true })).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByRole('button', { name: 'Week', exact: true })).toHaveAttribute('aria-pressed', 'true');
+    await expect.poll(visibleWeekDates.bind(null, page)).toContain('2026-10-20');
 
-    for (const day of israelStripDays(beforeFallBack)) {
-      await expect(page.getByRole('button', { name: day.name })).toHaveCount(1);
-    }
+    const visibleDates = await visibleWeekDates(page);
+    expect(visibleDates).toHaveLength(7);
+    expect([...new Set(visibleDates)]).toHaveLength(7);
+    expect(visibleDates).toContain('2026-10-20');
   });
 });
 
@@ -253,6 +275,9 @@ test.describe('/book week calendar navigation', () => {
   };
 
   const exerciseWeekPaging = async (page: Parameters<typeof openBookingPage>[0]) => {
+    // The server render intentionally starts at a stable 2099 date. Wait for the browser to
+    // adopt Israel's live operating day before deriving the next-week request target.
+    await expect.poll(selectedCalendarDate.bind(null, page)).not.toMatch(/^2099-/);
     const selectedDate = await selectedCalendarDate(page);
     const nextDate = addDays(selectedDate, 7);
     const nextDepartureRequest = page.waitForResponse(
@@ -274,14 +299,14 @@ test.describe('/book week calendar navigation', () => {
 
   test('moves the storefront week forward and back', async ({ page, baseURL }) => {
     await openBookingPage(page, baseURL, fulfillOpenSlots);
-    await page.getByRole('button', { name: 'Week', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Week', exact: true })).toHaveAttribute('aria-pressed', 'true');
     await exerciseWeekPaging(page);
   });
 
   test('moves the guided calendar week forward and back', async ({ page, baseURL }) => {
     await openBookingPage(page, baseURL, fulfillOpenSlots);
     await page.getByRole('button', { name: 'Guided Wizard (3-Step)', exact: true }).click();
-    await page.getByRole('button', { name: 'Week', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Week', exact: true })).toHaveAttribute('aria-pressed', 'true');
     await exerciseWeekPaging(page);
   });
 });

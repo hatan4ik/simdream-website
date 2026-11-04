@@ -115,7 +115,7 @@ export interface StripDay {
   name: RegExp;
 }
 
-/** Upcoming Israel calendar dates used by booking resilience journeys. */
+/** The seven dates shown by the default week-first booking calendar. */
 export function israelStripDays(now = new Date()): StripDay[] {
   const today = new Intl.DateTimeFormat('en-CA', {
     timeZone: 'Asia/Jerusalem',
@@ -124,7 +124,7 @@ export function israelStripDays(now = new Date()): StripDay[] {
     day: '2-digit',
   }).format(now);
   const cursor = new Date(`${today}T12:00:00Z`);
-  return Array.from({ length: 14 }, () => {
+  return Array.from({ length: 7 }, () => {
     const day: StripDay = {
       date: cursor.toISOString().slice(0, 10),
       weekday: cursor.getUTCDay(),
