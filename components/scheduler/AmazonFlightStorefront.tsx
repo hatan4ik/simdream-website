@@ -1523,7 +1523,7 @@ export function AmazonFlightStorefront({
                 value={pilotName}
                 onChange={(e) => onChangePilotName(e.target.value)}
                 placeholder={t.booking.pilotNamePlaceholder}
-                className="w-full rounded-lg bg-slate-950 border border-slate-700 px-3 py-2.5 text-base text-white focus:outline-none focus:border-amber-400"
+                className="min-h-12 w-full rounded-lg bg-slate-950 border border-slate-700 px-3 py-2.5 text-base text-white focus:outline-none focus:border-amber-400"
               />
             </div>
 
@@ -1544,10 +1544,10 @@ export function AmazonFlightStorefront({
                   autoCorrect="off"
                   autoCapitalize="off"
                   spellCheck={false}
-                  value={pilotEmail}
-                  onChange={(e) => onChangePilotEmail(e.target.value)}
-                  placeholder="captain@example.com"
-                  className="w-full rounded-lg bg-slate-950 border border-slate-700 px-3 py-2.5 text-base text-white focus:outline-none focus:border-amber-400"
+                value={pilotEmail}
+                onChange={(e) => onChangePilotEmail(e.target.value)}
+                placeholder="captain@example.com"
+                className="min-h-12 w-full rounded-lg bg-slate-950 border border-slate-700 px-3 py-2.5 text-base text-white focus:outline-none focus:border-amber-400"
                 />
               </div>
 
@@ -1566,9 +1566,9 @@ export function AmazonFlightStorefront({
                   autoComplete="tel"
                   value={pilotPhone}
                   onChange={(e) => onChangePilotPhone(e.target.value)}
-                  placeholder="055-507-1307"
-                  dir="ltr"
-                  className="w-full rounded-lg bg-slate-950 border border-slate-700 px-3 py-2.5 text-base text-white focus:outline-none focus:border-amber-400 text-left rtl:text-right"
+                placeholder="055-507-1307"
+                dir="ltr"
+                className="min-h-12 w-full rounded-lg bg-slate-950 border border-slate-700 px-3 py-2.5 text-base text-white focus:outline-none focus:border-amber-400 text-left rtl:text-right"
                 />
               </div>
             </div>
