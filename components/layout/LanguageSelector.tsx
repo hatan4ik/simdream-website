@@ -90,7 +90,12 @@ export function LanguageSelector({ variant = 'compact' }: { variant?: 'compact' 
       >
         <Globe className="h-4 w-4 text-sky-400" aria-hidden="true" />
         {variant === 'full' && <span className="font-medium">{currentLanguageInfo.nativeName}</span>}
-        {variant === 'compact' && <span className="sr-only">{currentLanguageInfo.nativeName}</span>}
+        {variant === 'compact' && (
+          <>
+            <span className="font-semibold uppercase tracking-wide" aria-hidden="true">{currentLanguageInfo.code}</span>
+            <span className="sr-only">{currentLanguageInfo.nativeName}</span>
+          </>
+        )}
         <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
       </button>
 
