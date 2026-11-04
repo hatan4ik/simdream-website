@@ -2,7 +2,7 @@ import { expect, LANGUAGES, preferLanguage } from '../support/e2e';
 import { test } from './support/fixtures';
 import { isolateFromThirdParties } from './support/page';
 
-// The header carries the logo, three grouped desktop menu triggers, theme switch, language,
+// The header carries the logo, four grouped desktop menu triggers, theme switch, language,
 // login and booking action. Grouping restores quiet desktop navigation at 1280px without
 // resurrecting the Russian/French overflow that made five inline links impractical.
 test.use({ reducedMotion: 'reduce', video: 'off' });
@@ -46,7 +46,7 @@ for (const width of [1024, 1280, 1536, 1920]) {
         expect(fit.bookLines, '"Book a Flight" wraps').toBe(1);
         if (width >= DESKTOP_MENUS_FROM_PX) {
           expect(fit.drawerToggle).toBe(false);
-          expect(fit.desktopMenuTriggers).toBe(3);
+          expect(fit.desktopMenuTriggers).toBe(4);
           expect(fit.maxLinkLines).toBeLessThanOrEqual(1);
         } else {
           expect(fit.drawerToggle).toBe(true);

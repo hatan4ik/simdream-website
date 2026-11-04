@@ -3,26 +3,47 @@
 import React, { useEffect, useId, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, User, ShieldAlert, Award, Calendar, ChevronDown, LogOut } from 'lucide-react';
+import {
+  Menu,
+  X,
+  User,
+  ShieldAlert,
+  Award,
+  Calendar,
+  ChevronDown,
+  ExternalLink,
+  Facebook,
+  Instagram,
+  LogOut,
+  type LucideIcon,
+  Youtube,
+} from 'lucide-react';
 import { BrandLogo } from '@/components/brand/BrandLogo';
 import { buttonClassName } from '@/components/ui/Button';
 import { useAuth } from '@/lib/auth/auth-context';
+import { FACILITY_INFO } from '@/lib/config/facility-info';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { LanguageSelector } from './LanguageSelector';
 import { UiThemeSwitcher } from './UiThemeSwitcher';
 
 const demoModeEnabled = process.env.NODE_ENV !== 'production' && !process.env.NEXT_PUBLIC_SUPABASE_URL;
 
-type NavigationGroupId = 'experiences' | 'professional' | 'visit';
+type NavigationGroupId = 'experiences' | 'professional' | 'visit' | 'social';
+type NavigationItem = {
+  name: string;
+  href: string;
+  external?: boolean;
+  icon?: LucideIcon;
+};
 
-const NAVIGATION_GROUP_IDS: NavigationGroupId[] = ['experiences', 'professional', 'visit'];
+const NAVIGATION_GROUP_IDS: NavigationGroupId[] = ['experiences', 'professional', 'visit', 'social'];
 const HORIZONTAL_MENU_KEYS = {
   ltr: { forward: 'ArrowRight', backward: 'ArrowLeft' },
   rtl: { forward: 'ArrowLeft', backward: 'ArrowRight' },
 } as const;
 
 /**
- * A compact, Apple-inspired navigation model: three clear categories with a full-width detail
+ * A compact, Apple-inspired navigation model: clear categories with a full-width detail
  * panel on larger screens. The actual labels and destinations stay in the i18n dictionary.
  */
 export function Navbar() {
@@ -39,6 +60,7 @@ export function Navbar() {
     experiences: null,
     professional: null,
     visit: null,
+    social: null,
   });
   const menuUid = useId();
 
@@ -50,10 +72,16 @@ export function Navbar() {
     { name: t.nav.contact, href: '/contact' },
   ];
 
+  const socialLinks: NavigationItem[] = [
+    { name: 'Instagram', href: FACILITY_INFO.social.instagramUrl, external: true, icon: Instagram },
+    { name: 'Facebook', href: FACILITY_INFO.social.facebookUrl, external: true, icon: Facebook },
+    { name: 'YouTube', href: FACILITY_INFO.social.youtubeUrl, external: true, icon: Youtube },
+  ];
+
   const navigationGroups: Array<{
     id: NavigationGroupId;
     label: string;
-    items: Array<{ name: string; href: string }>;
+    items: NavigationItem[];
   }> = [
     {
       id: 'experiences',
@@ -78,6 +106,11 @@ export function Navbar() {
         { name: t.nav.contact, href: '/contact' },
         { name: t.nav.about, href: '/about' },
       ],
+    },
+    {
+      id: 'social',
+      label: t.nav.socialMedia,
+      items: socialLinks,
     },
   ];
 
@@ -193,12 +226,18 @@ export function Navbar() {
     }
   };
 
+  const closeDesktopMenuOnPointerExit = () => {
+    // A keyboard-opened flyout must stay available even if a synthetic pointer-leave fires.
+    // The document-level outside-pointer handler still closes pointer-only flyouts as expected.
+    if (!navbarRef.current?.contains(document.activeElement)) setActiveDesktopMenu(null);
+  };
+
   return (
     <nav
       ref={navbarRef}
       data-site-navbar
       className="sticky top-0 z-50 relative bg-slate-950/85 backdrop-blur-lg border-b border-slate-800/80"
-      onMouseLeave={() => setActiveDesktopMenu(null)}
+      onMouseLeave={closeDesktopMenuOnPointerExit}
     >
       <div data-site-navbar-inner className="max-w-[96rem] mx-auto px-4 sm:px-6 lg:px-8">
         <div data-site-navbar-row className="flex items-center justify-between gap-3 h-20">
@@ -415,22 +454,51 @@ export function Navbar() {
             <div className="grid gap-1">
               {navigationGroups
                 .find((group) => group.id === activeDesktopMenu)
-                ?.items.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    role="menuitem"
-                    onClick={() => closeDesktopMenu()}
-                    className={`group flex min-h-12 items-center justify-between rounded-xl px-4 text-lg font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 ${
-                      isActive(item.href) ? 'bg-sky-500/10 text-sky-400' : 'text-slate-100 hover:bg-slate-900 hover:text-white'
-                    }`}
-                  >
-                    <span>{item.name}</span>
-                    <span aria-hidden="true" className="text-sky-400 transition-transform group-hover:translate-x-1 rtl:group-hover:-translate-x-1">
-                      →
-                    </span>
-                  </Link>
-                ))}
+                ?.items.map((item) => {
+                  const Icon = item.icon;
+                  const itemClassName = `group flex min-h-12 items-center justify-between rounded-xl px-4 text-lg font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 ${
+                    isActive(item.href) ? 'bg-sky-500/10 text-sky-400' : 'text-slate-100 hover:bg-slate-900 hover:text-white'
+                  }`;
+                  const itemContents = (
+                    <>
+                      <span className="inline-flex items-center gap-3">
+                        {Icon && <Icon className="h-5 w-5 text-sky-400" aria-hidden="true" />}
+                        {item.name}
+                      </span>
+                      {item.external ? (
+                        <ExternalLink className="h-4 w-4 text-sky-400" aria-hidden="true" />
+                      ) : (
+                        <span aria-hidden="true" className="text-sky-400 transition-transform group-hover:translate-x-1 rtl:group-hover:-translate-x-1">
+                          →
+                        </span>
+                      )}
+                    </>
+                  );
+
+                  return item.external ? (
+                    <a
+                      key={item.href}
+                      href={item.href}
+                      role="menuitem"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => closeDesktopMenu()}
+                      className={itemClassName}
+                    >
+                      {itemContents}
+                    </a>
+                  ) : (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      role="menuitem"
+                      onClick={() => closeDesktopMenu()}
+                      className={itemClassName}
+                    >
+                      {itemContents}
+                    </Link>
+                  );
+                })}
             </div>
           </div>
         </div>
@@ -468,6 +536,27 @@ export function Navbar() {
               </Link>
             )}
           </div>
+
+          <section aria-labelledby="mobile-social-heading" className="border-t border-slate-800 pt-3">
+            <p id="mobile-social-heading" className="px-1 text-xs font-semibold tracking-wide text-sky-400">
+              {t.nav.socialMedia}
+            </p>
+            <div className="mt-2 grid grid-cols-3 gap-2">
+              {socialLinks.map(({ name, href, icon: Icon }) => (
+                <a
+                  key={href}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  data-ui-control="button"
+                  className="flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl bg-slate-900 px-2 py-2 text-xs font-semibold text-slate-200 transition-colors hover:bg-slate-800 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
+                >
+                  {Icon && <Icon className="h-4 w-4 text-sky-400" aria-hidden="true" />}
+                  <span>{name}</span>
+                </a>
+              ))}
+            </div>
+          </section>
 
           <div className="pt-2 border-t border-slate-800 space-y-2">
             <UiThemeSwitcher variant="full" />
