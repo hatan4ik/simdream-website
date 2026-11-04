@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useId, Suspense } from 'react';
+import React, { useState, useEffect, useId, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import {
@@ -34,6 +34,7 @@ import {
 } from '@/lib/scheduler/mission-calculator';
 import { israelToday } from '@/lib/scheduler/israel-clock';
 import { useClientValue } from '@/lib/ui/use-client-value';
+import { EXPERIENCE_ROUTES_COPY, WORLD_ROUTES } from '@/lib/data/experience-routes';
 
 // The server and a visitor can be in different time zones. This stable snapshot
 // hydrates first, then the browser swaps in Israel's live operating date.
@@ -55,6 +56,11 @@ function formatBookingTemplate(template: string, values: Record<string, string |
   return template.replace(/\{(\w+)\}/g, (match, key: string) => String(values[key] ?? match));
 }
 
+/** Query-string selections are customer intent only; the checkout API still validates catalog IDs and prices. */
+function parseRequestedAddonIds(value: string | null): string[] {
+  return [...new Set((value ?? '').split(',').map((id) => id.trim()).filter(Boolean))];
+}
+
 function BookContent() {
   const searchParams = useSearchParams();
   const { t, language, isRTL } = useLanguage();
@@ -65,6 +71,22 @@ function BookContent() {
 
   const localizedPackages = getLocalizedPackages(language);
   const localizedAddons = getLocalizedAddons(language);
+  const selectedRoute = React.useMemo(
+    () => WORLD_ROUTES.find((route) => route.id === searchParams.get('route') && Boolean(route.addonId)),
+    [searchParams]
+  );
+  const requestedAddonIds = React.useMemo(
+    () =>
+      [...new Set([
+        ...parseRequestedAddonIds(searchParams.get('addons')),
+        ...(selectedRoute?.addonId ? [selectedRoute.addonId] : []),
+      ])],
+    [searchParams, selectedRoute]
+  );
+  const preselectedAddonIds = React.useMemo(
+    () => requestedAddonIds.filter((id) => localizedAddons.some((addon) => addon.id === id)),
+    [localizedAddons, requestedAddonIds]
+  );
 
   // View Mode: Default to Amazon-Style 1-Page Storefront ('storefront') to eliminate multi-step friction,
   // with optional toggle to Guided 3-Step Wizard ('wizard').
@@ -144,7 +166,24 @@ function BookContent() {
   const [slotsReloadKey, setSlotsReloadKey] = useState<number>(0);
 
   // Add-ons (strictly empty for noise-free specialized bookings)
-  const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
+  const [selectedAddons, setSelectedAddons] = useState<string[]>(preselectedAddonIds);
+  const appliedAddonIntentRef = useRef<string | null>(null);
+
+  // Keep a deep link shareable across in-app navigation, but apply a given URL intent only once
+  // so a customer may freely remove or alter an add-on afterwards.
+  const addonIntentKey = requestedAddonIds.join(',');
+  useEffect(() => {
+    if (appliedAddonIntentRef.current === addonIntentKey) return;
+    appliedAddonIntentRef.current = addonIntentKey;
+    setSelectedAddons(preselectedAddonIds);
+  }, [addonIntentKey, preselectedAddonIds]);
+
+  const selectedRouteAddon = selectedRoute?.addonId
+    ? scopedAddons.find((addon) => addon.id === selectedRoute.addonId)
+    : undefined;
+  const hasSelectedRouteAddon = Boolean(selectedRouteAddon && selectedAddons.includes(selectedRouteAddon.id));
+  const routeCopy = EXPERIENCE_ROUTES_COPY[language] || EXPERIENCE_ROUTES_COPY.en;
+  const selectedRouteText = selectedRoute?.copy[language] || selectedRoute?.copy.en;
 
   useEffect(() => {
     if (isNoiseFreeBooking && selectedAddons.length > 0) {
@@ -489,6 +528,28 @@ function BookContent() {
           </button>
         </div>
       </div>
+
+      {hasSelectedRouteAddon && selectedRouteAddon && selectedRouteText && !isNoiseFreeBooking && (
+        <section
+          data-route-booking-intent
+          aria-live="polite"
+          className="rounded-2xl border border-sky-400/40 bg-sky-500/10 px-4 py-3.5 sm:px-5 sm:py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+        >
+          <div className="min-w-0">
+            <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-sky-300">
+              {routeCopy.bookingIntentEyebrow}
+            </p>
+            <h2 className="mt-1 text-base sm:text-lg font-bold text-white">{selectedRouteText.title}</h2>
+            <p className="mt-1 text-xs sm:text-sm leading-relaxed text-slate-300">{routeCopy.bookingIntentDescription}</p>
+          </div>
+          <div className="shrink-0 rounded-xl border border-sky-400/30 bg-slate-950/60 px-3 py-2 text-right rtl:text-left" dir="ltr">
+            <p className="text-[10px] font-mono uppercase text-slate-400">{routeCopy.bookingIntentAddOn}</p>
+            <p className="text-sm font-mono font-bold text-sky-300">
+              +{selectedRouteAddon.durationMinutes} min · +{formatCurrency(selectedRouteAddon.priceIls)}
+            </p>
+          </div>
+        </section>
+      )}
 
       {/* The storefront announces checkout errors in its buy box; one alert per failure. */}
       {bookingError && bookingViewMode === 'wizard' && (

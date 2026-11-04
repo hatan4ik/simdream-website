@@ -31,6 +31,21 @@ test.describe('experience flights route catalog', () => {
     await expect(page.locator('[data-world-route]')).toHaveCount(WORLD_ROUTES.length);
   });
 
+  test('carries a bookable trio into the order instead of opening an empty base flight', async ({ page }) => {
+    await page.goto('/experiences');
+    const card = page.locator('[data-world-route="route-classical-eu"]');
+
+    await follow(
+      card.getByRole('link', { name: 'Book a flight with this trio' }),
+      /\/book\?package=captains-command-60&addons=addon-classical-eu&route=route-classical-eu$/
+    );
+
+    await expect(page.locator('[data-route-booking-intent]')).toContainText('Classical European Hubs');
+    await expect(page.locator('[data-selected-addon="addon-classical-eu"]')).toBeVisible();
+    await expect(page.locator('[data-addon-card="addon-classical-eu"]')).toHaveAttribute('data-addon-selected', 'true');
+    await expect(page.locator('[data-addon-card="addon-xwind-ifr"]')).toHaveAttribute('data-addon-deemphasized', 'true');
+  });
+
   test('hands an on-request route to the contact form, prefilled in the visitor language', async ({ page }) => {
     await preferLanguage(page, 'he');
     await page.goto('/experiences');

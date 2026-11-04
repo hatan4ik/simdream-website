@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+import { BookingWeekPager } from '@/components/scheduler/BookingWeekPager';
 import {
   FlightSlot,
   SimulatorPackage,
@@ -152,8 +153,6 @@ interface StorefrontCalendarCopy {
   departureSubtitle: string;
   viewWeek: string;
   viewMonth: string;
-  previousWeek: string;
-  nextWeek: string;
   previousMonth: string;
   nextMonth: string;
   departureSlots: (date: string) => string;
@@ -184,14 +183,21 @@ interface StorefrontCalendarCopy {
   select: string;
 }
 
+interface StorefrontAddonCopy {
+  selectedPlanEyebrow: string;
+  selectedPlanTitle: string;
+  selectedPlanSubtitle: string;
+  selected: string;
+  remove: string;
+  removeFromSelectedPlan: (addonName: string) => string;
+}
+
 const STOREFRONT_CALENDAR_COPY: Record<Language, StorefrontCalendarCopy> = {
   en: {
     departureTitle: 'Select Departure Date & Runway Slot',
     departureSubtitle: 'Real-time cockpit availability • Choose a date and departure time',
     viewWeek: 'Week',
     viewMonth: 'Month',
-    previousWeek: 'Previous week',
-    nextWeek: 'Next week',
     previousMonth: 'Previous month',
     nextMonth: 'Next month',
     departureSlots: (date) => `Departure Slots for ${date}:`,
@@ -226,8 +232,6 @@ const STOREFRONT_CALENDAR_COPY: Record<Language, StorefrontCalendarCopy> = {
     departureSubtitle: 'זמינות תא טייס בזמן אמת • בחרו תאריך ושעת המראה',
     viewWeek: 'שבוע',
     viewMonth: 'חודש',
-    previousWeek: 'השבוע הקודם',
-    nextWeek: 'השבוע הבא',
     previousMonth: 'החודש הקודם',
     nextMonth: 'החודש הבא',
     departureSlots: (date) => `משבצות המראה עבור ${date}:`,
@@ -262,8 +266,6 @@ const STOREFRONT_CALENDAR_COPY: Record<Language, StorefrontCalendarCopy> = {
     departureSubtitle: 'Доступность кабины в реальном времени • выберите дату и время вылета',
     viewWeek: 'Неделя',
     viewMonth: 'Месяц',
-    previousWeek: 'Предыдущая неделя',
-    nextWeek: 'Следующая неделя',
     previousMonth: 'Предыдущий месяц',
     nextMonth: 'Следующий месяц',
     departureSlots: (date) => `Слоты вылета на ${date}:`,
@@ -298,8 +300,6 @@ const STOREFRONT_CALENDAR_COPY: Record<Language, StorefrontCalendarCopy> = {
     departureSubtitle: 'Disponibilités du cockpit en temps réel • choisissez une date et une heure de départ',
     viewWeek: 'Semaine',
     viewMonth: 'Mois',
-    previousWeek: 'Semaine précédente',
-    nextWeek: 'Semaine suivante',
     previousMonth: 'Mois précédent',
     nextMonth: 'Mois suivant',
     departureSlots: (date) => `Créneaux de départ pour le ${date} :`,
@@ -334,8 +334,6 @@ const STOREFRONT_CALENDAR_COPY: Record<Language, StorefrontCalendarCopy> = {
     departureSubtitle: 'توفر قمرة القيادة في الوقت الفعلي • اختر التاريخ ووقت الإقلاع',
     viewWeek: 'أسبوع',
     viewMonth: 'الشهر',
-    previousWeek: 'الأسبوع السابق',
-    nextWeek: 'الأسبوع التالي',
     previousMonth: 'الشهر السابق',
     nextMonth: 'الشهر التالي',
     departureSlots: (date) => `مواعيد الإقلاع ليوم ${date}:`,
@@ -364,6 +362,49 @@ const STOREFRONT_CALENDAR_COPY: Record<Language, StorefrontCalendarCopy> = {
     slotsOpenToday: (count) => `${count} مواعيد متاحة`,
     selected: 'تم الاختيار',
     select: 'اختيار',
+  },
+};
+
+const STOREFRONT_ADDON_COPY: Record<Language, StorefrontAddonCopy> = {
+  en: {
+    selectedPlanEyebrow: 'FLIGHT PLAN LOADED',
+    selectedPlanTitle: 'Selected cockpit modules',
+    selectedPlanSubtitle: 'These are included in your flight and itemized again in the checkout manifest.',
+    selected: 'Selected',
+    remove: 'Remove',
+    removeFromSelectedPlan: (addonName) => `Remove ${addonName} from the selected flight plan`,
+  },
+  he: {
+    selectedPlanEyebrow: 'תכנית הטיסה נטענה',
+    selectedPlanTitle: 'מודולים שנבחרו לתא הטייס',
+    selectedPlanSubtitle: 'אלה כלולים בטיסה שלכם ומופיעים שוב בפירוט ההזמנה לפני התשלום.',
+    selected: 'נבחר',
+    remove: 'הסרה',
+    removeFromSelectedPlan: (addonName) => `הסרת ${addonName} מתכנית הטיסה שנבחרה`,
+  },
+  ru: {
+    selectedPlanEyebrow: 'ПЛАН ПОЛЁТА ЗАГРУЖЕН',
+    selectedPlanTitle: 'Выбранные модули кабины',
+    selectedPlanSubtitle: 'Они включены в ваш полёт и снова показаны в составе заказа перед оплатой.',
+    selected: 'Выбрано',
+    remove: 'Удалить',
+    removeFromSelectedPlan: (addonName) => `Удалить ${addonName} из выбранного плана полёта`,
+  },
+  fr: {
+    selectedPlanEyebrow: 'PLAN DE VOL CHARGÉ',
+    selectedPlanTitle: 'Modules de cockpit sélectionnés',
+    selectedPlanSubtitle: 'Ils sont inclus dans votre vol et récapitulés dans le manifeste avant le paiement.',
+    selected: 'Sélectionné',
+    remove: 'Retirer',
+    removeFromSelectedPlan: (addonName) => `Retirer ${addonName} du plan de vol sélectionné`,
+  },
+  ar: {
+    selectedPlanEyebrow: 'تم تحميل خطة الرحلة',
+    selectedPlanTitle: 'وحدات قمرة القيادة المختارة',
+    selectedPlanSubtitle: 'هذه الوحدات مشمولة في رحلتك وتظهر مجدداً في ملخص الطلب قبل الدفع.',
+    selected: 'تم الاختيار',
+    remove: 'إزالة',
+    removeFromSelectedPlan: (addonName) => `إزالة ${addonName} من خطة الرحلة المختارة`,
   },
 };
 
@@ -414,6 +455,7 @@ export function AmazonFlightStorefront({
   const { t, language, isRTL } = useLanguage();
   const bpCopy = BOOKING_BLUEPRINT_COPY[language] || BOOKING_BLUEPRINT_COPY.en;
   const calendarCopy = STOREFRONT_CALENDAR_COPY[language] || STOREFRONT_CALENDAR_COPY.en;
+  const addonCopy = STOREFRONT_ADDON_COPY[language] || STOREFRONT_ADDON_COPY.en;
   const packagesActionLabel =
     selectedPackage.category === 'training'
       ? calendarCopy.chooseTrainingDuration
@@ -421,7 +463,7 @@ export function AmazonFlightStorefront({
         ? calendarCopy.reviewFlightDetails
         : calendarCopy.customizeFlight;
   const [addonFilter, setAddonFilter] = useState<AddonFilterTab>('all');
-  const [calendarMode, setCalendarMode] = useState<'week' | 'month'>('month');
+  const [calendarMode, setCalendarMode] = useState<'week' | 'month'>('week');
   const [blueprintPackage, setBlueprintPackage] = useState<SimulatorPackage | null>(null);
   const blueprintPanelRef = useModalFocus<HTMLDivElement>(blueprintPackage !== null, () => setBlueprintPackage(null));
 
@@ -438,8 +480,6 @@ export function AmazonFlightStorefront({
   }, [selectedDate]);
 
   const weekDays = useMemo(() => calendarWeekDays(selectedDate, language), [language, selectedDate]);
-  const previousWeekDate = addDaysToYmd(selectedDate, -7);
-  const canNavigateToPreviousWeek = previousWeekDate >= calendarTodayYmd;
   const weekdayNames = useMemo(() => calendarWeekdayNames(language), [language]);
   const monthGridDays = useMemo(
     () => calendarMonthCells(viewMonthDate, language, calendarTodayYmd),
@@ -510,6 +550,12 @@ export function AmazonFlightStorefront({
     }
     return addons;
   }, [addons, addonFilter]);
+
+  const selectedAddonItems = useMemo(
+    () => addons.filter((addon) => selectedAddons.includes(addon.id)),
+    [addons, selectedAddons]
+  );
+  const hasSelectedAddons = selectedAddonItems.length > 0;
 
   const {
     cleanPackageTitle,
@@ -628,33 +674,18 @@ export function AmazonFlightStorefront({
             </div>
           </div>
 
-          {/* The month view is primary; seven-day view keeps a compact alternative. */}
+          {/* The seven-day view is primary; the month remains one tap away for longer-range planning. */}
           {calendarMode === 'week' ? (
             <div className="space-y-2.5">
-              <div className="flex items-center justify-between gap-2 px-1">
-                <button
-                  type="button"
-                  data-calendar-previous-week
-                  aria-label={calendarCopy.previousWeek}
-                  disabled={!canNavigateToPreviousWeek}
-                  onClick={() => selectCalendarDate(previousWeekDate)}
-                  className="min-w-[48px] min-h-[48px] p-2 rounded-xl border border-slate-800 bg-slate-950 text-slate-300 hover:text-white disabled:cursor-not-allowed disabled:opacity-35 flex items-center justify-center touch-manipulation cursor-pointer active:scale-95 transition-all"
-                >
-                  <ChevronLeft className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
-                </button>
-                <span className="text-xs sm:text-sm font-bold text-white text-center">
-                  {formatCalendarDate(weekDays[0].dateStr, language)} – {formatCalendarDate(weekDays[6].dateStr, language)}
-                </span>
-                <button
-                  type="button"
-                  data-calendar-next-week
-                  aria-label={calendarCopy.nextWeek}
-                  onClick={() => selectCalendarDate(addDaysToYmd(selectedDate, 7))}
-                  className="min-w-[48px] min-h-[48px] p-2 rounded-xl border border-slate-800 bg-slate-950 text-slate-300 hover:text-white flex items-center justify-center touch-manipulation cursor-pointer active:scale-95 transition-all"
-                >
-                  <ChevronRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
-                </button>
-              </div>
+              <BookingWeekPager
+                selectedDate={selectedDate}
+                calendarTodayYmd={calendarTodayYmd}
+                weekStartDate={weekDays[0].dateStr}
+                weekEndDate={weekDays[6].dateStr}
+                language={language}
+                isRTL={isRTL}
+                onSelectDate={selectCalendarDate}
+              />
               <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
                 {weekDays.map((day) => {
                   const isSelected = day.dateStr === selectedDate;
@@ -663,7 +694,7 @@ export function AmazonFlightStorefront({
                       key={day.dateStr}
                       type="button"
                       data-calendar-date={day.dateStr}
-                      aria-label={day.dayLabel}
+                      aria-label={`${day.weekdayLabel} ${formatCalendarDayNumber(day.dayNumber, language)} ${day.monthShortLabel}`}
                       aria-pressed={isSelected}
                       onClick={() => selectCalendarDate(day.dateStr)}
                       className={`min-h-[64px] py-2 px-1 sm:p-2 rounded-xl border text-center transition-all flex flex-col items-center justify-center touch-manipulation select-none cursor-pointer active:scale-95 ${
@@ -1185,7 +1216,10 @@ export function AmazonFlightStorefront({
         {/* ===================================================================
             SECTION 4: CATEGORIZED ADD-ON MARKETPLACE ("ADD TO FLIGHT CART")
            =================================================================== */}
-        <section className="p-5 sm:p-6 rounded-2xl border border-slate-800 bg-slate-900/60 space-y-5">
+        <section
+          id="flight-customization"
+          className="p-5 sm:p-6 rounded-2xl border border-slate-800 bg-slate-900/60 space-y-5"
+        >
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800/80 pb-4">
             <div>
               <h2 className="text-base sm:text-lg font-bold text-white">
@@ -1220,6 +1254,57 @@ export function AmazonFlightStorefront({
             </div>
           </div>
 
+          {hasSelectedAddons && (
+            <div
+              data-selected-addons
+              aria-live="polite"
+              className="rounded-xl border border-amber-400/45 bg-amber-500/10 p-4 sm:p-5 space-y-3"
+            >
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div className="space-y-1">
+                  <div className="text-[10px] font-mono font-bold uppercase tracking-widest text-amber-300">
+                    {addonCopy.selectedPlanEyebrow}
+                  </div>
+                  <h3 className="text-sm sm:text-base font-bold text-white">{addonCopy.selectedPlanTitle}</h3>
+                  <p className="text-xs text-slate-300 leading-relaxed">{addonCopy.selectedPlanSubtitle}</p>
+                </div>
+                <Badge variant="amber" className="shrink-0">
+                  {selectedAddonItems.length} {addonCopy.selected}
+                </Badge>
+              </div>
+
+              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 list-none p-0 m-0">
+                {selectedAddonItems.map((addon) => (
+                  <li
+                    key={addon.id}
+                    data-selected-addon={addon.id}
+                    className="flex items-center justify-between gap-3 rounded-lg border border-amber-400/35 bg-slate-950/70 px-3 py-3"
+                  >
+                    <div className="min-w-0 flex items-start gap-2">
+                      <span className="mt-0.5 shrink-0">{getAddonIcon(addon)}</span>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-white leading-snug">{addon.name}</p>
+                        <p className="text-[11px] font-mono text-sky-300" dir="ltr">
+                          {addon.durationMinutes > 0 ? `+${addon.durationMinutes} min` : ''}
+                          {addon.durationMinutes > 0 ? ' • ' : ''}
+                          +{formatCurrency(addon.priceIls)}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => onToggleAddon(addon.id)}
+                      aria-label={addonCopy.removeFromSelectedPlan(addon.name)}
+                      className="min-h-11 shrink-0 rounded-lg border border-slate-700 px-3 text-xs font-mono font-bold text-slate-200 transition-colors hover:border-red-400/70 hover:bg-red-500/10 hover:text-red-200"
+                    >
+                      {addonCopy.remove}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {filteredAddons.map((addon) => {
               const isChecked = selectedAddons.includes(addon.id);
@@ -1231,11 +1316,16 @@ export function AmazonFlightStorefront({
               return (
                 <div
                   key={addon.id}
+                  data-addon-card={addon.id}
+                  data-addon-selected={isChecked ? 'true' : 'false'}
+                  data-addon-deemphasized={!isChecked && hasSelectedAddons ? 'true' : 'false'}
                   className={`p-4 sm:p-5 rounded-xl border transition-all flex flex-col justify-between ${
                     !fitsSlot
                       ? 'border-slate-800/50 bg-slate-950/40'
                       : isChecked
                       ? 'border-amber-400 bg-amber-500/10 shadow-lg ring-1 ring-amber-400/40'
+                      : hasSelectedAddons
+                      ? 'border-slate-800/70 bg-slate-950/55 opacity-45 hover:opacity-80 hover:border-slate-700'
                       : 'border-slate-800 bg-slate-950/80 hover:border-slate-700'
                   }`}
                 >
@@ -1286,7 +1376,8 @@ export function AmazonFlightStorefront({
                       type="button"
                       disabled={!fitsSlot}
                       onClick={() => onToggleAddon(addon.id)}
-                      className={`px-3.5 py-2 rounded-lg font-mono text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
+                      aria-pressed={isChecked}
+                      className={`min-h-11 px-3.5 py-2 rounded-lg font-mono text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
                         !fitsSlot
                           ? 'bg-slate-900 text-slate-600 cursor-not-allowed'
                           : isChecked

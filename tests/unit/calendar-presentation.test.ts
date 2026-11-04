@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   calendarMonthCells,
+  calendarNavigationLabels,
   calendarWeekDays,
   calendarWeekdayNames,
   formatCalendarDate,
@@ -37,5 +38,16 @@ describe('localized calendar presentation', () => {
   it('formats dates in the visitor language without cross-script contamination', () => {
     expect(formatCalendarDate('2026-11-04', 'he')).toMatch(/[\u0590-\u05FF]/);
     expect(formatCalendarDate('2026-11-04', 'ar')).toMatch(/[\u0600-\u06FF]/);
+  });
+
+  it('keeps week pager controls complete and isolated in all five languages', () => {
+    for (const language of ['en', 'he', 'ru', 'fr', 'ar'] as const) {
+      const labels = calendarNavigationLabels(language);
+      expect(labels.previousWeek).not.toHaveLength(0);
+      expect(labels.nextWeek).not.toHaveLength(0);
+    }
+
+    expect(calendarNavigationLabels('he').nextWeek).toMatch(/[\u0590-\u05FF]/);
+    expect(calendarNavigationLabels('ar').nextWeek).toMatch(/[\u0600-\u06FF]/);
   });
 });

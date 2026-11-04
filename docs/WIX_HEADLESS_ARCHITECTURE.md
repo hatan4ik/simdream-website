@@ -119,6 +119,33 @@ This is a controlled rewrite. Astro provides the richest Wix-managed experience,
 | Membership and subscriptions | Wix Pricing Plans + Wix Members + Wix Bookings | Wix Pricing Plans owns plan terms, recurring lifecycle, trials, and subscription state. Connect only approved Bookings services/benefits. |
 | Operations admin | Wix Dashboard first | Build a custom dashboard only for capabilities absent from the native dashboard, such as SimDream-specific gap analysis. |
 
+### Voucher, coupon, gift-card and card-payment R&D (2026-11-04)
+
+The current frontend design stays in React/Next.js. Wix-owned payment screens are reached only through a short-lived redirect session, so the SimDream graphics remain on the catalog, calendar, package, add-on and manifest screens while Wix and PayPlus handle payment entry and card processing. The external frontend must never collect, retain or log card data.
+
+| Need | Wix-native fit | Recommended SimDream integration | Gate before adoption |
+| --- | --- | --- | --- |
+| Promotional discount code | **Wix Coupons** can scope a coupon to all Bookings services or a specific service. It also supports Pricing Plans scopes. | Create/manage approved campaigns in Wix; the frontend submits a code only in the Wix checkout flow or through a narrow server gateway. Do not calculate the final discount in React. | Verify the exact Bookings service scope, ILS pricing, coupon expiry, global usage limit and one-coupon-per-order behaviour in Wix staging. |
+| Existing `SD-VOUCH-*` stored-value voucher | **Not a normal coupon.** Wix Gift Cards support balance, partial redemption, transaction tracking and combining the balance with another payment method. | First evaluate migration to Wix-managed Gift Cards. Preserve legacy code/reference mapping and maintain the existing audited voucher ledger until native staging tests prove equivalent expiry, recipient, refund/void and redemption behaviour. | Confirm the Gift Card app is installed, Bookings checkout accepts the card, partial balance redemption works, and no customer-specific data leaks through balance checks. |
+| Custom/external voucher ledger | Wix offers a Gift Cards service-plugin route for an external provider, but current Wix documentation does not provide that plugin path for a self-managed Headless frontend. | Do **not** start a custom plugin for the current Next.js site. Retain the narrow server-side ledger if Wix-managed Gift Cards do not meet the product rules; revisit only if the hosting/development path changes and the plugin is supported. | Architecture review and an idempotency/void/reconciliation design; never deduct balance based only on a browser return. |
+| Card payment / saved cards | Wix-hosted Bookings checkout plus PayPlus is the supported secure boundary. | React calls a server-owned `CheckoutGateway` that creates a Wix redirect session; the browser redirects to the returned single-use Wix URL. On return, the server re-queries the authoritative booking/order state. | Configure allowed return domains, PayPlus sandbox, cancellation/failure routes, and a no-charge end-to-end booking test. |
+
+**Important native constraints:** Wix coupons are promotional discounts, not a per-customer stored-value wallet. Coupon use is restricted by the Wix checkout rules (including one coupon per order and no per-customer usage limit), so it cannot replace SimDream gift vouchers. Wix-hosted checkout is deliberate: it prevents the custom frontend from becoming a PCI/card-data surface.
+
+**Target interaction flow**
+
+```text
+SimDream React booking UX
+  → Next.js CheckoutGateway (server validation, no secrets in browser)
+    → Wix Bookings / Gift Cards / Redirect Session
+      → Wix-hosted checkout + PayPlus card entry
+        → allowed return URL
+          → server re-query or trusted event
+            → confirmed / pending / failed customer state
+```
+
+Official R&D sources: [Wix Coupons](https://dev.wix.com/docs/api-reference/business-solutions/coupons/coupons/introduction), [Wix Gift Cards](https://dev.wix.com/docs/api-reference/business-solutions/e-commerce/payments/gift-cards/introduction), [Wix-hosted pages](https://dev.wix.com/docs/go-headless/business-solutions/wix-hosted-pages/about-wix-hosted-pages), and [Headless checkout redirects](https://dev.wix.com/docs/go-headless/business-solutions/wix-hosted-pages/redirect-using-the-rest-api).
+
 ### Subscription product model
 
 Pricing Plans should be used for recurring commercial commitments, not as a substitute for every package selector. A one-off 60-minute flight remains a normal Bookings checkout. A subscription becomes useful when the customer receives recurring membership value, such as priority booking, an ongoing member rate, a defined number of eligible sessions per cycle, training-program access, or members-only content.

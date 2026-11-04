@@ -56,6 +56,19 @@ function requestHref(id: string): string {
   return `/contact?subject=route&route=${encodeURIComponent(id)}`;
 }
 
+/** A bookable World Trio is an actual order line, never just a booking-page suggestion. */
+function bookHref(route: WorldRoute): string {
+  const addon = addonFor(route);
+  if (!addon) return requestHref(route.id);
+
+  const params = new URLSearchParams({
+    package: 'captains-command-60',
+    addons: addon.id,
+    route: route.id,
+  });
+  return `/book?${params.toString()}`;
+}
+
 /**
  * Experience Flights ("טיסות חוויה"): the World Trio route catalog and flight adventures,
  * written in the captain's voice. Rendered on /experiences under the package grid.
@@ -238,7 +251,7 @@ export function WorldRoutesSection() {
                     </div>
                   )}
                   {addon ? (
-                    <Link href="/book?package=captains-command-60" className="block">
+                    <Link href={bookHref(route)} className="block">
                       <Button className="w-full font-bold min-h-[44px]">
                         <span>{copy.bookTrioCta}</span>
                         <ArrowRight className={`w-4 h-4 ${arrowFlip}`} aria-hidden="true" />

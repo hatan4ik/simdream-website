@@ -42,6 +42,17 @@ test.describe('recreational storefront upsells', () => {
     await expect(booking.page.getByRole('button', { name: /^Add to Flight/ }).first()).toBeVisible();
     await expect(booking.page.getByRole('button', { name: /^Apply Combo/ }).first()).toBeVisible();
   });
+
+  test('keeps a loaded combo visible above the marketplace and deemphasizes alternatives', async ({ booking }) => {
+    await booking.goto('?package=captains-command-60');
+    await booking.page.getByRole('button', { name: /^Apply Combo/ }).first().click();
+
+    await expect(booking.page.locator('[data-selected-addons]')).toBeVisible();
+    await expect(booking.page.locator('[data-selected-addon="addon-cold-dark"]')).toBeVisible();
+    await expect(booking.page.locator('[data-selected-addon="addon-classical-eu"]')).toBeVisible();
+    await expect(booking.page.locator('[data-addon-card="addon-cold-dark"]')).toHaveAttribute('data-addon-selected', 'true');
+    await expect(booking.page.locator('[data-addon-card="addon-xwind-ifr"]')).toHaveAttribute('data-addon-deemphasized', 'true');
+  });
 });
 
 test.describe('professional training booking', () => {

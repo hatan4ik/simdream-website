@@ -155,7 +155,7 @@ test.describe('localized calendar views', () => {
   // client render, so a footer hydration regression (E2E-12) cannot fail this test for an unrelated reason.
   const TUESDAY_BEFORE_DST_END = new Date('2026-10-20T12:00:00+03:00');
 
-  test('defaults to the month view and offers a seven-day week across the autumn clock change (E2E-6)', async ({
+  test('defaults to the seven-day week and keeps the month available across the autumn clock change (E2E-6)', async ({
     page,
     booking,
   }) => {
@@ -164,13 +164,24 @@ test.describe('localized calendar views', () => {
 
     const month = page.getByRole('button', { name: 'Month', exact: true });
     const week = page.getByRole('button', { name: 'Week', exact: true });
-    await expect(month).toHaveAttribute('aria-pressed', 'true');
-    await week.click();
     await expect(week).toHaveAttribute('aria-pressed', 'true');
+    await expect(month).toHaveAttribute('aria-pressed', 'false');
 
     // The selected date is tomorrow (Wednesday 21 Oct), so the local Sunday-first week is 18–24 Oct.
     const expected = Array.from({ length: 7 }, (_, offset) => ribbonLabel(addDays('2026-10-18', offset)));
     const ribbon = page.getByRole('button', { name: /^(Sun|Mon|Tue|Wed|Thu|Fri|Sat) \d{1,2} [A-Z][a-z]{2}$/ });
     await expect(ribbon).toHaveText(expected.map((label) => new RegExp(`^${label.replace(/ /g, '\\s*')}$`)));
+
+    await month.click();
+    await expect(month).toHaveAttribute('aria-pressed', 'true');
+    await expect(week).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  test('uses the same week-first default in the guided booking calendar', async ({ page, booking }) => {
+    await booking.goto();
+    await booking.openWizard();
+
+    await expect(page.getByRole('button', { name: 'Week', exact: true })).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByRole('button', { name: 'Month', exact: true })).toHaveAttribute('aria-pressed', 'false');
   });
 });

@@ -1499,6 +1499,9 @@ export interface ExperienceRoutesCopy {
   bestForLabel: string;
   bookTrioCta: string;
   requestRouteCta: string;
+  bookingIntentEyebrow: string;
+  bookingIntentDescription: string;
+  bookingIntentAddOn: string;
   adventuresBadge: string;
   adventuresTitle: string;
   adventuresSubtitle: string;
@@ -1544,13 +1547,17 @@ export const EXPERIENCE_ROUTES_COPY: Record<Language, ExperienceRoutesCopy> = {
     bestForLabel: 'Best for',
     bookTrioCta: 'Book a flight with this trio',
     requestRouteCta: 'Request this route',
+    bookingIntentEyebrow: 'WORLD TRIO ADDED TO YOUR FLIGHT',
+    bookingIntentDescription:
+      'This route is already selected. Choose a departure time that fits the complete flight, then confirm its minutes and price in your checkout manifest.',
+    bookingIntentAddOn: 'Route add-on',
     adventuresBadge: 'FLIGHT ADVENTURES',
     adventuresTitle: 'Beyond the Trios: Missions a Captain Would Fly',
     adventuresSubtitle:
       'Scenario flights briefed with your captain and flown inside your booked session. Tell us which one when you book, or ask at the briefing.',
     fromSession: (minutes) => `From a ${minutes}-minute session`,
     askCaptainCta: 'Ask your captain',
-    bookableHint: 'Add it in the Cockpit Add-ons step when booking a 60- or 90-minute flight.',
+    bookableHint: 'Bookable trios open a 60-minute Captain’s Command flight with the chosen trio already selected; review the full manifest before checkout.',
     onRequestHint: 'Not yet in online checkout. Request it and we confirm the briefing by email.',
   },
   he: {
@@ -1587,13 +1594,17 @@ export const EXPERIENCE_ROUTES_COPY: Record<Language, ExperienceRoutesCopy> = {
     bestForLabel: 'מתאים במיוחד ל',
     bookTrioCta: 'להזמנת טיסה עם השלישייה הזו',
     requestRouteCta: 'לבקשת המסלול הזה',
+    bookingIntentEyebrow: 'השלישייה העולמית נוספה לטיסה שלכם',
+    bookingIntentDescription:
+      'המסלול כבר נבחר. בחרו שעת המראה שמתאימה לטיסה המלאה, ואשרו את הדקות והמחיר בפירוט ההזמנה לפני התשלום.',
+    bookingIntentAddOn: 'תוספת מסלול',
     adventuresBadge: 'הרפתקאות טיסה',
     adventuresTitle: 'מעבר לשלישיות: משימות שקברניט היה טס',
     adventuresSubtitle:
       'טיסות תרחיש שמתודרכות עם הקברניט ומבוצעות בתוך המפגש שהזמנתם. ציינו איזו מהן בהזמנה, או בקשו בתדריך.',
     fromSession: (minutes) => `ממפגש של ${minutes} דקות`,
     askCaptainCta: 'לשאול את הקברניט',
-    bookableHint: 'מוסיפים בשלב תוספות הקוקפיט בהזמנת טיסה של 60 או 90 דקות.',
+    bookableHint: 'שלישיות הזמינות אונליין פותחות טיסת Captain’s Command של 60 דקות עם השלישייה שכבר נבחרה; בדקו את הפירוט המלא לפני התשלום.',
     onRequestHint: 'עדיין לא בהזמנה המקוונת. בקשו אותו ונאשר את התדריך במייל.',
   },
   ru: {
@@ -1630,13 +1641,17 @@ export const EXPERIENCE_ROUTES_COPY: Record<Language, ExperienceRoutesCopy> = {
     bestForLabel: 'Лучше всего для',
     bookTrioCta: 'Забронировать полёт с этим трио',
     requestRouteCta: 'Запросить этот маршрут',
+    bookingIntentEyebrow: 'МИРОВОЕ ТРИО ДОБАВЛЕНО К ВАШЕМУ ПОЛЁТУ',
+    bookingIntentDescription:
+      'Этот маршрут уже выбран. Выберите время вылета, подходящее для полного полёта, затем проверьте минуты и цену в составе заказа перед оплатой.',
+    bookingIntentAddOn: 'Опция маршрута',
     adventuresBadge: 'ЛЁТНЫЕ ПРИКЛЮЧЕНИЯ',
     adventuresTitle: 'За пределами трио: миссии, которые выбрал бы командир',
     adventuresSubtitle:
       'Сценарные полёты, которые разбираются с командиром и выполняются внутри забронированного сеанса. Укажите нужный при бронировании или попросите на брифинге.',
     fromSession: (minutes) => `От сеанса ${minutes} минут`,
     askCaptainCta: 'Спросить командира',
-    bookableHint: 'Добавьте на шаге «Дополнения в кабине» при бронировании полёта на 60 или 90 минут.',
+    bookableHint: 'Доступные для бронирования трио открывают 60-минутный полёт Captain’s Command с уже выбранным трио; проверьте полный состав заказа перед оплатой.',
     onRequestHint: 'Пока недоступно в онлайн-оплате. Запросите — и мы подтвердим брифинг по электронной почте.',
   },
   fr: {
@@ -1673,13 +1688,17 @@ export const EXPERIENCE_ROUTES_COPY: Record<Language, ExperienceRoutesCopy> = {
     bestForLabel: 'Idéal pour',
     bookTrioCta: 'Réserver un vol avec ce trio',
     requestRouteCta: 'Demander cette route',
+    bookingIntentEyebrow: 'TRIO MONDIAL AJOUTÉ À VOTRE VOL',
+    bookingIntentDescription:
+      'Cet itinéraire est déjà sélectionné. Choisissez une heure de départ adaptée au vol complet, puis vérifiez ses minutes et son prix dans le manifeste avant le paiement.',
+    bookingIntentAddOn: 'Option d’itinéraire',
     adventuresBadge: 'AVENTURES EN VOL',
     adventuresTitle: 'Au-delà des trios : des missions qu’un commandant volerait',
     adventuresSubtitle:
       'Des vols scénarisés, briefés avec votre commandant et volés pendant votre séance réservée. Indiquez-nous lequel à la réservation, ou demandez-le au briefing.',
     fromSession: (minutes) => `À partir d’une séance de ${minutes} minutes`,
     askCaptainCta: 'Demander au commandant',
-    bookableHint: 'Ajoutez-le à l’étape « Options cockpit » lors de la réservation d’un vol de 60 ou 90 minutes.',
+    bookableHint: 'Les trios réservables ouvrent un vol Captain’s Command de 60 minutes avec le trio déjà sélectionné ; vérifiez le manifeste complet avant le paiement.',
     onRequestHint: 'Pas encore disponible au paiement en ligne. Demandez-le et nous confirmons le briefing par e-mail.',
   },
   ar: {
@@ -1716,13 +1735,17 @@ export const EXPERIENCE_ROUTES_COPY: Record<Language, ExperienceRoutesCopy> = {
     bestForLabel: 'الأنسب لـ',
     bookTrioCta: 'احجز رحلة مع هذه الثلاثية',
     requestRouteCta: 'اطلب هذا المسار',
+    bookingIntentEyebrow: 'تمت إضافة الثلاثية العالمية إلى رحلتك',
+    bookingIntentDescription:
+      'هذا المسار محدد بالفعل. اختر وقت إقلاع يناسب الرحلة الكاملة، ثم راجع الدقائق والسعر في ملخص طلبك قبل الدفع.',
+    bookingIntentAddOn: 'إضافة المسار',
     adventuresBadge: 'مغامرات الطيران',
     adventuresTitle: 'ما بعد الثلاثيات: مهام يطير بها قبطان',
     adventuresSubtitle:
       'رحلات سيناريو يتم التحضير لها مع قبطانك وتُنفَّذ ضمن الجلسة المحجوزة. أخبرنا بأيّها عند الحجز، أو اطلبها في الإحاطة.',
     fromSession: (minutes) => `من جلسة مدتها ${minutes} دقيقة`,
     askCaptainCta: 'اسأل قبطانك',
-    bookableHint: 'أضفها في خطوة إضافات المقصورة عند حجز رحلة 60 أو 90 دقيقة.',
+    bookableHint: 'الثلاثيات القابلة للحجز تفتح رحلة Captain’s Command لمدة 60 دقيقة مع تحديد الثلاثية مسبقاً؛ راجع ملخص الطلب الكامل قبل الدفع.',
     onRequestHint: 'ليست متاحة بعد في الدفع الإلكتروني. اطلبها وسنؤكد الإحاطة عبر البريد الإلكتروني.',
   },
 };

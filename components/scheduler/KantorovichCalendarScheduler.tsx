@@ -14,6 +14,7 @@ import {
   X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { BookingWeekPager } from '@/components/scheduler/BookingWeekPager';
 import {
   FlightSlot,
   SimulatorPackage,
@@ -61,8 +62,6 @@ const CLEAN_COPY: Record<
     selectTime: string;
     viewWeek: string;
     viewMonth: string;
-    previousWeek: string;
-    nextWeek: string;
     previousMonth: string;
     nextMonth: string;
     checkNextDay: string;
@@ -86,8 +85,6 @@ const CLEAN_COPY: Record<
     selectTime: '3. Select Departure Time',
     viewWeek: 'Week',
     viewMonth: 'Month',
-    previousWeek: 'Previous week',
-    nextWeek: 'Next week',
     previousMonth: 'Previous month',
     nextMonth: 'Next month',
     checkNextDay: 'Check Next Day →',
@@ -123,8 +120,6 @@ const CLEAN_COPY: Record<
     selectTime: '3. בחירת שעת המראה',
     viewWeek: 'שבוע',
     viewMonth: 'חודש',
-    previousWeek: 'השבוע הקודם',
-    nextWeek: 'השבוע הבא',
     previousMonth: 'החודש הקודם',
     nextMonth: 'החודש הבא',
     checkNextDay: 'בדיקת היום הבא ←',
@@ -160,8 +155,6 @@ const CLEAN_COPY: Record<
     selectTime: '3. Время вылета',
     viewWeek: 'Неделя',
     viewMonth: 'Месяц',
-    previousWeek: 'Предыдущая неделя',
-    nextWeek: 'Следующая неделя',
     previousMonth: 'Предыдущий месяц',
     nextMonth: 'Следующий месяц',
     checkNextDay: 'Следующий день →',
@@ -197,8 +190,6 @@ const CLEAN_COPY: Record<
     selectTime: '3. Heure de Départ',
     viewWeek: 'Semaine',
     viewMonth: 'Mois',
-    previousWeek: 'Semaine précédente',
-    nextWeek: 'Semaine suivante',
     previousMonth: 'Mois précédent',
     nextMonth: 'Mois suivant',
     checkNextDay: 'Jour suivant →',
@@ -234,8 +225,6 @@ const CLEAN_COPY: Record<
     selectTime: '3. وقت الإقلاع',
     viewWeek: 'أسبوع',
     viewMonth: 'الشهر',
-    previousWeek: 'الأسبوع السابق',
-    nextWeek: 'الأسبوع التالي',
     previousMonth: 'الشهر السابق',
     nextMonth: 'الشهر التالي',
     checkNextDay: 'فحص اليوم التالي ←',
@@ -284,7 +273,7 @@ export function KantorovichCalendarScheduler({
   const copy = CLEAN_COPY[language] || CLEAN_COPY.en;
   const bpCopy = BOOKING_BLUEPRINT_COPY[language] || BOOKING_BLUEPRINT_COPY.en;
 
-  const [calendarMode, setCalendarMode] = useState<'week' | 'month'>('month');
+  const [calendarMode, setCalendarMode] = useState<'week' | 'month'>('week');
   const [blueprintModalPackage, setBlueprintModalPackage] = useState<SimulatorPackage | null>(null);
   const blueprintPanelRef = useModalFocus<HTMLDivElement>(blueprintModalPackage !== null, () =>
     setBlueprintModalPackage(null)
@@ -318,8 +307,6 @@ export function KantorovichCalendarScheduler({
   }, [packages, selectedPackage.id]);
 
   const weekDays = useMemo(() => calendarWeekDays(selectedDate, language), [language, selectedDate]);
-  const previousWeekDate = addDaysToYmd(selectedDate, -7);
-  const canNavigateToPreviousWeek = previousWeekDate >= calendarTodayYmd;
   const weekdayNames = useMemo(() => calendarWeekdayNames(language), [language]);
   const monthGridDays = useMemo(
     () => calendarMonthCells(viewMonthDate, language, calendarTodayYmd),
@@ -380,7 +367,7 @@ export function KantorovichCalendarScheduler({
             <span>{copy.selectDate}</span>
           </h2>
 
-          {/* Month is the default; a compact local-week view remains one tap away. */}
+          {/* Week is the default; the full month remains one tap away for longer-range planning. */}
           <div className="inline-flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800">
             <button
               type="button"
@@ -412,30 +399,15 @@ export function KantorovichCalendarScheduler({
         {/* LOCAL WEEK: seven consecutive days, ordered for the active locale. */}
         {calendarMode === 'week' && (
           <div className="space-y-2.5">
-            <div className="flex items-center justify-between px-1">
-              <button
-                type="button"
-                data-calendar-previous-week
-                aria-label={copy.previousWeek}
-                disabled={!canNavigateToPreviousWeek}
-                onClick={() => handleSelectDate(previousWeekDate)}
-                className="min-w-[48px] min-h-[48px] p-2 rounded-xl border border-slate-800 bg-slate-950 text-slate-300 hover:text-white disabled:cursor-not-allowed disabled:opacity-35 flex items-center justify-center touch-manipulation cursor-pointer active:scale-95 transition-all"
-              >
-                <ChevronLeft className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
-              </button>
-              <span className="text-xs sm:text-sm font-bold text-white">
-                {formatCalendarDate(weekDays[0].dateStr, language)} – {formatCalendarDate(weekDays[6].dateStr, language)}
-              </span>
-              <button
-                type="button"
-                data-calendar-next-week
-                aria-label={copy.nextWeek}
-                onClick={() => handleSelectDate(addDaysToYmd(selectedDate, 7))}
-                className="min-w-[48px] min-h-[48px] p-2 rounded-xl border border-slate-800 bg-slate-950 text-slate-300 hover:text-white flex items-center justify-center touch-manipulation cursor-pointer active:scale-95 transition-all"
-              >
-                <ChevronRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
-              </button>
-            </div>
+            <BookingWeekPager
+              selectedDate={selectedDate}
+              calendarTodayYmd={calendarTodayYmd}
+              weekStartDate={weekDays[0].dateStr}
+              weekEndDate={weekDays[6].dateStr}
+              language={language}
+              isRTL={isRTL}
+              onSelectDate={handleSelectDate}
+            />
             <div className="flex md:grid md:grid-cols-7 gap-2 overflow-x-auto pb-1 -mx-1 px-1 snap-x snap-mandatory">
               {weekDays.map((day) => {
                 const isSelected = day.dateStr === selectedDate;
@@ -444,7 +416,7 @@ export function KantorovichCalendarScheduler({
                     key={day.dateStr}
                     type="button"
                     data-calendar-date={day.dateStr}
-                    aria-label={day.dayLabel}
+                    aria-label={`${day.weekdayLabel} ${formatCalendarDayNumber(day.dayNumber, language)} ${day.monthShortLabel}`}
                     aria-pressed={isSelected}
                     onClick={() => handleSelectDate(day.dateStr)}
                     className={`snap-start shrink-0 min-w-[68px] sm:min-w-0 min-h-[72px] p-2.5 rounded-xl border text-center transition-all flex flex-col items-center justify-center ${

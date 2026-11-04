@@ -19,6 +19,20 @@ const WEEK_STARTS_ON: Record<Language, number> = {
   ar: 0,
 };
 
+/** Shared accessible labels for any booking calendar control. */
+export interface CalendarNavigationLabels {
+  previousWeek: string;
+  nextWeek: string;
+}
+
+const CALENDAR_NAVIGATION_LABELS: Record<Language, CalendarNavigationLabels> = {
+  en: { previousWeek: 'Previous week', nextWeek: 'Next week' },
+  he: { previousWeek: 'השבוע הקודם', nextWeek: 'השבוע הבא' },
+  ru: { previousWeek: 'Предыдущая неделя', nextWeek: 'Следующая неделя' },
+  fr: { previousWeek: 'Semaine précédente', nextWeek: 'Semaine suivante' },
+  ar: { previousWeek: 'الأسبوع السابق', nextWeek: 'الأسبوع التالي' },
+};
+
 export interface CalendarDay {
   dateStr: string;
   dayNumber: number;
@@ -52,6 +66,10 @@ function formatter(language: Language, options: Intl.DateTimeFormatOptions): Int
 
 export function calendarWeekStart(language: Language): number {
   return WEEK_STARTS_ON[language];
+}
+
+export function calendarNavigationLabels(language: Language): CalendarNavigationLabels {
+  return CALENDAR_NAVIGATION_LABELS[language];
 }
 
 export function calendarWeekdayNames(language: Language): string[] {
