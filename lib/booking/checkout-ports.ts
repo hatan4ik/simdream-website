@@ -75,6 +75,24 @@ export interface CheckoutClock {
 }
 
 /**
+ * A deliberately non-identifying checkout observation. Providers may use this
+ * to compare a selected, locally-authoritative departure with a shadow system
+ * after the customer has received the checkout response. It never contains a
+ * name, email address, telephone number, voucher code, or payment data.
+ */
+export interface CheckoutShadowCandidate {
+  packageId: string;
+  bookingDate: string;
+  startTime: string;
+  durationMinutes: number;
+}
+
+/** Optional, non-blocking observer. It must not write or influence checkout. */
+export interface CheckoutShadowObserver {
+  observeBookingCandidate(candidate: CheckoutShadowCandidate): Promise<void>;
+}
+
+/**
  * Infrastructure boundary for checkout. Stripe/Supabase/SendGrid/Wix adapters
  * implement these ports outside the business orchestration module.
  */

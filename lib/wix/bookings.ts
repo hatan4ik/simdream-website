@@ -1,13 +1,13 @@
 import { z } from 'zod';
 import { SIMULATOR_PACKAGES } from '@/lib/db/seed-data';
 import { WIX_TIME_ZONE } from './config';
-import { wixPost } from './client';
+import { WixApiError, wixPost } from './client';
 import { WIX_SERVICE_IDS } from './catalog';
 
 // Endpoints confirmed against the Wix REST reference:
 // https://dev.wix.com/docs/api-reference/business-solutions/bookings/services/services-v2/query-services
 // https://dev.wix.com/docs/api-reference/business-solutions/bookings/time-slots/time-slots-v2/list-availability-time-slots
-const QUERY_SERVICES_URL = 'https://www.wixapis.com/bookings/v2/services/query';
+const QUERY_SERVICES_URL = 'https://www.wixapis.com/_api/bookings/v2/services/query';
 const LIST_TIME_SLOTS_URL = 'https://www.wixapis.com/_api/service-availability/v2/time-slots';
 
 const priceSchema = z.object({ value: z.string(), currency: z.string().optional() });
@@ -57,7 +57,13 @@ const listTimeSlotsResponse = z
   .object({
     timeSlots: z.array(wixTimeSlotSchema).default([]),
     timeZone: z.string().optional(),
-    cursorPagingMetadata: z.object({ hasNext: z.boolean().optional() }).loose().optional(),
+    cursorPagingMetadata: z
+      .object({
+        hasNext: z.boolean().optional(),
+        cursors: z.object({ next: z.string().optional() }).loose().optional(),
+      })
+      .loose()
+      .optional(),
   })
   .loose();
 
@@ -79,16 +85,34 @@ export async function listWixAvailability(window: AvailabilityWindow): Promise<{
   timeSlots: WixTimeSlot[];
   timeZone: string;
 }> {
-  const data = await wixPost(LIST_TIME_SLOTS_URL, {
-    serviceId: window.serviceId,
-    fromLocalDate: window.fromLocalDate,
-    toLocalDate: window.toLocalDate,
-    timeZone: WIX_TIME_ZONE,
-    bookable: true,
-    cursorPaging: { limit: 200 },
-  });
-  const parsed = listTimeSlotsResponse.parse(data);
-  return { timeSlots: parsed.timeSlots, timeZone: parsed.timeZone ?? WIX_TIME_ZONE };
+  const timeSlots: WixTimeSlot[] = [];
+  let timeZone = WIX_TIME_ZONE;
+  let cursor: string | undefined;
+
+  // The documented endpoint can return more than one cursor page. A shadow
+  // comparison must be complete; silently comparing only the first page could
+  // make a non-matching availability calendar look healthy.
+  for (let page = 0; page < 20; page += 1) {
+    const data = await wixPost(LIST_TIME_SLOTS_URL, {
+      serviceId: window.serviceId,
+      fromLocalDate: window.fromLocalDate,
+      toLocalDate: window.toLocalDate,
+      timeZone: WIX_TIME_ZONE,
+      bookable: true,
+      cursorPaging: { limit: 1000, ...(cursor ? { cursor } : {}) },
+    });
+    const parsed = listTimeSlotsResponse.parse(data);
+    timeSlots.push(...parsed.timeSlots);
+    timeZone = parsed.timeZone ?? timeZone;
+
+    if (!parsed.cursorPagingMetadata?.hasNext) return { timeSlots, timeZone };
+    cursor = parsed.cursorPagingMetadata.cursors?.next;
+    if (!cursor) {
+      throw new WixApiError(502, LIST_TIME_SLOTS_URL, 'Wix reported another availability page without a cursor.');
+    }
+  }
+
+  throw new WixApiError(502, LIST_TIME_SLOTS_URL, 'Wix availability pagination exceeded the safe 20-page limit.');
 }
 
 export interface CatalogMismatch {

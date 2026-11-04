@@ -1,6 +1,6 @@
 # Wix Headless Integration Architecture & DevOps Plan
 
-**Status:** Proposed target architecture. No Wix integration, migration, credential, payment, or production-domain change is implemented by this document.
+**Status:** P3 read-only shadow integration is implemented. It compares the local accepted booking candidate with Wix Bookings catalog/availability only when explicitly enabled; it creates no Wix booking, checkout session, payment, member, voucher, coupon, CMS item, migration or production-domain change.
 
 **Authority:** [`GENESIS.md`](../GENESIS.md) remains the canonical description of the currently running Next.js/Supabase/Stripe system. This document describes a deliberate future integration or migration path to Wix Headless.
 
@@ -19,6 +19,19 @@ For the existing application, the safest first implementation is **self-managed 
 - Configure PayPlus inside Wix, never in browser code or in the Next.js repository.
 
 Wix-managed hosting is a valid later choice. A Wix-managed Astro project receives the deepest integration, including automatic visitor/member authentication. A Wix-managed non-Astro frontend may be deployable when supported, but its authentication is still the application's responsibility. Do not rewrite the frontend merely to claim that the site is “on Wix.”
+
+### P3 implementation: shadow reads, not a dual-write migration
+
+`lib/wix/checkout-shadow.ts` implements the `CheckoutShadowObserver` contract. After `POST /api/checkout` has successfully initialized the existing Supabase/Stripe checkout, Next.js `after()` schedules an anonymous Wix visitor read only when `WIX_SHADOW_READS_ENABLED=true` and `NEXT_PUBLIC_WIX_CLIENT_ID` is configured. The post-response work compares:
+
+- the mapped Wix Bookings service's name, base duration, base price, service type and visibility against the local catalog;
+- the selected local base-package departure against Wix's bookable appointment slots for that Israel date.
+
+The emitted JSON event contains a generated correlation ID, package ID, date, time, base duration, service ID, time zone and discrepancy categories. It intentionally omits names, emails, phone numbers, member identifiers, voucher codes, booking IDs/references, amounts paid and any payment/card data. Wix errors become a redacted `wix_checkout_shadow_failed` event and can never alter the customer response.
+
+The observer's read-client interface has exactly two methods: `listServices()` and `listAvailability()`. Both resolve through the anonymous visitor SDK client and documented Wix Bookings read endpoints; no Wix writer or hosted-checkout API is imported. The service and availability queries are fully paginated before a comparison is considered complete. This is diagnostic parity evidence only: Supabase/Stripe remains the canonical writer, and the Stripe webhook remains payment authority.
+
+Keep `WIX_SHADOW_READS_ENABLED=false` in every environment until an operator explicitly wants diagnostic traffic. Do not enable it as a substitute for the P4 staging checkout pilot, and do not interpret a matching base service as add-on, voucher, member, checkout, PayPlus or payment-state parity.
 
 ## 2. Current architecture to preserve
 

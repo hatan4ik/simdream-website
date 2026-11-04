@@ -20,3 +20,11 @@ export function getWixSiteId(): string | null {
 export function isWixConfigured(): boolean {
   return Boolean(getWixClientId());
 }
+
+/**
+ * Shadow reads are off by default. Enabling them sends only anonymous visitor
+ * reads to Wix and never selects Wix as the checkout writer.
+ */
+export function isWixShadowReadsEnabled(): boolean {
+  return process.env.WIX_SHADOW_READS_ENABLED?.trim().toLowerCase() === 'true' && isWixConfigured();
+}

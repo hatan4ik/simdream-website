@@ -1,4 +1,4 @@
-export { getWixClientId, getWixSiteId, isWixConfigured, WIX_TIME_ZONE } from './config';
+export { getWixClientId, getWixSiteId, isWixConfigured, isWixShadowReadsEnabled, WIX_TIME_ZONE } from './config';
 export { getWixClient, WixApiError, WixNotConfiguredError } from './client';
 export { WIX_SERVICE_IDS, wixServiceIdFor, packageIdForWixService, unmappedPackageIds } from './catalog';
 export {
@@ -9,3 +9,9 @@ export {
   type WixTimeSlot,
   type CatalogMismatch,
 } from './bookings';
+export {
+  createWixCheckoutShadowObserver,
+  scheduleWixCheckoutShadow,
+  runWixCheckoutShadow,
+  type WixCheckoutShadowReport,
+} from './checkout-shadow';

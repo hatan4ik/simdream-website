@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { SIMULATOR_PACKAGES } from '@/lib/db/seed-data';
 import { WIX_SERVICE_IDS, packageIdForWixService, unmappedPackageIds, wixServiceIdFor } from '@/lib/wix/catalog';
 import { reconcileCatalog, type WixService } from '@/lib/wix/bookings';
-import { isWixConfigured } from '@/lib/wix/config';
+import { isWixConfigured, isWixShadowReadsEnabled } from '@/lib/wix/config';
 import { getWixClient, resetWixClientForTests, WixNotConfiguredError } from '@/lib/wix/client';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -85,9 +85,12 @@ describe('reconcileCatalog', () => {
 
 describe('Wix client configuration', () => {
   const original = process.env.NEXT_PUBLIC_WIX_CLIENT_ID;
+  const originalShadowReads = process.env.WIX_SHADOW_READS_ENABLED;
   afterEach(() => {
     if (original === undefined) delete process.env.NEXT_PUBLIC_WIX_CLIENT_ID;
     else process.env.NEXT_PUBLIC_WIX_CLIENT_ID = original;
+    if (originalShadowReads === undefined) delete process.env.WIX_SHADOW_READS_ENABLED;
+    else process.env.WIX_SHADOW_READS_ENABLED = originalShadowReads;
     resetWixClientForTests();
   });
 
@@ -104,5 +107,17 @@ describe('Wix client configuration', () => {
     const client = getWixClient();
     expect(typeof client.fetchWithAuth).toBe('function');
     expect(getWixClient()).toBe(client);
+  });
+
+  it('requires an explicit true flag and a configured public visitor client for shadow reads', () => {
+    process.env.NEXT_PUBLIC_WIX_CLIENT_ID = 'a7828197-5f0a-4580-9535-55fa889b5f9a';
+    delete process.env.WIX_SHADOW_READS_ENABLED;
+    expect(isWixShadowReadsEnabled()).toBe(false);
+
+    process.env.WIX_SHADOW_READS_ENABLED = 'TRUE';
+    expect(isWixShadowReadsEnabled()).toBe(true);
+
+    delete process.env.NEXT_PUBLIC_WIX_CLIENT_ID;
+    expect(isWixShadowReadsEnabled()).toBe(false);
   });
 });
