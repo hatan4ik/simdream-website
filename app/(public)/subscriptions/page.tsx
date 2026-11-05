@@ -157,7 +157,7 @@ export default function SubscriptionsPage() {
               onClick={() => setSelectedFilter('all')}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                 selectedFilter === 'all'
-                  ? 'bg-sky-500 text-white shadow-sm'
+                  ? 'bg-sky-700 text-white'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
@@ -168,7 +168,7 @@ export default function SubscriptionsPage() {
               onClick={() => setSelectedFilter('5')}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                 selectedFilter === '5'
-                  ? 'bg-sky-500 text-white shadow-sm'
+                  ? 'bg-sky-700 text-white'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
@@ -179,7 +179,7 @@ export default function SubscriptionsPage() {
               onClick={() => setSelectedFilter('10')}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                 selectedFilter === '10'
-                  ? 'bg-sky-500 text-white shadow-sm'
+                  ? 'bg-sky-700 text-white'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
