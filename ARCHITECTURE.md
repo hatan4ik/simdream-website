@@ -11,60 +11,70 @@ flowchart TD
     subgraph ClientLayer["Client & User Interface Layer"]
         User["Visitor / Pilot Candidate"]
         BrandLogoSystem["Official Brand Identity<br/>BrandLogo.tsx (Orange Plane + Cerulean Wordmark)<br/>Translated Tagline (t.nav.brandSub)"]
-        ThemeEngine["Dual UX Engine<br/>🌙 Cockpit Night / ☀️ Brand Daylight<br/>Sim Dream cerulean #2096C7 + orange #FF5500"]
-        I18nEngine["5-Language Engine (i18n)<br/>HE (RTL) • AR (RTL) • EN • RU • FR"]
+        ThemeEngine["Triple UX Engine<br/>🌙 Cockpit Night (default) • ☀️ Brand Daylight • ✨ Clean Studio<br/>Sim Dream cerulean #2096C7 + orange #FF5500"]
+        I18nEngine["5-Language Engine (i18n)<br/>HE (RTL) • AR (RTL) • EN (LTR) • RU (LTR) • FR (LTR)"]
         StorefrontUI["Dual Booking Storefront<br/>Amazon 1-Page Storefront / 3-Step Wizard"]
+        SubPortalUI["Flight Subscription Portal<br/>Dedicated /subscriptions & /experiences category"]
     end
 
     subgraph RoutingLayer["Edge Routing & Next.js 16 App Router"]
         CanonicalRedirects["Canonical 301 Permanent Redirects<br/>/simulator, /training ➔ /pro"]
-        PublicPages["Public Pages<br/>/ • /about • /pro • /experiences • /book<br/>/workshops • /vouchers • /contact"]
-        MemberPages["Member Dashboard<br/>/dashboard • /login • /auth"]
-        AdminPages["Admin Dispatch Hub<br/>/admin (Bookings, Vouchers, CRM)"]
+        PublicPages["Public Pages<br/>/ • /about • /pro • /experiences • /book • /book/success<br/>/subscriptions • /subscriptions/thank-you • /workshops • /vouchers<br/>/contact • /rules • /privacy-policy"]
+        MemberPages["Member Area<br/>/dashboard • /login • /auth/callback • /auth/reset-password"]
+        AdminPages["Admin Dispatch Command Center<br/>/admin (Bookings, Vouchers, Workshops, Schedule Efficiency)"]
     end
 
     subgraph BusinessLogic["Core Business Logic & Engines"]
         NoiseFreeAdapter["Noise-Free Booking Adapter<br/>Suppresses recreational add-ons for PRO & Fear of Flying"]
         KantorovichEngine["Tiled Interval Scheduler Engine<br/>lib/scheduler/kantorovich-engine.ts"]
         MissionCalc["Mission Calculator<br/>Flight time + Addons + Voucher Manifest"]
+        WixPlansResolver["Wix Pricing Plans Resolver<br/>lib/wix/plans.ts (Price & Pattern Matching)"]
         ReviewsCache["Google Places Review Cache<br/>15m browser feed; no local fallback claims"]
     end
 
-    subgraph APILayer["Next.js Serverless API Routes"]
-        SlotsAPI["GET /api/slots<br/>Capacity, Tiled Grid & Availability"]
-        PackagesAPI["GET /api/packages<br/>Authoritative Catalog & Tariffs"]
-        CheckoutAPI["POST /api/checkout<br/>Server Validation & Stripe Session"]
-        StripeWebhook["POST /api/webhooks/stripe<br/>Cryptographic Signature Verification"]
-        MemberAPI["GET /api/my-bookings<br/>Protected Member Bookings & Receipts"]
+    subgraph APILayer["Next.js Serverless API Routes (14 Handlers)"]
+        BookingAPIs["Booking & Capacity APIs<br/>GET /api/slots • GET /api/packages<br/>POST /api/checkout • POST /api/webhooks/stripe"]
+        SubscriptionAPIs["Subscription Checkout API<br/>POST & GET /api/subscriptions/checkout"]
+        MemberAPIs["Member Profile & Receipts<br/>GET /api/my-bookings • GET /api/my-bookings/[ref]/receipt<br/>POST /api/membership/bootstrap"]
+        OperationsAPIs["Operational Entities<br/>GET/PATCH /api/bookings • GET/POST/PATCH /api/vouchers<br/>GET/POST/PATCH /api/workshops • GET/POST /api/reviews"]
+        AdminAPIs["Admin Optimization<br/>GET /api/admin/schedule-efficiency • POST /api/admin/schedule-optimization"]
     end
 
     subgraph PersistenceLayer["Persistence & External Services"]
-        SupabaseDB[("Supabase PostgreSQL<br/>Row-Level Security & Exclusion Constraints")]
-        InMemoryFallback[("In-Memory Store Fallback<br/>Local Dev & Non-500 Demo Resilience")]
-        StripeService["Stripe Hosted Checkout<br/>Card payment flow"]
-        GooglePlaces["Google Places API<br/>24h cached data; empty when unavailable"]
+        SupabaseDB[("Supabase PostgreSQL (Production)<br/>Row-Level Security & Exclusion Constraints")]
+        InMemoryFallback[("In-Memory Store Fallback<br/>Local Dev & Non-500 Demo Resilience (ALLOW_IN_MEMORY_STORE)")]
+        StripeService["Stripe Hosted Checkout<br/>Card payment flow & Webhooks"]
+        WixHeadless["Wix Headless Platform (@wix/sdk)<br/>Bookings Services & Slots • Pricing Plans Hosted Checkout • Shadow Observer"]
+        GooglePlaces["Google Places API<br/>15m cached data; empty when unavailable"]
     end
 
-    User --> ThemeEngine --> I18nEngine --> StorefrontUI
-    CanonicalRedirects --> PublicPages
+    User --> ThemeEngine --> I18nEngine
+    I18nEngine --> StorefrontUI
+    I18nEngine --> SubPortalUI
+
     StorefrontUI --> PublicPages
-    PublicPages --> NoiseFreeAdapter
+    SubPortalUI --> PublicPages
+    CanonicalRedirects --> PublicPages
     PublicPages --> MemberPages
     PublicPages --> AdminPages
 
-    StorefrontUI --> SlotsAPI
-    StorefrontUI --> PackagesAPI
-    StorefrontUI --> CheckoutAPI
+    StorefrontUI --> BookingAPIs
+    SubPortalUI --> SubscriptionAPIs
 
-    SlotsAPI --> KantorovichEngine
-    CheckoutAPI --> MissionCalc
+    BookingAPIs --> KantorovichEngine
+    BookingAPIs --> MissionCalc
+    SubscriptionAPIs --> WixPlansResolver
     PublicPages --> ReviewsCache --> GooglePlaces
 
     KantorovichEngine --> SupabaseDB
     KantorovichEngine -.->|If unconfigured| InMemoryFallback
-    CheckoutAPI --> StripeService
-    StripeService --> StripeWebhook --> SupabaseDB
-    MemberPages --> MemberAPI --> SupabaseDB
+    BookingAPIs --> StripeService
+    StripeService --> BookingAPIs
+    SubscriptionAPIs --> WixHeadless
+    BookingAPIs -.->|Shadow Reads| WixHeadless
+    MemberPages --> MemberAPIs --> SupabaseDB
+    AdminPages --> AdminAPIs --> SupabaseDB
+    AdminPages --> OperationsAPIs --> SupabaseDB
 ```
 
 ### Checkout dependency boundary
@@ -77,13 +87,21 @@ When `WIX_SHADOW_READS_ENABLED=true`, a successful local booking initialization 
 
 The observer is strictly optional and non-blocking: disabled is the default; Wix failure is reduced to a diagnostic event; no Wix booking, checkout session, payment, member, voucher, coupon or CMS writer is reachable from the shadow interface. Supabase/Stripe remains the only checkout writer and Stripe's signed webhook remains the only card-payment authority. The documented Wix Bookings endpoints are paginated so a comparison never silently uses only a partial availability result.
 
+### Wix Pricing Plans & flight subscriptions checkout boundary
+
+Annual flight subscriptions are single-payment, 12-month commercial packages (`flight-foundations-5x60`, `advanced-captain-5x90`, `atpl-concepts-10x60`, `airline-readiness-10x90`). Checkout does not run through the one-off simulator slot booking engine:
+1. `POST /api/subscriptions/checkout` receives the validated subscription pass ID.
+2. `lib/wix/plans.ts` resolves the matching Wix Pricing Plan (checking `WIX_PLAN_IDS` environment overrides first, followed by dynamic scanning of live public plans by price and title pattern).
+3. `createPlanCheckoutUrl()` calls `@wix/redirects` `client.redirects.createRedirectSession({ paidPlansCheckout: { planId } })` with `thankYouPageUrl: /subscriptions/thank-you` and `postFlowUrl: /subscriptions`.
+4. If a plan is not yet published in Wix, the API gracefully falls back to Captain Dispatch (`/contact?subject=subscription&plan=...&notice=dispatch_assisted`) rather than failing closed with HTTP 500.
+
 ---
 
-## 2. Adaptive Booking Engine Architecture (Recreational vs Noise-Free PRO)
+## 2. Adaptive Booking Engine Architecture (Recreational vs Noise-Free PRO vs Subscriptions)
 
 ```mermaid
 flowchart TD
-    Start(["User Lands on Booking Engine (/book)"]) --> DetectPackage{"Package Category Check"}
+    Start(["User Lands on Booking Engine (/book) or Portal (/subscriptions)"]) --> DetectPackage{"Package Category Check"}
 
     subgraph NoiseFreeFlow["Noise-Free 2-Step Flow (PRO & Fear of Flying)"]
         DetectPackage -->|category = 'training' (PRO)| ProConfig["Auto-Select: PRO Tiers (60/90/120 PRO)<br/>Pilot Level: ATPL"]
@@ -101,8 +119,15 @@ flowchart TD
         Step2Rec --> Step3Rec["Step 3: Pilot Manifest & Checkout<br/>(Voucher Reapply & Manifest Summary)"]
     end
 
-    Step3Pro --> SubmitCheckout(["POST /api/checkout"])
+    subgraph SubscriptionFlow["Single-Payment Annual Subscriptions Flow (/subscriptions)"]
+        DetectPackage -->|category = 'subscriptions'| SubConfig["Display 4 Annual Tracks (5x60, 5x90, 10x60, 10x90)<br/>12-Month Validity • Active Captain Coaching"]
+        SubConfig --> SubAction["User clicks 'Buy Subscription' / 'רכישת מנוי'"]
+        SubAction --> SubCheckout(["POST /api/subscriptions/checkout"])
+    end
+
+    Step3Pro --> SubmitCheckout(["POST /api/checkout (Stripe)"])
     Step3Rec --> SubmitCheckout
+    SubCheckout --> WixRedirectFlow(["Wix Pricing Plans Hosted Checkout (@wix/redirects)"])
 ```
 
 ---
@@ -197,6 +222,36 @@ sequenceDiagram
         deactivate Webhook
     end
 ```
+
+### 4B. Wix Pricing Plans & Subscriptions Checkout Lifecycle Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Customer as Customer / Pilot
+    participant Browser as Storefront (/subscriptions or /experiences)
+    participant API as Next.js API (/api/subscriptions/checkout)
+    participant WixClient as Wix Client (lib/wix/plans.ts)
+    participant Wix as Wix Headless (Pricing Plans V3)
+    participant PayPlus as Hosted Payment / PayPlus
+    participant Return as Browser (/subscriptions/thank-you)
+
+    Customer->>Browser: Selects Subscription (e.g. 5x90 Advanced Captain) & Clicks "Buy Subscription"
+    Browser->>API: POST /api/subscriptions/checkout { planId: "advanced-captain-5x90" }
+    activate API
+    API->>WixClient: resolveWixPlanId("advanced-captain-5x90")
+    WixClient->>Wix: Query Public Plans (price ₪3,390 or name match)
+    Wix-->>WixClient: Returns Plan GUID (or matches static WIX_PLAN_IDS)
+    WixClient->>Wix: client.redirects.createRedirectSession({ paidPlansCheckout: { planId } })
+    Wix-->>WixClient: Returns { redirectSession: { fullUrl } }
+    WixClient-->>API: Returns hosted checkout URL
+    API-->>Browser: HTTP 200 { checkoutUrl: "https://...wix-site-host.com/..." }
+    deactivate API
+    Browser-->>Customer: Redirects customer to hosted payment page
+    Customer->>PayPlus: Completes subscription payment
+    PayPlus-->>Return: Redirects to /subscriptions/thank-you?planOrderId=...
+    Return-->>Customer: Renders confetti & next steps to schedule sessions
+```
 ---
 
 ## 5. Bidirectional 5-Language Architecture (i18n)
@@ -246,11 +301,11 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Trigger(["npm run test:quick / npm run test:all"]) --> EnvCheck["Sandboxed Test Environment<br/>TEST_DIST_DIR = '.next-test'<br/>ALLOW_IN_MEMORY_STORE = 'true'"]
+    Trigger(["npm run test:quick / npm run test:all"]) --> EnvCheck["Sandboxed Test Environment<br/>NEXT_DIST_DIR = '.next-test'<br/>ALLOW_IN_MEMORY_STORE = 'true'"]
 
     subgraph Stage1["1. Static & Fast Unit Verification (Vitest)"]
         Typecheck["TypeScript Strict Check<br/>(tsc --noEmit)"]
-        UnitTests["Vitest Unit Projects<br/>- Scheduling math & mission manifests<br/>- i18n key parity & unicode purity<br/>- Member auth ownership contracts"]
+        UnitTests["Vitest Unit Projects (53 Suites, 1460+ Tests)<br/>- Scheduling math & mission manifests<br/>- i18n key parity & unicode purity<br/>- Member auth ownership contracts<br/>- Wix catalog & plans resolution"]
     end
 
     subgraph Stage2["2. Build & Artifact Verification"]
@@ -258,11 +313,9 @@ flowchart TD
         ServerLaunch["Ephemeral Test Server Launch<br/>Isolated port with clean mock state"]
     end
 
-    subgraph Stage3["3. Browser, Usability & Accessibility Suites (Playwright)"]
-        E2E["5 Browser Projects<br/>Chromium • Firefox • WebKit<br/>Mobile Chrome • Mobile Safari"]
-        A11y["Axe-Core Automated Audit<br/>(0 color-contrast violations, empty baseline)"]
-        Usability["Usability Suites<br/>- header-fit.spec.ts (320px–1920px)<br/>- member-i18n.spec.ts (5 languages)<br/>- theme-switch.spec.ts (Flicker-free persistence)"]
-        Visual["Visual Regression<br/>Platform snapshots (Linux & Darwin)"]
+    subgraph Stage3["3. Browser, Usability & Accessibility Suites (Playwright 10 Projects)"]
+        BrowserProjects["5 Cross-Browser Projects<br/>Chromium • Firefox • WebKit<br/>Mobile Chrome • Mobile Safari"]
+        QualityProjects["5 Quality Dimension Projects<br/>- a11y (Axe-Core automated audit, 0 violations)<br/>- usability (header-fit, member-i18n, apple-web-app)<br/>- security-web (CSP nonce, headers)<br/>- resilience (network/timeout fallbacks)<br/>- visual (cross-platform snapshots)"]
     end
 
     subgraph Stage4["4. Performance & Reliability Smoke"]

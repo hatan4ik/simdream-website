@@ -9,7 +9,19 @@ import { LANGUAGES, Language } from '@/lib/i18n/translations';
  * Language is a choice, not an action menu. The compact header control therefore exposes an
  * accessible listbox with roving keyboard focus, while the visual treatment stays understated.
  */
-export function LanguageSelector({ variant = 'compact' }: { variant?: 'compact' | 'full' }) {
+/**
+ * `placement` decides which way the listbox opens. The header's inline selector drops down;
+ * the phone drawer's selector must open upward, because the drawer lives inside the sticky
+ * header and anything that hangs below the viewport there can never be scrolled into reach,
+ * so the last languages became untappable once the drawer grew.
+ */
+export function LanguageSelector({
+  variant = 'compact',
+  placement = 'down',
+}: {
+  variant?: 'compact' | 'full';
+  placement?: 'down' | 'up';
+}) {
   const { language, setLanguage, currentLanguageInfo } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [focusIndex, setFocusIndex] = useState<number | null>(null);
@@ -123,7 +135,10 @@ export function LanguageSelector({ variant = 'compact' }: { variant?: 'compact' 
               close(true);
             }
           }}
-          className="absolute right-0 rtl:right-auto rtl:left-0 mt-2 w-48 rounded-xl border border-slate-800 bg-slate-900 shadow-2xl py-1.5 z-50 text-xs"
+          data-placement={placement}
+          className={`absolute right-0 rtl:right-auto rtl:left-0 w-48 rounded-xl border border-slate-800 bg-slate-900 shadow-2xl py-1.5 z-50 text-xs ${
+            placement === 'up' ? 'bottom-full mb-2' : 'mt-2'
+          }`}
         >
           {LANGUAGES.map((lang, index) => {
             const isSelected = lang.code === language;

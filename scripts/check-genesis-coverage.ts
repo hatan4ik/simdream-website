@@ -1,4 +1,5 @@
-import { readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { join, relative } from 'node:path';
 
@@ -64,16 +65,33 @@ function extension(path: string): string {
 }
 
 /**
+ * Files git would commit from the review surface: tracked plus untracked-but-not-ignored.
+ * Walking the directories instead hashed git-ignored output (Lighthouse reports under
+ * tests/perf, local build logs), so a stamp made on a developer machine could never match
+ * the clean checkout CI verifies, and the quality job failed before any test ran.
+ */
+function reviewSurfaceFiles(): string[] {
+  const listing = execFileSync(
+    'git',
+    ['ls-files', '-z', '--cached', '--others', '--exclude-standard', '--', ...SOURCE_DIRECTORIES, ...SOURCE_FILES],
+    { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }
+  );
+  const files = listing
+    .split('\0')
+    .filter((file) => file && SOURCE_EXTENSIONS.has(extension(file)) && !file.includes('/node_modules/'))
+    .filter((file) => existsSync(file) && statSync(file).isFile());
+  return [...new Set(files)].sort();
+}
+
+/**
  * The fingerprint does not try to infer that prose correctly explains a code
  * change—that remains a reviewer responsibility. It does make every covered
  * source change visible to CI until a reviewer deliberately reads and stamps
- * GENESIS.md again.
+ * GENESIS.md again. Only files git would commit count, so the hash is the same
+ * on every machine that checks out the same tree.
  */
 function sourceFingerprint(): string {
-  const files = [
-    ...SOURCE_FILES.filter((file) => statSync(file).isFile()),
-    ...SOURCE_DIRECTORIES.flatMap((dir) => walk(dir, (file) => SOURCE_EXTENSIONS.has(extension(file)))),
-  ].sort();
+  const files = reviewSurfaceFiles();
   const hash = createHash('sha256');
   for (const file of files) {
     hash.update(relative('.', file).replaceAll('\\', '/'));

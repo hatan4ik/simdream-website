@@ -1,6 +1,6 @@
 # Wix Headless Integration Architecture & DevOps Plan
 
-**Status:** P3 read-only shadow integration is implemented. It compares the local accepted booking candidate with Wix Bookings catalog/availability only when explicitly enabled; it creates no Wix booking, checkout session, payment, member, voucher, coupon, CMS item, migration or production-domain change.
+**Status:** P3 read-only shadow integration is implemented (`lib/wix/checkout-shadow.ts`). Wix Pricing Plans checkout redirect handoff (`lib/wix/plans.ts`, `/api/subscriptions/checkout`) is active for annual flight subscriptions, generating hosted checkout sessions via `@wix/redirects` with graceful Captain Dispatch fallback.
 
 **Authority:** [`GENESIS.md`](../GENESIS.md) remains the canonical description of the currently running Next.js/Supabase/Stripe system. This document describes a deliberate future integration or migration path to Wix Headless.
 
@@ -21,11 +21,11 @@ The frontend now has a five-language catalogue in `lib/data/subscription-passes.
 | ATPL Concepts | 10 × 60 min | `pkg-captain-60` | ₪4,850 | ₪6,900 | Systems, planning, FMC, IFR, CRM and TEM explanations |
 | Airline Readiness | 10 × 90 min | `pkg-ultimate-90` | ₪5,950 | ₪8,500 | Raw-data concepts, QRH thinking, two-pilot communication and a line-oriented mission |
 
-All four subscriptions are valid for 12 months. Their price, package relationship and savings calculations are a type-safe local offer registry; no Wix order, member entitlement, recurring charge or booking credit is created by displaying one. The page sends the customer to a Dispatch enquiry with only a registry-validated subscription id. That is intentional until the launch contract below is completed.
+All four subscriptions are valid for 12 months. Their price, package relationship and savings calculations are a type-safe local offer registry (`SUBSCRIPTION_PASSES`). Checkout is initiated via `POST /api/subscriptions/checkout`, which resolves the Wix Pricing Plan ID dynamically or from `WIX_PLAN_IDS` and creates a hosted checkout redirect session via `@wix/redirects` (`createPlanCheckoutUrl`), redirecting post-payment to `/subscriptions/thank-you`. If a plan is not yet configured or published in Wix, the flow gracefully falls back to Captain Dispatch with validated plan metadata.
 
 The catalogue can surface Cold & Dark, Crosswind/IFR and Extreme Airports as instructor-led **training themes**. It must not quietly add an add-on's separately listed time to a booking, waive its price, or imply that the customer has a credit. The final entitlement must explicitly decide whether an add-on is (a) a lesson theme inside the base session, (b) a chargeable time extension, or (c) a separately metered subscription benefit. ATPL-level explanations are educational simulator coaching—not logged flight time, a licence, type rating, assessment credit or airline-employment guarantee.
 
-To activate enrolment, create one approved one-time Wix Pricing Plan per row, map its immutable Wix plan id to the local subscription id on the trusted server, require the Wix Member identity required by Pricing Plans checkout, and enforce an idempotent server-side credit/expiry ledger immediately before slot reservation. Only a Wix-confirmed order may create or consume a subscription entitlement; a post-checkout browser return is never confirmation.
+To complete the full member entitlement lifecycle, create one approved one-time Wix Pricing Plan per row, map its immutable Wix plan id to the local subscription id on the trusted server (`WIX_PLAN_IDS`), require the Wix Member identity required by Pricing Plans checkout, and enforce an idempotent server-side credit/expiry ledger immediately before slot reservation. Only a Wix-confirmed order may create or consume a subscription entitlement; a post-checkout browser return is never confirmation.
 
 For the existing application, the safest first implementation is **self-managed Next.js frontend + Wix Headless business backend**:
 

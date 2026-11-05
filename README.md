@@ -7,7 +7,7 @@
 
 Production-grade website, multi-step booking engine, Amazon-style flight storefront, gift-voucher terminal, corporate CRM workshop portal, member purchase dashboard, and flight-dispatch command system for **Sim Dream LTD** (`simdream.co.il`), located at **Gershon Shatz St 36, Tel Aviv-Yafo, Israel** (Yehudit Light Rail / HaShalom Train Station • `055-507-1307` • `desk@simdream.co.il`).
 
-> **Future Wix Headless reference:** [`docs/WIX_HEADLESS_ARCHITECTURE.md`](docs/WIX_HEADLESS_ARCHITECTURE.md) documents a proposed Wix Headless integration and DevOps plan. It does not describe the current production implementation and does not change the runtime stack by itself.
+> **Wix Headless architecture:** [`docs/WIX_HEADLESS_ARCHITECTURE.md`](docs/WIX_HEADLESS_ARCHITECTURE.md) documents the Wix Headless platform integration. The codebase includes active visitor service reads, live slot availability, catalog reconciliation (`npm run wix:smoke`), non-blocking shadow reads, and live Wix Pricing Plans hosted checkout redirects (`lib/wix/plans.ts`, `/api/subscriptions/checkout`).
 
 > 📐 **System Architecture & Visual Diagrams**: See [`ARCHITECTURE.md`](ARCHITECTURE.md) for full Mermaid sequence, workflow, topology, and interval-scheduling engine diagrams.
 > 🧬 **Canonical Genesis & System Blueprint**: [`GENESIS.md`](GENESIS.md) is the sole current architecture/reconstruction prompt. Its source-coverage and fingerprint verification runs in CI; historical drafts live in [`docs/archive/`](docs/archive/README.md).
@@ -27,11 +27,12 @@ Production-grade website, multi-step booking engine, Amazon-style flight storefr
    - Dedicated **Professional Training Portal** ([`/pro`](app/(public)/pro/page.tsx), with automatic redirects from `/simulator` and `/training`) tailored for airline assessment preparation (El Al, Arkia, Israir, Wizz Air, Ryanair), raw data hand flying, single-engine ILS, and QRH abnormal checklists. Features the 3 official commercial tiers from `simdream.co.il`: **Airline Interview Prep 60 PRO** (₪890), **Airline Interview Prep 90 PRO** (₪1,250), and **Airline Interview Prep 120 PRO** (₪1,590), plus direct booking and links to official service pages. Technical hardware specifications (CPflight avionics, Sismo CDU/FMC, motorized autothrottles) are cleanly presented in a collapsible specs disclosure.
    - **Specialized Noise-Free Booking Engine**: When booking a Professional Training or Fear of Flying session, the booking flow automatically suppresses all recreational add-on clutter, combos, and tourist options. The candidate is presented with a serene, noise-free 2-step booking flow (`Date & Operational Slot` &rarr; `Pilot Manifest & Checkout`).
 
-2. **Dual UX/UI Interface Engine (Cockpit Night & SimDream Brand Daylight)**:
-   - **Official Sim Dream identity**: both interfaces use the **`simdream.co.il`** logo (orange airplane `#FF5500` and cerulean "SIM DREAM" wordmark `#2096C7`) with a translated tagline. The colours are design tokens in `app/globals.css`: Tailwind `sky-*` is the Sim Dream cerulean scale and `orange-*` the Sim Dream orange scale (rules in AGENTS.md §1, Brand Identity).
+2. **Triple UX/UI Interface Engine (🌙 Cockpit Night, ☀️ Brand Daylight & ✨ Clean Studio)**:
+   - **Official Sim Dream identity**: all interfaces use the **`simdream.co.il`** logo (orange airplane `#FF5500` and cerulean "SIM DREAM" wordmark `#2096C7`) with a translated tagline. The colours are design tokens in `app/globals.css`: Tailwind `sky-*` is the Sim Dream cerulean scale and `orange-*` the Sim Dream orange scale (rules in AGENTS.md §1, Brand Identity).
    - **🌙 Cockpit Night (`data-ui="cockpit"`, default)**: Titanium and dark slate aesthetic with Sim Dream cerulean HUD scanlines, orange brand highlights, autothrottle glowing green, and dark glassmorphic cockpit instrumentation.
    - **☀️ SimDream Brand Daylight (`data-ui="brand"`)**: High-contrast, clean daylight airline portal in the Sim Dream colours: cerulean (`#2096C7`) and orange (`#FF5500`) on crisp cloud white (`#ffffff`), with WCAG AA-safe darker shades for small text.
-   - **Tactile UI Switcher**: Prominent button in the desktop header, mobile top-bar, mobile drawer, and footer to instantly toggle interfaces.
+   - **✨ Clean Studio (`data-ui="brand"` + `data-look="studio"`)**: Apple-store-inspired minimalist daylight aesthetic: pure white canvas, `#f5f5f7` wells, 17px system type, pill action geometry, and refined translucent navigation.
+   - **Tactile UI Switcher**: Prominent button in the desktop header, mobile top-bar, mobile drawer, and footer to instantly cycle between all three themes.
    - **Zero-Flicker Persistence**: Preserves theme selection via `localStorage` with an inline anti-flicker `<head>` bootstrap script.
 
 3. **5-Language Internationalization & Bidirectional UI (i18n)**:
@@ -114,6 +115,19 @@ Production-grade website, multi-step booking engine, Amazon-style flight storefr
     - **Strict B2B / B2C Isolation**: Relocated "Corporate CRM Leadership Workshop" out of the consumer flight catalog, establishing an executive-tier B2B portal ([`/workshops`](app/(public)/workshops/page.tsx)) for corporate offsites.
     - **Operations & Facility Hub ([`/contact`](app/(public)/contact/page.tsx))**: Live transit directions (Yehudit Light Rail Red Line, HaShalom Train Station, paid parking), operating hours (Sun–Thu 10:00–23:00, Fri 09:00–16:00, Sat 19:00–24:00), minimum pilot age 10+, and verified contact lines (`055-507-1307`, `desk@simdream.co.il`).
     - **Legal Compliance Pages**: Integrated flight simulator safety regulations ([`/rules`](app/(public)/rules/page.tsx)) and privacy policies ([`/privacy-policy`](app/(public)/privacy-policy/page.tsx)).
+
+13. **Dedicated Annual Flight Subscriptions Portal ([`/subscriptions`](app/(public)/subscriptions/page.tsx)) & Wix Pricing Plans Checkout**:
+    - **Customer-Centric Google-Style Learning Portal**: Dedicated 5-language hub designed to communicate the value of structured captain-led progression over 12 months with savings up to ₪2,550.
+    - **4 Structured Subscription Tracks**:
+      - **Flight Foundations 5 × 60 min** (`₪2,750`): Cockpit orientation, FMS logic, crosswind and ILS foundations.
+      - **Advanced Captain 5 × 90 min** (`₪3,390`): SOP rationale, instruments, abnormal situations, and captain judgement.
+      - **ATPL Concepts 10 × 60 min** (`₪4,850`): Systems, planning, FMC, IFR, CRM and TEM educational simulator coaching.
+      - **Airline Readiness 10 × 90 min** (`₪5,950`): Raw-data flying, QRH checklists, two-pilot line-oriented missions.
+    - **Educational Integrity**: Strict Boeing flight deck and ICAO procedures; clear disclosure that ATPL concepts represent educational coaching (not flight hours or airline employment credit).
+    - **Direct Wix Pricing Plans Checkout (`/api/subscriptions/checkout`)**:
+      - 1-click **"Buy Subscription" / "רכישת מנוי"** action generating hosted checkout redirect sessions via `@wix/redirects` (`createRedirectSession({ paidPlansCheckout })`).
+      - Dynamic plan resolution matching public Wix Pricing Plans by price or session pattern, with graceful fallback to Captain Dispatch.
+      - Post-checkout confirmation on [`/subscriptions/thank-you`](app/(public)/subscriptions/thank-you/page.tsx) with order reference and session scheduling guides.
 
 
 ---

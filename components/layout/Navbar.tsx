@@ -128,10 +128,25 @@ export function Navbar() {
     });
   };
 
+  // A flyout opened by hovering must survive the click that usually follows: the pointer
+  // reaches the trigger (hover opens the menu) before the button is pressed, so a plain
+  // toggle closed the menu on every mouse click, and Firefox could never open one by clicking.
+  const hoverOpenedMenuRef = useRef<NavigationGroupId | null>(null);
+
   const closeDesktopMenu = (restoreFocus = false) => {
     const trigger = activeDesktopMenu ? desktopTriggerRefs.current[activeDesktopMenu] : null;
+    hoverOpenedMenuRef.current = null;
     setActiveDesktopMenu(null);
     if (restoreFocus) requestAnimationFrame(() => trigger?.focus());
+  };
+
+  const toggleDesktopMenuFromClick = (id: NavigationGroupId, isOpen: boolean) => {
+    if (isOpen && hoverOpenedMenuRef.current === id) {
+      hoverOpenedMenuRef.current = null; // the click confirms the hover-opened menu; the next click closes it
+      return;
+    }
+    if (isOpen) closeDesktopMenu();
+    else openDesktopMenu(id);
   };
 
   const openDesktopMenu = (id: NavigationGroupId, focusItem = false) => {
@@ -231,7 +246,10 @@ export function Navbar() {
   const closeDesktopMenuOnPointerExit = () => {
     // A keyboard-opened flyout must stay available even if a synthetic pointer-leave fires.
     // The document-level outside-pointer handler still closes pointer-only flyouts as expected.
-    if (!navbarRef.current?.contains(document.activeElement)) setActiveDesktopMenu(null);
+    if (!navbarRef.current?.contains(document.activeElement)) {
+      hoverOpenedMenuRef.current = null;
+      setActiveDesktopMenu(null);
+    }
   };
 
   return (
@@ -267,8 +285,11 @@ export function Navbar() {
                   aria-haspopup="menu"
                   aria-expanded={isOpen}
                   aria-controls={desktopMenuId(group.id)}
-                  onMouseEnter={() => openDesktopMenu(group.id)}
-                  onClick={() => (isOpen ? closeDesktopMenu() : openDesktopMenu(group.id))}
+                  onMouseEnter={() => {
+                    if (activeDesktopMenu !== group.id) hoverOpenedMenuRef.current = group.id;
+                    openDesktopMenu(group.id);
+                  }}
+                  onClick={() => toggleDesktopMenuFromClick(group.id, isOpen)}
                   onKeyDown={(event) => handleDesktopTriggerKeyDown(event, group.id)}
                   className={`inline-flex min-h-11 items-center gap-1 px-3 text-sm leading-tight font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 ${
                     activeGroup(group) || isOpen ? 'text-sky-400' : 'text-slate-300 hover:text-white'
@@ -562,7 +583,7 @@ export function Navbar() {
           <div className="pt-2 border-t border-slate-800 space-y-2">
             <UiThemeSwitcher variant="full" />
             <div className="sm:hidden">
-              <LanguageSelector />
+              <LanguageSelector placement="up" />
             </div>
           </div>
 

@@ -76,7 +76,11 @@ export class SiteChrome {
     } else if (!(await link.isVisible())) {
       const triggers = this.navbar.locator('button[data-navbar-menu-trigger]');
       for (let index = 0; index < (await triggers.count()); index += 1) {
-        await triggers.nth(index).click();
+        const trigger = triggers.nth(index);
+        await trigger.click();
+        // The flyout renders on the next React commit; checking the link before the trigger
+        // reports expanded raced ahead and moved on to the next group.
+        await expect(trigger).toHaveAttribute('aria-expanded', 'true');
         if (await link.isVisible()) break;
       }
       await expect(link).toBeVisible();
