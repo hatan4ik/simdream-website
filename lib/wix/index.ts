@@ -1,4 +1,11 @@
-export { getWixClientId, getWixSiteId, isWixConfigured, isWixShadowReadsEnabled, WIX_TIME_ZONE } from './config';
+export {
+  getWixClientId,
+  getWixSiteId,
+  isWixConfigured,
+  isWixShadowReadsEnabled,
+  isWixAvailabilityAdapterEnabled,
+  WIX_TIME_ZONE,
+} from './config';
 export { getWixClient, WixApiError, WixNotConfiguredError } from './client';
 export {
   WIX_SERVICE_IDS,
@@ -18,6 +25,11 @@ export {
   type WixTimeSlot,
   type CatalogMismatch,
 } from './bookings';
+export {
+  getWixBackedKantorovichSlots,
+  intersectKantorovichSlotsWithWix,
+  listWixBookableSlotsForDuration,
+} from './availability-adapter';
 export {
   listWixPlans,
   resolveWixPlanId,

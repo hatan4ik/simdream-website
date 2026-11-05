@@ -12,6 +12,7 @@ The current live authority remains the Next.js, Supabase, and Stripe flow. Wix a
 - A guest must always be able to start a one-off booking without registration. Member identity may grant access to the matching customer's orders; it must never expose purchases by an unauthenticated email lookup.
 - A browser return from Wix checkout is not confirmation. The trusted server must verify the provider's confirmed booking/order state before showing a paid or confirmed result.
 - Keep `WIX_SHADOW_READS_ENABLED=false` unless diagnostic traffic is explicitly desired. Shadow reads are anonymous, redacted, and never create a booking or payment.
+- `WIX_AVAILABILITY_ADAPTER_ENABLED=true` is enabled on the staging Wix worker only. It can display safe Wix-backed availability but never creates, confirms, or charges a booking.
 
 ## 2. Automated read-only readiness gate
 
@@ -46,6 +47,7 @@ Copy the names below into the appropriate deployment environment only. Values ar
 | `WIX_PLAN_ID_ATPL_10X60` | Trusted server environment | Immutable Wix plan ID for ATPL Concepts. |
 | `WIX_PLAN_ID_AIRLINE_10X90` | Trusted server environment | Immutable Wix plan ID for Airline Readiness. |
 | `WIX_SHADOW_READS_ENABLED` | Frontend/server environment | Optional diagnostic switch. Default is `false`. |
+| `WIX_AVAILABILITY_ADAPTER_ENABLED` | Frontend/server environment | Optional calendar-read switch. It intersects Kantorovich slots with Wix Bookings availability; default is `false` outside staging. |
 | Wix client secret, API key, privileged token | Wix or server-side secret manager only | Required only for approved privileged operations; never a browser value. |
 | PayPlus credentials | Wix payment settings only | Wix-hosted checkout payment-provider configuration; never this app. |
 
@@ -80,11 +82,11 @@ For every plan, publish the five-language customer terms and make these limitati
 
 ### Headless redirect and payment settings
 
-1. In the Headless client's authentication settings, add the exact HTTPS frontend origins for staging and production. Add an exact member-login callback only once the Next.js callback route exists and has tests.
+1. The staging OAuth app now allow-lists the exact hosted callback and preview wildcard for `/wix/members/callback`. For a new production origin, add its exact HTTPS callback before enabling member login; origin allow-listing alone is insufficient.
 2. Permit the hosted-checkout return domain for the current frontend. Use the deployed origin—not a path, wildcard, unrelated domain, or development URL in production.
-3. **Required blocker:** Configure PayPlus inside Wix using the merchant's sandbox/test configuration. The staging site currently has no connected payment provider. Complete a non-charging or test-card payment, cancellation, and failure recovery path before live credentials are considered.
-4. **Required blocker:** Implement and verify Wix Members login/session callbacks. Optional sign-in must not prevent a guest from starting a one-off Bookings checkout. The member view must only reveal that member's authorised history.
-5. **Required blocker:** The Wix-hosted worker currently has no approved persistence connection, so `/api/slots` correctly fails closed with `503`. Select an isolated staging Supabase database or finish the tested Wix-availability adapter before expecting the existing custom calendar to operate on the hosted URL.
+3. **Required blocker:** Configure an approved PayPlus provider inside Wix using merchant sandbox/test configuration. The staging site currently has no connected provider, and no published PayPlus App Market listing was discoverable through Wix's supported search API. Complete a non-charging or test-card payment, cancellation, and failure recovery path before live credentials are considered.
+4. Wix Members is installed and the hosted callback is registered. Subscription purchase and usage are member-gated; one-off booking remains guest-first. Verify the actual hosted sign-in/register and member-order read after each release.
+5. The Wix availability adapter is implemented and enabled for staging. It can operate without copying a Supabase secret into the worker, but it does not make the existing one-off checkout a Wix writer.
 
 ## 5. Staged cutover sequence
 
@@ -113,7 +115,7 @@ No stage authorises a permanent dual write. One booking domain has one canonical
 
 - The staging Bookings, resources, operating hours, Pricing Plans, and plan-to-service benefits are configured; no production-site Wix data was changed.
 - It does not add a Wix booking writer, migrate historical Supabase/Stripe records, or change the current checkout authority.
-- It does not activate PayPlus or hold its credentials.
+- It does not activate PayPlus or hold its credentials, because no payment provider is currently connected.
 - It does not claim that a plan purchase automatically creates usable flight credits. That requires the entitlement ledger in Stage 4.
 
 For the long-form architecture, data-migration principles, and system diagrams, see [WIX_HEADLESS_ARCHITECTURE.md](WIX_HEADLESS_ARCHITECTURE.md). The current codebase blueprint remains [GENESIS.md](../GENESIS.md).

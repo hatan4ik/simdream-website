@@ -33,6 +33,8 @@ import {
   SUBSCRIPTION_SECTION_COPY,
 } from '@/lib/data/subscription-passes';
 import { SUBSCRIPTION_PAGE_COPY } from '@/lib/data/subscription-page-copy';
+import { WixMemberSubscriptionPanel } from '@/components/wix/WixMemberSubscriptionPanel';
+import { getWixMemberClient, wixMemberOAuthStorageKey } from '@/lib/wix/member-client';
 
 export default function SubscriptionsPage() {
   const { language, isRTL } = useLanguage();
@@ -43,13 +45,36 @@ export default function SubscriptionsPage() {
   const handleBuySubscription = async (passId: string) => {
     setPendingPassId(passId);
     try {
+      const wixClient = getWixMemberClient();
+      if (!wixClient.auth.loggedIn()) {
+        const redirectUri = `${window.location.origin}/wix/members/callback`;
+        const oAuthData = wixClient.auth.generateOAuthData(redirectUri, window.location.href);
+        window.sessionStorage.setItem(wixMemberOAuthStorageKey(), JSON.stringify(oAuthData));
+        const { authUrl } = await wixClient.auth.getAuthUrl(oAuthData);
+        window.location.assign(authUrl);
+        return;
+      }
+
       const res = await fetch('/api/subscriptions/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ planId: passId }),
+        body: JSON.stringify({ planId: passId, wixMemberCheckout: true }),
       });
       if (!res.ok) throw new Error('Checkout API failed');
       const data = await res.json();
+      if (data.wixMemberCheckout && data.wixPlanId) {
+        const redirectSession = await wixClient.redirects.createRedirectSession({
+          paidPlansCheckout: { planId: data.wixPlanId },
+          callbacks: {
+            postFlowUrl: `${window.location.origin}/subscriptions#${passId}`,
+            thankYouPageUrl: `${window.location.origin}/subscriptions/thank-you`,
+          },
+        });
+        const memberCheckoutUrl = redirectSession.redirectSession?.fullUrl;
+        if (!memberCheckoutUrl) throw new Error('No Wix member checkout URL');
+        window.location.assign(memberCheckoutUrl);
+        return;
+      }
       if (data.checkoutUrl) {
         window.location.href = data.checkoutUrl;
         return;
@@ -125,6 +150,8 @@ export default function SubscriptionsPage() {
           </div>
         </div>
       </section>
+
+      <WixMemberSubscriptionPanel language={language} />
 
       {/* 2. THE 4 VALUE PILLARS (Customer Orientation) */}
       <section className="space-y-8">

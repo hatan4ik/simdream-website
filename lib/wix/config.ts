@@ -43,3 +43,13 @@ export function isWixConfigured(): boolean {
 export function isWixShadowReadsEnabled(): boolean {
   return process.env.WIX_SHADOW_READS_ENABLED?.trim().toLowerCase() === 'true' && isWixConfigured();
 }
+
+/**
+ * Enables Wix Bookings availability as a safe second source of truth. When the
+ * local store is reachable, callers intersect both calendars; when a managed
+ * Wix deployment has no local persistence connection, callers can still show
+ * Wix's live bookable slots. Checkout remains independently fail-closed.
+ */
+export function isWixAvailabilityAdapterEnabled(): boolean {
+  return process.env.WIX_AVAILABILITY_ADAPTER_ENABLED?.trim().toLowerCase() === 'true' && isWixConfigured();
+}

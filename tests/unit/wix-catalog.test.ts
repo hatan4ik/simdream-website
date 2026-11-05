@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { SIMULATOR_PACKAGES } from '@/lib/db/seed-data';
 import { WIX_SERVICE_IDS, packageIdForWixService, unmappedPackageIds, wixServiceIdFor } from '@/lib/wix/catalog';
 import { reconcileCatalog, type WixService } from '@/lib/wix/bookings';
-import { isWixConfigured, isWixShadowReadsEnabled } from '@/lib/wix/config';
+import { isWixAvailabilityAdapterEnabled, isWixConfigured, isWixShadowReadsEnabled } from '@/lib/wix/config';
 import { getWixClient, resetWixClientForTests, WixNotConfiguredError } from '@/lib/wix/client';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -86,11 +86,14 @@ describe('reconcileCatalog', () => {
 describe('Wix client configuration', () => {
   const original = process.env.NEXT_PUBLIC_WIX_CLIENT_ID;
   const originalShadowReads = process.env.WIX_SHADOW_READS_ENABLED;
+  const originalAvailabilityAdapter = process.env.WIX_AVAILABILITY_ADAPTER_ENABLED;
   afterEach(() => {
     if (original === undefined) delete process.env.NEXT_PUBLIC_WIX_CLIENT_ID;
     else process.env.NEXT_PUBLIC_WIX_CLIENT_ID = original;
     if (originalShadowReads === undefined) delete process.env.WIX_SHADOW_READS_ENABLED;
     else process.env.WIX_SHADOW_READS_ENABLED = originalShadowReads;
+    if (originalAvailabilityAdapter === undefined) delete process.env.WIX_AVAILABILITY_ADAPTER_ENABLED;
+    else process.env.WIX_AVAILABILITY_ADAPTER_ENABLED = originalAvailabilityAdapter;
     resetWixClientForTests();
   });
 
@@ -119,5 +122,17 @@ describe('Wix client configuration', () => {
 
     delete process.env.NEXT_PUBLIC_WIX_CLIENT_ID;
     expect(isWixShadowReadsEnabled()).toBe(false);
+  });
+
+  it('requires the same explicit opt-in before using Wix as an availability source', () => {
+    process.env.NEXT_PUBLIC_WIX_CLIENT_ID = 'a7828197-5f0a-4580-9535-55fa889b5f9a';
+    delete process.env.WIX_AVAILABILITY_ADAPTER_ENABLED;
+    expect(isWixAvailabilityAdapterEnabled()).toBe(false);
+
+    process.env.WIX_AVAILABILITY_ADAPTER_ENABLED = 'true';
+    expect(isWixAvailabilityAdapterEnabled()).toBe(true);
+
+    delete process.env.NEXT_PUBLIC_WIX_CLIENT_ID;
+    expect(isWixAvailabilityAdapterEnabled()).toBe(false);
   });
 });

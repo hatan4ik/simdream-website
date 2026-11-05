@@ -41,6 +41,27 @@ describe('/api/subscriptions/checkout API Route', () => {
     expect(data.wixConnected).toBe(true);
   });
 
+  it('returns the Wix plan id without creating a server-owned visitor checkout for a signed-in member', async () => {
+    const redirectSpy = vi.spyOn(wixModule, 'createPlanCheckoutUrl');
+    vi.spyOn(wixModule, 'resolveWixPlanId').mockResolvedValueOnce('wix-plan-guid-member');
+
+    const req = new NextRequest('https://simdream.co.il/api/subscriptions/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ planId: 'advanced-captain-5x90', wixMemberCheckout: true }),
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({
+      planId: 'advanced-captain-5x90',
+      wixPlanId: 'wix-plan-guid-member',
+      wixConnected: true,
+      wixMemberCheckout: true,
+    });
+    expect(redirectSpy).not.toHaveBeenCalled();
+  });
+
   it('falls back cleanly to Dispatch when Wix plan is not yet configured', async () => {
     vi.spyOn(wixModule, 'resolveWixPlanId').mockResolvedValueOnce(null);
 
@@ -218,4 +239,3 @@ describe('/api/subscriptions/checkout input channels and failure paths', () => {
     expect(res.headers.get('location')).toBe('https://checkout.wix.com/plan-789');
   });
 });
-

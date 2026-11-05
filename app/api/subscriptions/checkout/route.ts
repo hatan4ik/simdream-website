@@ -6,12 +6,14 @@ export const dynamic = 'force-dynamic';
 
 async function handleCheckout(req: NextRequest) {
   let planId = '';
+  let wixMemberCheckout = false;
 
   if (req.method === 'POST') {
     const contentType = req.headers.get('content-type') || '';
     if (contentType.includes('application/json')) {
       const body = await req.json().catch(() => ({}));
       planId = String(body.planId || body.passId || '');
+      wixMemberCheckout = body.wixMemberCheckout === true;
     } else if (contentType.includes('application/x-www-form-urlencoded')) {
       const formData = await req.formData().catch(() => null);
       if (formData) {
@@ -46,16 +48,20 @@ async function handleCheckout(req: NextRequest) {
     !req.headers.get('content-type')?.includes('application/json');
 
   let checkoutUrl: string | null = null;
+  let wixPlanId: string | null = null;
   let wixConnected = false;
 
   try {
     const resolvedWixPlanId = await resolveWixPlanId(pass.id);
     if (resolvedWixPlanId) {
-      checkoutUrl = await createPlanCheckoutUrl({
-        planId: resolvedWixPlanId,
-        baseUrl,
-        passId: pass.id,
-      });
+      wixPlanId = resolvedWixPlanId;
+      if (!wixMemberCheckout) {
+        checkoutUrl = await createPlanCheckoutUrl({
+          planId: resolvedWixPlanId,
+          baseUrl,
+          passId: pass.id,
+        });
+      }
       wixConnected = true;
     }
   } catch (err) {
@@ -75,6 +81,8 @@ async function handleCheckout(req: NextRequest) {
     checkoutUrl,
     planId: pass.id,
     wixConnected,
+    wixMemberCheckout: wixMemberCheckout && Boolean(wixPlanId),
+    wixPlanId,
   });
 }
 
@@ -85,4 +93,3 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
   return handleCheckout(req);
 }
-

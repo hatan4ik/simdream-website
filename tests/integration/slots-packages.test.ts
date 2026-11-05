@@ -1,5 +1,5 @@
 import fc from 'fast-check';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { loadApp, type TestApp } from '../support/app';
 import { apiRequest, readJson } from '../support/http';
 import { collectKeys, createVoucherFundedBooking, EMPTY_DAY, getSlots } from './api-helpers';
@@ -39,6 +39,28 @@ async function packagesResponse(app: TestApp, query = '') {
   const { GET } = await app.routes.packages();
   return readJson(await GET(apiRequest(`/api/packages${query}`)));
 }
+
+/**
+ * The route consumes the Wix port rather than reaching the public network in
+ * integration tests. Each test below exercises the production fallback policy
+ * with deterministic Bookings answers.
+ */
+function mockWixAvailabilityPort() {
+  const list = vi.fn();
+  const intersect = vi.fn();
+  const wixOnly = vi.fn();
+  vi.doMock('@/lib/wix', () => ({
+    isWixAvailabilityAdapterEnabled: () => true,
+    listWixBookableSlotsForDuration: list,
+    intersectKantorovichSlotsWithWix: intersect,
+    getWixBackedKantorovichSlots: wixOnly,
+  }));
+  return { list, intersect, wixOnly };
+}
+
+afterEach(() => {
+  vi.doUnmock('@/lib/wix');
+});
 
 describe('GET /api/slots', () => {
   it('returns contract-valid slots whose times follow the requested duration and reserved buffer', async () => {
@@ -243,6 +265,109 @@ describe('GET /api/slots', () => {
     expect(response.status).toBeLessThan(600);
     expectContract(errorBody, response.body);
     expect(JSON.stringify(response.body)).not.toMatch(/ECONNREFUSED|db\.internal|\.ts:\d+/);
+  });
+
+  it('intersects the local calendar with live Wix availability when both sources are reachable', async () => {
+    const wix = mockWixAvailabilityPort();
+    const app = await loadApp();
+    const localSlots = await app.store.getAvailableSlots(EMPTY_DAY.sunday, 60);
+    const onlyFirstDeparture = localSlots.map((slot, index) => ({ ...slot, available: index === 0 && slot.available }));
+    wix.list.mockResolvedValue([{ localStartDate: `${EMPTY_DAY.sunday}T10:00:00`, localEndDate: `${EMPTY_DAY.sunday}T11:00:00` }]);
+    wix.intersect.mockReturnValue(onlyFirstDeparture);
+
+    const response = await slotsResponse(app, `?date=${EMPTY_DAY.sunday}&duration=60`);
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual(onlyFirstDeparture);
+    expect(wix.intersect).toHaveBeenCalledWith(localSlots, expect.any(Array));
+    expect(wix.wixOnly).not.toHaveBeenCalled();
+  });
+
+  it('uses the Wix-backed canonical grid when local persistence is unavailable', async () => {
+    const wix = mockWixAvailabilityPort();
+    const app = await loadApp();
+    const wixOnlySlots = (await app.store.getAvailableSlots(EMPTY_DAY.sunday, 60)).map((slot, index) => ({
+      ...slot,
+      available: index === 0,
+    }));
+    vi.spyOn(app.store, 'getAvailableSlots').mockRejectedValue(new Error('Supabase unavailable'));
+    wix.list.mockResolvedValue([{ localStartDate: `${EMPTY_DAY.sunday}T10:00:00`, localEndDate: `${EMPTY_DAY.sunday}T11:00:00` }]);
+    wix.wixOnly.mockResolvedValue(wixOnlySlots);
+
+    const response = await slotsResponse(app, `?date=${EMPTY_DAY.sunday}&duration=60`);
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual(wixOnlySlots);
+    expect(wix.wixOnly).toHaveBeenCalledWith(EMPTY_DAY.sunday, 60, expect.any(Array));
+  });
+
+  it('preserves local availability if the non-authoritative Wix read is temporarily unavailable', async () => {
+    const wix = mockWixAvailabilityPort();
+    const app = await loadApp();
+    const localSlots = await app.store.getAvailableSlots(EMPTY_DAY.sunday, 60);
+    wix.list.mockRejectedValue(new Error('Wix unavailable'));
+
+    const response = await slotsResponse(app, `?date=${EMPTY_DAY.sunday}&duration=60`);
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual(localSlots);
+  });
+
+  it('retains the verified local efficiency report when both calendars are reachable', async () => {
+    const wix = mockWixAvailabilityPort();
+    const app = await loadApp();
+    wix.list.mockResolvedValue([{ localStartDate: `${EMPTY_DAY.sunday}T10:00:00`, localEndDate: `${EMPTY_DAY.sunday}T11:00:00` }]);
+    wix.intersect.mockImplementation((localSlots) => localSlots);
+
+    const response = await slotsResponse(app, `?date=${EMPTY_DAY.sunday}&duration=60&includeEfficiency=true`);
+
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty('efficiency');
+    expect(response.body).toMatchObject({
+      efficiency: { date: EMPTY_DAY.sunday, isZeroWasteCompliant: true },
+    });
+  });
+
+  it('fails closed and omits a fake efficiency report if neither availability source can provide it', async () => {
+    const wix = mockWixAvailabilityPort();
+    const app = await loadApp();
+    const representativeSlot = (await app.store.getAvailableSlots(EMPTY_DAY.sunday, 60))[0];
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    vi.spyOn(app.store, 'getAvailableSlots').mockRejectedValue(new Error('Supabase unavailable'));
+    vi.spyOn(app.store, 'getDailyEfficiencyReport').mockRejectedValue(new Error('Supabase unavailable'));
+    wix.list.mockResolvedValue([{ localStartDate: `${EMPTY_DAY.sunday}T10:00:00`, localEndDate: `${EMPTY_DAY.sunday}T11:00:00` }]);
+    wix.wixOnly.mockResolvedValue([
+      {
+        ...representativeSlot,
+        available: true,
+        dynamicPriceIls: 0,
+        basePriceIls: 444,
+      },
+    ]);
+
+    const wixOnlyResponse = await slotsResponse(app, `?date=${EMPTY_DAY.sunday}&duration=60&includeEfficiency=true`);
+    expect(wixOnlyResponse.status).toBe(200);
+    expect(wixOnlyResponse.body).toMatchObject({
+      slots: [{ available: true, dynamicPriceIls: 0, basePriceIls: 444 }],
+      durationAvailability: {
+        30: { availableCount: 1, minPriceIls: 444 },
+        45: { availableCount: 1, minPriceIls: 444 },
+        60: { availableCount: 1, minPriceIls: 444 },
+        90: { availableCount: 1, minPriceIls: 444 },
+        120: { availableCount: 1, minPriceIls: 444 },
+      },
+    });
+    expect(wixOnlyResponse.body).not.toHaveProperty('efficiency');
+
+    wix.list.mockRejectedValue(new Error('Wix unavailable'));
+    const failedResponse = await slotsResponse(app, `?date=${EMPTY_DAY.sunday}&duration=60`);
+    expect(failedResponse.status).toBe(503);
+    expect(failedResponse.body).toEqual({ error: 'Availability is temporarily unavailable.' });
+
+    wix.list.mockRejectedValue('Wix unavailable without an Error object');
+    const nonErrorFailure = await slotsResponse(app, `?date=${EMPTY_DAY.sunday}&duration=60`);
+    expect(nonErrorFailure.status).toBe(503);
+    expect(nonErrorFailure.body).toEqual({ error: 'Availability is temporarily unavailable.' });
   });
 });
 

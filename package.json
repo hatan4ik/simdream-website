@@ -44,6 +44,8 @@
     "@stripe/stripe-js": "^4.8.0",
     "@supabase/supabase-js": "^2.45.4",
     "@tailwindcss/postcss": "^4.3.3",
+    "@wix/members": "^1.0.541",
+    "@wix/pricing-plans": "^1.0.440",
     "@wix/redirects": "^1.0.133",
     "@wix/sdk": "^1.21.18",
     "canvas-confetti": "^1.9.4",
