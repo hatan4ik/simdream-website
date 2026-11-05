@@ -82,8 +82,12 @@ for (const width of [1440, 1100]) {
 test('cycles night → daylight → studio → night and remembers the choice', async ({ page, baseURL }) => {
   await isolateFromThirdParties(page, baseURL);
   await preferLanguage(page, 'en');
-  await preferTheme(page, 'cockpit');
   await page.goto('/');
+  // preferTheme() is intentionally an init script, so it reseeds storage on
+  // every reload. Seed the initial state once instead: this verifies the
+  // visitor's subsequent choice, not the fixture, is what survives reloads.
+  await page.evaluate(() => window.localStorage.setItem('simdream_ui_theme', 'cockpit'));
+  await page.reload();
   const html = page.locator('html');
 
   await activate(headerSwitch(page, 'en', 'cockpit'));

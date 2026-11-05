@@ -102,7 +102,7 @@ test.describe('files that must never be served', () => {
   }
 });
 
-test.describe('image optimizer (/_next/image)', () => {
+test.describe('disabled image optimizer (/_next/image)', () => {
   const REMOTE_SOURCES = [
     'https://example.com/logo.png',
     'http://example.com/logo.png',
@@ -113,10 +113,13 @@ test.describe('image optimizer (/_next/image)', () => {
   ];
 
   for (const source of REMOTE_SOURCES) {
-    test(`refuses to fetch ${source}`, async ({ request }) => {
+    test(`does not expose a remote-fetching optimizer for ${source}`, async ({ request }) => {
       const response = await request.get(`/_next/image?url=${encodeURIComponent(source)}&w=64&q=75`);
 
-      expect(response.status()).toBe(400);
+      // Wix OpenNext does not ship Next's image-optimizer worker. The frontend
+      // intentionally emits direct static asset URLs, so this endpoint must not
+      // exist at all (and therefore cannot become an SSRF fetch proxy).
+      expect(response.status()).toBe(404);
       expect(response.headers()['content-type'] ?? '').not.toMatch(/^image\//);
     });
   }
