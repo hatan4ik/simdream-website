@@ -100,6 +100,8 @@ interface AmazonFlightStorefrontProps {
   onSubmitBooking: (e: React.FormEvent) => void;
   /** Guest-checkout or signed-in notice, rendered under the checkout button. */
   accountNotice?: React.ReactNode;
+  /** Active Wix subscription redemption uses Wix-hosted Bookings checkout. */
+  subscriptionCheckout?: { notice: string; cta: string };
 }
 
 type AddonFilterTab = 'all' | 'world_bundles' | 'cockpit_ops' | 'guest_extras';
@@ -451,6 +453,7 @@ export function AmazonFlightStorefront({
   checkoutError,
   onSubmitBooking,
   accountNotice,
+  subscriptionCheckout,
 }: AmazonFlightStorefrontProps) {
   const { t, language, isRTL } = useLanguage();
   const bpCopy = BOOKING_BLUEPRINT_COPY[language] || BOOKING_BLUEPRINT_COPY.en;
@@ -1608,7 +1611,7 @@ export function AmazonFlightStorefront({
                 id="storefront-pilot-name"
                 name="pilotName"
                 type="text"
-                required
+                required={!subscriptionCheckout}
                 autoComplete="name"
                 value={pilotName}
                 onChange={(e) => onChangePilotName(e.target.value)}
@@ -1629,7 +1632,7 @@ export function AmazonFlightStorefront({
                   id="storefront-pilot-email"
                   name="pilotEmail"
                   type="email"
-                  required
+                  required={!subscriptionCheckout}
                   autoComplete="email"
                   autoCorrect="off"
                   autoCapitalize="off"
@@ -1652,7 +1655,7 @@ export function AmazonFlightStorefront({
                   id="storefront-pilot-phone"
                   name="pilotPhone"
                   type="tel"
-                  required
+                  required={!subscriptionCheckout}
                   autoComplete="tel"
                   value={pilotPhone}
                   onChange={(e) => onChangePilotPhone(e.target.value)}
@@ -1830,6 +1833,14 @@ export function AmazonFlightStorefront({
               {checkoutError}
             </div>
           )}
+          {subscriptionCheckout && (
+            <div
+              data-wix-subscription-redemption="true"
+              className="rounded-xl border border-sky-500/30 bg-sky-500/10 px-3 py-2.5 text-xs leading-relaxed text-sky-100"
+            >
+              {subscriptionCheckout.notice}
+            </div>
+          )}
           <Button
             type="submit"
             size="lg"
@@ -1840,7 +1851,7 @@ export function AmazonFlightStorefront({
             <span>
               {isSubmitting
                 ? t.booking.processing
-                : `${t.booking.proceedToPayment} (${formatCurrency(totalIls)})`}
+                : subscriptionCheckout?.cta ?? `${t.booking.proceedToPayment} (${formatCurrency(totalIls)})`}
             </span>
           </Button>
 

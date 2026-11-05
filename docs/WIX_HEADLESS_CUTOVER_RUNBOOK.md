@@ -12,7 +12,7 @@ The current live authority remains the Next.js, Supabase, and Stripe flow. Wix a
 - A guest must always be able to start a one-off booking without registration. Member identity may grant access to the matching customer's orders; it must never expose purchases by an unauthenticated email lookup.
 - A browser return from Wix checkout is not confirmation. The trusted server must verify the provider's confirmed booking/order state before showing a paid or confirmed result.
 - Keep `WIX_SHADOW_READS_ENABLED=false` unless diagnostic traffic is explicitly desired. Shadow reads are anonymous, redacted, and never create a booking or payment.
-- `WIX_AVAILABILITY_ADAPTER_ENABLED=true` is enabled on the staging Wix worker only. It can display safe Wix-backed availability but never creates, confirms, or charges a booking.
+- `WIX_AVAILABILITY_ADAPTER_ENABLED=true` is enabled on the staging Wix worker only. It can display safe Wix-backed availability but never creates, confirms, or charges a booking. A separate member-only subscription redemption handoff resolves one strict-grid Wix slot and opens Wix-hosted Bookings checkout, where Wix validates plan benefits and performs the reservation.
 
 ## 2. Automated read-only readiness gate
 
@@ -85,7 +85,7 @@ For every plan, publish the five-language customer terms and make these limitati
 1. The staging OAuth app now allow-lists the exact hosted callback and preview wildcard for `/wix/members/callback`. For a new production origin, add its exact HTTPS callback before enabling member login; origin allow-listing alone is insufficient.
 2. Permit the hosted-checkout return domain for the current frontend. Use the deployed origin—not a path, wildcard, unrelated domain, or development URL in production.
 3. **Required blocker:** Configure an approved PayPlus provider inside Wix using merchant sandbox/test configuration. The staging site currently has no connected provider, and no published PayPlus App Market listing was discoverable through Wix's supported search API. Complete a non-charging or test-card payment, cancellation, and failure recovery path before live credentials are considered.
-4. Wix Members is installed and the hosted callback is registered. Subscription purchase and usage are member-gated; one-off booking remains guest-first. Verify the actual hosted sign-in/register and member-order read after each release.
+4. Wix Members is installed and the hosted callback is registered. Subscription purchase and usage are member-gated; active plans now link to a duration-matched `/book?subscription=wix` flow. It resolves a live strict-grid slot and opens member-bound Wix-hosted Bookings checkout; Wix verifies the benefit and consumes the credit. One-off booking remains guest-first. Verify hosted sign-in/register, plan purchase, covered-session checkout, cancellation, and member-order updates after each release.
 5. The Wix availability adapter is implemented and enabled for staging. It can operate without copying a Supabase secret into the worker, but it does not make the existing one-off checkout a Wix writer.
 
 ## 5. Staged cutover sequence

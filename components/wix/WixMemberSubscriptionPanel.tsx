@@ -1,10 +1,12 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
 import { CheckCircle2, LogIn, LogOut, ShieldCheck, UserRound } from 'lucide-react';
 import type { Language } from '@/lib/i18n/translations';
 import { Button } from '@/components/ui/Button';
 import { clearWixMemberSession, getWixMemberClient, wixMemberOAuthStorageKey } from '@/lib/wix/member-client';
+import { wixSubscriptionBookingPackageForPlan, type WixSubscriptionBookingPackageId } from '@/lib/wix/subscription-redemption';
 
 interface MemberCopy {
   eyebrow: string;
@@ -16,6 +18,7 @@ interface MemberCopy {
   loading: string;
   noActive: string;
   active: string;
+  redeem: string;
   signInFailed: string;
 }
 
@@ -30,6 +33,7 @@ const COPY: Record<Language, MemberCopy> = {
     loading: 'Loading member subscriptions…',
     noActive: 'No active Wix subscriptions yet.',
     active: 'Active',
+    redeem: 'Book a covered session',
     signInFailed: 'We could not open Wix member sign-in. Please try again.',
   },
   he: {
@@ -42,6 +46,7 @@ const COPY: Record<Language, MemberCopy> = {
     loading: 'טוענים מנויים של החבר…',
     noActive: 'עדיין אין מנויי Wix פעילים.',
     active: 'פעיל',
+    redeem: 'קביעת טיסה הכלולה במנוי',
     signInFailed: 'לא ניתן היה לפתוח את התחברות חברי Wix. נסו שוב.',
   },
   ru: {
@@ -54,6 +59,7 @@ const COPY: Record<Language, MemberCopy> = {
     loading: 'Загружаем подписки участника…',
     noActive: 'Активных подписок Wix пока нет.',
     active: 'Активна',
+    redeem: 'Забронировать включённый сеанс',
     signInFailed: 'Не удалось открыть вход Wix. Попробуйте ещё раз.',
   },
   fr: {
@@ -66,6 +72,7 @@ const COPY: Record<Language, MemberCopy> = {
     loading: 'Chargement des abonnements du membre…',
     noActive: 'Aucun abonnement Wix actif pour le moment.',
     active: 'Actif',
+    redeem: 'Réserver une séance incluse',
     signInFailed: 'Impossible d’ouvrir la connexion Wix. Veuillez réessayer.',
   },
   ar: {
@@ -78,6 +85,7 @@ const COPY: Record<Language, MemberCopy> = {
     loading: 'جارٍ تحميل اشتراكات العضو…',
     noActive: 'لا توجد اشتراكات Wix نشطة بعد.',
     active: 'نشط',
+    redeem: 'حجز جلسة مشمولة',
     signInFailed: 'تعذر فتح تسجيل دخول Wix. يرجى المحاولة مرة أخرى.',
   },
 };
@@ -85,6 +93,7 @@ const COPY: Record<Language, MemberCopy> = {
 interface SubscriptionOrder {
   id: string;
   name: string;
+  bookingPackageId: WixSubscriptionBookingPackageId | null;
 }
 
 interface WixMemberSubscriptionPanelProps {
@@ -126,6 +135,7 @@ export function WixMemberSubscriptionPanel({ language }: WixMemberSubscriptionPa
           .map((order) => ({
             id: order._id ?? order.planId ?? order.planName ?? 'subscription',
             name: order.planName ?? 'SimDream subscription',
+            bookingPackageId: order.planId ? wixSubscriptionBookingPackageForPlan(order.planId) : null,
           }))
       );
     } catch {
@@ -212,6 +222,14 @@ export function WixMemberSubscriptionPanel({ language }: WixMemberSubscriptionPa
                   <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" />
                   <span className="min-w-0 flex-1 truncate">{order.name}</span>
                   <span className="text-xs text-emerald-300">{copy.active}</span>
+                  {order.bookingPackageId && (
+                    <Link
+                      href={`/book?package=${order.bookingPackageId === 'pkg-captain-60' ? 'captains-command-60' : 'ultimate-aviator-90'}&subscription=wix`}
+                      className="shrink-0 text-xs font-semibold text-sky-300 hover:text-sky-200 hover:underline"
+                    >
+                      {copy.redeem}
+                    </Link>
+                  )}
                 </li>
               ))}
             </ul>

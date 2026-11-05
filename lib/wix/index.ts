@@ -31,6 +31,17 @@ export {
   listWixBookableSlotsForDuration,
 } from './availability-adapter';
 export {
+  isWixSubscriptionBookingPackageId,
+  wixSubscriptionBookingPackageForPlan,
+  type WixSubscriptionBookingPackageId,
+} from './subscription-redemption';
+export {
+  resolveWixSubscriptionBookingCheckout,
+  WixSubscriptionBookingUnavailableError,
+  wixSubscriptionBookingCheckoutSchema,
+  type WixSubscriptionBookingCheckoutInput,
+} from './subscription-booking';
+export {
   listWixPlans,
   resolveWixPlanId,
   createPlanCheckoutUrl,

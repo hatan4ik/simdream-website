@@ -34,6 +34,9 @@ import {
 } from '@/lib/scheduler/mission-calculator';
 import { israelToday } from '@/lib/scheduler/israel-clock';
 import { useClientValue } from '@/lib/ui/use-client-value';
+import { WIX_SUBSCRIPTION_BOOKING_COPY } from '@/lib/i18n/wix-subscription-booking-copy';
+import { getWixMemberClient, wixMemberOAuthStorageKey } from '@/lib/wix/member-client';
+import { isWixSubscriptionBookingPackageId, wixSubscriptionBookingPackageForPlan } from '@/lib/wix/subscription-redemption';
 import {
   EXPERIENCE_ROUTES_COPY,
   MINIMUM_ROUTE_REQUEST_MINUTES,
@@ -128,18 +131,22 @@ function BookContent() {
 
   const activePackage =
     localizedPackages.find((p) => p.id === selectedPackage.id) || selectedPackage;
+  const wixSubscriptionRequested = searchParams.get('subscription') === 'wix';
+  const isWixSubscriptionRedemption = wixSubscriptionRequested && isWixSubscriptionBookingPackageId(activePackage.id);
+  const wixSubscriptionCopy = WIX_SUBSCRIPTION_BOOKING_COPY[language] || WIX_SUBSCRIPTION_BOOKING_COPY.en;
 
   // The package category is authoritative (id/slug heuristics misclassified 'pkg-promo-45'
   // as PRO). The server enforces the same noise-free rule through packageAllowsAddons.
   const isProBooking = activePackage.category === 'training';
   const isFearOfFlyingBooking = activePackage.category === 'fear_of_flying';
-  const isNoiseFreeBooking = !packageAllowsAddons(activePackage);
+  const isNoiseFreeBooking = !packageAllowsAddons(activePackage) || isWixSubscriptionRedemption;
 
   // Scoped packages:
   // - PRO: strictly show the 3 PRO training tiers (60, 90, 120 PRO)
   // - Fear of Flying: strictly show the Fear of Flying course
   // - Recreational: show recreational consumer packages (30m, 45m, 60m, 90m)
   const scopedPackages = React.useMemo(() => {
+    if (isWixSubscriptionRedemption) return [activePackage];
     if (isProBooking) return localizedPackages.filter((p) => p.category === 'training');
     if (isFearOfFlyingBooking) return localizedPackages.filter((p) => p.category === 'fear_of_flying');
     return localizedPackages.filter(
@@ -147,7 +154,7 @@ function BookContent() {
         p.category === 'recreational' &&
         (!requestedRoute || p.durationMinutes >= MINIMUM_ROUTE_REQUEST_MINUTES)
     );
-  }, [localizedPackages, isProBooking, isFearOfFlyingBooking, requestedRoute]);
+  }, [activePackage, localizedPackages, isWixSubscriptionRedemption, isProBooking, isFearOfFlyingBooking, requestedRoute]);
 
   // An old or hand-edited URL must not leave a custom World Trio paired with a short flight.
   // The route request starts at 60 minutes, while customers may still choose a longer session.
@@ -248,6 +255,14 @@ function BookContent() {
   const [voucherError, setVoucherError] = useState<string>('');
   const [voucherSuccess, setVoucherSuccess] = useState<string>('');
   const [isVerifyingVoucher, setIsVerifyingVoucher] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!isWixSubscriptionRedemption) return;
+    setVoucherCode('');
+    setVoucherDiscount(0);
+    setVoucherError('');
+    setVoucherSuccess('');
+  }, [isWixSubscriptionRedemption]);
 
   useEffect(() => {
     try {
@@ -443,7 +458,7 @@ function BookContent() {
       return;
     }
 
-    if (!pilotName || !pilotEmail || !pilotPhone) {
+    if (!isWixSubscriptionRedemption && (!pilotName || !pilotEmail || !pilotPhone)) {
       setBookingError(t.booking.errorFillFields);
       return;
     }
@@ -452,6 +467,66 @@ function BookContent() {
     setBookingError('');
 
     try {
+      if (isWixSubscriptionRedemption) {
+        if (selectedAddons.length > 0 || voucherDiscount > 0) {
+          throw new Error(wixSubscriptionCopy.description);
+        }
+
+        const wixClient = getWixMemberClient();
+        if (!wixClient.auth.loggedIn()) {
+          const redirectUri = `${window.location.origin}/wix/members/callback`;
+          const oAuthData = wixClient.auth.generateOAuthData(redirectUri, window.location.href);
+          window.sessionStorage.setItem(wixMemberOAuthStorageKey(), JSON.stringify(oAuthData));
+          const { authUrl } = await wixClient.auth.getAuthUrl(oAuthData);
+          window.location.assign(authUrl);
+          return;
+        }
+
+        const memberOrders = await wixClient.orders.memberListOrders({ limit: 50 });
+        const hasCoveredSession = (memberOrders.orders ?? []).some(
+          (order) =>
+            order.status === 'ACTIVE' &&
+            Boolean(order.planId && wixSubscriptionBookingPackageForPlan(order.planId) === activePackage.id)
+        );
+        if (!hasCoveredSession) throw new Error(wixSubscriptionCopy.noEligiblePlan);
+
+        const slotResponse = await fetch('/api/wix/bookings/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            packageId: activePackage.id,
+            bookingDate: selectedDate,
+            startTime: selectedSlot.startTime,
+          }),
+        });
+        const checkout = (await slotResponse.json()) as {
+          error?: string;
+          timeZone?: string;
+          slotAvailability?: { serviceId?: string; localStartDate?: string; localEndDate?: string; bookable?: boolean };
+        };
+        if (!slotResponse.ok) {
+          throw new Error(slotResponse.status === 409 ? wixSubscriptionCopy.unavailable : wixSubscriptionCopy.checkoutFailed);
+        }
+        const slotAvailability = checkout.slotAvailability;
+        if (!slotAvailability?.serviceId || !slotAvailability.localStartDate || !slotAvailability.localEndDate) {
+          throw new Error(wixSubscriptionCopy.checkoutFailed);
+        }
+
+        const redirectSession = await wixClient.redirects.createRedirectSession({
+          bookingsCheckout: {
+            slotAvailability,
+            timezone: checkout.timeZone || 'Asia/Jerusalem',
+          },
+          callbacks: {
+            postFlowUrl: `${window.location.origin}/subscriptions#flight-deck`,
+          },
+        });
+        const checkoutUrl = redirectSession.redirectSession?.fullUrl;
+        if (!checkoutUrl) throw new Error(wixSubscriptionCopy.checkoutFailed);
+        window.location.assign(checkoutUrl);
+        return;
+      }
+
       const headers: HeadersInit = { 'Content-Type': 'application/json' };
       if (isSupabaseConfigured && supabase) {
         const { data } = await supabase.auth.getSession();
@@ -617,6 +692,17 @@ function BookContent() {
         </div>
       )}
 
+      {isWixSubscriptionRedemption && (
+        <section
+          data-wix-subscription-redemption="true"
+          className="max-w-4xl mx-auto rounded-2xl border border-sky-500/35 bg-sky-500/10 p-4 sm:p-5"
+        >
+          <p className="text-xs font-semibold tracking-wide text-sky-300">{wixSubscriptionCopy.eyebrow}</p>
+          <h1 className="mt-1 text-lg font-semibold text-white">{wixSubscriptionCopy.title}</h1>
+          <p className="mt-2 text-sm leading-relaxed text-slate-200">{wixSubscriptionCopy.description}</p>
+        </section>
+      )}
+
       {bookingViewMode === 'storefront' ? (
         <AmazonFlightStorefront
           accountNotice={accountNotice}
@@ -665,6 +751,11 @@ function BookContent() {
           isSubmitting={isSubmitting}
           checkoutError={bookingError}
           onSubmitBooking={handleCompleteBooking}
+          subscriptionCheckout={
+            isWixSubscriptionRedemption
+              ? { notice: wixSubscriptionCopy.description, cta: wixSubscriptionCopy.checkoutLabel }
+              : undefined
+          }
         />
       ) : (
         <>
@@ -903,7 +994,7 @@ function BookContent() {
                 <input
                   id={`${formId}-pilot-name`}
                   type="text"
-                  required
+                  required={!isWixSubscriptionRedemption}
                   value={pilotName}
                   onChange={(e) => setPilotName(e.target.value)}
                   placeholder={t.booking.pilotNamePlaceholder}
@@ -918,7 +1009,7 @@ function BookContent() {
                 <input
                   id={`${formId}-pilot-email`}
                   type="email"
-                  required
+                  required={!isWixSubscriptionRedemption}
                   value={pilotEmail}
                   onChange={(e) => setPilotEmail(e.target.value)}
                   placeholder="pilot@example.com"
@@ -933,7 +1024,7 @@ function BookContent() {
                 <input
                   id={`${formId}-pilot-phone`}
                   type="tel"
-                  required
+                  required={!isWixSubscriptionRedemption}
                   value={pilotPhone}
                   onChange={(e) => setPilotPhone(e.target.value)}
                   placeholder="+972-54-123-4567"
@@ -1157,7 +1248,13 @@ function BookContent() {
                 className="w-full"
               >
                 <CreditCard className="w-5 h-5" />
-                <span>{isSubmitting ? t.booking.processing : `${t.booking.proceedToPayment} (${formatCurrency(totalAmount)})`}</span>
+                <span>
+                  {isSubmitting
+                    ? t.booking.processing
+                    : isWixSubscriptionRedemption
+                      ? wixSubscriptionCopy.checkoutLabel
+                      : `${t.booking.proceedToPayment} (${formatCurrency(totalAmount)})`}
+                </span>
               </Button>
 
               <div className="flex items-center justify-center gap-2 text-[10px] text-slate-400 font-mono">
