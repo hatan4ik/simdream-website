@@ -12,6 +12,7 @@ afterEach(() => {
   vi.doUnmock('@/lib/wix/bookings');
   vi.doUnmock('@/lib/wix/catalog');
   vi.doUnmock('@/lib/wix/config');
+  vi.doUnmock('@/lib/wix/booking-checkout');
   vi.doUnmock('@/lib/wix/subscription-booking');
 });
 
@@ -28,7 +29,18 @@ describe('Wix subscription booking checkout slot', () => {
       ],
       timeZone: 'Asia/Jerusalem',
     }));
-    vi.doMock('@/lib/wix/bookings', () => ({ listWixAvailability }));
+    vi.doMock('@/lib/wix/bookings', () => ({
+      listWixAvailability,
+      listWixServices: async () => [
+        {
+          id: 'svc-captain-60',
+          serviceResources: [{ resourceType: { id: 'simulator-resource' } }],
+          locations: [{ id: 'location-id', type: 'BUSINESS' }],
+          payment: { options: { online: true, inPerson: false } },
+        },
+      ],
+      wixResourceTypeIdsForService: () => ['simulator-resource'],
+    }));
     vi.doMock('@/lib/wix/catalog', () => ({ wixServiceIdFor: () => 'svc-captain-60' }));
     vi.doMock('@/lib/wix/config', () => ({ isWixConfigured: () => true, WIX_TIME_ZONE: 'Asia/Jerusalem' }));
 
@@ -39,6 +51,7 @@ describe('Wix subscription booking checkout slot', () => {
       serviceId: 'svc-captain-60',
       fromLocalDate: '2026-11-09T00:00:00',
       toLocalDate: '2026-11-09T23:59:59',
+      includeResourceTypeIds: ['simulator-resource'],
     });
     expect(result).toEqual({
       timeZone: 'Asia/Jerusalem',
@@ -59,6 +72,15 @@ describe('Wix subscription booking checkout slot', () => {
         ],
         timeZone: 'Asia/Jerusalem',
       }),
+      listWixServices: async () => [
+        {
+          id: 'svc-captain-60',
+          serviceResources: [{ resourceType: { id: 'simulator-resource' } }],
+          locations: [{ id: 'location-id', type: 'BUSINESS' }],
+          payment: { options: { online: true, inPerson: false } },
+        },
+      ],
+      wixResourceTypeIdsForService: () => ['simulator-resource'],
     }));
     vi.doMock('@/lib/wix/catalog', () => ({ wixServiceIdFor: () => 'svc-captain-60' }));
     vi.doMock('@/lib/wix/config', () => ({ isWixConfigured: () => true, WIX_TIME_ZONE: 'Asia/Jerusalem' }));
@@ -75,10 +97,10 @@ describe('Wix subscription booking checkout slot', () => {
 describe('POST /api/wix/bookings/checkout', () => {
   async function loadRoute(result: 'success' | 'unavailable' | 'failure') {
     vi.resetModules();
-    const actual = await vi.importActual<typeof import('@/lib/wix/subscription-booking')>('@/lib/wix/subscription-booking');
-    vi.doMock('@/lib/wix/subscription-booking', () => ({
+    const actual = await vi.importActual<typeof import('@/lib/wix/booking-checkout')>('@/lib/wix/booking-checkout');
+    vi.doMock('@/lib/wix/booking-checkout', () => ({
       ...actual,
-      resolveWixSubscriptionBookingCheckout:
+      resolveWixBookingCheckout:
         result === 'success'
           ? vi.fn(async () => ({
               timeZone: 'Asia/Jerusalem',
@@ -88,10 +110,12 @@ describe('POST /api/wix/bookings/checkout', () => {
                 localEndDate: '2026-11-09T11:00:00',
                 bookable: true,
               },
+              location: { id: 'location-id', locationType: 'BUSINESS' },
+              paymentOptions: { online: true, inPerson: false },
             }))
           : result === 'unavailable'
             ? vi.fn(async () => {
-                throw new actual.WixSubscriptionBookingUnavailableError('unavailable');
+                throw new actual.WixBookingUnavailableError('unavailable');
               })
             : vi.fn(async () => {
                 throw new Error('Wix service timeout');
@@ -113,7 +137,7 @@ describe('POST /api/wix/bookings/checkout', () => {
     const rejected = await readJson(await POST(apiRequest('/api/wix/bookings/checkout', { body: { ...BOOKING_INPUT, startTime: '25:90' } })));
     expect(rejected).toMatchObject({
       status: 400,
-      body: { error: 'Use a valid subscription package, date, and departure time.' },
+      body: { error: 'Use a valid package, date, and departure time.' },
     });
   });
 
@@ -130,7 +154,7 @@ describe('POST /api/wix/bookings/checkout', () => {
     const failed = await readJson(await failedRoute.POST(apiRequest('/api/wix/bookings/checkout', { body: BOOKING_INPUT })));
     expect(failed).toMatchObject({
       status: 503,
-      body: { error: 'Subscription booking is temporarily unavailable.' },
+      body: { error: 'Wix booking is temporarily unavailable.' },
     });
   });
 });

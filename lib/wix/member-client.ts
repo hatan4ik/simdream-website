@@ -56,6 +56,11 @@ const clientId =
 
 export type WixMemberClient = ReturnType<typeof createWixMemberClient>;
 
+/** Public client-id guard for flows that can run as either a member or an anonymous visitor. */
+export function isWixBrowserClientConfigured(): boolean {
+  return Boolean(clientId);
+}
+
 function createWixMemberClient() {
   if (!clientId) {
     throw new Error('Wix member access is not configured for this environment.');

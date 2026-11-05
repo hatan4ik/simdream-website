@@ -35,8 +35,13 @@ import {
 import { israelToday } from '@/lib/scheduler/israel-clock';
 import { useClientValue } from '@/lib/ui/use-client-value';
 import { WIX_SUBSCRIPTION_BOOKING_COPY } from '@/lib/i18n/wix-subscription-booking-copy';
-import { getWixMemberClient, wixMemberOAuthStorageKey } from '@/lib/wix/member-client';
+import {
+  getWixMemberClient,
+  isWixBrowserClientConfigured,
+  wixMemberOAuthStorageKey,
+} from '@/lib/wix/member-client';
 import { isWixSubscriptionBookingPackageId, wixSubscriptionBookingPackageForPlan } from '@/lib/wix/subscription-redemption';
+import { startWixBookingCheckout, type WixNativeCheckoutCandidate } from '@/lib/wix/booking-checkout-client';
 import {
   EXPERIENCE_ROUTES_COPY,
   MINIMUM_ROUTE_REQUEST_MINUTES,
@@ -256,6 +261,16 @@ function BookContent() {
   const [voucherSuccess, setVoucherSuccess] = useState<string>('');
   const [isVerifyingVoucher, setIsVerifyingVoucher] = useState<boolean>(false);
 
+  // Wix is the native writer for simple single-service bookings. The local checkout
+  // keeps ownership of multi-item missions, locally funded vouchers and route intent
+  // until those catalog concepts have matching Wix Bookings entities.
+  const canUseWixNativeCheckout =
+    !isWixSubscriptionRedemption &&
+    isWixBrowserClientConfigured() &&
+    selectedAddons.length === 0 &&
+    voucherDiscount === 0 &&
+    !requestedRoute;
+
   useEffect(() => {
     if (!isWixSubscriptionRedemption) return;
     setVoucherCode('');
@@ -424,7 +439,15 @@ function BookContent() {
         sessionStorage.setItem('simdream_cached_voucher', code);
       } catch {}
     } catch (err: unknown) {
-      setVoucherError(extractErrorMessage(err, t.booking.voucherVerifyFailed));
+      if (canUseWixNativeCheckout) {
+        // A Wix coupon is authoritative only after the Wix cart exists. Local gift
+        // vouchers still validate above; an unrecognized local code is forwarded to
+        // the native Wix cart rather than incorrectly rejecting a valid Wix coupon.
+        setVoucherError('');
+        setVoucherSuccess(t.booking.wixCouponDeferred);
+      } else {
+        setVoucherError(extractErrorMessage(err, t.booking.voucherVerifyFailed));
+      }
       setVoucherDiscount(0);
     } finally {
       setIsVerifyingVoucher(false);
@@ -524,6 +547,36 @@ function BookContent() {
         const checkoutUrl = redirectSession.redirectSession?.fullUrl;
         if (!checkoutUrl) throw new Error(wixSubscriptionCopy.checkoutFailed);
         window.location.assign(checkoutUrl);
+        return;
+      }
+
+      if (canUseWixNativeCheckout) {
+        const wixSlotResponse = await fetch('/api/wix/bookings/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            packageId: activePackage.id,
+            bookingDate: selectedDate,
+            startTime: selectedSlot.startTime,
+          }),
+        });
+        const wixSlot = (await wixSlotResponse.json()) as Partial<WixNativeCheckoutCandidate> & { error?: string };
+        if (!wixSlotResponse.ok || !wixSlot.slotAvailability || !wixSlot.timeZone || !wixSlot.location || !wixSlot.paymentOptions) {
+          throw new Error(wixSlot.error || t.booking.paymentStartFailed);
+        }
+
+        const wixCheckout = await startWixBookingCheckout(getWixMemberClient(), {
+          slotAvailability: wixSlot.slotAvailability,
+          timeZone: wixSlot.timeZone,
+          location: wixSlot.location,
+          paymentOptions: wixSlot.paymentOptions,
+          pilotName,
+          pilotEmail,
+          pilotPhone,
+          notes,
+          couponCode: voucherCode,
+        });
+        window.location.assign(wixCheckout.checkoutUrl);
         return;
       }
 
@@ -1259,7 +1312,9 @@ function BookContent() {
 
               <div className="flex items-center justify-center gap-2 text-[10px] text-slate-400 font-mono">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                <span className="text-center">{t.booking.secureNotice}</span>
+                <span className="text-center">
+                  {canUseWixNativeCheckout ? t.booking.wixCheckoutNotice : t.booking.secureNotice}
+                </span>
               </div>
             </div>
 

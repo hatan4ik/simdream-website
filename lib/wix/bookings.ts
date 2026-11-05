@@ -46,9 +46,25 @@ export const wixServiceSchema = z
         varied: z
           .object({ minPrice: priceSchema.optional(), maxPrice: priceSchema.optional() })
           .optional(),
+        options: z
+          .object({
+            online: z.boolean().optional(),
+            inPerson: z.boolean().optional(),
+          })
+          .optional(),
       })
       .optional(),
     serviceResources: z.array(serviceResourceSchema).optional(),
+    locations: z
+      .array(
+        z
+          .object({
+            id: z.string().optional(),
+            type: z.string().optional(),
+          })
+          .loose()
+      )
+      .optional(),
     category: z.object({ id: z.string().optional(), name: z.string().optional() }).optional(),
   })
   .loose();
@@ -103,9 +119,37 @@ const queryServicesResponse = z.object({ services: z.array(wixServiceSchema).def
 export const wixTimeSlotSchema = z
   .object({
     serviceId: z.string().optional(),
+    scheduleId: z.string().optional(),
     localStartDate: z.string(),
     localEndDate: z.string(),
     bookable: z.boolean().optional(),
+    location: z
+      .object({
+        id: z.string().optional(),
+        name: z.string().optional(),
+        locationType: z.string().optional(),
+      })
+      .loose()
+      .optional(),
+    availableResources: z
+      .array(
+        z
+          .object({
+            resourceTypeId: z.string().optional(),
+            resources: z
+              .array(
+                z
+                  .object({
+                    id: z.string().optional(),
+                    name: z.string().optional(),
+                  })
+                  .loose()
+              )
+              .optional(),
+          })
+          .loose()
+      )
+      .optional(),
   })
   .loose();
 
@@ -136,6 +180,8 @@ export interface AvailabilityWindow {
   /** Local wall-clock bounds in the business time zone, e.g. 2026-11-04T00:00:00. */
   fromLocalDate: string;
   toLocalDate: string;
+  /** Asks Wix to return assignable physical resources for the selected service slot. */
+  includeResourceTypeIds?: string[];
 }
 
 /** Bookable appointment slots for one service, as Wix computes them from staff hours. */
@@ -157,6 +203,9 @@ export async function listWixAvailability(window: AvailabilityWindow): Promise<{
       toLocalDate: window.toLocalDate,
       timeZone: WIX_TIME_ZONE,
       bookable: true,
+      ...(window.includeResourceTypeIds?.length
+        ? { includeResourceTypeIds: window.includeResourceTypeIds }
+        : {}),
       cursorPaging: { limit: 1000, ...(cursor ? { cursor } : {}) },
     });
     const parsed = listTimeSlotsResponse.parse(data);
