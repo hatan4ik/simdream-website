@@ -6,7 +6,14 @@ import { describe, expect, it } from 'vitest';
 import { TEST_ADMIN, TEST_STRIPE } from '../support/test-env';
 
 const ROOT = fileURLToPath(new URL('../..', import.meta.url));
-const CLIENT_BUNDLE = join(ROOT, '.next', 'static');
+/**
+ * The client bundle to scan: the sandboxed production build (`.next-test`, what the browser
+ * suites and CI run against) when present, otherwise the developer's own `.next` build. The
+ * CI quality job runs Vitest without building, so the scan skips there and runs instead in
+ * the build job with REQUIRE_CLIENT_BUNDLE=1, where a missing build is a failure.
+ */
+const CLIENT_BUNDLE = ['.next-test', '.next'].map((dir) => join(ROOT, dir, 'static')).find((dir) => existsSync(dir));
+const REQUIRE_CLIENT_BUNDLE = process.env.REQUIRE_CLIENT_BUNDLE === '1';
 const MAX_SCANNED_BYTES = 5 * 1024 * 1024;
 
 function walk(directory: string): string[] {
@@ -69,11 +76,12 @@ function secretShapedValues(content: string): Array<{ name: string; value: strin
   ).filter(({ value }) => !KNOWN_TEST_FIXTURES.has(value) && !DECLARED_FAKE.test(value));
 }
 
-describe('client bundle (.next/static)', () => {
-  const files = existsSync(CLIENT_BUNDLE) ? walk(CLIENT_BUNDLE) : [];
+describe.skipIf(!CLIENT_BUNDLE && !REQUIRE_CLIENT_BUNDLE)('client bundle (.next-test/static or .next/static)', () => {
+  const files = CLIENT_BUNDLE ? walk(CLIENT_BUNDLE) : [];
   const scripts = files.filter((file) => file.endsWith('.js'));
 
   it('exists and contains client JavaScript to scan', () => {
+    expect(CLIENT_BUNDLE, 'no production build to scan: run npm run test:build first').toBeDefined();
     expect(scripts.length).toBeGreaterThan(0);
   });
 

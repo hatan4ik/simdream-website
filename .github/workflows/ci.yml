@@ -57,6 +57,12 @@ jobs:
       - run: npm ci
       # All external secrets blank, so the build can never embed real keys.
       - run: npm run test:build
+      # The client-bundle secrets scan needs a production build, which only this job has
+      # (the quality job runs Vitest without building, where the scan skips).
+      - name: Scan the client bundle for server-only names and secrets
+        run: npx vitest run --project security tests/security/secrets-hygiene.test.ts
+        env:
+          REQUIRE_CLIENT_BUNDLE: '1'
       - uses: actions/upload-artifact@v4
         with:
           name: next-build
