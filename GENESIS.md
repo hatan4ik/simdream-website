@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:bcf6dec58e9f12ffe88b904d19ea1b04c2d2e7a529697c3192c47a6912880ebb -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:1b0f75ca56b55d36bf33912569845d254b6c104650305547981aef112b6ad8b8 -->
 
 ## Verification contract
 
@@ -91,7 +91,7 @@ Sim Dream LTD runs one full-size **Boeing 737 MAX 8 flight simulator** at Gersho
 
 | Feature | Route(s) | Behaviour |
 | --- | --- | --- |
-| Marketing pages | `/`, `/experiences`, `/about`, `/pro`, `/contact`, `/rules`, `/privacy-policy` | Five customer value pillars, live METAR ticker (LLBG) and facility open/closed status, Google reviews. `/about` is the customer story; `/pro` is professional airline-assessment training. |
+| Marketing pages | `/`, `/experiences`, `/subscriptions`, `/about`, `/pro`, `/contact`, `/rules`, `/privacy-policy` | Five customer value pillars, live METAR ticker (LLBG) and facility open/closed status, Google reviews. `/about` is the customer story; `/pro` is professional airline-assessment training; `/subscriptions` is the dedicated 5-language annual flight subscription and multi-pass portal. |
 | Booking engine | `/book`, `/book/success` | Two interfaces over identical availability logic: a one-page "Amazon-style" storefront and a guided 3-step wizard. The default calendar is week view (month is togglable), with slot selection, add-ons, pilot manifest and checkout. An on-request World Trio opens calendar-first, saves a validated request with the booking and explicitly awaits captain confirmation. The success page shows a boarding pass from a narrow public projection looked up by booking reference. |
 | Noise-free flows | `/book?package=…` | Professional Training and Fear of Flying suppress all add-ons and combos (2-step flow); recreational uses the full 3-step flow. |
 | Scheduling | `lib/scheduler/*` | Deterministic "tiled interval" engine: each flight reserves a fixed block (flight + turnaround), slots are generated per operating window, orphan gaps are prevented, departed slots close by the Israel clock, and a dynamic-programming optimizer previews zero-waste capacity for admins. |
@@ -222,7 +222,7 @@ Add 3 curated one-click combos. Localize every package and add-on in all five la
 
 **Experience Flights route catalog** (`lib/data/experience-routes.ts`, rendered by `components/experiences/WorldRoutesSection.tsx` on `/experiences#world-routes`): the "טיסות חוויה" section written in the captain's voice. It lists every world-trio add-on (price and minutes resolved from `FLIGHT_ADDONS`, never duplicated) plus proposed on-request trios (Israel home skies, Atlantic outposts, Arctic lights, Himalaya, Africa, Pacific, Andes, North American wilderness) and scenario adventures (Dead Sea low pass, ETOPS crossing, Everest mountain flight, storm diversion, round-the-world, fly-home). Each trio names three real airports by ICAO and IATA code (ICAO rendered LTR), a 1–5 captain's handling rating, a first-person captain's note and "best for" tags, all in five languages. Bookable trios link to `/book` with their priced add-on selected. On-request World Trios link to `/book?package=captains-command-60&route=<id>`, open the calendar-first flow, restrict packages to 60 minutes or longer, retain only a server-validated route ID, add no route charge and clearly state that the captain confirms the final plan. Scenario adventures remain `/contact?subject=route&route=<id>` briefing inquiries. Every airport is a real Boeing 737 destination (pillar 5). Pinned by `tests/unit/experience-routes.test.ts`.
 
-**Flight Subscription catalog** (`lib/data/subscription-passes.ts`, rendered in the `/experiences` Flight Subscriptions tab): four 12-month, single-payment programmes—Flight Foundations `5 × 60` (₪2,750), Advanced Captain `5 × 90` (₪3,390), ATPL Concepts `10 × 60` (₪4,850), and Airline Readiness `10 × 90` (₪5,950). Each subscription is tied to exactly one base package (`pkg-captain-60` or `pkg-ultimate-90`); standard-value and savings figures are calculated from that base catalog price, never duplicated. Its five-language captain-led curriculum can reference existing Cold & Dark, Crosswind/IFR, and Extreme Airports add-on themes, but must never silently add their separately priced cockpit minutes to a reservation. ATPL-level explanations are education only: no flight hours, licence, type rating, airline assessment credit, or job guarantee. The current CTA opens a validated Dispatch enrolment inquiry; it must not claim checkout, recurring billing, or an entitlement until Wix Pricing Plans has an approved plan, member identity, server-side entitlement check, and confirmed order state.
+**Flight Subscription catalog** (`lib/data/subscription-passes.ts` and `lib/data/subscription-page-copy.ts`, rendered on `/subscriptions` and in the `/experiences` Flight Subscriptions tab): four 12-month, single-payment programmes—Flight Foundations `5 × 60` (₪2,750), Advanced Captain `5 × 90` (₪3,390), ATPL Concepts `10 × 60` (₪4,850), and Airline Readiness `10 × 90` (₪5,950). Each subscription is tied to exactly one base package (`pkg-captain-60` or `pkg-ultimate-90`); standard-value and savings figures are calculated from that base catalog price, never duplicated. Its five-language captain-led curriculum can reference existing Cold & Dark, Crosswind/IFR, and Extreme Airports add-on themes, but must never silently add their separately priced cockpit minutes to a reservation. ATPL-level explanations are education only: no flight hours, licence, type rating, airline assessment credit, or job guarantee. The current CTA opens a validated Dispatch enrolment inquiry; it must not claim checkout, recurring billing, or an entitlement until Wix Pricing Plans has an approved plan, member identity, server-side entitlement check, and confirmed order state.
 
 #### Scheduling engine (`lib/scheduler/`, pure functions, fully unit-tested)
 
@@ -590,7 +590,7 @@ lib/
   scheduler/ kantorovich-engine mission-calculator package-presentation tiled-interval-optimizer israel-clock
   booking/checkout-service checkout-ports checkout-composition checkout-runtime
   wix/ client config catalog bookings checkout-shadow
-  catalog/gift-voucher-packages  data/experience-routes subscription-passes  db/ store schema.sql seed-data supabase-admin migrations/
+  catalog/gift-voucher-packages  data/experience-routes subscription-passes subscription-page-copy  db/ store schema.sql seed-data supabase-admin migrations/
   auth/ admin-guard request-auth member-ownership safe-redirect auth-context
   security/rate-limit
   i18n/ translations language-context calendar-presentation

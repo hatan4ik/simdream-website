@@ -66,6 +66,7 @@ export function Navbar() {
 
   const navLinks = [
     { name: t.nav.experiences, href: '/experiences' },
+    { name: t.nav.subscriptions, href: '/subscriptions' },
     { name: t.nav.simulator, href: '/pro' },
     { name: t.nav.workshops, href: '/workshops' },
     { name: t.nav.vouchers, href: '/vouchers' },
@@ -88,6 +89,7 @@ export function Navbar() {
       label: t.nav.experiences,
       items: [
         { name: t.nav.experiences, href: '/experiences' },
+        { name: t.nav.subscriptions, href: '/subscriptions' },
         { name: t.nav.vouchers, href: '/vouchers' },
       ],
     },

@@ -5,6 +5,7 @@ export type SeoPageKey =
   | 'home'
   | 'book'
   | 'experiences'
+  | 'subscriptions'
   | 'about'
   | 'simulator'
   | 'pro'
@@ -91,6 +92,20 @@ export const PAGE_SEO_DEFINITIONS: Record<SeoPageKey, PageSeoDefinition> = {
       'fear of flying course Tel Aviv',
       'חרדת טיסה טיפול בסימולטור',
       'pilot assessment preparation Israel',
+    ],
+  },
+  subscriptions: {
+    path: '/subscriptions',
+    title: 'Boeing 737 Flight Subscriptions & Multi-Flight Passes | Sim Dream Tel Aviv (מנויי טיסה)',
+    description:
+      'Master the Boeing 737 across 5 or 10 structured flight sessions with commercial airline captains at Sim Dream Tel Aviv. Save up to ₪2,550 with 12 months validity, flexible scheduling, and free cockpit observer jumpseat on every mission.',
+    keywords: [
+      ...COMMON_KEYWORDS,
+      'flight subscriptions Israel',
+      'flight simulator passes Tel Aviv',
+      'מנויי טיסה סימולטור בואינג',
+      'כרטיסיית טיסות סימולטור',
+      'captain flight training Tel Aviv',
     ],
   },
   about: {
