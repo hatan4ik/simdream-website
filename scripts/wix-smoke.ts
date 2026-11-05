@@ -8,10 +8,9 @@
  * Reads NEXT_PUBLIC_WIX_CLIENT_ID (and WIX_SITE_ID) from the environment or
  * .env.local. Prints no secrets: both ids are public identifiers.
  */
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { loadWixLocalEnv } from './wix-env';
 
-loadLocalEnv(['NEXT_PUBLIC_WIX_CLIENT_ID', 'WIX_SITE_ID']);
+loadWixLocalEnv(['NEXT_PUBLIC_WIX_CLIENT_ID', 'WIX_SITE_ID']);
 
 const { isWixConfigured, getWixClientId, getWixSiteId, WIX_TIME_ZONE } = await import('../lib/wix/config');
 const { listWixServices, listWixAvailability, reconcileCatalog } = await import('../lib/wix/bookings');
@@ -59,18 +58,4 @@ process.exit(mismatches.length || unmapped.length ? 1 : 0);
 function ymdInZone(timeZone: string, daysAhead: number): string {
   const date = new Date(Date.now() + daysAhead * 86_400_000);
   return new Intl.DateTimeFormat('en-CA', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(date);
-}
-
-function loadLocalEnv(keys: string[]): void {
-  let text = '';
-  try {
-    text = readFileSync(resolve(process.cwd(), '.env.local'), 'utf8');
-  } catch {
-    return;
-  }
-  for (const line of text.split('\n')) {
-    const match = /^\s*([A-Z0-9_]+)\s*=\s*(.*?)\s*$/.exec(line);
-    if (!match || !keys.includes(match[1]) || process.env[match[1]]) continue;
-    process.env[match[1]] = match[2].replace(/^["']|["']$/g, '');
-  }
 }

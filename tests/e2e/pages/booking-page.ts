@@ -24,9 +24,13 @@ export class BookingPage {
   async goto(query = ''): Promise<void> {
     await this.page.goto(`/book${query}`);
     await waitUntilInteractive(this.page.getByRole('button', { name: 'Express Shop View (1-Page)' }));
-    // The page fetches the default day's slots (twice with ?package=); let them settle so the
-    // journey starts from a quiet network. Out-of-order responses are covered by E2E-14's own test.
-    await this.page.waitForLoadState('networkidle');
+    // `/book` reports its own availability state (`data-slots-state`: idle → loading → ready or
+    // failed). Waiting for network quiet, or for one particular /api/slots response, was
+    // nondeterministic under parallel journeys: the page aborts and retries its own fetches
+    // (E2E-14), so the response a listener saw was not always the one the page kept.
+    await expect(this.page.locator('[data-slots-state]')).toHaveAttribute('data-slots-state', /^(ready|failed)$/, {
+      timeout: 30_000,
+    });
   }
 
   async openWizard(): Promise<WizardView> {

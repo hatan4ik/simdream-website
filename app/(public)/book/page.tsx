@@ -189,6 +189,9 @@ function BookContent() {
   const [loadingSlots, setLoadingSlots] = useState<boolean>(false);
   const [slotsLoadFailed, setSlotsLoadFailed] = useState<boolean>(false);
   const [slotsReloadKey, setSlotsReloadKey] = useState<number>(0);
+  // True once the first availability request has started, so the page can report
+  // `data-slots-state` (idle → loading → ready | failed) to journeys and tests.
+  const [slotsRequested, setSlotsRequested] = useState<boolean>(false);
 
   // Add-ons (strictly empty for noise-free specialized bookings)
   const [selectedAddons, setSelectedAddons] = useState<string[]>(preselectedAddonIds);
@@ -271,6 +274,7 @@ function BookContent() {
     // response can never overwrite the slots of the current selection.
     const controller = new AbortController();
     async function fetchSlots() {
+      setSlotsRequested(true);
       setLoadingSlots(true);
       setSlotsLoadFailed(false);
       try {
@@ -514,7 +518,10 @@ function BookContent() {
     // shrink-wraps to calendar controls and becomes too wide on phones.
     // Desktop keeps the stack above the calendar short (slim kicker row, no banners), so the
     // departure grid and the buy box sit inside the first screen on a 900px laptop.
-    <div className="flex-1 w-full min-w-0 py-5 sm:py-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-4 sm:space-y-5">
+    <div
+      className="flex-1 w-full min-w-0 py-5 sm:py-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-4 sm:space-y-5"
+      data-slots-state={loadingSlots ? 'loading' : slotsLoadFailed ? 'failed' : slotsRequested ? 'ready' : 'idle'}
+    >
       {/* Top View-Mode Switcher: Amazon-Style 1-Page Express Storefront vs Guided 3-Step Wizard */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 pb-3 border-b border-slate-800/80">
         <div>
