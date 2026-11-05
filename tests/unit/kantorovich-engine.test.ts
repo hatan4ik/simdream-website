@@ -404,17 +404,16 @@ describe('daytime promo (45 minutes)', () => {
 
   it('keeps the evening promo departures listed as unavailable instead of hiding them', () => {
     const slots = generateKantorovichSlots(WEEKDAY_DATES.sunday, 45, []);
-    for (const time of ['18:00', '19:15', '20:30', '21:45']) {
+    for (const time of ['18:00', '19:00', '20:00', '21:00', '22:00']) {
       expect(slotAt(slots, time)).toMatchObject({ available: false, disabledReason: 'daytime_only_promo' });
     }
   });
 
-  it('offers the promo on a 60-minute afternoon step on an open weekday', () => {
+  it('offers the promo on its 60-minute reserved cadence on an open weekday', () => {
     const slots = generateKantorovichSlots(WEEKDAY_DATES.tuesday, 45, []);
-    expect(availableStarts(slots)).toEqual(['10:00', '11:15', '12:30', '15:00', '16:00', '17:00']);
+    expect(availableStarts(slots)).toEqual(['10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00']);
     expect(slotAt(slots, '16:00')?.smartRecommendation).toBe('daytime_promo_fit');
-    // 13:45 + 60 reserved minutes would strand 15 minutes before the 15:00 block boundary.
-    expect(slotAt(slots, '13:45')).toMatchObject({ available: false, disabledReason: 'orphan_gap' });
+    expect(slotAt(slots, '13:00')?.totalReservedMinutes).toBe(60);
   });
 
   it('lists every Saturday promo departure as unavailable', () => {
@@ -425,9 +424,20 @@ describe('daytime promo (45 minutes)', () => {
 });
 
 describe('Friday window', () => {
-  it('opens 09:00–16:30 and reserves the final 45-minute block for a 15:45 entry-flight closer', () => {
+  it('opens 09:00–16:30 on the 30-minute flight’s 45-minute reserved cadence', () => {
     const slots = generateKantorovichSlots(WEEKDAY_DATES.friday, 30, []);
-    expect(availableStarts(slots)).toEqual(['09:00', '10:15', '11:30', '12:45', '14:00', '15:45']);
+    expect(availableStarts(slots)).toEqual([
+      '09:00',
+      '09:45',
+      '10:30',
+      '11:15',
+      '12:00',
+      '12:45',
+      '13:30',
+      '14:15',
+      '15:00',
+      '15:45',
+    ]);
     expect(slotAt(slots, '15:45')).toMatchObject({
       available: true,
       reservedEndTime: '16:30',
@@ -452,8 +462,8 @@ describe('Friday window', () => {
 
   it.each([
     [60, ['09:00', '10:15', '11:30', '12:45', '14:00', '15:15']],
-    [90, ['09:00', '10:15', '11:30', '12:45', '14:00']],
-    [120, ['09:00', '10:15', '11:30', '12:45', '14:00']],
+    [90, ['09:00', '10:45', '12:30', '14:45']],
+    [120, ['09:00', '11:30', '14:00']],
   ])('offers %i-minute flights only where they close cleanly by 16:30', (duration, expected) => {
     expect(availableStarts(generateKantorovichSlots(WEEKDAY_DATES.friday, duration, []))).toEqual(expected);
   });
@@ -526,7 +536,7 @@ describe('Saturday window', () => {
 });
 
 describe('Sunday–Thursday window', () => {
-  it('offers the 60-minute grid from 10:00 to 21:45 with prime time from 18:00', () => {
+  it('offers the 60-minute flight on its 75-minute reserved cadence, with a valid end-of-day closer', () => {
     const slots = generateKantorovichSlots(WEEKDAY_DATES.sunday, 60, []);
     expect(availableStarts(slots)).toEqual([
       '10:00',
@@ -534,27 +544,26 @@ describe('Sunday–Thursday window', () => {
       '12:30',
       '13:45',
       '15:00',
-      '18:00',
-      '19:15',
-      '20:30',
+      '16:15',
+      '17:30',
+      '18:45',
+      '20:00',
       '21:45',
     ]);
-    expect(slots.filter((slot) => slot.isPrimeTime).map((slot) => slot.startTime)).toEqual([
-      '18:00',
-      '19:00',
-      '19:15',
-      '20:30',
+    expect(slots.filter((slot) => slot.available && slot.isPrimeTime).map((slot) => slot.startTime)).toEqual([
+      '18:45',
+      '20:00',
       '21:45',
     ]);
   });
 
-  it('locks starts that would strand an unsellable fragment and suggests an aligned time', () => {
+  it('keeps genuine orphan starts closed while retaining duration-valid mid-day departures', () => {
     const slots = generateKantorovichSlots(WEEKDAY_DATES.sunday, 60, []);
-    expect(slotAt(slots, '16:15')).toMatchObject({ available: false, disabledReason: 'orphan_gap' });
-    expect(slotAt(slots, '19:00')).toMatchObject({
+    expect(slotAt(slots, '16:15')).toMatchObject({ available: true, totalReservedMinutes: 75 });
+    expect(slotAt(slots, '21:15')).toMatchObject({
       available: false,
       disabledReason: 'orphan_gap',
-      suggestedAlternativeTime: '18:00 / 19:15',
+      suggestedAlternativeTime: '21:45 / 23:00',
     });
   });
 
@@ -578,12 +587,10 @@ describe('Sunday–Thursday window', () => {
 describe('scheduler known defects', () => {
   const sunday = WEEKDAY_DATES.sunday;
 
-  it('offers the setup bookings used by the defect scenarios on an open Sunday', () => {
-    expect(slotAt(generateKantorovichSlots(sunday, 30, []), '15:45')?.available).toBe(true);
-    expect(slotAt(generateKantorovichSlots(sunday, 30, []), '17:15')?.available).toBe(true);
-    const afterEntryFlight = [makeBooking({ bookingDate: sunday, startTime: '15:45', durationMinutes: 30 })];
-    expect(slotAt(generateKantorovichSlots(sunday, 60, afterEntryFlight), '19:15')?.available).toBe(true);
-    const setup = [...afterEntryFlight, makeBooking({ bookingDate: sunday, startTime: '19:15', durationMinutes: 60 })];
+  it('reconnects the package cadence immediately after a completed turnaround', () => {
+    const afterEntryFlight = [makeBooking({ bookingDate: sunday, startTime: '10:00', durationMinutes: 30 })];
+    expect(slotAt(generateKantorovichSlots(sunday, 30, afterEntryFlight), '10:45')?.available).toBe(true);
+    const setup = [...afterEntryFlight, makeBooking({ bookingDate: sunday, startTime: '11:30', durationMinutes: 30 })];
     expect(evaluateDailyEfficiency(sunday, setup).orphanGapMinutes).toBe(0);
   });
 

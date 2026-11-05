@@ -101,15 +101,11 @@ describe('slot engine soundness against the exact zero-waste oracle', () => {
   });
 });
 
-describe('slot engine completeness: the block-rhythm trade-off', () => {
+describe('slot engine completeness: duration-aware cadence', () => {
   /**
-   * The engine deliberately tiles the Sunday–Thursday day in three blocks (10:00–15:00,
-   * 15:00–18:00, 18:00–23:00) and refuses a departure whose reserved time leaves a fragment
-   * against a block boundary, even when the admin judge would accept it because the fragment
-   * plus the following free time still tiles. That keeps the evening anchored on the 75-minute
-   * rhythm of the standard 60-minute flight, at the price of occasionally selling nothing to a
-   * customer who wanted a different duration. This scenario pins the trade-off so that a change
-   * to the rule is a visible decision, not an accident.
+   * The customer calendar follows each service's own reserved duration, not an
+   * unrelated 75-minute constructor display grid. The zero-waste oracle remains
+   * the safety guard: a newly visible cadence start must never create a dead gap.
    */
   const tuesday = WEEKDAY_DATES.tuesday;
   const fencedAfternoon = [
@@ -120,28 +116,15 @@ describe('slot engine completeness: the block-rhythm trade-off', () => {
   const inWindow = (starts: number[], duration: number) =>
     starts.filter((start) => start >= WINDOW.start && start + getReservedMinutesForFlight(duration) <= WINDOW.end).map(minutesToTime);
 
-  it('leaves the 16:00–19:15 window dark for a 90-minute flight although the oracle accepts three starts there', () => {
+  it('exposes duration-valid 90-minute departures inside an otherwise free window', () => {
     expect(inWindow(safeStarts(tuesday, 90, fencedAfternoon), 90)).toEqual(['16:00', '16:45', '17:30']);
-    expect(inWindow(offeredStarts(tuesday, 90, fencedAfternoon), 90)).toEqual([]);
+    expect(inWindow(offeredStarts(tuesday, 90, fencedAfternoon), 90)).toEqual(['16:00', '17:30']);
   });
 
-  it('still sells the same window to standard flights on the block rhythm, for more revenue than the 90-minute path', () => {
-    // Engine path: 60m at 16:00, 30m at 17:15, 60m at 18:00 → 19:15, zero waste.
-    const after60 = [...fencedAfternoon, makeBooking({ bookingDate: tuesday, startTime: '16:00', durationMinutes: 60 })];
-    const after30 = [...after60, makeBooking({ bookingDate: tuesday, startTime: '17:15', durationMinutes: 30 })];
-    expect(inWindow(offeredStarts(tuesday, 60, fencedAfternoon), 60)).toContain('16:00');
-    expect(inWindow(offeredStarts(tuesday, 30, after60), 30)).toContain('17:15');
-    expect(inWindow(offeredStarts(tuesday, 60, after30), 60)).toContain('18:00');
-    const enginePath = [690, 450, 690].reduce((sum, price) => sum + price, 0);
-
-    // Oracle path: 90m at 16:00 (reserved until 17:45), after which only two 30m discovery flights tile the rest.
-    const after90 = [...fencedAfternoon, makeBooking({ bookingDate: tuesday, startTime: '16:00', durationMinutes: 90 })];
-    expect(evaluateDailyEfficiency(tuesday, after90).orphanGapMinutes).toBe(0);
-    expect(inWindow(safeStarts(tuesday, 60, after90), 60)).toEqual([]);
-    expect(inWindow(safeStarts(tuesday, 30, after90), 30)).toEqual(['17:45', '18:30']);
-    const oraclePath = [850, 450, 450].reduce((sum, price) => sum + price, 0);
-
-    expect(enginePath).toBeGreaterThan(oraclePath);
+  it('reconnects a 30-minute service on its 45-minute reserved cadence after a live booking', () => {
+    const bookings = [makeBooking({ bookingDate: tuesday, startTime: '10:00', durationMinutes: 30 })];
+    const starts = offeredStarts(tuesday, 30, bookings).map(minutesToTime);
+    expect(starts.slice(0, 3)).toEqual(['10:45', '11:30', '12:15']);
   });
 
   it('keeps the share of dark (day, duration) pairs and dark windows within the measured bound', () => {
@@ -170,8 +153,7 @@ describe('slot engine completeness: the block-rhythm trade-off', () => {
     const report = { pairs, darkPairs, darkPairShare: darkPairs / pairs, windows, darkWindows, darkWindowShare: darkWindows / windows };
     console.log(`completeness ratchet: ${JSON.stringify(report)}`);
     expect(pairs).toBe(600 * ENGINE_DURATIONS.length);
-    // Measured on 2026-11-03: 35 of 3600 pairs (0.97%) and 113 of 4807 windows (2.35%).
-    expect(report.darkPairShare).toBeLessThanOrEqual(0.015);
-    expect(report.darkWindowShare).toBeLessThanOrEqual(0.03);
+    expect(report.darkPairShare).toBe(0);
+    expect(report.darkWindowShare).toBe(0);
   });
 });

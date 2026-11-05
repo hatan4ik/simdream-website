@@ -93,8 +93,8 @@ Always reserve operating capacity via `getReservedMinutesForFlight()`:
 - **Friday**: `09:00–16:30` (450 min, with a `15:45` 30-minute closer)
 - **Saturday**: `19:00–24:00` (300 min Prime-Time only; 45m promo strictly forbidden)
 
-### Block Rhythm (intentional strictness)
-The engine judges a candidate's gaps against the fixed block boundaries (10:00 / 15:00 / 18:00 / 23:00), so it is stricter than `evaluateDailyEfficiency()` and may leave a free window dark for one duration while selling it to standard flights on the 75-minute rhythm. This is a deliberate revenue trade-off pinned and ratcheted by `tests/unit/kantorovich-completeness.test.ts`; see `KANTOROVICH_SCHEDULER_SPEC.md` ("Block rhythm versus completeness"). Do not "fix" it without a product decision.
+### Duration-Aware Cadence (product decision)
+The calendar must follow each selected package's actual reserved duration from real capacity boundaries, never a fixed 60- or 75-minute display grid: 30m → 45m (`10:00`, `10:45`, `11:30` …), 45m → 60m, 60m → 75m, 90m → 105m, and 120m → 150m. A close-aligned final departure is valid when it prevents waste. The engine judges gaps only against operating-window and live-booking boundaries, then requires both remaining gaps to be tileable. `tests/unit/kantorovich-completeness.test.ts` pins exact zero-waste soundness and duration-aware availability.
 
 ### Frontend Calendar & Duration Rules
 1. **Never Hide Available Durations / Packages**: When a package has 0 open slots on a selected date, **do not filter it out or remove it from the DOM**. It must remain visible with a status badge (`0 slots open today` / `0 מקומות היום`).

@@ -57,6 +57,7 @@ async function getWixAdaptedResponse(date: string, duration: number, includeEffi
   return NextResponse.json({
     slots,
     durationAvailability,
+    wixBookingsAuthoritative: true,
     ...(efficiency ? { efficiency: toPublicCapacityReport(efficiency) } : {}),
   });
 }
@@ -84,7 +85,12 @@ export async function GET(request: Request) {
       ]);
       // Public callers get capacity only. The full report (customer names, booking
       // references, revenue) is served by the admin-only /api/admin/schedule-efficiency.
-      return NextResponse.json({ slots, efficiency: toPublicCapacityReport(efficiency), durationAvailability });
+      return NextResponse.json({
+        slots,
+        efficiency: toPublicCapacityReport(efficiency),
+        durationAvailability,
+        wixBookingsAuthoritative: false,
+      });
     }
 
     return NextResponse.json(slots);

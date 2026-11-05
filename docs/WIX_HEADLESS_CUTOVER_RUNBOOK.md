@@ -1,8 +1,8 @@
 # Wix Headless Cutover Runbook
 
-This runbook prepares the current SimDream **self-managed Next.js frontend** to use the existing Wix Headless site as a business backend. It does not replace the frontend design, enable a payment provider, or make Wix the booking writer by itself. The native Wix staging records in section 4 have been provisioned on the confirmed staging site; the checkout writer is still inactive.
+This runbook prepares the current SimDream **self-managed Next.js frontend** to use the existing Wix Headless site as a business backend. It does not replace the frontend design or enable a payment provider by itself. On the confirmed staging site, Wix-native guest/member checkout is active for mapped one-service base flights.
 
-The current live authority remains the Next.js, Supabase, and Stripe flow. Wix activity stays read-only until the explicit pilot steps below are approved and implemented through the existing checkout ports.
+With `WIX_AVAILABILITY_ADAPTER_ENABLED=true`, Wix Bookings is the calendar authority: `/api/slots` intersects the duration-aware zero-waste grid with Wix availability, the browser revalidates and creates the Wix booking before hosted checkout, and `POST /api/checkout` refuses a competing local booking. Local Supabase/Stripe checkout remains available only while that adapter is disabled or for domains not yet represented natively in Wix.
 
 ## 1. Safety boundary
 
@@ -12,7 +12,7 @@ The current live authority remains the Next.js, Supabase, and Stripe flow. Wix a
 - A guest must always be able to start a one-off booking without registration. Member identity may grant access to the matching customer's orders; it must never expose purchases by an unauthenticated email lookup.
 - A browser return from Wix checkout is not confirmation. The trusted server must verify the provider's confirmed booking/order state before showing a paid or confirmed result.
 - Keep `WIX_SHADOW_READS_ENABLED=false` unless diagnostic traffic is explicitly desired. Shadow reads are anonymous, redacted, and never create a booking or payment.
-- `WIX_AVAILABILITY_ADAPTER_ENABLED=true` is enabled on the staging Wix worker only. It can display safe Wix-backed availability but never creates, confirms, or charges a booking. A separate member-only subscription redemption handoff resolves one strict-grid Wix slot and opens Wix-hosted Bookings checkout, where Wix validates plan benefits and performs the reservation.
+- `WIX_AVAILABILITY_ADAPTER_ENABLED=true` is enabled on the staging Wix worker only. It makes Wix the sole calendar writer for mapped base-flight services: the browser revalidates and creates the native booking before Wix-hosted checkout, while the local checkout route rejects a duplicate writer. A separate member-only subscription redemption handoff resolves one strict-grid slot and opens Wix-hosted Bookings checkout, where Wix validates plan benefits and performs the reservation.
 
 ## 2. Automated read-only readiness gate
 
@@ -63,7 +63,7 @@ Complete these steps in a **staging Headless site** first. Do not test against p
 2. A single native Boeing 737 simulator resource type is required by every service. The 45-minute promotion has a dedicated daytime availability staff calendar, so it is excluded from Saturday and from starts after 17:00; that staff distinction never creates a second hardware capacity pool.
 3. The operational hours, ILS price, base duration and turnaround buffer are configured and live-checked. `npm run wix:smoke` reports future bookable 60-minute slots and the shared capacity resource; `npm run wix:readiness` blocks a pilot if the shared capacity pool or catalog alignment drifts.
 4. Correct any subsequent mismatch through an approved product decision. The known simulator offers remain defined locally; never silently change price or duration only in Wix.
-5. Before the booking-writer pilot, decide and test the exact fixed-block adapter. Wix offers rolling 30-minute starts; the SimDream Tiled Interval Engine remains the stricter legal-slot authority until parity is proven.
+5. Keep the duration-aware adapter aligned with the package reservation map: 30m → 45m, 45m → 60m, 60m → 75m, 90m → 105m, 120m → 150m. Wix may return a broader appointment raster, but it may only veto—not invent—customer-visible starts. Do not enable an unmapped add-on or route through a local fallback while Wix owns the calendar.
 
 ### Pricing Plans subscriptions
 
@@ -86,7 +86,7 @@ For every plan, publish the five-language customer terms and make these limitati
 2. Permit the hosted-checkout return domain for the current frontend. Use the deployed origin—not a path, wildcard, unrelated domain, or development URL in production.
 3. **Required blocker:** Configure an approved PayPlus provider inside Wix using merchant sandbox/test configuration. The staging site currently has no connected provider, and no published PayPlus App Market listing was discoverable through Wix's supported search API. Complete a non-charging or test-card payment, cancellation, and failure recovery path before live credentials are considered.
 4. Wix Members is installed and the hosted callback is registered. Subscription purchase and usage are member-gated; active plans now link to a duration-matched `/book?subscription=wix` flow. It resolves a live strict-grid slot and opens member-bound Wix-hosted Bookings checkout; Wix verifies the benefit and consumes the credit. One-off booking remains guest-first. Verify hosted sign-in/register, plan purchase, covered-session checkout, cancellation, and member-order updates after each release.
-5. The Wix availability adapter is implemented and enabled for staging. It can operate without copying a Supabase secret into the worker, but it does not make the existing one-off checkout a Wix writer.
+5. The Wix availability adapter is implemented and enabled for staging. It can operate without copying a Supabase secret into the worker; it marks Wix as the authoritative calendar and blocks the local booking writer. Mapped base flights use native Wix reservation and hosted checkout. Map add-ons and on-request routes natively before enabling them in this mode.
 
 ## 5. Staged cutover sequence
 

@@ -19,10 +19,10 @@ describe('Wix availability adapter', () => {
   it('does not make a locally invalid zero-waste start bookable', () => {
     const local = generateKantorovichSlots('2026-11-09', 60, []);
     const adapted = intersectKantorovichSlotsWithWix(local, [
-      { localStartDate: '2026-11-09T19:00:00', localEndDate: '2026-11-09T20:00:00', bookable: true },
+      { localStartDate: '2026-11-09T21:15:00', localEndDate: '2026-11-09T22:15:00', bookable: true },
     ]);
 
-    expect(local.find((slot) => slot.startTime === '19:00')?.available).toBe(false);
-    expect(adapted.find((slot) => slot.startTime === '19:00')?.available).toBe(false);
+    expect(local.find((slot) => slot.startTime === '21:15')?.available).toBe(false);
+    expect(adapted.find((slot) => slot.startTime === '21:15')?.available).toBe(false);
   });
 });

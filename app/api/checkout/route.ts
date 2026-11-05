@@ -3,7 +3,7 @@ import { CheckoutError } from '@/lib/booking/checkout-service';
 import { startBookingCheckout, startVoucherCheckout } from '@/lib/booking/checkout-runtime';
 import { requirePaymentsEnabled } from '@/lib/stripe';
 import { checkoutRequestSchema, validationError } from '@/lib/validation';
-import { scheduleWixCheckoutShadow } from '@/lib/wix';
+import { isWixAvailabilityAdapterEnabled, scheduleWixCheckoutShadow } from '@/lib/wix';
 import { SIMULATOR_PACKAGES } from '@/lib/db/seed-data';
 
 export const runtime = 'nodejs';
@@ -19,6 +19,16 @@ export async function POST(request: Request) {
   const parsed = checkoutRequestSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(validationError(parsed.error), { status: 400 });
+  }
+
+  // When the public calendar is intersected with Wix Bookings, only Wix may
+  // create the appointment. A local Stripe/Supabase reservation would otherwise
+  // occupy a different calendar and re-open the same simulator time in Wix.
+  if (parsed.data.kind === 'booking' && isWixAvailabilityAdapterEnabled()) {
+    return NextResponse.json(
+      { error: 'Wix Bookings is the active calendar authority. Complete this reservation in Wix checkout.' },
+      { status: 409 }
+    );
   }
 
   // A fully funded voucher is an already-paid tender. All card transactions

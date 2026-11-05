@@ -37,6 +37,28 @@ function minutesAfter(time: string, minutes: number): string {
   return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
 }
 
+describe('POST /api/checkout: Wix booking authority', () => {
+  it('refuses the local writer when the public calendar is backed by Wix Bookings', async () => {
+    const app = await loadApp({
+      stripe: 'mocked',
+      env: {
+        NEXT_PUBLIC_WIX_CLIENT_ID: 'a7828197-5f0a-4580-9535-55fa889b5f9a',
+        WIX_AVAILABILITY_ADAPTER_ENABLED: 'true',
+      },
+    });
+    const bookingsBefore = (await app.store.getBookings()).length;
+
+    const response = await postCheckout(app, bookingCheckoutBody());
+
+    expect(response.status).toBe(409);
+    expect(expectContract(errorBody, response.body).error).toBe(
+      'Wix Bookings is the active calendar authority. Complete this reservation in Wix checkout.'
+    );
+    expect((await app.store.getBookings()).length).toBe(bookingsBefore);
+    expect(app.checkoutSessions).toHaveLength(0);
+  });
+});
+
 describe('POST /api/checkout: captain-confirmed route requests', () => {
   it('retains a valid on-request World Trio with the order without inventing a route surcharge', async () => {
     const app = await loadApp({ stripe: 'mocked' });

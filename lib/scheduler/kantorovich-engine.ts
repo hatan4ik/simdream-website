@@ -224,47 +224,77 @@ function getBlockMetadata(
   if (config.isSaturday) {
     return {
       period: 'saturday_prime',
-      label: 'Saturday Prime-Time (19:00–24:00 • 150m Blocks)',
+      label: 'Saturday Prime-Time Operations (19:00–24:00)',
     };
   }
   if (config.isFriday) {
     if (startMinutes >= 15 * 60 + 45) {
       return {
         period: 'friday_closer',
-        label: 'Friday Zero-Waste Closer (15:45–16:30 • 30m Exclusive)',
+        label: 'Friday Closing Operations (15:45–16:30)',
       };
     }
     return {
       period: 'morning',
-      label: 'Friday Morning & Midday (09:00–15:45 • 75m Step)',
+      label: 'Friday Morning & Midday Operations (09:00–15:45)',
     };
   }
 
   if (startMinutes < 15 * 60) {
     return {
       period: 'morning',
-      label: 'Block 1: Morning Grid (10:00–15:00 • 75m Step)',
+      label: 'Morning Operations (10:00–15:00)',
     };
   }
   if (startMinutes < 18 * 60) {
     return {
       period: 'afternoon',
-      label: 'Block 2: Afternoon Dynamic Grid (15:00–18:00)',
+      label: 'Afternoon Operations (15:00–18:00)',
     };
   }
   return {
     period: 'evening',
-    label: 'Block 3: Evening Prime-Time (18:00–23:00 • 75m Step)',
+    label: 'Evening Prime-Time Operations (18:00–23:00)',
   };
+}
+
+/**
+ * Adds candidate starts at this package's actual reserved cadence in both directions
+ * from an availability boundary. A 30-minute flight therefore uses 45-minute steps,
+ * a 60-minute flight uses 75-minute steps, and so on. Bookings contribute their
+ * start/end boundaries, so the grid reconnects exactly at the preceding turnaround
+ * rather than remaining tied to a separate, fixed 75-minute display grid.
+ */
+function addForwardReservedCadenceStarts(
+  candidates: Set<number>,
+  anchorMinutes: number,
+  reservedDuration: number,
+  config: Pick<DayOperatingConfig, 'openMinutes' | 'closeMinutes'>
+): void {
+  for (let start = anchorMinutes; start + reservedDuration <= config.closeMinutes; start += reservedDuration) {
+    if (start >= config.openMinutes) candidates.add(start);
+  }
+}
+
+function addBackwardReservedCadenceStarts(
+  candidates: Set<number>,
+  anchorMinutes: number,
+  reservedDuration: number,
+  config: Pick<DayOperatingConfig, 'openMinutes' | 'closeMinutes'>
+): void {
+  for (let start = anchorMinutes - reservedDuration; start >= config.openMinutes; start -= reservedDuration) {
+    if (start + reservedDuration <= config.closeMinutes) candidates.add(start);
+  }
 }
 
 /**
  * Generates the smart Kantorovich time-slot grid for a given date and requested flight duration.
  * Incorporates:
  * - T_reserved = T_play + 15 min
- * - Sun-Thu 3-block architecture (Morning 75m step, Afternoon dynamic 45m/60m/75m step, Evening 75m step)
- * - Friday 09:00-16:30 with a 15:45 final 30m closer
- * - Saturday 19:00-24:00 100% prime-time
+ * - Package-specific departure cadence: 30m → 45m, 45m → 60m,
+ *   60m → 75m, 90m → 105m, 120m → 150m
+ * - Cadence reconnection at each booked interval and at the operating-day close
+ * - Friday 09:00-16:30 and Saturday 19:00-24:00 operating windows
  * - 150-minute block Smart Pairing (e.g. 30m at 18:00 -> highlights 18:45 for 90m)
  * - Anti-Gap Zero-Waste protection (disables slots that create 15m/30m/un-tileable orphan windows)
  * - Shadow Pricing (disables 45m Promo after 18:00; switches 90m from 850 ILS to 950 ILS after 18:00 & Sat)
@@ -297,63 +327,20 @@ export function generateKantorovichSlots(
 
   const candidateStarts = new Set<number>();
 
-  if (config.isFriday) {
-    // Friday (09:00 - 16:30): six 75m constructor starts. The final 15:45
-    // 45-minute block is intentionally reserved for the 30m discovery closer.
-    [
-      9 * 60,
-      10 * 60 + 15,
-      11 * 60 + 30,
-      12 * 60 + 45,
-      14 * 60,
-      15 * 60 + 15,
-    ].forEach((m) => candidateStarts.add(m));
-    if (durationMinutes <= 30) candidateStarts.add(15 * 60 + 45);
-  } else if (config.isSaturday) {
-    // Saturday (19:00 - 24:00): 19:00, 20:15, 21:30, 22:45
-    [19 * 60, 20 * 60 + 15, 21 * 60 + 30, 22 * 60 + 45].forEach((m) =>
-      candidateStarts.add(m)
-    );
-  } else {
-    // Sunday - Thursday (10:00 - 23:00)
-    // Block 1 (Morning, 10:00 - 15:00, step 75m): 10:00, 11:15, 12:30, 13:45
-    [10 * 60, 11 * 60 + 15, 12 * 60 + 30, 13 * 60 + 45].forEach((m) =>
-      candidateStarts.add(m)
-    );
+  // The day opening is the primary cadence anchor. On an empty weekday a 30-minute
+  // service begins 10:00, 10:45, 11:30 … because each departure reserves 45 minutes.
+  addForwardReservedCadenceStarts(candidateStarts, config.openMinutes, reservedDuration, config);
 
-    // Block 2 (Afternoon, 15:00 - 18:00): Dynamic switching based on tariff!
-    if (durationMinutes <= 30) {
-      // 45-min step: 15:00, 15:45, 16:30, 17:15
-      [15 * 60, 15 * 60 + 45, 16 * 60 + 30, 17 * 60 + 15].forEach((m) =>
-        candidateStarts.add(m)
-      );
-    } else if (durationMinutes === 45) {
-      // 60-min step for 45m Promo: 15:00, 16:00, 17:00
-      [15 * 60, 16 * 60, 17 * 60].forEach((m) => candidateStarts.add(m));
-    } else {
-      // For 60m / 90m / 120m: 15:00, 16:15
-      [15 * 60, 16 * 60 + 15].forEach((m) => candidateStarts.add(m));
-    }
+  // Add a closing-aligned candidate so a valid final mission is not discarded solely
+  // because the operating window is not an exact multiple of this package's reservation.
+  candidateStarts.add(config.closeMinutes - reservedDuration);
 
-    // Block 3 (Evening Prime-Time, 18:00 - 23:00, step 75m): 18:00, 19:15, 20:30, 21:45
-    [18 * 60, 19 * 60 + 15, 20 * 60 + 30, 21 * 60 + 45].forEach((m) =>
-      candidateStarts.add(m)
-    );
-
-    // Also include 19:00 as a visible Anti-Gap demonstration slot when 18:00-20:30 is open
-    // so users can see why 19:00 is blocked by Kantorovich Zero-Waste rule (leaves 60m gap 18:00-19:00)
-    if (durationMinutes === 60) {
-      candidateStarts.add(19 * 60);
-    }
-  }
-
-  // Dynamic Smart-Pairing boundary injection:
-  // Whenever an existing booking ends at `b.endMin`, inject `b.endMin` as a candidate start
-  // so adjacent 150-minute block pairings (e.g., 18:00-18:45 followed by 18:45-20:30) appear automatically!
-  for (const b of bookedIntervals) {
-    if (b.endMin >= config.openMinutes && b.endMin + 45 <= config.closeMinutes) {
-      candidateStarts.add(b.endMin);
-    }
+  // Re-anchor on both sides of every actual reservation. This exposes the first
+  // bookable departure after turnaround and the latest fitting departure before a
+  // confirmed mission, while the checks below still reject collisions and dead gaps.
+  for (const booking of bookedIntervals) {
+    addBackwardReservedCadenceStarts(candidateStarts, booking.startMin, reservedDuration, config);
+    addForwardReservedCadenceStarts(candidateStarts, booking.endMin, reservedDuration, config);
   }
 
   // Standard 150-minute constructor block boundaries for smart-pairing detection
@@ -388,35 +375,12 @@ export function generateKantorovichSlots(
     const { period, label } = getBlockMetadata(startMin, config);
     const pricing = getKantorovichPricing(durationMinutes, startMin, config.isSaturday);
 
-    // 1. Check Friday 15:45 closer rule
-    if (config.isFriday && startMin === 15 * 60 + 45 && durationMinutes > 30) {
-      slots.push({
-        id: `slot-${dateString}-${startTimeStr}`,
-        date: dateString,
-        startTime: startTimeStr,
-        endTime: endTimeStr,
-        reservedEndTime: reservedEndTimeStr,
-        durationMinutes,
-        totalReservedMinutes: reservedDuration,
-        available: false,
-        blockPeriod: period,
-        blockLabel: label,
-        isPrimeTime: pricing.isPrimeTime,
-        dynamicPriceIls: pricing.dynamicPriceIls,
-        basePriceIls: pricing.basePriceIls,
-        yieldPerMinIls: pricing.yieldPerMinIls,
-        disabledReason: 'friday_closer_30m_only',
-        disabledNote: 'Friday 15:45–16:30 (45m) is reserved exclusively for a 30m discovery flight to close at 16:30 with 0m waste.',
-      });
-      continue;
-    }
-
-    // 2. Check if slot exceeds facility closing time (or block boundary)
+    // 1. Check if slot exceeds facility closing time.
     if (reservedEndMin > config.closeMinutes) {
       continue;
     }
 
-    // 3. Check Shadow Pricing rule: 45-min Promo is strictly Daytime (< 18:00 and not Saturday)
+    // 2. Check Shadow Pricing rule: 45-min Promo is strictly Daytime (< 18:00 and not Saturday)
     if (durationMinutes === 45 && pricing.isPrimeTime) {
       slots.push({
         id: `slot-${dateString}-${startTimeStr}`,
@@ -439,57 +403,42 @@ export function generateKantorovichSlots(
       continue;
     }
 
-    // 4. Check collision with existing bookings
+    // 3. Check collision with existing bookings
     const overlappingBooking = bookedIntervals.find(
       (b) => startMin < b.endMin && reservedEndMin > b.startMin
     );
 
     if (overlappingBooking) {
-      // Only show overlapping slot if it's one of the main grid starts (avoid cluttering with shadowed starts)
-      if (startMin !== 19 * 60) {
-        slots.push({
-          id: `slot-${dateString}-${startTimeStr}`,
-          date: dateString,
-          startTime: startTimeStr,
-          endTime: endTimeStr,
-          reservedEndTime: reservedEndTimeStr,
-          durationMinutes,
-          totalReservedMinutes: reservedDuration,
-          available: false,
-          blockPeriod: period,
-          blockLabel: label,
-          isPrimeTime: pricing.isPrimeTime,
-          dynamicPriceIls: pricing.dynamicPriceIls,
-          basePriceIls: pricing.basePriceIls,
-          yieldPerMinIls: pricing.yieldPerMinIls,
-          disabledReason: 'booked',
-          disabledNote: `Reserved (${minutesToTime(overlappingBooking.startMin)}–${minutesToTime(overlappingBooking.endMin)} incl. 15m prep)`,
-        });
-      }
+      slots.push({
+        id: `slot-${dateString}-${startTimeStr}`,
+        date: dateString,
+        startTime: startTimeStr,
+        endTime: endTimeStr,
+        reservedEndTime: reservedEndTimeStr,
+        durationMinutes,
+        totalReservedMinutes: reservedDuration,
+        available: false,
+        blockPeriod: period,
+        blockLabel: label,
+        isPrimeTime: pricing.isPrimeTime,
+        dynamicPriceIls: pricing.dynamicPriceIls,
+        basePriceIls: pricing.basePriceIls,
+        yieldPerMinIls: pricing.yieldPerMinIls,
+        disabledReason: 'booked',
+        disabledNote: `Reserved (${minutesToTime(overlappingBooking.startMin)}–${minutesToTime(overlappingBooking.endMin)} incl. 15m prep)`,
+      });
       continue;
     }
 
-    // 5. Anti-Gap Zero-Waste Validation (Rule #1 of Kantorovich):
-    // Find nearest boundary before `startMin` and after `reservedEndMin`.
-    // Major block boundaries: openMinutes, 15:00 (900), 18:00 (1080), closeMinutes
-    const majorBoundaries = config.isSaturday
-      ? [config.openMinutes, 21 * 60 + 30, config.closeMinutes]
-      : config.isFriday
-      ? [config.openMinutes, config.closeMinutes]
-      : [config.openMinutes, 15 * 60, 18 * 60, config.closeMinutes];
-
+    // 4. Anti-Gap Zero-Waste Validation (Rule #1 of Kantorovich):
+    // Only real reservations and the operating window define capacity boundaries.
+    // Display-era 75-minute block boundaries must never hide a duration-valid slot.
     let prevBoundary = config.openMinutes;
-    for (const mb of majorBoundaries) {
-      if (mb <= startMin && mb > prevBoundary) prevBoundary = mb;
-    }
     for (const b of bookedIntervals) {
       if (b.endMin <= startMin && b.endMin > prevBoundary) prevBoundary = b.endMin;
     }
 
     let nextBoundary = config.closeMinutes;
-    for (const mb of majorBoundaries) {
-      if (mb >= reservedEndMin && mb < nextBoundary) nextBoundary = mb;
-    }
     for (const b of bookedIntervals) {
       if (b.startMin >= reservedEndMin && b.startMin < nextBoundary) nextBoundary = b.startMin;
     }
@@ -504,8 +453,11 @@ export function generateKantorovichSlots(
 
     if (!validBefore || !validAfter) {
       const badGap = !validBefore ? gapBefore : gapAfter;
-      const suggested = minutesToTime(prevBoundary);
-      const suggestedNext = minutesToTime(prevBoundary + 75);
+      const suggestedStart = !validBefore
+        ? prevBoundary
+        : Math.max(prevBoundary, nextBoundary - reservedDuration);
+      const suggested = minutesToTime(suggestedStart);
+      const suggestedNext = minutesToTime(suggestedStart + reservedDuration);
       slots.push({
         id: `slot-${dateString}-${startTimeStr}`,
         date: dateString,

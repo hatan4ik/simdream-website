@@ -187,6 +187,7 @@ export const slotsWithEfficiency = z.strictObject({
   slots: slotList,
   efficiency: publicCapacityReport,
   durationAvailability,
+  wixBookingsAuthoritative: z.boolean(),
 });
 
 export const simulatorPackage = z.strictObject({

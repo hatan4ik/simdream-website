@@ -197,6 +197,7 @@ function BookContent() {
   const [durationAvailability, setDurationAvailability] = useState<
     Record<number, { availableCount: number; minPriceIls: number }>
   >({});
+  const [wixBookingsAuthoritative, setWixBookingsAuthoritative] = useState<boolean>(false);
   const [selectedSlot, setSelectedSlot] = useState<FlightSlot | null>(null);
   const [loadingSlots, setLoadingSlots] = useState<boolean>(false);
   const [slotsLoadFailed, setSlotsLoadFailed] = useState<boolean>(false);
@@ -264,12 +265,19 @@ function BookContent() {
   // Wix is the native writer for simple single-service bookings. The local checkout
   // keeps ownership of multi-item missions, locally funded vouchers and route intent
   // until those catalog concepts have matching Wix Bookings entities.
+  const wixBookingFrontendActive = isWixBrowserClientConfigured();
   const canUseWixNativeCheckout =
     !isWixSubscriptionRedemption &&
-    isWixBrowserClientConfigured() &&
+    wixBookingFrontendActive &&
     selectedAddons.length === 0 &&
     voucherDiscount === 0 &&
     !requestedRoute;
+  // A live Wix calendar has one reservation writer. Add-ons and captain-confirmed
+  // route requests remain unavailable in that mode until they are represented by
+  // native Wix catalog entities; falling back to local checkout would permit the
+  // two calendars to sell the same simulator time.
+  const requiresUnsupportedLocalCheckout =
+    wixBookingsAuthoritative && !isWixSubscriptionRedemption && !canUseWixNativeCheckout;
 
   useEffect(() => {
     if (!isWixSubscriptionRedemption) return;
@@ -323,6 +331,7 @@ function BookContent() {
         if (data?.durationAvailability) {
           setDurationAvailability(data.durationAvailability);
         }
+        setWixBookingsAuthoritative(data?.wixBookingsAuthoritative === true);
 
         setAvailableSlots(slotList);
         if (data?.efficiency) {
@@ -350,6 +359,7 @@ function BookContent() {
         // Show a load error with a retry, never an empty "sold out" day.
         console.error('Failed to load slots', err);
         setAvailableSlots([]);
+        setWixBookingsAuthoritative(false);
         setSlotsLoadFailed(true);
       } finally {
         if (!controller.signal.aborted) setLoadingSlots(false);
@@ -409,6 +419,15 @@ function BookContent() {
   const handleVerifyVoucher = async (codeOverride?: string) => {
     const code = (codeOverride ?? voucherCode).trim().toUpperCase();
     if (!code) return;
+    if (wixBookingsAuthoritative && !isWixSubscriptionRedemption) {
+      // Wix owns coupon validation in the same cart that owns the appointment.
+      // Do not locally mark a voucher as redeemed before Wix has accepted it.
+      setVoucherCode(code);
+      setVoucherDiscount(0);
+      setVoucherError('');
+      setVoucherSuccess(t.booking.wixCouponDeferred);
+      return;
+    }
     setIsVerifyingVoucher(true);
     setVoucherError('');
     setVoucherSuccess('');
@@ -464,6 +483,10 @@ function BookContent() {
     if (selectedAddons.includes(addonId)) {
       setSelectedAddons(selectedAddons.filter((id) => id !== addonId));
     } else {
+      if (wixBookingsAuthoritative && !isWixSubscriptionRedemption) {
+        setBookingError(t.booking.wixBookingAuthorityRequired);
+        return;
+      }
       const addon = localizedAddons.find((a) => a.id === addonId);
       if (addon && !canAddonFitInSlot(addon, totalDurationMinutes, maxSlotMinutes)) {
         return; // Prevent overflowing the selected time slot window
@@ -483,6 +506,11 @@ function BookContent() {
 
     if (!isWixSubscriptionRedemption && (!pilotName || !pilotEmail || !pilotPhone)) {
       setBookingError(t.booking.errorFillFields);
+      return;
+    }
+
+    if (requiresUnsupportedLocalCheckout) {
+      setBookingError(t.booking.wixBookingAuthorityRequired);
       return;
     }
 
