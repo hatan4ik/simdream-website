@@ -19,6 +19,20 @@ const FORBIDDEN: Record<Language, RegExp[]> = {
   ru: [HEBREW, ARABIC],
   fr: [HEBREW, ARABIC],
 };
+const LEGACY_TERMS: Record<Language, RegExp[]> = {
+  en: [/\bpass(?:es)?\b/i, /multi-flight/i],
+  he: [/כרטיסי/],
+  ru: [/\bпасс/iu],
+  fr: [/\bpass\b/iu],
+  ar: [/بطاق/u],
+};
+const SUBSCRIPTION_TERMS: Record<Language, RegExp> = {
+  en: /subscription/i,
+  he: /מנוי/,
+  ru: /абонемент/i,
+  fr: /abonnement/i,
+  ar: /اشتراك/,
+};
 
 function stringLeaves(value: unknown): string[] {
   if (typeof value === 'string') return [value];
@@ -27,8 +41,8 @@ function stringLeaves(value: unknown): string[] {
   return [];
 }
 
-describe('prepaid flight-pass catalogue', () => {
-  it('ships exactly the four approved pass shapes', () => {
+describe('flight subscription catalogue', () => {
+  it('ships exactly the four approved subscription shapes', () => {
     expect(SUBSCRIPTION_PASSES.map((pass) => pass.id)).toEqual([
       'flight-foundations-5x60',
       'advanced-captain-5x90',
@@ -78,7 +92,7 @@ describe('prepaid flight-pass catalogue', () => {
   });
 });
 
-describe('prepaid flight-pass five-language discipline', () => {
+describe('flight subscription five-language discipline', () => {
   it.each(CODES)('provides complete, non-empty copy in %s', (language) => {
     const section = SUBSCRIPTION_SECTION_COPY[language];
     expect(stringLeaves(section).filter((text) => text.trim() === '')).toEqual([]);
@@ -91,12 +105,21 @@ describe('prepaid flight-pass five-language discipline', () => {
     }
   });
 
-  it.each(CODES)('keeps foreign scripts out of %s pass copy', (language) => {
+  it.each(CODES)('keeps foreign scripts out of %s subscription copy', (language) => {
     const copy = [
       ...stringLeaves(SUBSCRIPTION_SECTION_COPY[language]),
       ...SUBSCRIPTION_PASSES.flatMap((pass) => stringLeaves(pass.copy[language])),
     ];
     expect(copy.filter((text) => FORBIDDEN[language].some((pattern) => pattern.test(text)))).toEqual([]);
+  });
+
+  it.each(CODES)('uses localized subscription vocabulary in %s without legacy pass terminology', (language) => {
+    const copy = [
+      ...stringLeaves(SUBSCRIPTION_SECTION_COPY[language]),
+      ...SUBSCRIPTION_PASSES.flatMap((subscription) => stringLeaves(subscription.copy[language])),
+    ];
+    expect(copy.some((text) => SUBSCRIPTION_TERMS[language].test(text))).toBe(true);
+    expect(copy.filter((text) => LEGACY_TERMS[language].some((pattern) => pattern.test(text)))).toEqual([]);
   });
 
   it.each(['he', 'ar'] as const)('uses its own script for %s curriculum prose', (language) => {

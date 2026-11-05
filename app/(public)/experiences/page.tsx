@@ -196,7 +196,7 @@ export default function ExperiencesPage() {
       {/* 1b. Experience Flights: World Trio routes, sights and adventures in the captain's voice. */}
       {showFlightPackages && <WorldRoutesSection />}
 
-      {/* 2. Prepaid multi-flight passes. A Wix entitlement is required before automated redemption. */}
+      {/* 2. Single-payment flight subscriptions. A Wix entitlement is required before automated redemption. */}
       {showSubscriptions && (
         <section className="space-y-8 pt-4">
           <div className="text-center max-w-3xl mx-auto space-y-3">

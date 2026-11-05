@@ -2,8 +2,8 @@ import { SUBSCRIPTION_PASSES, SUBSCRIPTION_SECTION_COPY } from '@/lib/data/subsc
 import { preferLanguage } from '../support/e2e';
 import { expect, test } from './fixtures';
 
-test.describe('prepaid flight passes', () => {
-  test('renders all four passes and carries the selected pass safely to Dispatch', async ({ page }) => {
+test.describe('flight subscriptions', () => {
+  test('renders all four subscriptions and carries the selected subscription safely to Dispatch', async ({ page }) => {
     await preferLanguage(page, 'en');
     await page.goto('/experiences?category=subscriptions');
 
@@ -24,6 +24,8 @@ test.describe('prepaid flight passes', () => {
       name: SUBSCRIPTION_SECTION_COPY.en.requestEnrollment,
     }).click();
     await expect(page).toHaveURL(/\/contact\?subject=subscription&plan=airline-readiness-10x90$/);
-    await expect(page.locator('textarea')).toContainText('Airline Readiness Track');
+    await expect(page.locator('textarea')).toContainText(
+      SUBSCRIPTION_PASSES.find((subscription) => subscription.id === 'airline-readiness-10x90')!.copy.en.title
+    );
   });
 });

@@ -479,12 +479,12 @@ export default function ContactPage() {
     const subject = params.get('subject');
     let prefill: { subject: string; message: string } | undefined;
     if (subject === 'subscription') {
-      const pass = findSubscriptionPass(params.get('plan'));
-      const passTitle = pass?.copy[language]?.title;
+      const subscription = findSubscriptionPass(params.get('plan'));
+      const subscriptionTitle = subscription?.copy[language]?.title;
       prefill = {
-        subject: 'Multi-Flight Pass Interest',
-        message: passTitle
-          ? t.contact.subscriptionPassInquiryPrefill.replace('{{pass}}', passTitle)
+        subject: 'Flight Subscription Enrolment',
+        message: subscriptionTitle
+          ? t.contact.subscriptionPlanInquiryPrefill.replace('{{plan}}', subscriptionTitle)
           : t.contact.subscriptionInquiryPrefill,
       };
     } else if (subject === 'route') {
@@ -512,7 +512,7 @@ export default function ContactPage() {
   }, [
     language,
     t.contact.subscriptionInquiryPrefill,
-    t.contact.subscriptionPassInquiryPrefill,
+    t.contact.subscriptionPlanInquiryPrefill,
     t.contact.routeInquiryPrefill,
   ]);
 
@@ -1064,7 +1064,7 @@ export default function ContactPage() {
                     <option value="Pilot Assessment Screening">{t.contact.subjectTraining}</option>
                     <option value="Corporate Offsite">{t.contact.subjectCorporate}</option>
                     <option value="Gift Voucher Support">{t.contact.subjectVoucher}</option>
-                    <option value="Multi-Flight Pass Interest">{t.contact.subjectSubscription}</option>
+                    <option value="Flight Subscription Enrolment">{t.contact.subjectSubscription}</option>
                     <option value="World Route or Adventure Request">{t.contact.subjectRoute}</option>
                   </select>
                 </div>
