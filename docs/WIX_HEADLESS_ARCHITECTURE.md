@@ -1,6 +1,6 @@
 # Wix Headless Integration Architecture & DevOps Plan
 
-**Status:** P3 read-only shadow integration is implemented (`lib/wix/checkout-shadow.ts`). The Wix Pricing Plans redirect handoff is implemented in `lib/wix/plans.ts` and `/api/subscriptions/checkout`, with a graceful Captain Dispatch fallback when no approved public plan resolves. The frontend is prepared for Wix-managed deployment as a Cloudflare Worker; this does not make Wix the active writer for one-off bookings. Use the read-only [`WIX_HEADLESS_CUTOVER_RUNBOOK.md`](WIX_HEADLESS_CUTOVER_RUNBOOK.md) and `npm run wix:readiness` before any payment or booking-writer activation decision.
+**Status:** The native Wix staging backend is now provisioned on **SimDream-Staging** (`317b0c6d-6608-499a-bb3c-b1c37650e460`): Bookings services, operating availability, a single simulator resource, Pricing Plans and plan-to-service benefits are configured and verified. P3 read-only shadow integration remains the only active one-off-booking integration (`lib/wix/checkout-shadow.ts`); the existing Supabase/Stripe checkout remains the writer and payment authority. The Pricing Plans redirect handoff remains implemented in `lib/wix/plans.ts` and `/api/subscriptions/checkout`, with a Captain Dispatch fallback when no approved public plan resolves. The frontend is prepared for Wix-managed deployment as a Cloudflare Worker. No PayPlus payment provider, Wix member callback, Wix booking writer, or automatic entitlement-credit writer is active yet. Use [`WIX_HEADLESS_CUTOVER_RUNBOOK.md`](WIX_HEADLESS_CUTOVER_RUNBOOK.md) and `npm run wix:readiness` before any payment or booking-writer activation decision.
 
 **Authority:** [`GENESIS.md`](../GENESIS.md) remains the canonical description of the currently running Next.js/Supabase/Stripe system. This document describes a deliberate future integration or migration path to Wix Headless.
 
@@ -36,6 +36,25 @@ For the existing application, the safest first implementation is **self-managed 
 - Configure PayPlus inside Wix, never in browser code or in the Next.js repository.
 
 Wix-managed hosting is now configured for the existing Next.js frontend. `npm run wix:build` first uses `@opennextjs/cloudflare` to produce the Cloudflare-Worker-compatible server and static assets, normalizes OpenNext's optional unused Durable Object exports for Wix's runtime, then runs a no-upload Wrangler bundle to produce the single ESM worker artifact Wix executes. `scripts/prepare-wix-worker.mjs` writes Wix's required `entry.mjs` bootstrap and supplies the `waitUntil()` shape that Wix's runner omits; it deliberately removes the non-runtime source map from the upload. `npm run wix:release` publishes that prepared output through the Wix CLI. `wix.config.json` contains only the public OAuth client id and metasite id for **SimDream-Staging** (`317b0c6d-6608-499a-bb3c-b1c37650e460`); no payment, Supabase, Stripe, Wix API, or client-secret value belongs in this file. A Wix-managed non-Astro frontend still owns its own authentication/session implementation. Do not rewrite the frontend merely to claim that the site is “on Wix.”
+
+### Provisioned native staging backend (2026-11-05)
+
+The following records were created or updated only on **SimDream-Staging**. They are not a production cutover and do not change the live Editor site or the current Next.js booking writer.
+
+| Domain | Staging configuration and verified behavior |
+| --- | --- |
+| Site basis | Country `IL`, currency `ILS`, time zone `Asia/Jerusalem`; Wix Bookings and Wix Pricing Plans are installed. |
+| Base availability | Sunday–Thursday 10:00–23:00, Friday 09:00–16:00, Saturday 19:00–24:00. Wix Bookings returns future bookable 30-, 60-, 90-, 120-, and 240-minute appointments. |
+| Simulator capacity | One native `Boeing 737 Flight Simulator` resource is required by all nine services, preventing two service types from taking the physical simulator at the same time. |
+| Staff calendars | `SimDream Flight Operations` owns the main operating schedule. `SimDream Daytime Promotion Availability` is assigned only to the 45-minute promotion, so it is bookable Sunday–Friday only and no later than 17:00; it is unavailable on Saturday. |
+| Service registry | All nine `SIMULATOR_PACKAGES` have one public Wix appointment service, their ILS base price, duration, turnaround buffer, and source mapping in `lib/wix/catalog.ts`. `npm run wix:smoke` and `npm run wix:readiness` report 9 mapped / 0 mismatches. |
+| Flight subscriptions | Four public, buyable one-time 12-month Pricing Plans exist for the four subscription passes. The two 60-minute plans are eligible for the 60-minute service and the two 90-minute plans are eligible for the 90-minute service through the native Bookings/Pricing Plans association. |
+
+Wix natively presents rolling 30-minute appointment starts, whereas the current Tiled Interval Engine deliberately applies a stricter fixed-block rhythm. `timeBetweenSessions` is configured in Wix, but a Wix availability result alone must not replace `getReservedMinutesForFlight()` or the server-side Kantorovich validation. Until a dedicated adapter proves exact parity, the current server remains the legal-slot gate and Wix availability remains a verified operational mirror/shadow input.
+
+The native setup deliberately does **not** fabricate payment, membership, or credit state. As of this verification, Wix reports no connected payment provider; PayPlus must be connected in the Wix dashboard with the merchant's sandbox credentials and tested with a non-live payment flow. A paid-plan browser return is still not a flight-credit entitlement: a trusted, idempotent order-to-credit adapter is required before a subscription may consume a booking slot.
+
+The Wix-hosted frontend itself responds on `/`, `/book`, and `/api/packages`. Its current `/api/slots` route intentionally responds `503` because the hosted worker has no configured Supabase persistence connection. That is a safe fail-closed result, not a Wix Bookings availability defect. Do not copy a possibly production Supabase service-role secret into staging by assumption. Before enabling the hosted calendar, choose one approved path: connect an isolated staging Supabase project, or implement and test a Wix availability reader that preserves the Tiled Interval Engine's server-side legality check.
 
 ### P3 implementation: shadow reads, not a dual-write migration
 

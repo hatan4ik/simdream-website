@@ -1,6 +1,6 @@
 # Wix Headless Cutover Runbook
 
-This runbook prepares the current SimDream **self-managed Next.js frontend** to use the existing Wix Headless site as a business backend. It does not replace the frontend design, modify Wix data, enable a payment provider, or make Wix the booking writer by itself.
+This runbook prepares the current SimDream **self-managed Next.js frontend** to use the existing Wix Headless site as a business backend. It does not replace the frontend design, enable a payment provider, or make Wix the booking writer by itself. The native Wix staging records in section 4 have been provisioned on the confirmed staging site; the checkout writer is still inactive.
 
 The current live authority remains the Next.js, Supabase, and Stripe flow. Wix activity stays read-only until the explicit pilot steps below are approved and implemented through the existing checkout ports.
 
@@ -40,7 +40,7 @@ Copy the names below into the appropriate deployment environment only. Values ar
 | Variable or setting | Owner | Purpose |
 | --- | --- | --- |
 | `NEXT_PUBLIC_WIX_CLIENT_ID` | Headless client configuration / frontend environment | Public Wix OAuth client identifier for anonymous visitor calls. |
-| `WIX_SITE_ID` | Frontend environment | Informational identifier for the dedicated Sim Dream Israel Headless site. |
+| `WIX_SITE_ID` | Frontend environment | Informational identifier for the dedicated **SimDream-Staging** Headless site (`317b0c6d-6608-499a-bb3c-b1c37650e460`). |
 | `WIX_PLAN_ID_FOUNDATIONS_5X60` | Trusted server environment | Immutable Wix plan ID for Flight Foundations. |
 | `WIX_PLAN_ID_ADVANCED_5X90` | Trusted server environment | Immutable Wix plan ID for Advanced Captain. |
 | `WIX_PLAN_ID_ATPL_10X60` | Trusted server environment | Immutable Wix plan ID for ATPL Concepts. |
@@ -55,17 +55,17 @@ Plan IDs are not treated as credentials, but they remain server-side so checkout
 
 Complete these steps in a **staging Headless site** first. Do not test against production customer capacity or live payment details.
 
-### Bookings catalogue
+### Bookings catalogue — provisioned in staging
 
-1. Open the dedicated Headless site's Bookings services.
-2. Keep the service IDs already mapped in `lib/wix/catalog.ts`; do not create duplicate services for the same local package.
-3. Correct any readiness mismatch in the Wix service or in the server-authoritative local catalogue through an approved product decision. The known simulator offers are defined locally; never silently change price or duration only in Wix.
-4. Set each pilot service to a publicly bookable appointment configuration with the approved staff/resource, operating hours, buffers, cancellation policy, currency, and ILS price.
-5. Re-run `npm run wix:readiness` and save the output in the change record. It must report catalog alignment before a Bookings pilot.
+1. All nine services already exist on **SimDream-Staging**, and their IDs are mapped in `lib/wix/catalog.ts`. Do not create duplicates.
+2. A single native Boeing 737 simulator resource is required by every service. The 45-minute promotion has a dedicated daytime availability staff calendar, so it is excluded from Saturday and from starts after 17:00.
+3. The operational hours, ILS price, base duration and turnaround buffer are configured and live-checked. `npm run wix:smoke` reports future bookable 60-minute slots and `npm run wix:readiness` reports catalog alignment.
+4. Correct any subsequent mismatch through an approved product decision. The known simulator offers remain defined locally; never silently change price or duration only in Wix.
+5. Before the booking-writer pilot, decide and test the exact fixed-block adapter. Wix offers rolling 30-minute starts; the SimDream Tiled Interval Engine remains the stricter legal-slot authority until parity is proven.
 
 ### Pricing Plans subscriptions
 
-Create one public, purchasable **single-payment, 12-month** plan per approved offer. Do not describe a plan as recurring unless its renewal, price, cancellation policy, and PayPlus recurring-payment support have separately been approved.
+The four public, purchasable **single-payment, 12-month** plans below are already configured in staging and linked to their eligible native Bookings service. Do not describe a plan as recurring unless its renewal, price, cancellation policy, and PayPlus recurring-payment support have separately been approved.
 
 | Local ID | Customer-facing plan | Sessions | Price (ILS) | Base package |
 | --- | --- | ---:| ---:| --- |
@@ -76,14 +76,15 @@ Create one public, purchasable **single-payment, 12-month** plan per approved of
 
 For every plan, publish the five-language customer terms and make these limitations explicit: simulator education is not logged flight time, a licence, type rating, airline assessment credit, or employment guarantee. Training topics may include Cold & Dark, Crosswind/IFR, and Extreme Airports only as instructor-led themes until an entitlement decision states whether they consume time or price separately.
 
-After publication, copy each immutable Wix plan ID into the matching trusted server environment variable. Do not infer a paid plan only from a price match in production. Re-run `npm run wix:readiness`; all four plans must resolve.
+`npm run wix:readiness` currently resolves all four plans. Before production, set the four immutable plan IDs in the trusted server environment rather than relying on dynamic title/price lookup, then re-run the readiness gate.
 
 ### Headless redirect and payment settings
 
-1. In the Headless client's authentication settings, add the exact HTTPS frontend origins for staging and production. Add exact login callback URLs only for routes the app actually owns.
+1. In the Headless client's authentication settings, add the exact HTTPS frontend origins for staging and production. Add an exact member-login callback only once the Next.js callback route exists and has tests.
 2. Permit the hosted-checkout return domain for the current frontend. Use the deployed origin—not a path, wildcard, unrelated domain, or development URL in production.
-3. Configure PayPlus within Wix using its sandbox/test configuration in staging. Complete a non-charging or test-card payment, cancellation, and failure recovery path before live credentials are considered.
-4. Verify Wix Members behavior: optional sign-in must not prevent a guest from starting a one-off Bookings checkout. The member view must only reveal that member's authorised history.
+3. **Required blocker:** Configure PayPlus inside Wix using the merchant's sandbox/test configuration. The staging site currently has no connected payment provider. Complete a non-charging or test-card payment, cancellation, and failure recovery path before live credentials are considered.
+4. **Required blocker:** Implement and verify Wix Members login/session callbacks. Optional sign-in must not prevent a guest from starting a one-off Bookings checkout. The member view must only reveal that member's authorised history.
+5. **Required blocker:** The Wix-hosted worker currently has no approved persistence connection, so `/api/slots` correctly fails closed with `503`. Select an isolated staging Supabase database or finish the tested Wix-availability adapter before expecting the existing custom calendar to operate on the hosted URL.
 
 ## 5. Staged cutover sequence
 
@@ -108,9 +109,9 @@ No stage authorises a permanent dual write. One booking domain has one canonical
 - A documented failure, cancellation, timeout, duplicated-event, and rollback path exists.
 - A business owner confirms payment settings, plan terms, refunds/cancellation policy, support ownership, and monitoring response.
 
-## 7. What this preparation deliberately does not do
+## 7. What remains intentionally inactive
 
-- It does not write, seed, delete, publish, or alter data in Wix.
+- The staging Bookings, resources, operating hours, Pricing Plans, and plan-to-service benefits are configured; no production-site Wix data was changed.
 - It does not add a Wix booking writer, migrate historical Supabase/Stripe records, or change the current checkout authority.
 - It does not activate PayPlus or hold its credentials.
 - It does not claim that a plan purchase automatically creates usable flight credits. That requires the entitlement ledger in Stage 4.
