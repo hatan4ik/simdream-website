@@ -37,6 +37,7 @@ export interface SubscriptionSectionCopy {
   trainingModulesDescription: string;
   requestEnrollment: string;
   educationalDisclosure: string;
+  consultDispatch: string;
 }
 
 export interface SubscriptionPass {
@@ -71,9 +72,10 @@ export const SUBSCRIPTION_SECTION_COPY: Record<Language, SubscriptionSectionCopy
     trainingModulesLabel: 'Focused add-on training themes',
     trainingModulesDescription:
       'Your captain can place these instructor-led themes within a subscription session. Any separately listed add-on time remains subject to booking capacity and the terms confirmed at enrolment.',
-    requestEnrollment: 'Discuss this subscription',
+    requestEnrollment: 'Buy Subscription',
     educationalDisclosure:
       'ATPL-level explanations are educational simulator coaching only. They do not grant flight hours, a licence, a type rating, assessment credit, or an airline-employment guarantee.',
+    consultDispatch: 'Have questions? Consult Dispatch',
   },
   he: {
     badge: 'מנויי טיסה בהנחיית קברניט',
@@ -89,9 +91,10 @@ export const SUBSCRIPTION_SECTION_COPY: Record<Language, SubscriptionSectionCopy
     trainingModulesLabel: 'נושאי אימון ממוקדים מתוך התוספות',
     trainingModulesDescription:
       'הקברניט יכול לשלב נושאים אלה בהנחיית מדריך בתוך מפגש מנוי. זמן תוספת המופיע בנפרד כפוף לקיבולת ההזמנה ולתנאים שאושרו בהרשמה.',
-    requestEnrollment: 'לתכנון המנוי',
+    requestEnrollment: 'רכישת מנוי',
     educationalDisclosure:
       'הסברי ATPL הם הדרכת סימולטור לימודית בלבד. הם אינם מקנים שעות טיסה, רישיון, הגדר סוג, זיכוי למבדק או הבטחת העסקה בחברת תעופה.',
+    consultDispatch: 'לשאלות והתאמה אישית: פנו למבצעים',
   },
   ru: {
     badge: 'ЛЁТНЫЕ АБОНЕМЕНТЫ С КАПИТАНОМ',
@@ -107,9 +110,10 @@ export const SUBSCRIPTION_SECTION_COPY: Record<Language, SubscriptionSectionCopy
     trainingModulesLabel: 'Фокусные темы из модулей-дополнений',
     trainingModulesDescription:
       'Капитан может включить эти темы с инструктором в сессию абонемента. Отдельно указанное дополнительное время зависит от доступной ёмкости и условий, подтверждённых при оформлении.',
-    requestEnrollment: 'Обсудить абонемент',
+    requestEnrollment: 'Купить абонемент',
     educationalDisclosure:
       'Объяснения уровня ATPL — это только учебный коучинг в симуляторе. Они не дают лётные часы, лицензию, type rating, зачёт отбора или гарантию трудоустройства в авиакомпании.',
+    consultDispatch: 'Есть вопросы? Напишите диспетчеру',
   },
   fr: {
     badge: 'ABONNEMENTS DE VOL AVEC COMMANDANT',
@@ -125,9 +129,10 @@ export const SUBSCRIPTION_SECTION_COPY: Record<Language, SubscriptionSectionCopy
     trainingModulesLabel: 'Thèmes ciblés issus des modules additionnels',
     trainingModulesDescription:
       'Votre commandant peut intégrer ces thèmes guidés à une séance d’abonnement. Tout temps additionnel affiché séparément reste soumis à la capacité de réservation et aux conditions confirmées lors de l’inscription.',
-    requestEnrollment: 'Découvrir cet abonnement',
+    requestEnrollment: 'Acheter l’abonnement',
     educationalDisclosure:
       'Les explications de niveau ATPL constituent uniquement un accompagnement pédagogique sur simulateur. Elles ne donnent ni heures de vol, ni licence, ni qualification de type, ni crédit de sélection, ni garantie d’emploi en compagnie aérienne.',
+    consultDispatch: 'Une question ? Consulter le Dispatch',
   },
   ar: {
     badge: 'اشتراكات طيران بإشراف كابتن',
@@ -143,9 +148,10 @@ export const SUBSCRIPTION_SECTION_COPY: Record<Language, SubscriptionSectionCopy
     trainingModulesLabel: 'موضوعات تدريب مركزة من الإضافات',
     trainingModulesDescription:
       'يمكن للكابتن دمج هذه الموضوعات بإشراف مدرب ضمن جلسة من الاشتراك. أي وقت إضافي معروض بصورة منفصلة يبقى خاضعاً لسعة الحجز والشروط المؤكدة عند التسجيل.',
-    requestEnrollment: 'اكتشفوا هذا الاشتراك',
+    requestEnrollment: 'شراء الاشتراك',
     educationalDisclosure:
       'شروحات مستوى ATPL هي تدريب تعليمي على جهاز المحاكاة فقط. لا تمنح ساعات طيران أو رخصة أو تأهيلاً على طراز أو رصيداً لاختبار أو ضمان عمل لدى شركة طيران.',
+    consultDispatch: 'هل لديكم استفسار؟ تواصلوا مع العمليات',
   },
 };
 

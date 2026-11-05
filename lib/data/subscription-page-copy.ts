@@ -244,7 +244,7 @@ export const SUBSCRIPTION_PAGE_COPY: Record<Language, SubscriptionPageCopy> = {
     bottomCtaSubtitle:
       'Choose your subscription track or consult with our Chief Flight Instructor to design a custom training journey.',
     bottomCtaBadge: 'SIM DREAM PILOT PROGRESSION',
-    bottomCtaButton: 'Discuss Your Subscription with Dispatch',
+    bottomCtaButton: 'Buy Your Subscription Now',
     bottomContactConcierge: 'Have questions? Call or WhatsApp Captain Dispatch directly',
   },
 
@@ -407,7 +407,7 @@ export const SUBSCRIPTION_PAGE_COPY: Record<Language, SubscriptionPageCopy> = {
     bottomCtaSubtitle:
       'בחרו את מסלול המנוי המתאים לכם או התייעצו עם המדריך הראשי לתכנון מסלול טיסה מותאם אישית.',
     bottomCtaBadge: 'מסלול התקדמות לטייסי Sim Dream',
-    bottomCtaButton: 'תיאום והרשמה למנוי מול מחלקת המבצעים',
+    bottomCtaButton: 'רכישת מנוי עכשיו',
     bottomContactConcierge: 'יש שאלות? חייגו או שלחו הודעת וואטסאפ ישירות לדיספצ׳ר',
   },
 
@@ -570,7 +570,7 @@ export const SUBSCRIPTION_PAGE_COPY: Record<Language, SubscriptionPageCopy> = {
     bottomCtaSubtitle:
       'Выберите свой абонемент или обсудите индивидуальную программу с шеф-пилотом.',
     bottomCtaBadge: 'Путь развития пилота Sim Dream',
-    bottomCtaButton: 'Обсудить абонемент с диспетчером',
+    bottomCtaButton: 'Купить абонемент онлайн',
     bottomContactConcierge: 'Вопросы? Позвоните или напишите в WhatsApp диспетчеру',
   },
 
@@ -733,7 +733,7 @@ export const SUBSCRIPTION_PAGE_COPY: Record<Language, SubscriptionPageCopy> = {
     bottomCtaSubtitle:
       'Sélectionnez votre formule ou échangez avec notre chef-pilote pour construire votre parcours sur mesure.',
     bottomCtaBadge: 'Parcours pilote Sim Dream',
-    bottomCtaButton: 'Organiser mon abonnement avec le Dispatch',
+    bottomCtaButton: 'Acheter mon abonnement en ligne',
     bottomContactConcierge: 'Une question ? Contactez le Dispatch par téléphone ou WhatsApp',
   },
 
@@ -896,7 +896,7 @@ export const SUBSCRIPTION_PAGE_COPY: Record<Language, SubscriptionPageCopy> = {
     bottomCtaSubtitle:
       'اختاروا مسار الاشتراك الأنسب لكم أو استشيروا كبير المدربين لتصميم رحلة تدريبية مخصصة.',
     bottomCtaBadge: 'مسار تطور طيار Sim Dream',
-    bottomCtaButton: 'تنسيق الاشتراك والتسجيل مع قسم العمليات',
+    bottomCtaButton: 'شراء الاشتراك الآن',
     bottomContactConcierge: 'هل لديكم استفسار؟ اتصلوا أو تواصلوا عبر واتساب مباشرة مع العمليات',
   },
 };

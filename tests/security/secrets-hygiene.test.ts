@@ -17,7 +17,12 @@ function walk(directory: string): string[] {
 }
 
 function git(...args: string[]): string {
-  return execFileSync('git', args, { cwd: ROOT, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+  return execFileSync('git', args, {
+    cwd: ROOT,
+    encoding: 'utf8',
+    maxBuffer: 64 * 1024 * 1024,
+    env: { ...process.env, GIT_CONFIG_GLOBAL: '/dev/null', GIT_CONFIG_SYSTEM: '/dev/null' },
+  });
 }
 
 function isBinary(content: Buffer): boolean {
@@ -123,7 +128,10 @@ describe('repository contents', () => {
   it.each(['.env.local', '.env', '.env.production.local', '.env.development.local'])(
     'git-ignores %s so local secrets cannot be committed',
     (file) => {
-      const result = spawnSync('git', ['check-ignore', '--quiet', '--no-index', file], { cwd: ROOT });
+      const result = spawnSync('git', ['check-ignore', '--quiet', '--no-index', file], {
+        cwd: ROOT,
+        env: { ...process.env, GIT_CONFIG_GLOBAL: '/dev/null', GIT_CONFIG_SYSTEM: '/dev/null' },
+      });
       expect(result.status, `git check-ignore exit status for ${file}`).toBe(0);
     }
   );
@@ -133,7 +141,10 @@ describe('repository contents', () => {
   });
 
   it('keeps the .env.example template trackable and free of real values', () => {
-    const result = spawnSync('git', ['check-ignore', '--quiet', '--no-index', '.env.example'], { cwd: ROOT });
+    const result = spawnSync('git', ['check-ignore', '--quiet', '--no-index', '.env.example'], {
+      cwd: ROOT,
+      env: { ...process.env, GIT_CONFIG_GLOBAL: '/dev/null', GIT_CONFIG_SYSTEM: '/dev/null' },
+    });
     expect(result.status).toBe(1);
     expect(secretShapedValues(readFileSync(join(ROOT, '.env.example'), 'utf8'))).toEqual([]);
   });

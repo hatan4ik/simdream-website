@@ -1,4 +1,5 @@
 import { SIMULATOR_PACKAGES } from '@/lib/db/seed-data';
+import { SUBSCRIPTION_PASSES, type SubscriptionPassId } from '@/lib/data/subscription-passes';
 
 /**
  * SimDream package id → Wix Bookings service id on the "Sim Dream Israel"
@@ -33,4 +34,28 @@ export function packageIdForWixService(serviceId: string): string | null {
 /** Package ids in the catalog that have no Wix service yet (should stay empty). */
 export function unmappedPackageIds(): string[] {
   return SIMULATOR_PACKAGES.map((pkg) => pkg.id).filter((id) => !(id in WIX_SERVICE_IDS));
+}
+
+/**
+ * SimDream subscription pass id → Wix Pricing Plan id.
+ * Supports environment variable overrides for custom or production plans.
+ */
+export const WIX_PLAN_IDS: Readonly<Record<SubscriptionPassId, string | null>> = {
+  'flight-foundations-5x60': process.env.WIX_PLAN_ID_FOUNDATIONS_5X60 ?? null,
+  'advanced-captain-5x90': process.env.WIX_PLAN_ID_ADVANCED_5X90 ?? null,
+  'atpl-concepts-10x60': process.env.WIX_PLAN_ID_ATPL_10X60 ?? null,
+  'airline-readiness-10x90': process.env.WIX_PLAN_ID_AIRLINE_10X90 ?? null,
+};
+
+export function wixPlanIdFor(passId: SubscriptionPassId): string | null {
+  return WIX_PLAN_IDS[passId] ?? null;
+}
+
+export function subscriptionPassIdForWixPlan(planId: string): SubscriptionPassId | null {
+  const match = Object.entries(WIX_PLAN_IDS).find(([, id]) => id === planId);
+  return (match ? match[0] : null) as SubscriptionPassId | null;
+}
+
+export function unmappedSubscriptionPassIds(): SubscriptionPassId[] {
+  return SUBSCRIPTION_PASSES.map((pass) => pass.id).filter((id) => !WIX_PLAN_IDS[id]);
 }

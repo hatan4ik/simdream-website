@@ -18,6 +18,7 @@ import {
   MessageSquare,
   Sparkles,
   HelpCircle,
+  Loader2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -37,6 +38,28 @@ export default function SubscriptionsPage() {
   const { language, isRTL } = useLanguage();
   const [selectedFilter, setSelectedFilter] = useState<'all' | '5' | '10'>('all');
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
+  const [pendingPassId, setPendingPassId] = useState<string | null>(null);
+
+  const handleBuySubscription = async (passId: string) => {
+    setPendingPassId(passId);
+    try {
+      const res = await fetch('/api/subscriptions/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ planId: passId }),
+      });
+      if (!res.ok) throw new Error('Checkout API failed');
+      const data = await res.json();
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+        return;
+      }
+      throw new Error('No checkout URL');
+    } catch (err) {
+      console.warn('Subscription checkout redirect failed, falling back to dispatch:', err);
+      window.location.href = `/contact?subject=subscription&plan=${passId}`;
+    }
+  };
 
   const pageCopy = SUBSCRIPTION_PAGE_COPY[language] || SUBSCRIPTION_PAGE_COPY.en;
   const sectionCopy = SUBSCRIPTION_SECTION_COPY[language] || SUBSCRIPTION_SECTION_COPY.en;
@@ -293,17 +316,40 @@ export default function SubscriptionsPage() {
                   <p className="text-[11px] leading-relaxed text-slate-400">
                     {sectionCopy.educationalDisclosure}
                   </p>
+                  <Button
+                    variant={isRecommended || pass.sessions === 10 ? 'primary' : 'outline'}
+                    className="w-full"
+                    onClick={() => handleBuySubscription(pass.id)}
+                    disabled={pendingPassId === pass.id}
+                    data-action="buy-subscription"
+                  >
+                    {pendingPassId === pass.id ? (
+                      <span className="inline-flex items-center gap-2">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>
+                          {language === 'he'
+                            ? 'מעביר לתשלום...'
+                            : language === 'ru'
+                              ? 'Переход к оплате...'
+                              : language === 'fr'
+                                ? 'Redirection vers le paiement...'
+                                : language === 'ar'
+                                  ? 'جارٍ التحويل للدفع...'
+                                  : 'Redirecting to payment...'}
+                        </span>
+                      </span>
+                    ) : (
+                      <>
+                        <span>{sectionCopy.requestEnrollment}</span>
+                        <ArrowRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
+                      </>
+                    )}
+                  </Button>
                   <Link
                     href={`/contact?subject=subscription&plan=${pass.id}`}
-                    className="block"
+                    className="text-[11px] text-slate-400 hover:text-sky-400 text-center block pt-1 underline"
                   >
-                    <Button
-                      variant={isRecommended || pass.sessions === 10 ? 'primary' : 'outline'}
-                      className="w-full"
-                    >
-                      <span>{sectionCopy.requestEnrollment}</span>
-                      <ArrowRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
-                    </Button>
+                    <span>{sectionCopy.consultDispatch}</span>
                   </Link>
                 </div>
               </Card>
@@ -433,7 +479,7 @@ export default function SubscriptionsPage() {
         </div>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
-          <Link href="/contact?subject=subscription">
+          <Link href="#plans">
             <Button variant="primary">
               <span>{pageCopy.bottomCtaButton}</span>
               <ArrowRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />

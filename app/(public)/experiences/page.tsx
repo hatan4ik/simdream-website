@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   Gift,
   ArrowRight,
+  Loader2,
 } from 'lucide-react';
 import { getLocalizedAddons, getLocalizedPackages } from '@/lib/i18n/translations';
 import { Button } from '@/components/ui/Button';
@@ -26,6 +27,28 @@ import {
 export default function ExperiencesPage() {
   const { t, language, isRTL } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [pendingPassId, setPendingPassId] = useState<string | null>(null);
+
+  const handleBuySubscription = async (passId: string) => {
+    setPendingPassId(passId);
+    try {
+      const res = await fetch('/api/subscriptions/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ planId: passId }),
+      });
+      if (!res.ok) throw new Error('Checkout API failed');
+      const data = await res.json();
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+        return;
+      }
+      throw new Error('No checkout URL');
+    } catch (err) {
+      console.warn('Subscription checkout redirect failed, falling back to dispatch:', err);
+      window.location.href = `/contact?subject=subscription&plan=${passId}`;
+    }
+  };
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -279,11 +302,40 @@ export default function ExperiencesPage() {
 
                 <div className="mt-auto space-y-3">
                   <p className="text-xs leading-relaxed text-slate-400">{subscriptionCopy.educationalDisclosure}</p>
-                  <Link href={`/contact?subject=subscription&plan=${pass.id}`} className="block">
-                    <Button variant={pass.sessions === 10 ? 'primary' : 'outline'} className="w-full">
-                      <span>{subscriptionCopy.requestEnrollment}</span>
-                      <ArrowRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
-                    </Button>
+                  <Button
+                    variant={pass.sessions === 10 ? 'primary' : 'outline'}
+                    className="w-full"
+                    onClick={() => handleBuySubscription(pass.id)}
+                    disabled={pendingPassId === pass.id}
+                    data-action="buy-subscription"
+                  >
+                    {pendingPassId === pass.id ? (
+                      <span className="inline-flex items-center gap-2">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>
+                          {language === 'he'
+                            ? 'מעביר לתשלום...'
+                            : language === 'ru'
+                              ? 'Переход к оплате...'
+                              : language === 'fr'
+                                ? 'Redirection vers le paiement...'
+                                : language === 'ar'
+                                  ? 'جارٍ التحويل للدفع...'
+                                  : 'Redirecting to payment...'}
+                        </span>
+                      </span>
+                    ) : (
+                      <>
+                        <span>{subscriptionCopy.requestEnrollment}</span>
+                        <ArrowRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
+                      </>
+                    )}
+                  </Button>
+                  <Link
+                    href={`/contact?subject=subscription&plan=${pass.id}`}
+                    className="text-[11px] text-slate-400 hover:text-sky-400 text-center block pt-1 underline"
+                  >
+                    <span>{subscriptionCopy.consultDispatch}</span>
                   </Link>
                 </div>
               </Card>

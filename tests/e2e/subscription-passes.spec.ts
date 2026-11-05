@@ -15,14 +15,15 @@ test.describe('flight subscriptions', () => {
       const card = page.locator(`[data-subscription-pass="${pass.id}"]`);
       await expect(card.getByRole('heading', { level: 3, name: pass.copy.en.title })).toBeVisible();
       await expect(card).toContainText(`${pass.sessions} × ${pass.sessionMinutes}`);
-      await expect(card.getByRole('link', { name: SUBSCRIPTION_SECTION_COPY.en.requestEnrollment })).toHaveAttribute(
+      await expect(card.getByRole('button', { name: SUBSCRIPTION_SECTION_COPY.en.requestEnrollment })).toBeVisible();
+      await expect(card.getByRole('link', { name: SUBSCRIPTION_SECTION_COPY.en.consultDispatch })).toHaveAttribute(
         'href',
         `/contact?subject=subscription&plan=${pass.id}`
       );
     }
 
     await page.locator('[data-subscription-pass="airline-readiness-10x90"]').getByRole('link', {
-      name: SUBSCRIPTION_SECTION_COPY.en.requestEnrollment,
+      name: SUBSCRIPTION_SECTION_COPY.en.consultDispatch,
     }).click();
     await expect(page).toHaveURL(/\/contact\?subject=subscription&plan=airline-readiness-10x90$/);
     await expect(page.locator('textarea')).toContainText(

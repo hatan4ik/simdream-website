@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:c8fb59a57eec32b9722410a43e99cbbc8a71e1fea7f1b02a7b216e155aadde11 -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:62312b3edefac31d04b0066b05f8f9ed39d47f1981c3f494b3eb51ad05be17d3 -->
 
 ## Verification contract
 
@@ -78,10 +78,10 @@ Browser (5 languages, 2 themes)
                                         └─ lib/reviews/* ──── Google Places with a 15 min browser feed cache
 ```
 
-- **Entry points**: `app/layout.tsx` (providers: language, theme, auth; navbar, skip link, single `<main>`, footer), `proxy.ts` (admin guard), `app/api/**/route.ts` (13 route modules), `app/sitemap.ts`, `app/robots.ts`.
+- **Entry points**: `app/layout.tsx` (providers: language, theme, auth; navbar, skip link, single `<main>`, footer), `proxy.ts` (admin guard), `app/api/**/route.ts` (14 route modules), `app/sitemap.ts`, `app/robots.ts`.
 - **Repository pattern**: `lib/db/store.ts` is the only data access layer. A `production` getter chooses Supabase when production is configured, the seeded in-memory store in development and tests, and **throws `PersistenceError` (answered as HTTP 503)** in production without a database, unless `ALLOW_IN_MEMORY_STORE=true` (demo servers only).
 - **Checkout dependency boundary**: `lib/booking/checkout-service.ts` owns pricing, scheduling, guest identity and lifecycle rules while depending only on the narrow `CheckoutDependencies` ports in `lib/booking/checkout-ports.ts`. `lib/booking/checkout-composition.ts` adapts the current Supabase store, Stripe hosted checkout, SendGrid and Supabase Auth; `lib/booking/checkout-runtime.ts` is the route-facing composition. A Wix adapter must implement those ports and pass the same contract tests before it can be selected—never bypass the service or write directly from the browser.
-- **Wix Headless adapter** (`lib/wix/`, target architecture in `docs/WIX_HEADLESS_ARCHITECTURE.md`): a single `@wix/sdk` client (`lib/wix/client.ts`) authenticated as an anonymous visitor with the public `NEXT_PUBLIC_WIX_CLIENT_ID`; `lib/wix/bookings.ts` reads Bookings services and fully paginated bookable time slots over REST through `fetchWithAuth` (`@wix/bookings` is deliberately not installed: its React 18 peer dependency conflicts with React 19); `lib/wix/catalog.ts` maps every `SIMULATOR_PACKAGES` id to its Wix service id and `reconcileCatalog()` asserts name, duration and price parity. `lib/wix/checkout-shadow.ts` is an off-by-default (`WIX_SHADOW_READS_ENABLED=true`) post-response observer: it compares only the accepted local base-package departure with Wix catalog/availability and emits a redacted correlation event. It has no Wix writer, payment, member, voucher or checkout-redirect dependency, and never alters the current Supabase/Stripe response. `npm run wix:smoke` (`scripts/wix-smoke.ts`) exercises the live read connection; `tests/unit/wix-catalog.test.ts` and `tests/unit/wix-checkout-shadow.test.ts` cover map, reconciliation, shadow parity and failure isolation. The Wix project is the "Sim Dream Israel" headless site (`WIX_SITE_ID`), never the live Editor site.
+- **Wix Headless adapter** (`lib/wix/`, target architecture in `docs/WIX_HEADLESS_ARCHITECTURE.md`): a single `@wix/sdk` client (`lib/wix/client.ts`) authenticated as an anonymous visitor with the public `NEXT_PUBLIC_WIX_CLIENT_ID`; `lib/wix/bookings.ts` reads Bookings services and fully paginated bookable time slots over REST through `fetchWithAuth` (`@wix/bookings` is deliberately not installed: its React 18 peer dependency conflicts with React 19); `lib/wix/catalog.ts` maps every `SIMULATOR_PACKAGES` id to its Wix service id, maps `WIX_PLAN_IDS` for subscription passes, and `reconcileCatalog()` asserts name, duration and price parity. `lib/wix/plans.ts` queries Wix public pricing plans, resolves plan IDs dynamically, and mints hosted checkout URLs via `client.redirects.createRedirectSession({ paidPlansCheckout: { planId } })` with Dispatch fallback. `lib/wix/checkout-shadow.ts` is an off-by-default (`WIX_SHADOW_READS_ENABLED=true`) post-response observer: it compares only the accepted local base-package departure with Wix catalog/availability and emits a redacted correlation event. It has no Wix writer, payment, member, voucher or checkout-redirect dependency, and never alters the current Supabase/Stripe response. `npm run wix:smoke` (`scripts/wix-smoke.ts`) exercises the live read connection; `tests/unit/wix-catalog.test.ts`, `tests/unit/wix-plans.test.ts`, and `tests/unit/wix-checkout-shadow.test.ts` cover map, reconciliation, shadow parity and failure isolation. The Wix project is the "Sim Dream Israel" headless site (`WIX_SITE_ID`), never the live Editor site.
 - **Error taxonomy**: `PersistenceError` → 503 with a generic message; `BookingConflictError` → 409; `RecordNotFoundError` → 404. Clients never see stack traces or database messages.
 - **Server authority**: the browser sends only IDs (package, date, start time, add-on IDs and, when applicable, a curated on-request World Trio ID) and pilot details. Prices, durations, end times and discounts are always recomputed on the server; an on-request route is registry-validated, requires a 60-minute or longer session and adds no surcharge.
 
@@ -91,7 +91,7 @@ Sim Dream LTD runs one full-size **Boeing 737 MAX 8 flight simulator** at Gersho
 
 | Feature | Route(s) | Behaviour |
 | --- | --- | --- |
-| Marketing pages | `/`, `/experiences`, `/subscriptions`, `/about`, `/pro`, `/contact`, `/rules`, `/privacy-policy` | Five customer value pillars, live METAR ticker (LLBG) and facility open/closed status, Google reviews. `/about` is the customer story; `/pro` is professional airline-assessment training; `/subscriptions` is the dedicated five-language annual flight-subscription portal. |
+| Marketing pages | `/`, `/experiences`, `/subscriptions`, `/subscriptions/thank-you`, `/about`, `/pro`, `/contact`, `/rules`, `/privacy-policy` | Five customer value pillars, live METAR ticker (LLBG) and facility open/closed status, Google reviews. `/about` is the customer story; `/pro` is professional airline-assessment training; `/subscriptions` is the dedicated five-language annual flight-subscription portal, with post-checkout order confirmation on `/subscriptions/thank-you`. |
 | Booking engine | `/book`, `/book/success` | Two interfaces over identical availability logic: a one-page "Amazon-style" storefront and a guided 3-step wizard. The default calendar is week view (month is togglable), with slot selection, add-ons, pilot manifest and checkout. An on-request World Trio opens calendar-first, saves a validated request with the booking and explicitly awaits captain confirmation. The success page shows a boarding pass from a narrow public projection looked up by booking reference. |
 | Noise-free flows | `/book?package=…` | Professional Training and Fear of Flying suppress all add-ons and combos (2-step flow); recreational uses the full 3-step flow. |
 | Scheduling | `lib/scheduler/*` | Deterministic "tiled interval" engine: each flight reserves a fixed block (flight + turnaround), slots are generated per operating window, orphan gaps are prevented, departed slots close by the Israel clock, and a dynamic-programming optimizer previews zero-waste capacity for admins. |
@@ -323,6 +323,7 @@ Add 3 curated one-click combos. Localize every package and add-on in all five la
 | `/api/packages` | GET | public | Catalog |
 | `/api/slots?date&duration` | GET | public | Slots and public capacity report; 400 on impossible dates |
 | `/api/checkout` | POST | public | Booking or voucher checkout |
+| `/api/subscriptions/checkout` | POST / GET | public | Wix Pricing Plans hosted checkout redirect with Dispatch fallback |
 | `/api/webhooks/stripe` | POST | Stripe signature | Payment state machine |
 | `/api/bookings` | GET / POST / PATCH | GET `?ref=` public narrow projection, else admin; POST 405 | Booking lookup and admin changes |
 | `/api/vouchers` | GET / POST / PATCH | GET admin; POST public verify; PATCH admin redeem | Vouchers |
@@ -571,12 +572,12 @@ Ship the schema as `lib/db/schema.sql` for new projects and as ordered, reviewed
 ```text
 app/
   layout.tsx, page.tsx, globals.css, icon.png, apple-icon.png, robots.ts, sitemap.ts
-  (public)/  about/ pro/ experiences/ book/ book/success/ vouchers/ workshops/ contact/ rules/ privacy-policy/ simulator/ (redirect)
+  (public)/  about/ pro/ experiences/ subscriptions/ (layout + page, thank-you/) book/ book/success/ vouchers/ workshops/ contact/ rules/ privacy-policy/ simulator/ (redirect)
   (auth)/login/
   auth/callback/  auth/reset-password/
   dashboard/  (layout + page)
   admin/      (layout + page, bookings/, vouchers/, workshops/)
-  api/        packages/ slots/ checkout/ webhooks/stripe/ bookings/ vouchers/ workshops/ reviews/
+  api/        packages/ slots/ checkout/ subscriptions/checkout/ webhooks/stripe/ bookings/ vouchers/ workshops/ reviews/
               my-bookings/ my-bookings/[bookingReference]/receipt/ membership/bootstrap/
               admin/schedule-efficiency/ admin/schedule-optimization/
 components/

@@ -1,6 +1,15 @@
 export { getWixClientId, getWixSiteId, isWixConfigured, isWixShadowReadsEnabled, WIX_TIME_ZONE } from './config';
 export { getWixClient, WixApiError, WixNotConfiguredError } from './client';
-export { WIX_SERVICE_IDS, wixServiceIdFor, packageIdForWixService, unmappedPackageIds } from './catalog';
+export {
+  WIX_SERVICE_IDS,
+  wixServiceIdFor,
+  packageIdForWixService,
+  unmappedPackageIds,
+  WIX_PLAN_IDS,
+  wixPlanIdFor,
+  subscriptionPassIdForWixPlan,
+  unmappedSubscriptionPassIds,
+} from './catalog';
 export {
   listWixServices,
   listWixAvailability,
@@ -9,6 +18,13 @@ export {
   type WixTimeSlot,
   type CatalogMismatch,
 } from './bookings';
+export {
+  listWixPlans,
+  resolveWixPlanId,
+  createPlanCheckoutUrl,
+  type WixPlan,
+  type PlanCheckoutOptions,
+} from './plans';
 export {
   createWixCheckoutShadowObserver,
   scheduleWixCheckoutShadow,
