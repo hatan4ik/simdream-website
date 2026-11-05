@@ -1,6 +1,6 @@
 # Wix Headless Integration Architecture & DevOps Plan
 
-**Status:** P3 read-only shadow integration is implemented (`lib/wix/checkout-shadow.ts`). The Wix Pricing Plans redirect handoff is implemented in `lib/wix/plans.ts` and `/api/subscriptions/checkout`, with a graceful Captain Dispatch fallback when no approved public plan resolves. Wix is not the active writer for one-off bookings. Use the read-only [`WIX_HEADLESS_CUTOVER_RUNBOOK.md`](WIX_HEADLESS_CUTOVER_RUNBOOK.md) and `npm run wix:readiness` before any activation decision.
+**Status:** P3 read-only shadow integration is implemented (`lib/wix/checkout-shadow.ts`). The Wix Pricing Plans redirect handoff is implemented in `lib/wix/plans.ts` and `/api/subscriptions/checkout`, with a graceful Captain Dispatch fallback when no approved public plan resolves. The frontend is prepared for Wix-managed deployment as a Cloudflare Worker; this does not make Wix the active writer for one-off bookings. Use the read-only [`WIX_HEADLESS_CUTOVER_RUNBOOK.md`](WIX_HEADLESS_CUTOVER_RUNBOOK.md) and `npm run wix:readiness` before any payment or booking-writer activation decision.
 
 **Authority:** [`GENESIS.md`](../GENESIS.md) remains the canonical description of the currently running Next.js/Supabase/Stripe system. This document describes a deliberate future integration or migration path to Wix Headless.
 
@@ -35,7 +35,7 @@ For the existing application, the safest first implementation is **self-managed 
 - Keep current Supabase/Stripe history read-only until there is an approved data-migration plan.
 - Configure PayPlus inside Wix, never in browser code or in the Next.js repository.
 
-Wix-managed hosting is a valid later choice. A Wix-managed Astro project receives the deepest integration, including automatic visitor/member authentication. A Wix-managed non-Astro frontend may be deployable when supported, but its authentication is still the application's responsibility. Do not rewrite the frontend merely to claim that the site is “on Wix.”
+Wix-managed hosting is now configured for the existing Next.js frontend. `npm run wix:build` uses `@opennextjs/cloudflare` to produce the Cloudflare-Worker-compatible server and static assets expected by Wix, then `scripts/prepare-wix-worker.mjs` provides Wix's required `entry.mjs` bootstrap. The bootstrap supplies the Cloudflare-compatible `waitUntil()` shape that Wix's runner omits. The script also relocates the generated Durable Object modules out of OpenNext's dot-folder because Wix excludes dot-folders from an uploaded server bundle, and replaces their unused `cloudflare:workers` base class with a constructor-compatible shim because the current Wix server runtime does not expose that module. The application uses OpenNext's dummy cache adapters and does not bind those Durable Object exports. `npm run wix:release` publishes that prepared output through the Wix CLI. `wix.config.json` contains only the public OAuth client id and metasite id for **SimDream-Staging** (`317b0c6d-6608-499a-bb3c-b1c37650e460`); no payment, Supabase, Stripe, Wix API, or client-secret value belongs in this file. A Wix-managed non-Astro frontend still owns its own authentication/session implementation. Do not rewrite the frontend merely to claim that the site is “on Wix.”
 
 ### P3 implementation: shadow reads, not a dual-write migration
 

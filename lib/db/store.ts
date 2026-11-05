@@ -235,32 +235,6 @@ function toCorporateInquiry(row: DatabaseRow): CorporateInquiry {
   };
 }
 
-function toPackage(row: DatabaseRow): SimulatorPackage {
-  return {
-    id: requiredString(row, 'id'),
-    slug: requiredString(row, 'slug'),
-    title: requiredString(row, 'title'),
-    category: requiredString(row, 'category') as SimulatorPackage['category'],
-    durationMinutes: asNumber(getValue(row, 'duration_minutes')) as SimulatorPackage['durationMinutes'],
-    priceIls: asNumber(getValue(row, 'price_ils')),
-    primeTimePriceIls: asNumber(getValue(row, 'prime_time_price_ils')) || undefined,
-    priceUsd: asNumber(getValue(row, 'price_usd')),
-    shortDesc: requiredString(row, 'short_desc'),
-    description: requiredString(row, 'description'),
-    featured: Boolean(getValue(row, 'featured')),
-    badge: typeof getValue(row, 'badge') === 'string' ? String(getValue(row, 'badge')) : undefined,
-    daytimeOnly: Boolean(getValue(row, 'daytime_only')),
-    kantorovichVar: typeof getValue(row, 'kantorovich_var') === 'string'
-      ? getValue(row, 'kantorovich_var') as SimulatorPackage['kantorovichVar']
-      : undefined,
-    yieldPerMinIls: asNumber(getValue(row, 'yield_per_min_ils')) || undefined,
-    features: asStringList(getValue(row, 'features')),
-    includesBriefing: Boolean(getValue(row, 'includes_briefing')),
-    instructorIncluded: Boolean(getValue(row, 'instructor_included')),
-    guestSeats: asNumber(getValue(row, 'guest_seats')),
-  };
-}
-
 function assertPersistentWrite(error: { message?: string; code?: string } | null): void {
   if (error) databaseError(error);
 }
@@ -280,7 +254,7 @@ class SimDreamStore {
   private flightLogs: FlightLog[] = [...DEMO_FLIGHT_LOGS];
   private users: UserProfile[] = [...DEMO_USERS];
 
-  /** True when reads and writes go to Supabase; throws when production has no storage. */
+  /** True when persisted reads and writes go to Supabase; throws when production has no storage. */
   private get production(): boolean {
     if (!isProduction) return false;
     if (getSupabaseAdmin()) return true;
@@ -289,13 +263,12 @@ class SimDreamStore {
   }
 
   async getPackages(): Promise<SimulatorPackage[]> {
-    if (!this.production) return this.packages;
-    const { data, error } = await requireSupabaseAdmin()
-      .from('packages')
-      .select('*')
-      .eq('is_active', true);
-    assertPersistentWrite(error);
-    return (data as DatabaseRow[]).map(toPackage);
+    // The immutable package registry is the checkout authority. Serving the
+    // same registry here keeps the public catalog and charged price aligned,
+    // and prevents an optional/legacy `packages` table from taking `/book`
+    // offline on a Wix-hosted deployment. This is catalog configuration, not
+    // an order, voucher, member, or capacity persistence fallback.
+    return this.packages;
   }
 
   async getPackageBySlug(slug: string): Promise<SimulatorPackage | undefined> {

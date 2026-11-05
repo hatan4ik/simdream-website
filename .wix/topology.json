@@ -1,0 +1,20 @@
+{
+  "preview": {
+    "id": "4d654943-8526-447a-b08a-795316635506",
+    "site": {
+      "main": "https://voyjtf-headless-ciwstxzqhgf-hatan4ik-1408.wix-site-host.com"
+    },
+    "dashboard": {
+      "main": "https://manage.wix.com/dashboard/317b0c6d-6608-499a-bb3c-b1c37650e460?apps-override=4d654943-8526-447a-b08a-795316635506"
+    }
+  },
+  "production": {
+    "id": "57adfab3-40e5-4ea2-9f6f-cbb7df023bd7",
+    "site": {
+      "main": "https://ztcsdl-headless-ciwstxzqhgf-hatan4ik-1408.wix-site-host.com"
+    },
+    "dashboard": {
+      "main": "https://manage.wix.com/dashboard/317b0c6d-6608-499a-bb3c-b1c37650e460?apps-override=57adfab3-40e5-4ea2-9f6f-cbb7df023bd7"
+    }
+  }
+}

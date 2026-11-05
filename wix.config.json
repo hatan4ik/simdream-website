@@ -1,0 +1,11 @@
+{
+  "projectType": "Site",
+  "appId": "e03e8493-b29e-4681-9a76-30685ff52096",
+  "siteId": "317b0c6d-6608-499a-bb3c-b1c37650e460",
+  "site": {
+    "outputDirectory": {
+      "client": "./.open-next/assets",
+      "server": "./.open-next"
+    }
+  }
+}

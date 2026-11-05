@@ -6,6 +6,8 @@
 /.next-*/
 /out/
 /build
+/.open-next/
+/.wrangler/
 
 # typescript
 *.tsbuildinfo
