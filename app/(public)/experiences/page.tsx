@@ -9,15 +9,19 @@ import {
   CheckCircle2,
   Gift,
   ArrowRight,
-  Calendar,
 } from 'lucide-react';
-import { getLocalizedPackages } from '@/lib/i18n/translations';
+import { getLocalizedAddons, getLocalizedPackages } from '@/lib/i18n/translations';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
 import { formatCurrency } from '@/lib/utils';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { WorldRoutesSection } from '@/components/experiences/WorldRoutesSection';
+import {
+  getSubscriptionPassFinancials,
+  SUBSCRIPTION_PASSES,
+  SUBSCRIPTION_SECTION_COPY,
+} from '@/lib/data/subscription-passes';
 
 export default function ExperiencesPage() {
   const { t, language, isRTL } = useLanguage();
@@ -51,9 +55,15 @@ export default function ExperiencesPage() {
       : packages.filter((p) => p.category === selectedCategory);
 
   const showFlightPackages = selectedCategory !== 'subscriptions';
-  // The pass is discoverable while product definitions, terms, and checkout are still in development.
-  // It is intentionally an interest flow, never a purchasable offer.
   const showSubscriptions = selectedCategory === 'all' || selectedCategory === 'subscriptions';
+  const subscriptionCopy = SUBSCRIPTION_SECTION_COPY[language];
+  const localizedAddons = getLocalizedAddons(language);
+  const subscriptionPasses = SUBSCRIPTION_PASSES.map((pass) => ({
+    ...pass,
+    copy: pass.copy[language],
+    financials: getSubscriptionPassFinancials(pass),
+    trainingAddons: pass.trainingAddonIds.map((addonId) => localizedAddons.find((addon) => addon.id === addonId)),
+  }));
 
   return (
     <div className="flex-1 w-full min-w-0 py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-16">
@@ -186,36 +196,98 @@ export default function ExperiencesPage() {
       {/* 1b. Experience Flights: World Trio routes, sights and adventures in the captain's voice. */}
       {showFlightPackages && <WorldRoutesSection />}
 
-      {/* 2. Multi-flight passes — deliberately not a checkout until product terms are finalized. */}
+      {/* 2. Prepaid multi-flight passes. A Wix entitlement is required before automated redemption. */}
       {showSubscriptions && (
         <section className="space-y-8 pt-4">
           <div className="text-center max-w-3xl mx-auto space-y-3">
-            <Badge variant="sky">{t.experiences.subscriptionsBadge}</Badge>
+            <Badge variant="sky">{subscriptionCopy.badge}</Badge>
             <h2 className="text-2xl sm:text-4xl font-black text-white">
-              {t.experiences.subscriptionsTitle}
+              {subscriptionCopy.title}
             </h2>
             <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
-              {t.experiences.subscriptionsSubtitle}
+              {subscriptionCopy.subtitle}
             </p>
           </div>
 
-          <Card borderAccent="sky" className="mx-auto max-w-3xl p-6 sm:p-8 text-center space-y-5 bg-gradient-to-br from-sky-500/10 via-slate-950 to-slate-950">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl border border-sky-500/30 bg-sky-500/10 text-sky-300">
-              <Calendar className="h-6 w-6" />
-            </div>
-            <div className="space-y-2">
-              <h3 className="text-xl sm:text-2xl font-bold text-white">{t.experiences.subscriptionsTitle}</h3>
-              <p className="mx-auto max-w-2xl text-sm sm:text-base leading-relaxed text-slate-300">
-                {t.experiences.subscriptionsSubtitle}
-              </p>
-            </div>
-            <Link href="/contact?subject=subscription" className="inline-block">
-              <Button>
-                <span>{t.experiences.buySubscription}</span>
-                <ArrowRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
-              </Button>
-            </Link>
-          </Card>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {subscriptionPasses.map((pass) => (
+              <Card
+                key={pass.id}
+                borderAccent={pass.sessions === 10 ? 'sky' : 'none'}
+                className="flex flex-col gap-6"
+                data-subscription-pass={pass.id}
+              >
+                <div className="space-y-3">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <Badge variant={pass.sessions === 10 ? 'sky' : 'slate'}>
+                      {pass.sessions} × {pass.sessionMinutes} {t.experiences.minutesTime}
+                    </Badge>
+                    <span className="text-xs font-mono text-slate-400" dir="ltr">
+                      {pass.sessions * pass.sessionMinutes} min
+                    </span>
+                  </div>
+                  <h3 className="text-xl sm:text-2xl font-bold text-white">{pass.copy.title}</h3>
+                  <p className="text-sm leading-relaxed text-slate-300">{pass.copy.summary}</p>
+                </div>
+
+                <div className="rounded-xl border border-slate-700/80 bg-slate-950/60 p-4 space-y-2">
+                  <div className="flex items-baseline justify-between gap-3">
+                    <span className="text-3xl font-black text-white">{formatCurrency(pass.priceIls)}</span>
+                    <span className="text-xs text-slate-400">{subscriptionCopy.validityLabel}</span>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400">
+                    <span>
+                      {subscriptionCopy.standardValueLabel}: {formatCurrency(pass.financials.standardValueIls)}
+                    </span>
+                    <span className="text-sky-300">
+                      {subscriptionCopy.savingsLabel}: {formatCurrency(pass.financials.savingsIls)} ({pass.financials.savingsPercent}%)
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-400">
+                    <span>{pass.sessions} {subscriptionCopy.sessionLabel}</span>
+                    <span>{pass.sessions * pass.sessionMinutes} {subscriptionCopy.totalFlightTimeLabel}</span>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <p className="text-sm font-semibold text-white">{subscriptionCopy.curriculumLabel}</p>
+                  <ul className="space-y-2 text-sm text-slate-200">
+                    {pass.copy.curriculum.map((item) => (
+                      <li key={item} className="flex items-start gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-sky-400 shrink-0 mt-0.5" />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="space-y-3 rounded-xl border border-sky-500/20 bg-sky-500/5 p-4">
+                  <p className="text-sm font-semibold text-white">{subscriptionCopy.trainingModulesLabel}</p>
+                  <p className="text-xs leading-relaxed text-slate-300">{subscriptionCopy.trainingModulesDescription}</p>
+                  <ul className="space-y-2 text-sm text-slate-200">
+                    {pass.trainingAddons.map((addon) =>
+                      addon ? (
+                        <li key={addon.id} className="flex items-start gap-2">
+                          <Award className="w-4 h-4 text-sky-400 shrink-0 mt-0.5" />
+                          <span>{addon.name}</span>
+                        </li>
+                      ) : null
+                    )}
+                  </ul>
+                </div>
+
+                <div className="mt-auto space-y-3">
+                  <p className="text-xs leading-relaxed text-slate-400">{subscriptionCopy.educationalDisclosure}</p>
+                  <Link href={`/contact?subject=subscription&plan=${pass.id}`} className="block">
+                    <Button variant={pass.sessions === 10 ? 'primary' : 'outline'} className="w-full">
+                      <span>{subscriptionCopy.requestEnrollment}</span>
+                      <ArrowRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
+                    </Button>
+                  </Link>
+                </div>
+              </Card>
+            ))}
+          </div>
         </section>
       )}
 

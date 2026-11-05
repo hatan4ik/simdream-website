@@ -619,7 +619,9 @@ export const translations = {
       subjectVoucher: 'Gift Voucher Question',
       subjectSubscription: 'Multi-Flight Pass Interest',
       subscriptionInquiryPrefill:
-        'I would like to hear when multi-flight passes are available. Please contact me with the planned options and terms.',
+        'I would like help choosing a multi-flight pass. Please contact me with availability and enrolment terms.',
+      subscriptionPassInquiryPrefill:
+        'I would like to plan enrolment in {{pass}}. Please confirm availability, eligibility, and the pass terms.',
       subjectRoute: 'World Route or Adventure Request',
       routeInquiryPrefill:
         'I would like to fly the following route or adventure in my session: {{route}}. Please confirm the briefing and the best session length.',
@@ -1426,7 +1428,9 @@ export const translations = {
       subjectVoucher: 'שאלה בנושא שובר מתנה',
       subjectSubscription: 'התעניינות בכרטיסיית טיסות',
       subscriptionInquiryPrefill:
-        'אשמח לקבל עדכון כאשר כרטיסיות הטיסה יהיו זמינות. אנא צרו איתי קשר עם האפשרויות והתנאים המתוכננים.',
+        'אשמח לעזרה בבחירת כרטיסיית טיסות. אנא צרו איתי קשר לגבי זמינות ותנאי הצטרפות.',
+      subscriptionPassInquiryPrefill:
+        'אשמח לתכנן הצטרפות אל {{pass}}. אנא אשרו זמינות, זכאות ותנאי הכרטיסייה.',
       subjectRoute: 'בקשה למסלול עולמי או הרפתקת טיסה',
       routeInquiryPrefill:
         'אשמח לטוס במפגש שלי את המסלול או ההרפתקה הבאים: {{route}}. אנא אשרו את התדריך ואת אורך המפגש המתאים ביותר.',
@@ -2228,7 +2232,9 @@ export const translations = {
       subjectVoucher: 'Вопрос по подарочному сертификату',
       subjectSubscription: 'Интерес к мульти-пассу на полёты',
       subscriptionInquiryPrefill:
-        'Я хочу узнать, когда будут доступны мульти-пассы на полёты. Пожалуйста, свяжитесь со мной с планируемыми вариантами и условиями.',
+        'Мне нужна помощь в выборе мульти-пасса на полёты. Пожалуйста, свяжитесь со мной по поводу доступности и условий оформления.',
+      subscriptionPassInquiryPrefill:
+        'Я хочу оформить {{pass}}. Пожалуйста, подтвердите доступность, право на участие и условия пасса.',
       subjectRoute: 'Запрос мирового маршрута или приключения',
       routeInquiryPrefill:
         'Я хочу пролететь в своём сеансе следующий маршрут или приключение: {{route}}. Пожалуйста, подтвердите брифинг и оптимальную длительность сеанса.',
@@ -3036,7 +3042,9 @@ export const translations = {
       subjectVoucher: 'Question sur un bon cadeau',
       subjectSubscription: 'Intérêt pour un Pass Multi-Vols',
       subscriptionInquiryPrefill:
-        'Je souhaite être informé lorsque les Pass Multi-Vols seront disponibles. Merci de me contacter avec les options et conditions prévues.',
+        'Je souhaite être accompagné pour choisir un Pass Multi-Vols. Merci de me contacter pour la disponibilité et les conditions d’inscription.',
+      subscriptionPassInquiryPrefill:
+        'Je souhaite préparer mon inscription au {{pass}}. Merci de confirmer la disponibilité, l’éligibilité et les conditions du pass.',
       subjectRoute: 'Demande de route mondiale ou d’aventure',
       routeInquiryPrefill:
         'Je souhaite voler la route ou l’aventure suivante pendant ma séance : {{route}}. Merci de confirmer le briefing et la durée de séance la plus adaptée.',
@@ -3850,7 +3858,9 @@ export const translations = {
       subjectVoucher: 'سؤال حول قسائم الهدايا',
       subjectSubscription: 'اهتمام ببطاقات الرحلات المتعددة',
       subscriptionInquiryPrefill:
-        'أرغب في معرفة موعد توفر بطاقات الرحلات المتعددة. يرجى التواصل معي بشأن الخيارات والشروط المتوقعة.',
+        'أرغب في مساعدة لاختيار بطاقة رحلات متعددة. يرجى التواصل معي بخصوص التوفر وشروط التسجيل.',
+      subscriptionPassInquiryPrefill:
+        'أرغب في التخطيط للتسجيل في {{pass}}. يرجى تأكيد التوفر والأهلية وشروط البطاقة.',
       subjectRoute: 'طلب مسار عالمي أو مغامرة طيران',
       routeInquiryPrefill:
         'أرغب في الطيران في جلستي بالمسار أو المغامرة التالية: {{route}}. يرجى تأكيد الإحاطة وأفضل مدة للجلسة.',

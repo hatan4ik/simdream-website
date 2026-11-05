@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:94d7a4b4ebf106eba9e07b5e3532cb783bff49f0692471ae25240d9d5134d2de -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:3cf588b715b2f9d285bd275330c006485f649b26aeb84a079f24e5808c9592b0 -->
 
 ## Verification contract
 
@@ -221,6 +221,8 @@ Add 3 curated one-click combos. Localize every package and add-on in all five la
 **Named gift certificates** use the same registry, in this fixed order: Discovery 30 (₪450), Captain 60 (₪690), Ultimate 90 (₪950, including the prime-time tariff), and Airline Interview Prep 120 PRO (₪1,590). The browser sends only a package id; checkout resolves its amount and title server-side. Flexible monetary gift cards remain open-balance vouchers.
 
 **Experience Flights route catalog** (`lib/data/experience-routes.ts`, rendered by `components/experiences/WorldRoutesSection.tsx` on `/experiences#world-routes`): the "טיסות חוויה" section written in the captain's voice. It lists every world-trio add-on (price and minutes resolved from `FLIGHT_ADDONS`, never duplicated) plus proposed on-request trios (Israel home skies, Atlantic outposts, Arctic lights, Himalaya, Africa, Pacific, Andes, North American wilderness) and scenario adventures (Dead Sea low pass, ETOPS crossing, Everest mountain flight, storm diversion, round-the-world, fly-home). Each trio names three real airports by ICAO and IATA code (ICAO rendered LTR), a 1–5 captain's handling rating, a first-person captain's note and "best for" tags, all in five languages. Bookable trios link to `/book` with their priced add-on selected. On-request World Trios link to `/book?package=captains-command-60&route=<id>`, open the calendar-first flow, restrict packages to 60 minutes or longer, retain only a server-validated route ID, add no route charge and clearly state that the captain confirms the final plan. Scenario adventures remain `/contact?subject=route&route=<id>` briefing inquiries. Every airport is a real Boeing 737 destination (pillar 5). Pinned by `tests/unit/experience-routes.test.ts`.
+
+**Prepaid Flight Pass catalog** (`lib/data/subscription-passes.ts`, rendered in the `/experiences` Multi-Flight Passes tab): four 12-month, single-payment programmes—Flight Foundations `5 × 60` (₪2,750), Advanced Captain `5 × 90` (₪3,390), ATPL Concepts `10 × 60` (₪4,850), and Airline Readiness `10 × 90` (₪5,950). Each pass is tied to exactly one base package (`pkg-captain-60` or `pkg-ultimate-90`); standard-value and savings figures are calculated from that base catalog price, never duplicated. Its five-language captain-led curriculum can reference existing Cold & Dark, Crosswind/IFR, and Extreme Airports add-on themes, but must never silently add their separately priced cockpit minutes to a reservation. ATPL-level explanations are education only: no flight hours, licence, type rating, airline assessment credit, or job guarantee. The current CTA opens a validated Dispatch enrolment inquiry; it must not claim a checkout or entitlement until Wix Pricing Plans has an approved plan, member identity, server-side entitlement check, and confirmed order state.
 
 #### Scheduling engine (`lib/scheduler/`, pure functions, fully unit-tested)
 
@@ -588,7 +590,7 @@ lib/
   scheduler/ kantorovich-engine mission-calculator package-presentation tiled-interval-optimizer israel-clock
   booking/checkout-service checkout-ports checkout-composition checkout-runtime
   wix/ client config catalog bookings checkout-shadow
-  catalog/gift-voucher-packages  db/ store schema.sql seed-data supabase-admin migrations/
+  catalog/gift-voucher-packages  data/experience-routes subscription-passes  db/ store schema.sql seed-data supabase-admin migrations/
   auth/ admin-guard request-auth member-ownership safe-redirect auth-context
   security/rate-limit
   i18n/ translations language-context calendar-presentation

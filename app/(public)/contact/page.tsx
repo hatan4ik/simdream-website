@@ -31,6 +31,7 @@ import {
 } from '@/lib/config/facility-info';
 import { useLiveFacilityStatus } from '@/lib/config/use-live-facility-status';
 import { ADVENTURES, WORLD_ROUTES } from '@/lib/data/experience-routes';
+import { findSubscriptionPass } from '@/lib/data/subscription-passes';
 
 type TravelMode = 'transit' | 'driving' | 'walking';
 
@@ -478,7 +479,14 @@ export default function ContactPage() {
     const subject = params.get('subject');
     let prefill: { subject: string; message: string } | undefined;
     if (subject === 'subscription') {
-      prefill = { subject: 'Multi-Flight Pass Interest', message: t.contact.subscriptionInquiryPrefill };
+      const pass = findSubscriptionPass(params.get('plan'));
+      const passTitle = pass?.copy[language]?.title;
+      prefill = {
+        subject: 'Multi-Flight Pass Interest',
+        message: passTitle
+          ? t.contact.subscriptionPassInquiryPrefill.replace('{{pass}}', passTitle)
+          : t.contact.subscriptionInquiryPrefill,
+      };
     } else if (subject === 'route') {
       // /experiences#world-routes links here with the id of an on-request World Trio or adventure.
       const requested = params.get('route') ?? '';
@@ -501,7 +509,12 @@ export default function ContactPage() {
       return { ...current, subject: next.subject, message: untouched ? next.message : current.message };
     });
     autoPrefillRef.current = next.message;
-  }, [language, t.contact.subscriptionInquiryPrefill, t.contact.routeInquiryPrefill]);
+  }, [
+    language,
+    t.contact.subscriptionInquiryPrefill,
+    t.contact.subscriptionPassInquiryPrefill,
+    t.contact.routeInquiryPrefill,
+  ]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

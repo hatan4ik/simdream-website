@@ -10,6 +10,23 @@ SimDream should treat Wix Headless as a business platform, not as a replacement 
 
 **Subscriptions are a separate commercial domain from one-off simulator bookings.** Wix Pricing Plans is the proposed authority for plan catalogue, recurring billing terms, trials, plan orders (called subscriptions by Wix), cancellation state, and plan-to-Booking benefits. The SimDream frontend renders the membership offer and member experience; it must not create a second recurring-billing system.
 
+### Current prepaid-pass catalogue: public offer, not a live entitlement
+
+The frontend now has a five-language catalogue in `lib/data/subscription-passes.ts`, rendered on `/experiences`. It deliberately models **prepaid passes**, not a recurring card subscription and not a replacement for an individual Wix Booking:
+
+| Public pass | Flight credits | Base booking package | Single-payment price | Standard base-session value | Curriculum focus |
+| --- | --- | --- | ---: | ---: | --- |
+| Flight Foundations | 5 × 60 min | `pkg-captain-60` | ₪2,750 | ₪3,450 | Cockpit orientation, FMS logic, weather, crosswind and ILS foundations |
+| Advanced Captain | 5 × 90 min | `pkg-ultimate-90` | ₪3,390 | ₪4,250 | SOP rationale, instruments, weather, abnormal-situation communication |
+| ATPL Concepts | 10 × 60 min | `pkg-captain-60` | ₪4,850 | ₪6,900 | Systems, planning, FMC, IFR, CRM and TEM explanations |
+| Airline Readiness | 10 × 90 min | `pkg-ultimate-90` | ₪5,950 | ₪8,500 | Raw-data concepts, QRH thinking, two-pilot communication and a line-oriented mission |
+
+All four passes are valid for 12 months. Their price, package relationship and savings calculations are a type-safe local offer registry; no Wix order, member entitlement, recurring charge or booking credit is created by displaying one. The page sends the customer to a Dispatch enquiry with only a registry-validated pass id. That is intentional until the launch contract below is completed.
+
+The catalogue can surface Cold & Dark, Crosswind/IFR and Extreme Airports as instructor-led **training themes**. It must not quietly add an add-on's separately listed time to a booking, waive its price, or imply that the customer has a credit. The final entitlement must explicitly decide whether an add-on is (a) a lesson theme inside the base session, (b) a chargeable time extension, or (c) a separately metered pass benefit. ATPL-level explanations are educational simulator coaching—not logged flight time, a licence, type rating, assessment credit or airline-employment guarantee.
+
+To activate enrolment, create one approved one-time Wix Pricing Plan per row, map its immutable Wix plan id to the local pass id on the trusted server, require the Wix Member identity required by Pricing Plans checkout, and enforce an idempotent server-side credit/expiry ledger immediately before slot reservation. Only a Wix-confirmed order may create or consume a pass entitlement; a post-checkout browser return is never confirmation.
+
 For the existing application, the safest first implementation is **self-managed Next.js frontend + Wix Headless business backend**:
 
 - Keep the existing Next.js application and its tests intact.
