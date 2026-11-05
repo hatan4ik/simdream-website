@@ -2,8 +2,8 @@ import { SIMULATOR_PACKAGES } from '@/lib/db/seed-data';
 import { SUBSCRIPTION_PASSES, type SubscriptionPassId } from '@/lib/data/subscription-passes';
 
 /**
- * SimDream package id → Wix Bookings service id on the "Sim Dream Israel"
- * headless site (metasite 4c5e1c7a-163c-48ce-8278-cdc42e4deed4).
+ * SimDream package id → Wix Bookings service id on the dedicated
+ * "SimDream-Staging" Headless site (metasite 317b0c6d-6608-499a-bb3c-b1c37650e460).
  *
  * The services were created from this catalog, one APPOINTMENT per package,
  * so the pairing is one-to-one. `reconcileCatalog` in ./bookings checks that
@@ -11,15 +11,15 @@ import { SUBSCRIPTION_PASSES, type SubscriptionPassId } from '@/lib/data/subscri
  * server stays the pricing authority either way (AGENTS.md §6.3).
  */
 export const WIX_SERVICE_IDS: Readonly<Record<string, string>> = {
-  'pkg-discovery-30': 'bc744292-6a31-47e5-bde7-7e82cc4da479',
-  'pkg-promo-45': '88cbe8c8-8a40-4fbe-8a07-4d0efd32632e',
-  'pkg-captain-60': 'd4a11b86-541e-44ed-ba41-8d11aac60004',
-  'pkg-ultimate-90': 'ce3753f9-30b5-4632-8e0e-c7ed3ee2c15f',
-  'pkg-pro-60': '56c77d41-8161-4b6b-8373-ebe693d4cd15',
-  'pkg-pro-90': 'bd026789-042b-4e01-b66a-91c42682ca72',
-  'pkg-assessment-prep-120': '1f329cb2-9741-4d52-b316-3e5d5b0c6ce5',
-  'pkg-fear-of-flying-90': '3adc62bb-fda5-4271-b7bd-06668b086592',
-  'pkg-corporate-crm': 'ead24a50-782c-4bc4-910a-5d095386a64d',
+  'pkg-discovery-30': '8a4722fd-b7a0-4df0-b01d-b9b81f01bd11',
+  'pkg-promo-45': '9542239d-9f18-4b89-a892-e47494aae340',
+  'pkg-captain-60': '4d52163a-1985-48cb-bf8c-92535e56e76a',
+  'pkg-ultimate-90': '97b47c8c-c7a5-4c3c-9596-8e5cf77e9e77',
+  'pkg-pro-60': '3d282abe-e81b-4978-a84a-7d1df560879e',
+  'pkg-pro-90': '93a46072-aad9-44a5-a58f-5bc207c2a85f',
+  'pkg-assessment-prep-120': '23fa81db-b399-4d4a-b5e9-bd1d0a4ba7bd',
+  'pkg-fear-of-flying-90': '10c00556-7a1e-4b34-b517-2f1f6f762bea',
+  'pkg-corporate-crm': '33a37201-2866-4bb3-9268-882d3b22ff8c',
 };
 
 export function wixServiceIdFor(packageId: string): string | null {
