@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { SIMULATOR_PACKAGES } from '@/lib/db/seed-data';
 import { WIX_SERVICE_IDS, packageIdForWixService, unmappedPackageIds, wixServiceIdFor } from '@/lib/wix/catalog';
-import { reconcileCatalog, type WixService } from '@/lib/wix/bookings';
+import { reconcileCatalog, sharedWixResourceTypeIds, type WixService } from '@/lib/wix/bookings';
 import { isWixAvailabilityAdapterEnabled, isWixConfigured, isWixShadowReadsEnabled } from '@/lib/wix/config';
 import { getWixClient, resetWixClientForTests, WixNotConfiguredError } from '@/lib/wix/client';
 
@@ -17,6 +17,7 @@ function liveService(packageId: string, overrides: Partial<WixService> = {}): Wi
     hidden: false,
     schedule: { availabilityConstraints: { sessionDurations: [pkg.durationMinutes] } },
     payment: { rateType: 'FIXED', fixed: { price: { value: String(pkg.priceIls), currency: 'ILS' } } },
+    serviceResources: [{ resourceType: { id: 'boeing-737-resource-type' } }],
     ...overrides,
   };
 }
@@ -80,6 +81,20 @@ describe('reconcileCatalog', () => {
       ])
     );
     expect(fields).toHaveLength(5);
+  });
+});
+
+describe('Wix physical-capacity mapping', () => {
+  it('requires every mapped duration to share the Boeing simulator resource type', () => {
+    const services = Object.keys(WIX_SERVICE_IDS).map((packageId) => liveService(packageId));
+    expect(sharedWixResourceTypeIds(services, Object.values(WIX_SERVICE_IDS))).toEqual(['boeing-737-resource-type']);
+  });
+
+  it('rejects a service without the shared physical simulator resource', () => {
+    const services = Object.keys(WIX_SERVICE_IDS).map((packageId) =>
+      packageId === 'pkg-promo-45' ? liveService(packageId, { serviceResources: [] }) : liveService(packageId)
+    );
+    expect(sharedWixResourceTypeIds(services, Object.values(WIX_SERVICE_IDS))).toEqual([]);
   });
 });
 

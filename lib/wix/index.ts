@@ -21,6 +21,8 @@ export {
   listWixServices,
   listWixAvailability,
   reconcileCatalog,
+  wixResourceTypeIdsForService,
+  sharedWixResourceTypeIds,
   type WixService,
   type WixTimeSlot,
   type CatalogMismatch,

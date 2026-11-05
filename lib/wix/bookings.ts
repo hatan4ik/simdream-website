@@ -12,6 +12,20 @@ const LIST_TIME_SLOTS_URL = 'https://www.wixapis.com/_api/service-availability/v
 
 const priceSchema = z.object({ value: z.string(), currency: z.string().optional() });
 
+/**
+ * Query Services returns resource-type references for appointment services.
+ * The resource type, rather than an individual staff member, is the capacity
+ * that prevents a 60-minute service and a 90-minute service from double
+ * booking the one physical Boeing simulator.
+ */
+const serviceResourceSchema = z
+  .object({
+    id: z.string().optional(),
+    resourceTypeId: z.string().optional(),
+    resourceType: z.object({ id: z.string().optional() }).optional(),
+  })
+  .loose();
+
 export const wixServiceSchema = z
   .object({
     id: z.string(),
@@ -34,11 +48,55 @@ export const wixServiceSchema = z
           .optional(),
       })
       .optional(),
+    serviceResources: z.array(serviceResourceSchema).optional(),
     category: z.object({ id: z.string().optional(), name: z.string().optional() }).optional(),
   })
   .loose();
 
 export type WixService = z.infer<typeof wixServiceSchema>;
+
+/** Resource-type ids required by a Wix Bookings appointment service. */
+export function wixResourceTypeIdsForService(service: WixService): string[] {
+  const ids = new Set<string>();
+  for (const resource of service.serviceResources ?? []) {
+    // Different documented/read API shapes expose the same resource-type
+    // reference under one of these fields. Never use a physical resource id:
+    // services point at a resource *type* and Wix chooses its available item.
+    const id = resource.resourceType?.id ?? resource.resourceTypeId ?? resource.id;
+    if (id) ids.add(id);
+  }
+  return [...ids];
+}
+
+/**
+ * Finds resource types common to every mapped service. No common type means
+ * a booking for one duration could leave another duration's calendar unaware
+ * of the physical simulator reservation.
+ */
+export function sharedWixResourceTypeIds(services: readonly WixService[], serviceIds: readonly string[]): string[] {
+  const servicesById = new Map(services.map((service) => [service.id, service]));
+  let shared: Set<string> | undefined;
+
+  for (const serviceId of serviceIds) {
+    const service = servicesById.get(serviceId);
+    if (!service) return [];
+
+    const resourceTypeIds = wixResourceTypeIdsForService(service);
+    if (resourceTypeIds.length === 0) return [];
+
+    if (!shared) {
+      shared = new Set(resourceTypeIds);
+      continue;
+    }
+
+    for (const id of shared) {
+      if (!resourceTypeIds.includes(id)) shared.delete(id);
+    }
+    if (shared.size === 0) return [];
+  }
+
+  return [...(shared ?? [])];
+}
 
 const queryServicesResponse = z.object({ services: z.array(wixServiceSchema).default([]) }).loose();
 

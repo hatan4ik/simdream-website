@@ -5,6 +5,7 @@ export type WixReadinessBlockerCode =
   | 'wix-not-configured'
   | 'unmapped-packages'
   | 'catalog-drift'
+  | 'no-shared-capacity-resource'
   | 'unresolved-subscription-plans';
 
 export interface WixReadinessBlocker {
@@ -16,12 +17,15 @@ export interface WixReadinessInput {
   wixConfigured: boolean;
   unmappedPackageIds: readonly string[];
   catalogMismatches: readonly CatalogMismatch[];
+  /** Resource types shared by every mapped Wix Bookings service. */
+  sharedCapacityResourceTypeIds: readonly string[];
   expectedSubscriptionPassIds: readonly SubscriptionPassId[];
   resolvedSubscriptionPassIds: readonly SubscriptionPassId[];
 }
 
 export interface WixReadinessReport {
   catalogAligned: boolean;
+  capacityPoolAligned: boolean;
   unresolvedSubscriptionPassIds: SubscriptionPassId[];
   canRunShadowReads: boolean;
   canPilotWixBookings: boolean;
@@ -63,6 +67,14 @@ export function assessWixReadiness(input: WixReadinessInput): WixReadinessReport
     });
   }
 
+  if (input.sharedCapacityResourceTypeIds.length === 0) {
+    blockers.push({
+      code: 'no-shared-capacity-resource',
+      message:
+        'Mapped Wix Bookings services do not share a physical capacity resource type; bookings across durations could overlap.',
+    });
+  }
+
   if (unresolvedSubscriptionPassIds.length > 0) {
     blockers.push({
       code: 'unresolved-subscription-plans',
@@ -71,13 +83,16 @@ export function assessWixReadiness(input: WixReadinessInput): WixReadinessReport
   }
 
   const catalogAligned = input.unmappedPackageIds.length === 0 && input.catalogMismatches.length === 0;
+  const capacityPoolAligned = input.sharedCapacityResourceTypeIds.length > 0;
+  const bookingPoolReady = catalogAligned && capacityPoolAligned;
   const wixReachable = input.wixConfigured;
 
   return {
     catalogAligned,
+    capacityPoolAligned,
     unresolvedSubscriptionPassIds,
-    canRunShadowReads: wixReachable && catalogAligned,
-    canPilotWixBookings: wixReachable && catalogAligned,
+    canRunShadowReads: wixReachable && bookingPoolReady,
+    canPilotWixBookings: wixReachable && bookingPoolReady,
     canRouteSubscriptionCheckout: wixReachable && unresolvedSubscriptionPassIds.length === 0,
     blockers,
   };

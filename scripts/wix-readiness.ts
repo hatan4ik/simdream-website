@@ -23,9 +23,9 @@ loadWixLocalEnv(['NEXT_PUBLIC_WIX_CLIENT_ID', 'WIX_SITE_ID', ...PLAN_ENV_KEYS]);
 // same with shell-provided and locally configured non-secret identifiers.
 const [
   { SUBSCRIPTION_PASSES },
-  { listWixServices, reconcileCatalog },
+  { listWixServices, reconcileCatalog, sharedWixResourceTypeIds },
   { isWixConfigured },
-  { unmappedPackageIds },
+  { unmappedPackageIds, WIX_SERVICE_IDS },
   { resolveWixPlanId },
   { assessWixReadiness },
 ] = await Promise.all([
@@ -54,12 +54,14 @@ try {
     wixConfigured: true,
     unmappedPackageIds: unmappedPackageIds(),
     catalogMismatches: reconcileCatalog(services),
+    sharedCapacityResourceTypeIds: sharedWixResourceTypeIds(services, Object.values(WIX_SERVICE_IDS)),
     expectedSubscriptionPassIds,
     resolvedSubscriptionPassIds,
   });
 
   console.log(`Wix readiness: ${services.length} Bookings services read; ${report.blockers.length} blocker(s).`);
   console.log(`  catalog aligned: ${report.catalogAligned ? 'yes' : 'no'}`);
+  console.log(`  shared simulator capacity pool: ${report.capacityPoolAligned ? 'yes' : 'no'}`);
   console.log(`  shadow reads may be enabled: ${report.canRunShadowReads ? 'yes' : 'no'}`);
   console.log(`  Bookings pilot may start: ${report.canPilotWixBookings ? 'yes' : 'no'}`);
   console.log(`  subscription checkout may route: ${report.canRouteSubscriptionCheckout ? 'yes' : 'no'}`);

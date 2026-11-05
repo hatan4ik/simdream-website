@@ -14,12 +14,14 @@ describe('Wix Headless cutover readiness', () => {
       wixConfigured: true,
       unmappedPackageIds: [],
       catalogMismatches: [],
+      sharedCapacityResourceTypeIds: ['boeing-737-resource-type'],
       expectedSubscriptionPassIds: PASS_IDS,
       resolvedSubscriptionPassIds: PASS_IDS,
     });
 
     expect(report.blockers).toEqual([]);
     expect(report.catalogAligned).toBe(true);
+    expect(report.capacityPoolAligned).toBe(true);
     expect(report.canRunShadowReads).toBe(true);
     expect(report.canPilotWixBookings).toBe(true);
     expect(report.canRouteSubscriptionCheckout).toBe(true);
@@ -30,6 +32,7 @@ describe('Wix Headless cutover readiness', () => {
       wixConfigured: false,
       unmappedPackageIds: [],
       catalogMismatches: [],
+      sharedCapacityResourceTypeIds: ['boeing-737-resource-type'],
       expectedSubscriptionPassIds: PASS_IDS,
       resolvedSubscriptionPassIds: PASS_IDS,
     });
@@ -53,6 +56,7 @@ describe('Wix Headless cutover readiness', () => {
           actual: '20',
         },
       ],
+      sharedCapacityResourceTypeIds: ['boeing-737-resource-type'],
       expectedSubscriptionPassIds: PASS_IDS,
       resolvedSubscriptionPassIds: ['flight-foundations-5x60'],
     });
@@ -71,5 +75,22 @@ describe('Wix Headless cutover readiness', () => {
       'catalog-drift',
       'unresolved-subscription-plans',
     ]);
+  });
+
+  it('blocks a Bookings pilot when services are not tied to one physical capacity pool', () => {
+    const report = assessWixReadiness({
+      wixConfigured: true,
+      unmappedPackageIds: [],
+      catalogMismatches: [],
+      sharedCapacityResourceTypeIds: [],
+      expectedSubscriptionPassIds: PASS_IDS,
+      resolvedSubscriptionPassIds: PASS_IDS,
+    });
+
+    expect(report.blockers.map((blocker) => blocker.code)).toEqual(['no-shared-capacity-resource']);
+    expect(report.capacityPoolAligned).toBe(false);
+    expect(report.canRunShadowReads).toBe(false);
+    expect(report.canPilotWixBookings).toBe(false);
+    expect(report.canRouteSubscriptionCheckout).toBe(true);
   });
 });

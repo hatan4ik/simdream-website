@@ -27,7 +27,7 @@ It uses the public Wix visitor client and exits non-zero when any of these gates
 | Gate | What is checked | Why it blocks activation |
 | --- | --- | --- |
 | Headless connection | `NEXT_PUBLIC_WIX_CLIENT_ID` is configured and public service reads succeed | The frontend cannot safely use Wix without a visitor session. |
-| Bookings parity | Every local package is mapped and its Wix service name, base duration, and base price match | A customer must never be shown one offer and reserve another. |
+| Bookings parity and capacity | Every local package is mapped, its Wix service name, base duration, and base price match, and every mapped service requires the same physical Boeing 737 resource type | A customer must never be shown one offer and reserve another, and a booking of one duration must block every other duration from using the physical simulator. |
 | Subscription-plan resolvability | Each of the four local subscriptions resolves to one public Wix Pricing Plan | A checkout redirect must target an explicit, published plan. |
 
 The command performs no write: it does not publish a service or plan, create a checkout session, charge a card, alter availability, or turn on a feature flag. A non-zero result is an intentional stop signal, not a runtime outage.
@@ -60,8 +60,8 @@ Complete these steps in a **staging Headless site** first. Do not test against p
 ### Bookings catalogue — provisioned in staging
 
 1. All nine services already exist on **SimDream-Staging**, and their IDs are mapped in `lib/wix/catalog.ts`. Do not create duplicates.
-2. A single native Boeing 737 simulator resource is required by every service. The 45-minute promotion has a dedicated daytime availability staff calendar, so it is excluded from Saturday and from starts after 17:00.
-3. The operational hours, ILS price, base duration and turnaround buffer are configured and live-checked. `npm run wix:smoke` reports future bookable 60-minute slots and `npm run wix:readiness` reports catalog alignment.
+2. A single native Boeing 737 simulator resource type is required by every service. The 45-minute promotion has a dedicated daytime availability staff calendar, so it is excluded from Saturday and from starts after 17:00; that staff distinction never creates a second hardware capacity pool.
+3. The operational hours, ILS price, base duration and turnaround buffer are configured and live-checked. `npm run wix:smoke` reports future bookable 60-minute slots and the shared capacity resource; `npm run wix:readiness` blocks a pilot if the shared capacity pool or catalog alignment drifts.
 4. Correct any subsequent mismatch through an approved product decision. The known simulator offers remain defined locally; never silently change price or duration only in Wix.
 5. Before the booking-writer pilot, decide and test the exact fixed-block adapter. Wix offers rolling 30-minute starts; the SimDream Tiled Interval Engine remains the stricter legal-slot authority until parity is proven.
 

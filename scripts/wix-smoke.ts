@@ -13,7 +13,7 @@ import { loadWixLocalEnv } from './wix-env';
 loadWixLocalEnv(['NEXT_PUBLIC_WIX_CLIENT_ID', 'WIX_SITE_ID']);
 
 const { isWixConfigured, getWixClientId, getWixSiteId, WIX_TIME_ZONE } = await import('../lib/wix/config');
-const { listWixServices, listWixAvailability, reconcileCatalog } = await import('../lib/wix/bookings');
+const { listWixServices, listWixAvailability, reconcileCatalog, sharedWixResourceTypeIds } = await import('../lib/wix/bookings');
 const { WIX_SERVICE_IDS, unmappedPackageIds } = await import('../lib/wix/catalog');
 
 if (!isWixConfigured()) {
@@ -33,9 +33,13 @@ for (const service of services) {
 
 const mismatches = reconcileCatalog(services);
 const unmapped = unmappedPackageIds();
+const sharedCapacityResourceTypeIds = sharedWixResourceTypeIds(services, Object.values(WIX_SERVICE_IDS));
 console.log(`\nCatalog reconciliation: ${Object.keys(WIX_SERVICE_IDS).length} mapped, ${unmapped.length} unmapped, ${mismatches.length} mismatches`);
 for (const m of mismatches) console.log(`  ✗ ${m.packageId} ${m.field}: expected ${m.expected}, got ${m.actual}`);
 for (const id of unmapped) console.log(`  ✗ no Wix service for ${id}`);
+console.log(
+  `Shared simulator capacity pool: ${sharedCapacityResourceTypeIds.length > 0 ? `yes (${sharedCapacityResourceTypeIds.join(', ')})` : 'no'}`
+);
 
 const tomorrow = ymdInZone(WIX_TIME_ZONE, 1);
 const serviceId = WIX_SERVICE_IDS['pkg-captain-60'];
@@ -53,7 +57,7 @@ console.log(
       .join('  ') || '(none — staff working hours decide this; see Wix Dashboard → Bookings → Staff)')
 );
 
-process.exit(mismatches.length || unmapped.length ? 1 : 0);
+process.exit(mismatches.length || unmapped.length || sharedCapacityResourceTypeIds.length === 0 ? 1 : 0);
 
 function ymdInZone(timeZone: string, daysAhead: number): string {
   const date = new Date(Date.now() + daysAhead * 86_400_000);
