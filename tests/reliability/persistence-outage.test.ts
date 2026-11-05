@@ -125,11 +125,7 @@ const RESILIENT_ROUTES: OutageCase[] = [
         )
       ),
   },
-  // Fixed REL-5 (previously 500) and REL-6 (previously 409 echoing the driver message).
-  {
-    name: 'GET /api/packages',
-    call: async (app) => (await app.routes.packages()).GET(apiRequest('/api/packages')),
-  },
+  // Fixed REL-6 (previously 409 echoing the driver message).
   {
     name: 'POST /api/checkout (card booking)',
     call: async (app) =>
@@ -186,6 +182,19 @@ async function expectServiceUnavailable(response: Response) {
 }
 
 describe('database outage in production', () => {
+  it('keeps GET /api/packages available from the immutable server catalog', async () => {
+    const app = await loadOutageApp();
+
+    const response = await (await app.routes.packages()).GET(apiRequest('/api/packages'));
+
+    expect({ status: response.status, contentType: response.headers.get('content-type') }).toEqual({
+      status: 200,
+      contentType: expect.stringContaining('application/json'),
+    });
+    const packages = (await response.json()) as unknown[];
+    expect(packages.length).toBeGreaterThan(0);
+  });
+
   // Control: the same calls under the same production rules, minus the unreachable
   // database, must not 503. This proves each 503 below comes from the outage and
   // not from an unrelated guard (payments, admin or member configuration).
