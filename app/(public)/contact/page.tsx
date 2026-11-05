@@ -671,7 +671,7 @@ export default function ContactPage() {
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-400">{c.friday}</span>
-                <span className="font-bold text-white" dir="ltr">09:00 – 16:00</span>
+                <span className="font-bold text-white" dir="ltr">09:00 – 16:30</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-400">{c.saturday}</span>

@@ -4,7 +4,7 @@ import { waitUntilInteractive } from './hydration';
 
 /** Tailwind `xl`: the grouped desktop flyouts become the touch-first drawer below this width. */
 const DRAWER_BREAKPOINT_PX = 1280;
-/** Tailwind `sm`: below it the language and theme controls live inside the drawer (UX-1). */
+/** Tailwind `sm`: below it the compact theme control lives inside the drawer. */
 const DRAWER_CONTROLS_BREAKPOINT_PX = 640;
 
 const NATIVE_LANGUAGE_NAMES: Record<Language, string> = {
@@ -18,12 +18,14 @@ const NATIVE_LANGUAGE_NAMES: Record<Language, string> = {
 /** Global header and footer shared by every public page. */
 export class SiteChrome {
   readonly navbar: Locator;
+  readonly utilityBar: Locator;
   readonly footer: Locator;
 
   constructor(readonly page: Page) {
     this.navbar = page
       .getByRole('navigation')
       .filter({ has: page.getByRole('link', { name: /SIM DREAM/ }) });
+    this.utilityBar = page.locator('[data-site-utility-bar]');
     this.footer = page.getByRole('contentinfo');
   }
 
@@ -31,7 +33,7 @@ export class SiteChrome {
     return (this.page.viewportSize()?.width ?? 1280) < DRAWER_BREAKPOINT_PX;
   }
 
-  /** On phones the language and theme controls are inside the drawer. */
+  /** The compact theme control moves into the drawer on phones. */
   get controlsInDrawer(): boolean {
     return (this.page.viewportSize()?.width ?? 1280) < DRAWER_CONTROLS_BREAKPOINT_PX;
   }
@@ -99,14 +101,13 @@ export class SiteChrome {
 
   /** The visible language menu button (its name is the current code plus native language name). */
   languageButton(): Locator {
-    return this.navbar.locator('button[data-language-selector-trigger]').filter({ visible: true }).first();
+    return this.utilityBar.locator('button[data-language-selector-trigger]').filter({ visible: true }).first();
   }
 
   async switchLanguage(language: Language): Promise<void> {
-    await this.revealHeaderControls();
     await waitUntilInteractive(this.languageButton());
     await this.languageButton().click();
-    await this.navbar.getByRole('option', { name: NATIVE_LANGUAGE_NAMES[language] }).click();
+    await this.page.getByRole('option', { name: NATIVE_LANGUAGE_NAMES[language] }).click();
   }
 
   themeButton(name: string | RegExp = /Switch UI Interface/): Locator {

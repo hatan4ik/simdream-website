@@ -90,7 +90,7 @@ Always reserve operating capacity via `getReservedMinutesForFlight()`:
 
 ### Operating Windows
 - **Sunday–Thursday**: `10:00–23:00` (780 min)
-- **Friday**: `09:00–16:00` (420 min, includes `15:15` closer)
+- **Friday**: `09:00–16:30` (450 min, with a `15:45` 30-minute closer)
 - **Saturday**: `19:00–24:00` (300 min Prime-Time only; 45m promo strictly forbidden)
 
 ### Block Rhythm (intentional strictness)
@@ -167,7 +167,7 @@ Before completing any feature or code change:
 1. Run `npm run build` — must compile with 0 TypeScript or build errors across all 35 routes.
 2. Verify `/book` with consumer packages (30m, 45m, 60m, 90m) &rarr; 3-step flow with add-ons.
 3. Verify `/book` with PRO packages (`/book?package=airline-interview-prep-90-pro`) &rarr; 2-step noise-free flow.
-4. Verify calendar across Sunday (10:00–23:00), Friday (09:00–16:00), and Saturday (19:00–24:00 Prime-Time).
+4. Verify calendar across Sunday (10:00–23:00), Friday (09:00–16:30), and Saturday (19:00–24:00 Prime-Time).
 5. Verify all 5 language switchers (`he`, `en`, `ru`, `fr`, `ar`) render correctly with zero mixed scripts or broken keys.
 6. Verify the brand identity in both themes: official logo (orange airplane + cerulean wordmark), translated tagline, and no off-brand blues or cyans (§1, Brand Identity).
 7. Verify responsive header and UI fit across all viewports from 320px (iPhone SE) to 1920px desktop (`tests/usability/header-fit.spec.ts`), with 44x44px minimum tap targets.

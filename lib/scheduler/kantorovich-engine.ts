@@ -63,14 +63,14 @@ export function getDayOperatingConfig(dateString: string): DayOperatingConfig {
   const dateObj = new Date(year, (month || 1) - 1, day || 1);
   const dayOfWeek = dateObj.getDay();
 
-  // Friday: 09:00 - 16:00 (420 minutes)
+  // Friday: 09:00 - 16:30 (450 minutes)
   if (dayOfWeek === 5) {
     return {
       dayOfWeek,
       openMinutes: 9 * 60, // 540
-      closeMinutes: 16 * 60, // 960
-      totalFundMinutes: 420,
-      operatingWindow: '09:00 – 16:00',
+      closeMinutes: 16 * 60 + 30, // 990
+      totalFundMinutes: 450,
+      operatingWindow: '09:00 – 16:30',
       isSaturday: false,
       isFriday: true,
     };
@@ -228,15 +228,15 @@ function getBlockMetadata(
     };
   }
   if (config.isFriday) {
-    if (startMinutes >= 15 * 60 + 15) {
+    if (startMinutes >= 15 * 60 + 45) {
       return {
         period: 'friday_closer',
-        label: 'Friday Zero-Waste Closer (15:15–16:00 • 30m Exclusive)',
+        label: 'Friday Zero-Waste Closer (15:45–16:30 • 30m Exclusive)',
       };
     }
     return {
       period: 'morning',
-      label: 'Friday Morning & Midday (09:00–15:15 • 75m Step)',
+      label: 'Friday Morning & Midday (09:00–15:45 • 75m Step)',
     };
   }
 
@@ -263,7 +263,7 @@ function getBlockMetadata(
  * Incorporates:
  * - T_reserved = T_play + 15 min
  * - Sun-Thu 3-block architecture (Morning 75m step, Afternoon dynamic 45m/60m/75m step, Evening 75m step)
- * - Friday 09:00-16:00 with 15:15 final 30m closer
+ * - Friday 09:00-16:30 with a 15:45 final 30m closer
  * - Saturday 19:00-24:00 100% prime-time
  * - 150-minute block Smart Pairing (e.g. 30m at 18:00 -> highlights 18:45 for 90m)
  * - Anti-Gap Zero-Waste protection (disables slots that create 15m/30m/un-tileable orphan windows)
@@ -298,7 +298,8 @@ export function generateKantorovichSlots(
   const candidateStarts = new Set<number>();
 
   if (config.isFriday) {
-    // Friday (09:00 - 16:00): 09:00, 10:15, 11:30, 12:45, 14:00 + 15:15 (30m closer)
+    // Friday (09:00 - 16:30): six 75m constructor starts. The final 15:45
+    // 45-minute block is intentionally reserved for the 30m discovery closer.
     [
       9 * 60,
       10 * 60 + 15,
@@ -307,6 +308,7 @@ export function generateKantorovichSlots(
       14 * 60,
       15 * 60 + 15,
     ].forEach((m) => candidateStarts.add(m));
+    if (durationMinutes <= 30) candidateStarts.add(15 * 60 + 45);
   } else if (config.isSaturday) {
     // Saturday (19:00 - 24:00): 19:00, 20:15, 21:30, 22:45
     [19 * 60, 20 * 60 + 15, 21 * 60 + 30, 22 * 60 + 45].forEach((m) =>
@@ -364,6 +366,7 @@ export function generateKantorovichSlots(
     ? [
         { start: 9 * 60, end: 11 * 60 + 30 },
         { start: 11 * 60 + 30, end: 14 * 60 },
+        { start: 14 * 60, end: 16 * 60 + 30 },
       ]
     : [
         { start: 10 * 60, end: 12 * 60 + 30 },
@@ -385,8 +388,8 @@ export function generateKantorovichSlots(
     const { period, label } = getBlockMetadata(startMin, config);
     const pricing = getKantorovichPricing(durationMinutes, startMin, config.isSaturday);
 
-    // 1. Check Friday 15:15 closer rule
-    if (config.isFriday && startMin === 15 * 60 + 15 && durationMinutes > 30) {
+    // 1. Check Friday 15:45 closer rule
+    if (config.isFriday && startMin === 15 * 60 + 45 && durationMinutes > 30) {
       slots.push({
         id: `slot-${dateString}-${startTimeStr}`,
         date: dateString,
@@ -403,7 +406,7 @@ export function generateKantorovichSlots(
         basePriceIls: pricing.basePriceIls,
         yieldPerMinIls: pricing.yieldPerMinIls,
         disabledReason: 'friday_closer_30m_only',
-        disabledNote: 'Friday 15:15–16:00 (45m) is reserved exclusively for a 30m discovery flight to close at 16:00 with 0m waste.',
+        disabledNote: 'Friday 15:45–16:30 (45m) is reserved exclusively for a 30m discovery flight to close at 16:30 with 0m waste.',
       });
       continue;
     }
@@ -529,9 +532,9 @@ export function generateKantorovichSlots(
     let smartRecommendation: FlightSlot['smartRecommendation'] = null;
     let recommendationNote: string | undefined;
 
-    if (config.isFriday && startMin === 15 * 60 + 15 && durationMinutes <= 30) {
+    if (config.isFriday && startMin === 15 * 60 + 45 && durationMinutes <= 30) {
       smartRecommendation = 'friday_30m_closer';
-      recommendationNote = 'Closes Friday at 16:00 with 0m waste (45m slot block)';
+      recommendationNote = 'Closes Friday at 16:30 with 0m waste (45m slot block)';
     } else {
       // Check if this slot completes a 150-minute constructor block alongside an existing booking
       for (const blk of constructor150Blocks) {

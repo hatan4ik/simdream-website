@@ -23,7 +23,7 @@ test('declares the viewport, theme colour and web-app metadata, and keeps pinch 
   await expect(viewport).toHaveAttribute('content', /viewport-fit=cover/);
   await expect(viewport).not.toHaveAttribute('content', /maximum-scale|user-scalable/);
 
-  await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', COCKPIT);
+  await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', DAYLIGHT);
   await expect(page.locator('meta[name="apple-mobile-web-app-capable"]')).toHaveAttribute('content', 'yes');
   await expect(page.locator('meta[name="apple-mobile-web-app-title"]')).toHaveAttribute('content', 'Sim Dream');
   await expect(page.locator('meta[name="apple-mobile-web-app-status-bar-style"]')).toHaveAttribute('content', 'default');
@@ -34,19 +34,20 @@ test('retints the browser chrome when the interface theme switches', async ({ pa
   await isolateFromThirdParties(page, baseURL);
   await page.goto('/');
   const themeColor = page.locator('meta[name="theme-color"]');
-  await expect(themeColor).toHaveAttribute('content', COCKPIT);
-
-  const headerSwitch = page.getByRole('navigation').locator('button[aria-label^="Cockpit Night,"]').first();
-  await activate(headerSwitch);
-  await expect(page.locator('html')).toHaveAttribute('data-ui', 'brand');
   await expect(themeColor).toHaveAttribute('content', DAYLIGHT);
 
-  await activate(page.getByRole('navigation').locator('button[aria-label^="SimDream Day,"]').first());
+  const headerSwitch = page.getByRole('navigation').locator('button[aria-label^="SimDream Day,"]').first();
+  await activate(headerSwitch);
+  await expect(page.locator('html')).toHaveAttribute('data-ui', 'brand');
   await expect(page.locator('html')).toHaveAttribute('data-look', 'studio');
   await expect(themeColor).toHaveAttribute('content', STUDIO);
 
   await activate(page.getByRole('navigation').locator('button[aria-label^="Clean Studio,"]').first());
+  await expect(page.locator('html')).toHaveAttribute('data-ui', 'cockpit');
   await expect(themeColor).toHaveAttribute('content', COCKPIT);
+
+  await activate(page.getByRole('navigation').locator('button[aria-label^="Cockpit Night,"]').first());
+  await expect(themeColor).toHaveAttribute('content', DAYLIGHT);
 });
 
 test('serves an opaque 180px touch icon and a manifest whose PNG icons all resolve', async ({ page, request, baseURL }) => {
@@ -87,7 +88,7 @@ test('serves an opaque 180px touch icon and a manifest whose PNG icons all resol
   const manifestResponse = await request.get(manifestHref!);
   expect(manifestResponse.status()).toBe(200);
   const manifest = await manifestResponse.json();
-  expect(manifest).toMatchObject({ short_name: 'Sim Dream', start_url: '/', display: 'standalone', theme_color: COCKPIT });
+  expect(manifest).toMatchObject({ short_name: 'Sim Dream', start_url: '/', display: 'standalone', theme_color: DAYLIGHT });
   expect(manifest.icons.map((entry: { sizes: string }) => entry.sizes)).toEqual(expect.arrayContaining(['192x192', '512x512']));
   expect(manifest.icons.some((entry: { purpose?: string }) => entry.purpose === 'maskable')).toBe(true);
   for (const entry of manifest.icons as Array<{ src: string; type: string }>) {

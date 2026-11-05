@@ -54,7 +54,7 @@ export const FACILITY_INFO = {
   },
   hours: {
     sunThu: { open: '10:00', close: '23:00', openMin: 600, closeMin: 1380 },
-    fri: { open: '09:00', close: '16:00', openMin: 540, closeMin: 960 },
+    fri: { open: '09:00', close: '16:30', openMin: 540, closeMin: 990 },
     sat: { open: '19:00', close: '24:00', openMin: 1140, closeMin: 1440 },
   },
 } as const;
@@ -73,7 +73,7 @@ export interface LiveFacilityStatus {
  * Dynamically calculates whether SimDream Tel Aviv is currently OPEN or CLOSED
  * in Israel Standard/Daylight Time (Asia/Jerusalem) against the official schedule:
  * - Sun–Thu: 10:00 – 23:00
- * - Fri:     09:00 – 16:00
+ * - Fri:     09:00 – 16:30
  * - Sat:     19:00 – 24:00
  */
 export function getLiveFacilityStatus(now: Date = new Date()): LiveFacilityStatus {
@@ -114,9 +114,9 @@ export function getLiveFacilityStatus(now: Date = new Date()): LiveFacilityStatu
 
     if (dow === 5) {
       openMin = 540;
-      closeMin = 960;
+      closeMin = 990;
       openLabel = '09:00';
-      closeLabel = '16:00';
+      closeLabel = '16:30';
     } else if (dow === 6) {
       openMin = 1140;
       closeMin = 1440;
@@ -179,9 +179,9 @@ export function getLiveFacilityStatus(now: Date = new Date()): LiveFacilityStatu
       israelTimeFormatted: '12:00',
       currentDayRange: '10:00 – 23:00',
       statusHeadlineEn: 'OPEN & OPERATIONAL • Advance Booking Required',
-      statusSublineEn: 'Sun–Thu 10:00–23:00 • Fri 09:00–16:00 • Sat 19:00–24:00',
+      statusSublineEn: 'Sun–Thu 10:00–23:00 • Fri 09:00–16:30 • Sat 19:00–24:00',
       statusHeadlineHe: 'פתוח ופעיל • בתיאום והזמנה מראש',
-      statusSublineHe: 'א׳–ה׳ 10:00–23:00 • ו׳ 09:00–16:00 • ש׳ 19:00–24:00',
+      statusSublineHe: 'א׳–ה׳ 10:00–23:00 • ו׳ 09:00–16:30 • ש׳ 19:00–24:00',
     };
   }
 }

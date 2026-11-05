@@ -101,7 +101,7 @@ describe('getDayOperatingConfig', () => {
     ['tuesday', 2, '10:00', '23:00', 780],
     ['wednesday', 3, '10:00', '23:00', 780],
     ['thursday', 4, '10:00', '23:00', 780],
-    ['friday', 5, '09:00', '16:00', 420],
+    ['friday', 5, '09:00', '16:30', 450],
     ['saturday', 6, '19:00', '24:00', 300],
   ] as const)('opens %s (day %i) from %s to %s, %i minutes', (day, dayOfWeek, open, close, fund) => {
     const config = getDayOperatingConfig(WEEKDAY_DATES[day]);
@@ -425,37 +425,40 @@ describe('daytime promo (45 minutes)', () => {
 });
 
 describe('Friday window', () => {
-  it('opens 09:00–16:00 on a 75-minute step with a 15:15 closer for entry flights', () => {
+  it('opens 09:00–16:30 and reserves the final 45-minute block for a 15:45 entry-flight closer', () => {
     const slots = generateKantorovichSlots(WEEKDAY_DATES.friday, 30, []);
-    expect(availableStarts(slots)).toEqual(['09:00', '10:15', '11:30', '12:45', '14:00', '15:15']);
-    expect(slotAt(slots, '15:15')).toMatchObject({
+    expect(availableStarts(slots)).toEqual(['09:00', '10:15', '11:30', '12:45', '14:00', '15:45']);
+    expect(slotAt(slots, '15:45')).toMatchObject({
       available: true,
-      reservedEndTime: '16:00',
+      reservedEndTime: '16:30',
       blockPeriod: 'friday_closer',
       smartRecommendation: 'friday_30m_closer',
     });
   });
 
-  it('also offers the 15:15 closer to the legacy 30-minute flight', () => {
-    expect(slotAt(generateKantorovichSlots(WEEKDAY_DATES.friday, 30, []), '15:15')?.available).toBe(true);
+  it('offers the 15:45 closer only to the 30-minute flight', () => {
+    expect(slotAt(generateKantorovichSlots(WEEKDAY_DATES.friday, 30, []), '15:45')?.available).toBe(true);
+    for (const duration of [45, 60, 90, 120]) {
+      expect(slotAt(generateKantorovichSlots(WEEKDAY_DATES.friday, duration, []), '15:45')).toBeUndefined();
+    }
   });
 
-  it.each([45, 60, 90, 120])('reserves the 15:15 closer away from %i-minute flights', (duration) => {
-    expect(slotAt(generateKantorovichSlots(WEEKDAY_DATES.friday, duration, []), '15:15')).toMatchObject({
-      available: false,
-      disabledReason: 'friday_closer_30m_only',
+  it('uses the new 15:15 constructor start for a 60-minute flight', () => {
+    expect(slotAt(generateKantorovichSlots(WEEKDAY_DATES.friday, 60, []), '15:15')).toMatchObject({
+      available: true,
+      reservedEndTime: '16:30',
     });
   });
 
   it.each([
-    [60, ['09:00', '10:15', '11:30', '12:45', '14:00']],
-    [90, ['09:00', '10:15', '11:30', '12:45']],
-    [120, ['09:00', '10:15', '11:30', '12:45']],
-  ])('offers %i-minute flights only where they close cleanly by 16:00', (duration, expected) => {
+    [60, ['09:00', '10:15', '11:30', '12:45', '14:00', '15:15']],
+    [90, ['09:00', '10:15', '11:30', '12:45', '14:00']],
+    [120, ['09:00', '10:15', '11:30', '12:45', '14:00']],
+  ])('offers %i-minute flights only where they close cleanly by 16:30', (duration, expected) => {
     expect(availableStarts(generateKantorovichSlots(WEEKDAY_DATES.friday, duration, []))).toEqual(expected);
   });
 
-  it('keeps every Friday departure daytime, inside 09:00–16:00, with 15:15 only for entry flights', () => {
+  it('keeps every Friday departure daytime, inside 09:00–16:30, with 15:45 only for entry flights', () => {
     let checked = 0;
     fc.assert(
       fc.property(
@@ -472,8 +475,8 @@ describe('Friday window', () => {
             const interval = reservedInterval(slot.startTime, duration);
             expect(slot.isPrimeTime).toBe(false);
             expect(interval.start).toBeGreaterThanOrEqual(timeToMinutes('09:00'));
-            expect(interval.end).toBeLessThanOrEqual(timeToMinutes('16:00'));
-            expect(slot.startTime === '15:15' && duration > 30).toBe(false);
+            expect(interval.end).toBeLessThanOrEqual(timeToMinutes('16:30'));
+            expect(slot.startTime === '15:45' && duration > 30).toBe(false);
           }
         }
       ),

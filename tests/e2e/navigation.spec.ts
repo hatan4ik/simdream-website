@@ -89,24 +89,11 @@ test.describe('primary navigation', () => {
     await expect(chrome.footer.getByRole('link', { name: 'Admin Dispatch Board' })).toHaveCount(0);
   });
 
-  test('offers the official social channels from the header menu', async ({ page, chrome }) => {
+  test('keeps the official social channels permanently available in the upper utility bar', async ({ page, chrome }) => {
     await page.goto('/');
 
-    if (chrome.usesDrawer || (await chrome.menuToggle().isVisible())) {
-      await chrome.openMenu();
-      for (const channel of ['Instagram', 'Facebook', 'YouTube']) {
-        const social = chrome.navbar.getByRole('link', { name: channel, exact: true });
-        await expect(social).toHaveAttribute('href', /^https:\/\/(www\.)?(instagram|facebook|youtube)\.com\//);
-        await expect(social).toHaveAttribute('target', '_blank');
-      }
-      return;
-    }
-
-    const trigger = chrome.navbar.getByRole('button', { name: 'Social Media', exact: true });
-    await trigger.click();
-    const menu = chrome.navbar.getByRole('menu', { name: 'Social Media', exact: true });
     for (const channel of ['Instagram', 'Facebook', 'YouTube']) {
-      const social = menu.getByRole('menuitem', { name: channel, exact: true });
+      const social = chrome.utilityBar.getByRole('link', { name: channel, exact: true });
       await expect(social).toHaveAttribute('href', /^https:\/\/(www\.)?(instagram|facebook|youtube)\.com\//);
       await expect(social).toHaveAttribute('target', '_blank');
     }

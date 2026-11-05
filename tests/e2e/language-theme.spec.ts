@@ -56,22 +56,25 @@ test.describe('language switcher', () => {
 });
 
 test.describe('interface theme switcher', () => {
-  test('toggles from cockpit to brand and keeps brand across reload and navigation', async ({ page, chrome }) => {
+  test('uses brand daylight by default and keeps a visitor-selected studio theme across reload and navigation', async ({ page, chrome }) => {
     await page.goto('/vouchers');
-    await expect(chrome.html()).toHaveAttribute('data-ui', 'cockpit');
+    await expect(chrome.html()).toHaveAttribute('data-ui', 'brand');
 
     await chrome.toggleTheme();
     await expect(chrome.html()).toHaveAttribute('data-ui', 'brand');
+    await expect(chrome.html()).toHaveAttribute('data-look', 'studio');
 
     await page.reload();
     await expect(chrome.html()).toHaveAttribute('data-ui', 'brand');
+    await expect(chrome.html()).toHaveAttribute('data-look', 'studio');
 
     await follow(chrome.homeLink(), '/');
     await expect(page).toHaveURL('/');
     await expect(chrome.html()).toHaveAttribute('data-ui', 'brand');
   });
 
-  test('cycles cockpit → brand → studio → cockpit and keeps cockpit after reload', async ({ page, chrome }) => {
+  test('cycles cockpit → brand → studio → cockpit when the visitor chooses cockpit', async ({ page, chrome }) => {
+    await preferTheme(page, 'cockpit');
     await page.goto('/');
     await expectThemeApplied(page, 'cockpit');
 

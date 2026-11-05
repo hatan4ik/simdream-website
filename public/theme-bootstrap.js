@@ -6,7 +6,7 @@
 try {
   var theme = localStorage.getItem('simdream_ui_theme');
   var root = document.documentElement;
-  root.setAttribute('data-ui', theme === 'brand' || theme === 'studio' ? 'brand' : 'cockpit');
+  root.setAttribute('data-ui', theme === 'cockpit' ? 'cockpit' : 'brand');
   if (theme === 'studio') root.setAttribute('data-look', 'studio');
 } catch (e) {}
 

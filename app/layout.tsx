@@ -24,12 +24,12 @@ export const metadata: Metadata = {
 
 // viewport-fit=cover lets the page reach the notch edges; globals.css pads the safe areas.
 // No maximum-scale or user-scalable=no: pinch zoom must keep working (WCAG 1.4.4).
-// theme-color is the Cockpit Night page background; UiThemeProvider updates it on switch.
+// theme-color starts at SimDream Day; UiThemeProvider updates it on switch.
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
-  themeColor: '#070b14',
+  themeColor: '#f8fafc',
 };
 
 export default async function RootLayout({
@@ -40,7 +40,7 @@ export default async function RootLayout({
   const nonce = (await headers()).get('x-nonce') ?? undefined;
 
   return (
-    <html lang="en" data-ui="cockpit" className="dark scroll-smooth" suppressHydrationWarning>
+    <html lang="en" data-ui="brand" className="scroll-smooth" suppressHydrationWarning>
       <head>
         <StructuredDataJsonLd nonce={nonce} />
         {/* Blocking on purpose: sets data-ui before first paint. Same-origin file keeps the CSP strict. */}

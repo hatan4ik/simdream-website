@@ -64,6 +64,12 @@ const nextConfig = {
   distDir: process.env.NEXT_DIST_DIR || '.next',
   // No remote image hosts are allowed. The site renders no remote images, and a
   // wildcard turned /_next/image into an optimizer proxy for any HTTPS host.
+  // Wix's managed OpenNext worker serves public assets but does not expose Next's
+  // /_next/image optimization endpoint. Ship the local brand and editorial images
+  // directly so the same build works on Wix hosting and local Next servers.
+  images: {
+    unoptimized: true,
+  },
   turbopack: {
     root: process.cwd(),
   },

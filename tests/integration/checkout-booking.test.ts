@@ -588,17 +588,17 @@ describe('POST /api/checkout: catalogue and schedule rules', () => {
     expect(app.checkoutSessions).toHaveLength(0);
   });
 
-  it('sells the Friday 15:15 closer to a 30-minute flight', async () => {
+  it('sells the Friday 15:45 closer to a 30-minute flight', async () => {
     const app = await loadApp({ stripe: 'mocked' });
 
-    const response = await postCheckout(app, bookingCheckoutBody({ bookingDate: EMPTY_DAY.friday, startTime: '15:15' }));
+    const response = await postCheckout(app, bookingCheckoutBody({ bookingDate: EMPTY_DAY.friday, startTime: '15:45' }));
 
     expect(response.status).toBe(201);
     expectContract(stripeCheckoutStarted, response.body);
     expect(app.checkoutSessions).toHaveLength(1);
   });
 
-  it('refuses the Friday 15:15 closer to a 60-minute flight with 409', async () => {
+  it('sells the Friday 15:15 60-minute departure in the extended operating window', async () => {
     const app = await loadApp({ stripe: 'mocked' });
 
     const response = await postCheckout(
@@ -606,9 +606,9 @@ describe('POST /api/checkout: catalogue and schedule rules', () => {
       bookingCheckoutBody({ packageId: 'pkg-captain-60', bookingDate: EMPTY_DAY.friday, startTime: '15:15' })
     );
 
-    expect(response.status).toBe(409);
-    expect(expectContract(errorBody, response.body).error).toBe('The selected departure slot is no longer available.');
-    expect(app.checkoutSessions).toHaveLength(0);
+    expect(response.status).toBe(201);
+    expectContract(stripeCheckoutStarted, response.body);
+    expect(app.checkoutSessions).toHaveLength(1);
   });
 
   it('rejects a booking dated yesterday in Israel even while that date is still today in UTC', async () => {

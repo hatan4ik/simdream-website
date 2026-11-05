@@ -138,7 +138,7 @@ flowchart TD
 flowchart LR
     subgraph Windows["1. Operating Windows"]
         SunThu["Sun–Thu: 10:00–23:00 (780m)"]
-        Fri["Fri: 09:00–16:00 (420m)"]
+        Fri["Fri: 09:00–16:30 (450m)"]
         Sat["Sat: 19:00–24:00 (300m Prime-Time)"]
     end
 

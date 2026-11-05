@@ -23,7 +23,6 @@ import { buttonClassName } from '@/components/ui/Button';
 import { useAuth } from '@/lib/auth/auth-context';
 import { FACILITY_INFO } from '@/lib/config/facility-info';
 import { useLanguage } from '@/lib/i18n/language-context';
-import { LanguageSelector } from './LanguageSelector';
 import { UiThemeSwitcher } from './UiThemeSwitcher';
 
 const demoModeEnabled = process.env.NODE_ENV !== 'production' && !process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -309,8 +308,6 @@ export function Navbar() {
             onPointerDown={() => setActiveDesktopMenu(null)}
           >
             <UiThemeSwitcher variant="compact" />
-            <LanguageSelector />
-
             <div className="relative">
               <button
                 ref={userTriggerRef}
@@ -432,7 +429,6 @@ export function Navbar() {
             <div className="flex items-center gap-1.5 md:hidden">
               <div className="hidden sm:flex items-center gap-1.5">
                 <UiThemeSwitcher variant="compact" />
-                <LanguageSelector />
               </div>
               <Link
                 href="/book"
@@ -582,9 +578,6 @@ export function Navbar() {
 
           <div className="pt-2 border-t border-slate-800 space-y-2">
             <UiThemeSwitcher variant="full" />
-            <div className="sm:hidden">
-              <LanguageSelector placement="up" />
-            </div>
           </div>
 
           {demoModeEnabled && (

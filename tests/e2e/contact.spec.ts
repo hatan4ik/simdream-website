@@ -26,7 +26,7 @@ test.describe('contact page', () => {
 
       const hours = page.getByRole('heading', { level: 2, name: 'Simulator Operating Hours' }).locator('..');
       await expect(hours).toContainText('10:00 – 23:00');
-      await expect(hours).toContainText('09:00 – 16:00');
+      await expect(hours).toContainText('09:00 – 16:30');
       await expect(hours).toContainText('19:00 – 24:00');
     });
   });

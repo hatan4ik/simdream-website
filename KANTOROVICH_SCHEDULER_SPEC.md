@@ -34,10 +34,12 @@ The public recreational catalog exposes 30, 45, 60, and 90 minute package durati
 | Day | Operating window | Capacity |
 | --- | --- | ---: |
 | Sunday–Thursday | 10:00–23:00 | 780 min |
-| Friday | 09:00–16:00 | 420 min |
+| Friday | 09:00–16:30 | 450 min |
 | Saturday | 19:00–24:00 | 300 min |
 
 The engine generates candidate starts from these operating windows, calculates each candidate's reserved end, then rejects a candidate when it collides with a non-cancelled booking, closes after the operating window, violates the daytime-only 45-minute promo rule, or leaves a non-tileable gap.
+
+Friday's extra 30 minutes extends the standard 75-minute constructor rhythm through a 15:15 60-minute departure (reserved to 16:30). The final 15:45–16:30 block remains a 30-minute discovery-flight closer, so the engine can finish the day without an orphaned interval.
 
 ### Gap tiling and availability
 

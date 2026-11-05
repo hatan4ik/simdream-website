@@ -25,7 +25,7 @@ function toMinutes(time: string): number {
 function operatingWindow(date: string): { open: number; close: number; weekday: number } {
   const [year, month, day] = date.split('-').map(Number);
   const weekday = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
-  if (weekday === 5) return { open: 9 * 60, close: 16 * 60, weekday };
+  if (weekday === 5) return { open: 9 * 60, close: 16 * 60 + 30, weekday };
   if (weekday === 6) return { open: 19 * 60, close: 24 * 60, weekday };
   return { open: 10 * 60, close: 23 * 60, weekday };
 }
@@ -183,24 +183,24 @@ describe('GET /api/slots', () => {
     expect(durationAvailability['45']).toEqual({ availableCount: 0, minPriceIls: 0 });
   });
 
-  it('closes the Friday 15:15 departure to flights longer than 30 minutes', async () => {
+  it('opens the Friday 15:15 departure to a 60-minute flight in the extended business window', async () => {
     const app = await loadApp();
 
     const closer = (await getSlots(app, EMPTY_DAY.friday, 60)).find((slot) => slot.startTime === '15:15');
 
-    expect(closer).toMatchObject({ available: false, disabledReason: 'friday_closer_30m_only', blockPeriod: 'friday_closer' });
+    expect(closer).toMatchObject({ available: true, reservedEndTime: '16:30' });
   });
 
-  it('offers the Friday 15:15 departure as the zero-waste closer for a 30-minute flight', async () => {
+  it('offers the Friday 15:45 departure as the zero-waste closer for a 30-minute flight', async () => {
     const app = await loadApp();
 
-    const closer = (await getSlots(app, EMPTY_DAY.friday, 30)).find((slot) => slot.startTime === '15:15');
+    const closer = (await getSlots(app, EMPTY_DAY.friday, 30)).find((slot) => slot.startTime === '15:45');
 
     expect(closer).toMatchObject({
       available: true,
       smartRecommendation: 'friday_30m_closer',
       blockPeriod: 'friday_closer',
-      reservedEndTime: '16:00',
+      reservedEndTime: '16:30',
     });
   });
 

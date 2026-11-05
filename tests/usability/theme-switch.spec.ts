@@ -82,6 +82,7 @@ for (const width of [1440, 1100]) {
 test('cycles night → daylight → studio → night and remembers the choice', async ({ page, baseURL }) => {
   await isolateFromThirdParties(page, baseURL);
   await preferLanguage(page, 'en');
+  await preferTheme(page, 'cockpit');
   await page.goto('/');
   const html = page.locator('html');
 

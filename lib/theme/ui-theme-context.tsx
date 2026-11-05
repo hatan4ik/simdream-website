@@ -4,8 +4,8 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 
 /**
  * Three interfaces (AGENTS.md §1.5):
- *   cockpit – Cockpit Night: dark slate, cerulean and orange accents (default)
- *   brand   – SimDream Day: cloud white with the brand colours
+ *   cockpit – Cockpit Night: dark slate, cerulean and orange accents
+ *   brand   – SimDream Day: cloud white with the brand colours (default)
  *   studio  – Clean Studio: the daylight palette restyled after apple.com's mobile site
  *             (white surfaces, 17px tight type, pill buttons, slim translucent nav)
  * `studio` is layered on `brand`: the document carries data-ui="brand" plus data-look="studio",
@@ -58,17 +58,17 @@ function applyThemeToDocument(theme: UiTheme): void {
 function themeFromDocument(): UiTheme {
   const root = document.documentElement;
   if (root.getAttribute('data-look') === 'studio') return 'studio';
-  return root.getAttribute('data-ui') === 'brand' ? 'brand' : 'cockpit';
+  return root.getAttribute('data-ui') === 'cockpit' ? 'cockpit' : 'brand';
 }
 
 export function UiThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<UiTheme>('cockpit');
+  const [theme, setThemeState] = useState<UiTheme>('brand');
 
   useEffect(() => {
     try {
       const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
       const initial = isUiTheme(savedTheme) ? savedTheme : themeFromDocument();
-      if (initial !== 'cockpit') {
+      if (initial !== 'brand') {
         setThemeState(initial);
         applyThemeToDocument(initial);
       }
@@ -113,4 +113,3 @@ export function useUiTheme() {
   }
   return context;
 }
-

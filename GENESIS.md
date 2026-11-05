@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:93be967f49b1b0b5bb409632dcb3fd4a3869c12518f15506f075db6bd725c3c8 -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:06183dc53d32dd677b6410cda12534d9b74a140b1ab6a1444a8bb084b6eb7227 -->
 
 ## Verification contract
 
@@ -243,7 +243,7 @@ Add 3 curated one-click combos. Localize every package and add-on in all five la
   | Day | Window | Minutes | Notes |
   | --- | --- | --- | --- |
   | Sunday–Thursday | 10:00–23:00 | 780 | |
-  | Friday | 09:00–16:00 | 420 | Includes a 15:15 closer |
+  | Friday | 09:00–16:30 | 450 | Includes a 15:45 30-minute closer |
   | Saturday | 19:00–24:00 | 300 | Prime time only; the 45-minute promo is forbidden |
 - **Slot generation**: `generateKantorovichSlots(date, duration, bookings)` returns every departure on a grid derived from the reserved blocks. Saturday 60-minute departures are 19:00, 20:15, 21:30 and 22:45. Each slot carries:
   - `available`;

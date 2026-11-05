@@ -395,7 +395,7 @@ function generateMonthAheadBookings(): Booking[] {
     let templates: SeedSlotTemplate[] = [];
 
     if (dow === 5) {
-      // FRIDAY (09:00 - 16:00, 420m fund)
+      // FRIDAY (09:00 - 16:30, 450m fund)
       if (dayOffset % 2 === 0) {
         templates = [
           {
@@ -405,7 +405,7 @@ function generateMonthAheadBookings(): Booking[] {
             startTime: '09:00',
             endTime: '10:00',
             priceIls: 690,
-            notes: 'Friday morning 75m base slot (09:00–10:15). Leaves 15:15 30m closer open.',
+            notes: 'Friday morning 75m base slot (09:00–10:15). Leaves the 15:45 30m closer open.',
           },
           {
             pkgId: 'pkg-captain-60',

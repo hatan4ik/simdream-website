@@ -114,7 +114,7 @@ Use `DATE_LOCALES`:
 The dispatcher selects an operational date (defaulting to tomorrow in Israel time). The view queries `GET /api/admin/schedule-efficiency?date=YYYY-MM-DD` and renders:
 1. **Total Daily Capacity**:
    - Sun–Thu: `780 min` (`10:00–23:00`)
-   - Fri: `420 min` (`09:00–16:00`)
+   - Fri: `450 min` (`09:00–16:30`)
    - Sat: `300 min` (`19:00–24:00` Prime-Time)
 2. **Occupied Flight & Buffer Minutes**: Sum of `reservedMinutes` for confirmed flights.
 3. **Orphan Gap Minutes ("Хвосты" / Wasted Runway Tail)**: Unusable gaps (< 45 min) between bookings or operating boundaries.
@@ -208,4 +208,3 @@ npx playwright test tests/a11y/a11y.spec.ts
 # 4. Header & Navigation fit from 320px to 1920px
 npx playwright test tests/usability/header-fit.spec.ts
 ```
-

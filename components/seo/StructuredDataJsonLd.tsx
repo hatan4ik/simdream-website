@@ -68,7 +68,7 @@ export function StructuredDataJsonLd({ nonce }: { nonce?: string }) {
             '@type': 'OpeningHoursSpecification',
             dayOfWeek: ['Friday'],
             opens: '09:00',
-            closes: '16:00',
+            closes: '16:30',
           },
           {
             '@type': 'OpeningHoursSpecification',
@@ -148,7 +148,7 @@ export function StructuredDataJsonLd({ nonce }: { nonce?: string }) {
             name: 'What are Sim Dream Tel Aviv’s opening hours and contact details?',
             acceptedAnswer: {
               '@type': 'Answer',
-              text: 'Sim Dream operates Sunday through Thursday from 10:00 to 23:00, Friday from 09:00 to 16:00, and Saturday from 19:00 to 24:00 (by advance reservation). You can reach Flight Dispatch by phone or WhatsApp at 055-507-1307 (+972-55-507-1307) or by email at desk@simdream.co.il.',
+              text: 'Sim Dream operates Sunday through Thursday from 10:00 to 23:00, Friday from 09:00 to 16:30, and Saturday from 19:00 to 24:00 (by advance reservation). You can reach Flight Dispatch by phone or WhatsApp at 055-507-1307 (+972-55-507-1307) or by email at desk@simdream.co.il.',
             },
           },
           {
