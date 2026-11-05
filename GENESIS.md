@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:1b0f75ca56b55d36bf33912569845d254b6c104650305547981aef112b6ad8b8 -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:0c19b90cbd9064a1717144085a096b677ec5fa997e0d4e2b8bd85dd4fcf437fd -->
 
 ## Verification contract
 
@@ -91,7 +91,7 @@ Sim Dream LTD runs one full-size **Boeing 737 MAX 8 flight simulator** at Gersho
 
 | Feature | Route(s) | Behaviour |
 | --- | --- | --- |
-| Marketing pages | `/`, `/experiences`, `/subscriptions`, `/about`, `/pro`, `/contact`, `/rules`, `/privacy-policy` | Five customer value pillars, live METAR ticker (LLBG) and facility open/closed status, Google reviews. `/about` is the customer story; `/pro` is professional airline-assessment training; `/subscriptions` is the dedicated 5-language annual flight subscription and multi-pass portal. |
+| Marketing pages | `/`, `/experiences`, `/subscriptions`, `/about`, `/pro`, `/contact`, `/rules`, `/privacy-policy` | Five customer value pillars, live METAR ticker (LLBG) and facility open/closed status, Google reviews. `/about` is the customer story; `/pro` is professional airline-assessment training; `/subscriptions` is the dedicated five-language annual flight-subscription portal. |
 | Booking engine | `/book`, `/book/success` | Two interfaces over identical availability logic: a one-page "Amazon-style" storefront and a guided 3-step wizard. The default calendar is week view (month is togglable), with slot selection, add-ons, pilot manifest and checkout. An on-request World Trio opens calendar-first, saves a validated request with the booking and explicitly awaits captain confirmation. The success page shows a boarding pass from a narrow public projection looked up by booking reference. |
 | Noise-free flows | `/book?package=…` | Professional Training and Fear of Flying suppress all add-ons and combos (2-step flow); recreational uses the full 3-step flow. |
 | Scheduling | `lib/scheduler/*` | Deterministic "tiled interval" engine: each flight reserves a fixed block (flight + turnaround), slots are generated per operating window, orphan gaps are prevented, departed slots close by the Israel clock, and a dynamic-programming optimizer previews zero-waste capacity for admins. |

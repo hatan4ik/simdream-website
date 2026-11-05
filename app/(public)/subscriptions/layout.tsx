@@ -7,3 +7,4 @@ export const metadata: Metadata = buildPageMetadata('subscriptions');
 export default function SubscriptionsLayout({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
+

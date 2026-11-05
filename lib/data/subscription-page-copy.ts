@@ -43,6 +43,8 @@ export interface SubscriptionPageCopy {
   filter10: string;
   recommendedBadge: string;
   perSessionLabel: string;
+  minutesLabel: string;
+  totalMinutesLabel: string;
   roadmapTitle: string;
   roadmapSubtitle: string;
   stages: [
@@ -68,6 +70,7 @@ export interface SubscriptionPageCopy {
   }>;
   faqTitle: string;
   faqSubtitle: string;
+  faqEyebrow: string;
   faqs: [
     SubscriptionFaqCopy,
     SubscriptionFaqCopy,
@@ -76,6 +79,7 @@ export interface SubscriptionPageCopy {
   ];
   bottomCtaTitle: string;
   bottomCtaSubtitle: string;
+  bottomCtaBadge: string;
   bottomCtaButton: string;
   bottomContactConcierge: string;
 }
@@ -83,18 +87,18 @@ export interface SubscriptionPageCopy {
 export const SUBSCRIPTION_PAGE_COPY: Record<Language, SubscriptionPageCopy> = {
   en: {
     eyebrow: "SIM DREAM CAPTAIN'S CLUB · ANNUAL SUBSCRIPTIONS",
-    heroTitle: 'One Flight Is a Memory. A Subscription Makes You a Pilot.',
+    heroTitle: 'One Flight Is a Memory. A Subscription Builds Flight Confidence.',
     heroSubtitle:
-      'Master 70 tons of Boeing 737 airliner power across five or ten structured flight sessions. Experience 1-on-1 coaching with commercial airline captains, 12 months of complete scheduling freedom, free jumpseat guests, and up to ₪2,550 in guaranteed savings.',
+      'Build confidence in the Boeing 737 across five or ten structured flight sessions. Follow a captain-led learning pathway over 12 months and see the value of every included session, with savings of up to ₪2,550 compared with individual sessions.',
     stats: {
       validityLabel: 'Scheduling Window',
       validityValue: '12 Months Valid',
-      savingsLabel: 'Guaranteed Savings',
+      savingsLabel: 'Subscription Value',
       savingsValue: 'Up to ₪2,550 Off',
       mentorshipLabel: 'Personal Coaching',
       mentorshipValue: 'Active Captains',
-      guestLabel: 'Observer Jumpseat',
-      guestValue: 'Free Every Flight',
+      guestLabel: 'Learning Pathway',
+      guestValue: 'Captain-led Sessions',
     },
     whySubscribeTitle: 'Why Choose an Annual Flight Subscription?',
     whySubscribeSubtitle:
@@ -113,12 +117,12 @@ export const SUBSCRIPTION_PAGE_COPY: Record<Language, SubscriptionPageCopy> = {
       {
         title: '365 Days of Scheduling Freedom',
         description:
-          'Your flight credits remain active for a full calendar year. Fly on weekends, weekday evenings, or holidays with direct priority booking through Captain Dispatch.',
+          'Plan sessions across a full calendar year. Requests are scheduled through the live calendar and confirmed by Captain Dispatch, so you can shape a rhythm that fits your goals.',
       },
       {
-        title: 'Bring a Co-Pilot or Observer for Free',
+        title: 'Captain-Tailored Mission Design',
         description:
-          'Every single flight session includes an accompanying cockpit jumpseat guest at zero extra charge. Share the thrill of commercial aviation with family, friends, or colleagues.',
+          'Your captain adapts each mission to your current confidence, interests and learning goals. Optional observer seating and separately listed add-ons remain subject to availability and confirmed terms.',
       },
     ],
     filterAll: 'All Subscriptions',
@@ -126,6 +130,8 @@ export const SUBSCRIPTION_PAGE_COPY: Record<Language, SubscriptionPageCopy> = {
     filter10: '10-Flight Track (Airline Syllabus)',
     recommendedBadge: 'CAPTAIN RECOMMENDED',
     perSessionLabel: 'effective per flight',
+    minutesLabel: 'min',
+    totalMinutesLabel: 'minutes total',
     roadmapTitle: 'The 5-Stage Flight Deck Learning Journey',
     roadmapSubtitle:
       'Every session builds on the last. Here is the structured syllabus you master alongside active airline captains.',
@@ -196,10 +202,10 @@ export const SUBSCRIPTION_PAGE_COPY: Record<Language, SubscriptionPageCopy> = {
         sub10: '12 full months (365 days)',
       },
       {
-        feature: 'Free Observer Jumpseat',
-        single: '1 session',
-        sub5: 'Free on all 5 sessions',
-        sub10: 'Free on all 10 sessions',
+        feature: 'Mission progression',
+        single: 'One guided mission',
+        sub5: 'Five-session progression',
+        sub10: 'Ten-session progression',
       },
       {
         feature: 'Personal Pilot Debrief',
@@ -211,16 +217,17 @@ export const SUBSCRIPTION_PAGE_COPY: Record<Language, SubscriptionPageCopy> = {
     faqTitle: 'Frequently Asked Questions About Subscriptions',
     faqSubtitle:
       'Everything you need to know about purchasing, scheduling, and enjoying your annual flight subscription.',
+    faqEyebrow: 'Subscription questions',
     faqs: [
       {
-        question: 'How do I schedule my flight sessions after purchasing a subscription?',
+        question: 'How are subscription sessions scheduled?',
         answer:
-          'Scheduling is completely flexible. You can book all sessions in advance or reserve them one by one through our dedicated Captain Dispatch desk or online member booking. There are no blackout dates.',
+          'Captain Dispatch can help you plan sessions together or one at a time. Every reservation remains subject to the live calendar and confirmed operating availability.',
       },
       {
-        question: 'Can I bring someone with me to the cockpit?',
+        question: 'Can I add focused cockpit-training themes?',
         answer:
-          'Yes. Every subscription session includes one free observer jumpseat in the cockpit. You are welcome to bring a different family member, friend, or partner on each flight.',
+          'Your captain can include educational themes such as Cold & Dark, Crosswind/IFR and Extreme Airports where appropriate. Any separately listed add-on time, price and observer seating are confirmed before booking.',
       },
       {
         question: 'Do I need previous flight or simulator experience?',
@@ -236,24 +243,25 @@ export const SUBSCRIPTION_PAGE_COPY: Record<Language, SubscriptionPageCopy> = {
     bottomCtaTitle: 'Ready to Begin Your Pilot Progression?',
     bottomCtaSubtitle:
       'Choose your subscription track or consult with our Chief Flight Instructor to design a custom training journey.',
+    bottomCtaBadge: 'SIM DREAM PILOT PROGRESSION',
     bottomCtaButton: 'Discuss Your Subscription with Dispatch',
     bottomContactConcierge: 'Have questions? Call or WhatsApp Captain Dispatch directly',
   },
 
   he: {
     eyebrow: 'מועדון הטיסה של סים דרים · מנויים שנתיים',
-    heroTitle: 'טיסה אחת היא חוויה בלתי נשכחת. מנוי הופך אתכם לטייסים.',
+    heroTitle: 'טיסה אחת היא חוויה בלתי נשכחת. מנוי בונה ביטחון בתא הטייס.',
     heroSubtitle:
-      'שלטו ב-70 טון של מטוס בואינג 737 לאורך חמש או עשר משימות טיסה מובנות. תיהנו מהדרכה אישית של קברניטי חברות תעופה, 12 חודשי חופש מוחלט בקביעת מועדים, מושב צופה חינם בכל טיסה, וחיסכון כספי מובטח של עד 2,550 ₪.',
+      'בנו ביטחון בבואינג 737 לאורך חמש או עשר פגישות טיסה מובנות. עקבו אחר מסלול למידה בהנחיית קברניט במשך 12 חודשים וראו את הערך של כל מפגש כלול, עם חיסכון של עד 2,550 ₪ ביחס למפגשים בודדים.',
     stats: {
       validityLabel: 'תוקף למימוש',
       validityValue: '12 חודשים מלאים',
-      savingsLabel: 'חיסכון מובטח',
+      savingsLabel: 'ערך המנוי',
       savingsValue: 'עד 2,550 ₪ הנחה',
       mentorshipLabel: 'הדרכה אישית',
       mentorshipValue: 'קברניטים פעילים',
-      guestLabel: 'מושב צופה',
-      guestValue: 'חינם בכל טיסה',
+      guestLabel: 'מסלול למידה',
+      guestValue: 'מפגשים בהנחיית קברניט',
     },
     whySubscribeTitle: 'למה לבחור במנוי טיסה שנתי?',
     whySubscribeSubtitle:
@@ -272,12 +280,12 @@ export const SUBSCRIPTION_PAGE_COPY: Record<Language, SubscriptionPageCopy> = {
       {
         title: '365 ימים של גמישות מוחלטת',
         description:
-          'יתרת הטיסות שלכם נשמרת לשנה קלנדרית מלאה. טסים בסופי שבוע, בערבים או בחגים בתיאום ישיר בעדיפות מול מחלקת המבצעים.',
+          'אפשר לתכנן מפגשים לאורך שנה קלנדרית מלאה. הבקשות מתוזמנות לפי היומן החי ומאושרות על ידי מחלקת המבצעים, כדי לבנות קצב שמתאים למטרות שלכם.',
       },
       {
-        title: 'מצרפים בן משפחה או חבר ללא תשלום',
+        title: 'עיצוב משימה אישי עם קברניט',
         description:
-          'כל מפגש טיסה כולל מושב צופה בתא הטייס ללא עלות נוספת. חולקים את חוויית התעופה המסחרית עם בן או בת זוג, ילדים או חברים.',
+          'הקברניט מתאים כל משימה לביטחון, לתחומי העניין ולמטרות הלמידה שלכם. מושב צופה ותוספות המופיעות בנפרד כפופים לזמינות ולתנאים המאושרים.',
       },
     ],
     filterAll: 'כל המנויים',
@@ -285,6 +293,8 @@ export const SUBSCRIPTION_PAGE_COPY: Record<Language, SubscriptionPageCopy> = {
     filter10: 'מסלול 10 טיסות (סילבוס חברת תעופה)',
     recommendedBadge: 'הבחירה המומלצת',
     perSessionLabel: 'מחיר אפקטיבי לטיסה',
+    minutesLabel: 'דקות',
+    totalMinutesLabel: 'דקות בסך הכול',
     roadmapTitle: 'מסע הלמידה בתא הטייס ב-5 שלבים',
     roadmapSubtitle:
       'כל מפגש נבנה על גבי קודמו. זהו הסילבוס המקצועי שתתרגלו לצד קברניטי חברות תעופה.',
@@ -355,10 +365,10 @@ export const SUBSCRIPTION_PAGE_COPY: Record<Language, SubscriptionPageCopy> = {
         sub10: '12 חודשים מלאים (365 ימים)',
       },
       {
-        feature: 'מושב צופה ללא עלות',
-        single: 'במפגש הבודד',
-        sub5: 'חינם בכל 5 המפגשים',
-        sub10: 'חינם בכל 10 המפגשים',
+        feature: 'התקדמות במשימות',
+        single: 'משימה מודרכת אחת',
+        sub5: 'התקדמות לאורך חמישה מפגשים',
+        sub10: 'התקדמות לאורך עשרה מפגשים',
       },
       {
         feature: 'תחקיר אישי ומשוב',
@@ -370,16 +380,17 @@ export const SUBSCRIPTION_PAGE_COPY: Record<Language, SubscriptionPageCopy> = {
     faqTitle: 'שאלות נפוצות על מנויי הטיסה',
     faqSubtitle:
       'כל מה שחשוב לדעת על רכישה, תיאום המועדים והחוויה במנוי הטיסה השנתי.',
+    faqEyebrow: 'שאלות על המנוי',
     faqs: [
       {
-        question: 'כיצד מתאמים את מועדי הטיסות לאחר רכישת המנוי?',
+        question: 'כיצד מתאמים את מפגשי המנוי?',
         answer:
-          'התיאום גמיש לחלוטין. ניתן לתאם את כל המפגשים מראש או לקבוע כל טיסה בנפרד מול מחלקת המבצעים שלנו או במערכת ההזמנות, ללא תאריכים חסומים.',
+          'מחלקת המבצעים יכולה לסייע בתכנון כל המפגשים יחד או אחד בכל פעם. כל הזמנה כפופה ליומן החי ולאישור זמינות תפעולית.',
       },
       {
-        question: 'האם מותר לצרף מלווה לתא הטייס?',
+        question: 'האם אפשר לשלב נושאי אימון ממוקדים בתא הטייס?',
         answer:
-          'בהחלט. כל מפגש מנוי כולל מושב צופה אחד ללא כל תוספת תשלום. ניתן להביא בן משפחה, חבר או שותף שונה בכל טיסה מחדש.',
+          'הקברניט יכול לשלב, לפי התאמה, נושאים לימודיים כגון Cold & Dark, רוח צד ו-IFR ושדות תעופה קיצוניים. זמן תוספת, מחיר ומושב צופה המופיעים בנפרד מאושרים לפני ההזמנה.',
       },
       {
         question: 'האם נדרש ניסיון טיסה קודם כדי להצטרף למנוי?',
@@ -395,24 +406,25 @@ export const SUBSCRIPTION_PAGE_COPY: Record<Language, SubscriptionPageCopy> = {
     bottomCtaTitle: 'מוכנים לקחת פיקוד על תא הטייס?',
     bottomCtaSubtitle:
       'בחרו את מסלול המנוי המתאים לכם או התייעצו עם המדריך הראשי לתכנון מסלול טיסה מותאם אישית.',
+    bottomCtaBadge: 'מסלול התקדמות לטייסי Sim Dream',
     bottomCtaButton: 'תיאום והרשמה למנוי מול מחלקת המבצעים',
     bottomContactConcierge: 'יש שאלות? חייגו או שלחו הודעת וואטסאפ ישירות לדיספצ׳ר',
   },
 
   ru: {
     eyebrow: 'ЛЁТНЫЙ КЛУБ SIM DREAM · ГОДОВЫЕ АБОНЕМЕНТЫ',
-    heroTitle: 'Один полёт — впечатление. Абонемент делает вас пилотом.',
+    heroTitle: 'Один полёт — впечатление. Абонемент развивает уверенность в кабине.',
     heroSubtitle:
-      'Освойте 70-тонный лайнер Boeing 737 за пять или десять структурированных миссий. Индивидуальный коучинг от действующих капитанов авиалиний, 12 месяцев полной свободы расписания, бесплатное место для гостя и гарантированная выгода до 2550 ₪.',
+      'Развивайте уверенность в Boeing 737 за пять или десять структурированных лётных сессий. Следуйте учебному пути с капитаном в течение 12 месяцев и видьте ценность каждой включённой сессии: выгода до 2550 ₪ по сравнению с отдельными сессиями.',
     stats: {
       validityLabel: 'Срок действия',
       validityValue: '12 месяцев',
-      savingsLabel: 'Гарантированная выгода',
+      savingsLabel: 'Выгода абонемента',
       savingsValue: 'До 2550 ₪ экономии',
       mentorshipLabel: 'Обучение с пилотом',
       mentorshipValue: 'Капитаны авиалиний',
-      guestLabel: 'Место наблюдателя',
-      guestValue: 'Бесплатно каждый полёт',
+      guestLabel: 'Учебный путь',
+      guestValue: 'Сессии с капитаном',
     },
     whySubscribeTitle: 'Почему стоит выбрать годовой абонемент?',
     whySubscribeSubtitle:
@@ -431,12 +443,12 @@ export const SUBSCRIPTION_PAGE_COPY: Record<Language, SubscriptionPageCopy> = {
       {
         title: '365 дней полной свободы графика',
         description:
-          'Ваши часы действительны целый год. Выбирайте выходные, будни или праздники с приоритетным согласованием через диспетчера.',
+          'Планируйте сессии в течение полного календарного года. Запросы проходят через живой календарь и подтверждаются диспетчерской, чтобы вы выбрали удобный для своих целей ритм.',
       },
       {
-        title: 'Бесплатное кресло для гостя',
+        title: 'Миссии, настроенные капитаном',
         description:
-          'Каждая сессия включает место наблюдателя в кабине без доплаты. Делитесь эмоциями с супругой, детьми или друзьями на каждом вылете.',
+          'Капитан адаптирует каждую миссию к вашей уверенности, интересам и целям обучения. Место наблюдателя и отдельно указанные дополнения зависят от доступности и подтверждённых условий.',
       },
     ],
     filterAll: 'Все абонементы',
@@ -444,6 +456,8 @@ export const SUBSCRIPTION_PAGE_COPY: Record<Language, SubscriptionPageCopy> = {
     filter10: '10 полётов (Курс авиалинии)',
     recommendedBadge: 'ВЫБОР КАПИТАНА',
     perSessionLabel: 'за каждый полёт',
+    minutesLabel: 'мин',
+    totalMinutesLabel: 'минут всего',
     roadmapTitle: '5 этапов освоения лайнера',
     roadmapSubtitle:
       'Каждое занятие строится на базе предыдущего. Вот программа, которую вы пройдёте рука об руку с капитаном.',
@@ -514,10 +528,10 @@ export const SUBSCRIPTION_PAGE_COPY: Record<Language, SubscriptionPageCopy> = {
         sub10: '12 месяцев (365 дней)',
       },
       {
-        feature: 'Гость в кабине',
-        single: '1 сессия',
-        sub5: 'Бесплатно все 5 сессий',
-        sub10: 'Бесплатно все 10 сессий',
+        feature: 'Прогресс по миссиям',
+        single: 'Одна миссия с инструктором',
+        sub5: 'Прогресс в пяти сессиях',
+        sub10: 'Прогресс в десяти сессиях',
       },
       {
         feature: 'Разбор от пилота',
@@ -529,16 +543,17 @@ export const SUBSCRIPTION_PAGE_COPY: Record<Language, SubscriptionPageCopy> = {
     faqTitle: 'Частые вопросы об абонементах',
     faqSubtitle:
       'Всё о приобретении, бронировании времени и прохождении лётной программы.',
+    faqEyebrow: 'Вопросы об абонементе',
     faqs: [
       {
-        question: 'Как бронировать даты после покупки абонемента?',
+        question: 'Как планируются сессии по абонементу?',
         answer:
-          'График полностью гибкий. Можно спланировать все сессии заранее или бронировать по одной через диспетчера без закрытых дат.',
+          'Диспетчерская может помочь спланировать сессии вместе или по одной. Каждое бронирование зависит от живого календаря и подтверждённой операционной доступности.',
       },
       {
-        question: 'Можно ли приводить с собой гостей в кабину?',
+        question: 'Можно ли добавить целевые темы для тренировки в кабине?',
         answer:
-          'Да. Каждое занятие включает одно бесплатное кресло наблюдателя. Вы можете приглашать разных гостей на каждую сессию.',
+          'Капитан может включить подходящие учебные темы, например Cold & Dark, Crosswind/IFR и Extreme Airports. Отдельно указанное дополнительное время, цена и место наблюдателя подтверждаются до бронирования.',
       },
       {
         question: 'Нужен ли предварительный опыт полетов?',
@@ -554,24 +569,25 @@ export const SUBSCRIPTION_PAGE_COPY: Record<Language, SubscriptionPageCopy> = {
     bottomCtaTitle: 'Готовы взять управление на себя?',
     bottomCtaSubtitle:
       'Выберите свой абонемент или обсудите индивидуальную программу с шеф-пилотом.',
+    bottomCtaBadge: 'Путь развития пилота Sim Dream',
     bottomCtaButton: 'Обсудить абонемент с диспетчером',
     bottomContactConcierge: 'Вопросы? Позвоните или напишите в WhatsApp диспетчеру',
   },
 
   fr: {
     eyebrow: 'CLUB DES COMMANDANTS SIM DREAM · ABONNEMENTS ANNUELS',
-    heroTitle: 'Un vol est un souvenir. Un abonnement fait de vous un pilote.',
+    heroTitle: 'Un vol est un souvenir. Un abonnement développe votre assurance aux commandes.',
     heroSubtitle:
-      'Prenez les commandes des 70 tonnes du Boeing 737 sur cinq ou dix missions progressives. Coaching individuel avec des commandants de ligne en activité, 12 mois de totale liberté de planning, place observateur offerte et jusqu’à 2 550 ₪ d’économie garantie.',
+      'Développez votre assurance sur Boeing 737 en cinq ou dix séances structurées. Suivez un parcours avec commandant pendant 12 mois et découvrez la valeur de chaque séance incluse, avec jusqu’à 2 550 ₪ d’économie par rapport aux séances individuelles.',
     stats: {
       validityLabel: 'Période de validité',
       validityValue: '12 mois complets',
-      savingsLabel: 'Économie garantie',
+      savingsLabel: 'Avantage abonnement',
       savingsValue: 'Jusqu’à 2 550 ₪',
       mentorshipLabel: 'Formation dédiée',
       mentorshipValue: 'Commandants de ligne',
-      guestLabel: 'Siège observateur',
-      guestValue: 'Offert à chaque vol',
+      guestLabel: 'Parcours d’apprentissage',
+      guestValue: 'Séances avec commandant',
     },
     whySubscribeTitle: 'Pourquoi choisir un abonnement annuel ?',
     whySubscribeSubtitle:
@@ -590,12 +606,12 @@ export const SUBSCRIPTION_PAGE_COPY: Record<Language, SubscriptionPageCopy> = {
       {
         title: '365 jours de liberté pour voler',
         description:
-          'Vos séances restent disponibles pendant une année civile complète. Volez en week-end, en soirée ou pendant les congés avec un accès prioritaire via le Dispatch.',
+          'Planifiez vos séances pendant une année civile complète. Les demandes passent par le calendrier en direct et sont confirmées par le Dispatch, afin de créer un rythme adapté à vos objectifs.',
       },
       {
-        title: 'Invitez un proche sans supplément',
+        title: 'Missions adaptées avec votre commandant',
         description:
-          'Chaque vol comprend un strapontin observateur dans le cockpit sans aucun frais supplémentaire. Partagez la passion avec un proche différent à chaque séance.',
+          'Votre commandant adapte chaque mission à votre assurance, vos intérêts et vos objectifs. La place observateur et les options affichées séparément dépendent des disponibilités et des conditions confirmées.',
       },
     ],
     filterAll: 'Tous les abonnements',
@@ -603,6 +619,8 @@ export const SUBSCRIPTION_PAGE_COPY: Record<Language, SubscriptionPageCopy> = {
     filter10: 'Cursus 10 vols (Ligne aérienne)',
     recommendedBadge: 'RECOMMANDÉ PAR LE CAPITAINE',
     perSessionLabel: 'coût effectif par vol',
+    minutesLabel: 'min',
+    totalMinutesLabel: 'minutes au total',
     roadmapTitle: 'Parcours d’apprentissage en 5 étapes',
     roadmapSubtitle:
       'Chaque séance consolide la précédente. Voici le syllabus professionnel développé avec nos commandants de bord.',
@@ -673,10 +691,10 @@ export const SUBSCRIPTION_PAGE_COPY: Record<Language, SubscriptionPageCopy> = {
         sub10: '12 mois complets (365 jours)',
       },
       {
-        feature: 'Invité observateur',
-        single: '1 fois',
-        sub5: 'Offert sur les 5 séances',
-        sub10: 'Offert sur les 10 séances',
+        feature: 'Progression des missions',
+        single: 'Une mission accompagnée',
+        sub5: 'Progression en cinq séances',
+        sub10: 'Progression en dix séances',
       },
       {
         feature: 'Débriefing personnalisé',
@@ -688,16 +706,17 @@ export const SUBSCRIPTION_PAGE_COPY: Record<Language, SubscriptionPageCopy> = {
     faqTitle: 'Questions fréquentes sur les abonnements',
     faqSubtitle:
       'Toutes les réponses pour choisir, planifier et profiter pleinement de votre abonnement.',
+    faqEyebrow: 'Questions sur l’abonnement',
     faqs: [
       {
-        question: 'Comment réserver mes séances après l’achat ?',
+        question: 'Comment les séances de l’abonnement sont-elles planifiées ?',
         answer:
-          'La planification est totalement libre. Vous pouvez programmer vos séances à l’avance ou les fixer une par une auprès de notre Dispatch, sans restriction de calendrier.',
+          'Le Dispatch peut vous aider à planifier les séances ensemble ou une à une. Chaque réservation dépend du calendrier en direct et de la disponibilité opérationnelle confirmée.',
       },
       {
-        question: 'Puis-je être accompagné dans le cockpit ?',
+        question: 'Puis-je ajouter des thèmes d’entraînement ciblés au cockpit ?',
         answer:
-          'Oui. Chaque séance comprend une place observateur gratuite dans le poste. Vous pouvez convier un proche différent à chaque vol.',
+          'Votre commandant peut intégrer des thèmes pédagogiques adaptés comme Cold & Dark, Crosswind/IFR et Extreme Airports. Le temps additionnel, le prix et la place observateur affichés séparément sont confirmés avant réservation.',
       },
       {
         question: 'Faut-il une expérience préalable en pilotage ?',
@@ -713,24 +732,25 @@ export const SUBSCRIPTION_PAGE_COPY: Record<Language, SubscriptionPageCopy> = {
     bottomCtaTitle: 'Prêt à prendre les commandes ?',
     bottomCtaSubtitle:
       'Sélectionnez votre formule ou échangez avec notre chef-pilote pour construire votre parcours sur mesure.',
+    bottomCtaBadge: 'Parcours pilote Sim Dream',
     bottomCtaButton: 'Organiser mon abonnement avec le Dispatch',
     bottomContactConcierge: 'Une question ? Contactez le Dispatch par téléphone ou WhatsApp',
   },
 
   ar: {
     eyebrow: 'نادي كباتن سيم دريم · اشتراكات سنوية',
-    heroTitle: 'رحلة واحدة هي ذكرى لا تُنسى. الاشتراك يجعلكم طيارين.',
+    heroTitle: 'رحلة واحدة هي ذكرى لا تُنسى. الاشتراك يبني ثقتكم في قمرة القيادة.',
     heroSubtitle:
-      'تولوا قيادة طائرة بوينغ 737 بوزن 70 طناً عبر خمس أو عشر مهام طيران منظمة. تدريب فردي مباشر مع كباتن طيران تجاري، 12 شهراً من الحرية التامة في تحديد المواعيد، مقعد مرافق مجاني في كل رحلة، وتوفير مضمون يصل إلى 2,550 شيكل.',
+      'ابنوا ثقتكم في بوينغ 737 عبر خمس أو عشر جلسات طيران منظمة. اتبعوا مساراً تعليمياً بإشراف كابتن لمدة 12 شهراً واكتشفوا قيمة كل جلسة مشمولة، مع توفير يصل إلى 2,550 شيكل مقارنة بالجلسات الفردية.',
     stats: {
       validityLabel: 'صلاحية الاستخدام',
       validityValue: '12 شهراً كاملاً',
-      savingsLabel: 'توفير مضمون',
+      savingsLabel: 'قيمة الاشتراك',
       savingsValue: 'خصم حتى 2,550 شيكل',
       mentorshipLabel: 'تدريب فردي',
       mentorshipValue: 'كباتن خطوط جوية',
-      guestLabel: 'مقعد المرافق',
-      guestValue: 'مجاني في كل رحلة',
+      guestLabel: 'مسار التعلّم',
+      guestValue: 'جلسات بإشراف كابتن',
     },
     whySubscribeTitle: 'لماذا تختارون اشتراك طيران سنوياً؟',
     whySubscribeSubtitle:
@@ -749,12 +769,12 @@ export const SUBSCRIPTION_PAGE_COPY: Record<Language, SubscriptionPageCopy> = {
       {
         title: '365 يوماً من المرونة الكاملة',
         description:
-          'رصيد ساعاتكم سارٍ لعام كامل. احجزوا في عطلات نهاية الأسبوع أو المساء أو المناسبات بأولوية مباشرة عبر قسم العمليات.',
+          'خططوا الجلسات خلال سنة تقويمية كاملة. تمر الطلبات عبر التقويم المباشر ويؤكدها قسم العمليات، لتبنوا إيقاعاً يناسب أهدافكم.',
       },
       {
-        title: 'اصطحبوا مرافقاً مجاناً في كل رحلة',
+        title: 'مهام مصممة مع الكابتن',
         description:
-          'كل جلسة طيران تتضمن مقعد مراقب إضافياً في قمرة القيادة بدون أي تكلفة إضافية. شاركوا التجربة مع العائلة أو الأصدقاء في كل زيارة.',
+          'يكيّف الكابتن كل مهمة مع مستوى ثقتكم واهتماماتكم وأهدافكم التعليمية. مقعد المراقب والإضافات المعروضة بشكل منفصل تخضع للتوفر والشروط المؤكدة.',
       },
     ],
     filterAll: 'جميع الاشتراكات',
@@ -762,6 +782,8 @@ export const SUBSCRIPTION_PAGE_COPY: Record<Language, SubscriptionPageCopy> = {
     filter10: 'مسار 10 رحلات (منهج شركات الطيران)',
     recommendedBadge: 'الخيار المفضل للكابتن',
     perSessionLabel: 'التكلفة الفعلية للرحلة',
+    minutesLabel: 'دقيقة',
+    totalMinutesLabel: 'دقيقة إجمالاً',
     roadmapTitle: 'رحلة تعلّم الطيران في 5 مراحل',
     roadmapSubtitle:
       'كل جلسة تكمل ما قبلها. هذا هو المنهج التدريبي المنظم الذي ستتدربون عليه مع كباتن الخطوط الجوية.',
@@ -832,10 +854,10 @@ export const SUBSCRIPTION_PAGE_COPY: Record<Language, SubscriptionPageCopy> = {
         sub10: '12 شهراً كاملاً (365 يوماً)',
       },
       {
-        feature: 'مرافق مجاني في القمرة',
-        single: 'في الجلسة المحددة',
-        sub5: 'مجاناً في الجلسات الـ 5',
-        sub10: 'مجاناً في الجلسات الـ 10',
+        feature: 'التقدم في المهام',
+        single: 'مهمة واحدة بإرشاد',
+        sub5: 'تقدم عبر خمس جلسات',
+        sub10: 'تقدم عبر عشر جلسات',
       },
       {
         feature: 'التقييم الشخصي والتحليل',
@@ -847,16 +869,17 @@ export const SUBSCRIPTION_PAGE_COPY: Record<Language, SubscriptionPageCopy> = {
     faqTitle: 'الأسئلة الشائعة حول اشتراكات الطيران',
     faqSubtitle:
       'كل ما تودون معرفته عن شراء وجدولة وخوض تجربة اشتراكات الطيران السنوية.',
+    faqEyebrow: 'أسئلة عن الاشتراك',
     faqs: [
       {
-        question: 'كيف يتم تحديد مواعيد الرحلات بعد الاشتراك؟',
+        question: 'كيف يتم تخطيط جلسات الاشتراك؟',
         answer:
-          'الجدولة مرنة بالكامل. يمكنكم حجز جميع الجلسات مسبقاً أو تحديد كل رحلة على حدة عبر قسم العمليات أو نظام الحجز، دون أي تواريخ محظورة.',
+          'يمكن لقسم العمليات مساعدتكم على تخطيط الجلسات معاً أو جلسة بجلسة. يبقى كل حجز خاضعاً للتقويم المباشر وتأكيد التوفر التشغيلي.',
       },
       {
-        question: 'هل يمكنني اصطحاب شخص معي في القمرة؟',
+        question: 'هل يمكن إضافة موضوعات تدريب مركزة في قمرة القيادة؟',
         answer:
-          'نعم. كل جلسة تتضمن مقعد مراقب مجانياً في القمرة. يسعدنا استقبال مرافق مختلف في كل رحلة.',
+          'يمكن للكابتن دمج موضوعات تعليمية مناسبة مثل Cold & Dark وCrosswind/IFR وExtreme Airports. يُؤكد وقت الإضافة والسعر ومقعد المراقب المعروض بشكل منفصل قبل الحجز.',
       },
       {
         question: 'هل يشترط وجود خبرة سابقة في الطيران؟',
@@ -872,6 +895,7 @@ export const SUBSCRIPTION_PAGE_COPY: Record<Language, SubscriptionPageCopy> = {
     bottomCtaTitle: 'هل أنتم مستعدون لتولي القيادة؟',
     bottomCtaSubtitle:
       'اختاروا مسار الاشتراك الأنسب لكم أو استشيروا كبير المدربين لتصميم رحلة تدريبية مخصصة.',
+    bottomCtaBadge: 'مسار تطور طيار Sim Dream',
     bottomCtaButton: 'تنسيق الاشتراك والتسجيل مع قسم العمليات',
     bottomContactConcierge: 'هل لديكم استفسار؟ اتصلوا أو تواصلوا عبر واتساب مباشرة مع العمليات',
   },

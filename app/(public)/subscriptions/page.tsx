@@ -210,7 +210,7 @@ export default function SubscriptionsPage() {
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
                       <Badge variant={pass.sessions === 10 ? 'sky' : 'slate'}>
-                        {pass.sessions} × {pass.sessionMinutes} min
+                        {pass.sessions} × {pass.sessionMinutes} {pageCopy.minutesLabel}
                       </Badge>
                       {isRecommended && (
                         <span className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded-full">
@@ -219,8 +219,9 @@ export default function SubscriptionsPage() {
                         </span>
                       )}
                     </div>
-                    <span className="text-xs font-mono text-slate-400" dir="ltr">
-                      {pass.sessions * pass.sessionMinutes} min total
+                    <span className="text-xs font-mono text-slate-400">
+                      <span dir="ltr">{pass.sessions * pass.sessionMinutes}</span>{' '}
+                      {pageCopy.totalMinutesLabel}
                     </span>
                   </div>
 
@@ -298,7 +299,7 @@ export default function SubscriptionsPage() {
                   >
                     <Button
                       variant={isRecommended || pass.sessions === 10 ? 'primary' : 'outline'}
-                      className="w-full text-base font-semibold py-3"
+                      className="w-full"
                     >
                       <span>{sectionCopy.requestEnrollment}</span>
                       <ArrowRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
@@ -381,7 +382,7 @@ export default function SubscriptionsPage() {
         <div className="text-center space-y-2">
           <div className="inline-flex items-center gap-1.5 text-sky-400 text-xs font-mono uppercase tracking-wider">
             <HelpCircle className="w-4 h-4" />
-            <span>FAQ</span>
+            <span>{pageCopy.faqEyebrow}</span>
           </div>
           <h2 className="text-2xl sm:text-3xl font-bold text-white">{pageCopy.faqTitle}</h2>
           <p className="text-sm text-slate-400">{pageCopy.faqSubtitle}</p>
@@ -422,7 +423,7 @@ export default function SubscriptionsPage() {
       {/* 7. BOTTOM CONVERSION CTA BANNER */}
       <section className="rounded-3xl border border-sky-500/30 bg-gradient-to-br from-sky-950/40 via-slate-900 to-slate-950 p-8 sm:p-12 text-center space-y-6 shadow-2xl">
         <div className="max-w-2xl mx-auto space-y-3">
-          <Badge variant="sky">SIM DREAM PILOT PROGRESSION</Badge>
+          <Badge variant="sky">{pageCopy.bottomCtaBadge}</Badge>
           <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
             {pageCopy.bottomCtaTitle}
           </h2>
@@ -433,7 +434,7 @@ export default function SubscriptionsPage() {
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
           <Link href="/contact?subject=subscription">
-            <Button variant="primary" className="text-base font-bold px-8 py-3.5 shadow-lg">
+            <Button variant="primary">
               <span>{pageCopy.bottomCtaButton}</span>
               <ArrowRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
             </Button>

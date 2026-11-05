@@ -12,7 +12,7 @@ SimDream should treat Wix Headless as a business platform, not as a replacement 
 
 ### Current flight-subscription catalogue: public offer, not a live entitlement
 
-The frontend now has a five-language catalogue in `lib/data/subscription-passes.ts`, rendered on `/experiences`. It deliberately models **single-payment flight subscriptions**, not recurring card billing and not a replacement for an individual Wix Booking:
+The frontend now has a five-language catalogue in `lib/data/subscription-passes.ts`, rendered on `/subscriptions` and in the `/experiences` Flight Subscriptions category. It deliberately models **single-payment flight subscriptions**, not recurring card billing and not a replacement for an individual Wix Booking:
 
 | Public subscription | Included sessions | Base booking package | Single-payment price | Standard base-session value | Curriculum focus |
 | --- | --- | --- | ---: | ---: | --- |

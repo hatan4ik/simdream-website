@@ -8,6 +8,7 @@ import {
   SUBSCRIPTION_PASSES,
   SUBSCRIPTION_SECTION_COPY,
 } from '@/lib/data/subscription-passes';
+import { SUBSCRIPTION_PAGE_COPY } from '@/lib/data/subscription-page-copy';
 
 const CODES: Language[] = ['he', 'en', 'ru', 'fr', 'ar'];
 const HEBREW = /[\u0590-\u05FF]/;
@@ -96,6 +97,7 @@ describe('flight subscription five-language discipline', () => {
   it.each(CODES)('provides complete, non-empty copy in %s', (language) => {
     const section = SUBSCRIPTION_SECTION_COPY[language];
     expect(stringLeaves(section).filter((text) => text.trim() === '')).toEqual([]);
+    expect(stringLeaves(SUBSCRIPTION_PAGE_COPY[language]).filter((text) => text.trim() === '')).toEqual([]);
     for (const pass of SUBSCRIPTION_PASSES) {
       const copy = pass.copy[language];
       expect(copy.title.trim(), `${pass.id} title`).not.toHaveLength(0);
@@ -108,6 +110,7 @@ describe('flight subscription five-language discipline', () => {
   it.each(CODES)('keeps foreign scripts out of %s subscription copy', (language) => {
     const copy = [
       ...stringLeaves(SUBSCRIPTION_SECTION_COPY[language]),
+      ...stringLeaves(SUBSCRIPTION_PAGE_COPY[language]),
       ...SUBSCRIPTION_PASSES.flatMap((pass) => stringLeaves(pass.copy[language])),
     ];
     expect(copy.filter((text) => FORBIDDEN[language].some((pattern) => pattern.test(text)))).toEqual([]);
@@ -116,6 +119,7 @@ describe('flight subscription five-language discipline', () => {
   it.each(CODES)('uses localized subscription vocabulary in %s without legacy pass terminology', (language) => {
     const copy = [
       ...stringLeaves(SUBSCRIPTION_SECTION_COPY[language]),
+      ...stringLeaves(SUBSCRIPTION_PAGE_COPY[language]),
       ...SUBSCRIPTION_PASSES.flatMap((subscription) => stringLeaves(subscription.copy[language])),
     ];
     expect(copy.some((text) => SUBSCRIPTION_TERMS[language].test(text))).toBe(true);

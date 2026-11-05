@@ -96,15 +96,15 @@ export const PAGE_SEO_DEFINITIONS: Record<SeoPageKey, PageSeoDefinition> = {
   },
   subscriptions: {
     path: '/subscriptions',
-    title: 'Boeing 737 Flight Subscriptions & Multi-Flight Passes | Sim Dream Tel Aviv (מנויי טיסה)',
+    title: 'Boeing 737 Flight Subscriptions | Sim Dream Tel Aviv (מנויי טיסה)',
     description:
-      'Master the Boeing 737 across 5 or 10 structured flight sessions with commercial airline captains at Sim Dream Tel Aviv. Save up to ₪2,550 with 12 months validity, flexible scheduling, and free cockpit observer jumpseat on every mission.',
+      'Build Boeing 737 confidence across 5 or 10 structured captain-led flight sessions at Sim Dream Tel Aviv. Compare the value of each 12-month, single-payment flight subscription and plan requests through the live calendar.',
     keywords: [
       ...COMMON_KEYWORDS,
       'flight subscriptions Israel',
-      'flight simulator passes Tel Aviv',
+      'flight simulator subscriptions Tel Aviv',
       'מנויי טיסה סימולטור בואינג',
-      'כרטיסיית טיסות סימולטור',
+      'מנוי טיסות סימולטור',
       'captain flight training Tel Aviv',
     ],
   },

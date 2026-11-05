@@ -222,8 +222,9 @@ export default function ExperiencesPage() {
                     <Badge variant={pass.sessions === 10 ? 'sky' : 'slate'}>
                       {pass.sessions} × {pass.sessionMinutes} {t.experiences.minutesTime}
                     </Badge>
-                    <span className="text-xs font-mono text-slate-400" dir="ltr">
-                      {pass.sessions * pass.sessionMinutes} min
+                    <span className="text-xs text-slate-400">
+                      <span dir="ltr">{pass.sessions * pass.sessionMinutes}</span>{' '}
+                      {subscriptionCopy.totalFlightTimeLabel}
                     </span>
                   </div>
                   <h3 className="text-xl sm:text-2xl font-bold text-white">{pass.copy.title}</h3>

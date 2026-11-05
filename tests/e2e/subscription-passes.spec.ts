@@ -1,5 +1,6 @@
 import { SUBSCRIPTION_PASSES, SUBSCRIPTION_SECTION_COPY } from '@/lib/data/subscription-passes';
-import { preferLanguage } from '../support/e2e';
+import { SUBSCRIPTION_PAGE_COPY } from '@/lib/data/subscription-page-copy';
+import { LANGUAGES, preferLanguage } from '../support/e2e';
 import { expect, test } from './fixtures';
 
 test.describe('flight subscriptions', () => {
@@ -28,4 +29,19 @@ test.describe('flight subscriptions', () => {
       SUBSCRIPTION_PASSES.find((subscription) => subscription.id === 'airline-readiness-10x90')!.copy.en.title
     );
   });
+});
+
+test.describe('dedicated flight subscription portal', () => {
+  for (const language of LANGUAGES) {
+    test(`renders its subscription language in ${language}`, async ({ page }) => {
+      await preferLanguage(page, language);
+      await page.goto('/subscriptions');
+
+      const copy = SUBSCRIPTION_PAGE_COPY[language];
+      await expect(page.locator('html')).toHaveAttribute('lang', language);
+      await expect(page.getByRole('heading', { level: 1, name: copy.heroTitle })).toBeVisible();
+      await expect(page.getByText(copy.faqEyebrow, { exact: true })).toBeVisible();
+      await expect(page.locator('[data-subscription-pass]')).toHaveCount(4);
+    });
+  }
 });

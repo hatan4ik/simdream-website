@@ -15,6 +15,7 @@ export const PUBLIC_ROUTES = [
   '/',
   '/pro',
   '/experiences',
+  '/subscriptions',
   '/book',
   '/vouchers',
   '/workshops',
