@@ -5,7 +5,7 @@
   "site": {
     "outputDirectory": {
       "client": "./.open-next/assets",
-      "server": "./.open-next"
+      "server": "./.wix-worker"
     }
   }
 }

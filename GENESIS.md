@@ -53,7 +53,7 @@ No repository review can prove Supabase OAuth providers, Stripe webhook delivery
 | Email | `@sendgrid/mail` 8 | Booking confirmations and voucher activation emails (simulated when unconfigured). |
 | Reviews | Google Places API, browser-loaded carousel with 15 min shared freshness | Live rating and excerpts only when attributable Google data is available; otherwise the API serves no review claims. |
 | Testing | Vitest 5 (+ v8 coverage), fast-check, Playwright 1.64, axe-core, autocannon, Lighthouse CI (via `npx`) | The four quality gates (see Phase 2). |
-| Runtime | Node 22, deployed as a Wix-managed Cloudflare Worker through the Wix CLI (with the existing self-managed deployment path retained) | `@opennextjs/cloudflare` builds the Next.js server and static assets into Wix-compatible output. |
+| Runtime | Node 22, deployed as a Wix-managed Worker through the Wix CLI (with the existing self-managed deployment path retained) | `@opennextjs/cloudflare` builds the Next.js server and static assets; Wrangler bundles the final ESM worker artifact Wix executes. |
 
 **Local development origin:** Next 16's dev resource guard permits the explicit loopback hostname `127.0.0.1` in `next.config.mjs` in addition to Next's default `localhost`. This is deliberately local-only development configuration: it keeps HMR and client hydration working when a developer opens `http://127.0.0.1:3000`, without allowing tunnels or arbitrary network origins.
 
