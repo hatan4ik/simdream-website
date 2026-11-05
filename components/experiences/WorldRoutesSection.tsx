@@ -162,7 +162,9 @@ export function WorldRoutesSection() {
             <li key={route.id} className="min-w-0">
               <Card
                 borderAccent={addon ? 'sky' : 'none'}
-                className="h-full flex flex-col gap-5"
+                // No backdrop blur: with 22 cards on a 7,000px section, WebKit without a GPU
+                // (the CI runner) rasterises each blur per repaint, stalls, and crashes.
+                className="h-full flex flex-col gap-5 backdrop-blur-none"
                 data-world-route={route.id}
                 data-route-status={addon ? 'bookable' : 'on_request'}
               >
@@ -299,7 +301,7 @@ export function WorldRoutesSection() {
             const Icon = ICONS[adventure.icon];
             return (
               <li key={adventure.id} className="min-w-0">
-                <Card borderAccent="amber" className="h-full flex flex-col gap-4" data-adventure={adventure.id}>
+                <Card borderAccent="amber" className="h-full flex flex-col gap-4 backdrop-blur-none" data-adventure={adventure.id}>
                   <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-400">
                       <Icon className="h-5 w-5" aria-hidden="true" />

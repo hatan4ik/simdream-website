@@ -133,7 +133,8 @@ export default function ExperiencesPage() {
               key={pkg.id}
               glow={pkg.featured}
               borderAccent={pkg.featured ? 'sky' : 'none'}
-              className="flex flex-col justify-between relative overflow-hidden"
+              // backdrop-blur-none: this page stacks ~30 cards; software-rendered WebKit cannot repaint that many blurs.
+              className="flex flex-col justify-between relative overflow-hidden backdrop-blur-none"
             >
               {pkg.badge && (
                 <div className="absolute top-4 right-4 rtl:right-auto rtl:left-4">
@@ -237,7 +238,7 @@ export default function ExperiencesPage() {
               <Card
                 key={pass.id}
                 borderAccent={pass.sessions === 10 ? 'sky' : 'none'}
-                className="flex flex-col gap-6"
+                className="flex flex-col gap-6 backdrop-blur-none"
                 data-subscription-pass={pass.id}
               >
                 <div className="space-y-3">
