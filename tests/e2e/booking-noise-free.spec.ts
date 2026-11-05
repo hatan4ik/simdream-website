@@ -45,7 +45,9 @@ test.describe('recreational storefront upsells', () => {
 
   test('keeps a loaded combo visible above the marketplace and deemphasizes alternatives', async ({ booking }) => {
     await booking.goto('?package=captains-command-60');
-    await booking.page.getByRole('button', { name: /^Apply Combo/ }).first().click();
+    // Combos that no longer fit the auto-selected departure (other tests book slots in the
+    // shared store) keep their label but are disabled; apply the first one that is enabled.
+    await booking.page.getByRole('button', { name: /^Apply Combo/, disabled: false }).first().click();
 
     await expect(booking.page.locator('[data-selected-addons]')).toBeVisible();
     // A combo that exceeds the selected departure window is rendered as

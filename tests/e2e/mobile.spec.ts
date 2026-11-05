@@ -140,8 +140,13 @@ test.describe('real phone layout', () => {
     // iPhone SE width. The /book buy box once overflowed it by 3px (a fieldset's min-content floor).
     await page.setViewportSize({ width: 320, height: 568 });
     for (const route of ['/', '/book']) {
+      // The home page fetches /api/reviews after mount. A hard navigation while that request is
+      // still pending makes WebKit report the cancelled fetch as a page error ("due to access
+      // control checks"), which the page-error guard would count as a crash; let it settle first.
+      const reviewsSettled = route === '/' ? page.waitForResponse((response) => response.url().endsWith('/api/reviews')) : null;
       await page.goto(route);
       await expect(chrome.homeLink()).toBeVisible();
+      if (reviewsSettled) await reviewsSettled;
       const pageWidth = await page.evaluate(() =>
         Math.max(document.documentElement.scrollWidth, document.body.scrollWidth)
       );
