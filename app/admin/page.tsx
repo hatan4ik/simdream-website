@@ -22,6 +22,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Booking, CorporateInquiry, DailyEfficiencyReport } from '@/types';
 import { addDaysToYmd, formatCurrency, formatDate } from '@/lib/utils';
+import { findOnRequestWorldRoute } from '@/lib/data/experience-routes';
 
 function parseMinutes(hhmm: string): number {
   const [h, m] = hhmm.split(':').map(Number);
@@ -380,6 +381,14 @@ export default function AdminOverviewPage() {
                           </span>
                         </div>
                         <p className="text-white font-bold">{booking.packageTitle}</p>
+                        {(() => {
+                          const requestedRoute = findOnRequestWorldRoute(booking.requestedRouteId);
+                          return requestedRoute ? (
+                            <p className="text-amber-300">
+                              Route request: <strong>{requestedRoute.copy.en.title}</strong> · captain confirmation required
+                            </p>
+                          ) : null;
+                        })()}
                         <p className="text-slate-400">
                           Pilot: <strong className="text-slate-200">{booking.pilotName}</strong> (
                           {booking.pilotPhone})

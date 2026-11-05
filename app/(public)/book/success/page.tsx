@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/Badge';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { getLocalizedAddons } from '@/lib/i18n/translations';
+import { EXPERIENCE_ROUTES_COPY, findOnRequestWorldRoute } from '@/lib/data/experience-routes';
 
 interface PublicBooking {
   bookingReference: string;
@@ -22,6 +23,7 @@ interface PublicBooking {
   endTime: string;
   pilotName: string;
   addons: string[];
+  requestedRouteId?: string;
   totalIls: number;
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
   paymentStatus: 'pending' | 'paid' | 'refunded';
@@ -29,8 +31,9 @@ interface PublicBooking {
 
 function BookingSuccessContent() {
   const searchParams = useSearchParams();
-  const { t, language, isRTL } = useLanguage();
+  const { t, language } = useLanguage();
   const addons = getLocalizedAddons(language);
+  const routeCopy = EXPERIENCE_ROUTES_COPY[language] || EXPERIENCE_ROUTES_COPY.en;
   const bookingReference = searchParams.get('ref');
   const [booking, setBooking] = useState<PublicBooking | null>(null);
   const [error, setError] = useState('');
@@ -86,6 +89,8 @@ function BookingSuccessContent() {
   // Without a booking there is no payment to confirm; say so instead of "confirming your payment".
   const notFound = Boolean(error) && !booking;
   const selectedAddons = booking?.addons ?? [];
+  const requestedRoute = findOnRequestWorldRoute(booking?.requestedRouteId);
+  const requestedRouteText = requestedRoute?.copy[language] || requestedRoute?.copy.en;
 
   return (
     <div className="flex-1 w-full min-w-0 py-16 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto space-y-10 text-center">
@@ -138,6 +143,14 @@ function BookingSuccessContent() {
             <div className="flex justify-between gap-3 text-sky-400 font-bold uppercase"><span>Mission add-ons</span><span className="text-emerald-400">{paid ? `Paid: ${formatCurrency(booking.totalIls)}` : 'Awaiting payment'}</span></div>
             {selectedAddons.length ? selectedAddons.map((id) => <p key={id} className="text-slate-300">+ {addons.find((addon) => addon.id === id)?.name || 'Mission add-on'}</p>) : <p className="text-slate-400">No add-ons selected.</p>}
           </div>
+
+          {requestedRouteText && (
+            <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-400/30 space-y-1.5 text-xs">
+              <p className="font-mono font-bold uppercase text-amber-300">{routeCopy.routeRequestSaved}</p>
+              <p className="text-sm font-bold text-white">{requestedRouteText.title}</p>
+              <p className="text-slate-300">{routeCopy.routeRequestConfirmation}</p>
+            </div>
+          )}
 
           <div className="flex items-center gap-2 border-t border-slate-800 pt-4 text-xs text-slate-400"><MapPin className="w-4 h-4 text-sky-400 shrink-0" /><span>Gershon Shatz St 36, Tel Aviv-Yafo. Please arrive 15 minutes before departure.</span></div>
         </div>

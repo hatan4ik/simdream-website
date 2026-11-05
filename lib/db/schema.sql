@@ -59,6 +59,7 @@ CREATE TABLE IF NOT EXISTS public.bookings (
   pilot_phone TEXT NOT NULL,
   experience_level TEXT NOT NULL CHECK (experience_level IN ('beginner', 'enthusiast', 'student_pilot', 'atpl')),
   addons JSONB NOT NULL DEFAULT '[]'::jsonb,
+  requested_route_id TEXT CHECK (requested_route_id IS NULL OR requested_route_id ~ '^route-[a-z0-9-]{1,80}$'),
   subtotal_ils NUMERIC(10, 2) NOT NULL CHECK (subtotal_ils >= 0),
   discount_ils NUMERIC(10, 2) NOT NULL DEFAULT 0 CHECK (discount_ils >= 0),
   total_ils NUMERIC(10, 2) NOT NULL CHECK (total_ils >= 0),

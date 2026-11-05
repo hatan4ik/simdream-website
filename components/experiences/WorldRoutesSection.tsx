@@ -52,14 +52,23 @@ function addonFor(route: WorldRoute) {
   return route.addonId ? FLIGHT_ADDONS.find((addon) => addon.id === route.addonId) : undefined;
 }
 
-function requestHref(id: string): string {
+function requestHref(route: WorldRoute): string {
+  const params = new URLSearchParams({
+    package: 'captains-command-60',
+    route: route.id,
+  });
+  return `/book?${params.toString()}`;
+}
+
+/** Scenario adventures remain a briefing inquiry; they do not reserve a World Trio slot. */
+function adventureInquiryHref(id: string): string {
   return `/contact?subject=route&route=${encodeURIComponent(id)}`;
 }
 
 /** A bookable World Trio is an actual order line, never just a booking-page suggestion. */
 function bookHref(route: WorldRoute): string {
   const addon = addonFor(route);
-  if (!addon) return requestHref(route.id);
+  if (!addon) return requestHref(route);
 
   const params = new URLSearchParams({
     package: 'captains-command-60',
@@ -258,7 +267,7 @@ export function WorldRoutesSection() {
                       </Button>
                     </Link>
                   ) : (
-                    <Link href={requestHref(route.id)} className="block">
+                    <Link href={requestHref(route)} className="block">
                       <Button variant="outline" className="w-full min-h-[44px]">
                         <span>{copy.requestRouteCta}</span>
                         <ArrowRight className={`w-4 h-4 ${arrowFlip}`} aria-hidden="true" />
@@ -307,7 +316,7 @@ export function WorldRoutesSection() {
                       <Sparkles className="w-3.5 h-3.5" aria-hidden="true" />
                       <span>{copy.fromSession(adventure.minimumSessionMinutes)}</span>
                     </div>
-                    <Link href={requestHref(adventure.id)} className="block">
+                    <Link href={adventureInquiryHref(adventure.id)} className="block">
                       <Button variant="secondary" className="w-full min-h-[44px]">
                         <span>{copy.askCaptainCta}</span>
                         <ArrowRight className={`w-4 h-4 ${arrowFlip}`} aria-hidden="true" />

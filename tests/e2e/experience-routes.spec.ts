@@ -5,8 +5,8 @@ import { follow } from './pages/hydration';
 
 /**
  * Experience Flights ("טיסות חוויה") route catalog on /experiences#world-routes (AGENTS.md §2):
- * every World Trio and adventure renders, the region filter works, and an on-request route hands
- * over to the contact form with a localized prefill.
+ * every World Trio and adventure renders, the region filter works, and an on-request route carries
+ * the selected mission into the calendar-first booking flow.
  */
 test.describe('experience flights route catalog', () => {
   test('lists every World Trio and adventure with ICAO codes kept left-to-right', async ({ page }) => {
@@ -46,15 +46,17 @@ test.describe('experience flights route catalog', () => {
     await expect(page.locator('[data-addon-card="addon-xwind-ifr"]')).toHaveAttribute('data-addon-deemphasized', 'true');
   });
 
-  test('hands an on-request route to the contact form, prefilled in the visitor language', async ({ page }) => {
+  test('opens the calendar for an on-request route and retains a localized captain-confirmation notice', async ({ page }) => {
     await preferLanguage(page, 'he');
     await page.goto('/experiences');
     const card = page.locator('[data-world-route="route-israel-home-skies"]');
     await expect(card).toContainText('שמי הבית: ישראל');
-    await follow(card.getByRole('link'), /\/contact\?subject=route/);
+    await follow(card.getByRole('link'), /\/book\?package=captains-command-60&route=route-israel-home-skies$/);
 
-    await expect(page).toHaveURL(/\/contact\?subject=route&route=route-israel-home-skies/);
-    await expect(page.locator('#contact-subject')).toHaveValue('World Route or Adventure Request');
-    await expect(page.locator('textarea').first()).toHaveValue(/שמי הבית: ישראל/);
+    await expect(page.locator('[data-route-request-intent]')).toContainText('שמי הבית: ישראל');
+    await expect(page.locator('[data-route-request-intent]')).toContainText('נדרש אישור קברניט');
+    await expect(page.locator('[data-calendar-date]')).toHaveCount(7);
+    await expect(page.locator('[data-booking-duration="30"]')).toHaveCount(0);
+    await expect(page.locator('[data-booking-duration="60"]')).toBeVisible();
   });
 });

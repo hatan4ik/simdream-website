@@ -1,6 +1,7 @@
 import sgMail from '@sendgrid/mail';
 import { Booking, GiftVoucher } from '@/types';
 import { formatDate } from './utils';
+import { findOnRequestWorldRoute } from './data/experience-routes';
 
 const apiKey = process.env.SENDGRID_API_KEY || '';
 export const isSendgridConfigured = Boolean(
@@ -23,6 +24,13 @@ function escapeHtml(value: string | number): string {
 }
 
 export async function sendBookingConfirmationEmail(booking: Booking): Promise<{ success: boolean; message: string }> {
+  const requestedRoute = findOnRequestWorldRoute(booking.requestedRouteId);
+  const routeRequestRow = requestedRoute
+    ? `<tr>
+                <td style="color: #94a3b8;">Route Request</td>
+                <td style="color: #fbbf24; font-weight: bold;">${escapeHtml(requestedRoute.copy.en.title)}<br><span style="color: #cbd5e1; font-weight: normal;">Saved with your booking. Your captain will confirm the final mission plan before your visit.</span></td>
+              </tr>`
+    : '';
   const emailHtml = `
     <!DOCTYPE html>
     <html>
@@ -66,6 +74,7 @@ export async function sendBookingConfirmationEmail(booking: Booking): Promise<{ 
                 <td style="color: #94a3b8;">Cockpit Slot</td>
                 <td style="color: #2096C7; font-weight: bold;">${escapeHtml(booking.startTime)} - ${escapeHtml(booking.endTime)} (IST)</td>
               </tr>
+              ${routeRequestRow}
               <tr>
                 <td style="color: #94a3b8;">Center Location</td>
                 <td style="color: #ffffff;">Gershon Shatz St 36, Tel Aviv-Yafo (Yehudit Light Rail / HaShalom Station)</td>

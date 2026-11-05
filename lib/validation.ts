@@ -26,6 +26,7 @@ export const bookingCheckoutSchema = z.object({
   pilotPhone: z.string().trim().min(6).max(32),
   experienceLevel: z.enum(['beginner', 'enthusiast', 'student_pilot', 'atpl']),
   addons: z.array(z.string().trim().min(1).max(80)).max(16).default([]),
+  requestedRouteId: z.string().trim().regex(/^route-[a-z0-9-]{1,80}$/).optional(),
   voucherCode: z.string().trim().toUpperCase().max(64).optional(),
   notes: z.string().trim().max(2_000).optional(),
 });

@@ -6,7 +6,9 @@
  *  - World Trios: three real-world airports flown back to back. The eight trios that are sold as
  *    booking add-ons point at their `FLIGHT_ADDONS` id, so price and extra cockpit minutes always
  *    come from the authoritative catalog (never from this file). The remaining trios are proposed
- *    "on request" routes: they are briefed with the captain through /contact and are not purchasable.
+ *    "on request" routes: a guest chooses an eligible 60+ minute flight slot first, then the
+ *    requested route is retained with the booking for a captain to confirm. They are not an
+ *    automatically priced add-on and must never be presented as a guaranteed online purchase.
  *  - Adventures: scenario-style missions (a transatlantic ETOPS leg, a Dead Sea low pass, ...) that
  *    are flown inside a booked session on request.
  *
@@ -54,6 +56,9 @@ export interface WorldRoute {
   airports: [RouteAirport, RouteAirport, RouteAirport];
   copy: Record<Language, WorldRouteCopy>;
 }
+
+/** A custom World Trio needs the full Captain's Command session, not a short discovery flight. */
+export const MINIMUM_ROUTE_REQUEST_MINUTES = 60 as const;
 
 export interface AdventureCopy {
   title: string;
@@ -1502,6 +1507,11 @@ export interface ExperienceRoutesCopy {
   bookingIntentEyebrow: string;
   bookingIntentDescription: string;
   bookingIntentAddOn: string;
+  routeRequestEyebrow: string;
+  routeRequestDescription: string;
+  routeRequestPriceNote: string;
+  routeRequestSaved: string;
+  routeRequestConfirmation: string;
   adventuresBadge: string;
   adventuresTitle: string;
   adventuresSubtitle: string;
@@ -1551,6 +1561,12 @@ export const EXPERIENCE_ROUTES_COPY: Record<Language, ExperienceRoutesCopy> = {
     bookingIntentDescription:
       'This route is already selected. Choose a departure time that fits the complete flight, then confirm its minutes and price in your checkout manifest.',
     bookingIntentAddOn: 'Route add-on',
+    routeRequestEyebrow: 'CUSTOM ROUTE REQUEST',
+    routeRequestDescription:
+      'Choose a date and time for a 60-minute or longer session. We save this route request with your booking, then your captain confirms the final mission plan before your visit.',
+    routeRequestPriceNote: 'No route surcharge today',
+    routeRequestSaved: 'Route request saved with booking',
+    routeRequestConfirmation: 'Captain confirmation required',
     adventuresBadge: 'FLIGHT ADVENTURES',
     adventuresTitle: 'Beyond the Trios: Missions a Captain Would Fly',
     adventuresSubtitle:
@@ -1558,7 +1574,7 @@ export const EXPERIENCE_ROUTES_COPY: Record<Language, ExperienceRoutesCopy> = {
     fromSession: (minutes) => `From a ${minutes}-minute session`,
     askCaptainCta: 'Ask your captain',
     bookableHint: 'Bookable trios open a 60-minute Captain’s Command flight with the chosen trio already selected; review the full manifest before checkout.',
-    onRequestHint: 'Not yet in online checkout. Request it and we confirm the briefing by email.',
+    onRequestHint: 'Route requests open the booking calendar with a 60-minute session selected. We save your request with the booking and your captain confirms the mission plan.',
   },
   he: {
     badge: 'טיסות חוויה • מיומן הטיסה של הקברניט',
@@ -1598,6 +1614,12 @@ export const EXPERIENCE_ROUTES_COPY: Record<Language, ExperienceRoutesCopy> = {
     bookingIntentDescription:
       'המסלול כבר נבחר. בחרו שעת המראה שמתאימה לטיסה המלאה, ואשרו את הדקות והמחיר בפירוט ההזמנה לפני התשלום.',
     bookingIntentAddOn: 'תוספת מסלול',
+    routeRequestEyebrow: 'בקשת מסלול מותאם',
+    routeRequestDescription:
+      'בחרו תאריך ושעה למפגש של 60 דקות או יותר. בקשת המסלול נשמרת עם ההזמנה, והקברניט יאשר את תוכנית המשימה הסופית לפני ההגעה.',
+    routeRequestPriceNote: 'אין תוספת מחיר למסלול כעת',
+    routeRequestSaved: 'בקשת המסלול נשמרה עם ההזמנה',
+    routeRequestConfirmation: 'נדרש אישור קברניט',
     adventuresBadge: 'הרפתקאות טיסה',
     adventuresTitle: 'מעבר לשלישיות: משימות שקברניט היה טס',
     adventuresSubtitle:
@@ -1605,7 +1627,7 @@ export const EXPERIENCE_ROUTES_COPY: Record<Language, ExperienceRoutesCopy> = {
     fromSession: (minutes) => `ממפגש של ${minutes} דקות`,
     askCaptainCta: 'לשאול את הקברניט',
     bookableHint: 'שלישיות הזמינות אונליין פותחות טיסת Captain’s Command של 60 דקות עם השלישייה שכבר נבחרה; בדקו את הפירוט המלא לפני התשלום.',
-    onRequestHint: 'עדיין לא בהזמנה המקוונת. בקשו אותו ונאשר את התדריך במייל.',
+    onRequestHint: 'בקשת מסלול פותחת את יומן ההזמנות עם מפגש של 60 דקות. הבקשה נשמרת עם ההזמנה והקברניט מאשר את תוכנית המשימה.',
   },
   ru: {
     badge: 'ПОЛЁТЫ-ВПЕЧАТЛЕНИЯ • ИЗ ЛЁТНОЙ КНИЖКИ КОМАНДИРА',
@@ -1645,6 +1667,12 @@ export const EXPERIENCE_ROUTES_COPY: Record<Language, ExperienceRoutesCopy> = {
     bookingIntentDescription:
       'Этот маршрут уже выбран. Выберите время вылета, подходящее для полного полёта, затем проверьте минуты и цену в составе заказа перед оплатой.',
     bookingIntentAddOn: 'Опция маршрута',
+    routeRequestEyebrow: 'ЗАПРОС ИНДИВИДУАЛЬНОГО МАРШРУТА',
+    routeRequestDescription:
+      'Выберите дату и время для сеанса от 60 минут. Мы сохраним запрос маршрута вместе с бронированием, а командир подтвердит окончательный план полёта до вашего визита.',
+    routeRequestPriceNote: 'Доплаты за маршрут сегодня нет',
+    routeRequestSaved: 'Запрос маршрута сохранён с бронированием',
+    routeRequestConfirmation: 'Требуется подтверждение командира',
     adventuresBadge: 'ЛЁТНЫЕ ПРИКЛЮЧЕНИЯ',
     adventuresTitle: 'За пределами трио: миссии, которые выбрал бы командир',
     adventuresSubtitle:
@@ -1652,7 +1680,7 @@ export const EXPERIENCE_ROUTES_COPY: Record<Language, ExperienceRoutesCopy> = {
     fromSession: (minutes) => `От сеанса ${minutes} минут`,
     askCaptainCta: 'Спросить командира',
     bookableHint: 'Доступные для бронирования трио открывают 60-минутный полёт Captain’s Command с уже выбранным трио; проверьте полный состав заказа перед оплатой.',
-    onRequestHint: 'Пока недоступно в онлайн-оплате. Запросите — и мы подтвердим брифинг по электронной почте.',
+    onRequestHint: 'Запрос маршрута открывает календарь бронирования с выбранным сеансом 60 минут. Мы сохраняем запрос с бронированием, а командир подтверждает план полёта.',
   },
   fr: {
     badge: 'VOLS D’EXPÉRIENCE • CHOIX DU COMMANDANT',
@@ -1692,6 +1720,12 @@ export const EXPERIENCE_ROUTES_COPY: Record<Language, ExperienceRoutesCopy> = {
     bookingIntentDescription:
       'Cet itinéraire est déjà sélectionné. Choisissez une heure de départ adaptée au vol complet, puis vérifiez ses minutes et son prix dans le manifeste avant le paiement.',
     bookingIntentAddOn: 'Option d’itinéraire',
+    routeRequestEyebrow: 'DEMANDE D’ITINÉRAIRE PERSONNALISÉ',
+    routeRequestDescription:
+      'Choisissez une date et une heure pour une séance de 60 minutes ou plus. Nous enregistrons cette demande avec votre réservation, puis votre commandant confirme le plan de mission final avant votre venue.',
+    routeRequestPriceNote: 'Aucun supplément d’itinéraire aujourd’hui',
+    routeRequestSaved: 'Demande d’itinéraire enregistrée avec la réservation',
+    routeRequestConfirmation: 'Confirmation du commandant requise',
     adventuresBadge: 'AVENTURES EN VOL',
     adventuresTitle: 'Au-delà des trios : des missions qu’un commandant volerait',
     adventuresSubtitle:
@@ -1699,7 +1733,7 @@ export const EXPERIENCE_ROUTES_COPY: Record<Language, ExperienceRoutesCopy> = {
     fromSession: (minutes) => `À partir d’une séance de ${minutes} minutes`,
     askCaptainCta: 'Demander au commandant',
     bookableHint: 'Les trios réservables ouvrent un vol Captain’s Command de 60 minutes avec le trio déjà sélectionné ; vérifiez le manifeste complet avant le paiement.',
-    onRequestHint: 'Pas encore disponible au paiement en ligne. Demandez-le et nous confirmons le briefing par e-mail.',
+    onRequestHint: 'Les demandes d’itinéraire ouvrent le calendrier avec une séance de 60 minutes sélectionnée. Nous enregistrons la demande avec la réservation et le commandant confirme le plan de mission.',
   },
   ar: {
     badge: 'رحلات التجربة • من سجل القبطان',
@@ -1739,6 +1773,12 @@ export const EXPERIENCE_ROUTES_COPY: Record<Language, ExperienceRoutesCopy> = {
     bookingIntentDescription:
       'هذا المسار محدد بالفعل. اختر وقت إقلاع يناسب الرحلة الكاملة، ثم راجع الدقائق والسعر في ملخص طلبك قبل الدفع.',
     bookingIntentAddOn: 'إضافة المسار',
+    routeRequestEyebrow: 'طلب مسار مخصص',
+    routeRequestDescription:
+      'اختر تاريخاً ووقتاً لجلسة مدتها 60 دقيقة أو أكثر. نحفظ طلب المسار مع حجزك، ثم يؤكد القبطان خطة المهمة النهائية قبل زيارتك.',
+    routeRequestPriceNote: 'لا رسوم إضافية للمسار اليوم',
+    routeRequestSaved: 'تم حفظ طلب المسار مع الحجز',
+    routeRequestConfirmation: 'يلزم تأكيد القبطان',
     adventuresBadge: 'مغامرات الطيران',
     adventuresTitle: 'ما بعد الثلاثيات: مهام يطير بها قبطان',
     adventuresSubtitle:
@@ -1746,11 +1786,16 @@ export const EXPERIENCE_ROUTES_COPY: Record<Language, ExperienceRoutesCopy> = {
     fromSession: (minutes) => `من جلسة مدتها ${minutes} دقيقة`,
     askCaptainCta: 'اسأل قبطانك',
     bookableHint: 'الثلاثيات القابلة للحجز تفتح رحلة Captain’s Command لمدة 60 دقيقة مع تحديد الثلاثية مسبقاً؛ راجع ملخص الطلب الكامل قبل الدفع.',
-    onRequestHint: 'ليست متاحة بعد في الدفع الإلكتروني. اطلبها وسنؤكد الإحاطة عبر البريد الإلكتروني.',
+    onRequestHint: 'يفتح طلب المسار تقويم الحجز مع تحديد جلسة 60 دقيقة. نحفظ الطلب مع الحجز ويؤكد القبطان خطة المهمة.',
   },
 };
 
 export const ROUTE_REGIONS: RouteRegion[] = ['israel', 'europe', 'americas', 'asia_pacific', 'africa_middle_east', 'extreme'];
+
+/** Only non-priced World Trios can be requested for captain confirmation at checkout. */
+export function findOnRequestWorldRoute(id: string | undefined): WorldRoute | undefined {
+  return WORLD_ROUTES.find((route) => route.id === id && !route.addonId);
+}
 
 /** Total number of distinct airports across all curated routes. */
 export function countRouteAirports(routes: readonly WorldRoute[] = WORLD_ROUTES): number {

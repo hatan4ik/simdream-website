@@ -120,6 +120,10 @@ function toBooking(row: DatabaseRow): Booking {
     pilotPhone: requiredString(row, 'pilot_phone'),
     experienceLevel: requiredString(row, 'experience_level') as Booking['experienceLevel'],
     addons: asStringList(getValue(row, 'addons')),
+    requestedRouteId:
+      typeof getValue(row, 'requested_route_id') === 'string'
+        ? String(getValue(row, 'requested_route_id'))
+        : undefined,
     subtotalIls: asNumber(getValue(row, 'subtotal_ils')),
     discountIls: asNumber(getValue(row, 'discount_ils')),
     totalIls: asNumber(getValue(row, 'total_ils')),
@@ -153,6 +157,7 @@ function bookingInsertRow(booking: Booking): DatabaseRow {
     pilot_phone: booking.pilotPhone,
     experience_level: booking.experienceLevel,
     addons: booking.addons,
+    requested_route_id: booking.requestedRouteId || null,
     subtotal_ils: booking.subtotalIls,
     discount_ils: booking.discountIls,
     total_ils: booking.totalIls,

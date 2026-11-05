@@ -18,6 +18,7 @@ import { Card } from '@/components/ui/Card';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useLanguage, type Language } from '@/lib/i18n/language-context';
 import { getLocalizedPackages } from '@/lib/i18n/translations';
+import { EXPERIENCE_ROUTES_COPY, findOnRequestWorldRoute } from '@/lib/data/experience-routes';
 import { sanitizePackageTitle } from '@/lib/scheduler/mission-calculator';
 import { isSupabaseConfigured, supabase } from '@/lib/supabaseClient';
 import type { Booking } from '@/types';
@@ -120,6 +121,7 @@ export default function DashboardPage() {
   const { user, isLoading: authLoading } = useAuth();
   const { t, language } = useLanguage();
   const copy = t.member.dashboard;
+  const routeCopy = EXPERIENCE_ROUTES_COPY[language] || EXPERIENCE_ROUTES_COPY.en;
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<DashboardErrorKey | null>(null);
@@ -258,6 +260,16 @@ export default function DashboardPage() {
           <span className="text-xs font-mono text-sky-400 font-bold" dir="ltr">{booking.bookingReference}</span>
         </div>
         <h3 className="text-base font-bold text-white">{packageTitles.get(booking.packageId) ?? booking.packageTitle}</h3>
+        {(() => {
+          const requestedRoute = findOnRequestWorldRoute(booking.requestedRouteId);
+          const requestedRouteText = requestedRoute?.copy[language] || requestedRoute?.copy.en;
+          return requestedRouteText ? (
+            <p className="text-xs text-amber-300">
+              {routeCopy.routeRequestSaved}: <span className="font-semibold text-slate-200">{requestedRouteText.title}</span>
+              {' · '}{routeCopy.routeRequestConfirmation}
+            </p>
+          ) : null;
+        })()}
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400 font-mono">
           <span>{formatMissionDate(booking.bookingDate, language)}</span>
           <span dir="ltr">{booking.startTime}–{booking.endTime} IST</span>

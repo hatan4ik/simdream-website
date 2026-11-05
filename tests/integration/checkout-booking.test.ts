@@ -37,6 +37,76 @@ function minutesAfter(time: string, minutes: number): string {
   return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
 }
 
+describe('POST /api/checkout: captain-confirmed route requests', () => {
+  it('retains a valid on-request World Trio with the order without inventing a route surcharge', async () => {
+    const app = await loadApp({ stripe: 'mocked' });
+    const slot = await findSlotWhere(app, DAY, 60, (candidate) => candidate.available, 'open');
+
+    const response = await postCheckout(
+      app,
+      bookingCheckoutBody({
+        packageId: 'pkg-captain-60',
+        bookingDate: DAY,
+        startTime: slot.startTime,
+        requestedRouteId: 'route-israel-home-skies',
+      })
+    );
+
+    expect(response.status).toBe(201);
+    const [session] = app.checkoutSessions;
+    expect(session.amountIls).toBe(slot.dynamicPriceIls);
+    expect((await app.store.getBookingById(session.bookingId ?? ''))).toMatchObject({
+      packageId: 'pkg-captain-60',
+      requestedRouteId: 'route-israel-home-skies',
+      addons: [],
+    });
+  });
+
+  it('rejects unknown, already-priced, and too-short route requests before payment begins', async () => {
+    const app = await loadApp({ stripe: 'mocked' });
+    const captainSlot = await findSlotWhere(app, DAY, 60, (candidate) => candidate.available, 'open');
+    const shortSlot = await findSlotWhere(app, DAY, 30, (candidate) => candidate.available, 'open');
+
+    const unknown = await postCheckout(
+      app,
+      bookingCheckoutBody({
+        packageId: 'pkg-captain-60',
+        bookingDate: DAY,
+        startTime: captainSlot.startTime,
+        requestedRouteId: 'route-does-not-exist',
+      })
+    );
+    expect(unknown.status).toBe(400);
+    expect(expectContract(errorBody, unknown.body).error).toBe('Select a valid route request.');
+
+    const priced = await postCheckout(
+      app,
+      bookingCheckoutBody({
+        packageId: 'pkg-captain-60',
+        bookingDate: DAY,
+        startTime: captainSlot.startTime,
+        requestedRouteId: 'route-classical-eu',
+      })
+    );
+    expect(priced.status).toBe(400);
+    expect(expectContract(errorBody, priced.body).error).toBe('Select a valid route request.');
+
+    const tooShort = await postCheckout(
+      app,
+      bookingCheckoutBody({
+        bookingDate: DAY,
+        startTime: shortSlot.startTime,
+        requestedRouteId: 'route-israel-home-skies',
+      })
+    );
+    expect(tooShort.status).toBe(400);
+    expect(expectContract(errorBody, tooShort.body).error).toBe(
+      'This route request requires a 60-minute or longer flight session.'
+    );
+    expect(app.checkoutSessions).toHaveLength(0);
+  });
+});
+
 describe('POST /api/checkout: voucher-funded bookings', () => {
   it('confirms a fully voucher-funded booking immediately, consumes the slot and debits the voucher', async () => {
     const app = await loadApp();

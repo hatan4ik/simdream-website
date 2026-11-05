@@ -56,6 +56,7 @@ const validBookingArb = fc.record(
     pilotPhone: digits(6, 32),
     experienceLevel: fc.constantFrom('beginner', 'enthusiast', 'student_pilot', 'atpl'),
     addons: fc.array(fc.stringMatching(/^addon-[a-z-]{1,40}$/), { maxLength: 16 }),
+    requestedRouteId: fc.option(fc.stringMatching(/^route-[a-z0-9-]{1,40}$/), { nil: undefined }),
     voucherCode: fc.stringMatching(/^[a-z0-9-]{0,64}$/),
     notes: fc.string({ maxLength: 2_000 }),
   },
@@ -120,6 +121,9 @@ describe('bookingCheckoutSchema', () => {
     ['addons', Array.from({ length: 17 }, () => 'addon-extra-seat')],
     ['addons', ['']],
     ['addons', ['a'.repeat(81)]],
+    ['requestedRouteId', 'route-INVALID'],
+    ['requestedRouteId', 'route-'],
+    ['requestedRouteId', 'r'.repeat(81)],
     ['voucherCode', 'V'.repeat(65)],
     ['notes', 'n'.repeat(2_001)],
   ])('rejects %s = %j and names that field', (field, value) => {
@@ -138,6 +142,7 @@ describe('bookingCheckoutSchema', () => {
     ['startTime', '00:00'],
     ['startTime', '23:59'],
     ['addons', Array.from({ length: 16 }, () => 'addon-extra-seat')],
+    ['requestedRouteId', 'route-israel-home-skies'],
     ['voucherCode', 'V'.repeat(64)],
     ['notes', 'n'.repeat(2_000)],
   ])('accepts the boundary value %s = %j', (field, value) => {

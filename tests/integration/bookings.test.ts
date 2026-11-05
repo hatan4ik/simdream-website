@@ -66,6 +66,28 @@ describe('GET /api/bookings?ref (public success page lookup)', () => {
     }
   });
 
+  it('exposes a persisted route request to its public booking holder without exposing contact or staff notes', async () => {
+    const app = await loadApp();
+    const created = await createVoucherFundedBooking(app, {
+      date: DAY,
+      packageId: 'pkg-captain-60',
+      requestedRouteId: 'route-israel-home-skies',
+      voucherCode: SEED_FULL_VOUCHER.code,
+    });
+
+    const response = await lookup(app, `?ref=${created.bookingReference}`);
+
+    expect(response.status).toBe(200);
+    expect(expectContract(publicBooking, response.body)).toMatchObject({
+      bookingReference: created.bookingReference,
+      requestedRouteId: 'route-israel-home-skies',
+    });
+    const keys = collectKeys(response.body);
+    for (const privateKey of ['id', 'userId', 'pilotEmail', 'pilotPhone', 'stripePaymentIntentId', 'voucherCode', 'notes']) {
+      expect(keys.has(privateKey), privateKey).toBe(false);
+    }
+  });
+
   it('refuses a short legacy reference with 404 even though such a booking exists', async () => {
     const app = await loadApp();
     // Seed bookings now use the capability format (E2E-7), so make a legacy-format record

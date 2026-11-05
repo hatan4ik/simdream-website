@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:bcae3d0d9b3b46e92f8e2163453fecc1129ecf982fa13a2dcdd6a8b30cd1e1d4 -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:94d7a4b4ebf106eba9e07b5e3532cb783bff49f0692471ae25240d9d5134d2de -->
 
 ## Verification contract
 
@@ -83,7 +83,7 @@ Browser (5 languages, 2 themes)
 - **Checkout dependency boundary**: `lib/booking/checkout-service.ts` owns pricing, scheduling, guest identity and lifecycle rules while depending only on the narrow `CheckoutDependencies` ports in `lib/booking/checkout-ports.ts`. `lib/booking/checkout-composition.ts` adapts the current Supabase store, Stripe hosted checkout, SendGrid and Supabase Auth; `lib/booking/checkout-runtime.ts` is the route-facing composition. A Wix adapter must implement those ports and pass the same contract tests before it can be selected—never bypass the service or write directly from the browser.
 - **Wix Headless adapter** (`lib/wix/`, target architecture in `docs/WIX_HEADLESS_ARCHITECTURE.md`): a single `@wix/sdk` client (`lib/wix/client.ts`) authenticated as an anonymous visitor with the public `NEXT_PUBLIC_WIX_CLIENT_ID`; `lib/wix/bookings.ts` reads Bookings services and fully paginated bookable time slots over REST through `fetchWithAuth` (`@wix/bookings` is deliberately not installed: its React 18 peer dependency conflicts with React 19); `lib/wix/catalog.ts` maps every `SIMULATOR_PACKAGES` id to its Wix service id and `reconcileCatalog()` asserts name, duration and price parity. `lib/wix/checkout-shadow.ts` is an off-by-default (`WIX_SHADOW_READS_ENABLED=true`) post-response observer: it compares only the accepted local base-package departure with Wix catalog/availability and emits a redacted correlation event. It has no Wix writer, payment, member, voucher or checkout-redirect dependency, and never alters the current Supabase/Stripe response. `npm run wix:smoke` (`scripts/wix-smoke.ts`) exercises the live read connection; `tests/unit/wix-catalog.test.ts` and `tests/unit/wix-checkout-shadow.test.ts` cover map, reconciliation, shadow parity and failure isolation. The Wix project is the "Sim Dream Israel" headless site (`WIX_SITE_ID`), never the live Editor site.
 - **Error taxonomy**: `PersistenceError` → 503 with a generic message; `BookingConflictError` → 409; `RecordNotFoundError` → 404. Clients never see stack traces or database messages.
-- **Server authority**: the browser sends only IDs (package, date, start time, add-on IDs) and pilot details. Prices, durations, end times and discounts are always recomputed on the server.
+- **Server authority**: the browser sends only IDs (package, date, start time, add-on IDs and, when applicable, a curated on-request World Trio ID) and pilot details. Prices, durations, end times and discounts are always recomputed on the server; an on-request route is registry-validated, requires a 60-minute or longer session and adds no surcharge.
 
 ### 3. Core business logic
 
@@ -92,7 +92,7 @@ Sim Dream LTD runs one full-size **Boeing 737 MAX 8 flight simulator** at Gersho
 | Feature | Route(s) | Behaviour |
 | --- | --- | --- |
 | Marketing pages | `/`, `/experiences`, `/about`, `/pro`, `/contact`, `/rules`, `/privacy-policy` | Five customer value pillars, live METAR ticker (LLBG) and facility open/closed status, Google reviews. `/about` is the customer story; `/pro` is professional airline-assessment training. |
-| Booking engine | `/book`, `/book/success` | Two interfaces over identical availability logic: a one-page "Amazon-style" storefront and a guided 3-step wizard. Localized month calendar (week view optional), slot selection, add-ons, pilot manifest, checkout. The success page shows a boarding pass from a narrow public projection looked up by booking reference. |
+| Booking engine | `/book`, `/book/success` | Two interfaces over identical availability logic: a one-page "Amazon-style" storefront and a guided 3-step wizard. The default calendar is week view (month is togglable), with slot selection, add-ons, pilot manifest and checkout. An on-request World Trio opens calendar-first, saves a validated request with the booking and explicitly awaits captain confirmation. The success page shows a boarding pass from a narrow public projection looked up by booking reference. |
 | Noise-free flows | `/book?package=…` | Professional Training and Fear of Flying suppress all add-ons and combos (2-step flow); recreational uses the full 3-step flow. |
 | Scheduling | `lib/scheduler/*` | Deterministic "tiled interval" engine: each flight reserves a fixed block (flight + turnaround), slots are generated per operating window, orphan gaps are prevented, departed slots close by the Israel clock, and a dynamic-programming optimizer previews zero-waste capacity for admins. |
 | Gift vouchers | `/vouchers` | Purchase via Stripe (high-entropy `SD-VOUCH-…` codes, valid 12 months), verification, partial redemption at checkout or the desk, atomic balance debit. |
@@ -103,12 +103,12 @@ Sim Dream LTD runs one full-size **Boeing 737 MAX 8 flight simulator** at Gersho
 
 ### 4. Data models
 
-TypeScript types in `types/index.ts` mirror the Postgres tables in `lib/db/schema.sql` (plus migrations 001–006):
+TypeScript types in `types/index.ts` mirror the Postgres tables in `lib/db/schema.sql` (plus migrations 001–007):
 
 | Type | Table | Key fields |
 | --- | --- | --- |
 | `SimulatorPackage` | `packages` | id, category, durationMinutes (30/45/60/90/120/240), priceIls, primeTimePriceIls, daytimeOnly, kantorovichVar |
-| `Booking` | `bookings` | bookingReference `SD-737-[A-Z2-9]{16}`, date, start/end, pilot details, addons, subtotal/discount/total, status, paymentStatus, paymentMethod, Stripe intent, confirmation outbox timestamps |
+| `Booking` | `bookings` | bookingReference `SD-737-[A-Z2-9]{16}`, date, start/end, pilot details, addons, optional validated `requestedRouteId`, subtotal/discount/total, status, paymentStatus, paymentMethod, Stripe intent, confirmation outbox timestamps |
 | `GiftVoucher` | `gift_vouchers` | code `SD-VOUCH-[A-Z2-9]{18}`, initial value, current balance, sender/recipient, expiry, paymentStatus, Stripe session |
 | `CorporateInquiry` | `corporate_inquiries` | company, contact, team size 1–500, goal, status pipeline |
 | `UserProfile` | `profiles` | id = `auth.users.id`, email, role (`user`/`admin`) |
@@ -122,7 +122,7 @@ TypeScript types in `types/index.ts` mirror the Postgres tables in `lib/db/schem
 - Admin authentication is interim HTTP Basic auth; the documented target is Supabase Auth with server-side roles and MFA.
 - Voucher-code verification and failed admin Basic-auth attempts are rate-limited by a privacy-preserving, atomic database function (migration `005`); development and unit tests use an equivalent in-process limiter. The browser harness has a triple-gated `.next-test` isolation marker so parallel synthetic attackers cannot throttle unrelated authenticated journeys. Production fails closed when rate-limit persistence is unavailable.
 - HTML responses use a per-request CSP nonce from `proxy.ts`; this removes script-src `'unsafe-inline'`, but makes rendered pages dynamic rather than statically prerendered.
-- Production requires migrations **001–006** applied in order on an existing database (or `schema.sql` plus 003–006 on a new one).
+- Production requires migrations **001–007** applied in order on an existing database (or `schema.sql` plus 003–007 on a new one).
 - Only `/login` sets `noindex`. `/dashboard` and `/auth/*` are indexable (they hold no private data when signed out), so consider `noindex` there too.
 - **Catalog authority is split**: `GET /api/packages` reads the production `packages` table, while checkout prices from the static `SIMULATOR_PACKAGES` in `lib/db/seed-data.ts`. A database price edit can show one price and charge another. A rebuild must use one server-side catalog authority.
 - **i18n is not yet total**: the dictionary has five-language parity and tests, but hard-coded English remains in the navbar user menu, the booking-success page, and some legal and admin surfaces.
@@ -220,7 +220,7 @@ Add 3 curated one-click combos. Localize every package and add-on in all five la
 
 **Named gift certificates** use the same registry, in this fixed order: Discovery 30 (₪450), Captain 60 (₪690), Ultimate 90 (₪950, including the prime-time tariff), and Airline Interview Prep 120 PRO (₪1,590). The browser sends only a package id; checkout resolves its amount and title server-side. Flexible monetary gift cards remain open-balance vouchers.
 
-**Experience Flights route catalog** (`lib/data/experience-routes.ts`, rendered by `components/experiences/WorldRoutesSection.tsx` on `/experiences#world-routes`): the "טיסות חוויה" section written in the captain's voice. It lists every world-trio add-on (price and minutes resolved from `FLIGHT_ADDONS`, never duplicated) plus proposed on-request trios (Israel home skies, Atlantic outposts, Arctic lights, Himalaya, Africa, Pacific, Andes, North American wilderness) and scenario adventures (Dead Sea low pass, ETOPS crossing, Everest mountain flight, storm diversion, round-the-world, fly-home). Each trio names three real airports by ICAO and IATA code (ICAO rendered LTR), a 1–5 captain's handling rating, a first-person captain's note and "best for" tags, all in five languages. Bookable trios link to `/book`; on-request routes and adventures link to `/contact?subject=route&route=<id>`, which prefills the subject and message. Every airport is a real Boeing 737 destination (pillar 5). Pinned by `tests/unit/experience-routes.test.ts`.
+**Experience Flights route catalog** (`lib/data/experience-routes.ts`, rendered by `components/experiences/WorldRoutesSection.tsx` on `/experiences#world-routes`): the "טיסות חוויה" section written in the captain's voice. It lists every world-trio add-on (price and minutes resolved from `FLIGHT_ADDONS`, never duplicated) plus proposed on-request trios (Israel home skies, Atlantic outposts, Arctic lights, Himalaya, Africa, Pacific, Andes, North American wilderness) and scenario adventures (Dead Sea low pass, ETOPS crossing, Everest mountain flight, storm diversion, round-the-world, fly-home). Each trio names three real airports by ICAO and IATA code (ICAO rendered LTR), a 1–5 captain's handling rating, a first-person captain's note and "best for" tags, all in five languages. Bookable trios link to `/book` with their priced add-on selected. On-request World Trios link to `/book?package=captains-command-60&route=<id>`, open the calendar-first flow, restrict packages to 60 minutes or longer, retain only a server-validated route ID, add no route charge and clearly state that the captain confirms the final plan. Scenario adventures remain `/contact?subject=route&route=<id>` briefing inquiries. Every airport is a real Boeing 737 destination (pillar 5). Pinned by `tests/unit/experience-routes.test.ts`.
 
 #### Scheduling engine (`lib/scheduler/`, pure functions, fully unit-tested)
 
@@ -470,6 +470,7 @@ CREATE TABLE public.bookings (
   pilot_phone TEXT NOT NULL,
   experience_level TEXT NOT NULL CHECK (experience_level IN ('beginner','enthusiast','student_pilot','atpl')),
   addons JSONB NOT NULL DEFAULT '[]',
+  requested_route_id TEXT CHECK (requested_route_id IS NULL OR requested_route_id ~ '^route-[a-z0-9-]{1,80}$'),
   subtotal_ils NUMERIC(10,2) NOT NULL CHECK (subtotal_ils >= 0),
   discount_ils NUMERIC(10,2) NOT NULL DEFAULT 0 CHECK (discount_ils >= 0),
   total_ils NUMERIC(10,2) NOT NULL CHECK (total_ils >= 0),
@@ -561,7 +562,7 @@ CREATE TABLE public.flight_logs (
 );
 ```
 
-Ship the schema as `lib/db/schema.sql` for new projects and as ordered, reviewed migrations for existing ones: `001_production_hardening.sql`, `002_member_accounts.sql`, `003_exact_pilot_email_matching.sql`, `004_confirmation_outbox.sql`, `005_security_rate_limits.sql`, `006_discovery_flight_30_minutes.sql`.
+Ship the schema as `lib/db/schema.sql` for new projects and as ordered, reviewed migrations for existing ones: `001_production_hardening.sql`, `002_member_accounts.sql`, `003_exact_pilot_email_matching.sql`, `004_confirmation_outbox.sql`, `005_security_rate_limits.sql`, `006_discovery_flight_30_minutes.sql`, `007_requested_route_intent.sql`.
 
 ### FILE STRUCTURE
 
@@ -609,14 +610,14 @@ AGENTS.md  ARCHITECTURE.md  README.md  TESTING.md  KANTOROVICH_SCHEDULER_SPEC.md
 - `npm run build` compiles every route with zero TypeScript or build errors.
 - `npm run test:all -- --full --lighthouse` is green: typecheck, Vitest with coverage thresholds, e2e on five browsers, accessibility with an empty baseline, usability, security-web, resilience, visual, load and Lighthouse.
 - Verify manually:
-  - a recreational booking (3 steps with add-ons) and `/book?package=airline-interview-prep-90-pro` (2 steps, no add-ons);
+  - a recreational booking (3 steps with add-ons), an on-request World Trio at `/book?package=captains-command-60&route=route-israel-home-skies` (calendar first, no route surcharge, captain-confirmation notice) and `/book?package=airline-interview-prep-90-pro` (2 steps, no add-ons);
   - Sunday, Friday and Saturday calendars;
   - all five languages with no mixed scripts or missing keys;
   - all three themes with the official logo and no off-brand colours;
   - iPhone SE (320 px) to iPad landscape and Android phones/tablets with no horizontal overflow, 48 px controls and ≥12 px text.
 - Production without Supabase or Stripe fails closed (503), never with fake data.
 - Before launch, verify the providers, which no build or test can prove:
-  - migrations 001–006 are applied and `ALLOW_IN_MEMORY_STORE` is absent in production;
+  - migrations 001–007 are applied and `ALLOW_IN_MEMORY_STORE` is absent in production;
   - Google, Facebook and Apple are enabled in Supabase Auth with callback URLs for the deployed origin;
   - the Stripe keys are set and the webhook receives `checkout.session.completed`, `checkout.session.expired` and `checkout.session.async_payment_failed`;
   - the SendGrid sender is verified;

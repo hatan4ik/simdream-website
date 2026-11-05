@@ -176,6 +176,8 @@ export interface Booking {
   pilotPhone: string;
   experienceLevel: PilotExperienceLevel;
   addons: string[];
+  /** A custom World Trio request retained for dispatch; a captain confirms it before the visit. */
+  requestedRouteId?: string;
   subtotalIls: number;
   discountIls: number;
   totalIls: number;

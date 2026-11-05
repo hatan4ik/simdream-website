@@ -4,6 +4,7 @@ import type { Booking, GiftVoucher } from '@/types';
 import { FLIGHT_ADDONS, SIMULATOR_PACKAGES } from '@/lib/db/seed-data';
 import { hasDeparted, israelToday } from '@/lib/scheduler/israel-clock';
 import { giftCertificateAmount, giftCertificatePackageById } from '@/lib/catalog/gift-voucher-packages';
+import { findOnRequestWorldRoute, MINIMUM_ROUTE_REQUEST_MINUTES } from '@/lib/data/experience-routes';
 import {
   calculateMissionManifest,
   packageAllowsAddons,
@@ -70,6 +71,16 @@ async function createBookingFromRequest(
     throw new CheckoutError('Select an active consumer flight package.');
   }
 
+  // A route request is an operational instruction, not customer-controlled free text.
+  // Resolve it only from the curated on-request registry and never charge it as a made-up add-on.
+  const requestedRoute = input.requestedRouteId ? findOnRequestWorldRoute(input.requestedRouteId) : undefined;
+  if (input.requestedRouteId && !requestedRoute) {
+    throw new CheckoutError('Select a valid route request.');
+  }
+  if (requestedRoute && pkg.durationMinutes < MINIMUM_ROUTE_REQUEST_MINUTES) {
+    throw new CheckoutError('This route request requires a 60-minute or longer flight session.');
+  }
+
   const addonIds = [...new Set(input.addons)];
   if (addonIds.some((id) => !FLIGHT_ADDONS.some((addon) => addon.id === id))) {
     throw new CheckoutError('One or more selected mission add-ons are unavailable.');
@@ -124,6 +135,7 @@ async function createBookingFromRequest(
     pilotPhone: input.pilotPhone,
     experienceLevel: input.experienceLevel,
     addons: addonIds,
+    requestedRouteId: requestedRoute?.id,
     subtotalIls: manifest.subtotalIls,
     discountIls: isVoucherPayment ? manifest.totalIls : 0,
     totalIls: isVoucherPayment ? 0 : manifest.totalIls,

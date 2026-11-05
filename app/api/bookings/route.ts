@@ -17,6 +17,7 @@ function publicBookingView(booking: Booking) {
     endTime: booking.endTime,
     pilotName: booking.pilotName,
     addons: booking.addons,
+    requestedRouteId: booking.requestedRouteId,
     totalIls: booking.totalIls,
     status: booking.status,
     paymentStatus: booking.paymentStatus,

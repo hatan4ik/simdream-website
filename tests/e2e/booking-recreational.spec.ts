@@ -19,6 +19,7 @@ const BOOKING_REQUEST_FIELDS: readonly string[] = [
   'pilotPhone',
   'experienceLevel',
   'addons',
+  'requestedRouteId',
   'voucherCode',
   'notes',
 ];

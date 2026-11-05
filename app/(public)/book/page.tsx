@@ -34,7 +34,12 @@ import {
 } from '@/lib/scheduler/mission-calculator';
 import { israelToday } from '@/lib/scheduler/israel-clock';
 import { useClientValue } from '@/lib/ui/use-client-value';
-import { EXPERIENCE_ROUTES_COPY, WORLD_ROUTES } from '@/lib/data/experience-routes';
+import {
+  EXPERIENCE_ROUTES_COPY,
+  MINIMUM_ROUTE_REQUEST_MINUTES,
+  WORLD_ROUTES,
+  findOnRequestWorldRoute,
+} from '@/lib/data/experience-routes';
 
 // The server and a visitor can be in different time zones. This stable snapshot
 // hydrates first, then the browser swaps in Israel's live operating date.
@@ -72,7 +77,11 @@ function BookContent() {
   const localizedPackages = getLocalizedPackages(language);
   const localizedAddons = getLocalizedAddons(language);
   const selectedRoute = React.useMemo(
-    () => WORLD_ROUTES.find((route) => route.id === searchParams.get('route') && Boolean(route.addonId)),
+    () => WORLD_ROUTES.find((route) => route.id === searchParams.get('route')),
+    [searchParams]
+  );
+  const requestedRoute = React.useMemo(
+    () => findOnRequestWorldRoute(searchParams.get('route') ?? undefined),
     [searchParams]
   );
   const requestedAddonIds = React.useMemo(
@@ -90,7 +99,9 @@ function BookContent() {
 
   // View Mode: Default to Amazon-Style 1-Page Storefront ('storefront') to eliminate multi-step friction,
   // with optional toggle to Guided 3-Step Wizard ('wizard').
-  const [bookingViewMode, setBookingViewMode] = useState<'storefront' | 'wizard'>('storefront');
+  const [bookingViewMode, setBookingViewMode] = useState<'storefront' | 'wizard'>(() =>
+    requestedRoute ? 'wizard' : 'storefront'
+  );
 
   // 3-Step Streamlined Calendar-First Wizard:
   // Step 1 = Smart Calendar, Duration & Time Slot
@@ -131,8 +142,22 @@ function BookContent() {
   const scopedPackages = React.useMemo(() => {
     if (isProBooking) return localizedPackages.filter((p) => p.category === 'training');
     if (isFearOfFlyingBooking) return localizedPackages.filter((p) => p.category === 'fear_of_flying');
-    return localizedPackages.filter((p) => p.category === 'recreational');
-  }, [localizedPackages, isProBooking, isFearOfFlyingBooking]);
+    return localizedPackages.filter(
+      (p) =>
+        p.category === 'recreational' &&
+        (!requestedRoute || p.durationMinutes >= MINIMUM_ROUTE_REQUEST_MINUTES)
+    );
+  }, [localizedPackages, isProBooking, isFearOfFlyingBooking, requestedRoute]);
+
+  // An old or hand-edited URL must not leave a custom World Trio paired with a short flight.
+  // The route request starts at 60 minutes, while customers may still choose a longer session.
+  useEffect(() => {
+    if (!requestedRoute || activePackage.durationMinutes >= MINIMUM_ROUTE_REQUEST_MINUTES) return;
+    const eligiblePackage = localizedPackages.find(
+      (pkg) => pkg.category === 'recreational' && pkg.durationMinutes >= MINIMUM_ROUTE_REQUEST_MINUTES
+    );
+    if (eligiblePackage) setSelectedPackage(eligiblePackage);
+  }, [activePackage.durationMinutes, localizedPackages, requestedRoute]);
 
   // Scoped add-ons:
   // - PRO or Fear of Flying: strictly [] (empty array, zero add-on noise!)
@@ -443,6 +468,7 @@ function BookContent() {
           pilotPhone,
           experienceLevel,
           addons: selectedAddons,
+          requestedRouteId: requestedRoute?.id,
           voucherCode: voucherDiscount > 0 ? voucherCode : undefined,
           notes,
         }),
@@ -529,24 +555,37 @@ function BookContent() {
         </div>
       </div>
 
-      {hasSelectedRouteAddon && selectedRouteAddon && selectedRouteText && !isNoiseFreeBooking && (
+      {((hasSelectedRouteAddon && selectedRouteAddon) || requestedRoute) && selectedRouteText && !isNoiseFreeBooking && (
         <section
-          data-route-booking-intent
+          data-route-booking-intent={requestedRoute ? undefined : true}
+          data-route-request-intent={requestedRoute ? true : undefined}
           aria-live="polite"
           className="rounded-2xl border border-sky-400/40 bg-sky-500/10 px-4 py-3.5 sm:px-5 sm:py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
         >
           <div className="min-w-0">
             <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-sky-300">
-              {routeCopy.bookingIntentEyebrow}
+              {requestedRoute ? routeCopy.routeRequestEyebrow : routeCopy.bookingIntentEyebrow}
             </p>
             <h2 className="mt-1 text-base sm:text-lg font-bold text-white">{selectedRouteText.title}</h2>
-            <p className="mt-1 text-xs sm:text-sm leading-relaxed text-slate-300">{routeCopy.bookingIntentDescription}</p>
+            <p className="mt-1 text-xs sm:text-sm leading-relaxed text-slate-300">
+              {requestedRoute ? routeCopy.routeRequestDescription : routeCopy.bookingIntentDescription}
+            </p>
           </div>
           <div className="shrink-0 rounded-xl border border-sky-400/30 bg-slate-950/60 px-3 py-2 text-right rtl:text-left" dir="ltr">
-            <p className="text-[10px] font-mono uppercase text-slate-400">{routeCopy.bookingIntentAddOn}</p>
-            <p className="text-sm font-mono font-bold text-sky-300">
-              +{selectedRouteAddon.durationMinutes} min · +{formatCurrency(selectedRouteAddon.priceIls)}
-            </p>
+            {requestedRoute ? (
+              <>
+                <p className="text-[10px] font-mono uppercase text-slate-400">{routeCopy.routeRequestSaved}</p>
+                <p className="text-sm font-mono font-bold text-sky-300">{routeCopy.routeRequestConfirmation}</p>
+                <p className="mt-0.5 text-[11px] text-slate-400">{routeCopy.routeRequestPriceNote}</p>
+              </>
+            ) : (
+              <>
+                <p className="text-[10px] font-mono uppercase text-slate-400">{routeCopy.bookingIntentAddOn}</p>
+                <p className="text-sm font-mono font-bold text-sky-300">
+                  +{selectedRouteAddon!.durationMinutes} min · +{formatCurrency(selectedRouteAddon!.priceIls)}
+                </p>
+              </>
+            )}
           </div>
         </section>
       )}

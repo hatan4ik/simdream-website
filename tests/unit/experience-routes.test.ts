@@ -1,13 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { FLIGHT_ADDONS } from '@/lib/db/seed-data';
 import type { Language } from '@/lib/i18n/translations';
-import { translations } from '@/lib/i18n/translations';
 import {
   ADVENTURES,
   EXPERIENCE_ROUTES_COPY,
+  MINIMUM_ROUTE_REQUEST_MINUTES,
   ROUTE_REGIONS,
   WORLD_ROUTES,
   countRouteAirports,
+  findOnRequestWorldRoute,
 } from '@/lib/data/experience-routes';
 
 const CODES: Language[] = ['he', 'en', 'ru', 'fr', 'ar'];
@@ -153,8 +154,23 @@ describe('experience routes catalog: five-language discipline (AGENTS.md section
     }
   });
 
-  it.each(CODES)('offers the contact-form route request in %s with a {{route}} placeholder', (code) => {
-    expect(translations[code].contact.subjectRoute.trim()).not.toHaveLength(0);
-    expect(translations[code].contact.routeInquiryPrefill).toContain('{{route}}');
+  it.each(CODES)('supplies a complete route-request booking handoff in %s', (code) => {
+    const copy = EXPERIENCE_ROUTES_COPY[code];
+    expect(copy.routeRequestEyebrow.trim()).not.toHaveLength(0);
+    expect(copy.routeRequestDescription.trim()).not.toHaveLength(0);
+    expect(copy.routeRequestSaved.trim()).not.toHaveLength(0);
+    expect(copy.routeRequestConfirmation.trim()).not.toHaveLength(0);
+  });
+
+  it('resolves only non-priced World Trios as captain-confirmed requests', () => {
+    const requestable = WORLD_ROUTES.filter((route) => !route.addonId);
+    expect(MINIMUM_ROUTE_REQUEST_MINUTES).toBe(60);
+    expect(requestable).not.toHaveLength(0);
+    for (const route of requestable) {
+      expect(findOnRequestWorldRoute(route.id)).toBe(route);
+    }
+    for (const route of WORLD_ROUTES.filter((route) => route.addonId)) {
+      expect(findOnRequestWorldRoute(route.id)).toBeUndefined();
+    }
   });
 });
