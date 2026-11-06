@@ -61,7 +61,7 @@ test.describe('primary navigation', () => {
     { link: "Captain's Command Flight (60m)", slug: 'captains-command-60', duration: 60 },
     { link: "Captains' Challenge & Multi-Trio Odyssey (90m)", slug: 'ultimate-aviator-90', duration: 90 },
     { link: 'Airline Interview Prep 120 PRO', slug: 'airline-assessment-prep', duration: 120 },
-    { link: 'Fear of Flying Overcoming Course', slug: 'fear-of-flying-course', duration: 90 },
+    { link: 'Fear of Flying Overcoming Course', slug: 'fear-of-flying-course', duration: 60 },
   ];
   for (const { link, slug, duration } of FOOTER_PACKAGES) {
     test(`opens the booking engine on "${link}" from the footer`, async ({ page, chrome }) => {
