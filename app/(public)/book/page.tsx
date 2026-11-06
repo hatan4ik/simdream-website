@@ -501,7 +501,7 @@ function BookContent() {
 
   const applyCouponToCurrentWixCheckout = async (code: string): Promise<WixCheckoutDraftState | null> => {
     const draft = await ensureCurrentWixCheckoutDraft();
-    const applied = await applyWixCoupon(getWixMemberClient(), draft.cartId, code);
+    const applied = await applyWixCoupon(getWixMemberClient(), draft.cartId, code, draft.totalIls);
     if (applied.price.discountIls <= 0) {
       // Wix accepts some codes syntactically but calculates a zero discount when
       // the selected service does not meet the coupon's scope/minimum rules.

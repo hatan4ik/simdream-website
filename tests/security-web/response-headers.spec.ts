@@ -71,6 +71,10 @@ test.describe('technology disclosure and transport hardening', () => {
     expect(csp).toMatch(/frame-ancestors\s+'none'/);
     expect(csp).toMatch(/object-src\s+'none'/);
     expect(csp).toMatch(/base-uri\s+'self'/);
+    // Native Wix checkout runs in the visitor's browser session. Its OAuth
+    // token exchange and Cart V2 requests must not be blocked by the site's
+    // otherwise strict connection policy.
+    expect(csp).toMatch(/connect-src[^;]*https:\/\/www\.wixapis\.com/);
   });
 
   test('forbids inline scripts in the Content-Security-Policy', async ({ request }) => {

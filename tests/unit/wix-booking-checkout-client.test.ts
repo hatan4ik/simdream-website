@@ -46,14 +46,19 @@ describe('Wix native booking checkout client', () => {
         timeSlot: {
           bookable: true,
           scheduleId: 'schedule-id',
-          availableResources: [{ resources: [{ id: 'simulator-resource' }] }],
+          availableResources: [
+            { resources: [{ id: 'simulator-resource' }] },
+            { resources: [{ id: 'staff-resource', name: 'Captain SimDream' }] },
+          ],
         },
       }),
       response({ booking: { id: 'booking-id' } }),
       response({ cart: { id: 'cart-id' } }),
       calculation('0', '690'),
       response({ cart: { coupons: [{ id: 'coupon-id', code: 'WIX-TEST' }] } }),
-      calculation('690', '0'),
+      // Wix Bookings can apply a native coupon on the line item while reporting
+      // a zero cart-level `priceSummary.discount`; the total remains decisive.
+      calculation('0', '0'),
       response({ checkoutUrl: 'https://checkout.wix.com/pay/session' }),
     ];
     const client: WixBrowserClient = {
@@ -95,7 +100,6 @@ describe('Wix native booking checkout client', () => {
               scheduleId: 'schedule-id',
               startDate: '2026-11-09T08:00:00.000Z',
               endDate: '2026-11-09T09:00:00.000Z',
-              resource: { id: 'simulator-resource' },
               location: { id: 'location-id', locationType: 'OWNER_BUSINESS' },
             },
           },
@@ -162,6 +166,25 @@ describe('Wix native booking checkout client', () => {
       { url: 'https://www.wixapis.com/ecom/v2/carts/cart-id/remove-coupon', body: { couponId: 'coupon-id' } },
       { url: 'https://www.wixapis.com/ecom/v2/carts/cart-id/calculate', body: { refreshCart: true } },
     ]);
+  });
+
+  it('derives a Bookings line-item coupon discount from the before-and-after Wix totals', async () => {
+    const replies = [
+      response({ cart: { coupons: [{ id: 'coupon-id', code: 'KANTOQA100-20261105' }] } }),
+      calculation('0', '0'),
+    ];
+    const client: WixBrowserClient = {
+      fetchWithAuth: async () => {
+        const next = replies.shift();
+        if (!next) throw new Error('unexpected Wix request');
+        return next;
+      },
+    };
+
+    await expect(applyWixCoupon(client, 'cart-id', 'KANTOQA100-20261105', 690)).resolves.toEqual({
+      couponId: 'coupon-id',
+      price: { discountIls: 690, totalIls: 0 },
+    });
   });
 
   it('uses Israel daylight and standard time correctly and accepts local Israeli phone entry', () => {

@@ -144,6 +144,19 @@ function priceFromCalculation(calculation: WixCartCalculationResponse): WixCartP
   return { discountIls, totalIls };
 }
 
+/**
+ * Wix Bookings coupons may be applied as a line-item discount. In that case
+ * `summary.priceSummary.discount` remains zero even though the authoritative
+ * calculated total has decreased. Compare the same cart before and after the
+ * coupon so the customer sees the actual payable total in either shape.
+ */
+function priceAfterCoupon(calculation: WixCartCalculationResponse, previousTotalIls?: number): WixCartPrice {
+  const price = priceFromCalculation(calculation);
+  if (previousTotalIls === undefined || !Number.isFinite(previousTotalIls)) return price;
+  const effectiveDiscount = Math.max(0, Number((previousTotalIls - price.totalIls).toFixed(3)));
+  return { ...price, discountIls: Math.max(price.discountIls, effectiveDiscount) };
+}
+
 function dateTimeParts(localDateTime: string): { year: number; month: number; day: number; hour: number; minute: number; second: number } {
   const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/.exec(localDateTime);
   if (!match) throw new WixBookingCheckoutClientError('Wix returned an invalid appointment time. Please choose another time.');
@@ -211,14 +224,6 @@ function paymentOption(options: WixNativeCheckoutCandidate['paymentOptions']): '
   throw new WixBookingCheckoutClientError('This flight is not currently configured for online checkout.');
 }
 
-function resourceForSlot(slot: WixNativeCheckoutSlot): { id: string; name?: string } | undefined {
-  for (const availableResource of slot.availableResources ?? []) {
-    const resource = availableResource.resources?.find((candidate) => Boolean(candidate.id));
-    if (resource?.id) return { id: resource.id, ...(resource.name ? { name: resource.name } : {}) };
-  }
-  return undefined;
-}
-
 function createBookingLocation(location: WixNativeCheckoutLocation): { id: string; locationType: 'OWNER_BUSINESS' | 'CUSTOMER' | 'CUSTOM' } {
   return {
     id: location.id,
@@ -271,7 +276,10 @@ export async function prepareWixBookingCheckout(
           startDate: wixLocalDateTimeToIso(slot.localStartDate, input.timeZone),
           endDate: wixLocalDateTimeToIso(slot.localEndDate, input.timeZone),
           timezone: input.timeZone,
-          ...(resourceForSlot(liveSlot) ? { resource: resourceForSlot(liveSlot) } : {}),
+          // The visitor selected a time, not a particular instructor. Omitting
+          // `resource` applies Wix's automatic staff assignment. The availability
+          // response also contains the physical simulator-capacity resource; using
+          // that resource as an instructor makes Create Booking reject the slot.
           location: createBookingLocation(input.location),
         },
       },
@@ -306,7 +314,8 @@ export async function prepareWixBookingCheckout(
 export async function applyWixCoupon(
   client: WixBrowserClient,
   cartId: string,
-  couponCode: string
+  couponCode: string,
+  previousTotalIls?: number
 ): Promise<WixAppliedCoupon> {
   const code = couponCode.trim();
   if (!code) throw new WixBookingCheckoutClientError('Enter a coupon code before applying it.');
@@ -327,7 +336,7 @@ export async function applyWixCoupon(
   const calculation = await wixPost<WixCartCalculationResponse>(client, `${WIX_CREATE_CART_URL}/${cartId}/calculate`, {
     refreshCart: true,
   });
-  return { couponId, price: priceFromCalculation(calculation) };
+  return { couponId, price: priceAfterCoupon(calculation, previousTotalIls) };
 }
 
 /** Removes an applied coupon, then returns Wix's recalculated original total. */
@@ -366,7 +375,7 @@ export async function startWixBookingCheckout(
 ): Promise<{ checkoutUrl: string }> {
   const draft = await prepareWixBookingCheckout(client, input);
   if (input.couponCode?.trim()) {
-    await applyWixCoupon(client, draft.cartId, input.couponCode);
+    await applyWixCoupon(client, draft.cartId, input.couponCode, draft.price.totalIls);
   }
   return getWixBookingCheckoutUrl(client, draft.cartId);
 }
