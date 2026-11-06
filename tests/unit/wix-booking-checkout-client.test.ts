@@ -40,7 +40,7 @@ function calculation(discount: string, total: string): Response {
 
 describe('Wix native booking checkout client', () => {
   it('uses one visitor cart to calculate a native coupon before opening hosted checkout', async () => {
-    const calls: Array<{ url: string; body: unknown }> = [];
+    const calls: Array<{ url: string; method?: string; body: unknown }> = [];
     const replies = [
       response({
         timeSlot: {
@@ -54,6 +54,7 @@ describe('Wix native booking checkout client', () => {
       }),
       response({ booking: { id: 'booking-id' } }),
       response({ cart: { id: 'cart-id' } }),
+      response({ cart: { id: 'cart-id' } }),
       calculation('0', '690'),
       response({ cart: { coupons: [{ id: 'coupon-id', code: 'WIX-TEST' }] } }),
       // Wix Bookings can apply a native coupon on the line item while reporting
@@ -63,7 +64,7 @@ describe('Wix native booking checkout client', () => {
     ];
     const client: WixBrowserClient = {
       fetchWithAuth: async (input, init) => {
-        calls.push({ url: String(input), body: init?.body ? JSON.parse(String(init.body)) : null });
+        calls.push({ url: String(input), method: init?.method, body: init?.body ? JSON.parse(String(init.body)) : null });
         const next = replies.shift();
         if (!next) throw new Error('unexpected Wix request');
         return next;
@@ -81,7 +82,7 @@ describe('Wix native booking checkout client', () => {
       })
     ).resolves.toEqual({ checkoutUrl: 'https://checkout.wix.com/pay/session' });
 
-    expect(calls).toHaveLength(7);
+    expect(calls).toHaveLength(8);
     expect(calls[0]).toMatchObject({
       url: 'https://www.wixapis.com/_api/service-availability/v2/time-slots/get',
       body: {
@@ -126,13 +127,62 @@ describe('Wix native booking checkout client', () => {
         ],
       },
     });
-    expect(calls[3]?.url).toBe('https://www.wixapis.com/ecom/v2/carts/cart-id/calculate');
-    expect(calls[4]).toMatchObject({
+    expect(calls[3]).toMatchObject({
+      url: 'https://www.wixapis.com/ecom/v2/carts/cart-id',
+      method: 'PATCH',
+      body: {
+        cart: {
+          id: 'cart-id',
+          customerInfo: {
+            firstName: 'Avi',
+            lastName: 'Pilot',
+            email: 'pilot@example.test',
+            phone: '+972547773074',
+          },
+        },
+      },
+    });
+    expect(calls[4]?.url).toBe('https://www.wixapis.com/ecom/v2/carts/cart-id/calculate');
+    expect(calls[5]).toMatchObject({
       url: 'https://www.wixapis.com/ecom/v2/carts/cart-id/add-coupon',
       body: { coupon: { code: 'WIX-TEST' } },
     });
-    expect(calls[5]?.url).toBe('https://www.wixapis.com/ecom/v2/carts/cart-id/calculate');
-    expect(calls[6]?.url).toBe('https://www.wixapis.com/ecom/v2/carts/cart-id/get-checkout-url');
+    expect(calls[6]?.url).toBe('https://www.wixapis.com/ecom/v2/carts/cart-id/calculate');
+    expect(calls[7]?.url).toBe('https://www.wixapis.com/ecom/v2/carts/cart-id/get-checkout-url');
+  });
+
+  it('does not open payment when Wix refuses the customer-details handoff to the cart', async () => {
+    const calls: string[] = [];
+    const replies = [
+      response({ timeSlot: { bookable: true, scheduleId: 'schedule-id' } }),
+      response({ booking: { id: 'booking-id' } }),
+      response({ cart: { id: 'cart-id' } }),
+      response({ message: 'Missing Write Carts V2 PII permission' }, 403),
+    ];
+    const client: WixBrowserClient = {
+      fetchWithAuth: async (input) => {
+        calls.push(String(input));
+        const next = replies.shift();
+        if (!next) throw new Error('payment must not be opened after a failed customer-details handoff');
+        return next;
+      },
+    };
+
+    await expect(
+      startWixBookingCheckout(client, {
+        ...CANDIDATE,
+        pilotName: 'Avi Pilot',
+        pilotEmail: 'pilot@example.test',
+        pilotPhone: '+972547773074',
+      })
+    ).rejects.toThrow('securely prepare your checkout');
+
+    expect(calls).toEqual([
+      'https://www.wixapis.com/_api/service-availability/v2/time-slots/get',
+      'https://www.wixapis.com/bookings/v2/bookings',
+      'https://www.wixapis.com/ecom/v2/carts',
+      'https://www.wixapis.com/ecom/v2/carts/cart-id',
+    ]);
   });
 
   it('returns Wix-calculated amounts and removes a zero-discount coupon from the same cart', async () => {

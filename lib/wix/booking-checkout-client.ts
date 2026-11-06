@@ -119,6 +119,30 @@ async function wixPost<T>(client: WixBrowserClient, url: string, body: unknown):
   return payload as T;
 }
 
+/**
+ * Adds the visitor's already-completed booking form details to the cart that
+ * owns the hosted checkout. Wix Checkout reads `customerInfo` from the cart,
+ * so this is the handoff that prevents a customer from having to type their
+ * name, email and phone a second time after selecting a flight.
+ */
+async function wixUpdateCartCustomerInfo(
+  client: WixBrowserClient,
+  cartId: string,
+  customerInfo: { firstName: string; lastName: string; email: string; phone: string }
+): Promise<void> {
+  const response = await client.fetchWithAuth(`${WIX_CREATE_CART_URL}/${cartId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    // Cart V2 requires the ID both in the URL and the partial cart payload.
+    // Do not pass a contact ID from the browser: Wix resolves or creates the
+    // matching contact from the same visitor-owned cart context.
+    body: JSON.stringify({ cart: { id: cartId, customerInfo } }),
+  });
+  if (!response.ok) {
+    throw new WixBookingCheckoutClientError('We could not securely prepare your checkout. Please try again.');
+  }
+}
+
 function wixMoneyAmount(value: unknown): number | null {
   if (typeof value !== 'string') return null;
   const amount = Number(value);
@@ -259,11 +283,17 @@ export async function prepareWixBookingCheckout(
   }
 
   const name = splitPilotName(input.pilotName);
-  const formSubmission: Record<string, string> = {
-    first_name: name.firstName,
-    last_name: name.lastName,
+  const customerInfo = {
+    firstName: name.firstName,
+    lastName: name.lastName,
     email: input.pilotEmail.trim(),
     phone: normalizeWixBookingPhone(input.pilotPhone),
+  };
+  const formSubmission: Record<string, string> = {
+    first_name: customerInfo.firstName,
+    last_name: customerInfo.lastName,
+    email: customerInfo.email,
+    phone: customerInfo.phone,
   };
   if (input.notes?.trim()) formSubmission.add_your_message = input.notes.trim();
 
@@ -303,6 +333,11 @@ export async function prepareWixBookingCheckout(
   });
   const cartId = cart.cart?.id;
   if (!cartId) throw new WixBookingCheckoutClientError('Wix did not create a checkout cart. Please try again.');
+
+  // The booking form and the cart are separate Wix business objects. Without
+  // this Cart V2 update, the hosted checkout cannot inherit the already
+  // supplied customer details and presents an avoidable duplicate form.
+  await wixUpdateCartCustomerInfo(client, cartId, customerInfo);
 
   const calculation = await wixPost<WixCartCalculationResponse>(client, `${WIX_CREATE_CART_URL}/${cartId}/calculate`, {
     refreshCart: true,
