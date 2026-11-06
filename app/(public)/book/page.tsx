@@ -268,6 +268,7 @@ function BookContent() {
   const wixBookingFrontendActive = isWixBrowserClientConfigured();
   const canUseWixNativeCheckout =
     !isWixSubscriptionRedemption &&
+    wixBookingsAuthoritative &&
     wixBookingFrontendActive &&
     selectedAddons.length === 0 &&
     voucherDiscount === 0 &&

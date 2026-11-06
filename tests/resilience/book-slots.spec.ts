@@ -8,7 +8,6 @@ import {
   fulfillOpenSlots,
   gate,
   isSlotsApi,
-  israelStripDays,
   openBookingPage,
   openStartTimes,
   requestedDate,
@@ -37,19 +36,16 @@ const fullyBooked = (route: Route) =>
     ),
   });
 
-/** A visible calendar date at least two days out, so it is never the initially selected (tomorrow) date. */
-const laterStripDay = (predicate: (weekday: number) => boolean = () => true) => {
-  const day = israelStripDays()
-    .slice(2)
-    .find((candidate) => predicate(candidate.weekday));
-  if (!day) throw new Error('No matching date in the current calendar range');
-  return day;
-};
-
 async function visibleWeekDates(page: Parameters<typeof openBookingPage>[0]): Promise<string[]> {
   return page.locator('[data-calendar-date]:visible').evaluateAll((buttons) =>
     buttons.map((button) => button.getAttribute('data-calendar-date') ?? '').filter(Boolean)
   );
+}
+
+async function selectedCalendarDate(page: Parameters<typeof openBookingPage>[0]): Promise<string> {
+  const date = await page.locator('[data-calendar-date][aria-pressed="true"]').first().getAttribute('data-calendar-date');
+  if (!date) throw new Error('Expected a selected calendar date');
+  return date;
 }
 
 // The storefront renders its empty "sold-out" panel before the first slots response
@@ -68,7 +64,9 @@ test.describe('/book when the slots API fails', () => {
       await settleFrames(page);
 
       await expect(page.getByRole('button', { name: 'Check Next Day →' })).toBeEnabled();
-      await expect(page.getByRole('button', { name: laterStripDay().name })).toBeEnabled();
+      // A calendar week can end on the initially selected next operating day;
+      // the next-week arrow is the durable route to another available date.
+      await expect(page.locator('[data-calendar-next-week]')).toBeEnabled();
       await expect(checkoutButton(page)).toBeEnabled();
     });
 
@@ -95,10 +93,10 @@ test.describe('/book when the slots API fails', () => {
     await expect.poll(() => failuresServed).toBeGreaterThan(0);
     await expect(page.getByRole('button', { name: 'Check Next Day →' })).toBeVisible();
     healthy = true;
-    const target = laterStripDay();
-    const recovered = page.waitForResponse((response) => isSlotsApi(new URL(response.url())) && requestedDate(response.request()) === target.date);
+    const targetDate = addDays(await selectedCalendarDate(page), 7);
+    const recovered = page.waitForResponse((response) => isSlotsApi(new URL(response.url())) && requestedDate(response.request()) === targetDate);
 
-    await page.getByRole('button', { name: target.name }).click();
+    await page.locator('[data-calendar-next-week]').click();
 
     const [firstOpen] = openStartTimes((await recovered).url());
     await expect(slotButton(page, firstOpen)).toBeEnabled();
@@ -204,16 +202,24 @@ test.describe('/book when the slots API is slow', () => {
 
     const weekDates = await visibleWeekDates(page);
     const saturdayDate = weekDates.find((date) => new Date(`${date}T12:00:00Z`).getUTCDay() === 6);
-    const weekdayDate = weekDates.find((date) => new Date(`${date}T12:00:00Z`).getUTCDay() <= 4);
+    const initiallySelectedDate = await selectedCalendarDate(page);
+    const weekdayDate = weekDates.find(
+      (date) => date !== initiallySelectedDate && new Date(`${date}T12:00:00Z`).getUTCDay() <= 4
+    );
     if (!saturdayDate || !weekdayDate) throw new Error(`Expected a Saturday and weekday in ${weekDates.join(', ')}`);
-    const saturday = { date: saturdayDate, name: new RegExp(`^Sat\\s*${Number(saturdayDate.slice(-2))}\\s*`) };
+    const saturday = { date: saturdayDate };
     heldSaturdayDate = saturday.date;
-    const weekdayDateObject = new Date(`${weekdayDate}T12:00:00Z`);
-    const weekdayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu'];
     const weekday = {
       date: weekdayDate,
-      name: new RegExp(`^${weekdayNames[weekdayDateObject.getUTCDay()]}\\s*${Number(weekdayDate.slice(-2))}\\s*`),
     };
+
+    // A default booking can land on Saturday. Move to a weekday first so clicking
+    // Saturday below always starts a real request that can be superseded.
+    const weekdayInitialLoad = page.waitForResponse(
+      (response) => isSlotsApi(new URL(response.url())) && requestedDate(response.request()) === weekday.date
+    );
+    await page.locator(`[data-calendar-date="${weekday.date}"]`).click();
+    await weekdayInitialLoad;
 
     // The superseded Saturday request settles either way: aborted by the page the moment the
     // weekday is chosen (requestfailed), or answered late and discarded (requestfinished).
@@ -223,8 +229,8 @@ test.describe('/book when the slots API is slow', () => {
       page.waitForEvent('requestfinished', isSaturdaySlots),
       page.waitForEvent('requestfailed', isSaturdaySlots),
     ]);
-    await page.getByRole('button', { name: saturday.name }).click();
-    await page.getByRole('button', { name: weekday.name }).click();
+    await page.locator(`[data-calendar-date="${saturday.date}"]`).click();
+    await page.locator(`[data-calendar-date="${weekday.date}"]`).click();
     const weekdayTimes = openStartTimes(urlByDate.get(weekday.date) ?? '');
     await expect(slotButton(page, weekdayTimes[0])).toBeVisible();
     const saturdayOnly = openStartTimes(urlByDate.get(saturday.date) ?? '').filter((time) => !weekdayTimes.includes(time));
@@ -268,12 +274,6 @@ test.describe('/book default week calendar', () => {
 });
 
 test.describe('/book week calendar navigation', () => {
-  const selectedCalendarDate = async (page: Parameters<typeof openBookingPage>[0]): Promise<string> => {
-    const date = await page.locator('[data-calendar-date][aria-pressed="true"]').first().getAttribute('data-calendar-date');
-    if (!date) throw new Error('Expected a selected calendar date');
-    return date;
-  };
-
   const exerciseWeekPaging = async (page: Parameters<typeof openBookingPage>[0]) => {
     // The server render intentionally starts at a stable 2099 date. Wait for the browser to
     // adopt Israel's live operating day before deriving the next-week request target.

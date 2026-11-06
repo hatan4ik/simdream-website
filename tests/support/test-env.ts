@@ -28,6 +28,11 @@ export const SANDBOX_ENV: Record<string, string> = {
   STRIPE_WEBHOOK_SECRET: '',
   SENDGRID_API_KEY: '',
   GOOGLE_PLACES_API_KEY: '',
+  // Tests must never use a developer's Wix client or turn a browser journey into
+  // a live Wix Bookings checkout. Individual integration tests opt in explicitly.
+  NEXT_PUBLIC_WIX_CLIENT_ID: '',
+  WIX_SITE_ID: '',
+  WIX_AVAILABILITY_ADAPTER_ENABLED: 'false',
   NEXT_PUBLIC_APP_URL: '',
   ALLOW_IN_MEMORY_STORE: '',
   // Deterministic local dates for seed data and servers, whatever the machine's zone.
