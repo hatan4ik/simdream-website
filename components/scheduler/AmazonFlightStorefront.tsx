@@ -1696,7 +1696,7 @@ export function AmazonFlightStorefront({
                         value={opt.value}
                         checked={active}
                         onChange={() => onChangeExperienceLevel(opt.value)}
-                        className="accent-amber-400"
+                        className="size-6 shrink-0 accent-amber-400"
                       />
                       <span className="truncate">{opt.label}</span>
                     </label>

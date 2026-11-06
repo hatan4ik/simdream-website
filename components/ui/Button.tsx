@@ -20,10 +20,10 @@ const baseStyles =
   'inline-flex items-center justify-center text-center rounded-[980px] border font-normal tracking-[-0.022em] leading-[1.17648] transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed select-none touch-manipulation cursor-pointer';
 
 const variants: Record<ButtonVariant, string> = {
-  // "Learn more": filled brand cerulean. sky-700 keeps white label text at ~5.9:1 (WCAG AA).
-  primary: 'bg-sky-700 border-sky-700 text-white hover:bg-sky-800 hover:border-sky-800',
-  // "Buy": the same cerulean as a 1px outline on a transparent pill; fills on hover like apple.com.
-  // Cockpit Night uses sky-400 for contrast on dark slate; daylight remaps it to sky-700.
+  // "Learn more": the exact sky-400 cerulean at the edges of the home-page
+  // "Boeing 737 MAX" headline gradient. Its light fill needs a dark label for WCAG contrast.
+  primary: 'bg-sky-400 border-sky-400 text-slate-950 hover:bg-sky-300 hover:border-sky-300',
+  // "Buy": the same hero cerulean as a 1px outline on a transparent pill; fills on hover like apple.com.
   outline: 'bg-transparent border-sky-400 text-sky-400 hover:bg-sky-400 hover:text-slate-950',
   // Neutral grey pill (apple.com `.button-neutral`) for tertiary actions.
   secondary: 'bg-slate-800 border-slate-800 text-slate-100 hover:bg-slate-700 hover:border-slate-700',

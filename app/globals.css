@@ -599,8 +599,10 @@ html[data-ui="brand"] .border-purple-500\/40 {
   border-color: #c4b5fd !important;
 }
 
-/* Solid fills behind white text. Declared after the accent rules so white wins
-   inside a fill. #136c91 = 5.93:1 with white (sky-500 was 2.7:1); hover #195a77 = 7.56:1. */
+/* Solid utility fills behind white text. Declared after the accent rules so white wins
+   inside a fill. #136c91 = 5.93:1 with white (sky-500 was 2.7:1); hover #195a77 = 7.56:1.
+   The shared Button component is deliberately exempt: its semantic override below uses the
+   home hero's sky-400 highlight with a dark label, which keeps its contrast accessible. */
 html[data-ui="brand"] .bg-sky-500,
 html[data-ui="brand"] .bg-sky-600,
 html[data-ui="brand"] .bg-sky-700 {
@@ -814,29 +816,31 @@ html[data-look="studio"] .text-slate-500 {
    selector converted every ordinary button and many rounded links into pills, including dense
    booking cards; only controls that opt into the shared Button contract get the treatment. */
 html[data-ui="brand"] [data-ui-control="button"][data-button-variant="primary"] {
-  background-color: #136c91 !important;
-  border-color: #136c91 !important;
-  color: #ffffff !important;
+  /* Exact edge colour of the home hero's “Boeing 737 MAX” gradient. */
+  background-color: var(--color-sky-400) !important;
+  border-color: var(--color-sky-400) !important;
+  color: #0f172a !important;
 }
 html[data-ui="brand"] [data-ui-control="button"][data-button-variant="primary"] * {
-  color: #ffffff !important;
+  color: #0f172a !important;
 }
 html[data-ui="brand"] [data-ui-control="button"][data-button-variant="primary"]:hover {
-  background-color: #195a77 !important;
-  border-color: #195a77 !important;
+  background-color: var(--color-sky-300) !important;
+  border-color: var(--color-sky-300) !important;
 }
-/* "Buy": cerulean outline that fills on hover, as apple.com's `.button-secondary`. */
+/* "Buy": hero-cerulean outline that fills on hover. The Daylight label remains sky-700
+   because sky-400 text on white would not meet WCAG AA. */
 html[data-ui="brand"] [data-ui-control="button"][data-button-variant="outline"] {
   background-color: transparent !important;
-  border-color: #136c91 !important;
+  border-color: var(--color-sky-400) !important;
   color: #136c91 !important;
 }
 html[data-ui="brand"] [data-ui-control="button"][data-button-variant="outline"]:hover {
-  background-color: #136c91 !important;
-  color: #ffffff !important;
+  background-color: var(--color-sky-400) !important;
+  color: #0f172a !important;
 }
 html[data-ui="brand"] [data-ui-control="button"][data-button-variant="outline"]:hover * {
-  color: #ffffff !important;
+  color: #0f172a !important;
 }
 html[data-ui="brand"] [data-ui-control="button"][data-button-variant="secondary"] {
   background-color: #e8e8ed !important;
