@@ -7,12 +7,14 @@ import { DEMO_USERS } from '../db/seed-data';
 import { isSupabaseConfigured, supabase } from '../supabaseClient';
 import {
   clearWixMemberSession,
+  getWixMemberAccessToken,
   getWixMemberClient,
   isWixBrowserClientConfigured,
   notifyWixMemberSessionChanged,
   WIX_MEMBER_SESSION_CHANGED_EVENT,
   wixMemberOAuthStorageKey,
 } from '@/lib/wix/member-client';
+import { readWixMemberProfile } from '@/lib/wix/member-profile';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -141,44 +143,18 @@ function profileFromUser(
  * call; query-string or client-provided profile data never establishes a user.
  */
 function profileFromWixMember(member: unknown): UserProfile | null {
-  if (!member || typeof member !== 'object') return null;
-  const value = member as {
-    _id?: unknown;
-    id?: unknown;
-    loginEmail?: unknown;
-    profile?: { nickname?: unknown; firstName?: unknown; lastName?: unknown };
-    contact?: { firstName?: unknown; lastName?: unknown; phones?: Array<string | { phone?: unknown }> };
-    _createdDate?: unknown;
-    createdDate?: unknown;
-  };
-  const id = typeof value._id === 'string' ? value._id : typeof value.id === 'string' ? value.id : '';
-  const email = typeof value.loginEmail === 'string' ? value.loginEmail.trim() : '';
-  if (!id || !email) return null;
-  const firstName = typeof value.contact?.firstName === 'string' ? value.contact.firstName.trim() : '';
-  const lastName = typeof value.contact?.lastName === 'string' ? value.contact.lastName.trim() : '';
-  const nickname = typeof value.profile?.nickname === 'string' ? value.profile.nickname.trim() : '';
-  const first = typeof value.profile?.firstName === 'string' ? value.profile.firstName.trim() : firstName;
-  const last = typeof value.profile?.lastName === 'string' ? value.profile.lastName.trim() : lastName;
-  const phoneValue = value.contact?.phones?.[0];
-  const phone = typeof phoneValue === 'string'
-    ? phoneValue
-    : typeof phoneValue?.phone === 'string'
-    ? phoneValue.phone
-    : undefined;
-  const createdAt = typeof value._createdDate === 'string'
-    ? value._createdDate
-    : typeof value.createdDate === 'string'
-    ? value.createdDate
-    : new Date().toISOString();
+  const wixMember = readWixMemberProfile(member);
+  if (!wixMember) return null;
+  const email = wixMember.email || '';
   return {
-    id,
+    id: wixMember.id,
     email,
-    fullName: nickname || [first, last].filter(Boolean).join(' ') || email.split('@')[0],
-    phone,
+    fullName: wixMember.fullName || email.split('@')[0],
+    phone: wixMember.phone,
     role: 'user',
     totalHours: 0,
     totalFlights: 0,
-    createdAt,
+    createdAt: wixMember.createdAt || new Date().toISOString(),
   };
 }
 
@@ -214,11 +190,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!isWixBrowserClientConfigured()) return false;
       try {
         const client = getWixMemberClient();
-        if (!client.auth.loggedIn()) return false;
+        // A member access token can expire while a refresh token remains valid.
+        // Refresh before checking the member role so a returning Wix member is
+        // never rendered as a guest simply because the tab resumed later.
+        const accessToken = await getWixMemberAccessToken();
+        if (!accessToken || !client.auth.loggedIn()) return false;
         const result = await client.members.getCurrentMember({ fieldsets: ['FULL'] });
         const profile = profileFromWixMember(result.member);
         if (!profile) return false;
         if (active) setUser(profile);
+        // The backend independently verifies this same token before linking
+        // historical guest bookings. A temporary persistence issue must not
+        // erase a valid Wix browser identity from the Flight Deck.
+        void bootstrapMember(accessToken).catch(() => undefined);
         return true;
       } catch {
         return false;

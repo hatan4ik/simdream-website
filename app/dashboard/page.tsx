@@ -147,7 +147,7 @@ export default function DashboardPage() {
     let active = true;
 
     async function loadUserData() {
-      if (!user?.email) {
+      if (!user) {
         if (active) {
           setBookings([]);
           setLoading(false);
@@ -195,7 +195,7 @@ export default function DashboardPage() {
     return () => {
       active = false;
     };
-  }, [user?.email, user?.id]);
+  }, [user?.id]);
 
   const { upcomingBookings, historyBookings, paidSpend } = useMemo(() => {
     const today = todayInIsrael();

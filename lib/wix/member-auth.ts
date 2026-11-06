@@ -1,22 +1,12 @@
 import 'server-only';
 
 import type { VerifiedMemberIdentity } from '@/lib/auth/member-ownership';
+import { readWixMemberProfile } from './member-profile';
 
 export type WixMemberIdentity = VerifiedMemberIdentity & { provider: 'wix' };
 
 interface WixMemberApiResponse {
-  member?: {
-    id?: unknown;
-    _id?: unknown;
-    loginEmail?: unknown;
-    loginEmailVerified?: unknown;
-    profile?: { nickname?: unknown; firstName?: unknown; lastName?: unknown };
-    contact?: { firstName?: unknown; lastName?: unknown };
-  };
-}
-
-function stringValue(value: unknown): string | null {
-  return typeof value === 'string' && value.trim() ? value.trim() : null;
+  member?: unknown;
 }
 
 /**
@@ -38,18 +28,13 @@ export async function getWixMemberIdentity(accessToken: string): Promise<WixMemb
     });
     if (!response.ok) return null;
     const payload = (await response.json()) as WixMemberApiResponse;
-    const member = payload.member;
-    const id = stringValue(member?.id) ?? stringValue(member?._id);
-    const email = stringValue(member?.loginEmail);
-    if (!id || !email) return null;
-    const nickname = stringValue(member?.profile?.nickname);
-    const firstName = stringValue(member?.profile?.firstName) ?? stringValue(member?.contact?.firstName);
-    const lastName = stringValue(member?.profile?.lastName) ?? stringValue(member?.contact?.lastName);
+    const member = readWixMemberProfile(payload.member);
+    if (!member?.email) return null;
     return {
-      id,
-      email,
-      emailVerified: member?.loginEmailVerified === true,
-      fullName: nickname ?? ([firstName, lastName].filter(Boolean).join(' ') || undefined),
+      id: member.id,
+      email: member.email,
+      emailVerified: member.emailVerified,
+      fullName: member.fullName,
       provider: 'wix',
     };
   } catch {

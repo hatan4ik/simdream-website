@@ -340,7 +340,9 @@ export function Navbar() {
                 >
                   <div className="px-3 py-2 border-b border-slate-800">
                     <p className="text-[10px] text-slate-400 uppercase font-mono">Signed in as</p>
-                    <p className="font-semibold text-white truncate">{user?.email || 'Guest'}</p>
+                    <p className="font-semibold text-white truncate">
+                      {user ? user.email || user.fullName || t.member.dashboard.defaultPilotName : 'Guest'}
+                    </p>
                     <span className="inline-block mt-1 px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-400 font-mono text-[10px]">
                       {user ? (isAdmin ? 'DISPATCHER (ADMIN)' : 'PILOT IN COMMAND') : 'GUEST'}
                     </span>

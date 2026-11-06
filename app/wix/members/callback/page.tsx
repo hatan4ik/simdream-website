@@ -37,9 +37,13 @@ export default function WixMemberCallbackPage() {
         if (returned.error) throw new Error(returned.errorDescription || returned.error);
         const tokens = await client.auth.getMemberTokens(returned.code, returned.state, oAuthData);
         client.auth.setTokens(tokens);
-        await client.auth.sessions.syncToWixPages({ force: true });
         window.sessionStorage.removeItem(wixMemberOAuthStorageKey());
         notifyWixMemberSessionChanged();
+        // This optimizes Wix-hosted pages such as native checkout. The Flight
+        // Deck itself is authenticated by the member token above, so a cookie
+        // pre-warm failure must never turn a completed Google/Wix login into a
+        // guest session or block the return navigation.
+        void client.auth.sessions.syncToWixPages({ force: true }).catch(() => undefined);
         router.replace(safeReturnPath(oAuthData.originalUri));
       } catch {
         if (active) setMessage('Wix member sign-in could not be completed. Please return to subscriptions and try again.');
