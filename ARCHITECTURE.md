@@ -10,7 +10,7 @@ Visual architecture documentation for **Sim Dream LTD** (`simdream.co.il`), Boei
 flowchart TD
     subgraph ClientLayer["Client & User Interface Layer"]
         User["Visitor / Pilot Candidate"]
-        BrandLogoSystem["Official Brand Identity<br/>BrandLogo.tsx (Orange Plane + Cerulean Wordmark)<br/>Translated Tagline (t.nav.brandSub)"]
+        BrandLogoSystem["Official Brand Identity<br/>BrandLogo.tsx (Orange Plane + Cerulean Wordmark)<br/>Header: logo alone, no tagline"]
         ThemeEngine["Triple UX Engine<br/>🌙 Cockpit Night (default) • ☀️ Brand Daylight • ✨ Clean Studio<br/>Sim Dream cerulean #2096C7 + orange #FF5500"]
         I18nEngine["5-Language Engine (i18n)<br/>HE (RTL) • AR (RTL) • EN (LTR) • RU (LTR) • FR (LTR)"]
         StorefrontUI["Dual Booking Storefront<br/>Amazon 1-Page Storefront / 3-Step Wizard"]

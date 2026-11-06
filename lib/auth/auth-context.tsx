@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
 import type { UserProfile } from '@/types';
 import { DEMO_USERS } from '../db/seed-data';
@@ -103,6 +103,12 @@ interface AuthContextType {
   resetPassword: (email: string) => Promise<AuthActionResult>;
   /** Starts Wix's native member sign-in or sign-up journey. */
   startWixMemberSignIn: (returnPath?: string) => Promise<void>;
+  /**
+   * Reads the authenticated Wix member profile into the shared UI session.
+   * The OAuth callback awaits this before returning the visitor to the Flight
+   * Deck, preventing a successful Wix login from briefly rendering as guest.
+   */
+  refreshWixMemberSession: () => Promise<UserProfile | null>;
   logout: () => void;
   setDemoUser: (type: 'pilot' | 'admin') => boolean;
 }
@@ -183,31 +189,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const refreshWixMemberSession = useCallback(async (): Promise<UserProfile | null> => {
+    if (!isWixBrowserClientConfigured()) return null;
+    try {
+      const client = getWixMemberClient();
+      // A member access token can expire while a refresh token remains valid.
+      // Refresh before checking the profile so a returning Wix member is never
+      // rendered as a guest simply because a tab resumed later.
+      const accessToken = await getWixMemberAccessToken();
+      if (!accessToken || !client.auth.loggedIn()) {
+        setUser(null);
+        return null;
+      }
+      const result = await client.members.getCurrentMember({ fieldsets: ['FULL'] });
+      const profile = profileFromWixMember(result.member);
+      if (!profile) {
+        setUser(null);
+        return null;
+      }
+      setUser(profile);
+      // The backend independently verifies this same token before linking
+      // historical guest bookings. A temporary persistence issue must not
+      // erase a valid Wix browser identity from the Flight Deck.
+      void bootstrapMember(accessToken).catch(() => undefined);
+      return profile;
+    } catch {
+      setUser(null);
+      return null;
+    }
+  }, []);
+
   useEffect(() => {
     let active = true;
-
-    const hydrateWixMember = async () => {
-      if (!isWixBrowserClientConfigured()) return false;
-      try {
-        const client = getWixMemberClient();
-        // A member access token can expire while a refresh token remains valid.
-        // Refresh before checking the member role so a returning Wix member is
-        // never rendered as a guest simply because the tab resumed later.
-        const accessToken = await getWixMemberAccessToken();
-        if (!accessToken || !client.auth.loggedIn()) return false;
-        const result = await client.members.getCurrentMember({ fieldsets: ['FULL'] });
-        const profile = profileFromWixMember(result.member);
-        if (!profile) return false;
-        if (active) setUser(profile);
-        // The backend independently verifies this same token before linking
-        // historical guest bookings. A temporary persistence issue must not
-        // erase a valid Wix browser identity from the Flight Deck.
-        void bootstrapMember(accessToken).catch(() => undefined);
-        return true;
-      } catch {
-        return false;
-      }
-    };
 
     // The Wix member client is configured in the managed production frontend.
     // Do not fall back to an unrelated browser identity provider there: a
@@ -215,8 +228,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (isWixBrowserClientConfigured()) {
       const refreshWixMember = () => {
         if (active) setIsLoading(true);
-        void hydrateWixMember().then((signedIn) => {
-          if (active && !signedIn) setUser(null);
+        void refreshWixMemberSession().then((profile) => {
+          if (active && !profile) setUser(null);
           if (active) setIsLoading(false);
         });
       };
@@ -282,7 +295,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       active = false;
     };
-  }, []);
+  }, [refreshWixMemberSession]);
 
   const startWixMemberSignIn = async (returnPath = '/dashboard'): Promise<void> => {
     if (!isWixBrowserClientConfigured()) throw new Error('Wix member authentication is not configured.');
@@ -424,6 +437,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         loginWithProvider,
         resetPassword,
         startWixMemberSignIn,
+        refreshWixMemberSession,
         logout,
         setDemoUser,
       }}

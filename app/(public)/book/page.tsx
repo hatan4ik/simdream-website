@@ -773,7 +773,10 @@ function BookContent() {
   const accountNotice = user ? (
     <>
       <span>
-        {t.booking.bookingAs} <strong className="text-white">{user.email}</strong>. {t.booking.bookingAsSuffix}
+        {t.booking.bookingAs}{' '}
+        <strong data-member-name className="text-white">{user.fullName || user.email}</strong>
+        {user.fullName && user.email ? <span className="text-slate-400"> (<span dir="ltr">{user.email}</span>)</span> : null}.
+        {' '}{t.booking.bookingAsSuffix}
       </span>
       <Link href="/dashboard" className="font-semibold text-sky-400 hover:text-sky-300 whitespace-nowrap">{t.booking.viewFlightDeck}</Link>
     </>

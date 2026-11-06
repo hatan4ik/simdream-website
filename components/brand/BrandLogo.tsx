@@ -1,8 +1,9 @@
 import Image from 'next/image';
 
 // Official Sim Dream artwork from simdream.co.il: the orange airplane (#FF5500) and the
-// cerulean wordmark (#2096C7). The Hebrew tagline is cut from the wordmark artwork so each
-// language can render it as translated text (t.nav.brandSub). Logos are never mirrored in RTL.
+// cerulean wordmark (#2096C7). The Hebrew tagline is cut from the wordmark artwork, so the
+// header shows the image alone and any tagline elsewhere (footer, flyout) is translated text
+// (t.nav.brandSub). Logos are never mirrored in RTL.
 
 /** Airplane mark and "SIM DREAM" wordmark. Size it with a height class, e.g. "h-8 w-auto". */
 export function BrandLogo({ className = 'h-8 w-auto', priority = false }: { className?: string; priority?: boolean }) {

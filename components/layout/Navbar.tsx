@@ -50,6 +50,7 @@ export function Navbar() {
   const pathname = usePathname();
   const { user, isAdmin, logout, setDemoUser } = useAuth();
   const { t, isRTL } = useLanguage();
+  const memberName = user?.fullName || user?.email || t.member.dashboard.defaultPilotName;
   const navbarRef = useRef<HTMLElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const userTriggerRef = useRef<HTMLButtonElement>(null);
@@ -260,13 +261,10 @@ export function Navbar() {
     >
       <div data-site-navbar-inner className="max-w-[96rem] mx-auto px-4 sm:px-6 lg:px-8">
         <div data-site-navbar-row className="flex items-center justify-between gap-3 h-20">
-          <Link href="/" className="flex items-center group shrink-0" aria-label={`SIM DREAM — ${t.nav.brandSub}`}>
-            <div>
-              <BrandLogo className="h-6 sm:h-7 w-auto group-hover:opacity-90 transition-opacity" priority />
-              <p className="hidden min-[400px]:block mt-1 text-[10px] tracking-widest text-orange-400 uppercase font-bold">
-                {t.nav.brandSub}
-              </p>
-            </div>
+          {/* The header shows the brand image alone, with no tagline beneath it in any language
+              (AGENTS.md §1). The link's accessible name comes from the logo's alt text. */}
+          <Link href="/" className="flex items-center group shrink-0">
+            <BrandLogo className="h-6 sm:h-7 w-auto group-hover:opacity-90 transition-opacity" priority />
           </Link>
 
           {/* Large layouts retain quiet top-level choices; each exposes a deliberate full-width panel. */}
@@ -327,7 +325,12 @@ export function Navbar() {
               >
                 <span className={`w-2 h-2 rounded-full ${isAdmin ? 'bg-amber-400' : 'bg-sky-400'}`} aria-hidden="true" />
                 <User className="w-4 h-4" aria-hidden="true" />
-                <span className="sr-only">{user ? user.fullName || t.member.dashboard.defaultPilotName : t.nav.pilotLogin}</span>
+                {user && (
+                  <span data-member-name className="hidden lg:block max-w-36 truncate text-sm font-medium text-slate-100">
+                    {memberName}
+                  </span>
+                )}
+                <span className="sr-only">{user ? memberName : t.nav.pilotLogin}</span>
               </button>
 
               {userDropdownOpen && (
@@ -335,27 +338,28 @@ export function Navbar() {
                   ref={userMenuRef}
                   id={`user-navigation-${menuUid}`}
                   role="menu"
-                  aria-label={user ? user.fullName || t.member.dashboard.defaultPilotName : t.nav.pilotLogin}
+                  aria-label={user ? memberName : t.nav.pilotLogin}
                   className="absolute right-0 rtl:right-auto rtl:left-0 mt-2 w-60 rounded-xl border border-slate-800 bg-slate-900 shadow-2xl py-2 z-50 text-xs"
                 >
                   <div className="px-3 py-2 border-b border-slate-800">
-                    <p className="text-[10px] text-slate-400 uppercase font-mono">Signed in as</p>
-                    <p className="font-semibold text-white truncate">
-                      {user ? user.email || user.fullName || t.member.dashboard.defaultPilotName : 'Guest'}
-                    </p>
-                    <span className="inline-block mt-1 px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-400 font-mono text-[10px]">
-                      {user ? (isAdmin ? 'DISPATCHER (ADMIN)' : 'PILOT IN COMMAND') : 'GUEST'}
-                    </span>
+                    <p className="text-[10px] text-slate-400 uppercase font-mono">{user ? t.member.dashboard.secureBadge : t.nav.pilotLogin}</p>
+                    <p data-member-name className="font-semibold text-white truncate">{user ? memberName : t.nav.pilotLogin}</p>
+                    {user?.email && user.email !== memberName && <p className="mt-0.5 truncate text-slate-400" dir="ltr">{user.email}</p>}
+                    {user && (
+                      <span className="inline-block mt-1 px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-400 font-mono text-[10px]">
+                        {isAdmin ? 'DISPATCHER (ADMIN)' : 'PILOT IN COMMAND'}
+                      </span>
+                    )}
                   </div>
 
                   <Link
-                    href="/dashboard"
+                    href={user ? '/dashboard' : '/login'}
                     role="menuitem"
                     onClick={() => closeUserMenu()}
                     className="flex items-center gap-2 px-3 py-2 text-slate-300 hover:text-white hover:bg-slate-800 focus:outline-none focus-visible:bg-slate-800"
                   >
                     <Award className="w-4 h-4 text-sky-400" />
-                    <span>{t.nav.logbook}</span>
+                    <span>{user ? t.nav.logbook : t.nav.pilotLogin}</span>
                   </Link>
 
                   {isAdmin && (
@@ -398,7 +402,7 @@ export function Navbar() {
                     </div>
                   )}
 
-                  <div className="border-t border-slate-800 mt-1 pt-1">
+                  {user && <div className="border-t border-slate-800 mt-1 pt-1">
                     <button
                       type="button"
                       role="menuitem"
@@ -411,7 +415,7 @@ export function Navbar() {
                       <LogOut className="w-3.5 h-3.5" />
                       <span>{t.nav.logout}</span>
                     </button>
-                  </div>
+                  </div>}
                 </div>
               )}
             </div>
@@ -526,6 +530,18 @@ export function Navbar() {
 
       {mobileMenuOpen && (
         <div id="mobile-navigation" className="xl:hidden border-t border-slate-800 bg-slate-950 px-4 pt-3 pb-6 space-y-3">
+          <Link
+            href={user ? '/dashboard' : '/login'}
+            onClick={() => setMobileMenuOpen(false)}
+            className="flex min-h-14 items-center gap-3 rounded-xl border border-sky-500/20 bg-sky-500/5 px-3 py-2 text-slate-100 hover:bg-sky-500/10"
+          >
+            <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${user ? (isAdmin ? 'bg-amber-400' : 'bg-sky-400') : 'bg-slate-500'}`} aria-hidden="true" />
+            <User className="h-4 w-4 shrink-0 text-sky-400" aria-hidden="true" />
+            <span className="min-w-0 flex-1">
+              <span data-member-name className="block truncate text-sm font-semibold">{user ? memberName : t.nav.pilotLogin}</span>
+              {user?.email && user.email !== memberName && <span className="block truncate text-xs text-slate-400" dir="ltr">{user.email}</span>}
+            </span>
+          </Link>
           <div className="space-y-1">
             {navLinks.map((link) => (
               <Link
@@ -540,11 +556,11 @@ export function Navbar() {
               </Link>
             ))}
             <Link
-              href="/dashboard"
+              href={user ? '/dashboard' : '/login'}
               onClick={() => setMobileMenuOpen(false)}
               className="block min-h-12 px-3 py-3 rounded-xl text-base font-medium text-slate-300 hover:bg-slate-900"
             >
-              {t.nav.logbook}
+              {user ? t.nav.logbook : t.nav.pilotLogin}
             </Link>
             {isAdmin && (
               <Link

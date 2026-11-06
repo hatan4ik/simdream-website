@@ -28,7 +28,7 @@ Any customer-facing copy, landing page, or layout must reinforce the **5 Custome
 
 ### Brand Identity: Logo & Colour Tokens (mandatory)
 
-The visual identity is the official **simdream.co.il** logo: an **orange airplane** and a **cerulean "SIM DREAM" wordmark**, with the tagline *מערכות סימולציה (ישראל)* ("Simulation Systems (Israel)").
+The visual identity is the official **simdream.co.il** logo: an **orange airplane** and a **cerulean "SIM DREAM" wordmark**. The header shows that image alone; the translated tagline (*מערכות סימולציה (ישראל)*, "Simulation Systems (Israel)") appears only in the footer and the desktop flyout panel.
 
 | Token | Value | Use |
 | :--- | :--- | :--- |
@@ -36,7 +36,7 @@ The visual identity is the official **simdream.co.il** logo: an **orange airplan
 | Sim Dream orange | `#FF5500` (Tailwind `orange-500`) | Brand highlight: airplane mark, tagline, active navigation indicator, key highlights. |
 
 1. **Logo assets only**: render the logo with [`components/brand/BrandLogo.tsx`](components/brand/BrandLogo.tsx) (`BrandLogo` = airplane + wordmark, `BrandMark` = airplane only), backed by `public/brand/simdream-logo.png` and `public/brand/simdream-plane.png`. The favicon is `app/icon.png`. Never rebuild the logo from text or icon fonts, never recolour it, and never mirror it in RTL layouts.
-2. **Tagline is translated text**: the wordmark artwork carries no tagline; render `t.nav.brandSub` beside it so every language gets its own tagline (AGENTS.md §5).
+2. **The header carries the logo alone**: nothing is printed under or beside the brand image in the header, in any of the five languages (`tests/usability/header-brand.spec.ts` enforces it). The wordmark artwork carries no tagline; wherever a tagline is still shown (footer, desktop flyout panel) it is the translated text `t.nav.brandSub`, never baked into the image (AGENTS.md §5).
 3. **Colour tokens live in [`app/globals.css`](app/globals.css)** (`@theme`): Tailwind's `sky-*` scale *is* the Sim Dream cerulean scale and `orange-*` *is* the Sim Dream orange scale. Use those utilities; do not introduce other blues, cyans or oranges as brand colours, and never hard-code the old Tailwind sky values (`#0284c7`, `#0369a1`, `#38bdf8`).
 4. **Contrast (WCAG 2.x AA, enforced by the axe suite with an empty baseline)**: `#FF5500` is 3.2:1 on white, so `orange-500` is for the logo, icons, borders/indicators and large text only; small orange text on light surfaces uses `orange-700` (5.3:1). White text on a cerulean fill needs `sky-700` or darker. Brand Daylight colour overrides live in `app/globals.css` under `html[data-ui="brand"]`.
 5. **All three interface themes carry the brand**: 🌙 Cockpit Night (default: dark slate with cerulean and orange accents), ☀️ Brand Daylight (cloud white with cerulean and orange) and ✨ Clean Studio (the daylight palette restyled after apple.com's mobile site: white canvas, `#f5f5f7` wells, 17px system type with tight semibold headlines, sentence-case labels, pill buttons, slim translucent nav). The header switch cycles them in that order. Studio is layered on daylight — the document carries `data-ui="brand"` plus `data-look="studio"` — so daylight overrides keep applying and `app/globals.css` adds only the restyle under `html[data-look="studio"]`; never fork the palette.
@@ -168,7 +168,7 @@ Before completing any feature or code change:
 3. Verify `/book` with PRO packages (`/book?package=airline-interview-prep-90-pro`) &rarr; 2-step noise-free flow.
 4. Verify calendar across Sunday through Saturday (09:00–24:00); retain Saturday Prime-Time price behavior and the Sunday–Tuesday-only 45m promotion.
 5. Verify all 5 language switchers (`he`, `en`, `ru`, `fr`, `ar`) render correctly with zero mixed scripts or broken keys.
-6. Verify the brand identity in both themes: official logo (orange airplane + cerulean wordmark), translated tagline, and no off-brand blues or cyans (§1, Brand Identity).
+6. Verify the brand identity in both themes: official logo (orange airplane + cerulean wordmark) alone in the header with no tagline beneath it, and no off-brand blues or cyans (§1, Brand Identity).
 7. Verify responsive header and UI fit across all viewports from 320px (iPhone SE) to 1920px desktop (`tests/usability/header-fit.spec.ts`), with 44x44px minimum tap targets.
 8. Verify member authentication & dashboard localization across all 5 languages (`tests/usability/member-i18n.spec.ts`).
 9. Verify iPhone/iPad behaviour (`tests/usability/apple-web-app.spec.ts`, the 320px test in `tests/e2e/mobile.spec.ts`): `viewport-fit=cover` with pinch zoom intact, safe-area utilities (`pb-safe-area-*`, `px-safe-area-*`, `bottom-safe-area-*`) on sticky bars, dialogs and the footer, `overflow-x: clip` (never `hidden`, which detaches the sticky navbar on iOS), the 48px coarse-pointer control floor with 8px calendar/slot gaps and a 12px phone text floor (Material and Lighthouse; Apple asks 44px), an opaque 180px `app/apple-icon.png` and the manifest icons regenerated with `node scripts/generate-app-icons.mjs` whenever the brand mark changes. Recipes: `npx skills add https://github.com/joe-bell/skills --skill apple-web-app`.

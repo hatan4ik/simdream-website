@@ -9,6 +9,7 @@ import {
   notifyWixMemberSessionChanged,
   wixMemberOAuthStorageKey,
 } from '@/lib/wix/member-client';
+import { useAuth } from '@/lib/auth/auth-context';
 
 function safeReturnPath(value: unknown): string {
   if (typeof value !== 'string') return '/subscriptions';
@@ -23,6 +24,7 @@ function safeReturnPath(value: unknown): string {
 
 export default function WixMemberCallbackPage() {
   const router = useRouter();
+  const { refreshWixMemberSession } = useAuth();
   const [message, setMessage] = useState('Completing your Wix member sign-in…');
 
   useEffect(() => {
@@ -38,6 +40,11 @@ export default function WixMemberCallbackPage() {
         const tokens = await client.auth.getMemberTokens(returned.code, returned.state, oAuthData);
         client.auth.setTokens(tokens);
         window.sessionStorage.removeItem(wixMemberOAuthStorageKey());
+        // Do not return to the app until the authenticated Wix profile has
+        // reached the shared AuthProvider. This prevents an otherwise-successful
+        // OAuth completion from appearing as a guest session outside checkout.
+        const member = await refreshWixMemberSession();
+        if (!member) throw new Error('Wix member profile could not be loaded.');
         notifyWixMemberSessionChanged();
         // This optimizes Wix-hosted pages such as native checkout. The Flight
         // Deck itself is authenticated by the member token above, so a cookie
@@ -53,7 +60,7 @@ export default function WixMemberCallbackPage() {
     return () => {
       active = false;
     };
-  }, [router]);
+  }, [refreshWixMemberSession, router]);
 
   return (
     <main className="flex min-h-[60vh] items-center justify-center px-4 text-center">
