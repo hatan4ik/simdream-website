@@ -25,4 +25,20 @@ describe('Wix availability adapter', () => {
     expect(local.find((slot) => slot.startTime === '21:15')?.available).toBe(false);
     expect(adapted.find((slot) => slot.startTime === '21:15')?.available).toBe(false);
   });
+
+  it('does not expose the discounted 45-minute promotion on Wednesday even when Wix returns a raw bookable slot', () => {
+    const local = generateKantorovichSlots('2026-11-11', 45, []);
+    const adapted = intersectKantorovichSlotsWithWix(local, [
+      { localStartDate: '2026-11-11T10:00:00', localEndDate: '2026-11-11T10:45:00', bookable: true },
+    ]);
+
+    expect(local.find((slot) => slot.startTime === '10:00')).toMatchObject({
+      available: false,
+      disabledReason: 'promo_days_only',
+    });
+    expect(adapted.find((slot) => slot.startTime === '10:00')).toMatchObject({
+      available: false,
+      disabledReason: 'promo_days_only',
+    });
+  });
 });

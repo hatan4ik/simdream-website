@@ -592,12 +592,12 @@ describe('POST /api/checkout: catalogue and schedule rules', () => {
     expect(app.checkoutSessions).toHaveLength(0);
   });
 
-  it('rejects the 45-minute daytime promo on a Saturday evening', async () => {
+  it('rejects the 45-minute discounted promotion outside Sunday–Tuesday', async () => {
     const app = await loadApp({ stripe: 'mocked' });
-    // 19:00 is on the Saturday grid, so the promo rule is what closes it.
+    // 19:00 is on the Saturday grid, so the weekday promotion rule is what closes it.
     expect((await getSlots(app, EMPTY_DAY.saturday, 45)).find((slot) => slot.startTime === '19:00')).toMatchObject({
       available: false,
-      disabledReason: 'daytime_only_promo',
+      disabledReason: 'promo_days_only',
     });
 
     const response = await postCheckout(

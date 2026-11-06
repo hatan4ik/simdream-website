@@ -36,7 +36,15 @@ export interface SimulatorPackage {
 
 export type SlotBlockPeriod = 'morning' | 'afternoon' | 'evening' | 'friday_closer' | 'saturday_prime';
 export type SlotSmartRecommendation = 'optimal_150_pair' | 'friday_30m_closer' | 'zero_waste_fit' | 'daytime_promo_fit' | null;
-export type SlotDisabledReason = 'booked' | 'orphan_gap' | 'daytime_only_promo' | 'friday_closer_30m_only' | 'exceeds_closing' | 'departed' | null;
+export type SlotDisabledReason =
+  | 'booked'
+  | 'orphan_gap'
+  | 'daytime_only_promo'
+  | 'promo_days_only'
+  | 'friday_closer_30m_only'
+  | 'exceeds_closing'
+  | 'departed'
+  | null;
 
 export interface FlightSlot {
   id: string;

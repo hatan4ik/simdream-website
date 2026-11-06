@@ -7,6 +7,7 @@ import {
   getDayOperatingConfig,
   getKantorovichPricing,
   getReservedMinutesForFlight,
+  is45MinutePromoDay,
   minutesToTime,
   timeToMinutes,
 } from '@/lib/scheduler/kantorovich-engine';
@@ -27,13 +28,12 @@ import {
  * The engine is proven *sound* elsewhere (nothing it offers can break a day). This file asks the
  * opposite question: of all departures the business rules would accept, how many does the engine
  * actually sell? The oracle enumerates every 15-minute-aligned start that fits the operating
- * window, overlaps no live booking, respects the daytime-only promo rule and adds no orphan
+ * window, overlaps no live booking, respects the discounted-promotion rule and adds no orphan
  * capacity according to evaluateDailyEfficiency, the admin dashboard's zero-waste judge.
  *
  * Judging a gap by where it starts is exact for this catalog: every multiple of 15 minutes from
- * 75 upwards tiles with 45- and 75-minute blocks alone, so the daytime-only 60-minute promo block
- * is only ever needed for a 60-minute gap, and such a gap is tileable exactly when it starts in
- * daytime.
+ * 75 upwards tiles with 45- and 75-minute blocks alone, so the discounted-promotion 60-minute block
+ * is only ever needed for a 60-minute gap, and such a gap is tileable only on a Sun–Tue daytime.
  */
 function safeStarts(date: string, duration: number, bookings: readonly Booking[]): number[] {
   const config = getDayOperatingConfig(date);
@@ -44,7 +44,12 @@ function safeStarts(date: string, duration: number, bookings: readonly Booking[]
   for (let start = config.openMinutes; start + reserved <= config.closeMinutes; start += 15) {
     const interval = { start, end: start + reserved };
     if (live.some((booked) => overlaps(booked, interval))) continue;
-    if (duration === 45 && getKantorovichPricing(45, start, config.isSaturday).isPrimeTime) continue;
+    if (
+      duration === 45 &&
+      (!is45MinutePromoDay(date) || getKantorovichPricing(45, start, config.isSaturday).isPrimeTime)
+    ) {
+      continue;
+    }
     const candidate = makeBooking({ bookingDate: date, startTime: minutesToTime(start), durationMinutes: duration });
     if (evaluateDailyEfficiency(date, [...bookings, candidate]).orphanGapMinutes > baseline) continue;
     safe.push(start);

@@ -37,7 +37,7 @@ The public recreational catalog exposes 30, 45, 60, and 90 minute package durati
 | Friday | 09:00–16:30 | 450 min |
 | Saturday | 19:00–24:00 | 300 min |
 
-The engine generates candidate starts at the selected package's **reserved duration** from each real capacity boundary (the operating-day opening, the end of a live reservation, and the latest fitting close-aligned start). It then rejects a candidate when it collides with a non-cancelled booking, closes after the operating window, violates the daytime-only 45-minute promo rule, or leaves a non-tileable gap.
+The engine generates candidate starts at the selected package's **reserved duration** from each real capacity boundary (the operating-day opening, the end of a live reservation, and the latest fitting close-aligned start). It then rejects a candidate when it collides with a non-cancelled booking, closes after the operating window, violates the 45-minute Discounted Promotion rule (Sunday–Tuesday, before 18:00 only), or leaves a non-tileable gap.
 
 This means the customer-visible cadence is duration-true: a 30-minute flight reserves 45 minutes and begins at `10:00`, `10:45`, `11:30` … on an empty weekday; 45m begins every 60 minutes; 60m every 75; and 90m every 105. A close-aligned departure may be additionally offered where it is the only zero-waste way to finish the operating day.
 
@@ -45,8 +45,8 @@ This means the customer-visible cadence is duration-true: a 30-minute flight res
 
 `canTileIntervalZeroWaste()` uses dynamic programming over the permitted reserved durations. A candidate is available only when the free interval before and after it can be tiled with valid durations for that time of day.
 
-- Daytime allows 45, 60, 75, 105, and 150 minute reserved blocks.
-- Prime time and Saturday exclude the 60-minute daytime-promo block.
+- Sunday–Tuesday daytime allows 45, 60, 75, 105, and 150 minute reserved blocks.
+- Wednesday–Saturday and every prime-time period exclude the 60-minute Discounted Promotion block, so the engine never calls an unsellable 60-minute gap valid capacity.
 - Existing bookings are immutable during slot generation; cancelled bookings do not consume capacity.
 - The API reports unavailable slots and their reason for operational diagnostics. Customer UI should emphasize bookable choices, not internal optimization jargon.
 

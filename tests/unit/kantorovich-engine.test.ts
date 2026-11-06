@@ -10,6 +10,7 @@ import {
   getDayOperatingConfig,
   getKantorovichPricing,
   getReservedMinutesForFlight,
+  is45MinutePromoDay,
   minutesToTime,
   timeToMinutes,
 } from '@/lib/scheduler/kantorovich-engine';
@@ -153,6 +154,11 @@ describe('canTileIntervalZeroWaste', () => {
   it('accepts a 60-minute gap in daytime and rejects it in prime time', () => {
     expect(canTileIntervalZeroWaste(60, false)).toBe(true);
     expect(canTileIntervalZeroWaste(60, true)).toBe(false);
+  });
+
+  it('rejects a 60-minute gap when the 45-minute discounted promotion is not sellable that day', () => {
+    expect(canTileIntervalZeroWaste(60, false, false)).toBe(false);
+    expect(canTileIntervalZeroWaste(75, false, false)).toBe(true);
   });
 
   it('keeps tileable gaps tileable when two of them are joined', () => {
@@ -384,13 +390,13 @@ describe('generateKantorovichSlots: invariants over engine-built days', () => {
 });
 
 describe('daytime promo (45 minutes)', () => {
-  it('is never offered at or after 18:00 or on Saturday', () => {
+  it('is never offered at or after 18:00 on its eligible promotion days', () => {
     let prime = 0;
     fc.assert(
       fc.property(dateArb, bookingStepsArb, (date, steps) => {
-        const { isSaturday } = getDayOperatingConfig(date);
+        if (!is45MinutePromoDay(date)) return;
         const primeSlots = generateKantorovichSlots(date, 45, bookEngineOfferedSlots(date, steps)).filter(
-          (slot) => isSaturday || timeToMinutes(slot.startTime) >= PRIME_TIME_START
+          (slot) => timeToMinutes(slot.startTime) >= PRIME_TIME_START
         );
         prime += primeSlots.length;
         for (const slot of primeSlots) {
@@ -419,7 +425,13 @@ describe('daytime promo (45 minutes)', () => {
   it('lists every Saturday promo departure as unavailable', () => {
     const slots = generateKantorovichSlots(WEEKDAY_DATES.saturday, 45, []);
     expect(slots.length).toBeGreaterThan(0);
-    expect(slots.filter((slot) => slot.available || slot.disabledReason !== 'daytime_only_promo')).toEqual([]);
+    expect(slots.filter((slot) => slot.available || slot.disabledReason !== 'promo_days_only')).toEqual([]);
+  });
+
+  it.each(['wednesday', 'thursday', 'friday'] as const)('does not sell the promotion on %s', (day) => {
+    const slots = generateKantorovichSlots(WEEKDAY_DATES[day], 45, []);
+    expect(slots.length).toBeGreaterThan(0);
+    expect(slots.every((slot) => !slot.available && slot.disabledReason === 'promo_days_only')).toBe(true);
   });
 });
 

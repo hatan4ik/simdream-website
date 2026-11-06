@@ -82,7 +82,7 @@ The scheduling system is defined in [`KANTOROVICH_SCHEDULER_SPEC.md`](KANTOROVIC
 ### Capacity Buffer Map
 Always reserve operating capacity via `getReservedMinutesForFlight()`:
 - `30 min` flight &rarr; `45 min` reserved block
-- `45 min` flight &rarr; `60 min` reserved block (Daytime Promo, `< 18:00` Sun–Fri only)
+- `45 min` flight &rarr; `60 min` reserved block (Discounted Promotion, `< 18:00` Sunday–Tuesday only)
 - `60 min` flight &rarr; `75 min` reserved block
 - `90 min` flight &rarr; `105 min` reserved block
 - `120 min` flight &rarr; `150 min` reserved block

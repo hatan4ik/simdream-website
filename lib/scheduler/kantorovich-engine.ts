@@ -119,11 +119,29 @@ export function longestMissionWithin(windowMinutes: number, baseMinutes: number)
  * Checks whether an interval of `gapMinutes` can be tiled with zero waste
  * using valid Kantorovich full-slot blocks.
  */
-export function canTileIntervalZeroWaste(gapMinutes: number, isPrimeTime: boolean): boolean {
+/** The ₪490 45-minute discounted flight is a Sun–Tue daytime-only offer. */
+export function is45MinutePromoDay(dateString: string): boolean {
+  const { dayOfWeek } = getDayOperatingConfig(dateString);
+  return dayOfWeek >= 0 && dayOfWeek <= 2;
+}
+
+/**
+ * Checks whether a gap can be filled by packages that are actually sellable
+ * on that day. The 60-minute reserved block exists only while the discounted
+ * 45-minute promotion is available; otherwise treating it as tileable could
+ * create a gap no customer can buy.
+ */
+export function canTileIntervalZeroWaste(
+  gapMinutes: number,
+  isPrimeTime: boolean,
+  is45MinutePromoAvailable = true
+): boolean {
   if (gapMinutes === 0) return true;
   if (gapMinutes < 45) return false;
 
-  const allowed = isPrimeTime ? VALID_RESERVED_DURATIONS_PRIME : VALID_RESERVED_DURATIONS_DAY;
+  const allowed = isPrimeTime || !is45MinutePromoAvailable
+    ? VALID_RESERVED_DURATIONS_PRIME
+    : VALID_RESERVED_DURATIONS_DAY;
 
   const dp = new Array(gapMinutes + 1).fill(false);
   dp[0] = true;
@@ -297,7 +315,8 @@ function addBackwardReservedCadenceStarts(
  * - Friday 09:00-16:30 and Saturday 19:00-24:00 operating windows
  * - 150-minute block Smart Pairing (e.g. 30m at 18:00 -> highlights 18:45 for 90m)
  * - Anti-Gap Zero-Waste protection (disables slots that create 15m/30m/un-tileable orphan windows)
- * - Shadow Pricing (disables 45m Promo after 18:00; switches 90m from 850 ILS to 950 ILS after 18:00 & Sat)
+ * - Discounted Promotion rule (45m is sold Sunday–Tuesday before 18:00 only;
+ *   switches 90m from 850 ILS to 950 ILS after 18:00 & Sat)
  */
 export function generateKantorovichSlots(
   dateString: string,
@@ -306,6 +325,7 @@ export function generateKantorovichSlots(
 ): FlightSlot[] {
   const config = getDayOperatingConfig(dateString);
   const reservedDuration = getReservedMinutesForFlight(durationMinutes);
+  const isPromoDay = is45MinutePromoDay(dateString);
 
   // Convert active bookings for this date into reserved intervals [startMin, reservedEndMin]
   const bookedIntervals = existingBookings
@@ -380,7 +400,30 @@ export function generateKantorovichSlots(
       continue;
     }
 
-    // 2. Check Shadow Pricing rule: 45-min Promo is strictly Daytime (< 18:00 and not Saturday)
+    // 2. The discounted 45-minute promotion only runs Sunday–Tuesday, before 18:00.
+    // Keep closed candidate departures in the result for diagnostics and the zero-slots UX.
+    if (durationMinutes === 45 && !isPromoDay) {
+      slots.push({
+        id: `slot-${dateString}-${startTimeStr}`,
+        date: dateString,
+        startTime: startTimeStr,
+        endTime: endTimeStr,
+        reservedEndTime: reservedEndTimeStr,
+        durationMinutes,
+        totalReservedMinutes: reservedDuration,
+        available: false,
+        blockPeriod: period,
+        blockLabel: label,
+        isPrimeTime: pricing.isPrimeTime,
+        dynamicPriceIls: pricing.dynamicPriceIls,
+        basePriceIls: pricing.basePriceIls,
+        yieldPerMinIls: pricing.yieldPerMinIls,
+        disabledReason: 'promo_days_only',
+        disabledNote: 'Discounted 45-minute promotion (₪490) is available Sunday–Tuesday only.',
+      });
+      continue;
+    }
+
     if (durationMinutes === 45 && pricing.isPrimeTime) {
       slots.push({
         id: `slot-${dateString}-${startTimeStr}`,
@@ -398,7 +441,7 @@ export function generateKantorovichSlots(
         basePriceIls: pricing.basePriceIls,
         yieldPerMinIls: pricing.yieldPerMinIls,
         disabledReason: 'daytime_only_promo',
-        disabledNote: 'Promo 45-min tariff (₪490) is available strictly before 18:00 (Shadow Price protection).',
+        disabledNote: 'Discounted 45-minute promotion (₪490) is available before 18:00 only.',
       });
       continue;
     }
@@ -448,8 +491,16 @@ export function generateKantorovichSlots(
 
     // Judge each gap by where it starts, as evaluateDailyEfficiency does: a daytime departure
     // can still leave a prime-time gap after it, which only prime-time blocks may fill.
-    const validBefore = canTileIntervalZeroWaste(gapBefore, config.isSaturday || prevBoundary >= 18 * 60);
-    const validAfter = canTileIntervalZeroWaste(gapAfter, config.isSaturday || reservedEndMin >= 18 * 60);
+    const validBefore = canTileIntervalZeroWaste(
+      gapBefore,
+      config.isSaturday || prevBoundary >= 18 * 60,
+      isPromoDay
+    );
+    const validAfter = canTileIntervalZeroWaste(
+      gapAfter,
+      config.isSaturday || reservedEndMin >= 18 * 60,
+      isPromoDay
+    );
 
     if (!validBefore || !validAfter) {
       const badGap = !validBefore ? gapBefore : gapAfter;
@@ -503,7 +554,7 @@ export function generateKantorovichSlots(
         }
       }
 
-      if (!smartRecommendation && durationMinutes === 45 && period === 'afternoon') {
+      if (!smartRecommendation && durationMinutes === 45 && isPromoDay && period === 'afternoon') {
         smartRecommendation = 'daytime_promo_fit';
         recommendationNote = 'Optimal 60m grid alignment in 15:00–18:00 afternoon window';
       } else if (!smartRecommendation && (gapBefore === 0 || gapAfter === 0)) {
@@ -555,6 +606,7 @@ export function evaluateDailyEfficiency(
   allBookings: Booking[]
 ): DailyEfficiencyReport {
   const config = getDayOperatingConfig(dateString);
+  const isPromoDay = is45MinutePromoDay(dateString);
   const dayBookings = allBookings
     .filter((b) => b.bookingDate === dateString && b.status !== 'cancelled')
     .map((b) => {
@@ -592,7 +644,7 @@ export function evaluateDailyEfficiency(
     if (item.startMin > cursor) {
       const gap = item.startMin - cursor;
       const isPrime = config.isSaturday || cursor >= 18 * 60;
-      const canTile = canTileIntervalZeroWaste(gap, isPrime);
+      const canTile = canTileIntervalZeroWaste(gap, isPrime, isPromoDay);
 
       if (!canTile) {
         orphanGapMinutes += gap;
@@ -664,7 +716,7 @@ export function evaluateDailyEfficiency(
   if (cursor < config.closeMinutes) {
     const gap = config.closeMinutes - cursor;
     const isPrime = config.isSaturday || cursor >= 18 * 60;
-    const canTile = canTileIntervalZeroWaste(gap, isPrime);
+    const canTile = canTileIntervalZeroWaste(gap, isPrime, isPromoDay);
 
     if (!canTile) {
       orphanGapMinutes += gap;

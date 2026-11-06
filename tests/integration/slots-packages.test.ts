@@ -170,7 +170,7 @@ describe('GET /api/slots', () => {
     for (const value of Object.values(customer)) expect(text).not.toContain(value);
   });
 
-  it('marks every Saturday 45-minute promo departure unavailable as daytime-only', async () => {
+  it('marks every Saturday 45-minute promo departure unavailable because the promotion runs Sun–Tue only', async () => {
     const app = await loadApp();
 
     const response = await slotsResponse(app, `?date=${EMPTY_DAY.saturday}&duration=45&includeEfficiency=true`);
@@ -178,7 +178,7 @@ describe('GET /api/slots', () => {
     const { slots, durationAvailability } = expectContract(slotsWithEfficiency, response.body);
     expect(slots.length).toBeGreaterThan(0);
     for (const slot of slots) {
-      expect(slot).toMatchObject({ available: false, disabledReason: 'daytime_only_promo', isPrimeTime: true });
+      expect(slot).toMatchObject({ available: false, disabledReason: 'promo_days_only', isPrimeTime: true });
     }
     expect(durationAvailability['45']).toEqual({ availableCount: 0, minPriceIls: 0 });
   });
@@ -217,7 +217,7 @@ describe('GET /api/slots', () => {
         const slots = await getSlots(app, day, minutes);
         const { open, close, weekday } = operatingWindow(day);
         const offered = slots.filter((slot) => slot.available);
-        const promoForbidden = minutes === 45 && weekday === 6;
+        const promoForbidden = minutes === 45 && weekday > 2;
 
         expect(offered.length > 0).toBe(!promoForbidden);
         for (const slot of offered) {

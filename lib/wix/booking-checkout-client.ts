@@ -45,6 +45,23 @@ export interface StartWixBookingCheckoutInput extends WixNativeCheckoutCandidate
 
 export class WixBookingCheckoutClientError extends Error {}
 
+export interface WixCartPrice {
+  /** Wix's calculated cart discount. React never derives this amount itself. */
+  discountIls: number;
+  /** Wix's calculated payable total, including any tax or fee configured in Wix. */
+  totalIls: number;
+}
+
+export interface WixBookingCheckoutDraft {
+  cartId: string;
+  price: WixCartPrice;
+}
+
+export interface WixAppliedCoupon {
+  couponId: string;
+  price: WixCartPrice;
+}
+
 interface WixSlotResponse {
   timeSlot?: WixNativeCheckoutSlot;
 }
@@ -58,7 +75,19 @@ interface WixCartResponse {
 }
 
 interface WixCartCalculationResponse {
-  summary?: { violations?: unknown[] };
+  summary?: {
+    violations?: unknown[];
+    priceSummary?: {
+      discount?: { amount?: string };
+      total?: { amount?: string };
+    };
+  };
+}
+
+interface WixCouponResponse {
+  cart?: {
+    coupons?: Array<{ id?: string; _id?: string; code?: string }>;
+  };
 }
 
 interface WixCheckoutUrlResponse {
@@ -88,6 +117,31 @@ async function wixPost<T>(client: WixBrowserClient, url: string, body: unknown):
     throw new WixBookingCheckoutClientError('We could not open Wix checkout. Please try again.');
   }
   return payload as T;
+}
+
+function wixMoneyAmount(value: unknown): number | null {
+  if (typeof value !== 'string') return null;
+  const amount = Number(value);
+  return Number.isFinite(amount) && amount >= 0 ? amount : null;
+}
+
+/**
+ * The Calculate Cart response is the only price authority for an in-progress
+ * Wix booking. Do not replace this with package math: Wix may add tax, fees or
+ * other promotions before the hosted checkout opens.
+ */
+function priceFromCalculation(calculation: WixCartCalculationResponse): WixCartPrice {
+  if ((calculation.summary?.violations?.length ?? 0) > 0) {
+    throw new WixBookingCheckoutClientError('Wix could not validate this checkout. Please choose another time.');
+  }
+  // Wix represents a zero cart-level discount either as `0` or, for some
+  // booking configurations, by omitting the optional field entirely.
+  const discountIls = wixMoneyAmount(calculation.summary?.priceSummary?.discount?.amount) ?? 0;
+  const totalIls = wixMoneyAmount(calculation.summary?.priceSummary?.total?.amount);
+  if (totalIls === null) {
+    throw new WixBookingCheckoutClientError('Wix did not return a complete checkout total. Please try again.');
+  }
+  return { discountIls, totalIls };
 }
 
 function dateTimeParts(localDateTime: string): { year: number; month: number; day: number; hour: number; minute: number; second: number } {
@@ -173,14 +227,15 @@ function createBookingLocation(location: WixNativeCheckoutLocation): { id: strin
 }
 
 /**
- * Runs the documented visitor flow: revalidate the slot → create booking → create and
- * calculate the Wix cart → return Wix's hosted checkout URL. Every call uses the same
- * browser visitor session, retaining guest checkout, member ownership, and native coupons.
+ * Creates an unpaid Wix booking/cart in the visitor's session and returns Wix's
+ * calculated total. A CREATED online booking expires when it is not paid; it does
+ * not confirm or block the slot. Keeping the cart identity lets a coupon be
+ * validated before checkout without creating a second booking later.
  */
-export async function startWixBookingCheckout(
+export async function prepareWixBookingCheckout(
   client: WixBrowserClient,
   input: StartWixBookingCheckoutInput
-): Promise<{ checkoutUrl: string }> {
+): Promise<WixBookingCheckoutDraft> {
   const slot = input.slotAvailability;
   if (!slot.serviceId || !slot.scheduleId || !slot.localStartDate || !slot.localEndDate) {
     throw new WixBookingCheckoutClientError('Wix could not confirm this departure. Please choose another time.');
@@ -237,7 +292,6 @@ export async function startWixBookingCheckout(
         catalogReference: { appId: WIX_BOOKINGS_APP_ID, catalogItemId: bookingId },
       },
     ],
-    ...(input.couponCode?.trim() ? { coupons: [{ code: input.couponCode.trim() }] } : {}),
   });
   const cartId = cart.cart?.id;
   if (!cartId) throw new WixBookingCheckoutClientError('Wix did not create a checkout cart. Please try again.');
@@ -245,10 +299,52 @@ export async function startWixBookingCheckout(
   const calculation = await wixPost<WixCartCalculationResponse>(client, `${WIX_CREATE_CART_URL}/${cartId}/calculate`, {
     refreshCart: true,
   });
-  if ((calculation.summary?.violations?.length ?? 0) > 0) {
-    throw new WixBookingCheckoutClientError('Wix could not validate this checkout. Please choose another time.');
+  return { cartId, price: priceFromCalculation(calculation) };
+}
+
+/** Applies one native Wix coupon and returns Wix's freshly calculated price. */
+export async function applyWixCoupon(
+  client: WixBrowserClient,
+  cartId: string,
+  couponCode: string
+): Promise<WixAppliedCoupon> {
+  const code = couponCode.trim();
+  if (!code) throw new WixBookingCheckoutClientError('Enter a coupon code before applying it.');
+
+  let coupon: WixCouponResponse;
+  try {
+    coupon = await wixPost<WixCouponResponse>(client, `${WIX_CREATE_CART_URL}/${cartId}/add-coupon`, {
+      coupon: { code },
+    });
+  } catch {
+    throw new WixBookingCheckoutClientError('Wix could not apply this coupon.');
   }
 
+  const appliedCoupon = coupon.cart?.coupons?.find((candidate) => candidate.code === code) ?? coupon.cart?.coupons?.[0];
+  const couponId = appliedCoupon?.id ?? appliedCoupon?._id;
+  if (!couponId) throw new WixBookingCheckoutClientError('Wix could not apply this coupon.');
+
+  const calculation = await wixPost<WixCartCalculationResponse>(client, `${WIX_CREATE_CART_URL}/${cartId}/calculate`, {
+    refreshCart: true,
+  });
+  return { couponId, price: priceFromCalculation(calculation) };
+}
+
+/** Removes an applied coupon, then returns Wix's recalculated original total. */
+export async function removeWixCoupon(
+  client: WixBrowserClient,
+  cartId: string,
+  couponId: string
+): Promise<WixCartPrice> {
+  await wixPost<WixCouponResponse>(client, `${WIX_CREATE_CART_URL}/${cartId}/remove-coupon`, { couponId });
+  const calculation = await wixPost<WixCartCalculationResponse>(client, `${WIX_CREATE_CART_URL}/${cartId}/calculate`, {
+    refreshCart: true,
+  });
+  return priceFromCalculation(calculation);
+}
+
+/** Gets the final Wix-hosted payment URL for an already calculated visitor cart. */
+export async function getWixBookingCheckoutUrl(client: WixBrowserClient, cartId: string): Promise<{ checkoutUrl: string }> {
   const checkout = await wixPost<WixCheckoutUrlResponse>(client, `${WIX_CREATE_CART_URL}/${cartId}/get-checkout-url`, {});
   if (!checkout.checkoutUrl) throw new WixBookingCheckoutClientError('Wix did not return a checkout page. Please try again.');
   try {
@@ -257,4 +353,20 @@ export async function startWixBookingCheckout(
     throw new WixBookingCheckoutClientError('Wix did not return a secure checkout page. Please try again.');
   }
   return { checkoutUrl: checkout.checkoutUrl };
+}
+
+/**
+ * Backward-compatible one-shot path for a customer who skips the visible
+ * coupon step. Couponed journeys use the same cart through prepare/apply/url so
+ * the price displayed in SimDream stays identical to the Wix checkout price.
+ */
+export async function startWixBookingCheckout(
+  client: WixBrowserClient,
+  input: StartWixBookingCheckoutInput
+): Promise<{ checkoutUrl: string }> {
+  const draft = await prepareWixBookingCheckout(client, input);
+  if (input.couponCode?.trim()) {
+    await applyWixCoupon(client, draft.cartId, input.couponCode);
+  }
+  return getWixBookingCheckoutUrl(client, draft.cartId);
 }

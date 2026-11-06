@@ -515,7 +515,7 @@ export default function AdminOverviewPage() {
                 <li>• 30m Flight (45m block): ₪450 (₪10.00/m)</li>
                 <li>• 60m Flight (75m block): ₪690 (₪9.20/m)</li>
                 <li>• 90m Prime (105m block): ₪950 (₪9.05/m)</li>
-                <li>• 45m Promo (60m block): ₪490 (&lt;18:00 only)</li>
+                <li>• 45m Discounted Promotion (60m block): ₪490 (Sun–Tue, &lt;18:00 only)</li>
                 <li>• 150m Substitution: 30m (45m) + 90m (105m) = 150m</li>
               </ul>
             </div>

@@ -154,7 +154,7 @@ flowchart LR
         Candidates["Generate 15-Minute Candidate Starts"]
         CollisionCheck{"Collides with Existing Booking?"}
         WindowCheck{"Exceeds Closing Time?"}
-        PromoCheck{"45m Promo in Evening or Saturday?"}
+        PromoCheck{"45m Discounted Promotion outside Sun–Tue daytime?"}
         ZeroWasteDP{"canTileIntervalZeroWaste()<br/>Can free space before & after be tiled?"}
     end
 

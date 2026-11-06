@@ -1,7 +1,7 @@
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 import type { Booking } from '@/types';
-import { evaluateDailyEfficiency, getDayOperatingConfig, minutesToTime } from '@/lib/scheduler/kantorovich-engine';
+import { evaluateDailyEfficiency, getDayOperatingConfig, is45MinutePromoDay, minutesToTime } from '@/lib/scheduler/kantorovich-engine';
 import {
   OPTIMIZABLE_DURATIONS,
   optimizeTiledCapacity,
@@ -78,6 +78,7 @@ function bestCompatibleValue({ date, existingBookings, requests }: CapacityOptim
         (choice, i) =>
           choice.start >= openMinutes &&
           choice.end <= closeMinutes &&
+          (choice.request.durationMinutes !== 45 || is45MinutePromoDay(date)) &&
           !existing.some((interval) => overlaps(interval, choice)) &&
           !chosen.slice(i + 1).some((other) => overlaps(other, choice))
       );

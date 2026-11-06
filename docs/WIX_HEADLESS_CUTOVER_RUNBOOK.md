@@ -68,7 +68,7 @@ Complete these steps in a **staging Headless site** first. Do not test against p
 ### Bookings catalogue — provisioned in staging
 
 1. All nine services already exist on **SimDream-Staging**, and their IDs are mapped in `lib/wix/catalog.ts`. Do not create duplicates.
-2. A single native Boeing 737 simulator resource type is required by every service. The 45-minute promotion has a dedicated daytime availability staff calendar, so it is excluded from Saturday and from starts after 17:00; that staff distinction never creates a second hardware capacity pool.
+2. A single native Boeing 737 simulator resource type is required by every service. The 45-minute ₪490 Discounted Promotion is enforced by the headless availability and checkout resolver on Sunday–Tuesday before 18:00, then intersected with Wix's live availability; this restriction never creates a second hardware capacity pool or changes shared staff hours.
 3. The operational hours, ILS price, base duration and turnaround buffer are configured and live-checked. `npm run wix:smoke` reports future bookable 60-minute slots and the shared capacity resource; `npm run wix:readiness` blocks a pilot if the shared capacity pool or catalog alignment drifts.
 4. Correct any subsequent mismatch through an approved product decision. The known simulator offers remain defined locally; never silently change price or duration only in Wix.
 5. Keep the duration-aware adapter aligned with the package reservation map: 30m → 45m, 45m → 60m, 60m → 75m, 90m → 105m, 120m → 150m. Wix may return a broader appointment raster, but it may only veto—not invent—customer-visible starts. Do not enable an unmapped add-on or route through a local fallback while Wix owns the calendar.

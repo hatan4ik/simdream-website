@@ -3,6 +3,7 @@ import {
   canTileIntervalZeroWaste,
   getDayOperatingConfig,
   getReservedMinutesForFlight,
+  is45MinutePromoDay,
   minutesToTime,
   timeToMinutes,
 } from './kantorovich-engine';
@@ -89,6 +90,7 @@ function isPrimeTimeAt(minute: number, isSaturday: boolean): boolean {
 
 function getOrphanMinutes(intervals: ReservedInterval[], date: string): number {
   const config = getDayOperatingConfig(date);
+  const isPromoDay = is45MinutePromoDay(date);
   const sorted = [...intervals]
     .filter((interval) => interval.end > config.openMinutes && interval.start < config.closeMinutes)
     .sort((a, b) => a.start - b.start);
@@ -100,7 +102,7 @@ function getOrphanMinutes(intervals: ReservedInterval[], date: string): number {
     const start = Math.max(cursor, interval.start);
     if (start > cursor) {
       const gap = start - cursor;
-      if (!canTileIntervalZeroWaste(gap, isPrimeTimeAt(cursor, config.isSaturday))) {
+      if (!canTileIntervalZeroWaste(gap, isPrimeTimeAt(cursor, config.isSaturday), isPromoDay)) {
         orphanMinutes += gap;
       }
     }
@@ -109,7 +111,7 @@ function getOrphanMinutes(intervals: ReservedInterval[], date: string): number {
 
   if (cursor < config.closeMinutes) {
     const gap = config.closeMinutes - cursor;
-    if (!canTileIntervalZeroWaste(gap, isPrimeTimeAt(cursor, config.isSaturday))) {
+    if (!canTileIntervalZeroWaste(gap, isPrimeTimeAt(cursor, config.isSaturday), isPromoDay)) {
       orphanMinutes += gap;
     }
   }
@@ -129,6 +131,7 @@ function compareSolutions(left: Solution, right: Solution): number {
 
 function prepareCandidates(input: CapacityOptimizationInput, existing: ReservedInterval[]): PreparedRequest[] {
   const config = getDayOperatingConfig(input.date);
+  const isPromoDay = is45MinutePromoDay(input.date);
 
   return input.requests
     .map((request) => {
@@ -154,6 +157,7 @@ function prepareCandidates(input: CapacityOptimizationInput, existing: ReservedI
           (candidate) =>
             candidate.start >= config.openMinutes &&
             candidate.end <= config.closeMinutes &&
+            (request.durationMinutes !== 45 || isPromoDay) &&
             !existing.some((interval) => intervalsOverlap(candidate, interval))
         )
         .sort((a, b) => a.start - b.start);

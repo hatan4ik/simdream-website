@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
+  applyWixCoupon,
   normalizeWixBookingPhone,
+  removeWixCoupon,
   startWixBookingCheckout,
   wixLocalDateTimeToIso,
   type WixBrowserClient,
@@ -27,8 +29,17 @@ function response(body: unknown, status = 200): Response {
   });
 }
 
+function calculation(discount: string, total: string): Response {
+  return response({
+    summary: {
+      violations: [],
+      priceSummary: { discount: { amount: discount }, total: { amount: total } },
+    },
+  });
+}
+
 describe('Wix native booking checkout client', () => {
-  it('keeps one visitor session across slot revalidation, booking, cart and hosted checkout', async () => {
+  it('uses one visitor cart to calculate a native coupon before opening hosted checkout', async () => {
     const calls: Array<{ url: string; body: unknown }> = [];
     const replies = [
       response({
@@ -40,7 +51,9 @@ describe('Wix native booking checkout client', () => {
       }),
       response({ booking: { id: 'booking-id' } }),
       response({ cart: { id: 'cart-id' } }),
-      response({ summary: { violations: [] } }),
+      calculation('0', '690'),
+      response({ cart: { coupons: [{ id: 'coupon-id', code: 'WIX-TEST' }] } }),
+      calculation('690', '0'),
       response({ checkoutUrl: 'https://checkout.wix.com/pay/session' }),
     ];
     const client: WixBrowserClient = {
@@ -63,7 +76,7 @@ describe('Wix native booking checkout client', () => {
       })
     ).resolves.toEqual({ checkoutUrl: 'https://checkout.wix.com/pay/session' });
 
-    expect(calls).toHaveLength(5);
+    expect(calls).toHaveLength(7);
     expect(calls[0]).toMatchObject({
       url: 'https://www.wixapis.com/_api/service-availability/v2/time-slots/get',
       body: {
@@ -107,11 +120,48 @@ describe('Wix native booking checkout client', () => {
             },
           },
         ],
-        coupons: [{ code: 'WIX-TEST' }],
       },
     });
     expect(calls[3]?.url).toBe('https://www.wixapis.com/ecom/v2/carts/cart-id/calculate');
-    expect(calls[4]?.url).toBe('https://www.wixapis.com/ecom/v2/carts/cart-id/get-checkout-url');
+    expect(calls[4]).toMatchObject({
+      url: 'https://www.wixapis.com/ecom/v2/carts/cart-id/add-coupon',
+      body: { coupon: { code: 'WIX-TEST' } },
+    });
+    expect(calls[5]?.url).toBe('https://www.wixapis.com/ecom/v2/carts/cart-id/calculate');
+    expect(calls[6]?.url).toBe('https://www.wixapis.com/ecom/v2/carts/cart-id/get-checkout-url');
+  });
+
+  it('returns Wix-calculated amounts and removes a zero-discount coupon from the same cart', async () => {
+    const calls: Array<{ url: string; body: unknown }> = [];
+    const replies = [
+      response({ cart: { coupons: [{ id: 'coupon-id', code: 'KANTOQA100-20261105' }] } }),
+      calculation('0', '690'),
+      response({ cart: {} }),
+      calculation('0', '690'),
+    ];
+    const client: WixBrowserClient = {
+      fetchWithAuth: async (input, init) => {
+        calls.push({ url: String(input), body: init?.body ? JSON.parse(String(init.body)) : null });
+        const next = replies.shift();
+        if (!next) throw new Error('unexpected Wix request');
+        return next;
+      },
+    };
+
+    await expect(applyWixCoupon(client, 'cart-id', 'KANTOQA100-20261105')).resolves.toEqual({
+      couponId: 'coupon-id',
+      price: { discountIls: 0, totalIls: 690 },
+    });
+    await expect(removeWixCoupon(client, 'cart-id', 'coupon-id')).resolves.toEqual({ discountIls: 0, totalIls: 690 });
+    expect(calls).toEqual([
+      {
+        url: 'https://www.wixapis.com/ecom/v2/carts/cart-id/add-coupon',
+        body: { coupon: { code: 'KANTOQA100-20261105' } },
+      },
+      { url: 'https://www.wixapis.com/ecom/v2/carts/cart-id/calculate', body: { refreshCart: true } },
+      { url: 'https://www.wixapis.com/ecom/v2/carts/cart-id/remove-coupon', body: { couponId: 'coupon-id' } },
+      { url: 'https://www.wixapis.com/ecom/v2/carts/cart-id/calculate', body: { refreshCart: true } },
+    ]);
   });
 
   it('uses Israel daylight and standard time correctly and accepts local Israeli phone entry', () => {

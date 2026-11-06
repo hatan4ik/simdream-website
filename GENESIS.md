@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:d728a6b63bb9f0b78cef434dc78dd7f7bb1cc2af40580d51661686e06123a7e5 -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:5b260ed247c0b228c35e3b07785387718cc405eac4b3e5b479f1770d7e9f09a2 -->
 
 ## Verification contract
 
@@ -205,7 +205,7 @@ Build **simdream.co.il**, the booking and marketing platform for **Sim Dream LTD
 | id | Category | Flight | Price | Notes |
 | --- | --- | --- | --- | --- |
 | `pkg-discovery-30` | recreational | 30 min | 450 | Guided Discovery Flight |
-| `pkg-promo-45` | recreational | 45 min | 490 | Daytime promo: Sun–Fri, starts before 18:00 only |
+| `pkg-promo-45` | recreational | 45 min | 490 | Discounted Promotion: Sunday–Tuesday, starts before 18:00 only |
 | `pkg-captain-60` | recreational | 60 min | 690 | Most popular |
 | `pkg-ultimate-90` | recreational | 90 min | 850 | Saturday prime-time price 950 |
 | `pkg-pro-60` | training | 60 min | 890 | Airline Interview Prep 60 PRO |
@@ -248,10 +248,10 @@ Add 3 curated one-click combos. Localize every package and add-on in all five la
   | --- | --- | --- | --- |
   | Sunday–Thursday | 10:00–23:00 | 780 | |
   | Friday | 09:00–16:30 | 450 | Includes a 15:45 30-minute closer |
-  | Saturday | 19:00–24:00 | 300 | Prime time only; the 45-minute promo is forbidden |
-- **Slot generation**: `generateKantorovichSlots(date, duration, bookings)` returns every departure on a grid derived from the reserved blocks. Saturday 60-minute departures are 19:00, 20:15, 21:30 and 22:45. Each slot carries:
+  | Saturday | 19:00–24:00 | 300 | Prime time only; the 45-minute promotion is forbidden |
+- **Slot generation**: `generateKantorovichSlots(date, duration, bookings)` returns every departure on a grid derived from the reserved blocks. The ₪490 45-minute Discounted Promotion is sellable Sunday–Tuesday before 18:00 only; the zero-waste solver also removes its 60-minute block on every other day so it never classifies an unsellable gap as capacity. Saturday 60-minute departures are 19:00, 20:15, 21:30 and 22:45. Each slot carries:
   - `available`;
-  - a `disabledReason`: booked, orphan_gap, daytime_only_promo, friday closer rule, exceeds window, or departed;
+  - a `disabledReason`: booked, orphan_gap, promo day/time restriction, friday closer rule, exceeds window, or departed;
   - a smart recommendation: optimal 150-minute pair, zero-waste fit, and so on.
 
   Never offer a departure that would leave an unsellable gap ("anti-gap"/zero-waste tiling).
@@ -259,7 +259,7 @@ Add 3 curated one-click combos. Localize every package and add-on in all five la
 - **Pricing**: `packagePriceForSlot()` applies prime-time pricing. `calculateMissionManifest()` totals the package and add-ons and rejects add-ons that would run past the next booking or the window close.
 - **Building blocks** (keep these as small, separately tested functions):
   - time: `timeToMinutes()`, `minutesToTime()`, `addMinutesToTime()`, and the Israel clock's `israelToday()`, `israelMinutesNow()`, `hasDeparted()`;
-  - days and capacity: `getDayOperatingConfig()`, `longestMissionWithin()`, `canTileIntervalZeroWaste()`, `getKantorovichPricing()`;
+  - days and capacity: `getDayOperatingConfig()`, `is45MinutePromoDay()`, `longestMissionWithin()`, `canTileIntervalZeroWaste()`, `getKantorovichPricing()`;
   - packages and add-ons: `packageAllowsAddons()`, `packageFromPriceIls()`, `sanitizePackageTitle()`, `canAddonFitInSlot()`, `pruneAddonsExceedingSlot()`;
   - shared customer presentation: `getPackageFormulaBadge()` supplies identical, localized formula labels to both booking interfaces;
   - checkout orchestration (`lib/booking/checkout-service.ts`): `createCheckoutService()` applies the business rules; `checkout-ports.ts` holds provider-neutral contracts, and `checkout-runtime.ts` exposes the current Supabase/Stripe composition's `startBookingCheckout()` and `startVoucherCheckout()` route functions.
@@ -328,7 +328,7 @@ Add 3 curated one-click combos. Localize every package and add-on in all five la
 | `/api/slots?date&duration` | GET | public | Slots and public capacity report; 400 on impossible dates |
 | `/api/checkout` | POST | public | Booking or voucher checkout |
 | `/api/subscriptions/checkout` | POST / GET | public | Wix Pricing Plans hosted checkout redirect with Dispatch fallback |
-| `/api/wix/bookings/checkout` | POST | public slot lookup | Validates every mapped base-service slot against the strict grid and current Wix availability, returning only the exact slot, payment capability and business location needed by the browser visitor checkout; subscription redemption opens Wix-hosted Bookings checkout, while a standard base flight creates its native Wix booking and Cart V2 checkout |
+| `/api/wix/bookings/checkout` | POST | public slot lookup | Validates every mapped base-service slot against the strict grid and current Wix availability, returning only the exact slot, payment capability and business location needed by the browser visitor checkout; subscription redemption opens Wix-hosted Bookings checkout, while a standard base flight creates one native Wix booking and Cart V2 draft. A submitted Wix coupon is added to that same visitor cart, then **Calculate Cart** supplies the only displayed discount/total; the same cart opens hosted checkout. |
 | `/api/webhooks/stripe` | POST | Stripe signature | Payment state machine |
 | `/api/bookings` | GET / POST / PATCH | GET `?ref=` public narrow projection, else admin; POST 405 | Booking lookup and admin changes |
 | `/api/vouchers` | GET / POST / PATCH | GET admin; POST public verify; PATCH admin redeem | Vouchers |

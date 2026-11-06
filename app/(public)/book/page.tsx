@@ -41,7 +41,13 @@ import {
   wixMemberOAuthStorageKey,
 } from '@/lib/wix/member-client';
 import { isWixSubscriptionBookingPackageId, wixSubscriptionBookingPackageForPlan } from '@/lib/wix/subscription-redemption';
-import { startWixBookingCheckout, type WixNativeCheckoutCandidate } from '@/lib/wix/booking-checkout-client';
+import {
+  applyWixCoupon,
+  getWixBookingCheckoutUrl,
+  prepareWixBookingCheckout,
+  removeWixCoupon,
+  type WixNativeCheckoutCandidate,
+} from '@/lib/wix/booking-checkout-client';
 import {
   EXPERIENCE_ROUTES_COPY,
   MINIMUM_ROUTE_REQUEST_MINUTES,
@@ -67,6 +73,15 @@ function resolvePackageSlug(slug: string): string {
 
 function formatBookingTemplate(template: string, values: Record<string, string | number>): string {
   return template.replace(/\{(\w+)\}/g, (match, key: string) => String(values[key] ?? match));
+}
+
+/** An unpaid, visitor-owned Wix cart reused between coupon validation and checkout. */
+interface WixCheckoutDraftState {
+  inputKey: string;
+  cartId: string;
+  totalIls: number;
+  couponId?: string;
+  couponCode?: string;
 }
 
 /** Query-string selections are customer intent only; the checkout API still validates catalog IDs and prices. */
@@ -259,6 +274,7 @@ function BookContent() {
   const [voucherError, setVoucherError] = useState<string>('');
   const [voucherSuccess, setVoucherSuccess] = useState<string>('');
   const [isVerifyingVoucher, setIsVerifyingVoucher] = useState<boolean>(false);
+  const [wixCheckoutDraft, setWixCheckoutDraft] = useState<WixCheckoutDraftState | null>(null);
 
   // Wix is the native writer for simple single-service bookings. The local checkout
   // keeps ownership of multi-item missions, locally funded vouchers and route intent
@@ -269,7 +285,6 @@ function BookContent() {
     wixBookingsAuthoritative &&
     wixBookingFrontendActive &&
     selectedAddons.length === 0 &&
-    voucherDiscount === 0 &&
     !requestedRoute;
   // A live Wix calendar has one reservation writer. Add-ons and captain-confirmed
   // route requests remain unavailable in that mode until they are represented by
@@ -278,12 +293,27 @@ function BookContent() {
   const requiresUnsupportedLocalCheckout =
     wixBookingsAuthoritative && !isWixSubscriptionRedemption && !canUseWixNativeCheckout;
 
+  // A Wix cart is tied to the exact visitor, flight, departure and booking-form
+  // data used to create it. Changing any of these starts a fresh unpaid draft.
+  const wixCheckoutDraftKey = [
+    activePackage.id,
+    selectedDate,
+    selectedSlot?.id ?? '',
+    pilotName.trim(),
+    pilotEmail.trim(),
+    pilotPhone.trim(),
+    notes.trim(),
+  ].join('\u001f');
+  const activeWixCheckoutDraft =
+    wixCheckoutDraft?.inputKey === wixCheckoutDraftKey ? wixCheckoutDraft : null;
+
   useEffect(() => {
     if (!isWixSubscriptionRedemption) return;
     setVoucherCode('');
     setVoucherDiscount(0);
     setVoucherError('');
     setVoucherSuccess('');
+    setWixCheckoutDraft(null);
   }, [isWixSubscriptionRedemption]);
 
   useEffect(() => {
@@ -295,6 +325,14 @@ function BookContent() {
       }
     } catch {}
   }, []);
+
+  useEffect(() => {
+    if (!wixCheckoutDraft || activeWixCheckoutDraft) return;
+    setWixCheckoutDraft(null);
+    setVoucherDiscount(0);
+    setVoucherError('');
+    setVoucherSuccess('');
+  }, [activeWixCheckoutDraft, wixCheckoutDraft]);
 
   // Payment Processing
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -392,6 +430,14 @@ function BookContent() {
     subtotalIls: subtotal,
     totalIls: totalAmount,
   } = manifest;
+  // This is only a presentation override. The final price remains the Wix cart's
+  // calculated amount and Wix recalculates it again in the hosted checkout.
+  const displayTotalAmount = activeWixCheckoutDraft
+    ? activeWixCheckoutDraft.totalIls
+    : totalAmount;
+  const displayManifest = activeWixCheckoutDraft
+    ? { ...manifest, totalIls: activeWixCheckoutDraft.totalIls }
+    : manifest;
 
   // Smart Window Guard: if user switches to a tighter time slot in Step 1, prune any time-extending add-ons that exceed maxSlotMinutes
   useEffect(() => {
@@ -414,24 +460,97 @@ function BookContent() {
     }
   }, [isNoiseFreeBooking, currentStep]);
 
-  // Voucher verification handler with 1-click reapply and session storage persistence
-  const handleVerifyVoucher = async (codeOverride?: string) => {
-    const code = (codeOverride ?? voucherCode).trim().toUpperCase();
-    if (!code) return;
-    if (wixBookingsAuthoritative && !isWixSubscriptionRedemption) {
-      // Wix owns coupon validation in the same cart that owns the appointment.
-      // Do not locally mark a voucher as redeemed before Wix has accepted it.
-      setVoucherCode(code);
-      setVoucherDiscount(0);
-      setVoucherError('');
-      setVoucherSuccess(t.booking.wixCouponDeferred);
-      return;
+  const prepareCurrentWixCheckoutDraft = async (): Promise<WixCheckoutDraftState> => {
+    if (!selectedSlot) throw new Error(t.booking.errorSelectSlot);
+
+    const wixSlotResponse = await fetch('/api/wix/bookings/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        packageId: activePackage.id,
+        bookingDate: selectedDate,
+        startTime: selectedSlot.startTime,
+      }),
+    });
+    const wixSlot = (await wixSlotResponse.json()) as Partial<WixNativeCheckoutCandidate> & { error?: string };
+    if (!wixSlotResponse.ok || !wixSlot.slotAvailability || !wixSlot.timeZone || !wixSlot.location || !wixSlot.paymentOptions) {
+      throw new Error(wixSlot.error || t.booking.paymentStartFailed);
     }
+
+    const prepared = await prepareWixBookingCheckout(getWixMemberClient(), {
+      slotAvailability: wixSlot.slotAvailability,
+      timeZone: wixSlot.timeZone,
+      location: wixSlot.location,
+      paymentOptions: wixSlot.paymentOptions,
+      pilotName,
+      pilotEmail,
+      pilotPhone,
+      notes,
+    });
+    const draft: WixCheckoutDraftState = {
+      inputKey: wixCheckoutDraftKey,
+      cartId: prepared.cartId,
+      totalIls: prepared.price.totalIls,
+    };
+    setWixCheckoutDraft(draft);
+    return draft;
+  };
+
+  const ensureCurrentWixCheckoutDraft = async (): Promise<WixCheckoutDraftState> =>
+    activeWixCheckoutDraft ?? prepareCurrentWixCheckoutDraft();
+
+  const applyCouponToCurrentWixCheckout = async (code: string): Promise<WixCheckoutDraftState | null> => {
+    const draft = await ensureCurrentWixCheckoutDraft();
+    const applied = await applyWixCoupon(getWixMemberClient(), draft.cartId, code);
+    if (applied.price.discountIls <= 0) {
+      // Wix accepts some codes syntactically but calculates a zero discount when
+      // the selected service does not meet the coupon's scope/minimum rules.
+      const originalPrice = await removeWixCoupon(getWixMemberClient(), draft.cartId, applied.couponId);
+      setWixCheckoutDraft({ ...draft, totalIls: originalPrice.totalIls });
+      setVoucherDiscount(0);
+      setVoucherError(t.booking.wixCouponNotEligible);
+      return null;
+    }
+
+    const couponDraft: WixCheckoutDraftState = {
+      ...draft,
+      couponId: applied.couponId,
+      couponCode: code,
+      totalIls: applied.price.totalIls,
+    };
+    setWixCheckoutDraft(couponDraft);
+    setVoucherCode(code);
+    setVoucherDiscount(applied.price.discountIls);
+    setVoucherSuccess(
+      formatBookingTemplate(t.booking.wixCouponApplied, {
+        amount: formatCurrency(applied.price.discountIls),
+        total: formatCurrency(applied.price.totalIls),
+      })
+    );
+    return couponDraft;
+  };
+
+  // Voucher verification handler with 1-click reapply and session storage persistence.
+  // Wix coupons are validated inside the visitor-owned cart, rather than by React.
+  const handleVerifyVoucher = async (codeOverride?: string) => {
+    const enteredCode = (codeOverride ?? voucherCode).trim();
+    if (!enteredCode) return;
+    const code = canUseWixNativeCheckout ? enteredCode : enteredCode.toUpperCase();
+
     setIsVerifyingVoucher(true);
     setVoucherError('');
     setVoucherSuccess('');
 
     try {
+      if (canUseWixNativeCheckout) {
+        if (!pilotName.trim() || !pilotEmail.trim() || !pilotPhone.trim()) {
+          setVoucherError(t.booking.wixCouponNeedsPilotDetails);
+          return;
+        }
+        await applyCouponToCurrentWixCheckout(code);
+        return;
+      }
+
       const res = await fetch('/api/vouchers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -457,22 +576,36 @@ function BookContent() {
         sessionStorage.setItem('simdream_cached_voucher', code);
       } catch {}
     } catch (err: unknown) {
-      if (canUseWixNativeCheckout) {
-        // A Wix coupon is authoritative only after the Wix cart exists. Local gift
-        // vouchers still validate above; an unrecognized local code is forwarded to
-        // the native Wix cart rather than incorrectly rejecting a valid Wix coupon.
-        setVoucherError('');
-        setVoucherSuccess(t.booking.wixCouponDeferred);
-      } else {
-        setVoucherError(extractErrorMessage(err, t.booking.voucherVerifyFailed));
-      }
+      setVoucherError(
+        canUseWixNativeCheckout
+          ? t.booking.wixCouponVerifyFailed
+          : extractErrorMessage(err, t.booking.voucherVerifyFailed)
+      );
       setVoucherDiscount(0);
     } finally {
       setIsVerifyingVoucher(false);
     }
   };
 
-  const handleRemoveVoucher = () => {
+  const handleRemoveVoucher = async () => {
+    if (activeWixCheckoutDraft?.couponId) {
+      setIsVerifyingVoucher(true);
+      setVoucherError('');
+      try {
+        const price = await removeWixCoupon(
+          getWixMemberClient(),
+          activeWixCheckoutDraft.cartId,
+          activeWixCheckoutDraft.couponId
+        );
+        setWixCheckoutDraft({ ...activeWixCheckoutDraft, totalIls: price.totalIls, couponId: undefined, couponCode: undefined });
+        setVoucherCode('');
+      } catch {
+        setVoucherError(t.booking.wixCouponVerifyFailed);
+        return;
+      } finally {
+        setIsVerifyingVoucher(false);
+      }
+    }
     setVoucherDiscount(0);
     setVoucherSuccess('');
     setVoucherError('');
@@ -578,31 +711,14 @@ function BookContent() {
       }
 
       if (canUseWixNativeCheckout) {
-        const wixSlotResponse = await fetch('/api/wix/bookings/checkout', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            packageId: activePackage.id,
-            bookingDate: selectedDate,
-            startTime: selectedSlot.startTime,
-          }),
-        });
-        const wixSlot = (await wixSlotResponse.json()) as Partial<WixNativeCheckoutCandidate> & { error?: string };
-        if (!wixSlotResponse.ok || !wixSlot.slotAvailability || !wixSlot.timeZone || !wixSlot.location || !wixSlot.paymentOptions) {
-          throw new Error(wixSlot.error || t.booking.paymentStartFailed);
+        const enteredCoupon = voucherCode.trim();
+        if (enteredCoupon && (!activeWixCheckoutDraft?.couponId || activeWixCheckoutDraft.couponCode !== enteredCoupon)) {
+          setVoucherError(t.booking.wixCouponApplyFirst);
+          setIsSubmitting(false);
+          return;
         }
-
-        const wixCheckout = await startWixBookingCheckout(getWixMemberClient(), {
-          slotAvailability: wixSlot.slotAvailability,
-          timeZone: wixSlot.timeZone,
-          location: wixSlot.location,
-          paymentOptions: wixSlot.paymentOptions,
-          pilotName,
-          pilotEmail,
-          pilotPhone,
-          notes,
-          couponCode: voucherCode,
-        });
+        const draft = await ensureCurrentWixCheckoutDraft();
+        const wixCheckout = await getWixBookingCheckoutUrl(getWixMemberClient(), draft.cartId);
         window.location.assign(wixCheckout.checkoutUrl);
         return;
       }
@@ -807,7 +923,7 @@ function BookContent() {
               pruneAddonsExceedingSlot(ids, scopedAddons, baseDuration, maxSlotMinutes)
             )
           }
-          manifest={manifest}
+          manifest={displayManifest}
           pilotName={pilotName}
           onChangePilotName={setPilotName}
           pilotEmail={pilotEmail}
@@ -1315,7 +1431,7 @@ function BookContent() {
                   <div className="flex justify-between items-baseline">
                     <span className="text-sm font-bold text-white">{t.booking.totalAmount}</span>
                     <span className="text-2xl font-black text-emerald-400 font-mono">
-                      {formatCurrency(totalAmount)}
+                      {formatCurrency(displayTotalAmount)}
                     </span>
                   </div>
                 </div>
@@ -1333,7 +1449,7 @@ function BookContent() {
                     ? t.booking.processing
                     : isWixSubscriptionRedemption
                       ? wixSubscriptionCopy.checkoutLabel
-                      : `${t.booking.proceedToPayment} (${formatCurrency(totalAmount)})`}
+                      : `${t.booking.proceedToPayment} (${formatCurrency(displayTotalAmount)})`}
                 </span>
               </Button>
 

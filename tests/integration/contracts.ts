@@ -94,7 +94,7 @@ export const flightSlot = z
       .optional(),
     recommendationNote: z.string().optional(),
     disabledReason: z
-      .enum(['booked', 'orphan_gap', 'daytime_only_promo', 'friday_closer_30m_only', 'exceeds_closing', 'departed'])
+      .enum(['booked', 'orphan_gap', 'daytime_only_promo', 'promo_days_only', 'friday_closer_30m_only', 'exceeds_closing', 'departed'])
       .nullable()
       .optional(),
     disabledNote: z.string().optional(),
