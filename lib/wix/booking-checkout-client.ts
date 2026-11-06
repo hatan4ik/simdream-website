@@ -121,9 +121,10 @@ async function wixPost<T>(client: WixBrowserClient, url: string, body: unknown):
 
 /**
  * Adds the visitor's already-completed booking form details to the cart that
- * owns the hosted checkout. Wix Checkout reads `customerInfo` from the cart,
- * so this is the handoff that prevents a customer from having to type their
- * name, email and phone a second time after selecting a flight.
+ * owns the hosted checkout. `customerInfo` carries the identity details and
+ * `paymentInfo.billingContact` carries the invoice contact used by payment
+ * providers. Supplying both prevents the hosted payment page from asking the
+ * customer to enter the same name and phone a second time.
  */
 async function wixUpdateCartCustomerInfo(
   client: WixBrowserClient,
@@ -136,7 +137,19 @@ async function wixUpdateCartCustomerInfo(
     // Cart V2 requires the ID both in the URL and the partial cart payload.
     // Do not pass a contact ID from the browser: Wix resolves or creates the
     // matching contact from the same visitor-owned cart context.
-    body: JSON.stringify({ cart: { id: cartId, customerInfo } }),
+    body: JSON.stringify({
+      cart: {
+        id: cartId,
+        customerInfo,
+        paymentInfo: {
+          billingContact: {
+            firstName: customerInfo.firstName,
+            lastName: customerInfo.lastName,
+            phone: customerInfo.phone,
+          },
+        },
+      },
+    }),
   });
   if (!response.ok) {
     throw new WixBookingCheckoutClientError('We could not securely prepare your checkout. Please try again.');

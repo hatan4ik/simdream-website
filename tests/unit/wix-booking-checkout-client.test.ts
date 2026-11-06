@@ -139,6 +139,13 @@ describe('Wix native booking checkout client', () => {
             email: 'pilot@example.test',
             phone: '+972547773074',
           },
+          paymentInfo: {
+            billingContact: {
+              firstName: 'Avi',
+              lastName: 'Pilot',
+              phone: '+972547773074',
+            },
+          },
         },
       },
     });
