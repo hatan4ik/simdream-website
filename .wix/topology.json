@@ -9,12 +9,12 @@
     }
   },
   "production": {
-    "id": "07e31836-1bff-461b-b149-280f5019e24f",
+    "id": "74f8184e-30e9-413d-9fa2-ba72e1b67598",
     "site": {
-      "main": "https://otk4b3-headless-ciwstxzqhgf-hatan4ik-1408.wix-site-host.com"
+      "main": "https://mvtwl1-headless-ciwstxzqhgf-hatan4ik-1408.wix-site-host.com"
     },
     "dashboard": {
-      "main": "https://manage.wix.com/dashboard/317b0c6d-6608-499a-bb3c-b1c37650e460?apps-override=07e31836-1bff-461b-b149-280f5019e24f"
+      "main": "https://manage.wix.com/dashboard/317b0c6d-6608-499a-bb3c-b1c37650e460?apps-override=74f8184e-30e9-413d-9fa2-ba72e1b67598"
     }
   }
 }
