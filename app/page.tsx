@@ -64,6 +64,9 @@ export default function HomePage() {
             <Link href="/about">
               <Button variant="outline" size="lg">{t.hero.cockpitSpecs}</Button>
             </Link>
+            <Link href="/vouchers">
+              <Button variant="outline" size="lg">{t.cta.buyVoucher}</Button>
+            </Link>
           </div>
 
         </div>

@@ -1264,90 +1264,6 @@ function BookContent() {
               />
             </div>
 
-            <div className="p-4 rounded-xl border border-slate-800 bg-slate-900/60 space-y-3">
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-mono uppercase text-slate-300 font-bold flex items-center gap-1.5">
-                  <Tag className="w-4 h-4 text-sky-400" />
-                  <span>{t.booking.voucherPromoTitle}</span>
-                </label>
-                {voucherDiscount > 0 && (
-                  <button
-                    type="button"
-                    onClick={handleRemoveVoucher}
-                    className="text-xs font-mono text-red-400 hover:text-red-300 underline font-bold"
-                  >
-                    {t.booking.removeVoucher}
-                  </button>
-                )}
-              </div>
-
-              {voucherDiscount > 0 ? (
-                <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between">
-                  <div>
-                    <p className="text-xs font-mono font-bold text-emerald-400">
-                      ✓ {voucherCode}
-                    </p>
-                    <p className="text-[11px] font-mono text-emerald-300">
-                      -{formatCurrency(voucherDiscount)} ({t.booking.discountApplied})
-                    </p>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleRemoveVoucher}
-                    className="text-xs text-slate-400 hover:text-red-300 h-auto py-1 px-2"
-                  >
-                    {t.booking.resetVoucher}
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      aria-label={t.booking.voucherPromoTitle}
-                      aria-invalid={voucherError ? true : undefined}
-                      aria-describedby={voucherError ? `${formId}-voucher-error` : undefined}
-                      placeholder={t.booking.voucherPlaceholder}
-                      value={voucherCode}
-                      onChange={(e) => setVoucherCode(e.target.value)}
-                      dir="ltr"
-                      className="flex-1 min-w-0 rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-base sm:text-sm text-white uppercase font-mono focus:outline-none focus:border-sky-500"
-                    />
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="sm"
-                      isLoading={isVerifyingVoucher}
-                      onClick={() => handleVerifyVoucher()}
-                    >
-                      {isVerifyingVoucher ? t.booking.verifyingVoucher : t.booking.applyCode}
-                    </Button>
-                  </div>
-
-                  {cachedVoucherCode && (
-                    <div className="flex items-center justify-between text-[11px] font-mono text-slate-400 bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-lg">
-                      <span>{t.booking.savedVoucher} <strong className="text-sky-300">{cachedVoucherCode}</strong></span>
-                      <button
-                        type="button"
-                        onClick={() => handleVerifyVoucher(cachedVoucherCode)}
-                        className="text-amber-400 hover:text-amber-300 font-bold underline"
-                      >
-                        {t.booking.reapplyVoucher}
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {voucherSuccess && <p className="text-xs text-emerald-400 font-mono">{voucherSuccess}</p>}
-              {voucherError && (
-                <p id={`${formId}-voucher-error`} role="alert" className="text-xs text-red-400 font-mono">
-                  {voucherError}
-                </p>
-              )}
-            </div>
           </div>
 
           <div className="lg:col-span-5 space-y-6 sticky top-28">
@@ -1422,6 +1338,91 @@ function BookContent() {
                     <span className="font-mono">-{formatCurrency(voucherDiscount)}</span>
                   </div>
                 )}
+
+                <div className="p-4 rounded-xl border border-sky-500/30 bg-slate-950/60 space-y-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <label className="text-xs font-mono uppercase text-slate-300 font-bold flex items-center gap-1.5 min-w-0">
+                      <Tag className="w-4 h-4 text-sky-400 shrink-0" />
+                      <span>{t.booking.voucherPromoTitle}</span>
+                    </label>
+                    {voucherDiscount > 0 && (
+                      <button
+                        type="button"
+                        onClick={handleRemoveVoucher}
+                        className="text-xs font-mono text-red-400 hover:text-red-300 underline font-bold shrink-0"
+                      >
+                        {t.booking.removeVoucher}
+                      </button>
+                    )}
+                  </div>
+
+                  {voucherDiscount > 0 ? (
+                    <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-xs font-mono font-bold text-emerald-400">
+                          ✓ {voucherCode}
+                        </p>
+                        <p className="text-[11px] font-mono text-emerald-300">
+                          -{formatCurrency(voucherDiscount)} ({t.booking.discountApplied})
+                        </p>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleRemoveVoucher}
+                        className="text-xs text-slate-400 hover:text-red-300 h-auto py-1 px-2"
+                      >
+                        {t.booking.resetVoucher}
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          aria-label={t.booking.voucherPromoTitle}
+                          aria-invalid={voucherError ? true : undefined}
+                          aria-describedby={voucherError ? `${formId}-voucher-error` : undefined}
+                          placeholder={t.booking.voucherPlaceholder}
+                          value={voucherCode}
+                          onChange={(e) => setVoucherCode(e.target.value)}
+                          dir="ltr"
+                          className="flex-1 min-w-0 rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-base sm:text-sm text-white uppercase font-mono focus:outline-none focus:border-sky-500"
+                        />
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          isLoading={isVerifyingVoucher}
+                          onClick={() => handleVerifyVoucher()}
+                        >
+                          {isVerifyingVoucher ? t.booking.verifyingVoucher : t.booking.applyCode}
+                        </Button>
+                      </div>
+
+                      {cachedVoucherCode && (
+                        <div className="flex items-center justify-between text-[11px] font-mono text-slate-400 bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-lg">
+                          <span>{t.booking.savedVoucher} <strong className="text-sky-300">{cachedVoucherCode}</strong></span>
+                          <button
+                            type="button"
+                            onClick={() => handleVerifyVoucher(cachedVoucherCode)}
+                            className="text-amber-400 hover:text-amber-300 font-bold underline"
+                          >
+                            {t.booking.reapplyVoucher}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {voucherSuccess && <p className="text-xs text-emerald-400 font-mono">{voucherSuccess}</p>}
+                  {voucherError && (
+                    <p id={`${formId}-voucher-error`} role="alert" className="text-xs text-red-400 font-mono">
+                      {voucherError}
+                    </p>
+                  )}
+                </div>
 
                 <div className="pt-3 border-t border-slate-800/80 space-y-2">
                   <div className="flex justify-between items-center text-xs font-mono text-slate-300">
