@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
-import { getDevelopmentDemoEmail, requireAuthenticatedUser } from '@/lib/auth/request-auth';
+import { getBearerToken, getDevelopmentDemoEmail, requireAuthenticatedUser } from '@/lib/auth/request-auth';
 import { store } from '@/lib/db/store';
+import { listWixMemberBookings } from '@/lib/wix/member-bookings';
 
 export async function GET(request: Request) {
   try {
@@ -8,6 +9,13 @@ export async function GET(request: Request) {
     if (authenticated) {
       if (!authenticated.emailVerified) {
         return NextResponse.json({ error: 'Confirm your email address to access member purchases.' }, { status: 403 });
+      }
+      if (authenticated.provider === 'wix') {
+        const accessToken = getBearerToken(request);
+        if (!accessToken) return NextResponse.json({ error: 'Authentication required.' }, { status: 401 });
+        return NextResponse.json(await listWixMemberBookings(accessToken), {
+          headers: { 'Cache-Control': 'private, no-store' },
+        });
       }
       await store.ensureMemberProfile(authenticated);
       await store.linkGuestBookingsToMember(authenticated);

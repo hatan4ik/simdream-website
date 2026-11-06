@@ -15,12 +15,14 @@ import {
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
+import { WixMemberSubscriptionPanel } from '@/components/wix/WixMemberSubscriptionPanel';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useLanguage, type Language } from '@/lib/i18n/language-context';
 import { getLocalizedPackages } from '@/lib/i18n/translations';
 import { EXPERIENCE_ROUTES_COPY, findOnRequestWorldRoute } from '@/lib/data/experience-routes';
 import { sanitizePackageTitle } from '@/lib/scheduler/mission-calculator';
 import { isSupabaseConfigured, supabase } from '@/lib/supabaseClient';
+import { getWixMemberAccessToken, isWixBrowserClientConfigured } from '@/lib/wix/member-client';
 import type { Booking } from '@/types';
 import { formatCurrency, formatDate } from '@/lib/utils';
 
@@ -103,6 +105,7 @@ function todayInIsrael(): string {
 }
 
 function bookingStatusKey(booking: Booking): BookingStatusKey {
+  if (booking.source === 'wix') return booking.status === 'cancelled' ? 'cancelled' : 'confirmed';
   if (booking.status === 'cancelled') return 'cancelled';
   if (booking.paymentStatus === 'refunded') return 'refunded';
   if (booking.paymentStatus === 'pending') return 'paymentPending';
@@ -111,6 +114,7 @@ function bookingStatusKey(booking: Booking): BookingStatusKey {
 }
 
 function bookingStatusVariant(booking: Booking): 'sky' | 'emerald' | 'amber' | 'slate' {
+  if (booking.source === 'wix') return booking.status === 'cancelled' ? 'slate' : 'sky';
   if (booking.status === 'cancelled' || booking.paymentStatus === 'refunded') return 'slate';
   if (booking.paymentStatus === 'pending') return 'amber';
   if (booking.status === 'completed') return 'emerald';
@@ -155,7 +159,10 @@ export default function DashboardPage() {
       setLoadError(null);
       try {
         const headers: HeadersInit = {};
-        if (isSupabaseConfigured && supabase) {
+        if (isWixBrowserClientConfigured()) {
+          const wixAccessToken = await getWixMemberAccessToken();
+          if (wixAccessToken) headers.Authorization = `Bearer ${wixAccessToken}`;
+        } else if (isSupabaseConfigured && supabase) {
           const { data } = await supabase.auth.getSession();
           if (data.session?.access_token) headers.Authorization = `Bearer ${data.session.access_token}`;
         } else {
@@ -274,11 +281,11 @@ export default function DashboardPage() {
           <span>{formatMissionDate(booking.bookingDate, language)}</span>
           <span dir="ltr">{booking.startTime}–{booking.endTime} IST</span>
           <span>{copy.durationMinutes.replace('{minutes}', String(booking.durationMinutes))}</span>
-          <span className="text-white font-bold" dir="ltr">{formatCurrency(booking.totalIls)}</span>
+          {booking.source !== 'wix' && <span className="text-white font-bold" dir="ltr">{formatCurrency(booking.totalIls)}</span>}
         </div>
       </div>
       <div className="flex flex-wrap items-center gap-2 shrink-0">
-        {isUpcoming && (
+        {isUpcoming && booking.source !== 'wix' && (
           <Link href={`/book/success?ref=${encodeURIComponent(booking.bookingReference)}`}>
             <Button variant="secondary" size="sm">
               <FileText className="w-3.5 h-3.5" />
@@ -336,6 +343,8 @@ export default function DashboardPage() {
           <p className="text-[10px] text-slate-400">{copy.stats.paidTotalHint}</p>
         </Card>
       </div>
+
+      <WixMemberSubscriptionPanel language={language} />
 
       {loadError && (
         <div role="alert" className="p-4 rounded-xl bg-red-950/40 border border-red-500/30 text-red-300 text-sm">{copy.errors[loadError]}</div>

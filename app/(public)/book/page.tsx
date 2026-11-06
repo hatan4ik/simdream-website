@@ -1017,7 +1017,7 @@ function BookContent() {
           />
 
           {/* Sticky Mobile-First Action Bar */}
-          <div className="sticky bottom-safe-area-3 z-30 p-3.5 sm:p-4 rounded-2xl border border-slate-800 bg-slate-950/95 backdrop-blur-md shadow-2xl flex items-center justify-between gap-3">
+          <div className="sticky bottom-safe-area-3 z-30 flex flex-col gap-3 rounded-2xl border border-slate-800 bg-slate-950/95 p-3.5 shadow-2xl backdrop-blur-md sm:flex-row sm:items-center sm:justify-between sm:p-4">
             <div className="min-w-0">
               {selectedSlot && selectedSlot.available ? (
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
@@ -1044,7 +1044,7 @@ function BookContent() {
               size="lg"
               disabled={!selectedSlot || !selectedSlot.available}
               onClick={() => setCurrentStep(isNoiseFreeBooking ? 3 : 2)}
-              className="shrink-0 font-bold"
+              className="w-full sm:w-auto sm:shrink-0"
             >
               <span>{isNoiseFreeBooking ? t.booking.continueToPilot : t.booking.continueToAddons}</span>
               <ChevronRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />

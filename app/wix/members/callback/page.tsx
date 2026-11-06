@@ -4,7 +4,11 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import type { OauthData } from '@wix/sdk';
-import { getWixMemberClient, wixMemberOAuthStorageKey } from '@/lib/wix/member-client';
+import {
+  getWixMemberClient,
+  notifyWixMemberSessionChanged,
+  wixMemberOAuthStorageKey,
+} from '@/lib/wix/member-client';
 
 function safeReturnPath(value: unknown): string {
   if (typeof value !== 'string') return '/subscriptions';
@@ -35,6 +39,7 @@ export default function WixMemberCallbackPage() {
         client.auth.setTokens(tokens);
         await client.auth.sessions.syncToWixPages({ force: true });
         window.sessionStorage.removeItem(wixMemberOAuthStorageKey());
+        notifyWixMemberSessionChanged();
         router.replace(safeReturnPath(oAuthData.originalUri));
       } catch {
         if (active) setMessage('Wix member sign-in could not be completed. Please return to subscriptions and try again.');

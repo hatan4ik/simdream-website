@@ -5,6 +5,14 @@ import type { Session, User } from '@supabase/supabase-js';
 import type { UserProfile } from '@/types';
 import { DEMO_USERS } from '../db/seed-data';
 import { isSupabaseConfigured, supabase } from '../supabaseClient';
+import {
+  clearWixMemberSession,
+  getWixMemberClient,
+  isWixBrowserClientConfigured,
+  notifyWixMemberSessionChanged,
+  WIX_MEMBER_SESSION_CHANGED_EVENT,
+  wixMemberOAuthStorageKey,
+} from '@/lib/wix/member-client';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -91,6 +99,8 @@ interface AuthContextType {
   signup: (fullName: string, email: string, password: string) => Promise<AuthActionResult>;
   loginWithProvider: (provider: SocialAuthProvider) => Promise<AuthActionResult>;
   resetPassword: (email: string) => Promise<AuthActionResult>;
+  /** Starts Wix's native member sign-in or sign-up journey. */
+  startWixMemberSignIn: (returnPath?: string) => Promise<void>;
   logout: () => void;
   setDemoUser: (type: 'pilot' | 'admin') => boolean;
 }
@@ -125,6 +135,53 @@ function profileFromUser(
   };
 }
 
+/**
+ * Wix is the primary customer identity provider for the hosted frontend.
+ * Convert only verified data returned by Wix's authenticated `getCurrentMember`
+ * call; query-string or client-provided profile data never establishes a user.
+ */
+function profileFromWixMember(member: unknown): UserProfile | null {
+  if (!member || typeof member !== 'object') return null;
+  const value = member as {
+    _id?: unknown;
+    id?: unknown;
+    loginEmail?: unknown;
+    profile?: { nickname?: unknown; firstName?: unknown; lastName?: unknown };
+    contact?: { firstName?: unknown; lastName?: unknown; phones?: Array<string | { phone?: unknown }> };
+    _createdDate?: unknown;
+    createdDate?: unknown;
+  };
+  const id = typeof value._id === 'string' ? value._id : typeof value.id === 'string' ? value.id : '';
+  const email = typeof value.loginEmail === 'string' ? value.loginEmail.trim() : '';
+  if (!id || !email) return null;
+  const firstName = typeof value.contact?.firstName === 'string' ? value.contact.firstName.trim() : '';
+  const lastName = typeof value.contact?.lastName === 'string' ? value.contact.lastName.trim() : '';
+  const nickname = typeof value.profile?.nickname === 'string' ? value.profile.nickname.trim() : '';
+  const first = typeof value.profile?.firstName === 'string' ? value.profile.firstName.trim() : firstName;
+  const last = typeof value.profile?.lastName === 'string' ? value.profile.lastName.trim() : lastName;
+  const phoneValue = value.contact?.phones?.[0];
+  const phone = typeof phoneValue === 'string'
+    ? phoneValue
+    : typeof phoneValue?.phone === 'string'
+    ? phoneValue.phone
+    : undefined;
+  const createdAt = typeof value._createdDate === 'string'
+    ? value._createdDate
+    : typeof value.createdDate === 'string'
+    ? value.createdDate
+    : new Date().toISOString();
+  return {
+    id,
+    email,
+    fullName: nickname || [first, last].filter(Boolean).join(' ') || email.split('@')[0],
+    phone,
+    role: 'user',
+    totalHours: 0,
+    totalFlights: 0,
+    createdAt,
+  };
+}
+
 async function getProfileForAuthenticatedUser(user: User): Promise<UserProfile> {
   if (!supabase) return profileFromUser(user);
   const { data } = await supabase
@@ -152,6 +209,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let active = true;
+
+    const hydrateWixMember = async () => {
+      if (!isWixBrowserClientConfigured()) return false;
+      try {
+        const client = getWixMemberClient();
+        if (!client.auth.loggedIn()) return false;
+        const result = await client.members.getCurrentMember({ fieldsets: ['FULL'] });
+        const profile = profileFromWixMember(result.member);
+        if (!profile) return false;
+        if (active) setUser(profile);
+        return true;
+      } catch {
+        return false;
+      }
+    };
+
+    // The Wix member client is configured in the managed production frontend.
+    // Do not fall back to an unrelated browser identity provider there: a
+    // signed-out Wix visitor is simply signed out, while guests may still book.
+    if (isWixBrowserClientConfigured()) {
+      const refreshWixMember = () => {
+        if (active) setIsLoading(true);
+        void hydrateWixMember().then((signedIn) => {
+          if (active && !signedIn) setUser(null);
+          if (active) setIsLoading(false);
+        });
+      };
+      refreshWixMember();
+      window.addEventListener(WIX_MEMBER_SESSION_CHANGED_EVENT, refreshWixMember);
+      return () => {
+        active = false;
+        window.removeEventListener(WIX_MEMBER_SESSION_CHANGED_EVENT, refreshWixMember);
+      };
+    }
 
     const hydrateSession = async (session: Session) => {
       try {
@@ -208,6 +299,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       active = false;
     };
   }, []);
+
+  const startWixMemberSignIn = async (returnPath = '/dashboard'): Promise<void> => {
+    if (!isWixBrowserClientConfigured()) throw new Error('Wix member authentication is not configured.');
+    const target = new URL(returnPath, window.location.origin);
+    if (target.origin !== window.location.origin) throw new Error('Invalid member return path.');
+    const client = getWixMemberClient();
+    const redirectUri = `${window.location.origin}/wix/members/callback`;
+    const oAuthData = client.auth.generateOAuthData(redirectUri, target.href);
+    window.sessionStorage.setItem(wixMemberOAuthStorageKey(), JSON.stringify(oAuthData));
+    const { authUrl } = await client.auth.getAuthUrl(oAuthData);
+    window.location.assign(authUrl);
+  };
 
   const login = async (email: string, password: string): Promise<AuthActionResult> => {
     setIsLoading(true);
@@ -291,6 +394,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = () => {
     setUser(null);
+    if (isWixBrowserClientConfigured()) {
+      try {
+        const client = getWixMemberClient();
+        if (client.auth.loggedIn()) {
+          void client.auth
+            .logout(window.location.href)
+            .then(({ logoutUrl }) => {
+              clearWixMemberSession();
+              notifyWixMemberSessionChanged();
+              window.location.assign(logoutUrl);
+            })
+            .catch(() => {
+              clearWixMemberSession();
+              notifyWixMemberSessionChanged();
+            });
+          return;
+        }
+      } catch {
+        clearWixMemberSession();
+        notifyWixMemberSessionChanged();
+        return;
+      }
+    }
     if (!isProduction) localStorage.removeItem('simdream_demo_user');
     if (isSupabaseConfigured && supabase) void supabase.auth.signOut();
   };
@@ -313,6 +439,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signup,
         loginWithProvider,
         resetPassword,
+        startWixMemberSignIn,
         logout,
         setDemoUser,
       }}

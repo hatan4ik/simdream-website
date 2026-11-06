@@ -176,7 +176,7 @@ npm run dev -- --port 3001
 
 ## Local demo accounts
 
-Local demo controls appear only when Supabase is not configured and the app is not in production. They are not an authentication mechanism. Production login uses Supabase password authentication, and `/admin` additionally requires the configured server-side HTTP Basic credentials.
+Local demo controls appear only when Supabase is not configured and the app is not in production. They are not an authentication mechanism. On the Wix-managed frontend, production customer login uses Wix Members; Supabase authentication remains a legacy/self-hosted compatibility path for local booking history and Stripe receipts. `/admin` additionally requires the configured server-side HTTP Basic credentials.
 
 To run the production build on your machine without Supabase, use `npm run start:local` (after `npm run build`). It sets `ALLOW_IN_MEMORY_STORE=true`, so the calendar and catalog use the seeded demo data. A plain `npm run start` is production mode and fails closed without a database: availability and the catalog answer 503 rather than showing data that isn't real. Never set `ALLOW_IN_MEMORY_STORE` in a real deployment.
 
@@ -195,7 +195,14 @@ To run the production build on your machine without Supabase, use `npm run start
 
 ---
 
-## Member authentication setup (Google, Facebook, Apple, and email)
+## Wix Member authentication setup (managed frontend)
+
+1. Install Wix Members and configure email, recovery and any Google, Facebook or Apple providers in the Wix dashboard; the provider credentials stay in Wix.
+2. In the Headless OAuth app, register the exact HTTPS callback `https://<host>/wix/members/callback` for every deployed origin. A broad origin allow-list alone is insufficient.
+3. Grant the OAuth app the documented **Read Calendar** access needed for the signed-in member's Flight Deck session history.
+4. Verify the Wix-hosted sign-in/register route, a guest booking without a Wix account, an active Pricing Plan order on `/subscriptions`, and the signed-in member's own appointments on `/dashboard`.
+
+## Legacy Supabase member authentication setup (self-hosted/local history)
 
 The application includes the login UI, secure callback pages, password recovery, guest-to-member purchase linking, and protected booking/receipt APIs. Provider credentials cannot be created safely from source code, so complete these one-time dashboard steps before enabling the buttons in production:
 

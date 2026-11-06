@@ -20,7 +20,7 @@ flowchart TD
     subgraph RoutingLayer["Edge Routing & Next.js 16 App Router"]
         CanonicalRedirects["Canonical 301 Permanent Redirects<br/>/simulator, /training ➔ /pro"]
         PublicPages["Public Pages<br/>/ • /about • /pro • /experiences • /book • /book/success<br/>/subscriptions • /subscriptions/thank-you • /workshops • /vouchers<br/>/contact • /rules • /privacy-policy"]
-        MemberPages["Member Area<br/>/dashboard • /login • /auth/callback • /auth/reset-password"]
+        MemberPages["Member Area<br/>/dashboard • /login • /wix/members/callback<br/>legacy /auth/callback • /auth/reset-password"]
         AdminPages["Admin Dispatch Command Center<br/>/admin (Bookings, Vouchers, Workshops, Schedule Efficiency)"]
     end
 
@@ -44,7 +44,7 @@ flowchart TD
         SupabaseDB[("Supabase PostgreSQL (Production)<br/>Row-Level Security & Exclusion Constraints")]
         InMemoryFallback[("In-Memory Store Fallback<br/>Local Dev & Non-500 Demo Resilience (ALLOW_IN_MEMORY_STORE)")]
         StripeService["Stripe Hosted Checkout<br/>Card payment flow & Webhooks"]
-        WixHeadless["Wix Headless Platform (@wix/sdk)<br/>Bookings Services & Slots • Pricing Plans Hosted Checkout • Shadow Observer"]
+        WixHeadless["Wix Headless Platform (@wix/sdk)<br/>Members • Calendar sessions • Bookings • Pricing Plans • Hosted Checkout"]
         GooglePlaces["Google Places API<br/>15m cached data; empty when unavailable"]
     end
 
@@ -72,7 +72,8 @@ flowchart TD
     StripeService --> BookingAPIs
     SubscriptionAPIs --> WixHeadless
     BookingAPIs -.->|Shadow Reads| WixHeadless
-    MemberPages --> MemberAPIs --> SupabaseDB
+    MemberPages --> MemberAPIs --> WixHeadless
+    MemberAPIs -.->|legacy booking history & Stripe receipts| SupabaseDB
     AdminPages --> AdminAPIs --> SupabaseDB
     AdminPages --> OperationsAPIs --> SupabaseDB
 ```
@@ -80,6 +81,12 @@ flowchart TD
 ### Checkout dependency boundary
 
 `POST /api/checkout` remains a Next.js Route Handler. It calls the provider-neutral business service in `lib/booking/checkout-service.ts`, which receives only the checkout repository, hosted-card gateway, authenticated-member lookup, confirmation notifier, origin resolver, and clock ports from `lib/booking/checkout-ports.ts`. The server-only `lib/booking/checkout-composition.ts` currently binds those ports to Supabase, Stripe, SendGrid, and Supabase Auth; `checkout-runtime.ts` is the route-facing composition. This preserves the server-authoritative schedule, pricing, voucher, guest-checkout, and webhook rules while allowing a Wix staging adapter to be introduced without changing the customer UI or the checkout policy.
+
+### Wix Member identity and Flight Deck boundary
+
+Wix Members is the primary login for the managed frontend. `/login`, subscription purchase and the subscription panel share a PKCE launch routine in `lib/auth/auth-context.tsx`; the Wix-hosted page returns to `/wix/members/callback`, which stores a tab-scoped member session and refreshes the React profile. Guest checkout does not depend on this state.
+
+For `/dashboard`, the browser sends its short-lived member access token to `GET /api/my-bookings`. `lib/auth/request-auth.ts` validates that token with Wix's current-member endpoint before `lib/wix/member-bookings.ts` queries Calendar using `memberId/me`. The result is a read-only Wix appointment projection: title, status, date, time and duration only. The UI deliberately hides price, invoice, Stripe receipt and local boarding-pass actions for it; Calendar is not payment proof. Active Pricing Plan orders remain in the shared `WixMemberSubscriptionPanel`; local Stripe receipts continue through the legacy verified Supabase ownership path.
 
 ### Wix P3 shadow-read boundary
 

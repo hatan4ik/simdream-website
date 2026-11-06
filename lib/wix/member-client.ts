@@ -9,6 +9,7 @@ import wixManagedProject from '../../wix.config.json';
 
 const MEMBER_TOKENS_KEY = 'simdream_wix_member_tokens';
 const MEMBER_OAUTH_DATA_KEY = 'simdream_wix_member_oauth_data';
+export const WIX_MEMBER_SESSION_CHANGED_EVENT = 'simdream:wix-member-session-changed';
 
 const EMPTY_TOKENS: Tokens = {
   accessToken: { value: '', expiresAt: 0 },
@@ -88,4 +89,32 @@ export function clearWixMemberSession(): void {
 
 export function wixMemberOAuthStorageKey(): string {
   return MEMBER_OAUTH_DATA_KEY;
+}
+
+/**
+ * Gives the app's own same-origin API routes the short-lived Wix member access
+ * token. Routes must verify it with Wix before using any member identity; an
+ * email or member id from the browser is never accepted as authentication.
+ */
+export async function getWixMemberAccessToken(): Promise<string | null> {
+  const client = getWixMemberClient();
+  const tokens = client.auth.getTokens();
+  const token = tokens.accessToken;
+  // The Wix SDK represents `expiresAt` as Unix seconds, not JavaScript milliseconds.
+  if (token.value && token.expiresAt > Math.floor(Date.now() / 1_000)) return token.value;
+  if (!tokens.refreshToken.value) return null;
+
+  try {
+    const refreshed = await client.auth.renewToken(tokens.refreshToken);
+    client.auth.setTokens(refreshed);
+    return refreshed.accessToken.value || null;
+  } catch {
+    clearWixMemberSession();
+    return null;
+  }
+}
+
+/** Lets the shared React auth state refresh after the OAuth callback or logout. */
+export function notifyWixMemberSessionChanged(): void {
+  window.dispatchEvent(new Event(WIX_MEMBER_SESSION_CHANGED_EVENT));
 }

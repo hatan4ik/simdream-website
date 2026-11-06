@@ -19,11 +19,9 @@ describe('requireAuthenticatedUser', () => {
     await expect(requireAuthenticatedUser(apiRequest('/api/my-bookings', { headers }))).resolves.toBeNull();
   });
 
-  it('fails closed instead of trusting a Bearer token when the identity provider is not configured', async () => {
+  it('fails closed instead of trusting a malformed Bearer token when no identity provider can verify it', async () => {
     const { requireAuthenticatedUser } = await loadRequestAuth('test');
-    await expect(requireAuthenticatedUser(apiRequest('/api/my-bookings', { headers: bearer('forged-token') }))).rejects.toThrow(
-      'Persistent storage is not configured.'
-    );
+    await expect(requireAuthenticatedUser(apiRequest('/api/my-bookings', { headers: bearer('forged-token') }))).resolves.toBeNull();
   });
 });
 

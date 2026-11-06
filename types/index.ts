@@ -170,6 +170,8 @@ export type VoucherPaymentStatus = 'pending' | 'paid' | 'refunded';
 
 export interface Booking {
   id: string;
+  /** A read-only session returned by the Wix Calendar member endpoint. */
+  source?: 'wix';
   bookingReference: string;
   /** Set only after a verified member purchases or claims a guest booking. */
   userId?: string;

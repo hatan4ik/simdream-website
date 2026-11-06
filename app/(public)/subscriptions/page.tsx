@@ -34,10 +34,12 @@ import {
 } from '@/lib/data/subscription-passes';
 import { SUBSCRIPTION_PAGE_COPY } from '@/lib/data/subscription-page-copy';
 import { WixMemberSubscriptionPanel } from '@/components/wix/WixMemberSubscriptionPanel';
-import { getWixMemberClient, wixMemberOAuthStorageKey } from '@/lib/wix/member-client';
+import { useAuth } from '@/lib/auth/auth-context';
+import { getWixMemberClient } from '@/lib/wix/member-client';
 
 export default function SubscriptionsPage() {
   const { language, isRTL } = useLanguage();
+  const { startWixMemberSignIn } = useAuth();
   const [selectedFilter, setSelectedFilter] = useState<'all' | '5' | '10'>('all');
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const [pendingPassId, setPendingPassId] = useState<string | null>(null);
@@ -47,11 +49,7 @@ export default function SubscriptionsPage() {
     try {
       const wixClient = getWixMemberClient();
       if (!wixClient.auth.loggedIn()) {
-        const redirectUri = `${window.location.origin}/wix/members/callback`;
-        const oAuthData = wixClient.auth.generateOAuthData(redirectUri, window.location.href);
-        window.sessionStorage.setItem(wixMemberOAuthStorageKey(), JSON.stringify(oAuthData));
-        const { authUrl } = await wixClient.auth.getAuthUrl(oAuthData);
-        window.location.assign(authUrl);
+        await startWixMemberSignIn(`${window.location.pathname}${window.location.search}${window.location.hash}`);
         return;
       }
 

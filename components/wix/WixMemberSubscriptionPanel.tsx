@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { CheckCircle2, LogIn, LogOut, ShieldCheck, UserRound } from 'lucide-react';
 import type { Language } from '@/lib/i18n/translations';
 import { Button } from '@/components/ui/Button';
-import { clearWixMemberSession, getWixMemberClient, wixMemberOAuthStorageKey } from '@/lib/wix/member-client';
+import { useAuth } from '@/lib/auth/auth-context';
+import { getWixMemberClient, isWixBrowserClientConfigured } from '@/lib/wix/member-client';
 import { wixSubscriptionBookingPackageForPlan, type WixSubscriptionBookingPackageId } from '@/lib/wix/subscription-redemption';
 
 interface MemberCopy {
@@ -106,29 +107,24 @@ function isActiveOrder(status: string): boolean {
 
 export function WixMemberSubscriptionPanel({ language }: WixMemberSubscriptionPanelProps) {
   const copy = COPY[language];
-  const [loading, setLoading] = useState(true);
-  const [signedIn, setSignedIn] = useState(false);
-  const [memberName, setMemberName] = useState<string | null>(null);
+  const { user, isLoading: authLoading, logout, startWixMemberSignIn } = useAuth();
+  const [loadingOrders, setLoadingOrders] = useState(false);
   const [orders, setOrders] = useState<SubscriptionOrder[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const wixMemberEnabled = isWixBrowserClientConfigured();
+  const signedIn = wixMemberEnabled && Boolean(user);
+  const loading = authLoading || loadingOrders;
 
-  const loadMember = useCallback(async () => {
-    setLoading(true);
+  const loadOrders = useCallback(async () => {
+    if (!signedIn) {
+      setOrders([]);
+      return;
+    }
+    setLoadingOrders(true);
     setError(null);
     try {
       const client = getWixMemberClient();
-      if (!client.auth.loggedIn()) {
-        setSignedIn(false);
-        setOrders([]);
-        return;
-      }
-
-      const [memberResult, ordersResult] = await Promise.all([
-        client.members.getCurrentMember({ fieldsets: ['FULL'] }),
-        client.orders.memberListOrders({ limit: 50 }),
-      ]);
-      setSignedIn(true);
-      setMemberName(memberResult.member?.profile?.nickname ?? null);
+      const ordersResult = await client.orders.memberListOrders({ limit: 50 });
       setOrders(
         (ordersResult.orders ?? [])
           .filter((order) => isActiveOrder(order.status ?? ''))
@@ -139,42 +135,26 @@ export function WixMemberSubscriptionPanel({ language }: WixMemberSubscriptionPa
           }))
       );
     } catch {
-      setSignedIn(false);
       setOrders([]);
     } finally {
-      setLoading(false);
+      setLoadingOrders(false);
     }
-  }, []);
+  }, [signedIn]);
 
   useEffect(() => {
-    void loadMember();
-  }, [loadMember]);
+    void loadOrders();
+  }, [loadOrders]);
 
   const signIn = async () => {
     setError(null);
     try {
-      const client = getWixMemberClient();
-      const redirectUri = `${window.location.origin}/wix/members/callback`;
-      const oAuthData = client.auth.generateOAuthData(redirectUri, window.location.href);
-      window.sessionStorage.setItem(wixMemberOAuthStorageKey(), JSON.stringify(oAuthData));
-      const { authUrl } = await client.auth.getAuthUrl(oAuthData);
-      window.location.assign(authUrl);
+      await startWixMemberSignIn(`${window.location.pathname}${window.location.search}${window.location.hash}`);
     } catch {
       setError(copy.signInFailed);
     }
   };
 
-  const signOut = async () => {
-    try {
-      const client = getWixMemberClient();
-      const { logoutUrl } = await client.auth.logout(window.location.href);
-      clearWixMemberSession();
-      window.location.assign(logoutUrl);
-    } catch {
-      clearWixMemberSession();
-      await loadMember();
-    }
-  };
+  const memberName = user?.fullName || null;
 
   return (
     <section className="rounded-3xl border border-sky-500/25 bg-sky-500/5 p-5 sm:p-6" aria-live="polite">
@@ -191,7 +171,7 @@ export function WixMemberSubscriptionPanel({ language }: WixMemberSubscriptionPa
         </div>
 
         {loading ? null : signedIn ? (
-          <Button variant="outline" onClick={() => void signOut()}>
+          <Button variant="outline" onClick={logout}>
             <LogOut className="h-4 w-4" />
             <span>{copy.signOut}</span>
           </Button>
