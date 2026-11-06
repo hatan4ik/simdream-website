@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { MapPin, Phone, Mail, Clock, UserCheck, ChevronDown, FileText, ShieldCheck, Instagram, Facebook, Youtube } from 'lucide-react';
+import { MapPin, Phone, Mail, Clock, UserCheck, ChevronDown, FileText, ShieldCheck } from 'lucide-react';
 import { BrandLogo } from '@/components/brand/BrandLogo';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useLanguage } from '@/lib/i18n/language-context';
@@ -11,6 +11,7 @@ import { UiThemeSwitcher } from './UiThemeSwitcher';
 import { FACILITY_INFO } from '@/lib/config/facility-info';
 import { useLiveFacilityStatus } from '@/lib/config/use-live-facility-status';
 import { useClientValue } from '@/lib/ui/use-client-value';
+import { SOCIAL_CHANNELS } from './social-channels';
 
 export function Footer() {
   const { t, language } = useLanguage();
@@ -21,7 +22,7 @@ export function Footer() {
 
   return (
     // pb-safe-area-0: the last line clears the iPhone home indicator when installed.
-    <footer className="bg-slate-950 border-t border-slate-900 text-slate-400 text-sm pb-safe-area-0">
+    <footer className="hidden md:block bg-slate-950 border-t border-slate-900 text-slate-400 text-sm pb-safe-area-0">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           {/* Brand & Mission */}
@@ -63,18 +64,14 @@ export function Footer() {
 
             {/* Official channels, as on the live site's header. Brand names need no translation. */}
             <ul className="flex items-center gap-2" aria-label="Sim Dream social channels">
-              {[
-                { name: 'Instagram', href: FACILITY_INFO.social.instagramUrl, Icon: Instagram },
-                { name: 'Facebook', href: FACILITY_INFO.social.facebookUrl, Icon: Facebook },
-                { name: 'YouTube', href: FACILITY_INFO.social.youtubeUrl, Icon: Youtube },
-              ].map(({ name, href, Icon }) => (
+              {SOCIAL_CHANNELS.map(({ name, href, icon: Icon, iconClassName, hoverClassName }) => (
                 <li key={name}>
                   <a
                     href={href}
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={name}
-                    className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-800 bg-slate-900/70 text-slate-300 hover:border-sky-500 hover:text-sky-400 transition-colors"
+                    className={`flex h-9 w-9 items-center justify-center rounded-lg border border-slate-800 bg-slate-900/70 transition-colors ${iconClassName} ${hoverClassName}`}
                   >
                     <Icon aria-hidden="true" className="h-4 w-4" />
                   </a>

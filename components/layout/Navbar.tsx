@@ -12,18 +12,15 @@ import {
   Calendar,
   ChevronDown,
   ExternalLink,
-  Facebook,
-  Instagram,
   LogOut,
   type LucideIcon,
-  Youtube,
 } from 'lucide-react';
 import { BrandLogo } from '@/components/brand/BrandLogo';
 import { buttonClassName } from '@/components/ui/Button';
 import { useAuth } from '@/lib/auth/auth-context';
-import { FACILITY_INFO } from '@/lib/config/facility-info';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { UiThemeSwitcher } from './UiThemeSwitcher';
+import { SOCIAL_CHANNELS } from './social-channels';
 
 const demoModeEnabled = process.env.NODE_ENV !== 'production' && !process.env.NEXT_PUBLIC_SUPABASE_URL;
 
@@ -33,6 +30,7 @@ type NavigationItem = {
   href: string;
   external?: boolean;
   icon?: LucideIcon;
+  iconClassName?: string;
 };
 
 const NAVIGATION_GROUP_IDS: NavigationGroupId[] = ['experiences', 'professional', 'visit', 'social'];
@@ -72,11 +70,13 @@ export function Navbar() {
     { name: t.nav.contact, href: '/contact' },
   ];
 
-  const socialLinks: NavigationItem[] = [
-    { name: 'Instagram', href: FACILITY_INFO.social.instagramUrl, external: true, icon: Instagram },
-    { name: 'Facebook', href: FACILITY_INFO.social.facebookUrl, external: true, icon: Facebook },
-    { name: 'YouTube', href: FACILITY_INFO.social.youtubeUrl, external: true, icon: Youtube },
-  ];
+  const socialLinks: NavigationItem[] = SOCIAL_CHANNELS.map(({ name, href, icon, iconClassName }) => ({
+    name,
+    href,
+    external: true,
+    icon,
+    iconClassName,
+  }));
 
   const navigationGroups: Array<{
     id: NavigationGroupId;
@@ -480,7 +480,7 @@ export function Navbar() {
                   const itemContents = (
                     <>
                       <span className="inline-flex items-center gap-3">
-                        {Icon && <Icon className="h-5 w-5 text-sky-400" aria-hidden="true" />}
+                        {Icon && <Icon className={`h-5 w-5 ${item.iconClassName ?? 'text-sky-400'}`} aria-hidden="true" />}
                         {item.name}
                       </span>
                       {item.external ? (
@@ -555,26 +555,29 @@ export function Navbar() {
             )}
           </div>
 
-          <section aria-labelledby="mobile-social-heading" className="border-t border-slate-800 pt-3">
-            <p id="mobile-social-heading" className="px-1 text-xs font-semibold tracking-wide text-sky-400">
-              {t.nav.socialMedia}
-            </p>
-            <div className="mt-2 grid grid-cols-3 gap-2">
-              {socialLinks.map(({ name, href, icon: Icon }) => (
-                <a
-                  key={href}
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  data-ui-control="button"
-                  className="flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl bg-slate-900 px-2 py-2 text-xs font-semibold text-slate-200 transition-colors hover:bg-slate-800 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
+          <details className="group border-t border-slate-800 pt-3">
+            <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between rounded-xl px-3 text-base font-medium text-slate-200 hover:bg-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400">
+              <span>{t.nav.about}</span>
+              <ChevronDown className="h-4 w-4 text-slate-400 transition-transform group-open:rotate-180" aria-hidden="true" />
+            </summary>
+            <div className="mt-1 grid gap-1 border-l border-slate-800 pl-2 rtl:border-l-0 rtl:border-r rtl:pl-0 rtl:pr-2">
+              {[
+                { name: t.nav.about, href: '/about' },
+                { name: t.nav.contact, href: '/contact' },
+                { name: t.footer.termsRules, href: '/rules' },
+                { name: t.footer.privacyPolicy, href: '/privacy-policy' },
+              ].map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex min-h-11 items-center rounded-lg px-3 py-2 text-sm text-slate-300 hover:bg-slate-900 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
                 >
-                  {Icon && <Icon className="h-4 w-4 text-sky-400" aria-hidden="true" />}
-                  <span>{name}</span>
-                </a>
+                  {link.name}
+                </Link>
               ))}
             </div>
-          </section>
+          </details>
 
           <div className="pt-2 border-t border-slate-800 space-y-2">
             <UiThemeSwitcher variant="full" />

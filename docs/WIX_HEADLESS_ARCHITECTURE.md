@@ -305,6 +305,19 @@ sequenceDiagram
 
 ## 7. Authentication and secret model
 
+### Wix AI Site-Chat on a custom frontend
+
+Wix's embedded Chat and AI Site-Chat widgets belong to an Editor site and do not render inside a Headless frontend. SimDream therefore uses a custom visitor-facing panel, `components/layout/WixSmartChat.tsx`, with the supported `@wix/ai-site-chat` Messages APIs:
+
+1. The existing public Wix OAuth client identifies an anonymous visitor or signed-in member.
+2. `messages.listMessages()` restores only that caller's chat history when the panel opens.
+3. `messages.createMessageStream()` submits a visitor question and renders the returned Wix AI answer.
+4. The Wix AI Site-Chat app, its assistant content, availability, escalation/contact form, and user/AI schedule are configured in the Wix Editor control plane—not in browser code and not through a repository secret.
+
+`npm run wix:chat:smoke` is a read-only readiness probe: it lists at most one message for a new anonymous visitor and prints neither a message body, visitor identity, nor a token. It must pass before exposing Smart Chat on a new environment. Never run a synthetic question as a deployment test because it creates a persistent conversation.
+
+The utility bar is wrapped with the main navigation as one sticky site chrome. It carries language selection, the official social links (native third-party icon colours), and the Smart Chat launcher on every viewport. The desktop footer remains a secondary directory; on phones it is hidden and its customer-story/legal links move into the localized “About Us” mobile-menu disclosure.
+
 ### Identities
 
 | Identity | Where it runs | Allowed purpose |
@@ -469,6 +482,7 @@ The first increment is complete only when all of the following are true:
 - [Wix Pricing Plans API and subscription models](https://dev.wix.com/docs/api-reference/business-solutions/pricing-plans/introduction?apiView=SDK)
 - [Wix Plans V3 API](https://dev.wix.com/docs/api-reference/business-solutions/pricing-plans/plans-v3/introduction?apiView=SDK)
 - [Wix hosted Pricing Plans checkout](https://dev.wix.com/docs/go-headless/business-solutions/wix-hosted-pages/about-wix-hosted-pages)
+- [Wix AI Site-Chat APIs](https://dev.wix.com/docs/api-reference/business-management/ai-site-chat/introduction?apiView=SDK)
 - [Wix recurring-payment support](https://support.wix.com/en/article/accepting-recurring-payments)
 - [Wix PayPlus payment-provider setup (Hebrew)](https://support.wix.com/he/article/%D7%97%D7%99%D7%91%D7%95%D7%A8-payplus-%D7%9B%D7%A1%D7%A4%D7%A7-%D7%AA%D7%A9%D7%9C%D7%95%D7%9D)
 - [Redirect to Wix-hosted checkout/login pages](https://dev.wix.com/docs/go-headless/business-solutions/wix-hosted-pages/redirect-using-the-js-sdk)

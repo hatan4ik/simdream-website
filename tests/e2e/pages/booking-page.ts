@@ -23,7 +23,7 @@ export class BookingPage {
 
   async goto(query = ''): Promise<void> {
     await this.page.goto(`/book${query}`);
-    await waitUntilInteractive(this.page.getByRole('button', { name: 'Express Shop View (1-Page)' }));
+    await waitUntilInteractive(this.page.getByRole('button', { name: 'Guided Wizard (3-Step)' }));
     // `/book` reports its own availability state (`data-slots-state`: idle → loading → ready or
     // failed). Waiting for network quiet, or for one particular /api/slots response, was
     // nondeterministic under parallel journeys: the page aborts and retries its own fetches
@@ -31,6 +31,13 @@ export class BookingPage {
     await expect(this.page.locator('[data-slots-state]')).toHaveAttribute('data-slots-state', /^(ready|failed)$/, {
       timeout: 30_000,
     });
+
+    // The product defaults to the guided wizard. Existing desktop storefront journeys
+    // use this page object as an explicit test fixture, so select the optional desktop
+    // view after the default has rendered. Phones never expose Express Shop.
+    if ((this.page.viewportSize()?.width ?? 0) >= 640) {
+      await this.page.getByRole('button', { name: 'Express Shop View (1-Page)' }).click();
+    }
   }
 
   async openWizard(): Promise<WizardView> {

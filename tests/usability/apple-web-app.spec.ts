@@ -102,6 +102,7 @@ test('serves an opaque 180px touch icon and a manifest whose PNG icons all resol
 test('clips horizontal overflow without detaching the sticky navbar, and lets fieldsets shrink', async ({ page, baseURL }) => {
   await isolateFromThirdParties(page, baseURL);
   await page.goto('/book');
+  await page.getByRole('button', { name: 'Express Shop View (1-Page)' }).click();
   await expect(page.locator('fieldset').first()).toBeAttached();
 
   const css = await page.evaluate(() => ({

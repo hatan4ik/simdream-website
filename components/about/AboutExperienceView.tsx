@@ -623,7 +623,7 @@ export function AboutExperienceView() {
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-950/70 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:border-orange-500 hover:bg-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
           >
-            <Instagram aria-hidden="true" className="h-5 w-5 text-orange-500" />
+            <Instagram aria-hidden="true" className="h-5 w-5 text-[#E4405F]" />
             <span>Instagram</span>
             <ExternalLink aria-hidden="true" className="h-3.5 w-3.5 text-slate-400" />
           </a>
@@ -633,7 +633,7 @@ export function AboutExperienceView() {
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-950/70 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:border-sky-500 hover:bg-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
           >
-            <Facebook aria-hidden="true" className="h-5 w-5 text-sky-400" />
+            <Facebook aria-hidden="true" className="h-5 w-5 text-[#1877F2]" />
             <span>Facebook</span>
             <ExternalLink aria-hidden="true" className="h-3.5 w-3.5 text-slate-400" />
           </a>
@@ -643,7 +643,7 @@ export function AboutExperienceView() {
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-950/70 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:border-orange-500 hover:bg-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
           >
-            <Youtube aria-hidden="true" className="h-5 w-5 text-orange-500" />
+            <Youtube aria-hidden="true" className="h-5 w-5 text-[#FF0000]" />
             <span>YouTube</span>
             <ExternalLink aria-hidden="true" className="h-3.5 w-3.5 text-slate-400" />
           </a>

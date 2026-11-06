@@ -1,17 +1,12 @@
 'use client';
 
 import React from 'react';
-import { Radio, Plane, Wind, ChevronRight, Facebook, Instagram, Youtube, type LucideIcon } from 'lucide-react';
+import { Radio, Plane, Wind, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
-import { FACILITY_INFO } from '@/lib/config/facility-info';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { LanguageSelector } from './LanguageSelector';
-
-const TOP_BAR_SOCIAL_LINKS: ReadonlyArray<{ name: string; href: string; icon: LucideIcon }> = [
-  { name: 'Instagram', href: FACILITY_INFO.social.instagramUrl, icon: Instagram },
-  { name: 'Facebook', href: FACILITY_INFO.social.facebookUrl, icon: Facebook },
-  { name: 'YouTube', href: FACILITY_INFO.social.youtubeUrl, icon: Youtube },
-];
+import { SOCIAL_CHANNELS } from './social-channels';
+import { WixSmartChat } from './WixSmartChat';
 
 export function LiveMetarBar() {
   const { t, isRTL } = useLanguage();
@@ -60,7 +55,7 @@ export function LiveMetarBar() {
             <ChevronRight className={`w-3 h-3 ${isRTL ? 'rotate-180' : ''}`} />
           </Link>
           <div data-top-bar-social-links className="flex shrink-0 items-center">
-            {TOP_BAR_SOCIAL_LINKS.map(({ name, href, icon: Icon }) => (
+            {SOCIAL_CHANNELS.map(({ name, href, icon: Icon, iconClassName, hoverClassName }) => (
               <a
                 key={href}
                 href={href}
@@ -68,12 +63,13 @@ export function LiveMetarBar() {
                 rel="noopener noreferrer"
                 data-top-bar-social-link={name.toLowerCase()}
                 aria-label={name}
-                className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full text-slate-300 transition-colors hover:bg-slate-800 hover:text-sky-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 touch-manipulation"
+                className={`inline-flex min-h-11 min-w-11 items-center justify-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 touch-manipulation ${iconClassName} ${hoverClassName}`}
               >
                 <Icon className="h-4 w-4" aria-hidden="true" />
               </a>
             ))}
           </div>
+          <WixSmartChat />
           <LanguageSelector />
         </div>
       </div>

@@ -81,9 +81,10 @@ export async function findBookableDate(
   throw new Error(`No date in the next 12 days has ${minimumOpenSlots} open ${durationMinutes}-minute slots.`);
 }
 
-/** Opens the default one-page storefront with the given date selected and its slots loaded. */
+/** Opens the optional desktop Express Shop with the given date selected and its slots loaded. */
 export async function openStorefrontOn(page: Page, date: string): Promise<void> {
   await gotoSettled(page, '/book');
+  await openStorefrontView(page);
   const dateButton = await ensureStorefrontDateVisible(page, date);
   await selectStorefrontDate(page, date, () => dateButton.click());
 }
@@ -101,10 +102,19 @@ export async function selectStorefrontDate(page: Page, date: string, choose: () 
 /** Shows the zero-slots recovery state: the 45-minute daytime promo is never sold on Saturdays. */
 export async function showZeroSlotState(page: Page): Promise<void> {
   await gotoSettled(page, '/book');
+  await openStorefrontView(page);
   await page.getByRole('button', { name: /^45 min\b/i }).click();
   const saturdayButton = await ensureStorefrontDateVisible(page, nextIsraelWeekday(6));
   await saturdayButton.click();
   await expect(zeroSlotHeading(page)).toBeVisible();
+}
+
+/** Selects the optional desktop-only Express Shop after the guided default has hydrated. */
+export async function openStorefrontView(page: Page): Promise<void> {
+  const storefront = page.getByRole('button', { name: 'Express Shop View (1-Page)' });
+  await expect(storefront).toBeVisible();
+  await storefront.click();
+  await expect(page.locator('#storefront-buy-box')).toBeVisible();
 }
 
 export function wizardToggle(page: Page): Locator {

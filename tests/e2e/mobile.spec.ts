@@ -47,22 +47,51 @@ test.describe('mobile affordances', () => {
     await expect(wizard.departureHeading(farDay)).toBeVisible();
   });
 
-  test('selects a storefront calendar date by touch and jumps to checkout', async ({ page, booking, schedule }) => {
-    const { date, slot } = await schedule.findOpenSlot({ duration: 60 });
+  test('keeps Express Shop out of the phone booking flow', async ({ page, booking }) => {
     await booking.goto();
+    await expect(page.getByRole('button', { name: 'Guided Wizard (3-Step)' })).toBeVisible();
+    await expect(booking.wizard.progressStep('DATE & SLOT')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Express Shop View (1-Page)' })).toBeHidden();
+    await expect(page.locator('#storefront-buy-box')).toHaveCount(0);
+  });
 
-    await booking.selectDate(date, 'tap');
-    const dayButton = booking.dateButton(date);
-    await expect(dayButton).toHaveAttribute('aria-pressed', 'true');
-    const box = await dayButton.boundingBox();
-    expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
+  test('keeps the social, language and Smart Chat controls reachable while the page scrolls', async ({ page, chrome }) => {
+    await page.goto('/');
+    const utility = chrome.utilityBar;
+    const before = await utility.boundingBox();
+    expect(before?.y ?? Number.POSITIVE_INFINITY).toBeLessThanOrEqual(1);
 
-    await page.getByRole('button', { name: new RegExp(`^${slot.startTime}\\s`) }).tap();
-    const jumpToCheckout = page.getByRole('button', { name: 'Continue to Checkout ↓' }).first();
-    await expect(jumpToCheckout).toBeVisible();
-    await jumpToCheckout.tap();
+    await expect(utility.getByRole('link', { name: 'Instagram', exact: true })).toBeVisible();
+    await expect(utility.getByRole('link', { name: 'Facebook', exact: true })).toBeVisible();
+    await expect(utility.getByRole('link', { name: 'YouTube', exact: true })).toBeVisible();
+    await expect(utility.getByRole('button', { name: 'Open Wix Smart Chat' })).toBeVisible();
+    await expect(chrome.languageButton()).toBeVisible();
 
-    await expect(page.locator('#storefront-buy-box')).toBeInViewport();
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    const after = await utility.boundingBox();
+    expect(after?.y ?? Number.POSITIVE_INFINITY).toBeLessThanOrEqual(1);
+  });
+
+  test('moves mobile footer navigation into the About Us menu and keeps Russian booking controls within the viewport', async ({
+    page,
+    chrome,
+    booking,
+  }) => {
+    await page.goto('/');
+    await chrome.switchLanguage('ru');
+    await chrome.openMenu('tap');
+
+    const about = chrome.navbar.locator('details').filter({ hasText: 'О центре' });
+    await expect(about).toBeVisible();
+    await about.locator('summary').tap();
+    await expect(about.getByRole('link', { name: 'Правила центра и условия' })).toBeVisible();
+    await expect(about.getByRole('link', { name: 'Политика конфиденциальности и Cookie' })).toBeVisible();
+    await expect(chrome.footer).toBeHidden();
+
+    await booking.goto();
+    await expect(page.getByRole('button', { name: 'Пошаговый мастер (3 шага)' })).toBeVisible();
+    const width = await page.evaluate(() => Math.max(document.documentElement.scrollWidth, document.body.scrollWidth));
+    expect(width).toBeLessThanOrEqual(page.viewportSize()?.width ?? 0);
   });
 
   test('pins the wizard confirmation bar to the bottom of the screen', async ({ page, booking }) => {

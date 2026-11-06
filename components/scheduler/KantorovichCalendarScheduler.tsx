@@ -564,6 +564,7 @@ export function KantorovichCalendarScheduler({
                 key={pkg.id}
                 type="button"
                 data-booking-duration={pkg.durationMinutes}
+                aria-pressed={isSelected}
                 onClick={() => onSelectPackage(pkg)}
                 className={`min-h-[64px] px-3 py-2.5 rounded-xl border text-center transition-all flex flex-col items-center justify-center gap-1 ${
                   isSelected

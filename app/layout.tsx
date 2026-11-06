@@ -51,8 +51,10 @@ export default async function RootLayout({
           <LanguageProvider>
             <AuthProvider>
               <SkipLink />
-              <LiveMetarBar />
-              <Navbar />
+              <header data-site-chrome className="sticky top-0 z-[60]">
+                <LiveMetarBar />
+                <Navbar />
+              </header>
               {/* The single main landmark; pages render plain containers inside it. */}
               <main id="main-content" tabIndex={-1} className="flex-1 flex flex-col focus:outline-none">
                 {children}

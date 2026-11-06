@@ -105,11 +105,9 @@ function BookContent() {
     [localizedAddons, requestedAddonIds]
   );
 
-  // View Mode: Default to Amazon-Style 1-Page Storefront ('storefront') to eliminate multi-step friction,
-  // with optional toggle to Guided 3-Step Wizard ('wizard').
-  const [bookingViewMode, setBookingViewMode] = useState<'storefront' | 'wizard'>(() =>
-    requestedRoute ? 'wizard' : 'storefront'
-  );
+  // Calendar-first guidance is the default booking experience. The optional desktop storefront
+  // remains available for guests who prefer a one-page checkout, but is intentionally absent on phones.
+  const [bookingViewMode, setBookingViewMode] = useState<'storefront' | 'wizard'>('wizard');
 
   // 3-Step Streamlined Calendar-First Wizard:
   // Step 1 = Smart Calendar, Duration & Time Slot
@@ -690,11 +688,11 @@ function BookContent() {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 w-full sm:w-auto sm:inline-flex rounded-xl bg-slate-900 p-1 border border-slate-800 shrink-0 gap-1 sm:gap-0">
+        <div className="grid grid-cols-1 sm:grid-cols-2 w-full sm:w-auto sm:inline-flex rounded-xl bg-slate-900 p-1 border border-slate-800 shrink-0 gap-1 sm:gap-0">
           <button
             type="button"
             onClick={() => setBookingViewMode('storefront')}
-            className={`min-h-[40px] px-2.5 sm:px-3.5 py-2 rounded-lg text-[11px] sm:text-xs font-mono font-bold transition-all flex items-center justify-center gap-1.5 touch-manipulation cursor-pointer ${
+            className={`hidden sm:flex min-h-[40px] px-2.5 sm:px-3.5 py-2 rounded-lg text-[11px] sm:text-xs font-mono font-bold transition-all items-center justify-center gap-1.5 touch-manipulation cursor-pointer ${
               bookingViewMode === 'storefront'
                 ? 'bg-amber-400 text-slate-950 shadow-sm'
                 : 'text-slate-400 hover:text-white'
@@ -707,7 +705,7 @@ function BookContent() {
           <button
             type="button"
             onClick={() => setBookingViewMode('wizard')}
-            className={`min-h-[40px] px-2.5 sm:px-3.5 py-2 rounded-lg text-[11px] sm:text-xs font-mono font-bold transition-all flex items-center justify-center gap-1.5 touch-manipulation cursor-pointer ${
+            className={`min-h-[44px] px-3 sm:px-3.5 py-2 rounded-lg text-xs font-mono font-bold transition-all flex items-center justify-center gap-1.5 touch-manipulation cursor-pointer whitespace-nowrap ${
               bookingViewMode === 'wizard'
                 ? 'bg-sky-500 text-slate-950 shadow-sm'
                 : 'text-slate-400 hover:text-white'

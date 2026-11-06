@@ -33,7 +33,7 @@ test.describe('primary navigation', () => {
     await follow(chrome.bookCta(), '/book');
 
     await expect(page).toHaveURL('/book');
-    await expect(page.getByRole('heading', { level: 1, name: "Captain's Command Flight" })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Choose Flight Date & Operational Slot' })).toBeVisible();
   });
 
   test('returns to the home page from the brand logo', async ({ page, chrome }) => {
@@ -57,21 +57,21 @@ test.describe('primary navigation', () => {
   // Each footer package link once led to the generic catalog page; it must open the booking
   // engine with that package preselected, as the home page's package cards do.
   const FOOTER_PACKAGES = [
-    { link: 'Discovery Flight — 30-Minute Boeing 737 Experience', slug: 'discovery-30' },
-    { link: "Captain's Command Flight (60m)", slug: 'captains-command-60' },
-    { link: "Captains' Challenge & Multi-Trio Odyssey (90m)", slug: 'ultimate-aviator-90' },
-    { link: 'Airline Interview Prep 120 PRO', slug: 'airline-assessment-prep' },
-    { link: 'Fear of Flying Overcoming Course', slug: 'fear-of-flying-course' },
+    { link: 'Discovery Flight — 30-Minute Boeing 737 Experience', slug: 'discovery-30', duration: 30 },
+    { link: "Captain's Command Flight (60m)", slug: 'captains-command-60', duration: 60 },
+    { link: "Captains' Challenge & Multi-Trio Odyssey (90m)", slug: 'ultimate-aviator-90', duration: 90 },
+    { link: 'Airline Interview Prep 120 PRO', slug: 'airline-assessment-prep', duration: 120 },
+    { link: 'Fear of Flying Overcoming Course', slug: 'fear-of-flying-course', duration: 90 },
   ];
-  for (const { link, slug } of FOOTER_PACKAGES) {
+  for (const { link, slug, duration } of FOOTER_PACKAGES) {
     test(`opens the booking engine on "${link}" from the footer`, async ({ page, chrome }) => {
       await page.goto('/');
       await follow(chrome.footerLink(link), `/book?package=${slug}`);
 
       await expect(page).toHaveURL(`/book?package=${slug}`);
-      // The storefront heading is the selected package without its duration suffix.
-      const title = link.replace(/\s*\(\d+m\)$/, '');
-      await expect(page.getByRole('heading', { level: 1, name: title })).toBeVisible();
+      // The guided wizard is the default; it retains the package chosen by the footer link.
+      await expect(page.getByRole('heading', { level: 1, name: 'Choose Flight Date & Operational Slot' })).toBeVisible();
+      await expect(page.locator(`[data-booking-duration="${duration}"]`)).toHaveAttribute('aria-pressed', 'true');
     });
   }
 
@@ -97,6 +97,9 @@ test.describe('primary navigation', () => {
       await expect(social).toHaveAttribute('href', /^https:\/\/(www\.)?(instagram|facebook|youtube)\.com\//);
       await expect(social).toHaveAttribute('target', '_blank');
     }
+    await expect(chrome.utilityBar.getByRole('link', { name: 'Instagram', exact: true })).toHaveCSS('color', 'rgb(228, 64, 95)');
+    await expect(chrome.utilityBar.getByRole('link', { name: 'Facebook', exact: true })).toHaveCSS('color', 'rgb(24, 119, 242)');
+    await expect(chrome.utilityBar.getByRole('link', { name: 'YouTube', exact: true })).toHaveCSS('color', 'rgb(255, 0, 0)');
   });
 
   test('reaches member sign-in from the guest checkout banner', async ({ page, booking }) => {

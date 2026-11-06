@@ -5,6 +5,7 @@ import {
   fillStorefrontManifest,
   findBookableDate,
   openStorefrontOn,
+  openStorefrontView,
   openWizardStep,
   PAYMENTS_UNAVAILABLE_MESSAGE,
   storefrontVoucher,
@@ -29,7 +30,13 @@ interface FormUnderTest {
 }
 
 const FORMS: readonly FormUnderTest[] = [
-  { form: 'storefront captain manifest (/book)', open: (page) => gotoSettled(page, '/book') },
+  {
+    form: 'storefront captain manifest (/book)',
+    open: async (page) => {
+      await gotoSettled(page, '/book');
+      await openStorefrontView(page);
+    },
+  },
   { form: 'contact form (/contact)', open: (page) => gotoSettled(page, '/contact') },
   {
     form: 'gift voucher purchase (/vouchers)',
@@ -103,6 +110,7 @@ function isAnnounced(target: Locator): Promise<boolean> {
 test.describe('validation and error feedback', () => {
   test('blocks checkout and focuses the first empty required manifest field', async ({ page }) => {
     await gotoSettled(page, '/book');
+    await openStorefrontView(page);
     let checkoutCalls = 0;
     page.on('request', (request) => {
       if (new URL(request.url()).pathname === '/api/checkout') checkoutCalls += 1;
@@ -118,6 +126,7 @@ test.describe('validation and error feedback', () => {
 
   test('announces an invalid voucher code to screen readers', async ({ page }) => {
     await gotoSettled(page, '/book');
+    await openStorefrontView(page);
     const voucher = storefrontVoucher(page);
     await voucher.input.fill('SD-VOUCH-NOTAREALCODE0000');
     await voucher.apply.click();
@@ -129,6 +138,7 @@ test.describe('validation and error feedback', () => {
 
   test('ties the invalid voucher message to the voucher field', async ({ page }) => {
     await gotoSettled(page, '/book');
+    await openStorefrontView(page);
     const voucher = storefrontVoucher(page);
     await voucher.input.fill('SD-VOUCH-NOTAREALCODE0000');
     await voucher.apply.click();
