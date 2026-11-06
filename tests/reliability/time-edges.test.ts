@@ -37,12 +37,12 @@ const ISRAEL_DATE_CASES: IsraelDateCase[] = [
 
 const OPENING_HOURS_CASES = [
   { date: '2026-03-27', day: 'Friday, spring-forward day', firstDeparture: '09:00' },
-  { date: '2026-10-25', day: 'Sunday, fall-back day', firstDeparture: '10:00' },
-  { date: '2026-12-31', day: 'Thursday, year end', firstDeparture: '10:00' },
+  { date: '2026-10-25', day: 'Sunday, fall-back day', firstDeparture: '09:00' },
+  { date: '2026-12-31', day: 'Thursday, year end', firstDeparture: '09:00' },
   { date: '2027-01-01', day: 'Friday, new year', firstDeparture: '09:00' },
-  { date: '2027-01-02', day: 'Saturday', firstDeparture: '19:00' },
-  { date: '2028-02-29', day: 'Tuesday, leap day', firstDeparture: '10:00' },
-  { date: '2028-03-01', day: 'Wednesday after leap day', firstDeparture: '10:00' },
+  { date: '2027-01-02', day: 'Saturday', firstDeparture: '09:00' },
+  { date: '2028-02-29', day: 'Tuesday, leap day', firstDeparture: '09:00' },
+  { date: '2028-03-01', day: 'Wednesday after leap day', firstDeparture: '09:00' },
 ];
 
 // Neither date is seeded relative to the default test clock, so both grids start empty.

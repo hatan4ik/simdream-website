@@ -21,13 +21,11 @@ function toMinutes(time: string): number {
   return hours * 60 + minutes;
 }
 
-/** Operating windows from AGENTS.md section 4, derived independently of the scheduler. */
+/** Operating window from AGENTS.md, derived independently of the scheduler. */
 function operatingWindow(date: string): { open: number; close: number; weekday: number } {
   const [year, month, day] = date.split('-').map(Number);
   const weekday = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
-  if (weekday === 5) return { open: 9 * 60, close: 16 * 60 + 30, weekday };
-  if (weekday === 6) return { open: 19 * 60, close: 24 * 60, weekday };
-  return { open: 10 * 60, close: 23 * 60, weekday };
+  return { open: 9 * 60, close: 24 * 60, weekday };
 }
 
 async function slotsResponse(app: TestApp, query: string) {
@@ -115,10 +113,10 @@ describe('GET /api/slots', () => {
     expect(body.efficiency).toMatchObject({
       date: EMPTY_DAY.sunday,
       dayOfWeek: 0,
-      operatingWindow: '10:00 – 23:00',
-      totalFundMinutes: 780,
+      operatingWindow: '09:00 – 24:00',
+      totalFundMinutes: 900,
       bookedMinutes: 0,
-      freeValidMinutes: 780,
+      freeValidMinutes: 900,
       isZeroWasteCompliant: true,
     });
     expect(body.slots).toEqual(await getSlots(app, EMPTY_DAY.sunday, 60));
@@ -191,15 +189,15 @@ describe('GET /api/slots', () => {
     expect(closer).toMatchObject({ available: true, reservedEndTime: '16:30' });
   });
 
-  it('offers the Friday 15:45 departure as the zero-waste closer for a 30-minute flight', async () => {
+  it('retains the Friday 15:45 departure on the 30-minute flight cadence', async () => {
     const app = await loadApp();
 
     const closer = (await getSlots(app, EMPTY_DAY.friday, 30)).find((slot) => slot.startTime === '15:45');
 
     expect(closer).toMatchObject({
       available: true,
-      smartRecommendation: 'friday_30m_closer',
-      blockPeriod: 'friday_closer',
+      smartRecommendation: null,
+      blockPeriod: 'afternoon',
       reservedEndTime: '16:30',
     });
   });

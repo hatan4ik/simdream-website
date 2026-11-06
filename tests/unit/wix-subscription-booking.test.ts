@@ -4,7 +4,7 @@ import { apiRequest, readJson } from '../support/http';
 const BOOKING_INPUT = {
   packageId: 'pkg-captain-60',
   bookingDate: '2026-11-09',
-  startTime: '10:00',
+  startTime: '10:15',
 } as const;
 
 afterEach(() => {
@@ -22,8 +22,8 @@ describe('Wix subscription booking checkout slot', () => {
       timeSlots: [
         {
           serviceId: 'svc-captain-60',
-          localStartDate: '2026-11-09T10:00:00',
-          localEndDate: '2026-11-09T11:00:00',
+          localStartDate: '2026-11-09T10:15:00',
+          localEndDate: '2026-11-09T11:15:00',
           bookable: true,
         },
       ],
@@ -55,7 +55,7 @@ describe('Wix subscription booking checkout slot', () => {
     });
     expect(result).toEqual({
       timeZone: 'Asia/Jerusalem',
-      slotAvailability: expect.objectContaining({ localStartDate: '2026-11-09T10:00:00', bookable: true }),
+      slotAvailability: expect.objectContaining({ localStartDate: '2026-11-09T10:15:00', bookable: true }),
     });
   });
 
@@ -65,8 +65,8 @@ describe('Wix subscription booking checkout slot', () => {
         timeSlots: [
           {
             serviceId: 'svc-captain-60',
-            localStartDate: '2026-11-09T19:00:00',
-            localEndDate: '2026-11-09T20:00:00',
+            localStartDate: '2026-11-09T10:00:00',
+            localEndDate: '2026-11-09T11:00:00',
             bookable: true,
           },
         ],
@@ -88,7 +88,7 @@ describe('Wix subscription booking checkout slot', () => {
     const { resolveWixSubscriptionBookingCheckout, WixSubscriptionBookingUnavailableError } = await import(
       '@/lib/wix/subscription-booking'
     );
-    await expect(resolveWixSubscriptionBookingCheckout({ ...BOOKING_INPUT, startTime: '19:00' })).rejects.toBeInstanceOf(
+    await expect(resolveWixSubscriptionBookingCheckout({ ...BOOKING_INPUT, startTime: '10:00' })).rejects.toBeInstanceOf(
       WixSubscriptionBookingUnavailableError
     );
   });

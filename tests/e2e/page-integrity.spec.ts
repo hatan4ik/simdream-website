@@ -2,8 +2,8 @@ import { expect, test } from './fixtures';
 
 /** Israel-time instants on either side of opening hours, with the footer headline each must show. */
 const MOMENTS = [
-  { instant: new Date('2026-11-01T12:00:00+02:00'), headline: 'OPEN NOW • Today 10:00 – 23:00' },
-  { instant: new Date('2026-11-07T10:00:00+02:00'), headline: 'CURRENTLY CLOSED • Opens Today at 19:00' },
+  { instant: new Date('2026-11-01T12:00:00+02:00'), headline: 'OPEN NOW • Today 09:00 – 24:00' },
+  { instant: new Date('2026-11-07T10:00:00+02:00'), headline: 'OPEN NOW • Today 09:00 – 24:00' },
 ] as const;
 
 test.describe('page integrity', () => {

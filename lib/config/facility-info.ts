@@ -53,9 +53,11 @@ export const FACILITY_INFO = {
     advanceBookingRequired: true,
   },
   hours: {
-    sunThu: { open: '10:00', close: '23:00', openMin: 600, closeMin: 1380 },
-    fri: { open: '09:00', close: '16:30', openMin: 540, closeMin: 990 },
-    sat: { open: '19:00', close: '24:00', openMin: 1140, closeMin: 1440 },
+    /**
+     * Mirrors the native Wix Bookings business and Nathanel staff schedules.
+     * The customer-facing zero-waste grid must remain inside this window.
+     */
+    daily: { open: '09:00', close: '24:00', openMin: 540, closeMin: 1440 },
   },
 } as const;
 
@@ -72,9 +74,7 @@ export interface LiveFacilityStatus {
 /**
  * Dynamically calculates whether SimDream Tel Aviv is currently OPEN or CLOSED
  * in Israel Standard/Daylight Time (Asia/Jerusalem) against the official schedule:
- * - Sun–Thu: 10:00 – 23:00
- * - Fri:     09:00 – 16:30
- * - Sat:     19:00 – 24:00
+ * - Sun–Sat: 09:00 – 24:00
  */
 export function getLiveFacilityStatus(now: Date = new Date()): LiveFacilityStatus {
   try {
@@ -87,7 +87,6 @@ export function getLiveFacilityStatus(now: Date = new Date()): LiveFacilityStatu
     });
 
     const parts = formatter.formatToParts(now);
-    const weekdayStr = parts.find((p) => p.type === 'weekday')?.value || 'Sun';
     const hourStr = parts.find((p) => p.type === 'hour')?.value || '12';
     const minuteStr = parts.find((p) => p.type === 'minute')?.value || '00';
 
@@ -96,33 +95,7 @@ export function getLiveFacilityStatus(now: Date = new Date()): LiveFacilityStatu
     const currentMin = hour * 60 + minute;
     const israelTimeFormatted = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
 
-    const dayMap: Record<string, number> = {
-      Sun: 0,
-      Mon: 1,
-      Tue: 2,
-      Wed: 3,
-      Thu: 4,
-      Fri: 5,
-      Sat: 6,
-    };
-    const dow = dayMap[weekdayStr] ?? 0;
-
-    let openMin = 600;
-    let closeMin = 1380;
-    let openLabel = '10:00';
-    let closeLabel = '23:00';
-
-    if (dow === 5) {
-      openMin = 540;
-      closeMin = 990;
-      openLabel = '09:00';
-      closeLabel = '16:30';
-    } else if (dow === 6) {
-      openMin = 1140;
-      closeMin = 1440;
-      openLabel = '19:00';
-      closeLabel = '24:00';
-    }
+    const { open: openLabel, close: closeLabel, openMin, closeMin } = FACILITY_INFO.hours.daily;
 
     const isOpen = currentMin >= openMin && currentMin < closeMin;
     const currentDayRange = `${openLabel} – ${closeLabel}`;
@@ -150,18 +123,8 @@ export function getLiveFacilityStatus(now: Date = new Date()): LiveFacilityStatu
     let nextOpenHe = `היום ב-${openLabel}`;
 
     if (currentMin >= closeMin) {
-      if (dow === 4) {
-        // Thursday night -> Friday 09:00
-        nextOpenEn = 'Friday at 09:00';
-        nextOpenHe = 'יום שישי ב-09:00';
-      } else if (dow === 5) {
-        // Friday afternoon -> Saturday 19:00
-        nextOpenEn = 'Saturday at 19:00';
-        nextOpenHe = 'מוצ״ש ב-19:00';
-      } else {
-        nextOpenEn = 'Tomorrow at 10:00';
-        nextOpenHe = 'מחר ב-10:00';
-      }
+      nextOpenEn = `Tomorrow at ${openLabel}`;
+      nextOpenHe = `מחר ב-${openLabel}`;
     }
 
     return {
@@ -177,11 +140,11 @@ export function getLiveFacilityStatus(now: Date = new Date()): LiveFacilityStatu
     return {
       isOpen: true,
       israelTimeFormatted: '12:00',
-      currentDayRange: '10:00 – 23:00',
+      currentDayRange: '09:00 – 24:00',
       statusHeadlineEn: 'OPEN & OPERATIONAL • Advance Booking Required',
-      statusSublineEn: 'Sun–Thu 10:00–23:00 • Fri 09:00–16:30 • Sat 19:00–24:00',
+      statusSublineEn: 'Sun–Sat 09:00–24:00',
       statusHeadlineHe: 'פתוח ופעיל • בתיאום והזמנה מראש',
-      statusSublineHe: 'א׳–ה׳ 10:00–23:00 • ו׳ 09:00–16:30 • ש׳ 19:00–24:00',
+      statusSublineHe: 'א׳–ש׳ 09:00–24:00',
     };
   }
 }

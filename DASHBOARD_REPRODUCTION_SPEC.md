@@ -113,9 +113,7 @@ Use `DATE_LOCALES`:
 ### B. Daily Tiled Efficiency Bar & Metrics
 The dispatcher selects an operational date (defaulting to tomorrow in Israel time). The view queries `GET /api/admin/schedule-efficiency?date=YYYY-MM-DD` and renders:
 1. **Total Daily Capacity**:
-   - Sun–Thu: `780 min` (`10:00–23:00`)
-   - Fri: `450 min` (`09:00–16:30`)
-   - Sat: `300 min` (`19:00–24:00` Prime-Time)
+   - Sun–Sat: `900 min` (`09:00–24:00`; Saturday retains Prime-Time pricing)
 2. **Occupied Flight & Buffer Minutes**: Sum of `reservedMinutes` for confirmed flights.
 3. **Orphan Gap Minutes ("Хвосты" / Wasted Runway Tail)**: Unusable gaps (< 45 min) between bookings or operating boundaries.
 4. **Efficiency Percentage**: `(occupiedMinutes / totalCapacityMinutes) * 100`.

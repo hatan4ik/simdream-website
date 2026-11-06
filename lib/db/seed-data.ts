@@ -395,7 +395,7 @@ function generateMonthAheadBookings(): Booking[] {
     let templates: SeedSlotTemplate[] = [];
 
     if (dow === 5) {
-      // FRIDAY (09:00 - 16:30, 450m fund)
+      // FRIDAY (09:00 - 24:00, 900m fund)
       if (dayOffset % 2 === 0) {
         templates = [
           {
@@ -449,7 +449,7 @@ function generateMonthAheadBookings(): Booking[] {
         ];
       }
     } else if (dow === 6) {
-      // SATURDAY (19:00 - 24:00, 300m 100% Prime-Time)
+      // SATURDAY (09:00 - 24:00, 900m 100% Prime-Time)
       if (dayOffset % 2 === 0) {
         templates = [
           {
@@ -485,7 +485,7 @@ function generateMonthAheadBookings(): Booking[] {
         ];
       }
     } else {
-      // SUNDAY - THURSDAY (10:00 - 23:00, 780m fund)
+      // SUNDAY - THURSDAY (09:00 - 24:00, 900m fund)
       const pattern = dayOffset % 4;
       if (dayOffset === 1 || pattern === 1) {
         // Pattern 1 (Includes Tomorrow!): Morning 60m + Afternoon 45m Promo + Evening 18:00 30m (Triggers 18:45 Smart 90m Match!)

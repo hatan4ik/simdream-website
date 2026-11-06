@@ -182,7 +182,7 @@ export const PAGE_SEO_DEFINITIONS: Record<SeoPageKey, PageSeoDefinition> = {
     path: '/contact',
     title: 'Location, Arrival Instructions & Opening Hours — Gershon Shatz 36 | Sim Dream Tel Aviv',
     description:
-      'Visit Sim Dream at Gershon Shatz St 36, Tel Aviv-Yafo (4 min walk from Yehudit Light Rail, 8 min from HaShalom Train Station). Live opening hours (Sun-Thu 10:00-23:00, Fri 09:00-16:30, Sat 19:00-24:00), parking info, phone 055-507-1307 & email desk@simdream.co.il.',
+      'Visit Sim Dream at Gershon Shatz St 36, Tel Aviv-Yafo (4 min walk from Yehudit Light Rail, 8 min from HaShalom Train Station). Live opening hours (Sun-Sat 09:00-24:00), parking info, phone 055-507-1307 & email desk@simdream.co.il.',
     keywords: [
       ...COMMON_KEYWORDS,
       'Sim Dream address Tel Aviv',

@@ -72,7 +72,7 @@ Production-grade website, multi-step booking engine, Amazon-style flight storefr
      - **iPhone & Modern Smartphone Ergonomics**: Localized **month calendar by default** with an optional compact week view, 2-column generous mobile time-slot grid (`min-h-[64px]`), floating sticky bottom confirmation bar (`sticky bottom-3`), and `touch-action: manipulation` (zero 300ms tap delay).
      - **100% Browser-Blocker Immunity**: Built with semantic first-party `<button type="button">` elements and inline React state—zero iframes, popups, or ad-triggering class names.
    - **35-Day Pre-Populated QA Seed Dataset (`lib/db/seed-data.ts`)**:
-     - `generateMonthAheadBookings()` pre-populates **105+ realistic flight bookings across the next 35 days** covering all 5 packages and rotating Sunday–Thursday, Friday (`09:00–16:30` with `15:45` 30m closer), and Saturday (`19:00–24:00` Prime-Time) schedules.
+     - `generateMonthAheadBookings()` pre-populates **105+ realistic flight bookings across the next 35 days** covering all 5 packages across the seven-day `09:00–24:00` schedule; Saturday retains Prime-Time pricing semantics.
 
 5. **Corporate CRM Leadership Workshops (`/workshops`)**:
    - Executive leadership & team offsite modules based on commercial aviation **Crew Resource Management (CRM)** and **Threat & Error Management (TEM)**.
@@ -113,7 +113,7 @@ Production-grade website, multi-step booking engine, Amazon-style flight storefr
 
 12. **B2B / B2C Separation, Facility Hub & Regulatory Compliance**:
     - **Strict B2B / B2C Isolation**: Relocated "Corporate CRM Leadership Workshop" out of the consumer flight catalog, establishing an executive-tier B2B portal ([`/workshops`](app/(public)/workshops/page.tsx)) for corporate offsites.
-    - **Operations & Facility Hub ([`/contact`](app/(public)/contact/page.tsx))**: Live transit directions (Yehudit Light Rail Red Line, HaShalom Train Station, paid parking), operating hours (Sun–Thu 10:00–23:00, Fri 09:00–16:30, Sat 19:00–24:00), minimum pilot age 10+, and verified contact lines (`055-507-1307`, `desk@simdream.co.il`).
+    - **Operations & Facility Hub ([`/contact`](app/(public)/contact/page.tsx))**: Live transit directions (Yehudit Light Rail Red Line, HaShalom Train Station, paid parking), operating hours (Sun–Sat 09:00–24:00), minimum pilot age 10+, and verified contact lines (`055-507-1307`, `desk@simdream.co.il`).
     - **Legal Compliance Pages**: Integrated flight simulator safety regulations ([`/rules`](app/(public)/rules/page.tsx)) and privacy policies ([`/privacy-policy`](app/(public)/privacy-policy/page.tsx)).
 
 13. **Dedicated Annual Flight Subscriptions Portal ([`/subscriptions`](app/(public)/subscriptions/page.tsx)) & Wix Pricing Plans Checkout**:

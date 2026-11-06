@@ -7,6 +7,7 @@ import {
   PublicCapacityReport,
   SlotBlockPeriod,
 } from '@/types';
+import { FACILITY_INFO } from '@/lib/config/facility-info';
 import { hasDeparted } from './israel-clock';
 
 export const TURNAROUND_MINUTES = 15;
@@ -63,41 +64,19 @@ export function getDayOperatingConfig(dateString: string): DayOperatingConfig {
   const dateObj = new Date(year, (month || 1) - 1, day || 1);
   const dayOfWeek = dateObj.getDay();
 
-  // Friday: 09:00 - 16:30 (450 minutes)
-  if (dayOfWeek === 5) {
-    return {
-      dayOfWeek,
-      openMinutes: 9 * 60, // 540
-      closeMinutes: 16 * 60 + 30, // 990
-      totalFundMinutes: 450,
-      operatingWindow: '09:00 – 16:30',
-      isSaturday: false,
-      isFriday: true,
-    };
-  }
+  const { open, close, openMin, closeMin } = FACILITY_INFO.hours.daily;
 
-  // Saturday: 19:00 - 24:00 (300 minutes - 100% Prime-Time)
-  if (dayOfWeek === 6) {
-    return {
-      dayOfWeek,
-      openMinutes: 19 * 60, // 1140
-      closeMinutes: 24 * 60, // 1440
-      totalFundMinutes: 300,
-      operatingWindow: '19:00 – 24:00',
-      isSaturday: true,
-      isFriday: false,
-    };
-  }
-
-  // Sunday - Thursday: 10:00 - 23:00 (780 minutes)
+  // Every day mirrors Wix's configured business and Nathanel staff availability.
+  // Saturday keeps its existing prime-time pricing semantics; this doesn't make
+  // the Sunday–Tuesday discounted promotion available on Saturday.
   return {
     dayOfWeek,
-    openMinutes: 10 * 60, // 600
-    closeMinutes: 23 * 60, // 1380
-    totalFundMinutes: 780,
-    operatingWindow: '10:00 – 23:00',
-    isSaturday: false,
-    isFriday: false,
+    openMinutes: openMin,
+    closeMinutes: closeMin,
+    totalFundMinutes: closeMin - openMin,
+    operatingWindow: `${open} – ${close}`,
+    isSaturday: dayOfWeek === 6,
+    isFriday: dayOfWeek === 5,
   };
 }
 
@@ -242,26 +221,14 @@ function getBlockMetadata(
   if (config.isSaturday) {
     return {
       period: 'saturday_prime',
-      label: 'Saturday Prime-Time Operations (19:00–24:00)',
-    };
-  }
-  if (config.isFriday) {
-    if (startMinutes >= 15 * 60 + 45) {
-      return {
-        period: 'friday_closer',
-        label: 'Friday Closing Operations (15:45–16:30)',
-      };
-    }
-    return {
-      period: 'morning',
-      label: 'Friday Morning & Midday Operations (09:00–15:45)',
+      label: 'Saturday Operations (09:00–24:00)',
     };
   }
 
   if (startMinutes < 15 * 60) {
     return {
       period: 'morning',
-      label: 'Morning Operations (10:00–15:00)',
+      label: 'Morning Operations (09:00–15:00)',
     };
   }
   if (startMinutes < 18 * 60) {
@@ -272,8 +239,16 @@ function getBlockMetadata(
   }
   return {
     period: 'evening',
-    label: 'Evening Prime-Time Operations (18:00–23:00)',
+    label: 'Evening Prime-Time Operations (18:00–24:00)',
   };
+}
+
+function getConstructor150Blocks(config: Pick<DayOperatingConfig, 'openMinutes' | 'closeMinutes'>) {
+  const blocks: Array<{ start: number; end: number }> = [];
+  for (let start = config.openMinutes; start + 150 <= config.closeMinutes; start += 150) {
+    blocks.push({ start, end: start + 150 });
+  }
+  return blocks;
 }
 
 /**
@@ -312,7 +287,7 @@ function addBackwardReservedCadenceStarts(
  * - Package-specific departure cadence: 30m → 45m, 45m → 60m,
  *   60m → 75m, 90m → 105m, 120m → 150m
  * - Cadence reconnection at each booked interval and at the operating-day close
- * - Friday 09:00-16:30 and Saturday 19:00-24:00 operating windows
+ * - A 09:00-24:00 operating window, Sunday through Saturday
  * - 150-minute block Smart Pairing (e.g. 30m at 18:00 -> highlights 18:45 for 90m)
  * - Anti-Gap Zero-Waste protection (disables slots that create 15m/30m/un-tileable orphan windows)
  * - Discounted Promotion rule (45m is sold Sunday–Tuesday before 18:00 only;
@@ -347,8 +322,8 @@ export function generateKantorovichSlots(
 
   const candidateStarts = new Set<number>();
 
-  // The day opening is the primary cadence anchor. On an empty weekday a 30-minute
-  // service begins 10:00, 10:45, 11:30 … because each departure reserves 45 minutes.
+  // The day opening is the primary cadence anchor. On an empty day a 30-minute
+  // service begins 09:00, 09:45, 10:30 … because each departure reserves 45 minutes.
   addForwardReservedCadenceStarts(candidateStarts, config.openMinutes, reservedDuration, config);
 
   // Add a closing-aligned candidate so a valid final mission is not discarded solely
@@ -363,24 +338,8 @@ export function generateKantorovichSlots(
     addForwardReservedCadenceStarts(candidateStarts, booking.endMin, reservedDuration, config);
   }
 
-  // Standard 150-minute constructor block boundaries for smart-pairing detection
-  const constructor150Blocks = config.isSaturday
-    ? [
-        { start: 19 * 60, end: 21 * 60 + 30 },
-        { start: 21 * 60 + 30, end: 24 * 60 },
-      ]
-    : config.isFriday
-    ? [
-        { start: 9 * 60, end: 11 * 60 + 30 },
-        { start: 11 * 60 + 30, end: 14 * 60 },
-        { start: 14 * 60, end: 16 * 60 + 30 },
-      ]
-    : [
-        { start: 10 * 60, end: 12 * 60 + 30 },
-        { start: 12 * 60 + 30, end: 15 * 60 },
-        { start: 18 * 60, end: 20 * 60 + 30 },
-        { start: 20 * 60 + 30, end: 23 * 60 },
-      ];
+  // Fixed 150-minute constructor blocks tile the full operating fund.
+  const constructor150Blocks = getConstructor150Blocks(config);
 
   const sortedStarts = Array.from(candidateStarts).sort((a, b) => a - b);
   const slots: FlightSlot[] = [];
@@ -535,32 +494,27 @@ export function generateKantorovichSlots(
     let smartRecommendation: FlightSlot['smartRecommendation'] = null;
     let recommendationNote: string | undefined;
 
-    if (config.isFriday && startMin === 15 * 60 + 45 && durationMinutes <= 30) {
-      smartRecommendation = 'friday_30m_closer';
-      recommendationNote = 'Closes Friday at 16:30 with 0m waste (45m slot block)';
-    } else {
-      // Check if this slot completes a 150-minute constructor block alongside an existing booking
-      for (const blk of constructor150Blocks) {
-        if (startMin >= blk.start && reservedEndMin <= blk.end) {
-          const bookingsInBlk = bookedIntervals.filter(
-            (b) => b.startMin >= blk.start && b.endMin <= blk.end
-          );
-          const usedInBlk = bookingsInBlk.reduce((acc, b) => acc + b.reservedDur, 0);
-          if (usedInBlk > 0 && usedInBlk + reservedDuration === 150) {
-            smartRecommendation = 'optimal_150_pair';
-            recommendationNote = `Smart 150m Pairing: Perfectly completes ${minutesToTime(blk.start)}–${minutesToTime(blk.end)} block with 0m waste!`;
-            break;
-          }
+    // Check if this slot completes a 150-minute constructor block alongside an existing booking.
+    for (const blk of constructor150Blocks) {
+      if (startMin >= blk.start && reservedEndMin <= blk.end) {
+        const bookingsInBlk = bookedIntervals.filter(
+          (b) => b.startMin >= blk.start && b.endMin <= blk.end
+        );
+        const usedInBlk = bookingsInBlk.reduce((acc, b) => acc + b.reservedDur, 0);
+        if (usedInBlk > 0 && usedInBlk + reservedDuration === 150) {
+          smartRecommendation = 'optimal_150_pair';
+          recommendationNote = `Smart 150m Pairing: Perfectly completes ${minutesToTime(blk.start)}–${minutesToTime(blk.end)} block with 0m waste!`;
+          break;
         }
       }
+    }
 
-      if (!smartRecommendation && durationMinutes === 45 && isPromoDay && period === 'afternoon') {
-        smartRecommendation = 'daytime_promo_fit';
-        recommendationNote = 'Optimal 60m grid alignment in 15:00–18:00 afternoon window';
-      } else if (!smartRecommendation && (gapBefore === 0 || gapAfter === 0)) {
-        smartRecommendation = 'zero_waste_fit';
-        recommendationNote = 'Zero-Waste aligned slot (includes +15m technical turnaround)';
-      }
+    if (!smartRecommendation && durationMinutes === 45 && isPromoDay && period === 'afternoon') {
+      smartRecommendation = 'daytime_promo_fit';
+      recommendationNote = 'Optimal 60m grid alignment in 15:00–18:00 afternoon window';
+    } else if (!smartRecommendation && (gapBefore === 0 || gapAfter === 0)) {
+      smartRecommendation = 'zero_waste_fit';
+      recommendationNote = 'Zero-Waste aligned slot (includes +15m technical turnaround)';
     }
 
     // Compute exact continuous pure flight minutes available from startMin until the next booking or facility close

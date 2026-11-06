@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:83497030466a68f2713af1041ae11e5cf597dfbd1a4c84105ed0aeeca949b73e -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:5f9b480a7590682ea04af4515c28819b5e41876a03d7d10d2cf6b3ba31097917 -->
 
 ## Verification contract
 
@@ -246,12 +246,10 @@ Add 3 curated one-click combos. Localize every package and add-on in all five la
 
   | Day | Window | Minutes | Notes |
   | --- | --- | --- | --- |
-  | Sunday–Thursday | 10:00–23:00 | 780 | |
-  | Friday | 09:00–16:30 | 450 | Includes a 15:45 30-minute closer |
-  | Saturday | 19:00–24:00 | 300 | Prime time only; the 45-minute promotion is forbidden |
-- **Slot generation**: `generateKantorovichSlots(date, duration, bookings)` returns every departure on a grid derived from the reserved blocks. The ₪490 45-minute Discounted Promotion is sellable Sunday–Tuesday before 18:00 only; the zero-waste solver also removes its 60-minute block on every other day so it never classifies an unsellable gap as capacity. Saturday 60-minute departures are 19:00, 20:15, 21:30 and 22:45. Each slot carries:
+  | Sunday–Saturday | 09:00–24:00 | 900 | Saturday retains prime-time pricing; the 45-minute promotion is forbidden on Saturday and remains Sunday–Tuesday only |
+- **Slot generation**: `generateKantorovichSlots(date, duration, bookings)` returns every departure on a grid derived from the reserved blocks. The ₪490 45-minute Discounted Promotion is sellable Sunday–Tuesday before 18:00 only; the zero-waste solver also removes its 60-minute block on every other day so it never classifies an unsellable gap as capacity. Saturday 60-minute departures follow the full 09:00–24:00 duration-aware cadence and retain prime-time pricing. Each slot carries:
   - `available`;
-  - a `disabledReason`: booked, orphan_gap, promo day/time restriction, friday closer rule, exceeds window, or departed;
+  - a `disabledReason`: booked, orphan_gap, promo day/time restriction, exceeds window, or departed;
   - a smart recommendation: optimal 150-minute pair, zero-waste fit, and so on.
 
   Never offer a departure that would leave an unsellable gap ("anti-gap"/zero-waste tiling).
@@ -619,7 +617,7 @@ AGENTS.md  ARCHITECTURE.md  README.md  TESTING.md  KANTOROVICH_SCHEDULER_SPEC.md
 - `npm run test:all -- --full --lighthouse` is green: typecheck, Vitest with coverage thresholds, e2e on five browsers, accessibility with an empty baseline, usability, security-web, resilience, visual, load and Lighthouse.
 - Verify manually:
   - a recreational booking (3 steps with add-ons), an on-request World Trio at `/book?package=captains-command-60&route=route-israel-home-skies` (calendar first, no route surcharge, captain-confirmation notice) and `/book?package=airline-interview-prep-90-pro` (2 steps, no add-ons);
-  - Sunday, Friday and Saturday calendars;
+  - Sunday through Saturday calendars (09:00–24:00);
   - all five languages with no mixed scripts or missing keys;
   - all three themes with the official logo and no off-brand colours;
   - iPhone SE (320 px) to iPad landscape and Android phones/tablets with no horizontal overflow, 48 px controls and ≥12 px text.

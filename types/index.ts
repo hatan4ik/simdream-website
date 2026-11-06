@@ -94,8 +94,8 @@ export interface DailyScheduleBlock {
 export interface DailyEfficiencyReport {
   date: string;
   dayOfWeek: number;
-  operatingWindow: string; // e.g. "10:00 - 23:00"
-  totalFundMinutes: number; // 780 (Sun-Thu), 420 (Fri), 300 (Sat)
+  operatingWindow: string; // e.g. "09:00 - 24:00"
+  totalFundMinutes: number; // 900 (Sun-Sat)
   bookedMinutes: number; // Pure flight + 15m turnaround
   pureFlightMinutes: number;
   turnaroundMinutes: number;

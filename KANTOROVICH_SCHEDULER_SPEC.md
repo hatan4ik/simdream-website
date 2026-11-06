@@ -33,13 +33,11 @@ The public recreational catalog exposes 30, 45, 60, and 90 minute package durati
 
 | Day | Operating window | Capacity |
 | --- | --- | ---: |
-| Sunday–Thursday | 10:00–23:00 | 780 min |
-| Friday | 09:00–16:30 | 450 min |
-| Saturday | 19:00–24:00 | 300 min |
+| Sunday–Saturday | 09:00–24:00 | 900 min |
 
 The engine generates candidate starts at the selected package's **reserved duration** from each real capacity boundary (the operating-day opening, the end of a live reservation, and the latest fitting close-aligned start). It then rejects a candidate when it collides with a non-cancelled booking, closes after the operating window, violates the 45-minute Discounted Promotion rule (Sunday–Tuesday, before 18:00 only), or leaves a non-tileable gap.
 
-This means the customer-visible cadence is duration-true: a 30-minute flight reserves 45 minutes and begins at `10:00`, `10:45`, `11:30` … on an empty weekday; 45m begins every 60 minutes; 60m every 75; and 90m every 105. A close-aligned departure may be additionally offered where it is the only zero-waste way to finish the operating day.
+This means the customer-visible cadence is duration-true: a 30-minute flight reserves 45 minutes and begins at `09:00`, `09:45`, `10:30` … on an empty day; 45m begins every 60 minutes; 60m every 75; and 90m every 105. A close-aligned departure may be additionally offered where it is the only zero-waste way to finish the operating day.
 
 ### Gap tiling and availability
 

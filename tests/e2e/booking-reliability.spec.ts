@@ -10,7 +10,8 @@ test.describe('booking reliability', () => {
     booking,
     schedule,
   }) => {
-    // A Sunday–Thursday day has morning slots; Saturday is evening-only, so the two lists differ.
+    // Select two dates around a response race. The full 09:00–24:00 operating window
+    // now applies every day, so the stale response is made deliberately distinct below.
     const weekday = await schedule.findOpenSlot({ duration: 60, weekdays: [0, 1, 2, 3, 4] });
     // Derive the comparison date from the weekday returned by the same server
     // that provides the slots. Node and a browser may straddle an Israel
@@ -19,9 +20,9 @@ test.describe('booking reliability', () => {
     const saturday = nextWeekdayAfter(weekday.date, SATURDAY);
     expect(weekdayOf(saturday)).toBe(SATURDAY);
     const saturdaySlots = (await schedule.day(saturday, 60)).slots;
-    const saturdayTimes = new Set(saturdaySlots.map((slot) => slot.startTime));
-    expect(saturdayTimes.has(weekday.slot.startTime), 'the weekday slot must not exist on Saturday').toBe(false);
     const openOnSaturday = saturdaySlots.filter((slot) => slot.available).length;
+    const saturdayFirstOpen = saturdaySlots.find((slot) => slot.available);
+    expect(saturdayFirstOpen, 'Saturday needs a bookable departure').toBeDefined();
 
     await booking.goto();
     const wizard = await booking.openWizard();
@@ -32,8 +33,9 @@ test.describe('booking reliability', () => {
     const isWeekdaySlots = (url: URL) => url.pathname === '/api/slots' && url.searchParams.get('date') === weekday.date;
     await page.route(isWeekdaySlots, async (route: Route) => {
       await held;
-      // The page may already have aborted the superseded request.
-      await route.continue().catch(() => undefined);
+      // Return a deliberately empty stale result. If the page wrongly applies it
+      // after the Saturday selection, the visible count and slot list will change.
+      await route.fulfill({ contentType: 'application/json', body: '[]' }).catch(() => undefined);
     });
 
     const staleRequest = page.waitForRequest((request) => isWeekdaySlots(new URL(request.url())));
@@ -52,6 +54,6 @@ test.describe('booking reliability', () => {
 
     await expect(wizard.departureHeading(saturday)).toBeVisible();
     await expect(page.getByText(`${openOnSaturday} slots available`, { exact: true })).toBeVisible();
-    await expect(wizard.slot(weekday.slot.startTime)).toHaveCount(0);
+    await expect(wizard.slot(saturdayFirstOpen!.startTime)).toBeVisible();
   });
 });

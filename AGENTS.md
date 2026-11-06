@@ -88,13 +88,12 @@ Always reserve operating capacity via `getReservedMinutesForFlight()`:
 - `120 min` flight &rarr; `150 min` reserved block
 - `240 min` workshop &rarr; `255 min` reserved block
 
-### Operating Windows
-- **Sunday–Thursday**: `10:00–23:00` (780 min)
-- **Friday**: `09:00–16:30` (450 min, with a `15:45` 30-minute closer)
-- **Saturday**: `19:00–24:00` (300 min Prime-Time only; 45m promo strictly forbidden)
+### Operating Window
+- **Sunday–Saturday**: `09:00–24:00` (900 min). This mirrors the Wix Bookings business schedule and the Nathanel S staff schedule.
+- Saturday retains its Prime-Time pricing semantics; the 45m promotion remains Sunday–Tuesday only.
 
 ### Duration-Aware Cadence (product decision)
-The calendar must follow each selected package's actual reserved duration from real capacity boundaries, never a fixed 60- or 75-minute display grid: 30m → 45m (`10:00`, `10:45`, `11:30` …), 45m → 60m, 60m → 75m, 90m → 105m, and 120m → 150m. A close-aligned final departure is valid when it prevents waste. The engine judges gaps only against operating-window and live-booking boundaries, then requires both remaining gaps to be tileable. `tests/unit/kantorovich-completeness.test.ts` pins exact zero-waste soundness and duration-aware availability.
+The calendar must follow each selected package's actual reserved duration from real capacity boundaries, never a fixed 60- or 75-minute display grid: 30m → 45m (`09:00`, `09:45`, `10:30` …), 45m → 60m, 60m → 75m, 90m → 105m, and 120m → 150m. A close-aligned final departure is valid when it prevents waste. The engine judges gaps only against operating-window and live-booking boundaries, then requires both remaining gaps to be tileable. `tests/unit/kantorovich-completeness.test.ts` pins exact zero-waste soundness and duration-aware availability.
 
 ### Frontend Calendar & Duration Rules
 1. **Never Hide Available Durations / Packages**: When a package has 0 open slots on a selected date, **do not filter it out or remove it from the DOM**. It must remain visible with a status badge (`0 slots open today` / `0 מקומות היום`).
@@ -167,7 +166,7 @@ Before completing any feature or code change:
 1. Run `npm run build` — must compile with 0 TypeScript or build errors across all 35 routes.
 2. Verify `/book` with consumer packages (30m, 45m, 60m, 90m) &rarr; 3-step flow with add-ons.
 3. Verify `/book` with PRO packages (`/book?package=airline-interview-prep-90-pro`) &rarr; 2-step noise-free flow.
-4. Verify calendar across Sunday (10:00–23:00), Friday (09:00–16:30), and Saturday (19:00–24:00 Prime-Time).
+4. Verify calendar across Sunday through Saturday (09:00–24:00); retain Saturday Prime-Time price behavior and the Sunday–Tuesday-only 45m promotion.
 5. Verify all 5 language switchers (`he`, `en`, `ru`, `fr`, `ar`) render correctly with zero mixed scripts or broken keys.
 6. Verify the brand identity in both themes: official logo (orange airplane + cerulean wordmark), translated tagline, and no off-brand blues or cyans (§1, Brand Identity).
 7. Verify responsive header and UI fit across all viewports from 320px (iPhone SE) to 1920px desktop (`tests/usability/header-fit.spec.ts`), with 44x44px minimum tap targets.

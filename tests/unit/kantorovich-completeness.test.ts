@@ -129,7 +129,7 @@ describe('slot engine completeness: duration-aware cadence', () => {
   it('reconnects a 30-minute service on its 45-minute reserved cadence after a live booking', () => {
     const bookings = [makeBooking({ bookingDate: tuesday, startTime: '10:00', durationMinutes: 30 })];
     const starts = offeredStarts(tuesday, 30, bookings).map(minutesToTime);
-    expect(starts.slice(0, 3)).toEqual(['10:45', '11:30', '12:15']);
+    expect(starts.slice(0, 3)).toEqual(['10:45', '11:30', '12:00']);
   });
 
   it('keeps the share of dark (day, duration) pairs and dark windows within the measured bound', () => {

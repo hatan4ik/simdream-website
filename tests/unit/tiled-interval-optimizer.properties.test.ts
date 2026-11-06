@@ -219,12 +219,12 @@ describe('optimizeTiledCapacity examples', () => {
     expect(preview).toMatchObject({ existingBookingCount: 0, projectedValueIls: 690, unallocatedRequestIds: [] });
   });
 
-  it('rejects starts outside the Saturday prime-time window', () => {
+  it('rejects starts outside the all-day Saturday operating window', () => {
     const preview = optimizeTiledCapacity({
       date: WEEKDAY_DATES.saturday,
       existingBookings: [],
       requests: [
-        { id: 'too-early', durationMinutes: 60, valueIls: 900, candidateStartTimes: ['18:45'] },
+        { id: 'too-early', durationMinutes: 60, valueIls: 900, candidateStartTimes: ['08:45'] },
         { id: 'too-late', durationMinutes: 120, valueIls: 1_590, candidateStartTimes: ['22:45'] },
       ],
     });
@@ -233,7 +233,7 @@ describe('optimizeTiledCapacity examples', () => {
   });
 
   it('solves the largest accepted batch (8 requests × 4 starts) within the documented search bound', () => {
-    const starts = ['10:00', '11:15', '12:30', '13:45', '15:00', '18:00', '19:15', '20:30'];
+    const starts = ['09:00', '10:15', '11:30', '12:45', '14:00', '15:15', '16:30', '17:45'];
     const requests = Array.from({ length: 8 }, (_, index) => ({
       id: `batch-${index}`,
       durationMinutes: 60 as const,

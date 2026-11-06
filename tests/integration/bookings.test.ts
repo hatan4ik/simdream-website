@@ -248,13 +248,13 @@ describe('PATCH /api/bookings (admin)', () => {
   it('reschedules a booking to a free time, recomputes its end time and frees the old slot', async () => {
     const app = await loadApp();
     const created = await createVoucherFundedBooking(app, { date: DAY });
-    expect(created.startTime).toBe('10:00');
+    expect(created.startTime).toBe('09:00');
 
     const response = await patchBooking(app, { id: created.id, startTime: '18:00' });
 
     expect(response.status).toBe(200);
     expect(expectContract(bookingContract, response.body)).toMatchObject({ startTime: '18:00', endTime: '18:30' });
-    expect(await isSlotOpen(app, DAY, 30, '10:00')).toBe(true);
+    expect(await isSlotOpen(app, DAY, 30, '09:00')).toBe(true);
     expect(await isSlotOpen(app, DAY, 30, '18:00')).toBe(false);
   });
 
@@ -263,17 +263,17 @@ describe('PATCH /api/bookings (admin)', () => {
     const first = await createVoucherFundedBooking(app, { date: DAY });
     const second = await createVoucherFundedBooking(app, { date: DAY, voucherCode: SEED_FULL_VOUCHER.code });
 
-    const response = await patchBooking(app, { id: second.id, startTime: '10:15' });
+    const response = await patchBooking(app, { id: second.id, startTime: '09:15' });
 
     expect(response.status).toBe(409);
     expect(expectContract(errorBody, response.body).error).toBe('The proposed time conflicts with another booking.');
     expect((await app.store.getBookingById(second.id))?.startTime).toBe(second.startTime);
-    expect((await app.store.getBookingById(first.id))?.startTime).toBe('10:00');
+    expect((await app.store.getBookingById(first.id))?.startTime).toBe('09:00');
   });
 
   it.each([
-    { name: 'before opening', startTime: '09:30' },
-    { name: 'so late that the reserved block passes closing time', startTime: '22:30' },
+    { name: 'before opening', startTime: '08:30' },
+    { name: 'so late that the reserved block passes closing time', startTime: '23:30' },
   ])('rejects a reschedule $name with 409', async ({ startTime }) => {
     const app = await loadApp();
     const created = await createVoucherFundedBooking(app, { date: DAY });

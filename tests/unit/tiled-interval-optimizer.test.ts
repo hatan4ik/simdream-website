@@ -55,7 +55,7 @@ test('draft optimizer refuses schedules that make orphan capacity worse', () => 
     date: '2026-10-25',
     existingBookings: [],
     requests: [
-      { id: 'creates-30-minute-tail', durationMinutes: 60, valueIls: 1000, candidateStartTimes: ['10:30'] },
+      { id: 'creates-30-minute-tail', durationMinutes: 60, valueIls: 1000, candidateStartTimes: ['09:30'] },
     ],
   });
 

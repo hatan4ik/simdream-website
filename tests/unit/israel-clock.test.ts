@@ -222,12 +222,12 @@ describe('closeDepartedSlots', () => {
 
   it('keeps the original reason of a past slot that was already closed', () => {
     const date = WEEKDAY_DATES.sunday;
-    const bookings = [makeBooking({ bookingDate: date, startTime: '11:15', endTime: '12:15', durationMinutes: 60 })];
+    const bookings = [makeBooking({ bookingDate: date, startTime: '11:30', endTime: '12:30', durationMinutes: 60 })];
     const before = generateKantorovichSlots(date, 60, bookings);
-    expect(before.find((slot) => slot.startTime === '11:15')).toMatchObject({ available: false, disabledReason: 'booked' });
+    expect(before.find((slot) => slot.startTime === '11:30')).toMatchObject({ available: false, disabledReason: 'booked' });
 
     const after = closeDepartedSlots(before, at1400(date));
-    expect(after.find((slot) => slot.startTime === '11:15')).toEqual(before.find((slot) => slot.startTime === '11:15'));
+    expect(after.find((slot) => slot.startTime === '11:30')).toEqual(before.find((slot) => slot.startTime === '11:30'));
   });
 
   it('leaves every slot of a later date unchanged', () => {
