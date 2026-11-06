@@ -32,7 +32,53 @@ describe('Wix member profile projection', () => {
     });
   });
 
+  it('prefers the documented login email and uses the rest of Wix contact data for the display profile', () => {
+    expect(
+      readWixMemberProfile({
+        _id: ' ',
+        id: 'wix-member-by-id',
+        loginEmail: '  captain@example.test  ',
+        loginEmailVerified: false,
+        contact: {
+          emails: ['backup@example.test'],
+          phones: [' ', '+972501234567'],
+          firstName: '  Ada ',
+          lastName: ' Lovelace  ',
+        },
+        createdDate: new Date('2026-11-06T11:00:00.000Z'),
+      })
+    ).toEqual({
+      id: 'wix-member-by-id',
+      email: 'captain@example.test',
+      emailVerified: false,
+      fullName: 'Ada Lovelace',
+      phone: '+972501234567',
+      createdAt: '2026-11-06T11:00:00.000Z',
+    });
+  });
+
+  it('safely ignores malformed optional contact fields and invalid dates without de-authenticating a member', () => {
+    expect(
+      readWixMemberProfile({
+        _id: 'wix-member-with-unusable-details',
+        loginEmail: ' ',
+        profile: { nickname: ' ' },
+        contact: { emails: [null, 42], phones: 'not-an-array', firstName: ' ', lastName: ' ' },
+        _createdDate: new Date('not a date'),
+        createdDate: 42,
+      })
+    ).toEqual({
+      id: 'wix-member-with-unusable-details',
+      email: undefined,
+      emailVerified: false,
+      fullName: undefined,
+      phone: undefined,
+      createdAt: undefined,
+    });
+  });
+
   it('rejects payloads that have no immutable Wix member ID', () => {
     expect(readWixMemberProfile({ loginEmail: 'captain@example.test' })).toBeNull();
+    expect(readWixMemberProfile(null)).toBeNull();
   });
 });

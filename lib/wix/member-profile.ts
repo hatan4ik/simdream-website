@@ -37,23 +37,7 @@ function stringValue(value: unknown): string | undefined {
 
 function firstString(value: unknown): string | undefined {
   if (!Array.isArray(value)) return undefined;
-  for (const item of value) {
-    const string = stringValue(item);
-    if (string) return string;
-    if (item && typeof item === 'object' && 'value' in item) {
-      const nested = stringValue(item.value);
-      if (nested) return nested;
-    }
-    if (item && typeof item === 'object' && 'email' in item) {
-      const nested = stringValue(item.email);
-      if (nested) return nested;
-    }
-    if (item && typeof item === 'object' && 'phone' in item) {
-      const nested = stringValue(item.phone);
-      if (nested) return nested;
-    }
-  }
-  return undefined;
+  return value.map(stringValue).find((item): item is string => item !== undefined);
 }
 
 function dateValue(value: unknown): string | undefined {

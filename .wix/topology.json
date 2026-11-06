@@ -9,12 +9,12 @@
     }
   },
   "production": {
-    "id": "cf599af3-1bf6-40f5-8cf3-9b4bef4a3485",
+    "id": "60976d5c-b113-4545-9e03-5f8df4583917",
     "site": {
-      "main": "https://duykmj-headless-ciwstxzqhgf-hatan4ik-1408.wix-site-host.com"
+      "main": "https://hytepp-headless-ciwstxzqhgf-hatan4ik-1408.wix-site-host.com"
     },
     "dashboard": {
-      "main": "https://manage.wix.com/dashboard/317b0c6d-6608-499a-bb3c-b1c37650e460?apps-override=cf599af3-1bf6-40f5-8cf3-9b4bef4a3485"
+      "main": "https://manage.wix.com/dashboard/317b0c6d-6608-499a-bb3c-b1c37650e460?apps-override=60976d5c-b113-4545-9e03-5f8df4583917"
     }
   }
 }
