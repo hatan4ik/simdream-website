@@ -256,6 +256,49 @@ const CLEAN_COPY: Record<
   },
 };
 
+/**
+ * Duration pills describe the package family, never a consumer add-on that is
+ * unavailable in the PRO and fear-of-flying flows. This keeps the calendar's
+ * compact selector compatible with the noise-free booking contract.
+ */
+const DURATION_OPTION_SUBTITLES: Record<Language, { training: string; fearOfFlying: string; discovery: string }> = {
+  en: {
+    training: 'Airline assessment preparation',
+    fearOfFlying: 'Calm captain-led coaching',
+    discovery: 'Guided Discovery Mission',
+  },
+  he: {
+    training: 'הכנה למבדקי חברת תעופה',
+    fearOfFlying: 'ליווי רגוע עם קברניט',
+    discovery: 'משימת היכרות מודרכת',
+  },
+  ru: {
+    training: 'Подготовка к отбору в авиакомпанию',
+    fearOfFlying: 'Спокойная сессия с капитаном',
+    discovery: 'Ознакомительная миссия с инструктором',
+  },
+  fr: {
+    training: 'Préparation aux évaluations aériennes',
+    fearOfFlying: 'Accompagnement serein avec un commandant',
+    discovery: 'Mission découverte guidée',
+  },
+  ar: {
+    training: 'تحضير لتقييمات شركات الطيران',
+    fearOfFlying: 'تدريب هادئ بإشراف كابتن',
+    discovery: 'مهمة استكشافية بإرشاد مدرب',
+  },
+};
+
+function durationOptionSubtitle(pkg: SimulatorPackage, language: Language): string {
+  const copy = DURATION_OPTION_SUBTITLES[language] || DURATION_OPTION_SUBTITLES.en;
+  if (pkg.category === 'training') return copy.training;
+  if (pkg.category === 'fear_of_flying') return copy.fearOfFlying;
+  if (pkg.durationMinutes === 30) return copy.discovery;
+  if (pkg.durationMinutes === 60) return '+1 World Trio';
+  if (pkg.durationMinutes === 90) return '+2 World Trios';
+  return `${pkg.durationMinutes}m`;
+}
+
 export function KantorovichCalendarScheduler({
   selectedDate,
   calendarTodayYmd,
@@ -592,13 +635,7 @@ export function KantorovichCalendarScheduler({
                   </span>
                 ) : (
                   <span className="text-[10px] font-mono text-slate-400 truncate max-w-[130px]">
-                    {pkg.durationMinutes === 30
-                      ? (language === 'he' ? 'משימת היכרות מודרכת' : language === 'ru' ? 'Ознакомительная миссия с инструктором' : language === 'fr' ? 'Mission découverte guidée' : language === 'ar' ? 'مهمة استكشافية بإرشاد مدرب' : 'Guided Discovery Mission')
-                      : pkg.durationMinutes === 60
-                      ? '+1 World Trio'
-                      : pkg.durationMinutes === 90
-                      ? '+2 World Trios'
-                      : `${pkg.durationMinutes}m`}
+                    {durationOptionSubtitle(pkg, language)}
                   </span>
                 )}
               </button>

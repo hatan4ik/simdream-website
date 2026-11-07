@@ -1,4 +1,4 @@
-import { addDays, displayDatePattern, israelDate, nextWeekdayAfter, ribbonLabel, zonedDate } from './pages/format';
+import { addDays, displayDatePattern, israelDate, nextWeekdayAfter, ribbonLabel } from './pages/format';
 import { expect, test } from './fixtures';
 
 const SATURDAY = 6;
@@ -26,7 +26,7 @@ test.describe('zero-slot recovery (AGENTS.md section 4), storefront', () => {
     await expect(
       page.getByRole('heading', {
         level: 3,
-        name: new RegExp(`^No open runway slots for Daytime Special Flight on ${displayDatePattern(saturday).source}$`),
+        name: new RegExp(`^No open runway slots for Discounted Promotion Flight on ${displayDatePattern(saturday).source}$`),
       })
     ).toBeVisible();
     await expect(store.packageCard(45)).toContainText('No open slots today');
@@ -87,8 +87,9 @@ test.describe('zero-slot recovery (AGENTS.md section 4), storefront', () => {
     test.use({ timezoneId: 'America/New_York' });
 
     test('still advances to the next day with "Check Next Day" (E2E-5)', async ({ page, booking }) => {
-      // The ribbon follows the browser's own calendar.
-      const saturday = nextWeekdayAfter(zonedDate('America/New_York'), SATURDAY);
+      // Availability is governed by the simulator's Israel operating clock,
+      // never the visitor's device timezone.
+      const saturday = nextSaturday();
       await booking.goto(PROMO_45);
       await booking.selectDate(saturday);
       await expect(booking.storefront.departureSlotsLabel(saturday)).toBeVisible();

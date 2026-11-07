@@ -191,10 +191,25 @@ test.describe('/book when the slots API is slow', () => {
     const holdSaturday = gate();
     const urlByDate = new Map<string, string>();
     let heldSaturdayDate: string | null = null;
+    // Make the held response visibly distinct even when the business hours on
+    // Saturday and weekdays intentionally use the same duration-aware grid.
+    const saturdayOnlyStart = '07:15';
     await openBookingPage(page, baseURL, async (route) => {
       const date = requestedDate(route.request());
       urlByDate.set(date, route.request().url());
-      if (date === heldSaturdayDate) await holdSaturday.promise;
+      if (date === heldSaturdayDate) {
+        await holdSaturday.promise;
+        await route
+          .fulfill({
+            json: slotsPayload(route.request().url(), (slots) =>
+              slots.map((slot, index) =>
+                index === 0 ? { ...slot, startTime: saturdayOnlyStart, endTime: '08:30' } : slot
+              )
+            ),
+          })
+          .catch(() => undefined);
+        return;
+      }
       // The page may already have aborted the superseded Saturday request.
       await fulfillOpenSlots(route).catch(() => undefined);
     });
@@ -233,13 +248,12 @@ test.describe('/book when the slots API is slow', () => {
     await page.locator(`[data-calendar-date="${weekday.date}"]`).click();
     const weekdayTimes = openStartTimes(urlByDate.get(weekday.date) ?? '');
     await expect(slotButton(page, weekdayTimes[0])).toBeVisible();
-    const saturdayOnly = openStartTimes(urlByDate.get(saturday.date) ?? '').filter((time) => !weekdayTimes.includes(time));
-    expect(saturdayOnly.length).toBeGreaterThan(0);
+    expect(weekdayTimes).not.toContain(saturdayOnlyStart);
     holdSaturday.open();
     await late;
     await settleFrames(page);
 
-    await expect(slotButton(page, saturdayOnly[0])).toHaveCount(0);
+    await expect(slotButton(page, saturdayOnlyStart)).toHaveCount(0);
     await expect(slotButton(page, weekdayTimes[0])).toBeVisible();
   });
 });
@@ -275,9 +289,9 @@ test.describe('/book default week calendar', () => {
 
 test.describe('/book week calendar navigation', () => {
   const exerciseWeekPaging = async (page: Parameters<typeof openBookingPage>[0]) => {
-    // The server render intentionally starts at a stable 2099 date. Wait for the browser to
-    // adopt Israel's live operating day before deriving the next-week request target.
-    await expect.poll(selectedCalendarDate.bind(null, page)).not.toMatch(/^2099-/);
+    // The booking page resolves Israel's live operating date after hydration.
+    // Read the selected calendar cell only once that client-side hand-off has completed.
+    await expect.poll(selectedCalendarDate.bind(null, page)).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     const selectedDate = await selectedCalendarDate(page);
     const nextDate = addDays(selectedDate, 7);
     const nextDepartureRequest = page.waitForResponse(

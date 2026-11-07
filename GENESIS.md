@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:bbdfff5eaff4c97a4190d7716db65066a2f72669795e85cd8365954a495bbaeb -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:9212367a0c298dba03ec9891161fcd208a367cf6cb66c357d582e5824d5c02b9 -->
 
 ## Verification contract
 
@@ -93,15 +93,17 @@ Sim Dream LTD runs one full-size **Boeing 737 MAX 8 flight simulator** at Gersho
 | Feature | Route(s) | Behaviour |
 | --- | --- | --- |
 | Marketing pages | `/`, `/experiences`, `/subscriptions`, `/subscriptions/thank-you`, `/about`, `/pro`, `/contact`, `/rules`, `/privacy-policy` | Five customer value pillars, live METAR ticker (LLBG) and facility open/closed status, Google reviews. `/about` is the customer story; `/pro` is professional airline-assessment training; `/subscriptions` is the dedicated five-language annual flight-subscription portal, with post-checkout order confirmation on `/subscriptions/thank-you`. |
-| Booking engine | `/book`, `/book/success` | Two interfaces over identical availability logic: the guided 3-step wizard is the default; the one-page “Amazon-style” Express Shop remains an optional desktop-only view and is never rendered as a phone choice. The default calendar is week view (month is togglable), with slot selection, add-ons, pilot manifest and checkout. Each calendar option uses the selected package's reserved cadence (30m → 45m, 45m → 60m, 60m → 75m, 90m → 105m, 120m → 150m) and preserves zero-waste capacity. With Wix authority enabled, a mapped one-service base flight takes the Wix-native guest/member flow (fresh slot validation → booking → Cart V2 `customerInfo` → calculation → Wix hosted checkout), including Wix coupons; Wix receives the already-completed name, email and normalized phone so the payment page can prefill them. The local checkout endpoint refuses to create a competing reservation. Add-ons and on-request World Trio routes display a localized Wix-authority notice until their native catalog mapping is delivered; when Wix authority is disabled, they retain Supabase/Stripe checkout. An active Wix subscription member can enter `/book?subscription=wix` from the subscription flight deck; only the mapped 60m or 90m base session is eligible, and the browser opens Wix-hosted Bookings checkout with an exact server-resolved live slot. An on-request World Trio opens calendar-first, saves a validated request with the booking and explicitly awaits captain confirmation when local checkout is active. The success page shows a boarding pass from a narrow public projection looked up by booking reference. |
+| Booking engine | `/book`, `/book/success` | Two interfaces over identical availability logic: the guided 3-step wizard is the default; the one-page “Amazon-style” Express Shop remains an optional desktop-only view and is never rendered as a phone choice. The default calendar is week view (month is togglable), with slot selection, add-ons, pilot manifest and checkout. It does not serialize a fabricated server date: until the browser resolves the Israel date, it renders a localized initialization state. Each calendar option uses the selected package's reserved cadence (30m → 45m, 45m → 60m, 60m → 75m, 90m → 105m, 120m → 150m) and preserves zero-waste capacity. With Wix authority enabled, a mapped one-service base flight takes the Wix-native guest/member flow (fresh slot validation → booking → Cart V2 `customerInfo` → calculation → Wix hosted checkout), including Wix coupons; Wix receives the already-completed name, email and normalized phone so the payment page can prefill them. The local checkout endpoint refuses to create a competing reservation. Add-ons and on-request World Trio routes display a localized Wix-authority notice until their native catalog mapping is delivered; when Wix authority is disabled, they retain Supabase/Stripe checkout. An active Wix subscription member can enter `/book?subscription=wix` from the subscription flight deck; only the mapped 60m or 90m base session is eligible, and the browser opens Wix-hosted Bookings checkout with an exact server-resolved live slot. An on-request World Trio opens calendar-first, saves a validated request with the booking and explicitly awaits captain confirmation when local checkout is active. The success page shows a boarding pass from a narrow public projection looked up by booking reference. |
 | Persistent mobile chrome | `app/layout.tsx`, `LiveMetarBar`, `Navbar`, `Footer` | The utility bar and navigation travel as one sticky header, so language selection, all three official native-colour social channels, and Wix Smart Chat remain reachable while scrolling. On phones, the footer is deliberately removed from page flow; its customer-story, contact, rules and privacy links are reachable through the localized “About Us” disclosure in the mobile menu. |
-| Noise-free flows | `/book?package=…` | Professional Training and Fear of Flying suppress all add-ons and combos (2-step flow); recreational uses the full 3-step flow. |
+| Noise-free flows | `/book?package=…` | Professional Training and Fear of Flying suppress all add-ons and combos (2-step flow), including in compact duration-picker labels; recreational uses the full 3-step flow. |
 | Scheduling | `lib/scheduler/*` | Deterministic "tiled interval" engine: each flight reserves a fixed block (flight + turnaround), slots are generated per operating window, orphan gaps are prevented, departed slots close by the Israel clock, and a dynamic-programming optimizer previews zero-waste capacity for admins. |
-| Gift vouchers | `/vouchers` | Purchase via Stripe (high-entropy `SD-VOUCH-…` codes, valid 12 months), verification, partial redemption at checkout or the desk, atomic balance debit. |
+| Gift vouchers and Gift Cards | `/vouchers`, `/book` | Legacy purchase uses high-entropy `SD-VOUCH-…` codes with local verification and atomic balance debit. The voucher preview starts with the approved realistic, editable fictional names Aviad Stern and Danielle Cohen. In Wix-authoritative base-flight checkout, a Wix-managed Gift Card is a separate stored-value payment method: the browser applies it to Cart V2, receives only an obfuscated code, and displays Wix-calculated credit and payable remainder. Native Gift Card purchase/issuance remains a separate, explicitly verified cutover task. |
 | Corporate workshops | `/workshops` | B2B CRM/leadership lead form (`corporate_inquiries`), managed in admin. |
 | Member area | `/login`, `/dashboard`, `/wix/members/callback` plus retained legacy `/auth/callback` and `/auth/reset-password` pages | Wix Members is the primary hosted sign-in/register path. The dashboard verifies the Wix member token server-side and lists only that member's Calendar sessions and active Pricing Plan orders; Wix Calendar entries intentionally do not display a price, invoice, Stripe receipt or local boarding pass. The retained Supabase path continues to protect legacy local booking history and Stripe receipts. Paid guest bookings attach to a confirmed legacy member only when the checkout email **exactly** matches. Guest checkout is always available. |
 | Admin dispatch | `/admin`, `/admin/bookings`, `/admin/vouchers`, `/admin/workshops` | Daily efficiency report and gap-collision tester, booking manifest (reschedule, cancel), voucher terminal (verify, redeem), workshop CRM pipeline. Basic auth plus same-origin checks on mutations. |
 | Payments | `POST /api/checkout`, `POST /api/webhooks/stripe`, Wix Cart V2 | Local card bookings stay `pending` until a verified `checkout.session.completed`; expiry or failure cancels. Eligible simple Wix Bookings flights are paid and confirmed by native Wix checkout and use the Wix order/calendar instead of a local booking reference. Webhook-delivered local confirmations use a claimed/sent outbox for retry-safe delivery. |
+
+**Wix-native Gift Card boundary:** In an eligible Wix-authoritative booking, the manifest exposes separate Coupon and Gift Card choices. A Gift Card is applied to the visitor-owned Cart V2 draft through Wix, its applied amount and final payable remainder come from `Calculate Cart`, and the raw bearer code is immediately cleared in favour of Wix's obfuscated display value. It is not a local `SD-VOUCH-*` voucher or a promotion. Native customer purchase/issuance is intentionally not represented as complete until its headless contract and paid-order lifecycle are verified.
 
 ### 4. Data models
 
@@ -177,7 +179,7 @@ Build **simdream.co.il**, the booking and marketing platform for **Sim Dream LTD
 2. **Canonical URL discipline.**
    - `/pro` is the single page for professional airline-assessment training.
    - `/about` is the customer story, kept separate from `/pro`.
-   - `/simulator` and `/training` redirect permanently (301) to `/pro`.
+  - `/simulator` and `/training` redirect permanently to `/pro`; `/book-online`, `/לקנות-כמתנה`, `/cooperation`, and `/pricing-plans/list` preserve their exact intent through permanent redirects to `/book`, `/vouchers`, `/workshops`, and `/subscriptions` respectively. Do not add broad legacy redirects until each legacy offering has an approved content/SKU mapping.
    - Navigation, footer and sitemap point at canonical routes only.
 3. **Noise-free flow suppression.**
    - Professional Training and Fear of Flying bookings show zero add-ons and zero combos, in a 2-step flow: *Date & Slot → Pilot Manifest & Checkout*.
@@ -186,6 +188,7 @@ Build **simdream.co.il**, the booking and marketing platform for **Sim Dream LTD
    - The guided wizard is the default. Keep the optional Express Shop on desktop only; do not expose it at phone breakpoints, where localized labels must remain single-line and touch-safe.
 4. **Unicode purity and RTL isolation.**
    - Resolve every user-visible string through `lib/i18n/translations.ts`, with identical key trees in all five languages.
+   - Hebrew is the first-visit default. `lib/i18n/language-preference.ts` validates the five supported codes and derives direction. An explicit `simdream_lang` preference is mirrored from local storage into a non-sensitive same-site cookie, so `app/layout.tsx` can render a returning visitor's language and direction on the server without a post-hydration language reflow.
    - Never choose display text with an `isRTL` ternary; `isRTL` is for layout only.
    - No Hebrew letters in non-Hebrew copy and no Arabic letters in non-Arabic copy.
    - Telemetry stays `dir="ltr"` inside RTL text: METAR, frequencies, booking references, times, slot ranges, prices, emails.
@@ -222,7 +225,7 @@ Seed 13 add-ons in three groups:
 
 Add 3 curated one-click combos. Localize every package and add-on in all five languages. Keep **one server-side catalog authority**: the catalog API and checkout must read prices and durations from the same source.
 
-**Named gift certificates** use the same registry, in this fixed order: Discovery 30 (₪450), Captain 60 (₪690), Ultimate 90 (₪950, including the prime-time tariff), and Airline Interview Prep 120 PRO (₪1,590). The browser sends only a package id; checkout resolves its amount and title server-side. Flexible monetary gift cards remain open-balance vouchers.
+**Named gift certificates** use the same registry, in this fixed order: Discovery 30 (₪450), Captain 60 (₪690), Ultimate 90 (₪950, including the prime-time tariff), and Airline Interview Prep 120 PRO (₪1,590). The browser sends only a package id; checkout resolves its amount and title server-side. The legacy flexible monetary offering remains an open-balance `SD-VOUCH-*` voucher until its purchase issuance is deliberately migrated. A Wix-native Gift Card is distinct: it is redeemed only through the Wix Cart V2 Gift Card endpoints, has a Wix-managed balance and can be partially applied to a native Wix booking cart. Never treat a Wix Gift Card as a coupon, and never retain its raw bearer code after Wix has accepted it.
 
 **Experience Flights route catalog** (`lib/data/experience-routes.ts`, rendered by `components/experiences/WorldRoutesSection.tsx` on `/experiences#world-routes`): the "טיסות חוויה" section written in the captain's voice. It lists every world-trio add-on (price and minutes resolved from `FLIGHT_ADDONS`, never duplicated) plus proposed on-request trios (Israel home skies, Atlantic outposts, Arctic lights, Himalaya, Africa, Pacific, Andes, North American wilderness) and scenario adventures (Dead Sea low pass, ETOPS crossing, Everest mountain flight, storm diversion, round-the-world, fly-home). Each trio names three real airports by ICAO and IATA code (ICAO rendered LTR), a 1–5 captain's handling rating, a first-person captain's note and "best for" tags, all in five languages. Bookable trios link to `/book` with their priced add-on selected. On-request World Trios link to `/book?package=captains-command-60&route=<id>`, open the calendar-first flow, restrict packages to 60 minutes or longer, retain only a server-validated route ID, add no route charge and clearly state that the captain confirms the final plan. Scenario adventures remain `/contact?subject=route&route=<id>` briefing inquiries. Every airport is a real Boeing 737 destination (pillar 5). Pinned by `tests/unit/experience-routes.test.ts`.
 
@@ -270,7 +273,7 @@ Add 3 curated one-click combos. Localize every package and add-on in all five la
   - `KantorovichCalendarScheduler` (guided wizard).
 - `BookingWeekPager` is their shared, five-language week-navigation boundary. It shifts the selected Israel date by exactly seven days, prevents travel before today, and flips only directional chevrons for RTL (not text).
 - The calendar defaults to a **localized week view**, with the month grid retained as an explicit toggle. Weeks start on Sunday for he, ar and en, and on Monday for ru and fr. RTL arrows are flipped.
-- `/book` first renders a stable calendar snapshot, then adopts the browser's live **Israel** date after hydration. Do not read the device clock in calendar render paths: a visitor west of UTC must never get a date-shift or React hydration mismatch.
+- `/book` renders a localized initialization state until the browser supplies the live **Israel** date; it never places a fictional date in server HTML. Do not read the device clock in calendar render paths: a visitor west of UTC must never get a date-shift or React hydration mismatch.
 - **Never hide packages or durations** with zero open slots. Show them with a "0 slots open today" badge and keep the user's selection.
 - When a package has zero slots, show:
   - "No open runway slots for [Package] on [Date]";
@@ -360,7 +363,7 @@ Add 3 curated one-click combos. Localize every package and add-on in all five la
   - Touch targets at least 24 × 24 px (WCAG 2.2 AA, enforced by the tests); aim for 44 × 44 px on primary mobile controls.
 - **SEO**:
   - per-page metadata and canonical URLs;
-  - a sitemap of canonical routes, and `robots.txt` disallowing `/admin` and `/api`;
+  - a sitemap of canonical routes, `robots.txt` disallowing `/admin` and `/api`, and an explicit `noindex, nofollow, noarchive` meta directive for every `*.wix-site-host.com` preview host;
   - JSON-LD: WebSite, the local business (address, geo coordinates, opening hours, aggregate rating), an offer catalog, and an FAQ;
   - `noindex` on `/login`.
 
@@ -596,7 +599,7 @@ lib/
   catalog/gift-voucher-packages  data/experience-routes subscription-passes subscription-page-copy  db/ store schema.sql seed-data supabase-admin migrations/
   auth/ admin-guard request-auth member-ownership safe-redirect auth-context
   security/rate-limit
-  i18n/ translations language-context calendar-presentation booking-blueprint-copy wix-subscription-booking-copy
+  i18n/ translations language-context language-preference calendar-presentation booking-blueprint-copy wix-subscription-booking-copy
   config/ facility-info server-env use-live-facility-status
   theme/ui-theme-context  ui/ use-client-value use-modal-focus  seo/seo-config
   reviews/google-reviews-cache  i18n/booking-blueprint-copy

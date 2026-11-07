@@ -6,6 +6,7 @@ import {
   ensureStorefrontDateVisible,
   findBookableDate,
   openStorefrontOn,
+  openStorefrontView,
   openWizardStep,
   PAYMENTS_UNAVAILABLE_MESSAGE,
   selectStorefrontDate,
@@ -45,6 +46,7 @@ test.describe('keyboard-only booking journey', () => {
   test('completes the one-page storefront up to payment using only the keyboard', async ({ page, request }) => {
     const { date, openStartTimes } = await findBookableDate(request);
     await gotoSettled(page, '/book');
+    await openStorefrontView(page);
 
     await ensureStorefrontDateVisible(page, date);
     await tabTo(page, stripDayButton(page, date));

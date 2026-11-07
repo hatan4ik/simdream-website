@@ -2,6 +2,7 @@ import { expect, preferTheme } from '../support/e2e';
 import { waitUntilInteractive } from '../e2e/pages/hydration';
 import { test } from './support/fixtures';
 import { gotoSettled, isolateFromThirdParties } from './support/page';
+import { openStorefrontView } from './support/booking';
 
 test.use({ reducedMotion: 'reduce', video: 'off', viewport: { width: 1440, height: 900 } });
 
@@ -49,6 +50,7 @@ test('treats the language selector as a keyboard-accessible choice list', async 
 
 test('uses Apple-like actions without turning booking cards into pills', async ({ page }) => {
   await gotoSettled(page, '/book');
+  await openStorefrontView(page);
   const primary = page.locator('a[href="/book"][data-ui-control="button"]').first();
   const packageCard = page.locator('[data-booking-package-card]').first();
   const detailAction = page.locator('[data-package-details-trigger]').first();

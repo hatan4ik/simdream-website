@@ -15,7 +15,14 @@ const FOOTER_NAV = [
   { link: 'Privacy & Cookie Policy', path: '/privacy-policy', heading: /^Privacy & Cookie Policy/ },
 ] as const;
 
-const LEGACY_ALIASES = ['/simulator', '/training'] as const;
+const LEGACY_ALIASES = [
+  { alias: '/simulator', destination: '/pro' },
+  { alias: '/training', destination: '/pro' },
+  { alias: '/book-online', destination: '/book' },
+  { alias: '/לקנות-כמתנה', destination: '/vouchers' },
+  { alias: '/cooperation', destination: '/workshops' },
+  { alias: '/pricing-plans/list', destination: '/subscriptions' },
+] as const;
 
 test.describe('primary navigation', () => {
   for (const target of PRIMARY_NAV) {
@@ -123,18 +130,23 @@ test.describe('primary navigation', () => {
 });
 
 test.describe('legacy routes', () => {
-  for (const alias of LEGACY_ALIASES) {
-    test(`permanently redirects ${alias} to /pro`, async ({ page, request }) => {
+  for (const { alias, destination } of LEGACY_ALIASES) {
+    test(`permanently redirects ${alias} to ${destination}`, async ({ page, request }) => {
       const response = await request.get(alias, { maxRedirects: 0 });
 
       expect([301, 308], 'permanent redirect status').toContain(response.status());
-      expect(new URL(response.headers()['location'] ?? '', 'http://app.invalid').pathname).toBe('/pro');
+      expect(new URL(response.headers()['location'] ?? '', 'http://app.invalid').pathname).toBe(destination);
 
       await page.goto(alias);
-      await expect(page).toHaveURL('/pro');
-      await expect(page.getByRole('heading', { level: 1, name: /^Professional Training — Airline Assessment/ })).toBeVisible();
+      await expect(page).toHaveURL(destination);
     });
   }
+
+  test('never serializes a fabricated booking date into the initial document', async ({ request }) => {
+    const response = await request.get('/book');
+    expect(response.status()).toBe(200);
+    expect(await response.text()).not.toContain('2099');
+  });
 });
 
 test('opens the customer story from the About & How It Works call to action', async ({ page }) => {

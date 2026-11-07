@@ -1,5 +1,5 @@
 import type { Page } from '@playwright/test';
-import { ADMIN_CREDENTIALS, expect, nextIsraelWeekday, PUBLIC_ROUTES } from '../support/e2e';
+import { ADMIN_CREDENTIALS, expect, nextIsraelWeekday, preferLanguage, PUBLIC_ROUTES } from '../support/e2e';
 import { HYDRATION_MISMATCH_ERROR, test } from './support/fixtures';
 import { isolateFromThirdParties } from './support/page';
 
@@ -46,13 +46,14 @@ test('hydrates the footer status without React errors whether the facility is op
   // One of these always differs from the open/closed state captured at build time.
   const moments = {
     open: `${nextIsraelWeekday(3)}T12:00:00+02:00`, // Wednesday noon
-    closed: `${nextIsraelWeekday(6)}T10:00:00+02:00`, // Saturday morning, before prime time
+    closed: `${nextIsraelWeekday(6)}T03:00:00+02:00`, // outside every configured operating window
   };
   const errors: string[] = [];
   for (const [state, moment] of Object.entries(moments)) {
     const context = await browser.newContext({ baseURL, timezoneId: 'Asia/Jerusalem' });
     const page = await context.newPage();
     await isolateFromThirdParties(page, baseURL);
+    await preferLanguage(page, 'en');
     await page.clock.setFixedTime(new Date(moment));
     collectHydrationErrors(page, errors);
 

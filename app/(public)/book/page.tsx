@@ -43,9 +43,11 @@ import {
 import { isWixSubscriptionBookingPackageId, wixSubscriptionBookingPackageForPlan } from '@/lib/wix/subscription-redemption';
 import {
   applyWixCoupon,
+  applyWixGiftCard,
   getWixBookingCheckoutUrl,
   prepareWixBookingCheckout,
   removeWixCoupon,
+  removeWixGiftCard,
   type WixNativeCheckoutCandidate,
 } from '@/lib/wix/booking-checkout-client';
 import {
@@ -54,11 +56,6 @@ import {
   WORLD_ROUTES,
   findOnRequestWorldRoute,
 } from '@/lib/data/experience-routes';
-
-// The server and a visitor can be in different time zones. This stable snapshot
-// hydrates first, then the browser swaps in Israel's live operating date.
-const SSR_CALENDAR_TODAY = '2099-01-01';
-const SSR_DEFAULT_BOOKING_DATE = addDaysToYmd(SSR_CALENDAR_TODAY, 1);
 
 // Documented deep links (AGENTS.md, official service pages) use these names for the PRO tiers.
 const PACKAGE_SLUG_ALIASES: Record<string, string> = {
@@ -76,12 +73,18 @@ function formatBookingTemplate(template: string, values: Record<string, string |
 }
 
 /** An unpaid, visitor-owned Wix cart reused between coupon validation and checkout. */
+type WixCheckoutCodeKind = 'coupon' | 'gift-card';
+
 interface WixCheckoutDraftState {
   inputKey: string;
   cartId: string;
   totalIls: number;
+  codeKind?: WixCheckoutCodeKind;
   couponId?: string;
   couponCode?: string;
+  giftCardId?: string;
+  /** Wix masks the bearer code; never retain a native Gift Card code after applying it. */
+  giftCardObfuscatedCode?: string;
 }
 
 /** Query-string selections are customer intent only; the checkout API still validates catalog IDs and prices. */
@@ -95,7 +98,11 @@ function BookContent() {
   const { user } = useAuth();
   const formId = useId();
   const browserIsraelToday = useClientValue(() => israelToday());
-  const calendarTodayYmd = browserIsraelToday ?? SSR_CALENDAR_TODAY;
+  // Do not place a fabricated date in the initial HTML. Static prerendering
+  // cannot know today's Israel date, so the calendar renders only once the
+  // browser supplies it. Until then the visitor sees the localized loading
+  // state rather than a misleading future schedule.
+  const calendarTodayYmd = browserIsraelToday ?? '';
 
   const localizedPackages = getLocalizedPackages(language);
   const localizedAddons = getLocalizedAddons(language);
@@ -201,7 +208,7 @@ function BookContent() {
   const [selectedDateOverride, setSelectedDateOverride] = useState<string | null>(null);
   const selectedDate =
     selectedDateOverride ??
-    (browserIsraelToday ? addDaysToYmd(browserIsraelToday, 1) : SSR_DEFAULT_BOOKING_DATE);
+    (browserIsraelToday ? addDaysToYmd(browserIsraelToday, 1) : '');
   const setSelectedDate = React.useCallback((date: string) => {
     setSelectedDateOverride(date);
   }, []);
@@ -274,6 +281,7 @@ function BookContent() {
   const [voucherError, setVoucherError] = useState<string>('');
   const [voucherSuccess, setVoucherSuccess] = useState<string>('');
   const [isVerifyingVoucher, setIsVerifyingVoucher] = useState<boolean>(false);
+  const [wixCheckoutCodeKind, setWixCheckoutCodeKind] = useState<WixCheckoutCodeKind>('coupon');
   const [wixCheckoutDraft, setWixCheckoutDraft] = useState<WixCheckoutDraftState | null>(null);
 
   // Wix is the native writer for simple single-service bookings. The local checkout
@@ -314,6 +322,7 @@ function BookContent() {
     setVoucherError('');
     setVoucherSuccess('');
     setWixCheckoutDraft(null);
+    setWixCheckoutCodeKind('coupon');
   }, [isWixSubscriptionRedemption]);
 
   useEffect(() => {
@@ -438,6 +447,13 @@ function BookContent() {
   const displayManifest = activeWixCheckoutDraft
     ? { ...manifest, totalIls: activeWixCheckoutDraft.totalIls }
     : manifest;
+  const isNativeGiftCardApplied = Boolean(activeWixCheckoutDraft?.giftCardId);
+  const appliedCodeDisplay = isNativeGiftCardApplied
+    ? activeWixCheckoutDraft?.giftCardObfuscatedCode
+    : voucherCode;
+  const appliedCodeLabel = isNativeGiftCardApplied
+    ? t.booking.wixGiftCardCredit
+    : t.booking.voucherDiscount;
 
   // Smart Window Guard: if user switches to a tighter time slot in Step 1, prune any time-extending add-ons that exceed maxSlotMinutes
   useEffect(() => {
@@ -514,8 +530,11 @@ function BookContent() {
 
     const couponDraft: WixCheckoutDraftState = {
       ...draft,
+      codeKind: 'coupon',
       couponId: applied.couponId,
       couponCode: code,
+      giftCardId: undefined,
+      giftCardObfuscatedCode: undefined,
       totalIls: applied.price.totalIls,
     };
     setWixCheckoutDraft(couponDraft);
@@ -528,6 +547,33 @@ function BookContent() {
       })
     );
     return couponDraft;
+  };
+
+  const applyGiftCardToCurrentWixCheckout = async (code: string): Promise<WixCheckoutDraftState> => {
+    const draft = await ensureCurrentWixCheckoutDraft();
+    const applied = await applyWixGiftCard(getWixMemberClient(), draft.cartId, code);
+    const appliedCredit = applied.price.giftCardAppliedIls ?? 0;
+    const giftCardDraft: WixCheckoutDraftState = {
+      ...draft,
+      codeKind: 'gift-card',
+      couponId: undefined,
+      couponCode: undefined,
+      giftCardId: applied.giftCardId,
+      giftCardObfuscatedCode: applied.obfuscatedCode,
+      totalIls: applied.price.totalIls,
+    };
+    setWixCheckoutDraft(giftCardDraft);
+    // A native Gift Card is a bearer credential. It must not remain in state,
+    // browser storage, a URL, or any rendered booking summary after Wix applies it.
+    setVoucherCode('');
+    setVoucherDiscount(appliedCredit);
+    setVoucherSuccess(
+      formatBookingTemplate(t.booking.wixGiftCardApplied, {
+        amount: formatCurrency(appliedCredit),
+        total: formatCurrency(applied.price.totalIls),
+      })
+    );
+    return giftCardDraft;
   };
 
   // Voucher verification handler with 1-click reapply and session storage persistence.
@@ -544,10 +590,18 @@ function BookContent() {
     try {
       if (canUseWixNativeCheckout) {
         if (!pilotName.trim() || !pilotEmail.trim() || !pilotPhone.trim()) {
-          setVoucherError(t.booking.wixCouponNeedsPilotDetails);
+          setVoucherError(
+            wixCheckoutCodeKind === 'gift-card'
+              ? t.booking.wixGiftCardNeedsPilotDetails
+              : t.booking.wixCouponNeedsPilotDetails
+          );
           return;
         }
-        await applyCouponToCurrentWixCheckout(code);
+        if (wixCheckoutCodeKind === 'gift-card') {
+          await applyGiftCardToCurrentWixCheckout(code);
+        } else {
+          await applyCouponToCurrentWixCheckout(code);
+        }
         return;
       }
 
@@ -578,7 +632,9 @@ function BookContent() {
     } catch (err: unknown) {
       setVoucherError(
         canUseWixNativeCheckout
-          ? t.booking.wixCouponVerifyFailed
+          ? wixCheckoutCodeKind === 'gift-card'
+            ? t.booking.wixGiftCardVerifyFailed
+            : t.booking.wixCouponVerifyFailed
           : extractErrorMessage(err, t.booking.voucherVerifyFailed)
       );
       setVoucherDiscount(0);
@@ -588,19 +644,35 @@ function BookContent() {
   };
 
   const handleRemoveVoucher = async () => {
-    if (activeWixCheckoutDraft?.couponId) {
+    if (activeWixCheckoutDraft?.couponId || activeWixCheckoutDraft?.giftCardId) {
       setIsVerifyingVoucher(true);
       setVoucherError('');
       try {
-        const price = await removeWixCoupon(
-          getWixMemberClient(),
-          activeWixCheckoutDraft.cartId,
-          activeWixCheckoutDraft.couponId
-        );
-        setWixCheckoutDraft({ ...activeWixCheckoutDraft, totalIls: price.totalIls, couponId: undefined, couponCode: undefined });
+        const price = activeWixCheckoutDraft.giftCardId
+          ? await removeWixGiftCard(
+              getWixMemberClient(),
+              activeWixCheckoutDraft.cartId,
+              activeWixCheckoutDraft.giftCardId
+            )
+          : await removeWixCoupon(
+              getWixMemberClient(),
+              activeWixCheckoutDraft.cartId,
+              activeWixCheckoutDraft.couponId as string
+            );
+        setWixCheckoutDraft({
+          ...activeWixCheckoutDraft,
+          totalIls: price.totalIls,
+          codeKind: undefined,
+          couponId: undefined,
+          couponCode: undefined,
+          giftCardId: undefined,
+          giftCardObfuscatedCode: undefined,
+        });
         setVoucherCode('');
       } catch {
-        setVoucherError(t.booking.wixCouponVerifyFailed);
+        setVoucherError(
+          activeWixCheckoutDraft.giftCardId ? t.booking.wixGiftCardVerifyFailed : t.booking.wixCouponVerifyFailed
+        );
         return;
       } finally {
         setIsVerifyingVoucher(false);
@@ -711,9 +783,14 @@ function BookContent() {
       }
 
       if (canUseWixNativeCheckout) {
-        const enteredCoupon = voucherCode.trim();
-        if (enteredCoupon && (!activeWixCheckoutDraft?.couponId || activeWixCheckoutDraft.couponCode !== enteredCoupon)) {
-          setVoucherError(t.booking.wixCouponApplyFirst);
+        const enteredCode = voucherCode.trim();
+        const hasAppliedCode = wixCheckoutCodeKind === 'gift-card'
+          ? Boolean(activeWixCheckoutDraft?.giftCardId)
+          : Boolean(activeWixCheckoutDraft?.couponId && activeWixCheckoutDraft.couponCode === enteredCode);
+        if (enteredCode && !hasAppliedCode) {
+          setVoucherError(
+            wixCheckoutCodeKind === 'gift-card' ? t.booking.wixGiftCardApplyFirst : t.booking.wixCouponApplyFirst
+          );
           setIsSubmitting(false);
           return;
         }
@@ -902,7 +979,9 @@ function BookContent() {
         </section>
       )}
 
-      {bookingViewMode === 'storefront' ? (
+      {!browserIsraelToday ? (
+        <BookLoadingFallback />
+      ) : bookingViewMode === 'storefront' ? (
         <AmazonFlightStorefront
           accountNotice={accountNotice}
           selectedDate={selectedDate}
@@ -1334,7 +1413,7 @@ function BookContent() {
 
                 {voucherDiscount > 0 && (
                   <div className="flex justify-between text-emerald-400 font-semibold">
-                    <span>{t.booking.voucherDiscount} ({voucherCode})</span>
+                    <span>{appliedCodeLabel} ({appliedCodeDisplay})</span>
                     <span className="font-mono">-{formatCurrency(voucherDiscount)}</span>
                   </div>
                 )}
@@ -1360,10 +1439,10 @@ function BookContent() {
                     <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between gap-3">
                       <div>
                         <p className="text-xs font-mono font-bold text-emerald-400">
-                          ✓ {voucherCode}
+                          ✓ {appliedCodeDisplay}
                         </p>
                         <p className="text-[11px] font-mono text-emerald-300">
-                          -{formatCurrency(voucherDiscount)} ({t.booking.discountApplied})
+                          -{formatCurrency(voucherDiscount)} ({isNativeGiftCardApplied ? t.booking.wixGiftCardCredit : t.booking.discountApplied})
                         </p>
                       </div>
                       <Button
@@ -1378,13 +1457,55 @@ function BookContent() {
                     </div>
                   ) : (
                     <div className="space-y-2">
+                      {canUseWixNativeCheckout && (
+                        <fieldset
+                          data-booking-code-type-selector
+                          className="grid grid-cols-2 rounded-xl border border-slate-700 bg-slate-950 p-1"
+                          aria-label={t.booking.wixCodeTypeLabel}
+                        >
+                          <button
+                            type="button"
+                            aria-pressed={wixCheckoutCodeKind === 'coupon'}
+                            onClick={() => {
+                              setWixCheckoutCodeKind('coupon');
+                              setVoucherCode('');
+                              setVoucherError('');
+                              setVoucherSuccess('');
+                            }}
+                            className={`min-h-11 rounded-lg border px-3 text-xs font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-400 ${
+                              wixCheckoutCodeKind === 'coupon'
+                                ? 'border-sky-400 bg-sky-500 text-slate-950 hover:bg-sky-400'
+                                : 'border-transparent text-slate-300 hover:bg-slate-800 hover:text-white'
+                            }`}
+                          >
+                            {t.booking.wixCouponCodeType}
+                          </button>
+                          <button
+                            type="button"
+                            aria-pressed={wixCheckoutCodeKind === 'gift-card'}
+                            onClick={() => {
+                              setWixCheckoutCodeKind('gift-card');
+                              setVoucherCode('');
+                              setVoucherError('');
+                              setVoucherSuccess('');
+                            }}
+                            className={`min-h-11 rounded-lg border px-3 text-xs font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-400 ${
+                              wixCheckoutCodeKind === 'gift-card'
+                                ? 'border-sky-400 bg-sky-500 text-slate-950 hover:bg-sky-400'
+                                : 'border-transparent text-slate-300 hover:bg-slate-800 hover:text-white'
+                            }`}
+                          >
+                            {t.booking.wixGiftCardCodeType}
+                          </button>
+                        </fieldset>
+                      )}
                       <div className="flex gap-2">
                         <input
                           type="text"
-                          aria-label={t.booking.voucherPromoTitle}
+                          aria-label={canUseWixNativeCheckout && wixCheckoutCodeKind === 'gift-card' ? t.booking.wixGiftCardCodeType : t.booking.voucherPromoTitle}
                           aria-invalid={voucherError ? true : undefined}
                           aria-describedby={voucherError ? `${formId}-voucher-error` : undefined}
-                          placeholder={t.booking.voucherPlaceholder}
+                          placeholder={canUseWixNativeCheckout && wixCheckoutCodeKind === 'gift-card' ? t.booking.wixGiftCardPlaceholder : t.booking.voucherPlaceholder}
                           value={voucherCode}
                           onChange={(e) => setVoucherCode(e.target.value)}
                           dir="ltr"
@@ -1401,7 +1522,7 @@ function BookContent() {
                         </Button>
                       </div>
 
-                      {cachedVoucherCode && (
+                      {cachedVoucherCode && (!canUseWixNativeCheckout || wixCheckoutCodeKind === 'coupon') && (
                         <div className="flex items-center justify-between text-[11px] font-mono text-slate-400 bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-lg">
                           <span>{t.booking.savedVoucher} <strong className="text-sky-300">{cachedVoucherCode}</strong></span>
                           <button

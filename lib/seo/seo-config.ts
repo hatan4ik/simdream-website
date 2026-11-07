@@ -235,22 +235,16 @@ export function buildPageMetadata(pageKey: SeoPageKey): Metadata {
     category: 'Aviation & Entertainment Simulation',
     alternates: {
       canonical: canonicalUrl,
-      languages: {
-        'en-IL': canonicalUrl,
-        'he-IL': canonicalUrl,
-        'ru-IL': canonicalUrl,
-        'fr-IL': canonicalUrl,
-        'ar-IL': canonicalUrl,
-        'x-default': canonicalUrl,
-      },
     },
     openGraph: {
       title: def.title,
       description: def.description,
       url: canonicalUrl,
       siteName: 'Sim Dream Israel — Boeing 737 Flight Simulator Center',
-      locale: 'en_IL',
-      alternateLocale: ['he_IL', 'ru_IL', 'fr_FR', 'ar_IL'],
+      // The canonical public document starts in Hebrew. The five languages are
+      // selected client-side today, so publishing five identical hreflang URLs
+      // would be misleading until locale-prefixed routes exist.
+      locale: 'he_IL',
       type: 'website',
     },
     twitter: {

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useId, useRef, useState } from 'react';
+import React, { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { Globe, ChevronDown, Check } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { LANGUAGES, Language } from '@/lib/i18n/translations';
@@ -65,9 +65,12 @@ export function LanguageSelector({
     };
   }, [isOpen]);
 
-  useEffect(() => {
+  // Move focus immediately after the option is committed. Using a passive
+  // effect here left keyboard users on the trigger on some React scheduling
+  // paths, even though the listbox was visibly open.
+  useLayoutEffect(() => {
     if (!isOpen || focusIndex === null) return;
-    requestAnimationFrame(() => optionRefs.current[focusIndex]?.focus());
+    optionRefs.current[focusIndex]?.focus();
   }, [focusIndex, isOpen]);
 
   const moveFocus = (from: number, delta: number) => {

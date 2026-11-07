@@ -136,7 +136,7 @@ test.describe('LTR isolation of aviation telemetry on RTL pages', () => {
 
       test('keeps slot time ranges left-to-right in the one-page storefront', async ({ page, request }) => {
         const { date } = await findBookableDate(request);
-        await openStorefrontOn(page, date);
+        await openStorefrontOn(page, date, language);
         await expectLanguageRendered(page, language);
         const report = await inspectTelemetryDirection(page);
 
@@ -147,7 +147,7 @@ test.describe('LTR isolation of aviation telemetry on RTL pages', () => {
       test('keeps slot time ranges left-to-right in the guided wizard', async ({ page, request }) => {
         // The shared ISO selector keeps the chosen date stable across localized storefront and wizard calendars.
         const { date } = await findBookableDate(request);
-        await openStorefrontOn(page, date);
+        await openStorefrontOn(page, date, language);
         await expectLanguageRendered(page, language);
         await page.getByRole('button', { name: translations[language].booking.wizardView, exact: true }).click();
         const wizardSlotRange = page.getByText(/^\d{2}:\d{2} – \d{2}:\d{2} \(60m\)$/).first();

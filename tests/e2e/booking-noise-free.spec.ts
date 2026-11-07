@@ -65,15 +65,18 @@ test.describe('professional training booking', () => {
     await follow(page.getByRole('link', { name: /^Book Airline Interview Prep 90 PRO/ }), /\/book\?package=airline-prep-90-pro$/);
 
     await expect(page).toHaveURL(/\/book\?package=airline-prep-90-pro$/);
-    await expect(page.getByRole('heading', { level: 1, name: 'Airline Interview Prep 90 PRO' })).toBeVisible();
-    await expect(page.getByText('🎯 NOISE-FREE AIRLINE ASSESSMENT SCHEDULING')).toBeVisible();
+    // Customer navigation intentionally opens the calendar-first wizard; Express
+    // Shop is a desktop-only optional view, not the default journey.
+    const wizard = await booking.openWizard();
+    await expect(wizard.progressSteps()).toHaveText(['2. DATE & SLOT', '4. PILOT & PAY']);
+    await expect(wizard.durationPill(90)).toHaveAttribute('aria-pressed', 'true');
     await expectNoUpsells(booking);
-    await expect(booking.storefront.experience('Licensed Pilot')).toBeChecked();
 
     for (const minutes of [60, 90, 120]) {
-      await expect(booking.storefront.packageCard(minutes)).toContainText('Airline Interview Prep');
+      await expect(wizard.durationPill(minutes)).toContainText('Airline assessment preparation');
+      await expect(wizard.durationPill(minutes)).not.toContainText('World Trio');
     }
-    await expect(booking.storefront.packageCard(30)).toHaveCount(0);
+    await expect(wizard.durationPill(30)).toHaveCount(0);
   });
 
   test('offers only the three PRO tiers, without the consumer 45m promo (E2E-13)', async ({ booking }) => {
@@ -108,7 +111,7 @@ test.describe('45m daytime promo booking', () => {
     booking,
   }) => {
     await booking.goto('?package=daytime-promo-45');
-    await expect(page.getByRole('heading', { level: 1, name: 'Daytime Special Flight' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Discounted Promotion Flight' })).toBeVisible();
 
     await expect(page.getByRole('heading', { name: ADDON_SECTIONS[1] })).toBeVisible();
     await expect(booking.storefront.experience('First-Timer')).toBeChecked();

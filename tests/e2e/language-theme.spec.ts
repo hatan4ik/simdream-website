@@ -14,6 +14,21 @@ const COPY: Record<Language, { vouchersTitle: string; hero: string }> = {
 const directionOf = (language: Language) => (RTL_LANGUAGES.includes(language) ? 'rtl' : 'ltr');
 
 test.describe('language switcher', () => {
+  test('uses Hebrew for a brand-new visitor before any language has been saved', async ({ browser }) => {
+    // The normal journey fixture explicitly chooses English because most specs
+    // assert English copy. A fresh browser context proves the product default.
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    try {
+      await page.goto('/vouchers');
+      await expect(page.locator('html')).toHaveAttribute('lang', 'he');
+      await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
+      await expect(page.getByRole('heading', { level: 1 })).toHaveText(COPY.he.vouchersTitle);
+    } finally {
+      await context.close();
+    }
+  });
+
   for (const language of LANGUAGES) {
     const dir = directionOf(language);
     // Start from a different language so the switch is observable.

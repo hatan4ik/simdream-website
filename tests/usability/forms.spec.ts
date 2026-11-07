@@ -47,10 +47,6 @@ const FORMS: readonly FormUnderTest[] = [
     open: (page) => gotoSettled(page, '/workshops'),
   },
   {
-    form: 'member login (/login)',
-    open: (page) => gotoSettled(page, '/login'),
-  },
-  {
     form: 'guided wizard add-on selection (/book step 2)',
     open: (page) => openWizardStep(page, 2),
   },
@@ -98,6 +94,15 @@ test.describe('form control labelling', () => {
       }
     });
   }
+});
+
+test('member login delegates identity to the accessible Wix Member handoff', async ({ page }) => {
+  await gotoSettled(page, '/login');
+  await expect(page.getByRole('button', { name: 'Sign in to Flight Deck', exact: true })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Continue as a guest', exact: true })).toBeVisible();
+  // Wix hosts the email, social-provider, registration and recovery controls;
+  // duplicating partial controls in the React shell would create two auth authorities.
+  await expect(visibleControls(page)).toHaveCount(0);
 });
 
 /** True when the element sits inside a region that assistive technology announces on change. */

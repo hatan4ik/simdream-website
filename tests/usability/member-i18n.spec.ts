@@ -54,7 +54,7 @@ for (const language of LOCALIZED_LANGUAGES) {
       await preferLanguage(page, language);
     });
 
-    test(`/login shows the ${language} heading and submit button in a dir="${directionOf(language)}" document`, async ({
+    test(`/login presents the ${language} Wix Member handoff in a dir="${directionOf(language)}" document`, async ({
       page,
     }) => {
       await gotoSettled(page, '/login');
@@ -63,8 +63,10 @@ for (const language of LOCALIZED_LANGUAGES) {
       await expect(page.locator('html')).toHaveAttribute('dir', directionOf(language));
       await expect(pageHeading(page)).toHaveText(copy.login.signInTitle);
       await expect(page.getByRole('button', { name: copy.login.signInSubmit, exact: true })).toBeVisible();
-      // Email addresses are identifiers and stay left-to-right in every language (AGENTS.md 5.3).
-      await expect(page.getByRole('textbox', { name: copy.login.emailLabel, exact: true })).toHaveAttribute('dir', 'ltr');
+      await expect(page.getByRole('link', { name: copy.login.guestLink, exact: true })).toBeVisible();
+      // Wix hosts email, recovery and configured social providers. The React
+      // shell intentionally has no duplicate identity fields to localize.
+      await expect(page.locator('input:not([type="hidden"]):visible')).toHaveCount(0);
 
       await expect(page.getByRole('heading', { name: ENGLISH.login.signInTitle })).toHaveCount(0);
       await expect(page.getByRole('button', { name: ENGLISH.login.signInSubmit })).toHaveCount(0);
@@ -98,45 +100,31 @@ for (const language of LOCALIZED_LANGUAGES) {
 }
 
 test.describe('member sign-in interactions', () => {
-  test('switches /login to sign-up and password recovery with Hebrew titles', async ({ page }) => {
+  test('shows a localized recoverable error when Wix member sign-in cannot start', async ({ page }) => {
     const he = translations.he.member.login;
     await preferLanguage(page, 'he');
     await gotoSettled(page, '/login');
     // The Hebrew copy only renders after hydration, so its controls are interactive from here on.
     await expectLanguageRendered(page, 'he');
 
-    await page.getByRole('button', { name: he.createProfile, exact: true }).click();
-    await expect(pageHeading(page)).toHaveText(he.signUpTitle);
-    await expect(page.getByRole('textbox', { name: he.fullNameLabel, exact: true })).toHaveAttribute(
-      'placeholder',
-      he.fullNamePlaceholder
-    );
-    await expect(page.getByRole('button', { name: he.signUpSubmit, exact: true })).toBeVisible();
-
-    await page.getByRole('button', { name: he.alreadyMember, exact: true }).click();
-    await expect(pageHeading(page)).toHaveText(he.signInTitle);
-
-    await page.getByRole('button', { name: he.forgotPassword, exact: true }).click();
-    await expect(pageHeading(page)).toHaveText(he.recoveryTitle);
-    await expect(page.getByRole('button', { name: he.recoverySubmit, exact: true })).toBeVisible();
-    await expect(page.getByRole('button', { name: he.returnToSignIn, exact: true })).toBeVisible();
+    const submit = page.getByRole('button', { name: he.signInSubmit, exact: true });
+    await submit.click();
+    await expect(page.getByRole('alert').filter({ hasText: he.requestFailed })).toBeVisible();
+    await expect(submit).toBeEnabled();
     expect(await leakedEnglish(page, 'he', ['login'])).toEqual([]);
   });
 
-  test('explains in Arabic that member sign-in is not configured', async ({ page }) => {
-    const ar = translations.ar.member;
+  test('keeps the Arabic Wix Member handoff localized when it is unavailable', async ({ page }) => {
+    const ar = translations.ar.member.login;
     await preferLanguage(page, 'ar');
     await gotoSettled(page, '/login');
     await expectLanguageRendered(page, 'ar');
 
-    await page.getByRole('textbox', { name: ar.login.emailLabel, exact: true }).fill('captain@example.com');
-    await page.getByLabel(ar.login.passwordLabel, { exact: true }).fill('correct-horse-battery');
-    const submit = page.getByRole('button', { name: ar.login.signInSubmit, exact: true });
+    const submit = page.getByRole('button', { name: ar.signInSubmit, exact: true });
     await submit.click();
 
-    // The browser-test server has no Supabase, so sign-in fails closed with the localized reason.
-    await expect(page.getByRole('alert').filter({ hasText: ar.auth.authNotConfigured })).toBeVisible();
-    await expect(page.getByRole('alert').filter({ hasText: ENGLISH.auth.authNotConfigured })).toHaveCount(0);
+    await expect(page.getByRole('alert').filter({ hasText: ar.requestFailed })).toBeVisible();
+    await expect(page.getByRole('alert').filter({ hasText: ENGLISH.login.requestFailed })).toHaveCount(0);
     await expect(page).toHaveURL('/login');
     await expect(submit).toBeEnabled();
   });

@@ -1,9 +1,10 @@
 import type { Metadata, Viewport } from 'next';
-import { headers } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import './globals.css';
 import { UiThemeProvider } from '@/lib/theme/ui-theme-context';
 import { AuthProvider } from '@/lib/auth/auth-context';
 import { LanguageProvider } from '@/lib/i18n/language-context';
+import { languageDirection, resolveLanguagePreference } from '@/lib/i18n/language-preference';
 import { LiveMetarBar } from '@/components/layout/LiveMetarBar';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
@@ -32,23 +33,35 @@ export const viewport: Viewport = {
   themeColor: '#f8fafc',
 };
 
+function isWixHostedPreview(host: string | null): boolean {
+  return Boolean(host && host.split(':', 1)[0].endsWith('.wix-site-host.com'));
+}
+
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const nonce = (await headers()).get('x-nonce') ?? undefined;
+  const requestHeaders = await headers();
+  const requestCookies = await cookies();
+  const nonce = requestHeaders.get('x-nonce') ?? undefined;
+  const initialLanguage = resolveLanguagePreference(requestCookies.get('simdream_lang')?.value);
+  // The wix-site-host.com addresses are pre-production delivery URLs. Their
+  // canonical domain remains simdream.co.il, but explicit noindex prevents a
+  // preview from competing with the production domain before the cutover.
+  const noIndexPreview = isWixHostedPreview(requestHeaders.get('host'));
 
   return (
-    <html lang="en" data-ui="brand" className="scroll-smooth" suppressHydrationWarning>
+    <html lang={initialLanguage} dir={languageDirection(initialLanguage)} data-ui="brand" className="scroll-smooth" suppressHydrationWarning>
       <head>
         <StructuredDataJsonLd nonce={nonce} />
+        {noIndexPreview && <meta name="robots" content="noindex, nofollow, noarchive" />}
         {/* Blocking on purpose: sets data-ui before first paint. Same-origin file keeps the CSP strict. */}
         <script nonce={nonce} src="/theme-bootstrap.js" />
       </head>
       <body className="min-h-screen flex flex-col bg-aviation-darkest text-slate-100 antialiased transition-colors duration-200">
         <UiThemeProvider>
-          <LanguageProvider>
+          <LanguageProvider initialLanguage={initialLanguage}>
             <AuthProvider>
               <SkipLink />
               <header data-site-chrome className="sticky top-0 z-[60]">

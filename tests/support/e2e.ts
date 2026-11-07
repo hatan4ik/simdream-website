@@ -30,6 +30,21 @@ export const PUBLIC_ROUTES = [
  * fails the test, so a journey cannot pass while the UI is silently broken.
  */
 export const test = base.extend<{ pageErrors: string[] }>({
+  // Most journey specs assert English copy. Make that test choice explicit
+  // without changing the Israel-first production default; language-specific
+  // journeys can still switch and verify their choice survives a reload.
+  page: async ({ page }, use) => {
+    await page.addInitScript(() => {
+      try {
+        if (!window.localStorage.getItem('simdream_lang')) {
+          window.localStorage.setItem('simdream_lang', 'en');
+        }
+      } catch {
+        /* sandboxed frame */
+      }
+    });
+    await use(page);
+  },
   pageErrors: [
     async ({ page }, use) => {
       const errors: string[] = [];

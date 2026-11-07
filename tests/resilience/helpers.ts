@@ -80,6 +80,12 @@ export async function openBookingPage(
   await preferLanguage(page, 'en');
   await page.route(isSlotsApi, slots);
   await page.goto('/book');
+  // Guided Wizard is the customer default. Resilience coverage below exercises
+  // the desktop Express Shop's independently implemented error and checkout
+  // states, so opt into that surface explicitly.
+  const storefront = page.getByRole('button', { name: 'Express Shop View (1-Page)', exact: true });
+  await expect(storefront).toBeVisible();
+  await storefront.click();
 }
 
 export function slotButton(page: Page, startTime: string) {

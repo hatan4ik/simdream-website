@@ -1,7 +1,7 @@
 import { ADVENTURES, WORLD_ROUTES } from '@/lib/data/experience-routes';
 import { preferLanguage } from '../support/e2e';
 import { expect, test } from './fixtures';
-import { follow } from './pages/hydration';
+import { follow, waitUntilInteractive } from './pages/hydration';
 
 /**
  * Experience Flights ("טיסות חוויה") route catalog on /experiences#world-routes (AGENTS.md §2):
@@ -41,6 +41,11 @@ test.describe('experience flights route catalog', () => {
     );
 
     await expect(page.locator('[data-route-booking-intent]')).toContainText('Classical European Hubs');
+    // The calendar-first wizard is the customer default. This assertion covers
+    // the optional desktop storefront where selected add-ons are summarized.
+    const storefront = page.getByRole('button', { name: 'Express Shop View (1-Page)' });
+    await waitUntilInteractive(storefront);
+    await storefront.click();
     await expect(page.locator('[data-selected-addon="addon-classical-eu"]')).toBeVisible();
     await expect(page.locator('[data-addon-card="addon-classical-eu"]')).toHaveAttribute('data-addon-selected', 'true');
     await expect(page.locator('[data-addon-card="addon-xwind-ifr"]')).toHaveAttribute('data-addon-deemphasized', 'true');

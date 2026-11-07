@@ -1,5 +1,6 @@
 import type { APIRequestContext, Locator, Page } from '@playwright/test';
-import { expect, nextIsraelWeekday } from '../../support/e2e';
+import { translations } from '@/lib/i18n/translations';
+import { expect, nextIsraelWeekday, type Language } from '../../support/e2e';
 import { gotoSettled, storefrontSlotButtons, zeroSlotHeading } from './page';
 
 /** Error the production checkout returns while card payments are disabled. */
@@ -82,9 +83,9 @@ export async function findBookableDate(
 }
 
 /** Opens the optional desktop Express Shop with the given date selected and its slots loaded. */
-export async function openStorefrontOn(page: Page, date: string): Promise<void> {
+export async function openStorefrontOn(page: Page, date: string, language: Language = 'en'): Promise<void> {
   await gotoSettled(page, '/book');
-  await openStorefrontView(page);
+  await openStorefrontView(page, language);
   const dateButton = await ensureStorefrontDateVisible(page, date);
   await selectStorefrontDate(page, date, () => dateButton.click());
 }
@@ -110,8 +111,8 @@ export async function showZeroSlotState(page: Page): Promise<void> {
 }
 
 /** Selects the optional desktop-only Express Shop after the guided default has hydrated. */
-export async function openStorefrontView(page: Page): Promise<void> {
-  const storefront = page.getByRole('button', { name: 'Express Shop View (1-Page)' });
+export async function openStorefrontView(page: Page, language: Language = 'en'): Promise<void> {
+  const storefront = page.getByRole('button', { name: translations[language].booking.storefrontView, exact: true });
   await expect(storefront).toBeVisible();
   await storefront.click();
   await expect(page.locator('#storefront-buy-box')).toBeVisible();

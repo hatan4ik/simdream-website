@@ -85,6 +85,30 @@ const nextConfig = {
         destination: '/pro',
         permanent: true,
       },
+      // Legacy Wix paths that have an exact, behaviour-preserving replacement.
+      // Do not add broad fallbacks for /promotion, /aerophobia, /blog or
+      // /service-page/:slug: each needs an approved content/SKU migration map.
+      {
+        source: '/book-online',
+        destination: '/book',
+        permanent: true,
+      },
+      {
+        // Next matches URL-encoded request paths in redirects().
+        source: '/%D7%9C%D7%A7%D7%A0%D7%95%D7%AA-%D7%9B%D7%9E%D7%AA%D7%A0%D7%94',
+        destination: '/vouchers',
+        permanent: true,
+      },
+      {
+        source: '/cooperation',
+        destination: '/workshops',
+        permanent: true,
+      },
+      {
+        source: '/pricing-plans/list',
+        destination: '/subscriptions',
+        permanent: true,
+      },
     ];
   },
   async headers() {

@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
   applyWixCoupon,
+  applyWixGiftCard,
   normalizeWixBookingPhone,
   removeWixCoupon,
+  removeWixGiftCard,
   startWixBookingCheckout,
   wixLocalDateTimeToIso,
   type WixBrowserClient,
@@ -34,6 +36,19 @@ function calculation(discount: string, total: string): Response {
     summary: {
       violations: [],
       priceSummary: { discount: { amount: discount }, total: { amount: total } },
+    },
+  });
+}
+
+function giftCardCalculation(total: string, redeemed: string, totalAfterGiftCards: string): Response {
+  return response({
+    summary: {
+      violations: [],
+      priceSummary: { discount: { amount: '0' }, total: { amount: total } },
+      paymentSummary: {
+        giftCards: [{ giftCardId: 'gift-card-id', redeemAmount: { amount: redeemed } }],
+        totalAfterGiftCards: { amount: totalAfterGiftCards },
+      },
     },
   });
 }
@@ -242,6 +257,63 @@ describe('Wix native booking checkout client', () => {
       couponId: 'coupon-id',
       price: { discountIls: 690, totalIls: 0 },
     });
+  });
+
+  it('applies a Wix Gift Card as stored value and exposes only Wix’s masked code', async () => {
+    const calls: Array<{ url: string; body: unknown }> = [];
+    const replies = [
+      response({
+        cart: {
+          paymentInfo: {
+            giftCards: [{ id: 'gift-card-id', obfuscatedCode: 'GC-••••-1234' }],
+          },
+        },
+      }),
+      giftCardCalculation('690', '500', '190'),
+    ];
+    const client: WixBrowserClient = {
+      fetchWithAuth: async (input, init) => {
+        calls.push({ url: String(input), body: init?.body ? JSON.parse(String(init.body)) : null });
+        const next = replies.shift();
+        if (!next) throw new Error('unexpected Wix request');
+        return next;
+      },
+    };
+
+    await expect(applyWixGiftCard(client, 'cart-id', 'GC-1234-5678-9012')).resolves.toEqual({
+      giftCardId: 'gift-card-id',
+      obfuscatedCode: 'GC-••••-1234',
+      price: { discountIls: 0, giftCardAppliedIls: 500, totalIls: 190 },
+    });
+    expect(calls).toEqual([
+      {
+        url: 'https://www.wixapis.com/ecom/v2/carts/cart-id/add-gift-card',
+        body: { giftCard: { code: 'GC-1234-5678-9012' } },
+      },
+      { url: 'https://www.wixapis.com/ecom/v2/carts/cart-id/calculate', body: { refreshCart: true } },
+    ]);
+  });
+
+  it('removes a Wix Gift Card by its cart-scoped id and restores Wix’s calculated balance', async () => {
+    const calls: Array<{ url: string; body: unknown }> = [];
+    const replies = [response({ cart: {} }), calculation('0', '690')];
+    const client: WixBrowserClient = {
+      fetchWithAuth: async (input, init) => {
+        calls.push({ url: String(input), body: init?.body ? JSON.parse(String(init.body)) : null });
+        const next = replies.shift();
+        if (!next) throw new Error('unexpected Wix request');
+        return next;
+      },
+    };
+
+    await expect(removeWixGiftCard(client, 'cart-id', 'gift-card-id')).resolves.toEqual({ discountIls: 0, totalIls: 690 });
+    expect(calls).toEqual([
+      {
+        url: 'https://www.wixapis.com/ecom/v2/carts/cart-id/remove-gift-card',
+        body: { giftCardId: 'gift-card-id' },
+      },
+      { url: 'https://www.wixapis.com/ecom/v2/carts/cart-id/calculate', body: { refreshCart: true } },
+    ]);
   });
 
   it('uses Israel daylight and standard time correctly and accepts local Israeli phone entry', () => {

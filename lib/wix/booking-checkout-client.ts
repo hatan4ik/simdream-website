@@ -50,6 +50,8 @@ export interface WixCartPrice {
   discountIls: number;
   /** Wix's calculated payable total, including any tax or fee configured in Wix. */
   totalIls: number;
+  /** Amount of native Wix Gift Card credit allocated to this cart, if any. */
+  giftCardAppliedIls?: number;
 }
 
 export interface WixBookingCheckoutDraft {
@@ -59,6 +61,14 @@ export interface WixBookingCheckoutDraft {
 
 export interface WixAppliedCoupon {
   couponId: string;
+  price: WixCartPrice;
+}
+
+/** A Wix-managed stored-value Gift Card applied to the visitor-owned cart. */
+export interface WixAppliedGiftCard {
+  giftCardId: string;
+  /** Wix intentionally returns this masked value instead of the bearer code. */
+  obfuscatedCode: string;
   price: WixCartPrice;
 }
 
@@ -81,12 +91,33 @@ interface WixCartCalculationResponse {
       discount?: { amount?: string };
       total?: { amount?: string };
     };
+    paymentSummary?: {
+      giftCards?: Array<{
+        giftCardId?: string;
+        redeemAmount?: { amount?: string };
+      }>;
+      /** The authoritative payable remainder after native Gift Card credit. */
+      totalAfterGiftCards?: { amount?: string };
+      payNow?: { amount?: string };
+    };
   };
 }
 
 interface WixCouponResponse {
   cart?: {
     coupons?: Array<{ id?: string; _id?: string; code?: string }>;
+  };
+}
+
+interface WixGiftCardResponse {
+  cart?: {
+    paymentInfo?: {
+      giftCards?: Array<{
+        id?: string;
+        _id?: string;
+        obfuscatedCode?: string;
+      }>;
+    };
   };
 }
 
@@ -192,6 +223,30 @@ function priceAfterCoupon(calculation: WixCartCalculationResponse, previousTotal
   if (previousTotalIls === undefined || !Number.isFinite(previousTotalIls)) return price;
   const effectiveDiscount = Math.max(0, Number((previousTotalIls - price.totalIls).toFixed(3)));
   return { ...price, discountIls: Math.max(price.discountIls, effectiveDiscount) };
+}
+
+/**
+ * Wix reports native Gift Cards as payment credit rather than a promotion. Keep
+ * the credit and payable remainder distinct so a stored-value card is never
+ * presented as a coupon discount.
+ */
+function priceAfterGiftCard(calculation: WixCartCalculationResponse): WixCartPrice {
+  const price = priceFromCalculation(calculation);
+  const payment = calculation.summary?.paymentSummary;
+  const giftCardAppliedIls = (payment?.giftCards ?? []).reduce(
+    (sum, giftCard) => sum + (wixMoneyAmount(giftCard.redeemAmount?.amount) ?? 0),
+    0
+  );
+  const totalAfterGiftCards =
+    wixMoneyAmount(payment?.totalAfterGiftCards?.amount) ??
+    wixMoneyAmount(payment?.payNow?.amount) ??
+    Math.max(0, Number((price.totalIls - giftCardAppliedIls).toFixed(3)));
+
+  return {
+    ...price,
+    totalIls: totalAfterGiftCards,
+    giftCardAppliedIls,
+  };
 }
 
 function dateTimeParts(localDateTime: string): { year: number; month: number; day: number; hour: number; minute: number; second: number } {
@@ -394,6 +449,59 @@ export async function removeWixCoupon(
   couponId: string
 ): Promise<WixCartPrice> {
   await wixPost<WixCouponResponse>(client, `${WIX_CREATE_CART_URL}/${cartId}/remove-coupon`, { couponId });
+  const calculation = await wixPost<WixCartCalculationResponse>(client, `${WIX_CREATE_CART_URL}/${cartId}/calculate`, {
+    refreshCart: true,
+  });
+  return priceFromCalculation(calculation);
+}
+
+/**
+ * Applies one Wix-managed Gift Card to the already-created booking cart.
+ * The raw bearer code never leaves this request path or client input state;
+ * Wix returns only an obfuscated code for subsequent display/removal.
+ */
+export async function applyWixGiftCard(
+  client: WixBrowserClient,
+  cartId: string,
+  giftCardCode: string
+): Promise<WixAppliedGiftCard> {
+  const code = giftCardCode.trim();
+  if (!code) throw new WixBookingCheckoutClientError('Enter a Gift Card code before applying it.');
+
+  let giftCard: WixGiftCardResponse;
+  try {
+    giftCard = await wixPost<WixGiftCardResponse>(client, `${WIX_CREATE_CART_URL}/${cartId}/add-gift-card`, {
+      giftCard: { code },
+    });
+  } catch {
+    throw new WixBookingCheckoutClientError('Wix could not apply this Gift Card.');
+  }
+
+  const appliedGiftCard = giftCard.cart?.paymentInfo?.giftCards?.[0];
+  const giftCardId = appliedGiftCard?.id ?? appliedGiftCard?._id;
+  if (!giftCardId || !appliedGiftCard?.obfuscatedCode) {
+    throw new WixBookingCheckoutClientError('Wix could not apply this Gift Card.');
+  }
+
+  const calculation = await wixPost<WixCartCalculationResponse>(client, `${WIX_CREATE_CART_URL}/${cartId}/calculate`, {
+    refreshCart: true,
+  });
+  const price = priceAfterGiftCard(calculation);
+  if (price.giftCardAppliedIls === undefined || price.giftCardAppliedIls <= 0) {
+    await removeWixGiftCard(client, cartId, giftCardId);
+    throw new WixBookingCheckoutClientError('This Gift Card has no available balance for this booking.');
+  }
+
+  return { giftCardId, obfuscatedCode: appliedGiftCard.obfuscatedCode, price };
+}
+
+/** Removes one native Gift Card from a visitor-owned cart and recalculates it. */
+export async function removeWixGiftCard(
+  client: WixBrowserClient,
+  cartId: string,
+  giftCardId: string
+): Promise<WixCartPrice> {
+  await wixPost<WixGiftCardResponse>(client, `${WIX_CREATE_CART_URL}/${cartId}/remove-gift-card`, { giftCardId });
   const calculation = await wixPost<WixCartCalculationResponse>(client, `${WIX_CREATE_CART_URL}/${cartId}/calculate`, {
     refreshCart: true,
   });

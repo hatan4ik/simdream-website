@@ -127,4 +127,117 @@ No stage authorises a permanent dual write. One booking domain has one canonical
 - It does not activate PayPlus or hold its credentials, because no payment provider is currently connected.
 - It does not claim that a plan purchase automatically creates usable flight credits. That requires the entitlement ledger in Stage 4.
 
+## 8. Pre-payment release gate
+
+The following is deliverable before a payment provider is attached. It separates
+customer-trust and migration work from the later paid-order proof; a missing
+PayPlus provider must never become an excuse to publish misleading content or
+unverifiable customer flows.
+
+### Customer-facing correctness
+
+- The server-rendered default is Hebrew with `lang="he"` and `dir="rtl"`. A
+  customer's explicit `simdream_lang` choice remains the only override and is
+  persisted by the browser. Verify all five languages after every release.
+- `/book` must never render a fabricated date. The calendar waits for the
+  browser's Israel clock and shows its localized initializing state until the
+  date is known; the raw page HTML must not contain `2099`.
+- Gift recipient and sender fields retain the deliberately realistic preview
+  defaults **Aviad Stern** and **Danielle Cohen**. They are editable before
+  checkout and make the boarding-pass concept immediately understandable; they
+  must never be presented as real customer data.
+- A Wix Gift Card and a legacy `SD-VOUCH-*` voucher are different instruments.
+  Do not promise native Gift Card issuance, partial redemption, expiry, refund,
+  or balance transfer until the paid native issuance contract is tested. The
+  browser may redeem an already-issued native card only through the Wix Cart V2
+  calculation path, which returns the authoritative price and masks the code.
+
+### Search and migration safety
+
+- `*.wix-site-host.com` is a staging/preview delivery host. It is explicitly
+  `noindex, nofollow, noarchive`; `simdream.co.il` remains the sole canonical
+  production host.
+- Do not publish hreflang declarations until every language has a distinct,
+  crawlable URL and equivalent localized content. Five identical URLs are not
+  five localized pages.
+- The only legacy redirects safe to activate without losing intent are below.
+  They are implemented in `next.config.mjs` and must retain a permanent status
+  after the custom domain cutover.
+
+| Legacy path | Destination | Status | Why it is safe |
+| --- | --- | --- | --- |
+| `/simulator`, `/training` | `/pro` | Active | Canonical professional-training route. |
+| `/book-online` | `/book` | Active | Same appointment intent. |
+| `/לקנות-כמתנה` | `/vouchers` | Active | Same gift-purchase intent. |
+| `/cooperation` | `/workshops` | Active | Same B2B inquiry intent. |
+| `/pricing-plans/list` | `/subscriptions` | Active | Dedicated subscription destination. |
+| `/promotion` | Hold | Not implemented | Preserve until birthday/promotion terms, eligibility and automation are approved. |
+| `/aerophobia` | Hold | Not implemented | Needs a dedicated, clinically safe fear-of-flying route; do not dilute it into a generic catalog. |
+| `/blog`, `/post/:slug` | Hold | Not implemented | Export, publish, and map every article before redirecting traffic. |
+| `/service-page/:slug` | Hold | Not implemented | Map each real legacy SKU one-to-one; never send an unknown paid offer to a default package. |
+| `/en/*` and other legacy locale paths | Hold | Not implemented | Requires stable locale-prefixed routing, not a client-storage guess. |
+| `gift.simdream.co.il/*` | Separate decision | Not implemented | It is an independent business/system migration, not a main-site catch-all. |
+
+### Measurement contract
+
+Instrumentation is not permission to label a click as a sale. The revenue event
+is emitted **once**, only from a server-verified, settled order with the
+provider's immutable order ID. All pre-payment funnel events are observational:
+
+`landing_view` → `intent_lane_selected` → `package_selected` →
+`availability_viewed` → `slot_selected` → `addon_viewed` → `addon_selected` →
+`checkout_started` → `checkout_returned` → `booking_confirmed`.
+
+For gifts add `gift_format_selected`, `gift_personalization_started`,
+`gift_checkout_started`, and `gift_issued`. For subscriptions add
+`subscription_selected`, `member_sign_in_started`, `plan_checkout_started`,
+and `covered_session_requested`. Capture only the minimum non-identifying
+context: route, locale, offer ID, amount/currency, and provider order ID after
+settlement. Never send names, emails, telephone numbers, raw coupon codes, or
+Gift Card bearer codes to analytics.
+
+Before enabling GA4, Google Ads, or Meta conversion destinations, record the
+provider, owner, consent basis, event identifier, deduplication rule and
+reconciliation report. The acceptance criterion is exactly one settled-order
+purchase conversion whose ILS value equals the authoritative ledger—not a
+checkout button click or a Calendar appointment.
+
+### Evidence checklist
+
+Run these checks against the exact deployment candidate and save the output with
+the release record:
+
+```bash
+npm run wix:readiness
+npm run wix:chat:smoke
+npm run lint
+npm run test:quick
+npm run build
+```
+
+Then check the rendered deployment in a clean browser:
+
+1. New visitor starts in Hebrew; switching to HE/EN/RU/FR/AR updates both
+   document `lang` and `dir`, and survives a reload.
+2. `/book` has no `2099` in its initial HTML, uses Israel dates, provides only
+   open slots, and does not overwrite a package chosen on an unavailable date.
+3. Each package duration uses its own reservation cadence; Friday/Saturday and
+   promotion-day restrictions remain correct; no double-booking can be created.
+4. Guest can reach a booking checkout without login; a member sees their own
+   name and only their own sessions/plan data. Test two separate members and
+   direct URLs to prove ownership isolation.
+5. Voucher and Gift Card UI distinguish the instruments, retain the approved
+   realistic preview names, and preserve form input after a declined or
+   unavailable checkout.
+6. Preview HTML has a production canonical only on the custom production domain,
+   staging is noindex, the production sitemap contains every public canonical
+   route, and each active redirect returns a permanent response.
+7. Real-device iPhone Safari covers a 320px booking and voucher journey,
+   including keyboard, RTL labels and 48px touch targets.
+
+Items 3–5 that create or settle an order become payment-launch tests once the
+provider is enabled. Until then, use only Wix sandbox/test data and immediately
+cancel any temporary operational booking; never occupy real customer capacity
+to prove a pre-production flow.
+
 For the long-form architecture, data-migration principles, and system diagrams, see [WIX_HEADLESS_ARCHITECTURE.md](WIX_HEADLESS_ARCHITECTURE.md). The current codebase blueprint remains [GENESIS.md](../GENESIS.md).
