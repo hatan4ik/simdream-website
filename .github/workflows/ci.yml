@@ -38,7 +38,7 @@ jobs:
       - name: Vitest with coverage ratchet
         run: npx vitest run --coverage --reporter=default --reporter=junit --outputFile.junit=test-results/vitest-junit.xml
       - run: npm audit --audit-level=high
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: results-vitest
@@ -84,7 +84,7 @@ jobs:
         run: npx vitest run --project security tests/security/secrets-hygiene.test.ts
         env:
           REQUIRE_CLIENT_BUNDLE: '1'
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: next-build
           path: |
@@ -128,7 +128,7 @@ jobs:
       - run: npx playwright test ${{ matrix.test_path }} --project=${{ matrix.project }}
         env:
           PW_PORT: 3801
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: results-e2e-${{ matrix.project }}
@@ -163,7 +163,7 @@ jobs:
         if: always()
         env:
           PW_PORT: 3803
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: results-web-quality
@@ -193,7 +193,7 @@ jobs:
           name: next-build
           path: .next-test
       - run: npm run test:load
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: results-load
@@ -219,7 +219,7 @@ jobs:
       - run: npx playwright install --with-deps chromium
       # @lhci/cli runs through a pinned npx so its dependency tree stays out of the lockfile.
       - run: npm run test:lighthouse
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: results-lighthouse
@@ -301,7 +301,7 @@ jobs:
           for path in / /book /vouchers; do
             curl --fail --location --retry 3 --retry-all-errors --silent --show-error "$SITE_URL$path" > /dev/null
           done
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: wix-preview-${{ github.sha }}
