@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/hatan4ik/simdream-website/compare/v1.1.0...v1.1.1) (2026-11-07)
+
+
+### Bug Fixes
+
+* **legal:** unify company registration and calendar policy ([#27](https://github.com/hatan4ik/simdream-website/issues/27)) ([b580a50](https://github.com/hatan4ik/simdream-website/commit/b580a50811fefc5f5b03c836d5ed224c9ad44bac))
+
 ## [1.1.0](https://github.com/hatan4ik/simdream-website/compare/v1.0.0...v1.1.0) (2026-11-07)
 
 
