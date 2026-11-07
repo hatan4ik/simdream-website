@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.2.2](https://github.com/hatan4ik/simdream-website/compare/v1.2.1...v1.2.2) (2026-11-07)
+
+
+### Bug Fixes
+
+* **ci:** deduplicate release verification ([#35](https://github.com/hatan4ik/simdream-website/issues/35)) ([6865ed5](https://github.com/hatan4ik/simdream-website/commit/6865ed503daf775d825926339d391afad85ff72b))
+* **ci:** retain release check contexts ([#38](https://github.com/hatan4ik/simdream-website/issues/38)) ([e50df48](https://github.com/hatan4ik/simdream-website/commit/e50df48e7f0d84c4b49fd415a1ea38937b636d85))
+* **ci:** verify generated release candidates ([#37](https://github.com/hatan4ik/simdream-website/issues/37)) ([4b3aef6](https://github.com/hatan4ik/simdream-website/commit/4b3aef61c9eecb0f4263e02500343f1a4d0eae08))
+
 ## [1.2.1](https://github.com/hatan4ik/simdream-website/compare/v1.2.0...v1.2.1) (2026-11-07)
 
 
