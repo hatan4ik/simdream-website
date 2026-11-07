@@ -263,7 +263,7 @@ npm run test:all
 
 ## Production Deployment (Wix Managed Headless)
 
-The GitHub Actions pipeline is the release path for the Wix-managed frontend. See [`docs/GITHUB_WIX_CICD.md`](docs/GITHUB_WIX_CICD.md) for the one-time GitHub Environment secret and approval setup.
+The GitHub Actions pipeline is the release path for the Wix-managed frontend. See [`docs/GITHUB_WIX_CICD.md`](docs/GITHUB_WIX_CICD.md) for the independently activated preview/production GitHub Environment secrets and approval setup.
 
 1. Merge an approved pull request to `main`; after all quality gates pass, GitHub automatically creates an immutable Wix preview for that commit.
 2. Accept the preview and push an annotated SemVer tag such as `v1.4.0`.

@@ -225,7 +225,7 @@ jobs:
     name: Wix immutable preview
     # Every accepted main commit receives its own testable Wix URL. Pull requests
     # deliberately never receive the Wix credential, including forked PRs.
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.WIX_CI_ENABLED == 'true'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.WIX_PREVIEW_CI_ENABLED == 'true'
     needs: [quality, build, e2e, web-quality, load-smoke, lighthouse]
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -288,7 +288,7 @@ jobs:
     name: Publish approved Wix release
     # A release is a verified, immutable SemVer tag. The production environment
     # supplies its own secret and must be protected in the GitHub UI.
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') && vars.WIX_CI_ENABLED == 'true'
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') && vars.WIX_PRODUCTION_CI_ENABLED == 'true'
     needs: [quality, build, e2e, web-quality, load-smoke, lighthouse]
     runs-on: ubuntu-latest
     timeout-minutes: 30

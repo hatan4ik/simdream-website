@@ -26,6 +26,7 @@ env:
 jobs:
   rollback:
     name: Republish ${{ inputs.release_tag }}
+    if: vars.WIX_PRODUCTION_CI_ENABLED == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:

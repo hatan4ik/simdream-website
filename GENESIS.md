@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:1f2297af7e526dcf01a43bca7c4d4517437d24773bd125324566b17428272c45 -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:d96bd3552da7e91023d2d91bfa1b359c94e188a6e6eb705437d617dbc1ff73a7 -->
 
 ## Verification contract
 
@@ -410,7 +410,7 @@ Wire all four gates into one command (`npm run test:all`) and into CI jobs that 
 | `start:local` | `next start` with the demo store opt-in, for laptops without Supabase |
 | `docs:genesis` | Fails unless this blueprint still covers the codebase |
 
-**Continuous delivery:** GitHub Actions never receives a Wix credential in a pull-request job. After the owner enables the non-secret `WIX_CI_ENABLED=true` repository variable, a passing push to `main` builds an immutable Wix preview using the `wix-preview` environment secret. A protected SemVer tag (`vX.Y.Z`) runs the same gates and then waits for the separately protected `wix-production` environment before invoking `wix release`; Wix's release comment records the tag and commit SHA. [`docs/GITHUB_WIX_CICD.md`](docs/GITHUB_WIX_CICD.md) defines the one-time owner secret/approval configuration and the historical-tag rollback workflow. Wix business data, payment settings, coupons and customer records are intentionally outside source-delivery automation.
+**Continuous delivery:** GitHub Actions never receives a Wix credential in a pull-request job. After the owner enables the non-secret `WIX_PREVIEW_CI_ENABLED=true` repository variable, a passing push to `main` builds an immutable Wix preview using the `wix-preview` environment secret. A separately enabled `WIX_PRODUCTION_CI_ENABLED=true` is required before a protected SemVer tag (`vX.Y.Z`) runs the same gates, waits for the separately protected `wix-production` environment, and invokes `wix release`; Wix's release comment records the tag and commit SHA. This allows a staging-only credential to automate previews without enabling production. [`docs/GITHUB_WIX_CICD.md`](docs/GITHUB_WIX_CICD.md) defines the one-time owner secret/approval configuration and the historical-tag rollback workflow. Wix business data, payment settings, coupons and customer records are intentionally outside source-delivery automation.
 
 ### CLOSE THESE KNOWN GAPS (do not reproduce them)
 
