@@ -20,7 +20,7 @@ feature branch → pull request → Verify workflow
 passing main Verify → Release Please PR → explicitly dispatch Verify on that candidate → merge approved Release PR
                                               │
                                               ▼
-                       immutable vX.Y.Z → re-run full tag gate → production approval → Wix release → smoke check
+        immutable vX.Y.Z → attest exact successful Verify + re-run deterministic tag checks → production approval → Wix release → smoke check
 ```
 
 `wix preview` creates a unique immutable build URL; it does not replace the published customer site. `wix release` publishes the compiled Headless frontend and clears the Wix site cache. The Wix Bookings, Members, CMS, payment-provider and other business configuration are not seeded, modified, or activated by either workflow.
@@ -32,7 +32,7 @@ passing main Verify → Release Please PR → explicitly dispatch Verify on that
 | `Verify` | Pull request, push to `main`, `v*` tag, or the release workflow's explicit dispatch for its generated candidate | Type hygiene, unit/integration/security/reliability, production build, browser, accessibility, visual, load and Lighthouse gates | No Wix credential |
 | `Wix immutable preview` in `ci.yml` | A passing push to `main` while `WIX_PREVIEW_CI_ENABLED=true` | Builds the Worker and executes `wix preview`; GitHub extracts the canonical Wix hostname, waits up to 150 seconds for Wix route propagation while smoke-checking it, and records the returned URL against the `wix-preview` environment | `wix-preview` environment secret only |
 | `Prepare semantic release` | A completed, successful `Verify` run for the current `main` tip | Release Please first proves that `main` has not advanced since that exact Verify run. It then maintains a Conventional-Commit release PR and explicitly dispatches the same Verify workflow against that generated candidate; merging the fully verified candidate updates the changelog/version, creates the GitHub Release and an immutable SemVer tag | No Wix credential |
-| `Publish released Wix frontend` | The release workflow's authenticated repository dispatch after a GitHub Release is created | Checks the tag is SemVer, on `main`, and matches `package.json`; reruns `npm run test:all`, then builds, releases and smoke-checks `/`, `/book`, and `/vouchers` | `wix-production` environment secret only, after approval |
+| `Publish released Wix frontend` | The release workflow's authenticated repository dispatch after a GitHub Release is created | Checks the tag is SemVer, on `main`, and matches `package.json`; requires the completed successful `Verify` run for that exact `main` SHA, reruns deterministic source and production-build checks on the tag, then builds, releases and smoke-checks `/`, `/book`, and `/vouchers` | `wix-production` environment secret only, after approval |
 | `Roll back Wix production` | Manual GitHub Actions dispatch | Rebuilds and republishes a previously verified SemVer tag after the same production approval | `wix-production` environment secret only |
 
 The preview and release logs are workflow artifacts. Wix release comments include the Git tag and commit SHA, so the Wix version and Git history can be reconciled during an incident.
@@ -61,7 +61,7 @@ GitHub environment secrets are exposed only to the job after that environment's 
 1. Add the `automerge` label to a reviewed same-repository pull request with a Conventional Commit title; GitHub waits for all required checks, then squash-merges it to `main`.
 2. GitHub finishes Verify and creates a Wix preview automatically. Open the `Wix immutable preview` deployment from the commit or the Actions run.
 3. Release Please opens or updates exactly one release PR with the calculated Semantic Version and generated changelog, then dispatches the complete Verify workflow against that candidate. Review and merge it only after both that candidate Verify run and the Wix preview are green.
-4. The immutable tag is created automatically. The release pipeline independently reruns all required quality gates against that exact tag, then waits for the `wix-production` approval. After approval it publishes to Wix and smoke-checks public routes.
+4. The immutable tag is created automatically. The release pipeline proves that the exact tagged SHA already has a successful `Verify` push run on `main`, then repeats deterministic source and production-build checks on that tag. This keeps the full Playwright matrix in its browser-provisioned `Verify` workflow instead of duplicating it in the production job. It then waits for the `wix-production` approval, publishes to Wix and smoke-checks public routes.
 
 No one needs to use the local Wix CLI for the normal path.
 
