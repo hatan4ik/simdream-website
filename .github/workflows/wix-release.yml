@@ -23,7 +23,8 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  NODE_VERSION: 22
+  # @wix/cli 1.2.9 requires Node 24.22.1 or newer.
+  NODE_VERSION: 24
   WIX_CLI_VERSION: 1.2.9
   TZ: Asia/Jerusalem
 

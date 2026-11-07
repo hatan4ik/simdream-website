@@ -20,7 +20,8 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  NODE_VERSION: 22
+  # The rollback uses the same Wix CLI as release, so it must retain runtime parity.
+  NODE_VERSION: 24
   # Pin this executable: it receives the environment-scoped Wix deployment key.
   WIX_CLI_VERSION: 1.2.9
   TZ: Asia/Jerusalem
