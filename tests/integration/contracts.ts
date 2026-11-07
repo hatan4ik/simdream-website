@@ -237,6 +237,7 @@ export const giftVoucher = z.strictObject({
   personalMessage: z.string(),
   packageId: z.string().optional(),
   packageTitle: z.string().optional(),
+  giftCardDesignId: z.string().optional(),
   expiryDate: isoDateTime,
   isRedeemed: z.boolean(),
   paymentStatus,
@@ -313,7 +314,7 @@ const googleReview = z.strictObject({
   rating: z.number().min(0).max(5),
   quote: z.string().min(1),
   relativeTime: z.string(),
-  language: z.enum(['he', 'en', 'ru', 'fr', 'ar']),
+  language: z.enum(['he', 'en', 'ru', 'fr', 'ar', 'es']),
   characterCount: z.number().int().positive(),
   highlightPill: z.string().optional(),
 });

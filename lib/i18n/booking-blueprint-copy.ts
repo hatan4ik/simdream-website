@@ -1,4 +1,4 @@
-import type { Language } from '@/lib/i18n/translations';
+import type { LocalizedRecord } from '@/lib/i18n/translations';
 
 export interface BookingBlueprintCopy {
   whatIncludedBtn: string;
@@ -25,7 +25,7 @@ export interface BookingBlueprintCopy {
 }
 
 /** Shared, localized package-inclusions copy for both booking experiences. */
-export const BOOKING_BLUEPRINT_COPY: Record<Language, BookingBlueprintCopy> = {
+export const BOOKING_BLUEPRINT_COPY: LocalizedRecord<BookingBlueprintCopy> = {
   en: {
     whatIncludedBtn: "See what's included",
     badge: 'OFFICIAL FLIGHT BLUEPRINT • SESSION INCLUSIONS',

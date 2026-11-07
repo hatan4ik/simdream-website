@@ -138,6 +138,7 @@ CREATE TABLE IF NOT EXISTS public.gift_vouchers (
   personal_message TEXT,
   package_id TEXT,
   package_title TEXT,
+  gift_card_design_id TEXT,
   expiry_date TIMESTAMPTZ NOT NULL,
   is_redeemed BOOLEAN NOT NULL DEFAULT false,
   payment_status TEXT NOT NULL DEFAULT 'pending' CHECK (payment_status IN ('pending', 'paid', 'refunded')),

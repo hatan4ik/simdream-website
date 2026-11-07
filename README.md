@@ -36,8 +36,8 @@ Production-grade website, multi-step booking engine, Amazon-style flight storefr
    - **Tactile UI Switcher**: Prominent button in the desktop header, mobile top-bar, mobile drawer, and footer to instantly cycle between all three themes.
    - **Zero-Flicker Persistence**: Preserves theme selection via `localStorage` with an inline anti-flicker `<head>` bootstrap script.
 
-3. **5-Language Internationalization & Bidirectional UI (i18n)**:
-   - Full native localization across 5 languages: **Hebrew (`he`)**, **English (`en`)**, **Russian (`ru`)**, **French (`fr`)**, and **Arabic (`ar`)**.
+3. **6-Language Internationalization & Bidirectional UI (i18n)**:
+   - Full native localization across 6 languages: **Hebrew (`he`)**, **English (`en`)**, **Russian (`ru`)**, **French (`fr`)**, **Arabic (`ar`)**, and **Spanish (`es`)**.
    - Dynamic directionality with automatic `dir="rtl"` layout flipping for Hebrew and Arabic.
    - Telemetry isolation (`dir="ltr"`) for raw aviation data: live METAR strings, radio frequencies, transponder squawks, booking identifiers, and flight slot ranges.
    - Librarian-grade terminology audited against official airline, ICAO, and Boeing flight deck standards.

@@ -134,6 +134,23 @@ const RULES_COPY: Record<
     contactQuestion: 'هل لديك استفسارات بخصوص اللائحة أو حجز قائم؟',
     privacyLink: 'سياسة الخصوصية ←',
   },
+  es: {
+    badge: 'NORMAS OFICIALES Y CONDICIONES DE USO • SIM DREAM ISRAEL',
+    title: 'Normas del centro y condiciones de uso — Sim Dream Israel',
+    reg: `Registro de empresa: ${FACILITY_INFO.companyRegistrationNumber}`,
+    address: `Dirección del centro: ${FACILITY_INFO.address.streetEn}, ${FACILITY_INFO.address.cityEn} | Dominios oficiales: simdream.co.il, simdream.aero`,
+    ageBadge: 'Requisitos de edad',
+    ageTitle: 'Acceso al simulador a partir de 10 años',
+    ageDesc: 'Las personas de 10 a 15 años deben estar acompañadas por un adulto. La reserva y el pago online requieren ser mayor de 18 años.',
+    arrivalBadge: 'Llegada y puntualidad',
+    arrivalTitle: 'Llega 5 minutos antes de tu sesión',
+    arrivalDesc: 'Los retrasos de más de 10 minutos pueden acortar la sesión sin reembolso del tiempo perdido o requerir costes de cambio.',
+    natureBadge: 'Naturaleza del servicio',
+    natureTitle: 'Centro de experiencias y briefing',
+    natureDesc: 'La duración incluye el briefing previo al vuelo. El simulador es una experiencia de entretenimiento y no otorga una licencia oficial.',
+    contactQuestion: '¿Tienes preguntas sobre las normas o una reserva existente?',
+    privacyLink: 'Ver política de privacidad →',
+  },
 };
 
 export function RulesContentView() {
@@ -192,6 +209,8 @@ export function RulesContentView() {
             'ℹ️ Le règlement officiel et les conditions d’utilisation de SimDream Israël sont juridiquement établis en hébreu et en anglais conformément à la législation israélienne. Veuillez trouver ci-dessous la version officielle en anglais.'}
           {language === 'ar' &&
             'ℹ️ تخضع اللائحة الرسمية وشروط الاستخدام لمركز سيم دريم للقانون الإسرائيلي باللغتين العبرية والإنجليزية. يُرجى الاطلاع أدناه على النسخة الرسمية باللغة الإنجليزية.'}
+          {language === 'es' &&
+            'ℹ️ Las normas y condiciones de Sim Dream se rigen legalmente por las versiones en hebreo e inglés. A continuación se muestra la versión oficial en inglés.'}
         </div>
       )}
 
@@ -419,4 +438,3 @@ export function RulesContentView() {
     </div>
   );
 }
-

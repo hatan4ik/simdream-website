@@ -57,7 +57,7 @@ test.describe('mobile affordances', () => {
     await expect(page.locator('#storefront-buy-box')).toHaveCount(0);
   });
 
-  test('keeps the social, language and Smart Chat controls reachable while the page scrolls', async ({ page, chrome }) => {
+  test('keeps the social, language and WhatsApp controls reachable while the page scrolls', async ({ page, chrome }) => {
     await page.goto('/');
     const utility = chrome.utilityBar;
     const before = await utility.boundingBox();
@@ -66,7 +66,9 @@ test.describe('mobile affordances', () => {
     await expect(utility.getByRole('link', { name: 'Instagram', exact: true })).toBeVisible();
     await expect(utility.getByRole('link', { name: 'Facebook', exact: true })).toBeVisible();
     await expect(utility.getByRole('link', { name: 'YouTube', exact: true })).toBeVisible();
-    await expect(utility.getByRole('button', { name: 'Open Wix Smart Chat' })).toBeVisible();
+    const whatsapp = utility.getByRole('link', { name: 'Contact Sim Dream on WhatsApp: +972 55 507 1307' });
+    await expect(whatsapp).toBeVisible();
+    await expect(whatsapp).toHaveAttribute('href', 'https://wa.me/972555071307');
     await expect(chrome.languageButton()).toBeVisible();
 
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));

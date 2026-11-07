@@ -38,7 +38,7 @@ test.describe('dedicated flight subscription portal', () => {
       await preferLanguage(page, language);
       await page.goto('/subscriptions');
 
-      const copy = SUBSCRIPTION_PAGE_COPY[language];
+      const copy = SUBSCRIPTION_PAGE_COPY[language] ?? SUBSCRIPTION_PAGE_COPY.en;
       await expect(page.locator('html')).toHaveAttribute('lang', language);
       await expect(page.getByRole('heading', { level: 1, name: copy.heroTitle })).toBeVisible();
       await expect(page.getByText(copy.faqEyebrow, { exact: true })).toBeVisible();

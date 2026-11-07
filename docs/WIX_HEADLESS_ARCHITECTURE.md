@@ -1,6 +1,6 @@
 # Wix Headless Integration Architecture & DevOps Plan
 
-**Status:** The native Wix staging backend is provisioned on **SimDream-Staging** (`317b0c6d-6608-499a-bb3c-b1c37650e460`): Bookings services, operating availability, a single simulator resource, Pricing Plans and plan-to-service benefits are configured and verified. The Wix Members Area, exact hosted-member callback URI, five-language member subscription panel, duration-aware availability adapter, guest/member base-flight checkout, and member-bound subscription redemption handoff are active on staging. `/login` now starts the Wix-hosted member journey and `/dashboard` verifies the returned Wix token server-side before reading only that member's Calendar appointments; active Pricing Plan orders remain visible in the shared subscription panel. Calendar data is intentionally not relabelled as a paid order, invoice, or Stripe receipt. When `WIX_AVAILABILITY_ADAPTER_ENABLED=true`, Wix is the calendar authority: a base-flight browser checkout revalidates, creates the Wix booking, and writes the once-completed manifest name, email and phone to the visitor's Cart V2 `customerInfo` before opening the hosted payment page; the local checkout endpoint refuses to create a competing reservation. Add-ons and on-request routes remain intentionally blocked in this mode until mapped to native Wix entities. Wix Gift Cards is installed with one branded Hebrew product and the native booking-cart redemption path is implemented; native customer purchase issuance still requires its separately verified headless checkout contract. There is no connected PayPlus provider, server-side Wix booking writer, application-owned entitlement-credit ledger, or native invoice adapter. Use [`WIX_HEADLESS_CUTOVER_RUNBOOK.md`](WIX_HEADLESS_CUTOVER_RUNBOOK.md) and `npm run wix:readiness` before payment-provider activation.
+**Status:** The native Wix staging backend is provisioned on **SimDream-Staging** (`317b0c6d-6608-499a-bb3c-b1c37650e460`): Bookings services, operating availability, a single simulator resource, Pricing Plans and plan-to-service benefits are configured and verified. The Wix Members Area, exact hosted-member callback URI, six-language member subscription panel, duration-aware availability adapter, guest/member base-flight checkout, and member-bound subscription redemption handoff are active on staging. `/login` now starts the Wix-hosted member journey and `/dashboard` verifies the returned Wix token server-side before reading only that member's Calendar appointments; active Pricing Plan orders remain visible in the shared subscription panel. Calendar data is intentionally not relabelled as a paid order, invoice, or Stripe receipt. When `WIX_AVAILABILITY_ADAPTER_ENABLED=true`, Wix is the calendar authority: a base-flight browser checkout revalidates, creates the Wix booking, and writes the once-completed manifest name, email and phone to the visitor's Cart V2 `customerInfo` before opening the hosted payment page; the local checkout endpoint refuses to create a competing reservation. Add-ons and on-request routes remain intentionally blocked in this mode until mapped to native Wix entities. Native customer Gift Card purchase issuance remains a separately verified headless checkout contract. There is no connected PayPlus provider, server-side Wix booking writer, application-owned entitlement-credit ledger, or native invoice adapter. Use [`WIX_HEADLESS_CUTOVER_RUNBOOK.md`](WIX_HEADLESS_CUTOVER_RUNBOOK.md) and `npm run wix:readiness` before payment-provider activation.
 
 **Authority:** [`GENESIS.md`](../GENESIS.md) remains the canonical description of the currently running Next.js/Supabase/Stripe system. This document describes a deliberate future integration or migration path to Wix Headless.
 
@@ -12,7 +12,7 @@ SimDream should treat Wix Headless as a business platform, not as a replacement 
 
 ### Current flight-subscription catalogue: public offer, not a live entitlement
 
-The frontend now has a five-language catalogue in `lib/data/subscription-passes.ts`, rendered on `/subscriptions` and in the `/experiences` Flight Subscriptions category. It deliberately models **single-payment flight subscriptions**, not recurring card billing and not a replacement for an individual Wix Booking:
+The frontend now has a six-language catalogue in `lib/data/subscription-passes.ts`, rendered on `/subscriptions` and in the `/experiences` Flight Subscriptions category. It deliberately models **single-payment flight subscriptions**, not recurring card billing and not a replacement for an individual Wix Booking:
 
 | Public subscription | Included sessions | Base booking package | Single-payment price | Standard base-session value | Curriculum focus |
 | --- | --- | --- | ---: | ---: | --- |
@@ -50,7 +50,7 @@ The following records were created or updated only on **SimDream-Staging**. They
 | Test coupon | A short-lived, 30-use, 100% coupon is scoped to the `bookings` namespace (all services) on staging for client-flow QA. It is neither a Stores discount nor a production promotion. |
 | Service registry | All nine `SIMULATOR_PACKAGES` have one public, fixed-duration Wix appointment service, with their ILS base price, duration, turnaround buffer, and source mapping in `lib/wix/catalog.ts`. Keeping the services fixed preserves the separate 45-minute promotion, 90-minute tariff, and duration-matched Pricing Plan benefits. The headless availability and checkout resolver enforces the 45-minute ₪490 Discounted Promotion as Sunday–Tuesday before 18:00 only, then intersects that rule with Wix's live availability. Every mapped service requires the shared Boeing 737 resource type; `npm run wix:smoke` and `npm run wix:readiness` fail if that availability-pool invariant or catalog parity drifts. |
 | Flight subscriptions | Four public, buyable one-time 12-month Pricing Plans exist for the four subscription passes. The two 60-minute plans are eligible for the 60-minute service and the two 90-minute plans are eligible for the 90-minute service through the native Bookings/Pricing Plans association. |
-| Gift Cards | Wix Gift Cards is installed. Its sole product is **גיפט קארד SimDream – חוויית Boeing 737 MAX**, carries official SimDream artwork and Hebrew description, has no expiry, offers preset values of ₪250, ₪450, ₪500, ₪690, ₪750, ₪950, ₪1,000 and ₪1,590, and supports a ₪100–₪5,000 custom value. One Wix Gift Card product is a platform constraint, not a missing catalogue record. |
+| Gift Cards | The custom `/vouchers` checkout has seven Apple-style visual selections. It persists the closed `gift_card_design_id` on the local voucher, validates it server-side, and the post-payment email references the selected optimized image. This is distinct from the single native Wix Gift Card product and does not claim that a native Wix card is issued. Uploading or changing native product/variant artwork needs a scoped Wix management key (`Manage eCommerce` and `Manage Media Manager`) plus the documented product revision; this is intentionally not attempted with an unscoped visitor credential. |
 | Wix Members | The Members Area app is installed. The OAuth app allow-lists the hosted staging callback and preview wildcard for `/wix/members/callback`; the customer chooses Wix-hosted sign-in or registration. |
 | Availability adapter | `WIX_AVAILABILITY_ADAPTER_ENABLED=true` is set only for staging. `lib/wix/availability-adapter.ts` intersects Wix's live bookable starts with the duration-aware Kantorovich grid (30m → 45m reserved cadence, 45m → 60m, 60m → 75m, 90m → 105m, 120m → 150m). If local persistence is unavailable, it serves the same generated grid limited by Wix. |
 | Subscription redemption | `lib/wix/subscription-booking.ts` resolves an exact live 60m or 90m Wix slot only after it also passes the Kantorovich grid. The browser's member session opens Wix-hosted `bookingsCheckout`; Wix validates the linked Pricing Plan benefit and records the final booking. |
@@ -313,18 +313,11 @@ sequenceDiagram
 
 ## 7. Authentication and secret model
 
-### Wix AI Site-Chat on a custom frontend
+### Customer contact on the custom frontend
 
-Wix's embedded Chat and AI Site-Chat widgets belong to an Editor site and do not render inside a Headless frontend. SimDream therefore uses a custom visitor-facing panel, `components/layout/WixSmartChat.tsx`, with the supported `@wix/ai-site-chat` Messages APIs:
+The Headless frontend intentionally does not embed Wix AI Site-Chat or any custom chat panel. The sticky utility bar exposes the official social links (native third-party icon colours), language choice, and a high-visibility WhatsApp action at `+972 55 507 1307`. The contact destination is defined once in `FACILITY_INFO.contact.whatsappHref`; no Wix chat visitor messages, histories, or AI settings are retained by this codebase.
 
-1. The existing public Wix OAuth client identifies an anonymous visitor or signed-in member.
-2. `messages.listMessages()` restores only that caller's chat history when the panel opens.
-3. `messages.createMessageStream()` submits a visitor question and renders the returned Wix AI answer.
-4. The Wix AI Site-Chat app, its assistant content, availability, escalation/contact form, and user/AI schedule are configured in the Wix Editor control plane—not in browser code and not through a repository secret.
-
-`npm run wix:chat:smoke` is a read-only readiness probe: it lists at most one message for a new anonymous visitor and prints neither a message body, visitor identity, nor a token. It must pass before exposing Smart Chat on a new environment. Never run a synthetic question as a deployment test because it creates a persistent conversation.
-
-The utility bar is wrapped with the main navigation as one sticky site chrome. It carries language selection, the official social links (native third-party icon colours), and the Smart Chat launcher on every viewport. The desktop footer remains a secondary directory; on phones it is hidden and its customer-story/legal links move into the localized “About Us” mobile-menu disclosure.
+The utility bar is wrapped with the main navigation as one sticky site chrome. The desktop footer remains a secondary directory; on phones it is hidden and its customer-story/legal links move into the localized “About Us” mobile-menu disclosure.
 
 ### Identities
 
@@ -425,7 +418,7 @@ For a Wix-managed frontend, the release step is: build with the framework's own 
 
 ### Test matrix
 
-- All five languages, including Hebrew and Arabic RTL layout and LTR telemetry.
+- All six languages, including Hebrew and Arabic RTL layout and LTR telemetry.
 - Recreational three-step booking with permitted add-ons.
 - PRO and fear-of-flying two-step flow with no recreational add-ons.
 - Sunday–Thursday, Friday, and Saturday operating windows.
@@ -465,7 +458,7 @@ The first increment is complete only when all of the following are true:
 - A guest can initiate checkout and receive an authoritative confirmed/pending result after return.
 - A member can sign in and see only their own records.
 - The staff can see the booking in Wix Dashboard.
-- The current scheduling buffers, zero-slot recovery, package-flow rules, and five-language constraints have automated coverage.
+- The current scheduling buffers, zero-slot recovery, package-flow rules, and six-language constraints have automated coverage.
 - No secret is committed, logged, or exposed to the browser.
 - Staging acceptance, rollback procedure, monitoring ownership, and production approval are documented.
 
@@ -490,7 +483,6 @@ The first increment is complete only when all of the following are true:
 - [Wix Pricing Plans API and subscription models](https://dev.wix.com/docs/api-reference/business-solutions/pricing-plans/introduction?apiView=SDK)
 - [Wix Plans V3 API](https://dev.wix.com/docs/api-reference/business-solutions/pricing-plans/plans-v3/introduction?apiView=SDK)
 - [Wix hosted Pricing Plans checkout](https://dev.wix.com/docs/go-headless/business-solutions/wix-hosted-pages/about-wix-hosted-pages)
-- [Wix AI Site-Chat APIs](https://dev.wix.com/docs/api-reference/business-management/ai-site-chat/introduction?apiView=SDK)
 - [Wix recurring-payment support](https://support.wix.com/en/article/accepting-recurring-payments)
 - [Wix PayPlus payment-provider setup (Hebrew)](https://support.wix.com/he/article/%D7%97%D7%99%D7%91%D7%95%D7%A8-payplus-%D7%9B%D7%A1%D7%A4%D7%A7-%D7%AA%D7%A9%D7%9C%D7%95%D7%9D)
 - [Redirect to Wix-hosted checkout/login pages](https://dev.wix.com/docs/go-headless/business-solutions/wix-hosted-pages/redirect-using-the-js-sdk)

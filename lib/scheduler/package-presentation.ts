@@ -1,5 +1,5 @@
 import type { SimulatorPackage } from '@/types';
-import type { Language } from '@/lib/i18n/translations';
+import type { Language, LocalizedRecord } from '@/lib/i18n/translations';
 
 type FormulaKey = 'training' | 'fear_of_flying' | '30' | '45' | '60' | '90' | 'default';
 
@@ -8,7 +8,7 @@ export interface PackageFormulaBadge {
   cls: string;
 }
 
-const PACKAGE_FORMULA_COPY: Record<Language, Record<FormulaKey, string>> = {
+const PACKAGE_FORMULA_COPY: LocalizedRecord<Record<FormulaKey, string>> = {
   en: {
     training: '🎯 Airline Checkride • Raw Data & V1 Failure',
     fear_of_flying: '🕊️ Private Therapy & Captain Coaching • Gentle Pacing',

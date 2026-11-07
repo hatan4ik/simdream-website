@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { getPackageFormulaBadge } from '@/lib/scheduler/package-presentation';
 import type { Language } from '@/lib/i18n/translations';
 
-const LANGUAGES: Language[] = ['en', 'he', 'ru', 'fr', 'ar'];
+const LANGUAGES: Language[] = ['en', 'he', 'ru', 'fr', 'ar', 'es'];
 
 describe('getPackageFormulaBadge', () => {
   it.each(LANGUAGES)('returns a non-empty localized label for %s', (language) => {
