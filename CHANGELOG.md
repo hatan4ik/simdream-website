@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.3](https://github.com/hatan4ik/simdream-website/compare/v1.2.2...v1.2.3) (2026-11-07)
+
+
+### Bug Fixes
+
+* **book:** preserve route addons in compatible slots ([#40](https://github.com/hatan4ik/simdream-website/issues/40)) ([267bd7d](https://github.com/hatan4ik/simdream-website/commit/267bd7d6a50235545bb9c5f68cc9426e112c5a86))
+* render gift-card designs and replace telemetry bar ([#39](https://github.com/hatan4ik/simdream-website/issues/39)) ([2b63204](https://github.com/hatan4ik/simdream-website/commit/2b6320446753cdadefdd12fc54606c729ceb905e))
+
 ## [1.2.2](https://github.com/hatan4ik/simdream-website/compare/v1.2.1...v1.2.2) (2026-11-07)
 
 
