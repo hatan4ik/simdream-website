@@ -37,7 +37,7 @@ import {
 import { addDaysToYmd, formatCurrency } from '@/lib/utils';
 import { useModalFocus } from '@/lib/ui/use-modal-focus';
 import { useLanguage } from '@/lib/i18n/language-context';
-import type { Language } from '@/lib/i18n/translations';
+import type { Language, LocalizedRecord } from '@/lib/i18n/translations';
 import {
   calendarMonthCells,
   calendarWeekDays,
@@ -194,7 +194,7 @@ interface StorefrontAddonCopy {
   removeFromSelectedPlan: (addonName: string) => string;
 }
 
-const STOREFRONT_CALENDAR_COPY: Record<Language, StorefrontCalendarCopy> = {
+const STOREFRONT_CALENDAR_COPY: LocalizedRecord<StorefrontCalendarCopy> = {
   en: {
     departureTitle: 'Select Departure Date & Runway Slot',
     departureSubtitle: 'Real-time cockpit availability • Choose a date and departure time',
@@ -367,7 +367,7 @@ const STOREFRONT_CALENDAR_COPY: Record<Language, StorefrontCalendarCopy> = {
   },
 };
 
-const STOREFRONT_ADDON_COPY: Record<Language, StorefrontAddonCopy> = {
+const STOREFRONT_ADDON_COPY: LocalizedRecord<StorefrontAddonCopy> = {
   en: {
     selectedPlanEyebrow: 'FLIGHT PLAN LOADED',
     selectedPlanTitle: 'Selected cockpit modules',

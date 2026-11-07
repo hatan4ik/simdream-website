@@ -16,7 +16,7 @@ import {
 import { WEEKDAY_DATES } from './_support/scheduler';
 
 const DEFAULT_MAX_SLOT_MINUTES = 180;
-const LANGUAGES: Language[] = ['he', 'en', 'ru', 'fr', 'ar'];
+const LANGUAGES: Language[] = ['he', 'en', 'ru', 'fr', 'ar', 'es'];
 
 const addonArb = (id: string) =>
   fc.record({

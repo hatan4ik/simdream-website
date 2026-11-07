@@ -36,7 +36,7 @@ The visual identity is the official **simdream.co.il** logo: an **orange airplan
 | Sim Dream orange | `#FF5500` (Tailwind `orange-500`) | Brand highlight: airplane mark, tagline, active navigation indicator, key highlights. |
 
 1. **Logo assets only**: render the logo with [`components/brand/BrandLogo.tsx`](components/brand/BrandLogo.tsx) (`BrandLogo` = airplane + wordmark, `BrandMark` = airplane only), backed by `public/brand/simdream-logo.png` and `public/brand/simdream-plane.png`. The favicon is `app/icon.png`. Never rebuild the logo from text or icon fonts, never recolour it, and never mirror it in RTL layouts.
-2. **The header carries the logo alone**: nothing is printed under or beside the brand image in the header, in any of the five languages (`tests/usability/header-brand.spec.ts` enforces it). The wordmark artwork carries no tagline; wherever a tagline is still shown (footer, desktop flyout panel) it is the translated text `t.nav.brandSub`, never baked into the image (AGENTS.md §5).
+2. **The header carries the logo alone**: nothing is printed under or beside the brand image in the header, in any of the six languages (`tests/usability/header-brand.spec.ts` enforces it). The wordmark artwork carries no tagline; wherever a tagline is still shown (footer, desktop flyout panel) it is the translated text `t.nav.brandSub`, never baked into the image (AGENTS.md §5).
 3. **Colour tokens live in [`app/globals.css`](app/globals.css)** (`@theme`): Tailwind's `sky-*` scale *is* the Sim Dream cerulean scale and `orange-*` *is* the Sim Dream orange scale. Use those utilities; do not introduce other blues, cyans or oranges as brand colours, and never hard-code the old Tailwind sky values (`#0284c7`, `#0369a1`, `#38bdf8`).
 4. **Contrast (WCAG 2.x AA, enforced by the axe suite with an empty baseline)**: `#FF5500` is 3.2:1 on white, so `orange-500` is for the logo, icons, borders/indicators and large text only; small orange text on light surfaces uses `orange-700` (5.3:1). White text on a cerulean fill needs `sky-700` or darker. Brand Daylight colour overrides live in `app/globals.css` under `html[data-ui="brand"]`.
 5. **All three interface themes carry the brand**: 🌙 Cockpit Night (default: dark slate with cerulean and orange accents), ☀️ Brand Daylight (cloud white with cerulean and orange) and ✨ Clean Studio (the daylight palette restyled after apple.com's mobile site: white canvas, `#f5f5f7` wells, 17px system type with tight semibold headlines, sentence-case labels, pill buttons, slim translucent nav). The header switch cycles them in that order. Studio is layered on daylight — the document carries `data-ui="brand"` plus `data-look="studio"` — so daylight overrides keep applying and `app/globals.css` adds only the restyle under `html[data-look="studio"]`; never fork the palette.
@@ -48,7 +48,7 @@ The visual identity is the official **simdream.co.il** logo: an **orange airplan
 
 - **Canonical Professional Training Route**: [`app/(public)/pro/page.tsx`](app/(public)/pro/page.tsx) (`/pro`) is the single source of truth for commercial assessment training.
 - **Canonical Customer Story Route**: [`app/(public)/about/page.tsx`](app/(public)/about/page.tsx) (`/about`) explains Sim Dream’s story, the consumer flight experience, and official social channels. It is intentionally separate from professional training.
-- **Experience Flights ("טיסות חוויה") Route Catalog**: `/experiences#world-routes` ([`components/experiences/WorldRoutesSection.tsx`](components/experiences/WorldRoutesSection.tsx)) is the only place that lists World Trio routes, sights and flight adventures. Its content lives in [`lib/data/experience-routes.ts`](lib/data/experience-routes.ts): every world-trio add-on appears exactly once and takes price and minutes from `FLIGHT_ADDONS` (never duplicate them); an on-request World Trio opens `/book?package=captains-command-60&route=<id>` in the calendar-first flow. The booking must retain only a registry-validated `requestedRouteId`, require a 60-minute or longer session, add no route surcharge, and plainly state that the captain confirms the final mission plan before the visit. Scenario adventures still use `/contact?subject=route&route=<id>` because they are a briefing inquiry, not a scheduled World Trio. Every airport must be a real Boeing 737 destination with a real ICAO code (§1 pillar 5), and all copy ships in the five languages (§5). `tests/unit/experience-routes.test.ts` enforces these rules.
+- **Experience Flights ("טיסות חוויה") Route Catalog**: `/experiences#world-routes` ([`components/experiences/WorldRoutesSection.tsx`](components/experiences/WorldRoutesSection.tsx)) is the only place that lists World Trio routes, sights and flight adventures. Its content lives in [`lib/data/experience-routes.ts`](lib/data/experience-routes.ts): every world-trio add-on appears exactly once and takes price and minutes from `FLIGHT_ADDONS` (never duplicate them); an on-request World Trio opens `/book?package=captains-command-60&route=<id>` in the calendar-first flow. The booking must retain only a registry-validated `requestedRouteId`, require a 60-minute or longer session, add no route surcharge, and plainly state that the captain confirms the final mission plan before the visit. Scenario adventures still use `/contact?subject=route&route=<id>` because they are a briefing inquiry, not a scheduled World Trio. Every airport must be a real Boeing 737 destination with a real ICAO code (§1 pillar 5), and all copy ships in the six languages (§5). `tests/unit/experience-routes.test.ts` enforces these rules.
 - **Permanent Redirects (301)**:
   - `/simulator` and `/training` must permanently redirect (`permanent: true` in `next.config.mjs`) to `/pro`.
   - The server component [`app/(public)/simulator/page.tsx`](app/(public)/simulator/page.tsx) invokes Next.js `redirect('/pro')`.
@@ -110,14 +110,15 @@ The calendar must follow each selected package's actual reserved duration from r
 
 ---
 
-## 5. Multilingual & Bidirectional UI Discipline (5 Languages)
+## 5. Multilingual & Bidirectional UI Discipline (6 Languages)
 
-The platform supports 5 languages with zero cross-language contamination:
+The platform supports 6 languages with zero cross-language contamination:
 - **Hebrew (`he`)** — RTL
 - **English (`en`)** — LTR
 - **Russian (`ru`)** — LTR
 - **French (`fr`)** — LTR
 - **Arabic (`ar`)** — RTL
+- **Spanish (`es`)** — LTR
 
 ### Critical Coding Rules
 1. **No `isRTL ? he : en` Hacks**:
@@ -130,7 +131,7 @@ The platform supports 5 languages with zero cross-language contamination:
 3. **Telemetry Isolation (`dir="ltr"`)**:
    - Aviation telemetry must strictly remain in LTR: METAR weather strings, radio frequencies, transponder squawks, booking references, and slot ranges (`10:00 - 11:15`).
 4. **Key Parity**:
-   - When adding a new translation key in [`lib/i18n/translations.ts`](lib/i18n/translations.ts), all 5 languages (`he`, `en`, `ru`, `fr`, `ar`) must be provided simultaneously.
+   - When adding a new translation key in [`lib/i18n/translations.ts`](lib/i18n/translations.ts), all 6 languages (`he`, `en`, `ru`, `fr`, `ar`, `es`) must be provided simultaneously.
 
 ---
 
@@ -167,9 +168,9 @@ Before completing any feature or code change:
 2. Verify `/book` with consumer packages (30m, 45m, 60m, 90m) &rarr; 3-step flow with add-ons.
 3. Verify `/book` with PRO packages (`/book?package=airline-interview-prep-90-pro`) &rarr; 2-step noise-free flow.
 4. Verify calendar across Sunday through Saturday (09:00–24:00); retain Saturday Prime-Time price behavior and the Sunday–Tuesday-only 45m promotion.
-5. Verify all 5 language switchers (`he`, `en`, `ru`, `fr`, `ar`) render correctly with zero mixed scripts or broken keys.
+5. Verify all 6 language switchers (`he`, `en`, `ru`, `fr`, `ar`, `es`) render correctly with zero mixed scripts or broken keys.
 6. Verify the brand identity in both themes: official logo (orange airplane + cerulean wordmark) alone in the header with no tagline beneath it, and no off-brand blues or cyans (§1, Brand Identity).
 7. Verify responsive header and UI fit across all viewports from 320px (iPhone SE) to 1920px desktop (`tests/usability/header-fit.spec.ts`), with 44x44px minimum tap targets.
-8. Verify member authentication & dashboard localization across all 5 languages (`tests/usability/member-i18n.spec.ts`).
+8. Verify member authentication & dashboard localization across all 6 languages (`tests/usability/member-i18n.spec.ts`).
 9. Verify iPhone/iPad behaviour (`tests/usability/apple-web-app.spec.ts`, the 320px test in `tests/e2e/mobile.spec.ts`): `viewport-fit=cover` with pinch zoom intact, safe-area utilities (`pb-safe-area-*`, `px-safe-area-*`, `bottom-safe-area-*`) on sticky bars, dialogs and the footer, `overflow-x: clip` (never `hidden`, which detaches the sticky navbar on iOS), the 48px coarse-pointer control floor with 8px calendar/slot gaps and a 12px phone text floor (Material and Lighthouse; Apple asks 44px), an opaque 180px `app/apple-icon.png` and the manifest icons regenerated with `node scripts/generate-app-icons.mjs` whenever the brand mark changes. Recipes: `npx skills add https://github.com/joe-bell/skills --skill apple-web-app`.
 10. Run the automated quality framework ([`TESTING.md`](TESTING.md)): `npm run test:quick` for every change, `npm run test:all` before completing a feature. The accessibility baseline must stay empty (0 axe violations) and visual baselines change only on purpose.

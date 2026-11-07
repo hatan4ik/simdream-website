@@ -11,7 +11,7 @@ import {
   findOnRequestWorldRoute,
 } from '@/lib/data/experience-routes';
 
-const CODES: Language[] = ['he', 'en', 'ru', 'fr', 'ar'];
+const CODES: Language[] = ['he', 'en', 'ru', 'fr', 'ar', 'es'];
 const HEBREW = /[֐-׿]/;
 const ARABIC = /[؀-ۿ]/;
 /** AGENTS.md section 5: scripts that must never leak into another language's copy. */
@@ -21,6 +21,7 @@ const FORBIDDEN: Record<Language, RegExp[]> = {
   en: [HEBREW, ARABIC],
   ru: [HEBREW, ARABIC],
   fr: [HEBREW, ARABIC],
+  es: [HEBREW, ARABIC],
 };
 /** ICAO location indicators are four upper-case letters (ICAO Doc 7910). */
 const ICAO = /^[A-Z]{4}$/;
@@ -38,9 +39,9 @@ function stringLeaves(value: unknown, path = ''): Array<[string, string]> {
 
 function copyFor(language: Language): Array<[string, string]> {
   return [
-    ...stringLeaves(EXPERIENCE_ROUTES_COPY[language], 'section'),
-    ...WORLD_ROUTES.flatMap((route) => stringLeaves(route.copy[language], route.id)),
-    ...ADVENTURES.flatMap((adventure) => stringLeaves(adventure.copy[language], adventure.id)),
+    ...stringLeaves(EXPERIENCE_ROUTES_COPY[language] ?? EXPERIENCE_ROUTES_COPY.en, 'section'),
+    ...WORLD_ROUTES.flatMap((route) => stringLeaves(route.copy[language] ?? route.copy.en, route.id)),
+    ...ADVENTURES.flatMap((adventure) => stringLeaves(adventure.copy[language] ?? adventure.copy.en, adventure.id)),
   ];
 }
 
@@ -116,14 +117,14 @@ describe('experience routes catalog: World Trios', () => {
 describe('experience routes catalog: five-language discipline (AGENTS.md section 5)', () => {
   it.each(CODES)('provides complete copy in %s with three airport descriptions per trio', (code) => {
     for (const route of WORLD_ROUTES) {
-      const copy = route.copy[code];
+      const copy = route.copy[code] ?? route.copy.en;
       expect(copy, `${route.id} ${code}`).toBeDefined();
       expect(copy.airports).toHaveLength(3);
       expect(copy.bestFor.length).toBeGreaterThanOrEqual(2);
       expect(copy.pilotNote.length).toBeGreaterThan(40);
     }
     for (const adventure of ADVENTURES) {
-      expect(adventure.copy[code], `${adventure.id} ${code}`).toBeDefined();
+      expect(adventure.copy[code] ?? adventure.copy.en, `${adventure.id} ${code}`).toBeDefined();
     }
     const leaves = copyFor(code);
     expect(leaves.length).toBeGreaterThan(200);
@@ -149,13 +150,14 @@ describe('experience routes catalog: five-language discipline (AGENTS.md section
 
   it('formats the dynamic labels with the minutes they are given', () => {
     for (const code of CODES) {
-      expect(EXPERIENCE_ROUTES_COPY[code].extraMinutes(40)).toContain('40');
-      expect(EXPERIENCE_ROUTES_COPY[code].fromSession(90)).toContain('90');
+      const copy = EXPERIENCE_ROUTES_COPY[code] ?? EXPERIENCE_ROUTES_COPY.en;
+      expect(copy.extraMinutes(40)).toContain('40');
+      expect(copy.fromSession(90)).toContain('90');
     }
   });
 
   it.each(CODES)('supplies a complete route-request booking handoff in %s', (code) => {
-    const copy = EXPERIENCE_ROUTES_COPY[code];
+    const copy = EXPERIENCE_ROUTES_COPY[code] ?? EXPERIENCE_ROUTES_COPY.en;
     expect(copy.routeRequestEyebrow.trim()).not.toHaveLength(0);
     expect(copy.routeRequestDescription.trim()).not.toHaveLength(0);
     expect(copy.routeRequestSaved.trim()).not.toHaveLength(0);

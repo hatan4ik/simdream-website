@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { GIFT_CARD_DESIGNS, type GiftCardDesignId } from '@/lib/catalog/gift-card-designs';
 
 /** True only for dates that exist on the calendar (rejects 2027-02-30, 2026-13-01, ...). */
 export function isCalendarDate(value: string): boolean {
@@ -15,6 +16,10 @@ const time = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Use HH:mm.');
 // Shekel amounts with agora (0.01) precision; finer amounts would leave unspendable dust.
 const money = z.number().finite().nonnegative().max(100_000).multipleOf(0.01, 'Use at most two decimal places.');
 const safeText = (max: number) => z.string().trim().min(1).max(max);
+const giftCardDesignIds = GIFT_CARD_DESIGNS.map((design) => design.id) as unknown as [
+  GiftCardDesignId,
+  ...GiftCardDesignId[],
+];
 
 export const bookingCheckoutSchema = z.object({
   kind: z.literal('booking'),
@@ -45,6 +50,8 @@ export const voucherCheckoutSchema = z.object({
   personalMessage: z.string().trim().max(1_500).default(''),
   packageId: z.string().trim().max(80).optional(),
   packageTitle: z.string().trim().max(160).optional(),
+  // A card design is a closed registry value, never customer-controlled markup or a media URL.
+  giftCardDesignId: z.enum(giftCardDesignIds).optional(),
 });
 
 export const checkoutRequestSchema = z.discriminatedUnion('kind', [

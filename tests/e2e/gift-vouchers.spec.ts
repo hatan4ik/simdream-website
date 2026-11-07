@@ -105,4 +105,24 @@ test.describe('gift vouchers', () => {
     await page.getByRole('button', { name: ilsPattern(500) }).click();
     await expect(vouchers.submit()).toHaveText(ilsPattern(500));
   });
+
+  test('uses the selected Apple-style card colour in the preview and secure checkout request', async ({ page, vouchers }) => {
+    await vouchers.goto();
+    await vouchers.fill(ORDER);
+    await page.getByRole('button', { name: /Flexible Monetary Gift Card/ }).click();
+
+    const colour = page.getByRole('radio', { name: 'Choose card colour: Aurora' });
+    await colour.click();
+    await expect(colour).toHaveAttribute('aria-checked', 'true');
+    await expect(page.locator('[data-gift-card-design-preview="aurora"]')).toHaveAttribute('src', /aurora\.jpg/);
+
+    const checkoutResponse = page.waitForResponse((response) => response.url().endsWith('/api/checkout'));
+    await vouchers.submit().click();
+    const response = await checkoutResponse;
+    expect(response.request().postDataJSON()).toMatchObject({
+      kind: 'voucher',
+      giftCardDesignId: 'aurora',
+      ...ORDER,
+    });
+  });
 });

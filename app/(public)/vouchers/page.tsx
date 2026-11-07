@@ -34,6 +34,11 @@ import {
   type GiftCertificatePackageId,
 } from '@/lib/catalog/gift-voucher-packages';
 import { BrandMark } from '@/components/brand/BrandLogo';
+import { GiftCardDesignPicker } from '@/components/vouchers/GiftCardDesignPicker';
+import {
+  DEFAULT_GIFT_CARD_DESIGN_ID,
+  type GiftCardDesignId,
+} from '@/lib/catalog/gift-card-designs';
 
 type GiftFormatMode = 'certificate' | 'card';
 
@@ -71,6 +76,7 @@ export default function GiftVouchersPage() {
   const [customAmount, setCustomAmount] = useState<string>('');
   const [hidePriceOnCertificate, setHidePriceOnCertificate] = useState<boolean>(false);
   const [deliveryMethod, setDeliveryMethod] = useState<'direct' | 'print'>('direct');
+  const [giftCardDesignId, setGiftCardDesignId] = useState<GiftCardDesignId>(DEFAULT_GIFT_CARD_DESIGN_ID);
 
   const [recipientName, setRecipientName] = useState('Aviad Stern');
   const [recipientEmail, setRecipientEmail] = useState('');
@@ -154,6 +160,9 @@ export default function GiftVouchersPage() {
 
       if (giftMode === 'certificate' && activeTierObj) {
         payload.packageId = activeTierObj.packageId;
+      }
+      if (giftMode === 'card') {
+        payload.giftCardDesignId = giftCardDesignId;
       }
 
       const res = await fetch('/api/checkout', {
@@ -833,6 +842,13 @@ export default function GiftVouchersPage() {
             ) : (
               /* Flexible Monetary Gift Card Preview */
               <div className="rounded-3xl bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 border-2 border-orange-500/40 shadow-2xl shadow-orange-500/10 overflow-hidden relative p-6 sm:p-7 space-y-6">
+                <GiftCardDesignPicker
+                  selectedDesignId={giftCardDesignId}
+                  onChange={setGiftCardDesignId}
+                  label={t.vouchers.cardDesignLabel}
+                  selectedLabel={t.vouchers.cardDesignDeliveryNote}
+                />
+
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-700 flex items-center justify-center">

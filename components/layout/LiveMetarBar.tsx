@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { LanguageSelector } from './LanguageSelector';
 import { SOCIAL_CHANNELS } from './social-channels';
-import { WixSmartChat } from './WixSmartChat';
+import { WhatsAppAction } from './WhatsAppAction';
 
 export function LiveMetarBar() {
   const { t, isRTL } = useLanguage();
@@ -69,7 +69,7 @@ export function LiveMetarBar() {
               </a>
             ))}
           </div>
-          <WixSmartChat />
+          <WhatsAppAction />
           <LanguageSelector />
         </div>
       </div>

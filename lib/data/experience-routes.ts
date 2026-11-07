@@ -17,7 +17,7 @@
  * provided for the five supported languages (AGENTS.md §5); ICAO codes are telemetry and are
  * rendered in LTR.
  */
-import type { Language } from '@/lib/i18n/translations';
+import type { Language, LocalizedRecord } from '@/lib/i18n/translations';
 import type { AddonIconName } from '@/types';
 
 export type RouteRegion = 'israel' | 'europe' | 'americas' | 'asia_pacific' | 'africa_middle_east' | 'extreme';
@@ -54,7 +54,7 @@ export interface WorldRoute {
   difficulty: 1 | 2 | 3 | 4 | 5;
   icon: AddonIconName;
   airports: [RouteAirport, RouteAirport, RouteAirport];
-  copy: Record<Language, WorldRouteCopy>;
+  copy: LocalizedRecord<WorldRouteCopy>;
 }
 
 /** A custom World Trio needs the full Captain's Command session, not a short discovery flight. */
@@ -72,7 +72,7 @@ export interface Adventure {
   icon: AddonIconName;
   /** Recommended minimum booked session for the adventure to fit comfortably. */
   minimumSessionMinutes: 45 | 60 | 90;
-  copy: Record<Language, AdventureCopy>;
+  copy: LocalizedRecord<AdventureCopy>;
 }
 
 export const WORLD_ROUTES: WorldRoute[] = [
@@ -1522,7 +1522,7 @@ export interface ExperienceRoutesCopy {
   onRequestHint: string;
 }
 
-export const EXPERIENCE_ROUTES_COPY: Record<Language, ExperienceRoutesCopy> = {
+export const EXPERIENCE_ROUTES_COPY: LocalizedRecord<ExperienceRoutesCopy> = {
   en: {
     badge: 'EXPERIENCE FLIGHTS • FROM THE CAPTAIN’S LOGBOOK',
     title: 'Routes, Sights & Adventures Around the World',

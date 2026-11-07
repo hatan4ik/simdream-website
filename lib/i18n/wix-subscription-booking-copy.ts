@@ -1,4 +1,4 @@
-import type { Language } from './translations';
+import type { Language, LocalizedRecord } from './translations';
 
 interface WixSubscriptionBookingCopy {
   eyebrow: string;
@@ -11,7 +11,7 @@ interface WixSubscriptionBookingCopy {
   checkoutFailed: string;
 }
 
-export const WIX_SUBSCRIPTION_BOOKING_COPY: Record<Language, WixSubscriptionBookingCopy> = {
+export const WIX_SUBSCRIPTION_BOOKING_COPY: LocalizedRecord<WixSubscriptionBookingCopy> = {
   en: {
     eyebrow: 'WIX SUBSCRIPTION REDEMPTION',
     title: 'This flight is covered by your active subscription.',

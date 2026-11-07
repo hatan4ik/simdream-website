@@ -79,11 +79,11 @@ export default function ExperiencesPage() {
 
   const showFlightPackages = selectedCategory !== 'subscriptions';
   const showSubscriptions = selectedCategory === 'all' || selectedCategory === 'subscriptions';
-  const subscriptionCopy = SUBSCRIPTION_SECTION_COPY[language];
+  const subscriptionCopy = SUBSCRIPTION_SECTION_COPY[language] ?? SUBSCRIPTION_SECTION_COPY.en;
   const localizedAddons = getLocalizedAddons(language);
   const subscriptionPasses = SUBSCRIPTION_PASSES.map((pass) => ({
     ...pass,
-    copy: pass.copy[language],
+    copy: pass.copy[language] ?? pass.copy.en,
     financials: getSubscriptionPassFinancials(pass),
     trainingAddons: pass.trainingAddonIds.map((addonId) => localizedAddons.find((addon) => addon.id === addonId)),
   }));
@@ -322,6 +322,8 @@ export default function ExperiencesPage() {
                                 ? 'Redirection vers le paiement...'
                                 : language === 'ar'
                                   ? 'جارٍ التحويل للدفع...'
+                                  : language === 'es'
+                                    ? 'Redirigiendo al pago...'
                                   : 'Redirecting to payment...'}
                         </span>
                       </span>

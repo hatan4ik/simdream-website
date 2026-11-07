@@ -25,7 +25,7 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
 import { useLanguage } from '@/lib/i18n/language-context';
-import { Language } from '@/lib/i18n/translations';
+import { type Language, type LocalizedRecord } from '@/lib/i18n/translations';
 import { FACILITY_INFO } from '@/lib/config/facility-info';
 
 interface AboutCopy {
@@ -70,7 +70,7 @@ interface AboutCopy {
   specsNoticeDesc: string;
 }
 
-const ABOUT_COPY: Record<Language, AboutCopy> = {
+const ABOUT_COPY: LocalizedRecord<AboutCopy> = {
   en: {
     heroBadge: 'ABOUT SIM DREAM ISRAEL • TEL AVIV FLIGHT EXPERIENCE CENTER',
     heroTitle: 'Where Aviation Dreams Take Flight in the Heart of Tel Aviv',

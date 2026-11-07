@@ -9,7 +9,7 @@ import { BrandMark } from '@/components/brand/BrandLogo';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { useLanguage } from '@/lib/i18n/language-context';
-import type { Language } from '@/lib/i18n/translations';
+import type { Language, LocalizedRecord } from '@/lib/i18n/translations';
 
 interface ThankYouCopy {
   badge: string;
@@ -25,7 +25,7 @@ interface ThankYouCopy {
   dispatchNotice: string;
 }
 
-const THANK_YOU_COPY: Record<Language, ThankYouCopy> = {
+const THANK_YOU_COPY: LocalizedRecord<ThankYouCopy> = {
   he: {
     badge: 'רכישת מנוי הושלמה',
     title: 'ברוכים הבאים למועדון הטיסה של Sim Dream!',
@@ -214,4 +214,3 @@ export default function SubscriptionThankYouPage() {
     </Suspense>
   );
 }
-

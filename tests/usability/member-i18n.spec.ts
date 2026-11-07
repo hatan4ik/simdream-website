@@ -17,7 +17,7 @@ test.beforeEach(async ({ page, baseURL }) => {
   await isolateFromThirdParties(page, baseURL);
 });
 
-const LOCALIZED_LANGUAGES: readonly Language[] = ['he', 'ar', 'ru', 'fr'];
+const LOCALIZED_LANGUAGES: readonly Language[] = ['he', 'ar', 'ru', 'fr', 'es'];
 const ENGLISH = translations.en.member;
 
 function directionOf(language: Language): 'rtl' | 'ltr' {

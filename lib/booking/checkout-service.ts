@@ -4,6 +4,7 @@ import type { Booking, GiftVoucher } from '@/types';
 import { FLIGHT_ADDONS, SIMULATOR_PACKAGES } from '@/lib/db/seed-data';
 import { hasDeparted, israelToday } from '@/lib/scheduler/israel-clock';
 import { giftCertificateAmount, giftCertificatePackageById } from '@/lib/catalog/gift-voucher-packages';
+import { DEFAULT_GIFT_CARD_DESIGN_ID } from '@/lib/catalog/gift-card-designs';
 import { findOnRequestWorldRoute, MINIMUM_ROUTE_REQUEST_MINUTES } from '@/lib/data/experience-routes';
 import {
   calculateMissionManifest,
@@ -227,6 +228,7 @@ export function createCheckoutService(dependencies: CheckoutDependencies) {
         personalMessage: input.personalMessage,
         packageId: matchedPkg?.id,
         packageTitle: resolvedPackageTitle,
+        giftCardDesignId: matchedPkg ? undefined : input.giftCardDesignId ?? DEFAULT_GIFT_CARD_DESIGN_ID,
         expiryDate: expiryDate.toISOString(),
       });
 

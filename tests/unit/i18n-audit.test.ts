@@ -5,7 +5,7 @@ import { FLIGHT_ADDONS, SIMULATOR_PACKAGES } from '@/lib/db/seed-data';
 import { LANGUAGES, getLocalizedAddons, getLocalizedPackages, translations, type Language } from '@/lib/i18n/translations';
 import { REPO_ROOT, literalTexts, location, parseSource, readConstLiteral, sourceFiles, walk } from './_support/source';
 
-const CODES: Language[] = ['he', 'en', 'ru', 'fr', 'ar'];
+const CODES: Language[] = ['he', 'en', 'ru', 'fr', 'ar', 'es'];
 const HEBREW = /[֐-׿]/;
 const ARABIC = /[؀-ۿ]/;
 /** Scripts that must never appear in each language's copy (AGENTS.md section 5). */
@@ -15,6 +15,7 @@ const FORBIDDEN_SCRIPTS: Record<Language, Array<{ name: string; pattern: RegExp 
   en: [{ name: 'Hebrew', pattern: HEBREW }, { name: 'Arabic', pattern: ARABIC }],
   ru: [{ name: 'Hebrew', pattern: HEBREW }, { name: 'Arabic', pattern: ARABIC }],
   fr: [{ name: 'Hebrew', pattern: HEBREW }, { name: 'Arabic', pattern: ARABIC }],
+  es: [{ name: 'Hebrew', pattern: HEBREW }, { name: 'Arabic', pattern: ARABIC }],
 };
 
 type Shape = string | Shape[] | { [key: string]: Shape };
@@ -53,7 +54,7 @@ const PLACEHOLDER = /\{\{\s*[\w.]+\s*\}\}|\{[\w.]+\}|%[sd]|\$\{[\w.]+\}/g;
 const placeholders = (text: string) => (text.match(PLACEHOLDER) ?? []).sort();
 
 describe('translations dictionary', () => {
-  it('ships exactly the five supported languages, with Hebrew and Arabic right-to-left', () => {
+  it('ships exactly the six supported languages, with Hebrew and Arabic right-to-left', () => {
     expect(Object.keys(translations).sort()).toEqual([...CODES].sort());
     expect(Object.fromEntries(LANGUAGES.map((language) => [language.code, language.dir]))).toEqual({
       en: 'ltr',
@@ -61,6 +62,7 @@ describe('translations dictionary', () => {
       ru: 'ltr',
       fr: 'ltr',
       ar: 'rtl',
+      es: 'ltr',
     });
   });
 

@@ -1,7 +1,12 @@
 import { SIMULATOR_PACKAGES, FLIGHT_ADDONS } from '@/lib/db/seed-data';
 
-export type Language = 'en' | 'he' | 'ru' | 'fr' | 'ar';
+export type Language = 'en' | 'he' | 'ru' | 'fr' | 'ar' | 'es';
 export type SupportedLanguage = Language;
+/**
+ * Existing specialist copy may intentionally fall back to English while a new
+ * locale is being translated. Customer entry points always use `translations`.
+ */
+export type LocalizedRecord<T> = Record<Exclude<Language, 'es'>, T> & Partial<Record<'es', T>>;
 
 export interface LanguageInfo {
   code: Language;
@@ -17,9 +22,10 @@ export const LANGUAGES: LanguageInfo[] = [
   { code: 'ru', name: 'Russian', nativeName: 'Русский', flag: '🇷🇺', dir: 'ltr' },
   { code: 'fr', name: 'French', nativeName: 'Français', flag: '🇫🇷', dir: 'ltr' },
   { code: 'ar', name: 'Arabic', nativeName: 'العربية', flag: '🇸🇦', dir: 'rtl' },
+  { code: 'es', name: 'Spanish', nativeName: 'Español', flag: '🇪🇸', dir: 'ltr' },
 ];
 
-export const translations = {
+const baseTranslations = {
   en: {
     nav: {
       brandSub: 'Simulation Systems (Israel)',
@@ -571,6 +577,15 @@ export const translations = {
       observersIncluded: 'Up to 2 Cockpit Guests Included',
       cardPresetsLabel: 'Quick-Select Gift Card Credit Balance:',
       cardPreviewTitle: 'LIVE DIGITAL GIFT CARD PREVIEW',
+      cardDesignLabel: 'Choose card colour',
+      cardDesignDeliveryNote: 'Selected design is sent after payment',
+      cardDesignSkyline: 'Skyline Blue',
+      cardDesignIvory: 'Ivory',
+      cardDesignMoonlight: 'Moonlight',
+      cardDesignAurora: 'Aurora',
+      cardDesignSunset: 'Sunset Copper',
+      cardDesignDusk: 'Dusk Gold',
+      cardDesignPearl: 'Pearl',
       officialGiftCard: 'SIM DREAM FLIGHT DECK GIFT CARD',
       creditBalanceLabel: 'AVAILABLE FLIGHT CREDIT',
       cardRedeemableNote: 'Redeemable for any Boeing 737 MAX flight package, PRO assessment, or cockpit upgrade',
@@ -1397,6 +1412,15 @@ export const translations = {
       observersIncluded: 'כולל עד 2 מלווים בתא הטייס',
       cardPresetsLabel: 'בחירה מהירה של סכום הגיפט קארד:',
       cardPreviewTitle: 'תצוגה מקדימה - גיפט קארד דיגיטלי',
+      cardDesignLabel: 'בחרו צבע לכרטיס',
+      cardDesignDeliveryNote: 'העיצוב הנבחר יישלח לאחר התשלום',
+      cardDesignSkyline: 'כחול שמיים',
+      cardDesignIvory: 'שנהב',
+      cardDesignMoonlight: 'אור ירח',
+      cardDesignAurora: 'זוהר צפוני',
+      cardDesignSunset: 'נחושת שקיעה',
+      cardDesignDusk: 'זהב ערב',
+      cardDesignPearl: 'פנינה',
       officialGiftCard: 'כרטיס מתנה רשמי • SIM DREAM GIFT CARD',
       creditBalanceLabel: 'יתרת זכות לטיסה',
       cardRedeemableNote: 'ניתן למימוש עבור כל חבילות הטיסה בבואינג 737 MAX, אימוני PRO ושדרוגים בקוקפיט',
@@ -2218,6 +2242,15 @@ export const translations = {
       observersIncluded: 'До 2 гостей в кабине включено',
       cardPresetsLabel: 'Быстрый выбор номинала карты:',
       cardPreviewTitle: 'ПРЕДПРОСМОТР ПОДАРОЧНОЙ КАРТЫ',
+      cardDesignLabel: 'Выберите цвет карты',
+      cardDesignDeliveryNote: 'Выбранный дизайн будет отправлен после оплаты',
+      cardDesignSkyline: 'Небесно-голубой',
+      cardDesignIvory: 'Слоновая кость',
+      cardDesignMoonlight: 'Лунный свет',
+      cardDesignAurora: 'Аврора',
+      cardDesignSunset: 'Медный закат',
+      cardDesignDusk: 'Сумеречное золото',
+      cardDesignPearl: 'Жемчуг',
       officialGiftCard: 'ПОДАРОЧНАЯ КАРТА • SIM DREAM GIFT CARD',
       creditBalanceLabel: 'ДОСТУПНЫЙ БАЛАНС',
       cardRedeemableNote: 'Действует на любые программы Boeing 737 MAX, тренировки PRO и дополнительные опции кабины',
@@ -3045,6 +3078,15 @@ export const translations = {
       observersIncluded: 'Jusqu’à 2 invités cockpit inclus',
       cardPresetsLabel: 'Sélection rapide du crédit Carte Cadeau :',
       cardPreviewTitle: 'APERÇU DE LA CARTE CADEAU NUMÉRIQUE',
+      cardDesignLabel: 'Choisissez la couleur de la carte',
+      cardDesignDeliveryNote: 'Le design choisi est envoyé après le paiement',
+      cardDesignSkyline: 'Bleu horizon',
+      cardDesignIvory: 'Ivoire',
+      cardDesignMoonlight: 'Clair de lune',
+      cardDesignAurora: 'Aurore',
+      cardDesignSunset: 'Cuivre du couchant',
+      cardDesignDusk: 'Or du crépuscule',
+      cardDesignPearl: 'Perle',
       officialGiftCard: 'CARTE CADEAU OFFICIELLE • SIM DREAM',
       creditBalanceLabel: 'CRÉDIT DE VOL DISPONIBLE',
       cardRedeemableNote: 'Valable sur tous les forfaits Boeing 737 MAX, évaluations PRO et options cockpit',
@@ -3878,6 +3920,15 @@ export const translations = {
       observersIncluded: 'شامل ضيفين مجاناً في القمرة',
       cardPresetsLabel: 'اختيار سريع لرصيد بطاقة الهدية:',
       cardPreviewTitle: 'معاينة حية لبطاقة الهدية الرقمية',
+      cardDesignLabel: 'اختر لون البطاقة',
+      cardDesignDeliveryNote: 'سيُرسل التصميم المختار بعد الدفع',
+      cardDesignSkyline: 'أزرق الأفق',
+      cardDesignIvory: 'عاجي',
+      cardDesignMoonlight: 'ضوء القمر',
+      cardDesignAurora: 'الشفق',
+      cardDesignSunset: 'نحاسي الغروب',
+      cardDesignDusk: 'ذهبي الغسق',
+      cardDesignPearl: 'لؤلؤي',
       officialGiftCard: 'بطاقة هدية رسمية • SIM DREAM GIFT CARD',
       creditBalanceLabel: 'رصيد الطيران المتاح',
       cardRedeemableNote: 'قابلة للاستخدام لجميع باقات بوينغ 737 ماكس وتدريبات PRO وإضافات القمرة',
@@ -4151,10 +4202,147 @@ export const translations = {
   },
 };
 
-const PROMO_45_TRANSLATIONS: Record<
-  Language,
-  { title: string; badge: string; shortDesc: string; description: string; features: string[] }
-> = {
+const spanishTranslations = {
+  ...baseTranslations.en,
+  nav: {
+    ...baseTranslations.en.nav,
+    brandSub: 'Sistemas de Simulación (Israel)',
+    openMenu: 'Abrir menú',
+    closeMenu: 'Cerrar menú',
+    skipToContent: 'Ir al contenido principal',
+    experiences: 'Experiencias de vuelo',
+    simulator: 'Formación profesional',
+    workshops: 'CRM corporativo (B2B)',
+    vouchers: 'Tarjetas regalo',
+    subscriptions: 'Suscripciones de vuelo',
+    about: 'Sobre nosotros',
+    contact: 'Ubicación y contacto',
+    socialMedia: 'Redes sociales',
+    bookFlight: 'Reservar un vuelo',
+    pilotLogin: 'Acceso de piloto',
+    pilotMode: 'Modo piloto',
+    adminMode: 'Modo administrador',
+    logbook: 'Bitácora y reservas',
+    adminBoard: 'Panel de despacho',
+    logout: 'Cerrar sesión',
+  },
+  uiTheme: {
+    ...baseTranslations.en.uiTheme,
+    cockpit: 'Cabina nocturna',
+    brand: 'Luz de marca',
+    studio: 'Estudio limpio',
+    switchLabel: 'Cambiar apariencia',
+  },
+  hero: {
+    ...baseTranslations.en.hero,
+    titlePart1: 'Toma el mando de un',
+    titleHighlight: 'Boeing 737 MAX',
+    titlePart2: 'en Tel Aviv',
+    subtitle: 'Vuela, despega y aterriza en una cabina Boeing 737 MAX de escala real, acompañado por un capitán de aerolínea activo.',
+    bookFlight: 'Reserva tu vuelo',
+    cockpitSpecs: 'Cómo funciona',
+  },
+  experiences: {
+    ...baseTranslations.en.experiences,
+    badge: 'ELIGE TU VUELO',
+    title: 'Paquetes de simulador populares',
+    subtitle: 'Tanto si es tu primera vez al mando como si practicas aproximaciones avanzadas, tenemos un perfil de vuelo para ti.',
+    viewAll: 'Ver todos los paquetes',
+    all: 'Todos los paquetes',
+    recreational: 'Vuelos de experiencia',
+    training: 'Formación de pilotos',
+    fearOfFlying: 'Miedo a volar',
+    corporate: 'CRM corporativo',
+    subscriptions: 'Suscripciones de vuelo',
+    buySubscription: 'Explorar suscripciones',
+    bookThisFlight: 'Reservar este vuelo',
+    inquireCorporate: 'Consultar para empresas',
+  },
+  booking: {
+    ...baseTranslations.en.booking,
+    pilotName: 'Nombre completo del piloto',
+    voucherPromoTitle: '¿Tienes una tarjeta regalo o código promocional?',
+    applyCode: 'Aplicar',
+    voucherPlaceholder: 'Introduce el código',
+  },
+  vouchers: {
+    ...baseTranslations.en.vouchers,
+    giftTeaserBadge: '¿BUSCAS UN REGALO INOLVIDABLE?',
+    giftTeaserTitle: 'Regala la experiencia de vuelo definitiva',
+    giftTeaserDesc: 'Las tarjetas regalo de Sim Dream se envían al instante por correo electrónico con el nombre del pasajero, un mensaje personal y 12 meses de validez.',
+    customizeVoucher: 'Personalizar tarjeta regalo',
+    selectTierTitle: '1. Elige el valor de la tarjeta regalo',
+    selectTierSubtitle: 'Elige un paquete de vuelo o introduce un importe personalizado',
+    customizeDesignTitle: '2. Personaliza los datos de la tarjeta',
+    customizeDesignSubtitle: 'Datos de la persona que recibe y de quien envía el regalo',
+    recipientNameLabel: 'Nombre de la persona que recibe el regalo *',
+    recipientEmailLabel: 'Correo del destinatario (opcional, para entrega directa)',
+    senderNameLabel: 'Tu nombre (quien regala) *',
+    senderEmailLabel: 'Tu correo (confirmación y recibo) *',
+    greetingLabel: 'Mensaje personal de felicitación (máx. 200 caracteres)',
+    livePreviewTitle: 'VISTA PREVIA DEL VALE DE VUELO',
+    cardPreviewTitle: 'VISTA PREVIA DE LA TARJETA REGALO DIGITAL',
+    cardDesignLabel: 'Elige el color de la tarjeta',
+    cardDesignDeliveryNote: 'El diseño seleccionado se envía después del pago',
+    cardDesignSkyline: 'Azul horizonte',
+    cardDesignIvory: 'Marfil',
+    cardDesignMoonlight: 'Luz de luna',
+    cardDesignAurora: 'Aurora',
+    cardDesignSunset: 'Cobre del atardecer',
+    cardDesignDusk: 'Oro crepuscular',
+    cardDesignPearl: 'Perla',
+    cardOptionTitle: 'Tarjeta regalo flexible',
+    cardOptionDesc: 'Carga el crédito que quieras. La persona destinataria elige su paquete, fecha, preparación PRO o complementos disponibles.',
+    proceedToPayment: 'Continuar al pago seguro',
+    processing: 'Generando tarjeta…',
+    deliveryModeLabel: 'Método de entrega',
+    deliveryDirectTitle: 'Enviar directamente al destinatario y una copia para ti',
+    deliveryPrintTitle: 'Enviarme solo a mí para imprimir o compartir',
+  },
+  contact: {
+    ...baseTranslations.en.contact,
+    title: 'Visítanos en Tel Aviv',
+    subtitle: 'Estamos listos para darte la bienvenida a la cabina.',
+  },
+  cta: {
+    ...baseTranslations.en.cta,
+  },
+  footer: {
+    ...baseTranslations.en.footer,
+  },
+  member: {
+    ...baseTranslations.en.member,
+    login: {
+      ...baseTranslations.en.member.login,
+      signInTitle: 'Acceso a la cabina de miembros',
+      signInSubtitle: 'Accede a tus sesiones, recibos y próximas misiones.',
+      signUpTitle: 'Crea tu perfil de miembro',
+      continueWithGoogle: 'Continuar con Google',
+      signInSubmit: 'Entrar en la cabina',
+      signUpSubmit: 'Crear perfil de miembro',
+      guestLink: 'Continuar como invitado',
+    },
+    dashboard: {
+      ...baseTranslations.en.member.dashboard,
+      signInTitle: 'Entra en tu cabina de vuelo',
+      signInCta: 'Iniciar sesión o crear perfil de miembro',
+      welcomeBack: 'Bienvenido de nuevo, {name}',
+      upcomingHeading: 'Próximas sesiones',
+      historyHeading: 'Sesiones y compras anteriores',
+      bookNextMission: 'Reservar próxima misión',
+    },
+  },
+};
+
+export const translations = { ...baseTranslations, es: spanishTranslations };
+
+const PROMO_45_TRANSLATIONS: LocalizedRecord<{
+  title: string;
+  badge: string;
+  shortDesc: string;
+  description: string;
+  features: string[];
+}> = {
   en: {
     title: 'Discounted Promotion Flight (45m)',
     badge: 'Discounted Promotion • Sun–Tue • Until 18:00',
@@ -4227,10 +4415,7 @@ const PROMO_45_TRANSLATIONS: Record<
   },
 };
 
-const MISSION_ADDONS_TRANSLATIONS: Record<
-  Language,
-  Record<string, { name: string; description: string }>
-> = {
+const MISSION_ADDONS_TRANSLATIONS: LocalizedRecord<Record<string, { name: string; description: string }>> = {
   en: {
     'addon-cold-dark': {
       name: 'Boeing 737 Cold & Dark Cockpit Startup',

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { CheckCircle2, LogIn, LogOut, ShieldCheck, UserRound } from 'lucide-react';
-import type { Language } from '@/lib/i18n/translations';
+import type { Language, LocalizedRecord } from '@/lib/i18n/translations';
 import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/lib/auth/auth-context';
 import { getWixMemberClient, isWixBrowserClientConfigured } from '@/lib/wix/member-client';
@@ -23,7 +23,7 @@ interface MemberCopy {
   signInFailed: string;
 }
 
-const COPY: Record<Language, MemberCopy> = {
+const COPY: LocalizedRecord<MemberCopy> = {
   en: {
     eyebrow: 'WIX MEMBERS',
     title: 'Your subscription flight deck',
@@ -106,7 +106,7 @@ function isActiveOrder(status: string): boolean {
 }
 
 export function WixMemberSubscriptionPanel({ language }: WixMemberSubscriptionPanelProps) {
-  const copy = COPY[language];
+  const copy = COPY[language] ?? COPY.en;
   const { user, isLoading: authLoading, logout, startWixMemberSignIn } = useAuth();
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [orders, setOrders] = useState<SubscriptionOrder[]>([]);

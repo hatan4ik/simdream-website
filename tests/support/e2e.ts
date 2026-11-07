@@ -1,10 +1,10 @@
 import { test as base, expect, type Page } from '@playwright/test';
 import { TEST_ADMIN } from './test-env';
 
-export type Language = 'he' | 'en' | 'ru' | 'fr' | 'ar';
+export type Language = 'he' | 'en' | 'ru' | 'fr' | 'ar' | 'es';
 export type UiTheme = 'cockpit' | 'brand' | 'studio';
 
-export const LANGUAGES: readonly Language[] = ['he', 'en', 'ru', 'fr', 'ar'];
+export const LANGUAGES: readonly Language[] = ['he', 'en', 'ru', 'fr', 'ar', 'es'];
 export const RTL_LANGUAGES: readonly Language[] = ['he', 'ar'];
 
 /** Use as Playwright `httpCredentials` to pass the interim admin Basic auth. */

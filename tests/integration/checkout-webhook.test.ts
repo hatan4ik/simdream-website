@@ -21,6 +21,7 @@ import {
   publicBooking,
   publicVoucher,
   stripeCheckoutStarted,
+  validationErrorBody,
   webhookAck,
 } from './contracts';
 
@@ -381,6 +382,30 @@ describe('Gift voucher purchase lifecycle', () => {
     const verification = await verifyVoucher(app, voucher.code);
     expect(verification.status).toBe(404);
     expect(expectContract(errorBody, verification.body).error).toBe('Invalid voucher code.');
+  });
+
+  it('persists a registry-validated card design so the paid delivery uses the selected preview', async () => {
+    const app = await loadApp({ stripe: 'mocked' });
+
+    const response = await postCheckout(app, voucherCheckoutBody({ giftCardDesignId: 'aurora' }));
+
+    expect(response.status).toBe(201);
+    const session = app.checkoutSessions[app.checkoutSessions.length - 1];
+    expect((await app.store.getVoucherById(session.voucherId ?? ''))).toMatchObject({
+      giftCardDesignId: 'aurora',
+    });
+  });
+
+  it('rejects an unregistered card design instead of accepting a media URL or arbitrary markup', async () => {
+    const app = await loadApp({ stripe: 'mocked' });
+
+    const response = await postCheckout(
+      app,
+      voucherCheckoutBody({ giftCardDesignId: 'https://untrusted.example.invalid/card.jpg' })
+    );
+
+    expect(response.status).toBe(400);
+    expect(expectContract(validationErrorBody, response.body).error).toBe('Invalid request.');
   });
 
   it('activates the voucher with its full balance on a completed webhook and makes it verifiable', async () => {

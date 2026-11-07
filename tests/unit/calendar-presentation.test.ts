@@ -2,9 +2,13 @@ import { describe, expect, it } from 'vitest';
 import {
   calendarMonthCells,
   calendarNavigationLabels,
+  calendarDayLabel,
   calendarWeekDays,
   calendarWeekdayNames,
   formatCalendarDate,
+  formatCalendarDayNumber,
+  formatCalendarMonth,
+  monthStartForYmd,
 } from '@/lib/i18n/calendar-presentation';
 
 describe('localized calendar presentation', () => {
@@ -40,8 +44,8 @@ describe('localized calendar presentation', () => {
     expect(formatCalendarDate('2026-11-04', 'ar')).toMatch(/[\u0600-\u06FF]/);
   });
 
-  it('keeps week pager controls complete and isolated in all five languages', () => {
-    for (const language of ['en', 'he', 'ru', 'fr', 'ar'] as const) {
+  it('keeps week pager controls complete and isolated in all six languages', () => {
+    for (const language of ['en', 'he', 'ru', 'fr', 'ar', 'es'] as const) {
       const labels = calendarNavigationLabels(language);
       expect(labels.previousWeek).not.toHaveLength(0);
       expect(labels.nextWeek).not.toHaveLength(0);
@@ -49,5 +53,13 @@ describe('localized calendar presentation', () => {
 
     expect(calendarNavigationLabels('he').nextWeek).toMatch(/[\u0590-\u05FF]/);
     expect(calendarNavigationLabels('ar').nextWeek).toMatch(/[\u0600-\u06FF]/);
+  });
+
+  it('retains safe, readable output when an upstream calendar value is malformed', () => {
+    expect(formatCalendarDate('not-a-date', 'es')).toBe('not-a-date');
+    expect(calendarDayLabel('not-a-date', 'en')).toBe('not-a-date');
+    expect(formatCalendarDayNumber(12, 'es')).toBe('12');
+    expect(formatCalendarMonth(new Date(2026, 10, 1), 'es')).toMatch(/2026/);
+    expect(monthStartForYmd('not-a-date')).toBeInstanceOf(Date);
   });
 });

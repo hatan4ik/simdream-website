@@ -24,7 +24,7 @@ import {
 import { addDaysToYmd, formatCurrency } from '@/lib/utils';
 import { useModalFocus } from '@/lib/ui/use-modal-focus';
 import { useLanguage } from '@/lib/i18n/language-context';
-import { Language } from '@/lib/i18n/translations';
+import { type Language, type LocalizedRecord } from '@/lib/i18n/translations';
 import {
   calendarMonthCells,
   calendarWeekDays,
@@ -261,7 +261,7 @@ const CLEAN_COPY: Record<
  * unavailable in the PRO and fear-of-flying flows. This keeps the calendar's
  * compact selector compatible with the noise-free booking contract.
  */
-const DURATION_OPTION_SUBTITLES: Record<Language, { training: string; fearOfFlying: string; discovery: string }> = {
+const DURATION_OPTION_SUBTITLES: LocalizedRecord<{ training: string; fearOfFlying: string; discovery: string }> = {
   en: {
     training: 'Airline assessment preparation',
     fearOfFlying: 'Calm captain-led coaching',

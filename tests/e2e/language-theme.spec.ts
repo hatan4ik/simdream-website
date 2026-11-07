@@ -9,6 +9,7 @@ const COPY: Record<Language, { vouchersTitle: string; hero: string }> = {
   ru: { vouchersTitle: 'Подарите ощущение настоящего полета', hero: 'Возьмите управление' },
   fr: { vouchersTitle: 'Offrez l’Expérience de Vol Ultime', hero: 'Prenez les commandes du' },
   ar: { vouchersTitle: 'امنح تجربة الطيران الاستثنائية', hero: 'تول قيادة طائرة' },
+  es: { vouchersTitle: 'Regala la experiencia de vuelo definitiva', hero: 'Toma el mando de un' },
 };
 
 const directionOf = (language: Language) => (RTL_LANGUAGES.includes(language) ? 'rtl' : 'ltr');
