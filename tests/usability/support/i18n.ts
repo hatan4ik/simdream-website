@@ -18,6 +18,9 @@ export const TELEMETRY_PATTERNS: ReadonlyArray<{ kind: string; pattern: RegExp }
   { kind: 'slot time range', pattern: /\b\d{1,2}:\d{2}\s*[–—-]\s*\d{1,2}:\d{2}\b/ },
   { kind: 'booking reference', pattern: /\bSD-737-[A-Z0-9]{4,}\b/ },
   { kind: 'METAR', pattern: /\b[A-Z]{4} \d{3}\/\d{2,3}KT\b/ },
+  // ICAO identifiers are aviation telemetry too. Keep the customer-facing
+  // destinations that appear in the World Routes catalogue legible in RTL.
+  { kind: 'ICAO airport code', pattern: /\b(?:LLBG|VHHX|VQPR|LOWI)\b/ },
 ];
 
 export interface TelemetryReport {

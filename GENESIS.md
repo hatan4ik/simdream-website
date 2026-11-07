@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:6142a2cf28aeff38c0c02696bb09f91f656f5edb023b95ae73c5b5be8c262442 -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:495821efd12623f97181d41d45cf80509bd0d6734aee91cae0453e543b9f1a18 -->
 
 ## Verification contract
 
@@ -52,7 +52,7 @@ No repository review can prove Supabase OAuth providers, Stripe webhook delivery
 | Payments | **Stripe** (`stripe` 17 on the server, `@stripe/stripe-js` 4) | Hosted Checkout; a signature-verified webhook is the only path to "paid". |
 | Email | `@sendgrid/mail` 8 | Booking confirmations and voucher activation emails (simulated when unconfigured). |
 | Customer contact | `components/layout/WhatsAppAction.tsx` | A persistent, high-visibility WhatsApp action to the official SimDream customer-support number; no Wix AI Site-Chat widget or visitor messaging API is present. |
-| Reviews | Google Places API, browser-loaded carousel with 15 min shared freshness | Live rating and excerpts only when attributable Google data is available; otherwise the API serves no review claims. |
+| Reviews | Google Places API, shared browser snapshot, utility-bar rotator and home-page carousel with 15 min shared freshness | Live rating and excerpts only when attributable Google data is available. The persistent utility bar cycles supplied review excerpts every 2 seconds and expands the available review list; the carousel and bar share one browser request, while unavailable data shows only the direct Google destination and never fabricated review claims. |
 | Testing | Vitest 5 (+ v8 coverage), fast-check, Playwright 1.64, axe-core, autocannon, Lighthouse CI (via `npx`) | The four quality gates (see Phase 2). |
 | Runtime | Node 24, deployed as a Wix-managed Worker through the Wix CLI (with the existing self-managed deployment path retained) | `@wix/cli` 1.2.9 requires Node 24.22.1 or newer; `@opennextjs/cloudflare` builds the Next.js server and static assets; Wrangler bundles the final ESM worker artifact Wix executes. |
 
@@ -607,7 +607,7 @@ lib/
   i18n/ translations language-context language-preference calendar-presentation booking-blueprint-copy wix-subscription-booking-copy
   config/ facility-info server-env use-live-facility-status
   theme/ui-theme-context  ui/ use-client-value use-modal-focus  seo/seo-config
-  reviews/google-reviews-cache  i18n/booking-blueprint-copy
+  reviews/google-reviews-cache use-google-reviews  i18n/booking-blueprint-copy
   stripe.ts  sendgrid.ts  validation.ts  utils.ts  supabaseClient.ts
 types/index.ts
 proxy.ts                          # /admin guard

@@ -52,10 +52,15 @@ export const GIFT_CARD_DESIGNS = [
 
 export type GiftCardDesignId = (typeof GIFT_CARD_DESIGNS)[number]['id'];
 
-export const DEFAULT_GIFT_CARD_DESIGN_ID: GiftCardDesignId = 'skyline';
+// Pearl is the clearest high-contrast default when the gift-card panel first opens.
+export const DEFAULT_GIFT_CARD_DESIGN_ID: GiftCardDesignId = 'pearl';
 
 export function getGiftCardDesign(id: string | undefined) {
-  return GIFT_CARD_DESIGNS.find((design) => design.id === id) ?? GIFT_CARD_DESIGNS[0];
+  return (
+    GIFT_CARD_DESIGNS.find((design) => design.id === id) ??
+    GIFT_CARD_DESIGNS.find((design) => design.id === DEFAULT_GIFT_CARD_DESIGN_ID) ??
+    GIFT_CARD_DESIGNS[0]
+  );
 }
 
 export function isGiftCardDesignId(id: string): id is GiftCardDesignId {

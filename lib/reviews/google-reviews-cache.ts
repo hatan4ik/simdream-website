@@ -12,7 +12,7 @@ export interface GoogleReview {
   rating: number;
   quote: string;
   relativeTime: string;
-  language: 'he' | 'en' | 'ru' | 'fr' | 'ar';
+  language: 'he' | 'en' | 'ru' | 'fr' | 'ar' | 'es';
   characterCount: number;
 }
 
@@ -35,6 +35,7 @@ interface GooglePlacesReview {
   rating?: number;
   text?: { text?: string; languageCode?: string };
   relativePublishTimeDescription?: string;
+  publishTime?: string;
   authorAttribution?: { displayName?: string };
 }
 
@@ -53,7 +54,7 @@ function configuredPlacesKey(): string | null {
 
 function reviewLanguage(value: string | undefined): GoogleReview['language'] {
   const language = value?.toLowerCase().slice(0, 2);
-  return language === 'he' || language === 'ru' || language === 'fr' || language === 'ar' ? language : 'en';
+  return language === 'he' || language === 'ru' || language === 'fr' || language === 'ar' || language === 'es' ? language : 'en';
 }
 
 function unavailableSnapshot(now: number, reason: string): GoogleReviewsSnapshot {
@@ -74,7 +75,7 @@ async function fetchGooglePlacesSnapshot(now: number): Promise<GoogleReviewsSnap
   const response = await fetch(`https://places.googleapis.com/v1/places/${FACILITY_INFO.placeId}`, {
     headers: {
       'X-Goog-Api-Key': key,
-      'X-Goog-FieldMask': 'rating,userRatingCount,reviews',
+      'X-Goog-FieldMask': 'rating,userRatingCount,reviews.name,reviews.rating,reviews.text,reviews.relativePublishTimeDescription,reviews.authorAttribution,reviews.publishTime',
     },
     cache: 'no-store',
   });
@@ -82,10 +83,11 @@ async function fetchGooglePlacesSnapshot(now: number): Promise<GoogleReviewsSnap
 
   const payload = await response.json() as GooglePlacesResponse;
   const reviews = (payload.reviews || [])
-    .map((review, index): GoogleReview | null => {
+    .map((review, index): (GoogleReview & { publishedAt: number }) | null => {
       const quote = review.text?.text?.trim();
       const author = review.authorAttribution?.displayName?.trim();
       if (!quote || !author) return null;
+      const parsedPublishedAt = review.publishTime ? Date.parse(review.publishTime) : Number.NaN;
       return {
         id: review.name || `google-${index}`,
         author,
@@ -94,10 +96,14 @@ async function fetchGooglePlacesSnapshot(now: number): Promise<GoogleReviewsSnap
         relativeTime: review.relativePublishTimeDescription || '',
         language: reviewLanguage(review.text?.languageCode),
         characterCount: quote.length,
+        publishedAt: Number.isFinite(parsedPublishedAt) ? parsedPublishedAt : 0,
       };
     })
-    .filter((review): review is GoogleReview => review !== null)
-    .sort((a, b) => b.characterCount - a.characterCount);
+    .filter((review): review is GoogleReview & { publishedAt: number } => review !== null)
+    // Google can return at most five relevance-ranked reviews. This is a
+    // presentation order (rating, then newest), never a claim to own its corpus.
+    .sort((a, b) => b.rating - a.rating || b.publishedAt - a.publishedAt || b.characterCount - a.characterCount)
+    .map(({ publishedAt: _publishedAt, ...review }) => review);
 
   return {
     lastUpdated: new Date(now).toISOString(),

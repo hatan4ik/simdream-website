@@ -42,6 +42,14 @@ import {
 
 type GiftFormatMode = 'certificate' | 'card';
 
+/**
+ * A Gift Card carries an open NIS balance. Keep this intentionally separate
+ * from the named flight-certificate amounts below: a buyer should never see a
+ * flight package selected as the monetary-card default.
+ */
+const GIFT_CARD_PRESETS = [100, 200, 500, 1000] as const;
+const DEFAULT_GIFT_CARD_AMOUNT = GIFT_CARD_PRESETS[0];
+
 interface VerifiedVoucherInfo {
   code: string;
   initialValueIls: number;
@@ -69,10 +77,11 @@ export default function GiftVouchersPage() {
     }));
   }, [language, t.vouchers.tier1Label, t.vouchers.tier2Label, t.vouchers.tier3Label, t.vouchers.tier4Label]);
 
-  const CARD_PRESETS = [250, 500, 750, 1000];
-
   const [giftMode, setGiftMode] = useState<GiftFormatMode>('certificate');
-  const [selectedTier, setSelectedTier] = useState<number>(DEFAULT_GIFT_CERTIFICATE_AMOUNT);
+  const [selectedCertificateAmount, setSelectedCertificateAmount] = useState<number>(
+    DEFAULT_GIFT_CERTIFICATE_AMOUNT
+  );
+  const [selectedGiftCardAmount, setSelectedGiftCardAmount] = useState<number>(DEFAULT_GIFT_CARD_AMOUNT);
   const [customAmount, setCustomAmount] = useState<string>('');
   const [hidePriceOnCertificate, setHidePriceOnCertificate] = useState<boolean>(false);
   const [deliveryMethod, setDeliveryMethod] = useState<'direct' | 'print'>('direct');
@@ -123,19 +132,31 @@ export default function GiftVouchersPage() {
     }
   };
 
-  const activeAmount = customAmount ? parseInt(customAmount, 10) || 0 : selectedTier;
-  const activeTierObj = !customAmount ? VOUCHER_TIERS.find((tier) => tier.amount === selectedTier) : undefined;
+  const selectedAmount = giftMode === 'certificate' ? selectedCertificateAmount : selectedGiftCardAmount;
+  const activeAmount = customAmount ? parseInt(customAmount, 10) || 0 : selectedAmount;
+  const activeTierObj =
+    giftMode === 'certificate' && !customAmount
+      ? VOUCHER_TIERS.find((tier) => tier.amount === selectedCertificateAmount)
+      : undefined;
 
-  const handleSelectCertificateTier = (amount: number) => {
+  const selectCertificateFormat = () => {
     setGiftMode('certificate');
-    setSelectedTier(amount);
     setCustomAmount('');
   };
 
-  const handleSelectCardPreset = (amount: number) => {
+  const selectGiftCardFormat = () => {
     setGiftMode('card');
-    setSelectedTier(amount);
     setCustomAmount('');
+  };
+
+  const handleSelectCertificateTier = (amount: number) => {
+    selectCertificateFormat();
+    setSelectedCertificateAmount(amount);
+  };
+
+  const handleSelectCardPreset = (amount: number) => {
+    selectGiftCardFormat();
+    setSelectedGiftCardAmount(amount);
   };
 
   const handlePurchase = async (e: React.FormEvent) => {
@@ -278,15 +299,9 @@ export default function GiftVouchersPage() {
             {/* Option 1: Flight Experience Gift Certificate */}
             <button
               type="button"
-              onClick={() => {
-                setGiftMode('certificate');
-                if (!VOUCHER_TIERS.some((tier) => tier.amount === selectedTier)) {
-                  setSelectedTier(DEFAULT_GIFT_CERTIFICATE_AMOUNT);
-                }
-                setCustomAmount('');
-              }}
+              onClick={selectCertificateFormat}
               aria-pressed={giftMode === 'certificate'}
-              className={`text-start p-6 rounded-2xl border transition-all relative overflow-hidden ${
+              className={`text-start p-6 rounded-2xl border transition-[background-color,border-color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 relative overflow-hidden ${
                 giftMode === 'certificate'
                   ? 'bg-sky-500/15 border-sky-500 shadow-lg shadow-sky-500/10'
                   : 'bg-slate-900/70 border-slate-800 hover:border-slate-700'
@@ -333,11 +348,9 @@ export default function GiftVouchersPage() {
             {/* Option 2: Flexible Monetary Gift Card */}
             <button
               type="button"
-              onClick={() => {
-                setGiftMode('card');
-              }}
+              onClick={selectGiftCardFormat}
               aria-pressed={giftMode === 'card'}
-              className={`text-start p-6 rounded-2xl border transition-all relative overflow-hidden ${
+              className={`text-start p-6 rounded-2xl border transition-[background-color,border-color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 relative overflow-hidden ${
                 giftMode === 'card'
                   ? 'bg-sky-500/15 border-sky-500 shadow-lg shadow-sky-500/10'
                   : 'bg-slate-900/70 border-slate-800 hover:border-slate-700'
@@ -401,13 +414,15 @@ export default function GiftVouchersPage() {
               {/* Certificate Mission Tiers (Always accessible so buyers can pick a package or switch) */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
                 {VOUCHER_TIERS.map((tier) => {
-                  const isSelected = !customAmount && selectedTier === tier.amount;
+                  const isSelected =
+                    giftMode === 'certificate' && !customAmount && selectedCertificateAmount === tier.amount;
                   return (
                     <button
                       type="button"
                       key={tier.amount}
                       onClick={() => handleSelectCertificateTier(tier.amount)}
-                      className={`p-4 rounded-xl border text-left transition-all relative ${
+                      aria-pressed={isSelected}
+                      className={`p-4 rounded-xl border text-left transition-[background-color,border-color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 relative ${
                         isSelected
                           ? 'bg-sky-500/15 border-sky-500 shadow-lg shadow-sky-500/10'
                           : 'bg-slate-950/60 border-slate-800 hover:border-slate-700'
@@ -429,17 +444,22 @@ export default function GiftVouchersPage() {
 
               {/* Flexible Gift Card Quick Denominations */}
               {giftMode === 'card' && (
-                <div className="mb-5 pt-4 border-t border-slate-800/80">
+                <section
+                  aria-label={t.vouchers.cardPresetsLabel}
+                  data-gift-card-presets
+                  className="mb-5 pt-4 border-t border-slate-800/80"
+                >
                   <p className="text-xs font-medium text-slate-300 mb-2.5">{t.vouchers.cardPresetsLabel}</p>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                    {CARD_PRESETS.map((preset) => {
-                      const isPresetSelected = !customAmount && selectedTier === preset;
+                    {GIFT_CARD_PRESETS.map((preset) => {
+                      const isPresetSelected = !customAmount && selectedGiftCardAmount === preset;
                       return (
                         <button
                           key={preset}
                           type="button"
                           onClick={() => handleSelectCardPreset(preset)}
-                          className={`py-2.5 px-3 rounded-xl border text-center font-mono font-bold text-sm transition-all ${
+                          aria-pressed={isPresetSelected}
+                          className={`py-2.5 px-3 rounded-xl border text-center font-mono font-bold text-sm transition-[background-color,border-color,box-shadow,color] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 ${
                             isPresetSelected
                               ? 'bg-sky-500/15 border-sky-500 text-white'
                               : 'bg-slate-950/60 border-slate-800 text-slate-300 hover:border-slate-700'
@@ -451,7 +471,7 @@ export default function GiftVouchersPage() {
                       );
                     })}
                   </div>
-                </div>
+                </section>
               )}
 
               {/* Custom Amount Input */}
@@ -846,7 +866,6 @@ export default function GiftVouchersPage() {
                   selectedDesignId={giftCardDesignId}
                   onChange={setGiftCardDesignId}
                   label={t.vouchers.cardDesignLabel}
-                  selectedLabel={t.vouchers.cardDesignDeliveryNote}
                 />
 
                 <div className="flex items-center justify-between">
