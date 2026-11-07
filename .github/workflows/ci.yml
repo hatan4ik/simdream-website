@@ -14,7 +14,9 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  NODE_VERSION: 22
+  # @wix/cli 1.2.9 requires Node 24.22.1 or newer. Keep the product gate and
+  # its immutable Wix preview on the same supported runtime.
+  NODE_VERSION: 24
   # Pin this executable: it receives the environment-scoped Wix deployment key.
   WIX_CLI_VERSION: 1.2.9
   # Seed data and local-date helpers are time-zone sensitive; match the test harness.
