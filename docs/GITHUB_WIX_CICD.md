@@ -9,7 +9,7 @@ The pipeline controls the existing Wix-managed Headless project in [`wix.config.
 ```text
 feature branch → pull request → Verify workflow
                                       │
-                                      └─ merge to main
+                                      └─ mergeability preflight + protected native auto-merge → main
                                               │
                                               ▼
                                    all quality gates pass
@@ -50,7 +50,7 @@ These actions are intentionally performed by the Wix/GitHub owner, not through s
    - `WIX_PREVIEW_CI_ENABLED=true` after the preview secret is installed. Every passing `main` commit then creates an immutable preview.
    - `WIX_PRODUCTION_CI_ENABLED=false` until the production secret and approval policy are ready. Change it to `true` only when production release and rollback are deliberately enabled; leave the protected `wix-production` approval in place so enabling the variable never publishes by itself.
    This separation lets a staging-only credential automate previews without ever granting or attempting production publishing.
-5. In GitHub **Settings → Rules**, protect `main`: require pull requests, up-to-date branches, the existing Verify checks (`quality`, `build`, `e2e`, `web-quality`, `load-smoke`, and `lighthouse`), and no force pushes. For a single-maintainer repository, use an approval count of zero but still require the PR and checks.
+5. In GitHub **Settings → Rules**, protect `main`: require pull requests, up-to-date branches, the existing Verify checks (`quality`, `build`, `e2e`, `web-quality`, `load-smoke`, and `lighthouse`), the **PR mergeability preflight** check after its first successful run, and no force pushes. For a single-maintainer repository, use an approval count of zero but still require the PR and checks. Follow [`GITHUB_PR_AUTOMATION.md`](GITHUB_PR_AUTOMATION.md) to enable squash-only native auto-merge and the `automerge` label.
 6. Create a tag rule for `v*` that forbids update and deletion. A production version must be an immutable SemVer tag, for example `v1.4.0`.
 7. In GitHub **Settings → Actions → General**, retain the default `GITHUB_TOKEN` permission as **Read repository contents** and allow GitHub Actions to create and approve pull requests. The release workflow needs that narrowly scoped platform permission to create its version PR; it uses an explicit `workflow_dispatch` to validate it, so no personal access token is stored as a repository secret.
 
@@ -58,7 +58,7 @@ GitHub environment secrets are exposed only to the job after that environment's 
 
 ## Normal release operation
 
-1. Merge a reviewed pull request to `main` using a Conventional Commit title.
+1. Add the `automerge` label to a reviewed same-repository pull request with a Conventional Commit title; GitHub waits for all required checks, then squash-merges it to `main`.
 2. GitHub finishes Verify and creates a Wix preview automatically. Open the `Wix immutable preview` deployment from the commit or the Actions run.
 3. Release Please opens or updates exactly one release PR with the calculated Semantic Version and generated changelog, then dispatches the complete Verify workflow against that candidate. Review and merge it only after both that candidate Verify run and the Wix preview are green.
 4. The immutable tag is created automatically. The release pipeline independently reruns all required quality gates against that exact tag, then waits for the `wix-production` approval. After approval it publishes to Wix and smoke-checks public routes.
