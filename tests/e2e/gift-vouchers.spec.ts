@@ -88,21 +88,40 @@ test.describe('gift vouchers', () => {
     await expect(page.getByText('Invalid request.')).toHaveCount(0);
   });
 
-  test('supports both Flight Experience Gift Certificate (with price privacy toggle) and Flexible Monetary Gift Card', async ({ page, vouchers }) => {
+  test('keeps named, priced flight certificates and defaults flexible gift cards to ₪100', async ({ page, vouchers }) => {
     await vouchers.goto();
 
-    // Certificate mode is active by default and allows hiding the price on the recipient boarding pass
+    // Certificate mode remains a package purchase: every service name is paired with its package price.
     await expect(page.getByText('OFFICIAL SIM DREAM GIFT VOUCHER')).toBeVisible();
+    for (const { service, amount } of [
+      { service: /30-Min Discovery Flight/, amount: 450 },
+      { service: /60-Min Captain's Command/, amount: 690 },
+      { service: /90-Min Ultimate Aviator/, amount: 950 },
+      { service: /120-Min Pro Pilot Prep/, amount: 1590 },
+    ]) {
+      await expect(vouchers.tier(service)).toContainText(ilsPattern(amount));
+    }
+
+    // Certificate mode is active by default and allows hiding the price on the recipient boarding pass.
     const hidePriceToggle = page.getByRole('button', {
       name: /Hide ₪ price on recipient Boarding Pass Certificate/,
     });
     await hidePriceToggle.click();
     await expect(page.getByText('PRE-PAID CAPTAIN MISSION')).toBeVisible();
 
-    // Switch to Flexible Monetary Gift Card mode and pick a credit preset
+    // Flexible money cards have their own intentional denomination ladder, defaulting to ₪100.
     await page.getByRole('button', { name: /Flexible Monetary Gift Card/ }).click();
     await expect(page.getByText('SIM DREAM FLIGHT DECK GIFT CARD')).toBeVisible();
-    await page.getByRole('button', { name: ilsPattern(500) }).click();
+    const giftCardPresets = page.locator('[data-gift-card-presets]');
+    await expect(giftCardPresets.getByRole('button', { name: ilsPattern(100) })).toHaveAttribute('aria-pressed', 'true');
+    for (const amount of [100, 200, 500, 1000]) {
+      await expect(giftCardPresets.getByRole('button', { name: ilsPattern(amount) })).toBeVisible();
+    }
+    await expect(giftCardPresets.getByRole('button', { name: ilsPattern(250) })).toHaveCount(0);
+    await expect(giftCardPresets.getByRole('button', { name: ilsPattern(750) })).toHaveCount(0);
+    await expect(vouchers.submit()).toHaveText(ilsPattern(100));
+
+    await giftCardPresets.getByRole('button', { name: ilsPattern(500) }).click();
     await expect(vouchers.submit()).toHaveText(ilsPattern(500));
   });
 
