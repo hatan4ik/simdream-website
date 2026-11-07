@@ -45,6 +45,9 @@ test.describe('experience flights route catalog', () => {
     // the optional desktop storefront where selected add-ons are summarized.
     const storefront = page.getByRole('button', { name: 'Express Shop View (1-Page)' });
     await waitUntilInteractive(storefront);
+    // Wait for the automatic compatible-slot selection. A World Trio adds 40
+    // minutes, so a base 60-minute slot is not necessarily a valid mission.
+    await expect(page.locator('[data-slots-state]')).toHaveAttribute('data-slots-state', 'ready');
     await storefront.click();
     await expect(page.locator('[data-selected-addon="addon-classical-eu"]')).toBeVisible();
     await expect(page.locator('[data-addon-card="addon-classical-eu"]')).toHaveAttribute('data-addon-selected', 'true');
