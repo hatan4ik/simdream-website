@@ -31,6 +31,13 @@ describe('safeRedirectPath (post-sign-in redirect target)', () => {
     expect(safeRedirectPath(undefined, '/login')).toBe('/login');
   });
 
+  it('falls back when the platform URL parser rejects malformed path syntax', () => {
+    // A bare trailing backslash after the leading slash makes WHATWG URL reject
+    // the relative value. Cover this catch path deterministically; random
+    // property data must not be responsible for the coverage/security ratchet.
+    expect(safeRedirectPath('/\\')).toBe('/dashboard');
+  });
+
   it('never returns a target a browser would resolve to another origin', () => {
     fc.assert(
       fc.property(fc.string({ maxLength: 40 }), (suffix) => {
