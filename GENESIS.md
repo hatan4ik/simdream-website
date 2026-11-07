@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:9212367a0c298dba03ec9891161fcd208a367cf6cb66c357d582e5824d5c02b9 -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:8157d36456bfd3c7e8de6450a9331d0858594ebfba198517e1db5f9133cdd4a2 -->
 
 ## Verification contract
 
@@ -32,7 +32,7 @@ The fingerprint above covers the reviewed source/configuration/test/docs surface
 | Auth, membership, ownership | [`lib/auth/`](lib/auth), [`lib/wix/member-client.ts`](lib/wix/member-client.ts), [`lib/wix/member-profile.ts`](lib/wix/member-profile.ts), [`lib/wix/member-auth.ts`](lib/wix/member-auth.ts), [`lib/wix/member-bookings.ts`](lib/wix/member-bookings.ts), [`app/dashboard/page.tsx`](app/dashboard/page.tsx) | Code-verified; Wix member and Calendar permissions remain external configuration |
 | Database and data integrity | [`lib/db/schema.sql`](lib/db/schema.sql), [`lib/db/migrations/`](lib/db/migrations), [`lib/db/store.ts`](lib/db/store.ts) | Code-verified; applied production migrations still external |
 | Brand and customer UX | [`app/globals.css`](app/globals.css), [`components/brand/`](components/brand), [`components/about/`](components/about) | Code-verified |
-| Test/CI quality gates | [`tests/`](tests), [`scripts/test-all.ts`](scripts/test-all.ts), [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | Code-verified; a passing remote CI run is external state |
+| Test/CI quality gates and Wix delivery | [`tests/`](tests), [`scripts/test-all.ts`](scripts/test-all.ts), [`.github/workflows/ci.yml`](.github/workflows/ci.yml), [`.github/workflows/wix-rollback.yml`](.github/workflows/wix-rollback.yml), [`docs/GITHUB_WIX_CICD.md`](docs/GITHUB_WIX_CICD.md) | Code-verified; GitHub's environment secrets/approvals and a passing remote deployment are external state |
 
 No repository review can prove Supabase OAuth providers, Stripe webhook delivery, SendGrid sender verification, Google Places access, or applied production migrations. Those must pass the live verification checklist in **Definition of Done** before launch.
 
@@ -409,6 +409,8 @@ Wire all four gates into one command (`npm run test:all`) and into CI jobs that 
 | `test:load`, `test:lighthouse` | autocannon smoke and Lighthouse against a sandboxed server |
 | `start:local` | `next start` with the demo store opt-in, for laptops without Supabase |
 | `docs:genesis` | Fails unless this blueprint still covers the codebase |
+
+**Continuous delivery:** GitHub Actions never receives a Wix credential in a pull-request job. After the owner enables the non-secret `WIX_CI_ENABLED=true` repository variable, a passing push to `main` builds an immutable Wix preview using the `wix-preview` environment secret. A protected SemVer tag (`vX.Y.Z`) runs the same gates and then waits for the separately protected `wix-production` environment before invoking `wix release`; Wix's release comment records the tag and commit SHA. [`docs/GITHUB_WIX_CICD.md`](docs/GITHUB_WIX_CICD.md) defines the one-time owner secret/approval configuration and the historical-tag rollback workflow. Wix business data, payment settings, coupons and customer records are intentionally outside source-delivery automation.
 
 ### CLOSE THESE KNOWN GAPS (do not reproduce them)
 

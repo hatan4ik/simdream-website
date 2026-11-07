@@ -1,0 +1,100 @@
+name: Roll back Wix production
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Previously verified SemVer tag to republish (for example, v1.4.0)'
+        required: true
+        type: string
+      reason:
+        description: 'Incident or change reason recorded in the Wix release comment'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: wix-production
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: 22
+  TZ: Asia/Jerusalem
+
+jobs:
+  rollback:
+    name: Republish ${{ inputs.release_tag }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      deployments: write
+    environment:
+      name: wix-production
+      url: ${{ steps.wix.outputs.url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_tag }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - name: Validate the rollback target
+        env:
+          ROLLBACK_TAG: ${{ inputs.release_tag }}
+        run: |
+          [[ "$ROLLBACK_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$ ]] || { echo 'Use an existing SemVer release tag.' >&2; exit 1; }
+          git rev-parse --verify "refs/tags/$ROLLBACK_TAG" > /dev/null
+          release_sha="$(git rev-list -n 1 "$ROLLBACK_TAG")"
+          git fetch origin main --depth=1
+          git merge-base --is-ancestor "$release_sha" origin/main || { echo 'Rollback tags must reference a commit on main.' >&2; exit 1; }
+      - run: npm ci
+      - name: Re-run the fast source and build safety gate for the exact historical tag
+        run: npm run test:quick
+      - name: Authenticate the Wix CLI with the production automation key
+        env:
+          WIX_CI_API_KEY: ${{ secrets.WIX_CI_API_KEY }}
+        run: |
+          test -n "$WIX_CI_API_KEY" || { echo 'Missing wix-production WIX_CI_API_KEY secret.' >&2; exit 1; }
+          npx @wix/cli@latest login --api-key "$WIX_CI_API_KEY"
+      - name: Build the historical Wix Worker artifact
+        run: |
+          set -o pipefail
+          npm run wix:build | tee wix-build.log
+      - name: Republish the approved historical version
+        id: wix
+        env:
+          ROLLBACK_TAG: ${{ inputs.release_tag }}
+          ROLLBACK_REASON: ${{ inputs.reason }}
+        run: |
+          set -o pipefail
+          CI=1 npx @wix/cli@latest release --comment "rollback to $ROLLBACK_TAG (${GITHUB_SHA}): $ROLLBACK_REASON" | tee wix-deploy.log
+          url="$(tr -d '\r' < wix-deploy.log | grep -Eo 'https://[^[:space:]]+' | grep 'wix-site-host\.com' | tail -n 1 || true)"
+          test -n "$url" || { echo 'Wix rollback completed but no Wix-host URL was found in its output.' >&2; exit 1; }
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          {
+            echo "### Wix production rollback"
+            echo "- Restored version: \`$ROLLBACK_TAG\`"
+            echo "- Commit: \`$GITHUB_SHA\`"
+            echo "- Reason: $ROLLBACK_REASON"
+            echo "- URL: $url"
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Smoke-check the restored site
+        env:
+          SITE_URL: ${{ steps.wix.outputs.url }}
+        run: |
+          for path in / /book /vouchers; do
+            curl --fail --location --retry 3 --retry-all-errors --silent --show-error "$SITE_URL$path" > /dev/null
+          done
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: wix-rollback-${{ github.run_id }}
+          path: |
+            wix-build.log
+            wix-deploy.log
+          if-no-files-found: ignore

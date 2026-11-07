@@ -7,7 +7,7 @@
 
 Production-grade website, multi-step booking engine, Amazon-style flight storefront, gift-voucher terminal, corporate CRM workshop portal, member purchase dashboard, and flight-dispatch command system for **Sim Dream LTD** (`simdream.co.il`), located at **Gershon Shatz St 36, Tel Aviv-Yafo, Israel** (Yehudit Light Rail / HaShalom Train Station • `055-507-1307` • `desk@simdream.co.il`).
 
-> **Wix Headless architecture:** [`docs/WIX_HEADLESS_ARCHITECTURE.md`](docs/WIX_HEADLESS_ARCHITECTURE.md) describes the platform boundary and [`docs/WIX_HEADLESS_CUTOVER_RUNBOOK.md`](docs/WIX_HEADLESS_CUTOVER_RUNBOOK.md) is the controlled activation guide. The codebase includes visitor service reads, live slot availability, catalog reconciliation (`npm run wix:smoke`), a no-write activation gate (`npm run wix:readiness`), non-blocking shadow reads, and a Pricing Plans hosted-checkout handoff with a Captain Dispatch fallback. Wix is not the active writer for one-off bookings.
+> **Wix Headless architecture:** [`docs/WIX_HEADLESS_ARCHITECTURE.md`](docs/WIX_HEADLESS_ARCHITECTURE.md) describes the platform boundary, [`docs/WIX_HEADLESS_CUTOVER_RUNBOOK.md`](docs/WIX_HEADLESS_CUTOVER_RUNBOOK.md) is the controlled activation guide, and [`docs/GITHUB_WIX_CICD.md`](docs/GITHUB_WIX_CICD.md) is the GitHub-controlled preview, release and rollback procedure. The codebase includes visitor service reads, live slot availability, catalog reconciliation (`npm run wix:smoke`), a no-write activation gate (`npm run wix:readiness`), non-blocking shadow reads, and a Pricing Plans hosted-checkout handoff with a Captain Dispatch fallback. Wix is not the active writer for one-off bookings.
 
 > 📐 **System Architecture & Visual Diagrams**: See [`ARCHITECTURE.md`](ARCHITECTURE.md) for full Mermaid sequence, workflow, topology, and interval-scheduling engine diagrams.
 > 🧬 **Canonical Genesis & System Blueprint**: [`GENESIS.md`](GENESIS.md) is the sole current architecture/reconstruction prompt. Its source-coverage and fingerprint verification runs in CI; historical drafts live in [`docs/archive/`](docs/archive/README.md).
@@ -261,9 +261,13 @@ npm run test:all
 
 ---
 
-## Production Deployment (Vercel)
+## Production Deployment (Wix Managed Headless)
 
-1. Push this repository to GitHub or GitLab.
-2. Import the project into [Vercel](https://vercel.com).
-3. Under **Environment Variables**, add the production keys from `.env.example`.
-4. Deploy! Next.js will build optimized static pages and serverless API endpoints.
+The GitHub Actions pipeline is the release path for the Wix-managed frontend. See [`docs/GITHUB_WIX_CICD.md`](docs/GITHUB_WIX_CICD.md) for the one-time GitHub Environment secret and approval setup.
+
+1. Merge an approved pull request to `main`; after all quality gates pass, GitHub automatically creates an immutable Wix preview for that commit.
+2. Accept the preview and push an annotated SemVer tag such as `v1.4.0`.
+3. GitHub reruns quality gates, waits for `wix-production` approval, publishes through the Wix CLI, and smoke-checks `/`, `/book`, and `/vouchers`.
+4. Roll back a verified version entirely from **GitHub Actions → Roll back Wix production**. No laptop Wix CLI session is required.
+
+The repository retains a self-managed Next.js deployment path for local development or a future non-Wix host. It is not the customer production release path.
