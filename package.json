@@ -52,7 +52,7 @@
     "@wix/sdk": "^1.21.18",
     "canvas-confetti": "^1.9.4",
     "clsx": "^2.1.1",
-    "lucide-react": "^0.453.0",
+    "lucide-react": "^1.67.0",
     "next": "^16.4.5",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
