@@ -23,8 +23,8 @@ import { join, relative } from 'node:path';
 const CANONICAL_GENESIS = 'GENESIS.md';
 const FINGERPRINT_MARKER = /<!-- GENESIS-SOURCE-FINGERPRINT: sha256:([a-f0-9]{64}) -->/;
 const SOURCE_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.mjs', '.css', '.sql', '.json', '.md', '.yml', '.yaml', '.sh']);
-const SOURCE_DIRECTORIES = ['app', 'components', 'lib', 'scripts', 'tests', 'types', '.github/workflows'];
-const SOURCE_FILES = [
+const FINGERPRINT_DIRECTORIES = ['app', 'components', 'lib', 'scripts', 'types'];
+const FINGERPRINT_FILES = [
   '.env.example',
   'AGENTS.md',
   'ARCHITECTURE.md',
@@ -34,8 +34,6 @@ const SOURCE_FILES = [
   'README.md',
   'TESTING.md',
   'next.config.mjs',
-  'package-lock.json',
-  'package.json',
   'playwright.config.ts',
   'postcss.config.mjs',
   'proxy.ts',
@@ -65,15 +63,17 @@ function extension(path: string): string {
 }
 
 /**
- * Files git would commit from the review surface: tracked plus untracked-but-not-ignored.
- * Walking the directories instead hashed git-ignored output (Lighthouse reports under
- * tests/perf, local build logs), so a stamp made on a developer machine could never match
- * the clean checkout CI verifies, and the quality job failed before any test ran.
+ * Files git would commit from the semantic implementation surface: tracked plus
+ * untracked-but-not-ignored. Dependency lockfiles, test-only files and CI workflow
+ * action pins are deliberately excluded: their churn is validated by the dedicated
+ * audit, test and workflow jobs and does not by itself change the system blueprint.
+ * Walking only committed implementation paths also avoids hashing git-ignored output
+ * (for example Lighthouse reports), which would make a local stamp differ from CI.
  */
 function reviewSurfaceFiles(): string[] {
   const listing = execFileSync(
     'git',
-    ['ls-files', '-z', '--cached', '--others', '--exclude-standard', '--', ...SOURCE_DIRECTORIES, ...SOURCE_FILES],
+    ['ls-files', '-z', '--cached', '--others', '--exclude-standard', '--', ...FINGERPRINT_DIRECTORIES, ...FINGERPRINT_FILES],
     { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }
   );
   const files = listing
@@ -85,10 +85,10 @@ function reviewSurfaceFiles(): string[] {
 
 /**
  * The fingerprint does not try to infer that prose correctly explains a code
- * change—that remains a reviewer responsibility. It does make every covered
- * source change visible to CI until a reviewer deliberately reads and stamps
- * GENESIS.md again. Only files git would commit count, so the hash is the same
- * on every machine that checks out the same tree.
+ * change—that remains a reviewer responsibility. It makes every semantic
+ * implementation change visible to CI until a reviewer deliberately reads and
+ * stamps GENESIS.md again. Only files git would commit count, so the hash is
+ * the same on every machine that checks out the same tree.
  */
 function sourceFingerprint(): string {
   const files = reviewSurfaceFiles();
