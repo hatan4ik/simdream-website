@@ -114,7 +114,9 @@ test.describe('gift vouchers', () => {
     const colour = page.getByRole('radio', { name: 'Choose card colour: Aurora' });
     await colour.click();
     await expect(colour).toHaveAttribute('aria-checked', 'true');
-    await expect(page.locator('[data-gift-card-design-preview="aurora"]')).toHaveAttribute('src', /aurora\.jpg/);
+    const preview = page.locator('[data-gift-card-design-preview="aurora"]');
+    await expect(preview).toBeVisible();
+    await expect(preview).toHaveAttribute('src', /aurora\.jpg/);
 
     const checkoutResponse = page.waitForResponse((response) => response.url().endsWith('/api/checkout'));
     await vouchers.submit().click();

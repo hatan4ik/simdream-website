@@ -4,22 +4,7 @@ import { useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight, Pause, Play, Star } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n/language-context';
 import type { Language, LocalizedRecord } from '@/lib/i18n/translations';
-
-interface LiveGoogleReview {
-  id: string;
-  author: string;
-  rating: number;
-  quote: string;
-  relativeTime: string;
-  language: Language;
-}
-
-interface LiveGoogleReviewsSnapshot {
-  overallRating: number;
-  totalReviewsCount: number;
-  directReviewsUrl: string;
-  reviews: LiveGoogleReview[];
-}
+import { useGoogleReviews } from '@/lib/reviews/use-google-reviews';
 
 interface ReviewCarouselCopy {
   badge: string;
@@ -101,6 +86,19 @@ const REVIEW_COPY: LocalizedRecord<ReviewCarouselCopy> = {
     rating: (value) => `${value} من 5 نجوم`,
     position: (current, total) => `التقييم ${current} من ${total}`,
   },
+  es: {
+    badge: 'RESEÑAS DE GOOGLE',
+    title: 'Opiniones de visitantes en Google',
+    subtitle: 'Reseñas públicas recientes de nuestro perfil de empresa en Google.',
+    googleReview: 'Reseña de Google',
+    readAll: 'Leer todas las reseñas en Google',
+    previous: 'Reseña anterior',
+    next: 'Siguiente reseña',
+    pause: 'Pausar el carrusel de reseñas',
+    resume: 'Reanudar el carrusel de reseñas',
+    rating: (value) => `${value} de 5 estrellas`,
+    position: (current, total) => `Reseña ${current} de ${total}`,
+  },
 };
 
 function reviewDirection(language: Language): 'rtl' | 'ltr' {
@@ -115,41 +113,9 @@ function reviewDirection(language: Language): 'rtl' | 'ltr' {
 export function GoogleReviewsCarousel() {
   const { language, isRTL } = useLanguage();
   const copy = REVIEW_COPY[language] || REVIEW_COPY.en;
-  const [snapshot, setSnapshot] = useState<LiveGoogleReviewsSnapshot | null>(null);
+  const snapshot = useGoogleReviews();
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
-
-  useEffect(() => {
-    const controller = new AbortController();
-
-    async function loadReviews() {
-      try {
-        const response = await fetch('/api/reviews', {
-          headers: { Accept: 'application/json' },
-          cache: 'no-store',
-          signal: controller.signal,
-        });
-        if (!response.ok) return;
-
-        const data = (await response.json()) as LiveGoogleReviewsSnapshot;
-        if (
-          data.overallRating > 0 &&
-          data.totalReviewsCount > 0 &&
-          Array.isArray(data.reviews) &&
-          data.reviews.length > 0
-        ) {
-          setSnapshot(data);
-        }
-      } catch (error) {
-        if ((error as DOMException).name !== 'AbortError') {
-          // No local testimonial or rating fallback is ever shown.
-        }
-      }
-    }
-
-    void loadReviews();
-    return () => controller.abort();
-  }, []);
 
   useEffect(() => {
     if (!snapshot || snapshot.reviews.length < 2 || isPaused) return;

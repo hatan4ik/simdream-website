@@ -1,16 +1,15 @@
 import type { Locator, Page } from '@playwright/test';
-import { translations } from '@/lib/i18n/translations';
 import { blockThirdPartyRequests, expect, type Language } from '../../support/e2e';
 
 /**
  * Waits until the page is rendered in `language`. The provider sets <html lang> in the
  * same effect that schedules the translated re-render, so the attribute alone can be
- * observed while the text is still English; the always-present METAR status line proves
- * the translated commit has landed.
+ * observed while the text is still English. The persistent utility bar records the
+ * committed locale after it receives its translated review-copy state.
  */
 export async function expectLanguageRendered(page: Page, language: Language): Promise<void> {
   await expect(page.locator('html')).toHaveAttribute('lang', language);
-  await expect(page.getByText(translations[language].metar.statusReady, { exact: true }).first()).toBeAttached();
+  await expect(page.locator('[data-site-utility-bar]')).toHaveAttribute('data-utility-language', language);
 }
 
 const THIRD_PARTY_FRAME_STUB =

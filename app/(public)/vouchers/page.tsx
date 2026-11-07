@@ -846,7 +846,6 @@ export default function GiftVouchersPage() {
                   selectedDesignId={giftCardDesignId}
                   onChange={setGiftCardDesignId}
                   label={t.vouchers.cardDesignLabel}
-                  selectedLabel={t.vouchers.cardDesignDeliveryNote}
                 />
 
                 <div className="flex items-center justify-between">
