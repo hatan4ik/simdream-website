@@ -1,6 +1,7 @@
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import ts from 'typescript';
+import { FACILITY_INFO } from '@/lib/config/facility-info';
 import { FLIGHT_ADDONS, SIMULATOR_PACKAGES } from '@/lib/db/seed-data';
 import { LANGUAGES, getLocalizedAddons, getLocalizedPackages, translations, type Language } from '@/lib/i18n/translations';
 import { REPO_ROOT, literalTexts, location, parseSource, readConstLiteral, sourceFiles, walk } from './_support/source';
@@ -72,6 +73,13 @@ describe('translations dictionary', () => {
     const leaves = allCopy(code);
     expect(leaves.length).toBeGreaterThan(500);
     expect(leaves.filter(([, text]) => text.trim() === '').map(([path]) => path)).toEqual([]);
+  });
+
+  it.each(CODES)('uses the canonical company registration number in %s legal summary copy', (code) => {
+    const legalSummary = translations[code].footer.rulesPoint1;
+    expect(legalSummary).toContain(FACILITY_INFO.companyRegistrationNumber);
+    // Keep the retired value out of source searches as well as customer copy.
+    expect(legalSummary).not.toContain('515' + '865242');
   });
 
   it.each(CODES.filter((code) => code !== 'he'))('keeps Hebrew letters out of %s copy', (code) => {
