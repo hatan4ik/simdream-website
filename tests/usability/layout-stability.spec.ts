@@ -24,8 +24,8 @@ test.beforeEach(async ({ page, baseURL }) => {
 
 for (const route of PUBLIC_ROUTES) {
   test(`${route} keeps cumulative layout shift under ${CLS_BUDGET} while loading`, async ({ page }) => {
-    // Test the first-visit Israel-first experience. A saved preference is
-    // server-rendered from its cookie and is covered by language tests.
+    // Test the first-visit Israel-first experience. A saved browser-local
+    // preference is covered separately by the language journey tests.
     await preferLanguage(page, 'he');
     await gotoSettled(page, route);
     await page.waitForLoadState('networkidle');

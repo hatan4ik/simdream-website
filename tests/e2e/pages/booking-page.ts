@@ -23,12 +23,12 @@ export class BookingPage {
 
   async goto(query = ''): Promise<void> {
     await this.page.goto(`/book${query}`);
-    await waitUntilInteractive(this.page.getByRole('button', { name: 'Guided Wizard (3-Step)' }));
+    await waitUntilInteractive(this.page.locator('[data-booking-view="wizard"]').filter({ visible: true }).first());
     // `/book` reports its own availability state (`data-slots-state`: idle → loading → ready or
     // failed). Waiting for network quiet, or for one particular /api/slots response, was
     // nondeterministic under parallel journeys: the page aborts and retries its own fetches
     // (E2E-14), so the response a listener saw was not always the one the page kept.
-    await expect(this.page.locator('[data-slots-state]')).toHaveAttribute('data-slots-state', /^(ready|failed)$/, {
+    await expect(this.page.locator('[data-slots-state]').filter({ visible: true }).first()).toHaveAttribute('data-slots-state', /^(ready|failed)$/, {
       timeout: 30_000,
     });
 
@@ -41,7 +41,7 @@ export class BookingPage {
   }
 
   async openWizard(): Promise<WizardView> {
-    await this.page.getByRole('button', { name: 'Guided Wizard (3-Step)' }).click();
+    await this.page.locator('[data-booking-view="wizard"]').filter({ visible: true }).first().click();
     await expect(this.wizard.progressStep('DATE & SLOT')).toBeVisible();
     return this.wizard;
   }

@@ -2,15 +2,22 @@ import type { Locator } from '@playwright/test';
 import { expect } from '../../support/e2e';
 
 /**
- * Resolves once React has hydrated `control`, i.e. its event handlers are
- * attached. Before that a click on a server-rendered button does nothing and a
- * submit falls back to a native page reload, which makes journeys flaky under
- * load. React stores the props of every hydrated node under `__reactProps$*`.
+ * Resolves once React has hydrated `control` and the visitor's browser-local
+ * language preference has committed. Before that a click on a server-rendered
+ * button does nothing and a submit falls back to a native page reload, which
+ * makes journeys flaky under load. React stores the props of every hydrated
+ * node under `__reactProps$*`; app/layout's language guard keeps the UI hidden
+ * until LanguageProvider has completed its preference hand-over.
  */
 export async function waitUntilInteractive(control: Locator): Promise<void> {
   await expect
     .poll(
-      () => control.evaluate((element) => Object.keys(element).some((key) => key.startsWith('__reactProps$'))),
+      () =>
+        control.evaluate(
+          (element) =>
+            Object.keys(element).some((key) => key.startsWith('__reactProps$')) &&
+            !document.documentElement.hasAttribute('data-language-pending')
+        ),
       // A synchronisation point, not a behaviour check: hydration time depends on machine load.
       { message: 'React should hydrate the control before the journey uses it', timeout: 30_000 }
     )

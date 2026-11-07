@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:a5540d96118c3503dd3927839ec0fdd1d46d36d9f4504385ca97d8b5006d8504 -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:aa2dc11e4de056040dbb61538e8a134de2b8fe092d9be331a461ce7ed6498d60 -->
 
 ## Verification contract
 
@@ -188,7 +188,7 @@ Build **simdream.co.il**, the booking and marketing platform for **Sim Dream LTD
    - The guided wizard is the default. Keep the optional Express Shop on desktop only; do not expose it at phone breakpoints, where localized labels must remain single-line and touch-safe.
 4. **Unicode purity and RTL isolation.**
    - Resolve every user-visible string through `lib/i18n/translations.ts`, with identical key trees in all five languages.
-   - Hebrew is the first-visit default. `lib/i18n/language-preference.ts` validates the five supported codes and derives direction. An explicit `simdream_lang` preference is mirrored from local storage into a non-sensitive same-site cookie, so `app/layout.tsx` can render a returning visitor's language and direction on the server without a post-hydration language reflow.
+   - Hebrew is the first-visit default. `lib/i18n/language-preference.ts` validates the five supported codes and derives direction. An explicit `simdream_lang` preference stays in browser local storage; public browsing neither reads nor writes a language cookie. `LanguageProvider` restores the choice after hydration, while a bounded inline bootstrap prevents a returning visitor from seeing the Hebrew fallback before their saved language commits.
    - Never choose display text with an `isRTL` ternary; `isRTL` is for layout only.
    - No Hebrew letters in non-Hebrew copy and no Arabic letters in non-Arabic copy.
    - Telemetry stays `dir="ltr"` inside RTL text: METAR, frequencies, booking references, times, slot ranges, prices, emails.

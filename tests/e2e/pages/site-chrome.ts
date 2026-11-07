@@ -67,6 +67,11 @@ export class SiteChrome {
    * layout viewport below `xl` even in a 1280px window, so the drawer is showing there.
    */
   async primaryLink(name: string): Promise<Locator> {
+    // `page.goto()` can resolve while the streamed header is still being
+    // attached. Start from the always-present brand link so the responsive
+    // desktop/mobile branch is decided from the hydrated navbar, not an empty
+    // pre-commit locator snapshot.
+    await waitUntilInteractive(this.homeLink());
     // Desktop flyout destinations follow the WAI menu-button model and therefore expose
     // `menuitem`; the touch drawer remains ordinary links. Both are navigational destinations.
     const link = this.navbar
@@ -79,16 +84,16 @@ export class SiteChrome {
       const triggers = this.navbar.locator('button[data-navbar-menu-trigger]');
       for (let index = 0; index < (await triggers.count()); index += 1) {
         const trigger = triggers.nth(index);
-        // Pointer entry deliberately opens these flyouts for a smooth desktop experience. A
-        // synthetic click can therefore land after hover state changed, which tests neither a
-        // customer's link nor the menu-button contract. ArrowDown is the documented keyboard
-        // interaction and opens exactly the focused group before its menuitem is inspected.
+        // Desktop flyouts deliberately open on pointer entry. Follow the same customer gesture
+        // here; keyboard semantics are covered by the dedicated accessibility suite.
         await waitUntilInteractive(trigger);
-        await trigger.focus();
-        await trigger.press('ArrowDown');
+        await trigger.hover();
         await expect(trigger).toHaveAttribute('aria-expanded', 'true');
-        if (await link.isVisible()) break;
-        await trigger.press('Escape');
+        const destinationAppeared = await link
+          .waitFor({ state: 'visible', timeout: 2_000 })
+          .then(() => true)
+          .catch(() => false);
+        if (destinationAppeared) break;
       }
       await expect(link).toBeVisible();
     }

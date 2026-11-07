@@ -138,7 +138,9 @@ unverifiable customer flows.
 
 - The server-rendered default is Hebrew with `lang="he"` and `dir="rtl"`. A
   customer's explicit `simdream_lang` choice remains the only override and is
-  persisted by the browser. Verify all five languages after every release.
+  persisted in browser local storage, not a public cookie. A bounded
+  pre-hydration guard keeps the Hebrew server fallback off-screen until a saved
+  language commits. Verify all five languages after every release.
 - `/book` must never render a fabricated date. The calendar waits for the
   browser's Israel clock and shows its localized initializing state until the
   date is known; the raw page HTML must not contain `2099`.

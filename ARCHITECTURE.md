@@ -264,7 +264,7 @@ sequenceDiagram
 ```mermaid
 flowchart TD
     subgraph LangContext["LanguageContext & Provider"]
-        SelectedLang["Active Language State (stored in cookie/localStorage)"]
+        SelectedLang["Active Language State (stored in browser local storage)"]
     end
 
     subgraph Languages["Supported 5 Languages"]
