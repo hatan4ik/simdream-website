@@ -10,6 +10,9 @@ on:
     branches: [main]
 
 permissions:
+  # Required only to dispatch the existing Verify workflow for the generated
+  # release candidate. A PAT is intentionally not stored for this purpose.
+  actions: write
   contents: write
   issues: write
   pull-requests: write
@@ -50,6 +53,22 @@ jobs:
         with:
           config-file: .release-please-config.json
           manifest-file: .release-please-manifest.json
+      # Events created with GITHUB_TOKEN intentionally do not trigger a
+      # pull_request workflow. Dispatch the same protected Verify workflow
+      # explicitly, on the immutable release candidate branch, so branch
+      # protection still requires all normal checks without storing a PAT.
+      - name: Dispatch Verify for the generated release candidate
+        if: steps.verified-tip.outputs.current == 'true' && steps.release.outputs.prs_created == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_PR: ${{ steps.release.outputs.pr }}
+        run: |
+          release_branch="$(jq -er '.headBranchName' <<< "$RELEASE_PR")"
+          case "$release_branch" in
+            release-please--branches--main--components--simdream-website) ;;
+            *) echo "Unexpected Release Please branch: $release_branch" >&2; exit 1 ;;
+          esac
+          gh workflow run ci.yml --repo "$GITHUB_REPOSITORY" --ref "$release_branch"
       # Tags created with GITHUB_TOKEN do not emit a push workflow. GitHub
       # explicitly permits repository_dispatch to start a separate workflow,
       # where the tag is rebuilt and fully verified before Wix can deploy it.

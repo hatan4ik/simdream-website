@@ -1,6 +1,10 @@
 name: Verify
 
 on:
+  # Release Please creates its candidate with GITHUB_TOKEN. GitHub deliberately
+  # does not emit pull_request events for that token, so release-please.yml
+  # explicitly dispatches this same gate against the generated candidate.
+  workflow_dispatch:
   pull_request:
   push:
     branches: [main]
