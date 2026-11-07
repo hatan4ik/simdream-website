@@ -10,8 +10,10 @@ export const TEST_ADMIN = {
 } as const;
 
 export const TEST_STRIPE = {
-  secretKey: 'sk_test_simdreamQaKey0000000000',
-  webhookSecret: 'whsec_simdreamQaSecret000000000',
+  // Prefixes exercise Stripe's format guards, while short fixture suffixes cannot
+  // be mistaken for a deployable credential by repository secret scanners.
+  secretKey: 'sk_test_fixture',
+  webhookSecret: 'whsec_fixture',
 } as const;
 
 /**

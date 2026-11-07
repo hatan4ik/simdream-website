@@ -8,7 +8,7 @@ import { TEST_STRIPE } from '../support/test-env';
 export const PRODUCTION_PAYMENTS_ENV: Record<string, string> = {
   NODE_ENV: 'production',
   // A live-format key satisfies the production check; the Stripe client is only used to verify signatures.
-  STRIPE_SECRET_KEY: 'sk_live_simdreamQaKey0000000000',
+  STRIPE_SECRET_KEY: 'sk_live_fixture',
   STRIPE_WEBHOOK_SECRET: TEST_STRIPE.webhookSecret,
   NEXT_PUBLIC_APP_URL: 'https://qa.simdream.test',
 };

@@ -1,0 +1,25 @@
+title = "SimDream secret-detection rules"
+
+# Keep Gitleaks' provider rules and add the Wix API-key format used by this
+# repository's deployment integration.
+[extend]
+useDefault = true
+
+[[rules]]
+id = "wix-headless-api-key"
+description = "Wix Headless API key"
+regex = '''IST\.eyJ[A-Za-z0-9_-]{12,}\.eyJ[A-Za-z0-9_-]{12,}\.[A-Za-z0-9_-]{12,}'''
+keywords = ["ist."]
+tags = ["wix", "api-key"]
+
+# These exact fixture values existed only in tests before the repository moved
+# to deliberately short non-deployable fixtures. Retaining the narrow allowlist
+# prevents a historical test string from masking any other secret.
+[[allowlists]]
+description = "Retired non-deployable Stripe test fixtures"
+regexTarget = "match"
+regexes = [
+  '''sk_(?:live|test)_simdreamQaKey0+''',
+  '''whsec_simdreamQaSecret0+''',
+  '''whsec_fakeAttackerControlledSecret''',
+]

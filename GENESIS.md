@@ -393,7 +393,8 @@ Add 3 curated one-click combos. Localize every package and add-on in all five la
    - visual baselines per platform.
 
    Run against a sandboxed production build in a separate build folder.
-4. **Load and performance**: autocannon p99 budgets on hot endpoints. Lighthouse budgets: accessibility ≥ 0.95, SEO ≥ 0.95, performance ≥ 0.8, best practices ≥ 0.9, LCP ≤ 2.5 s, CLS ≤ 0.1.
+4. **Supply-chain and secret security**: `npm audit --audit-level=high`, Dependabot, CodeQL and a full-history Gitleaks scan (including a custom Wix API-key rule) run before a Wix preview or release. GitHub native secret scanning and push protection remain enabled for the public repository.
+5. **Load and performance**: autocannon p99 budgets on hot endpoints. Lighthouse budgets: accessibility ≥ 0.95, SEO ≥ 0.95, performance ≥ 0.8, best practices ≥ 0.9, LCP ≤ 2.5 s, CLS ≤ 0.1.
 
 Playwright projects: `chromium`, `firefox`, `webkit`, `mobile-chrome` (Pixel 7), `mobile-safari` (iPhone 15), `a11y`, `usability`, `security-web`, `resilience`, `visual`.
 

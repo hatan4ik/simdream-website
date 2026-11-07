@@ -63,7 +63,7 @@ describe('Stripe webhook authenticity', () => {
 
   const forgeries: Array<{ label: string; options: (now: number) => Parameters<typeof signedWebhookRequest>[1] }> = [
     { label: 'a forged v1 signature', options: (now) => ({ signatureHeader: `t=${now},v1=${'ab'.repeat(32)}` }) },
-    { label: 'a signature made with the wrong secret', options: () => ({ secret: 'whsec_fakeAttackerControlledSecret' }) },
+    { label: 'a signature made with the wrong secret', options: () => ({ secret: 'whsec_forge' }) },
     { label: `a timestamp ${STRIPE_TOLERANCE_SECONDS + 1}s old (beyond tolerance)`, options: (now) => ({ timestamp: now - STRIPE_TOLERANCE_SECONDS - 1 }) },
     { label: 'a replay signed a day ago', options: (now) => ({ timestamp: now - 86_400 }) },
     { label: 'a v0 (test-mode legacy) scheme only', options: (now) => ({ signatureHeader: `t=${now},v0=${'cd'.repeat(32)}` }) },

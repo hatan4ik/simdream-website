@@ -11,6 +11,7 @@ Production-grade website, multi-step booking engine, Amazon-style flight storefr
 
 > 📐 **System Architecture & Visual Diagrams**: See [`ARCHITECTURE.md`](ARCHITECTURE.md) for full Mermaid sequence, workflow, topology, and interval-scheduling engine diagrams.
 > 🧬 **Canonical Genesis & System Blueprint**: [`GENESIS.md`](GENESIS.md) is the sole current architecture/reconstruction prompt. Its source-coverage and fingerprint verification runs in CI; historical drafts live in [`docs/archive/`](docs/archive/README.md).
+> 🔒 **Security policy**: [`SECURITY.md`](SECURITY.md) defines vulnerability reporting, credential rotation, and the repository's automated secret and dependency controls.
 
 ---
 

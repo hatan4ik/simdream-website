@@ -59,6 +59,7 @@ const SECRET_SHAPES: Array<{ name: string; pattern: RegExp }> = [
   { name: 'AWS access key', pattern: /\bAKIA[0-9A-Z]{16}\b/g },
   { name: 'GitHub token', pattern: /\bgh[pousr]_[A-Za-z0-9]{36,}\b/g },
   { name: 'Slack token', pattern: /\bxox[abprs]-[A-Za-z0-9-]{10,}/g },
+  { name: 'Wix Headless API key', pattern: /\bIST\.eyJ[A-Za-z0-9_-]{12,}\.eyJ[A-Za-z0-9_-]{12,}\.[A-Za-z0-9_-]{12,}\b/g },
   { name: 'private key block', pattern: /-----BEGIN (?:RSA |EC |OPENSSH |DSA )?PRIVATE KEY-----/g },
 ];
 
@@ -133,7 +134,20 @@ describe('repository contents', () => {
     expect(findings).toEqual([]);
   });
 
-  it.each(['.env.local', '.env', '.env.production.local', '.env.development.local'])(
+  it.each([
+    '.env',
+    '.env.local',
+    '.env.production',
+    '.env.staging',
+    '.env.production.local',
+    '.env.development.local',
+    '.envrc',
+    '.npmrc',
+    'private.pem',
+    'deploy.key',
+    'certificate.p12',
+    'service-account.json',
+  ])(
     'git-ignores %s so local secrets cannot be committed',
     (file) => {
       const result = spawnSync('git', ['check-ignore', '--quiet', '--no-index', file], {

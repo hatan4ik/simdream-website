@@ -29,7 +29,7 @@ import {
 const DAY = EMPTY_DAY.sunday;
 const PAYMENTS_DISABLED = 'Online payments are temporarily unavailable. Please contact us to book.';
 const CONFIGURED_ORIGIN = 'https://booking.simdream.test';
-const LIVE_STRIPE_KEY = 'sk_live_simdreamQaKey0000000000';
+const LIVE_STRIPE_KEY = 'sk_live_fixture';
 
 function minutesAfter(time: string, minutes: number): string {
   const [hours, mins] = time.split(':').map(Number);

@@ -14,10 +14,26 @@
 *.tsbuildinfo
 next-env.d.ts
 
-# environment files (keep the template tracked)
-.env
-.env*.local
+# environment files (keep intentionally non-secret templates tracked)
+.env*
 !.env.example
+!.env.*.example
+.envrc
+
+# credentials, certificates and local key stores
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.mobileprovision
+*.ovpn
+*.secret
+*.secrets
+credentials.json
+service-account.json
+.npmrc
 
 # testing
 /coverage
@@ -38,7 +54,6 @@ yarn-error.log*
 
 # OS / editor clutter
 .DS_Store
-*.pem
 
 # test artifacts
 /test-results/
