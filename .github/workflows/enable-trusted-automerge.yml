@@ -1,0 +1,39 @@
+name: Enable trusted auto-merge
+
+on:
+  # pull_request_target is intentional: it lets the repository token enable
+  # GitHub-native auto-merge. This workflow never checks out or executes PR code.
+  pull_request_target:
+    types: [labeled, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  enable:
+    name: Enable native squash auto-merge
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.draft == false &&
+      contains(github.event.pull_request.labels.*.name, 'automerge')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Enable GitHub-native auto-merge without bypassing protection
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          if gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json autoMergeRequest --jq '.autoMergeRequest != null' | grep -qx true; then
+            echo 'GitHub-native auto-merge is already enabled for this pull request.'
+            exit 0
+          fi
+
+          gh pr merge "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --auto --squash --delete-branch
+          {
+            echo '### Native auto-merge enabled'
+            echo
+            echo 'This pull request will squash-merge only after every required check and branch rule passes. This workflow cannot merge conflicts, bypass protection, approve a review, or run pull-request code.'
+          } >> "$GITHUB_STEP_SUMMARY"
