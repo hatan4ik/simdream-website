@@ -674,7 +674,7 @@ export const translations = {
       rulesDrawerTitle: 'Facility Rules & Terms Summary (simdream.co.il/rules)',
       privacyDrawerTitle: 'Privacy & Cookie Policy Summary (simdream.co.il/privacy-policy)',
       rulesPoint1:
-        '1. The Center: SimDream Simulators (Israel) Ltd. (Company Reg. 515865242), Gershon Shatz St 36, Tel Aviv-Yafo. The simulator is an experiential entertainment and flight training facility accompanied by an instructor.',
+        '1. The Center: SimDream Simulators (Israel) Ltd. (Company Reg. 516651031), Gershon Shatz St 36, Tel Aviv-Yafo. The simulator is an experiential entertainment and flight training facility accompanied by an instructor.',
       rulesPoint2:
         '2. Age Policy: Simulator entry is permitted from Age 10+. Children aged 10–15 require adult supervision (18+). Online booking and payment require age 18+.',
       rulesPoint3:
@@ -1500,7 +1500,7 @@ export const translations = {
       rulesDrawerTitle: 'תקנון ותנאי שימוש מרכזיים (simdream.co.il/rules)',
       privacyDrawerTitle: 'מדיניות פרטיות וקובצי Cookie (simdream.co.il/privacy-policy)',
       rulesPoint1:
-        '1. המרכז: מערכות הדמיה סימולטורים ישראל סיםדרים בע״מ, ח.פ. 515865242, רח׳ גרשון ש"ץ 36, תל אביב-יפו. הסימולטור הינו מתקן חוויה והדרכת טיסה בליווי מדריך מוסמך.',
+        '1. המרכז: מערכות הדמיה סימולטורים ישראל סיםדרים בע״מ, ח.פ. 516651031, רח׳ גרשון ש"ץ 36, תל אביב-יפו. הסימולטור הינו מתקן חוויה והדרכת טיסה בליווי מדריך מוסמך.',
       rulesPoint2:
         '2. גילאים: הכניסה לסימולטור מותרת מגיל 10 ומעלה (10+). ילדים בגילאי 10–15 מחויבים בליווי מבוגר. ביצוע הזמנה ותשלום באתר מחייבים גיל 18 ומעלה.',
       rulesPoint3:
@@ -2321,7 +2321,7 @@ export const translations = {
       rulesDrawerTitle: 'Краткие правила центра (simdream.co.il/rules)',
       privacyDrawerTitle: 'Политика конфиденциальности (simdream.co.il/privacy-policy)',
       rulesPoint1:
-        '1. Центр: SimDream Simulators (Israel) Ltd., рег. № 515865242, ул. Гершон Шац 36, Тель-Авив. Высокоточный авиатренажёрный комплекс с сопровождением пилота-инструктора.',
+        '1. Центр: SimDream Simulators (Israel) Ltd., рег. № 516651031, ул. Гершон Шац 36, Тель-Авив. Высокоточный авиатренажёрный комплекс с сопровождением пилота-инструктора.',
       rulesPoint2:
         '2. Возрастные правила: Допуск в кабину симулятора — от 10 лет и старше. Дети 10–15 лет допускаются в сопровождении взрослого (18+). Онлайн-бронирование и оплата — с 18 лет.',
       rulesPoint3:
@@ -3148,7 +3148,7 @@ export const translations = {
       rulesDrawerTitle: 'Résumé du règlement intérieur (simdream.co.il/rules)',
       privacyDrawerTitle: 'Politique de confidentialité (simdream.co.il/privacy-policy)',
       rulesPoint1:
-        '1. Le Centre : SimDream Simulators (Israel) Ltd. (N° d\'immatriculation 515865242), 36 rue Gershon Shatz, Tel Aviv-Yafo. Simulateur professionnel de vol accompagné d\'un instructeur.',
+        '1. Le Centre : SimDream Simulators (Israel) Ltd. (N° d\'immatriculation 516651031), 36 rue Gershon Shatz, Tel Aviv-Yafo. Simulateur professionnel de vol accompagné d\'un instructeur.',
       rulesPoint2:
         '2. Âge minimum : L\'accès au cockpit est autorisé dès 10 ans. Les enfants âgés de 10 à 15 ans doivent être accompagnés d\'un adulte. La réservation en ligne requiert 18 ans et plus.',
       rulesPoint3:
@@ -3981,7 +3981,7 @@ export const translations = {
       rulesDrawerTitle: 'ملخص شروط ولوائح المركز (simdream.co.il/rules)',
       privacyDrawerTitle: 'ملخص سياسة الخصوصية (simdream.co.il/privacy-policy)',
       rulesPoint1:
-        '1. المركز: شركة سيم دريم سيموليتورز (إسرائيل) م.ض، رقم تسجيل 515865242، شارع غيرشون شاتس 36، تل أبيب-يافا. منشأة متطورة لتجارب الطيران والتدريب برفقة مدرب طيران معتمد.',
+        '1. المركز: شركة سيم دريم سيموليتورز (إسرائيل) م.ض، رقم تسجيل 516651031، شارع غيرشون شاتس 36، تل أبيب-يافا. منشأة متطورة لتجارب الطيران والتدريب برفقة مدرب طيران معتمد.',
       rulesPoint2:
         '2. شروط العمر: يُسمح بدخول القمرة من عمر 10 سنوات فما فوق. الأطفال بين 10 و15 عاماً يلزمهم مرافق بالغ (18+). الحجز والدفع يتطلبان 18 عاماً وما فوق.',
       rulesPoint3:
