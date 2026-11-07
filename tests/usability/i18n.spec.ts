@@ -126,12 +126,15 @@ test.describe('LTR isolation of aviation telemetry on RTL pages', () => {
         await preferLanguage(page, language);
       });
 
-      test('keeps the live METAR string left-to-right', async ({ page }) => {
-        await gotoSettled(page, '/');
+      test('keeps airport ICAO identifiers left-to-right in World Routes', async ({ page }) => {
+        // The former live-METAR utility strip was deliberately replaced with
+        // Google Reviews. ICAO airport identifiers remain the genuine,
+        // customer-facing aviation telemetry on public pages.
+        await gotoSettled(page, '/experiences#world-routes');
         await expectLanguageRendered(page, language);
         const report = await inspectTelemetryDirection(page);
 
-        expect(report.found.some((text) => /KT\b/.test(text))).toBe(true);
+        expect(report.found.some((text) => /\bVQPR\b/.test(text))).toBe(true);
         expect(report.notIsolated).toEqual([]);
       });
 
