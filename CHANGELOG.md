@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/hatan4ik/simdream-website/compare/v1.2.0...v1.2.1) (2026-11-07)
+
+
+### Bug Fixes
+
+* **ci:** unblock verified Wix releases ([#33](https://github.com/hatan4ik/simdream-website/issues/33)) ([a459c1b](https://github.com/hatan4ik/simdream-website/commit/a459c1bbdb70bf0db0ee1688b17722cadde06201))
+
 ## [1.2.0](https://github.com/hatan4ik/simdream-website/compare/v1.1.1...v1.2.0) (2026-11-07)
 
 
