@@ -25,3 +25,13 @@ npm run docs:verify
 ```
 
 Run `npm run test:all` for an end-to-end feature. Follow the scheduling, localization, security and payment invariants in [AGENTS.md](AGENTS.md).
+
+## Fast CLI approvals
+
+Use the guarded helper to approve a reviewed, non-draft pull request without leaving the terminal:
+
+```bash
+./scripts/approve-pr.sh 42 --wait -m "Verified locally; approved."
+```
+
+It refuses self-approval, drafts, closed PRs, failed checks and PRs with no configured required checks. It never merges or deploys; those remain separately protected steps.
