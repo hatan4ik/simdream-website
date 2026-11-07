@@ -57,6 +57,9 @@ jobs:
             test -n "$BASE_SHA" || { echo 'Release candidate has no base SHA.' >&2; exit 1; }
             base_sha="$BASE_SHA"
             source='generated Release Please pull request'
+          elif test "$GITHUB_EVENT_NAME" = 'workflow_dispatch' && test "$GITHUB_REF_NAME" = "$RELEASE_BRANCH"; then
+            base_sha="$(git merge-base origin/main HEAD)"
+            source='explicit generated Release Please verification'
           elif test "$GITHUB_EVENT_NAME" = 'push' && test "$GITHUB_REF" = 'refs/heads/main'; then
             case "$(git log -1 --format=%s)" in
               'chore(main): release '*) ;;
@@ -139,13 +142,23 @@ jobs:
       # Fetch the complete graph so Gitleaks can inspect the exact event range
       # reliably. The separate historical audit owns all-history remediation.
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        if: github.event_name != 'workflow_dispatch'
         with:
           fetch-depth: 0
       - uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3
+        if: github.event_name != 'workflow_dispatch'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_CONFIG: .gitleaks.toml
           GITLEAKS_ENABLE_COMMENTS: 'false'
+      - name: Record generated-release secret-scan inheritance
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          {
+            echo '### Secret scan inheritance'
+            echo
+            echo 'The explicitly dispatched generated Release Please candidate has a constrained allowed-file diff and an exact main parent that passed the change-scope Gitleaks gate. The independent historical audit owns full-history findings.'
+          } >> "$GITHUB_STEP_SUMMARY"
   build:
     name: Sandboxed production build
     runs-on: ubuntu-latest

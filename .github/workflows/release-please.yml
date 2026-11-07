@@ -10,6 +10,7 @@ on:
     branches: [main]
 
 permissions:
+  actions: write
   contents: write
   issues: write
   pull-requests: write
@@ -50,10 +51,22 @@ jobs:
         with:
           config-file: .release-please-config.json
           manifest-file: .release-please-manifest.json
-      # The generated same-repository PR naturally receives the normal
-      # pull_request Verify workflow. ci.yml recognizes its constrained,
-      # inherited diff and runs fresh fast gates without launching a second
-      # manually dispatched copy of the browser matrix.
+      # GitHub marks this GITHUB_TOKEN-generated pull-request workflow
+      # `action_required` before it starts any jobs. Start one explicit Verify
+      # instead. ci.yml admits this exact branch only through its constrained
+      # inherited-release fast path, so no browser matrix is duplicated.
+      - name: Dispatch Verify for the generated release candidate
+        if: steps.verified-tip.outputs.current == 'true' && steps.release.outputs.prs_created == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_PR: ${{ steps.release.outputs.pr }}
+        run: |
+          release_branch="$(jq -er '.headBranchName' <<< "$RELEASE_PR")"
+          case "$release_branch" in
+            release-please--branches--main--components--simdream-website) ;;
+            *) echo "Unexpected Release Please branch: $release_branch" >&2; exit 1 ;;
+          esac
+          gh workflow run ci.yml --repo "$GITHUB_REPOSITORY" --ref "$release_branch"
       # Tags created with GITHUB_TOKEN do not emit a push workflow. GitHub
       # explicitly permits repository_dispatch to start a separate workflow,
       # where the tag is rebuilt and fully verified before Wix can deploy it.
