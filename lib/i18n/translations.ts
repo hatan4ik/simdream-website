@@ -4331,6 +4331,24 @@ const spanishTranslations = {
       historyHeading: 'Sesiones y compras anteriores',
       bookNextMission: 'Reservar próxima misión',
     },
+    resetPassword: {
+      ...baseTranslations.en.member.resetPassword,
+      title: 'Crea una nueva contraseña',
+      subtitle: 'Elige una contraseña segura para tu perfil de miembro de Sim Dream.',
+      newPasswordPlaceholder: 'Nueva contraseña (12 caracteres o más)',
+      confirmPasswordPlaceholder: 'Confirma la nueva contraseña',
+      submit: 'Guardar nueva contraseña',
+      validating: 'Validando tu enlace de recuperación…',
+      returnToLogin: 'Volver al acceso de miembros',
+      successUpdated: 'Contraseña actualizada. Redirigiendo a tu cabina de vuelo…',
+      errorNotConfigured: 'La recuperación de contraseña no está configurada para este entorno.',
+      errorLinkInvalid:
+        'Este enlace de recuperación no es válido o ha caducado. Solicita un enlace nuevo desde el acceso de miembros.',
+      errorTooShort: 'Usa una contraseña de al menos 12 caracteres.',
+      errorMismatch: 'Las contraseñas no coinciden.',
+      errorUpdateFailed:
+        'No hemos podido actualizar tu contraseña. Solicita un nuevo enlace de recuperación e inténtalo de nuevo.',
+    },
   },
 };
 
