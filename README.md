@@ -267,8 +267,8 @@ npm run test:all
 The GitHub Actions pipeline is the release path for the Wix-managed frontend. See [`docs/GITHUB_WIX_CICD.md`](docs/GITHUB_WIX_CICD.md) for the independently activated preview/production GitHub Environment secrets and approval setup.
 
 1. Merge an approved pull request to `main`; after all quality gates pass, GitHub automatically creates an immutable Wix preview for that commit.
-2. Accept the preview and push an annotated SemVer tag such as `v1.4.0`.
-3. GitHub reruns quality gates, waits for `wix-production` approval, publishes through the Wix CLI, and smoke-checks `/`, `/book`, and `/vouchers`.
+2. Release Please opens a calculated SemVer release PR. It explicitly runs the same Verify workflow against that candidate; accept the preview and merge only after the candidate checks are green.
+3. GitHub creates the immutable SemVer tag, reruns quality gates for that exact tag, waits for `wix-production` approval, publishes through the Wix CLI, and smoke-checks `/`, `/book`, and `/vouchers`.
 4. Roll back a verified version entirely from **GitHub Actions → Roll back Wix production**. No laptop Wix CLI session is required.
 
 The repository retains a self-managed Next.js deployment path for local development or a future non-Wix host. It is not the customer production release path.

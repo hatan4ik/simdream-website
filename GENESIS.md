@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:d18d4e119980b20bda54e1bff8a816b33cb210ea26f1f71d71cfb4b46651f5fb -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:a8aef2b3b98b4b6ca7297b221581e4d48074165630d17a17bf06dc7e01590991 -->
 
 ## Verification contract
 
@@ -411,7 +411,7 @@ Wire all four gates into one command (`npm run test:all`) and into CI jobs that 
 | `start:local` | `next start` with the demo store opt-in, for laptops without Supabase |
 | `docs:genesis` | Fails unless this blueprint still covers the codebase |
 
-**Continuous delivery:** GitHub Actions never receives a Wix credential in a pull-request job. After the owner enables the non-secret `WIX_PREVIEW_CI_ENABLED=true` repository variable, a passing push to `main` builds an immutable Wix preview using the `wix-preview` environment secret. `release-please.yml` evaluates only a passing current `main` commit and maintains a Conventional-Commit-based release PR; merging it writes the changelog, version, GitHub Release and immutable SemVer tag (`vX.Y.Z`). It dispatches `wix-release.yml`, which rebuilds and reruns the full gate against that exact tag before the separately protected `wix-production` environment may invoke `wix release`. A separately enabled `WIX_PRODUCTION_CI_ENABLED=true` remains required. Wix's release comment records the tag and commit SHA. This allows a staging-only credential to automate previews without enabling production. [`docs/GITHUB_WIX_CICD.md`](docs/GITHUB_WIX_CICD.md) defines the environment secret/approval configuration and the historical-tag rollback workflow. Wix business data, payment settings, coupons and customer records are intentionally outside source-delivery automation.
+**Continuous delivery:** GitHub Actions never receives a Wix credential in a pull-request job. After the owner enables the non-secret `WIX_PREVIEW_CI_ENABLED=true` repository variable, a passing push to `main` builds an immutable Wix preview using the `wix-preview` environment secret. `release-please.yml` evaluates only a passing current `main` commit and maintains a Conventional-Commit-based release PR; because GitHub intentionally suppresses pull-request events generated with `GITHUB_TOKEN`, it explicitly dispatches the normal Verify workflow against that candidate instead of storing a personal access token. Merging the fully verified candidate writes the changelog, version, GitHub Release and immutable SemVer tag (`vX.Y.Z`). It dispatches `wix-release.yml`, which rebuilds and reruns the full gate against that exact tag before the separately protected `wix-production` environment may invoke `wix release`. A separately enabled `WIX_PRODUCTION_CI_ENABLED=true` remains required. Wix's release comment records the tag and commit SHA. This allows a staging-only credential to automate previews without enabling production. [`docs/GITHUB_WIX_CICD.md`](docs/GITHUB_WIX_CICD.md) defines the environment secret/approval configuration and the historical-tag rollback workflow. Wix business data, payment settings, coupons and customer records are intentionally outside source-delivery automation.
 
 ### CLOSE THESE KNOWN GAPS (do not reproduce them)
 
