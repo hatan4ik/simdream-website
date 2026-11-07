@@ -33,14 +33,15 @@ const NAVIGATION_TIMEOUT_MS = 30_000;
 /**
  * Follows a real link like a visitor and waits until the browser is on `url`.
  *
- * A link remains a valid navigation affordance before React hydration: the browser
- * can follow its href as a normal document navigation, then the theme/language
- * bootstrap applies the persisted preference before first paint. Requiring an
- * internal React property here made long, parallel browser suites fail for a
- * test-runner timing detail rather than a customer-visible navigation failure.
+ * Next links are only followed after their client handler is attached. Under a loaded
+ * browser runner, a click that lands during hydration can be intercepted before the
+ * router has completed its handoff, leaving the visitor on the current page. Waiting
+ * for the interactive contract turns this into the same one-click journey a customer
+ * receives after the page is ready.
  */
 export async function follow(link: Locator, url: string | RegExp, how: 'click' | 'tap' = 'click'): Promise<void> {
   const page = link.page();
+  await waitUntilInteractive(link);
   const arrived = page.waitForURL(url, { timeout: NAVIGATION_TIMEOUT_MS });
   await (how === 'tap' ? link.tap() : link.click());
   await arrived;
