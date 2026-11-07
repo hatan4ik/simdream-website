@@ -49,8 +49,10 @@ async function prepareDeterministicPage(page: Page, baseURL: string | undefined,
 /** Regions whose content is live or clock-driven. */
 function dynamicRegions(page: Page): Locator[] {
   return [
-    // Live METAR / status bar rendered directly above the navbar.
-    page.locator('nav').locator('xpath=preceding-sibling::div[1]'),
+    // The persistent utility bar contains live Google review data and an
+    // automatically rotated review. Its layout remains in the snapshot; only
+    // the volatile content is masked.
+    page.locator('[data-site-utility-bar]'),
     // Calendar day buttons are clock-driven and masked in visual snapshots.
     page.getByRole('button', { name: /^(Sun|Mon|Tue|Wed|Thu|Fri|Sat) \d{1,2} [A-Z][a-z]{2}$/ }),
     // Footer live opening status.

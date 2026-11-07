@@ -158,7 +158,7 @@ export function LiveMetarBar() {
       aria-label={copy.sectionLabel}
       className="relative z-[60] w-full border-b border-slate-800/80 bg-slate-950 px-3 text-slate-200 sm:px-4"
     >
-      <div className="mx-auto flex max-w-7xl flex-col sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+      <div className="mx-auto flex min-h-11 max-w-7xl items-center justify-between gap-1 sm:gap-3">
         <div className="min-w-0 flex-1">
           {snapshot && activeReview ? (
             <button
@@ -167,7 +167,6 @@ export function LiveMetarBar() {
               data-google-reviews-trigger
               aria-expanded={isOpen}
               aria-controls={reviewsPanelId}
-              aria-label={isOpen ? copy.close : copy.open}
               onClick={() => setIsOpen((open) => !open)}
               className="flex min-h-11 w-full min-w-0 items-center gap-2 rounded-lg text-left text-xs transition-colors hover:bg-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-inset touch-manipulation rtl:text-right"
             >
@@ -189,8 +188,8 @@ export function LiveMetarBar() {
                 className={`ms-auto h-4 w-4 shrink-0 text-sky-300 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
                 aria-hidden="true"
               />
-              <span className="sr-only" aria-live="polite">
-                {copy.rating(snapshot.overallRating.toFixed(1), formattedCount)}
+              <span className="sr-only">
+                {isOpen ? copy.close : copy.open}. {copy.rating(snapshot.overallRating.toFixed(1), formattedCount)}
               </span>
             </button>
           ) : (
@@ -198,7 +197,6 @@ export function LiveMetarBar() {
               href={FACILITY_INFO.googleReviewsDirectUrl}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label={copy.unavailable}
               className="flex min-h-11 items-center gap-2 rounded-lg text-xs font-semibold text-sky-300 transition-colors hover:bg-slate-900 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-inset touch-manipulation"
             >
               <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" aria-hidden="true" />
