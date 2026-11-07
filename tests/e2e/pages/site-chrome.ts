@@ -13,6 +13,7 @@ const NATIVE_LANGUAGE_NAMES: Record<Language, string> = {
   ru: 'Русский',
   fr: 'Français',
   ar: 'العربية',
+  es: 'Español',
 };
 
 /** Global header and footer shared by every public page. */

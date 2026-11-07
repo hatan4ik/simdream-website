@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight, Pause, Play, Star } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n/language-context';
-import type { Language } from '@/lib/i18n/translations';
+import type { Language, LocalizedRecord } from '@/lib/i18n/translations';
 
 interface LiveGoogleReview {
   id: string;
@@ -35,7 +35,7 @@ interface ReviewCarouselCopy {
   position: (current: number, total: number) => string;
 }
 
-const REVIEW_COPY: Record<Language, ReviewCarouselCopy> = {
+const REVIEW_COPY: LocalizedRecord<ReviewCarouselCopy> = {
   en: {
     badge: 'GOOGLE REVIEWS',
     title: 'Guest feedback from Google',

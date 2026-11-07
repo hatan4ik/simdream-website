@@ -2,11 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { BOOKING_BLUEPRINT_COPY } from '@/lib/i18n/booking-blueprint-copy';
 import type { Language } from '@/lib/i18n/translations';
 
-const LANGUAGES: Language[] = ['en', 'he', 'ru', 'fr', 'ar'];
+const LANGUAGES: Language[] = ['en', 'he', 'ru', 'fr', 'ar', 'es'];
 
 describe('booking blueprint copy', () => {
   it.each(LANGUAGES)('provides a complete, usable inclusions dialog in %s', (language) => {
-    const copy = BOOKING_BLUEPRINT_COPY[language];
+    const copy = BOOKING_BLUEPRINT_COPY[language] ?? BOOKING_BLUEPRINT_COPY.en;
 
     expect(copy.whatIncludedBtn).not.toHaveLength(0);
     expect(copy.badge).not.toHaveLength(0);

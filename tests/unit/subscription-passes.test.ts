@@ -10,7 +10,7 @@ import {
 } from '@/lib/data/subscription-passes';
 import { SUBSCRIPTION_PAGE_COPY } from '@/lib/data/subscription-page-copy';
 
-const CODES: Language[] = ['he', 'en', 'ru', 'fr', 'ar'];
+const CODES: Language[] = ['he', 'en', 'ru', 'fr', 'ar', 'es'];
 const HEBREW = /[\u0590-\u05FF]/;
 const ARABIC = /[\u0600-\u06FF]/;
 const FORBIDDEN: Record<Language, RegExp[]> = {
@@ -19,6 +19,7 @@ const FORBIDDEN: Record<Language, RegExp[]> = {
   en: [HEBREW, ARABIC],
   ru: [HEBREW, ARABIC],
   fr: [HEBREW, ARABIC],
+  es: [HEBREW, ARABIC],
 };
 const LEGACY_TERMS: Record<Language, RegExp[]> = {
   en: [/\bpass(?:es)?\b/i, /multi-flight/i],
@@ -26,6 +27,7 @@ const LEGACY_TERMS: Record<Language, RegExp[]> = {
   ru: [/\bпасс/iu],
   fr: [/\bpass\b/iu],
   ar: [/بطاق/u],
+  es: [/\bpass(?:es)?\b/iu, /multi-flight/i],
 };
 const SUBSCRIPTION_TERMS: Record<Language, RegExp> = {
   en: /subscription/i,
@@ -33,6 +35,7 @@ const SUBSCRIPTION_TERMS: Record<Language, RegExp> = {
   ru: /абонемент/i,
   fr: /abonnement/i,
   ar: /اشتراك/,
+  es: /subscription|suscripci[oó]n/i,
 };
 
 function stringLeaves(value: unknown): string[] {
@@ -95,11 +98,11 @@ describe('flight subscription catalogue', () => {
 
 describe('flight subscription five-language discipline', () => {
   it.each(CODES)('provides complete, non-empty copy in %s', (language) => {
-    const section = SUBSCRIPTION_SECTION_COPY[language];
+    const section = SUBSCRIPTION_SECTION_COPY[language] ?? SUBSCRIPTION_SECTION_COPY.en;
     expect(stringLeaves(section).filter((text) => text.trim() === '')).toEqual([]);
-    expect(stringLeaves(SUBSCRIPTION_PAGE_COPY[language]).filter((text) => text.trim() === '')).toEqual([]);
+    expect(stringLeaves(SUBSCRIPTION_PAGE_COPY[language] ?? SUBSCRIPTION_PAGE_COPY.en).filter((text) => text.trim() === '')).toEqual([]);
     for (const pass of SUBSCRIPTION_PASSES) {
-      const copy = pass.copy[language];
+      const copy = pass.copy[language] ?? pass.copy.en;
       expect(copy.title.trim(), `${pass.id} title`).not.toHaveLength(0);
       expect(copy.summary.trim(), `${pass.id} summary`).not.toHaveLength(0);
       expect(copy.curriculum, `${pass.id} curriculum`).toHaveLength(5);
@@ -109,18 +112,18 @@ describe('flight subscription five-language discipline', () => {
 
   it.each(CODES)('keeps foreign scripts out of %s subscription copy', (language) => {
     const copy = [
-      ...stringLeaves(SUBSCRIPTION_SECTION_COPY[language]),
-      ...stringLeaves(SUBSCRIPTION_PAGE_COPY[language]),
-      ...SUBSCRIPTION_PASSES.flatMap((pass) => stringLeaves(pass.copy[language])),
+      ...stringLeaves(SUBSCRIPTION_SECTION_COPY[language] ?? SUBSCRIPTION_SECTION_COPY.en),
+      ...stringLeaves(SUBSCRIPTION_PAGE_COPY[language] ?? SUBSCRIPTION_PAGE_COPY.en),
+      ...SUBSCRIPTION_PASSES.flatMap((pass) => stringLeaves(pass.copy[language] ?? pass.copy.en)),
     ];
     expect(copy.filter((text) => FORBIDDEN[language].some((pattern) => pattern.test(text)))).toEqual([]);
   });
 
   it.each(CODES)('uses localized subscription vocabulary in %s without legacy pass terminology', (language) => {
     const copy = [
-      ...stringLeaves(SUBSCRIPTION_SECTION_COPY[language]),
-      ...stringLeaves(SUBSCRIPTION_PAGE_COPY[language]),
-      ...SUBSCRIPTION_PASSES.flatMap((subscription) => stringLeaves(subscription.copy[language])),
+      ...stringLeaves(SUBSCRIPTION_SECTION_COPY[language] ?? SUBSCRIPTION_SECTION_COPY.en),
+      ...stringLeaves(SUBSCRIPTION_PAGE_COPY[language] ?? SUBSCRIPTION_PAGE_COPY.en),
+      ...SUBSCRIPTION_PASSES.flatMap((subscription) => stringLeaves(subscription.copy[language] ?? subscription.copy.en)),
     ];
     expect(copy.some((text) => SUBSCRIPTION_TERMS[language].test(text))).toBe(true);
     expect(copy.filter((text) => LEGACY_TERMS[language].some((pattern) => pattern.test(text)))).toEqual([]);

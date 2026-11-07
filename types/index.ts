@@ -1,3 +1,5 @@
+import type { GiftCardDesignId } from '@/lib/catalog/gift-card-designs';
+
 export type PackageCategory = 'recreational' | 'training' | 'corporate' | 'fear_of_flying';
 export type FlightPackageDuration = 30 | 45 | 60 | 90 | 120 | 240;
 export type PilotExperienceLevel = 'beginner' | 'enthusiast' | 'student_pilot' | 'atpl';
@@ -216,6 +218,8 @@ export interface GiftVoucher {
   personalMessage: string;
   packageId?: string;
   packageTitle?: string;
+  /** Design selected for a flexible monetary Gift Card. Certificates omit this field. */
+  giftCardDesignId?: GiftCardDesignId;
   expiryDate: string;
   isRedeemed: boolean;
   paymentStatus: VoucherPaymentStatus;

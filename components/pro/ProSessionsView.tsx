@@ -15,7 +15,7 @@ import {
   ExternalLink,
   ChevronDown,
 } from 'lucide-react';
-import { Language } from '@/lib/i18n/translations';
+import { type Language, type LocalizedRecord } from '@/lib/i18n/translations';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
@@ -94,7 +94,7 @@ interface ProCopy {
   b2bBtn: string;
 }
 
-const PRO_COPY: Record<Language, ProCopy> = {
+const PRO_COPY: LocalizedRecord<ProCopy> = {
   en: {
     heroBadge: 'PROFESSIONAL TRAINING • AIRLINE ASSESSMENT SCREENING',
     heroTitle: 'Professional Training — Airline Assessment & Pilot Screening Prep',

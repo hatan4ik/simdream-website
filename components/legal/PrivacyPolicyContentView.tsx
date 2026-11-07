@@ -68,6 +68,14 @@ const PRIVACY_COPY: Record<
     contactOfficer: 'مسؤول حماية البيانات والخصوصية',
     rulesLink: 'عرض اللائحة الرسمية وشروط الاستخدام ←',
   },
+  es: {
+    badge: 'POLÍTICA OFICIAL DE PRIVACIDAD Y COOKIES • SIM DREAM ISRAEL',
+    title: 'Política de privacidad y cookies — Sim Dream Israel',
+    reg: `Registro de empresa: ${FACILITY_INFO.companyRegistrationNumber}`,
+    address: `Dirección: ${FACILITY_INFO.address.streetEn}, ${FACILITY_INFO.address.cityEn} | Privacidad: ${FACILITY_INFO.contact.email}`,
+    contactOfficer: 'Contacto de privacidad y protección de datos',
+    rulesLink: 'Ver normas y condiciones del centro →',
+  },
 };
 
 export function PrivacyPolicyContentView() {
@@ -96,6 +104,8 @@ export function PrivacyPolicyContentView() {
             'ℹ️ La politique de confidentialité de SimDream Israël est juridiquement régie en hébreu et en anglais conformément à la loi israélienne sur la protection de la vie privée (5741-1981). Veuillez trouver ci-dessous la version officielle en anglais.'}
           {language === 'ar' &&
             'ℹ️ تخضع سياسة الخصوصية لمركز سيم دريم للقانون الإسرائيلي لحماية الخصوصية باللغتين العبرية والإنجليزية. يُرجى الاطلاع أدناه على النسخة الرسمية باللغة الإنجليزية.'}
+          {language === 'es' &&
+            'ℹ️ La política de privacidad de Sim Dream se rige legalmente por las versiones en hebreo e inglés conforme a la legislación israelí. A continuación se muestra la versión oficial en inglés.'}
         </div>
       )}
 

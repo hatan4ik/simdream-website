@@ -4,7 +4,6 @@ import { createClient, OAuthStrategy, type TokenStorage, type Tokens } from '@wi
 import { redirects } from '@wix/redirects';
 import { members } from '@wix/members';
 import { orders, plansV3 } from '@wix/pricing-plans';
-import { messages } from '@wix/ai-site-chat';
 import wixManagedProject from '../../wix.config.json';
 
 const MEMBER_TOKENS_KEY = 'simdream_wix_member_tokens';
@@ -68,7 +67,7 @@ function createWixMemberClient() {
     throw new Error('Wix member access is not configured for this environment.');
   }
   return createClient({
-    modules: { redirects, members, orders, plansV3, messages },
+    modules: { redirects, members, orders, plansV3 },
     auth: OAuthStrategy({ clientId, tokenStorage: sessionTokenStorage }),
   });
 }

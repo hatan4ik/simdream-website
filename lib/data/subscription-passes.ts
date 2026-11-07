@@ -1,5 +1,5 @@
 import { FLIGHT_ADDONS, SIMULATOR_PACKAGES } from '@/lib/db/seed-data';
-import type { Language } from '@/lib/i18n/translations';
+import type { Language, LocalizedRecord } from '@/lib/i18n/translations';
 
 /**
  * Single-payment flight subscriptions. These are deliberately separate from a
@@ -54,10 +54,10 @@ export interface SubscriptionPass {
    * not silently add the add-on's extra cockpit minutes to a reservation.
    */
   trainingAddonIds: readonly string[];
-  copy: Record<Language, SubscriptionPassCopy>;
+  copy: LocalizedRecord<SubscriptionPassCopy>;
 }
 
-export const SUBSCRIPTION_SECTION_COPY: Record<Language, SubscriptionSectionCopy> = {
+export const SUBSCRIPTION_SECTION_COPY: LocalizedRecord<SubscriptionSectionCopy> = {
   en: {
     badge: 'CAPTAIN-LED FLIGHT SUBSCRIPTIONS',
     title: 'Your Flight Subscription Journey',

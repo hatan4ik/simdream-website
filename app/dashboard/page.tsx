@@ -18,7 +18,7 @@ import { Card } from '@/components/ui/Card';
 import { WixMemberSubscriptionPanel } from '@/components/wix/WixMemberSubscriptionPanel';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useLanguage, type Language } from '@/lib/i18n/language-context';
-import { getLocalizedPackages } from '@/lib/i18n/translations';
+import { getLocalizedPackages, type LocalizedRecord } from '@/lib/i18n/translations';
 import { EXPERIENCE_ROUTES_COPY, findOnRequestWorldRoute } from '@/lib/data/experience-routes';
 import { sanitizePackageTitle } from '@/lib/scheduler/mission-calculator';
 import { isSupabaseConfigured, supabase } from '@/lib/supabaseClient';
@@ -72,12 +72,13 @@ function apiErrorKey(
 }
 
 /** English keeps the shared `formatDate` output (en-GB); Arabic keeps Latin digits like the rest of the telemetry. */
-const DATE_LOCALES: Record<Language, string> = {
+const DATE_LOCALES: LocalizedRecord<string> = {
   en: 'en-GB',
   he: 'he-IL',
   ru: 'ru-RU',
   fr: 'fr-FR',
   ar: 'ar-u-nu-latn',
+  es: 'es-ES',
 };
 
 function formatMissionDate(ymd: string, language: Language): string {

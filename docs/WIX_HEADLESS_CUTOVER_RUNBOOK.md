@@ -6,7 +6,7 @@ With `WIX_AVAILABILITY_ADAPTER_ENABLED=true`, Wix Bookings is the calendar autho
 
 ## 1. Safety boundary
 
-- Keep the SimDream React/Next.js product, scheduling, five-language UX, and guest-first experience.
+- Keep the SimDream React/Next.js product, scheduling, six-language UX, and guest-first experience.
 - Use Wix native Bookings, Members, Pricing Plans, dashboard operations, hosted checkout, and PayPlus configuration where they fit.
 - Never put a Wix client secret, API key, PayPlus credential, or privileged Wix token in the browser, repository, `.env.example`, or application logs.
 - A guest must always be able to start a one-off booking without registration. Member identity may grant access to the matching customer's orders; it must never expose purchases by an unauthenticated email lookup.
@@ -33,14 +33,6 @@ It uses the public Wix visitor client and exits non-zero when any of these gates
 The command performs no write: it does not publish a service or plan, create a checkout session, charge a card, alter availability, or turn on a feature flag. A non-zero result is an intentional stop signal, not a runtime outage.
 
 `npm run wix:smoke` remains a narrower diagnostic for services and next-day availability. The readiness command is the launch gate.
-
-For Smart Chat, run the additional read-only visitor check:
-
-```bash
-npm run wix:chat:smoke
-```
-
-It verifies that the configured Headless client can call Wix AI Site-Chat's message API as an anonymous visitor. It creates no message and prints no customer data. A failure means the Wix AI Site-Chat app or its visitor permission/configuration is not ready; it must be corrected in Wix before the custom frontend panel is relied on.
 
 ## 3. Configuration ownership
 
@@ -84,7 +76,7 @@ The four public, purchasable **single-payment, 12-month** plans below are alread
 | `atpl-concepts-10x60` | ATPL Concepts Subscription | 10 × 60 min | 4,850 | Captain's Command 60 |
 | `airline-readiness-10x90` | Airline Readiness Subscription | 10 × 90 min | 5,950 | Ultimate 90 |
 
-For every plan, publish the five-language customer terms and make these limitations explicit: simulator education is not logged flight time, a licence, type rating, airline assessment credit, or employment guarantee. Training topics may include Cold & Dark, Crosswind/IFR, and Extreme Airports only as instructor-led themes until an entitlement decision states whether they consume time or price separately.
+For every plan, publish the six-language customer terms and make these limitations explicit: simulator education is not logged flight time, a licence, type rating, airline assessment credit, or employment guarantee. Training topics may include Cold & Dark, Crosswind/IFR, and Extreme Airports only as instructor-led themes until an entitlement decision states whether they consume time or price separately.
 
 `npm run wix:readiness` currently resolves all four plans. Before production, set the four immutable plan IDs in the trusted server environment rather than relying on dynamic title/price lookup, then re-run the readiness gate.
 
@@ -95,7 +87,7 @@ For every plan, publish the five-language customer terms and make these limitati
 3. **Required blocker:** Configure an approved PayPlus provider inside Wix using merchant sandbox/test configuration. The staging site currently has no connected provider, and no published PayPlus App Market listing was discoverable through Wix's supported search API. Complete a non-charging or test-card payment, cancellation, and failure recovery path before live credentials are considered.
 4. Wix Members is installed and the hosted callback is registered. Subscription purchase and usage are member-gated; active plans now link to a duration-matched `/book?subscription=wix` flow. It resolves a live strict-grid slot and opens member-bound Wix-hosted Bookings checkout; Wix verifies the benefit and consumes the credit. One-off booking remains guest-first. Verify hosted sign-in/register, plan purchase, covered-session checkout, cancellation, and member-order updates after each release.
 5. The Wix availability adapter is implemented and enabled for staging. It can operate without copying a Supabase secret into the worker; it marks Wix as the authoritative calendar and blocks the local booking writer. Mapped base flights use native Wix reservation and hosted checkout. Map add-ons and on-request routes natively before enabling them in this mode.
-6. Install and configure **Wix AI Site-Chat** in the Wix Editor control plane for the corresponding site. Configure its assistant source/content, business-hours handoff, contact form/escalation, welcome message, and any permitted suggested questions there. The stock Editor widget does not render on the Headless frontend; its supported visitor Messages APIs power the custom `WixSmartChat` panel instead. Run `npm run wix:chat:smoke` after every new environment or client-id change.
+6. The Headless frontend intentionally has no Wix AI Site-Chat integration. Its persistent contact route is the official WhatsApp action (`+972 55 507 1307`), rendered from `FACILITY_INFO.contact.whatsappHref`. Do not install or configure a separate chat widget for this customer journey.
 
 ## 5. Staged cutover sequence
 
@@ -140,7 +132,7 @@ unverifiable customer flows.
   customer's explicit `simdream_lang` choice remains the only override and is
   persisted in browser local storage, not a public cookie. A bounded
   pre-hydration guard keeps the Hebrew server fallback off-screen until a saved
-  language commits. Verify all five languages after every release.
+  language commits. Verify all six languages after every release.
 - `/book` must never render a fabricated date. The calendar waits for the
   browser's Israel clock and shows its localized initializing state until the
   date is known; the raw page HTML must not contain `2099`.
@@ -153,6 +145,13 @@ unverifiable customer flows.
   or balance transfer until the paid native issuance contract is tested. The
   browser may redeem an already-issued native card only through the Wix Cart V2
   calculation path, which returns the authoritative price and masks the code.
+- The local flexible-voucher preview offers seven compact colour swatches. Its
+  selected design is a closed server-validated ID, persisted as
+  `gift_card_design_id` only after the local payment lifecycle starts, and is
+  used in the signed webhook's activation email. This cannot be described as a
+  Wix-native Gift Card design or issuance flow. Native media/product updates
+  require a management key with **Manage eCommerce** and **Manage Media
+  Manager** permission and the current Wix Gift Card product revision.
 
 ### Search and migration safety
 
@@ -211,7 +210,6 @@ the release record:
 
 ```bash
 npm run wix:readiness
-npm run wix:chat:smoke
 npm run lint
 npm run test:quick
 npm run build

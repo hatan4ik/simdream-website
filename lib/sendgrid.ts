@@ -2,6 +2,7 @@ import sgMail from '@sendgrid/mail';
 import { Booking, GiftVoucher } from '@/types';
 import { formatDate } from './utils';
 import { findOnRequestWorldRoute } from './data/experience-routes';
+import { getGiftCardDesign } from './catalog/gift-card-designs';
 
 const apiKey = process.env.SENDGRID_API_KEY || '';
 export const isSendgridConfigured = Boolean(
@@ -125,9 +126,13 @@ export async function sendVoucherActivationEmail(voucher: GiftVoucher): Promise<
   const safeValue = escapeHtml(voucher.initialValueIls);
   const safeMessage = escapeHtml(voucher.personalMessage);
   const safePackage = voucher.packageTitle ? escapeHtml(voucher.packageTitle) : '';
+  const cardImage = voucher.giftCardDesignId
+    ? `${(process.env.NEXT_PUBLIC_APP_URL || 'https://www.simdream.co.il').replace(/\/$/, '')}${getGiftCardDesign(voucher.giftCardDesignId).image}`
+    : '';
   const html = `
     <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;padding:24px;color:#0f172a">
       <h1>Sim Dream ${safePackage ? 'Flight Gift Certificate' : 'Gift Voucher'}</h1>
+      ${cardImage ? `<img src="${cardImage}" width="600" alt="Sim Dream digital gift card" style="display:block;width:100%;height:auto;border-radius:16px;margin:0 0 20px;" />` : ''}
       <p>Dear ${safeRecipient},</p>
       <p>${safeSender} has sent you a Boeing 737 MAX simulator ${safePackage ? `flight gift certificate (${safePackage})` : 'gift voucher'}.</p>
       <p><strong>Voucher code:</strong> ${safeCode}<br>${safePackage ? `<strong>Flight Experience:</strong> ${safePackage}<br>` : ''}<strong>Value:</strong> ₪${safeValue}</p>

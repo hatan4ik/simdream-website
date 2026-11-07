@@ -183,6 +183,10 @@ function toVoucher(row: DatabaseRow): GiftVoucher {
     personalMessage: typeof getValue(row, 'personal_message') === 'string' ? String(getValue(row, 'personal_message')) : '',
     packageId: typeof getValue(row, 'package_id') === 'string' ? String(getValue(row, 'package_id')) : undefined,
     packageTitle: typeof getValue(row, 'package_title') === 'string' ? String(getValue(row, 'package_title')) : undefined,
+    giftCardDesignId:
+      typeof getValue(row, 'gift_card_design_id') === 'string'
+        ? (String(getValue(row, 'gift_card_design_id')) as GiftVoucher['giftCardDesignId'])
+        : undefined,
     expiryDate: requiredString(row, 'expiry_date'),
     isRedeemed: Boolean(getValue(row, 'is_redeemed')),
     paymentStatus: (typeof getValue(row, 'payment_status') === 'string'
@@ -211,6 +215,7 @@ function voucherInsertRow(voucher: GiftVoucher): DatabaseRow {
     personal_message: voucher.personalMessage || null,
     package_id: voucher.packageId || null,
     package_title: voucher.packageTitle || null,
+    gift_card_design_id: voucher.giftCardDesignId || null,
     expiry_date: voucher.expiryDate,
     is_redeemed: voucher.isRedeemed,
     payment_status: voucher.paymentStatus,

@@ -1,4 +1,4 @@
-import type { Language } from '@/lib/i18n/translations';
+import type { Language, LocalizedRecord } from '@/lib/i18n/translations';
 
 export interface SubscriptionPillarCopy {
   title: string;
@@ -84,7 +84,7 @@ export interface SubscriptionPageCopy {
   bottomContactConcierge: string;
 }
 
-export const SUBSCRIPTION_PAGE_COPY: Record<Language, SubscriptionPageCopy> = {
+export const SUBSCRIPTION_PAGE_COPY: LocalizedRecord<SubscriptionPageCopy> = {
   en: {
     eyebrow: "SIM DREAM CAPTAIN'S CLUB · ANNUAL SUBSCRIPTIONS",
     heroTitle: 'One Flight Is a Memory. A Subscription Builds Flight Confidence.',

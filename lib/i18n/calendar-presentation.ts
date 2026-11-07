@@ -1,6 +1,6 @@
-import type { Language } from './translations';
+import type { Language, LocalizedRecord } from './translations';
 
-export const CALENDAR_LOCALES: Record<Language, string> = {
+export const CALENDAR_LOCALES: LocalizedRecord<string> = {
   // Israel-facing English has historically used the site's UK-style date order;
   // week-start behavior remains Sunday to match the customer calendar expectation.
   en: 'en-GB',
@@ -8,15 +8,17 @@ export const CALENDAR_LOCALES: Record<Language, string> = {
   ru: 'ru-RU',
   fr: 'fr-FR',
   ar: 'ar-IL',
+  es: 'es-ES',
 };
 
 /** Sunday is customary in Israel and the US; French and Russian calendars begin on Monday. */
-const WEEK_STARTS_ON: Record<Language, number> = {
+const WEEK_STARTS_ON: LocalizedRecord<number> = {
   en: 0,
   he: 0,
   ru: 1,
   fr: 1,
   ar: 0,
+  es: 1,
 };
 
 /** Shared accessible labels for any booking calendar control. */
@@ -25,12 +27,13 @@ export interface CalendarNavigationLabels {
   nextWeek: string;
 }
 
-const CALENDAR_NAVIGATION_LABELS: Record<Language, CalendarNavigationLabels> = {
+const CALENDAR_NAVIGATION_LABELS: LocalizedRecord<CalendarNavigationLabels> = {
   en: { previousWeek: 'Previous week', nextWeek: 'Next week' },
   he: { previousWeek: 'השבוע הקודם', nextWeek: 'השבוע הבא' },
   ru: { previousWeek: 'Предыдущая неделя', nextWeek: 'Следующая неделя' },
   fr: { previousWeek: 'Semaine précédente', nextWeek: 'Semaine suivante' },
   ar: { previousWeek: 'الأسبوع السابق', nextWeek: 'الأسبوع التالي' },
+  es: { previousWeek: 'Semana anterior', nextWeek: 'Semana siguiente' },
 };
 
 export interface CalendarDay {
@@ -61,15 +64,15 @@ function formatYmd(date: Date): string {
 }
 
 function formatter(language: Language, options: Intl.DateTimeFormatOptions): Intl.DateTimeFormat {
-  return new Intl.DateTimeFormat(CALENDAR_LOCALES[language], { timeZone: 'UTC', ...options });
+  return new Intl.DateTimeFormat(CALENDAR_LOCALES[language] ?? CALENDAR_LOCALES.en, { timeZone: 'UTC', ...options });
 }
 
 export function calendarWeekStart(language: Language): number {
-  return WEEK_STARTS_ON[language];
+  return WEEK_STARTS_ON[language] ?? WEEK_STARTS_ON.en;
 }
 
 export function calendarNavigationLabels(language: Language): CalendarNavigationLabels {
-  return CALENDAR_NAVIGATION_LABELS[language];
+  return CALENDAR_NAVIGATION_LABELS[language] ?? CALENDAR_NAVIGATION_LABELS.en;
 }
 
 export function calendarWeekdayNames(language: Language): string[] {
@@ -86,7 +89,7 @@ export function formatCalendarMonth(date: Date, language: Language): string {
 }
 
 export function formatCalendarDayNumber(day: number, language: Language): string {
-  return new Intl.NumberFormat(CALENDAR_LOCALES[language], { useGrouping: false }).format(day);
+  return new Intl.NumberFormat(CALENDAR_LOCALES[language] ?? CALENDAR_LOCALES.en, { useGrouping: false }).format(day);
 }
 
 export function formatCalendarDate(ymd: string, language: Language): string {
