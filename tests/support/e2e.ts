@@ -26,6 +26,17 @@ export const PUBLIC_ROUTES = [
 ] as const;
 
 /**
+ * On the WebKit engine only, a hard `page.goto()` can cancel Next's same-origin
+ * RSC prefetches from the preceding page. WebKit reports those cancelled local
+ * requests as `pageerror` events even though the destination renders normally.
+ * Keep this exception deliberately narrow: only the Playwright loopback host,
+ * a Next `_rsc` request and WebKit's exact cancellation wording are accepted.
+ */
+function isCancelledLocalRscPrefetch(message: string): boolean {
+  return /^\/127\.0\.0\.1:\d+\/[^\s?]+\?_rsc=[^\s]+ due to access control checks\.$/.test(message);
+}
+
+/**
  * Base test with an automatic guard: any uncaught exception thrown in the page
  * fails the test, so a journey cannot pass while the UI is silently broken.
  */
@@ -48,7 +59,9 @@ export const test = base.extend<{ pageErrors: string[] }>({
   pageErrors: [
     async ({ page }, use) => {
       const errors: string[] = [];
-      page.on('pageerror', (error) => errors.push(error.message));
+      page.on('pageerror', (error) => {
+        if (!isCancelledLocalRscPrefetch(error.message)) errors.push(error.message);
+      });
       await use(errors);
       expect(errors, 'uncaught exceptions in the page').toEqual([]);
     },
