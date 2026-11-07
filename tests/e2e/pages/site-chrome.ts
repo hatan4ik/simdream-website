@@ -79,11 +79,16 @@ export class SiteChrome {
       const triggers = this.navbar.locator('button[data-navbar-menu-trigger]');
       for (let index = 0; index < (await triggers.count()); index += 1) {
         const trigger = triggers.nth(index);
-        await trigger.click();
-        // The flyout renders on the next React commit; checking the link before the trigger
-        // reports expanded raced ahead and moved on to the next group.
+        // Pointer entry deliberately opens these flyouts for a smooth desktop experience. A
+        // synthetic click can therefore land after hover state changed, which tests neither a
+        // customer's link nor the menu-button contract. ArrowDown is the documented keyboard
+        // interaction and opens exactly the focused group before its menuitem is inspected.
+        await waitUntilInteractive(trigger);
+        await trigger.focus();
+        await trigger.press('ArrowDown');
         await expect(trigger).toHaveAttribute('aria-expanded', 'true');
         if (await link.isVisible()) break;
+        await trigger.press('Escape');
       }
       await expect(link).toBeVisible();
     }
