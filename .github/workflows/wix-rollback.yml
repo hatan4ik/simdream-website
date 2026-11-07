@@ -92,8 +92,10 @@ jobs:
         env:
           SITE_URL: ${{ steps.wix.outputs.url }}
         run: |
+          # A Wix route can briefly return its platform 404 while the restored
+          # worker propagates. Wait up to 150 seconds without accepting a bad route.
           for path in / /book /vouchers; do
-            curl --fail --location --retry 3 --retry-all-errors --silent --show-error "$SITE_URL$path" > /dev/null
+            curl --fail --location --retry 30 --retry-delay 5 --retry-all-errors --silent --show-error "$SITE_URL$path" > /dev/null
           done
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
