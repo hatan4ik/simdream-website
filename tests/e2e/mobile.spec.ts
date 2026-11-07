@@ -15,7 +15,9 @@ test.describe('mobile affordances', () => {
 
     await chrome.openMenu('tap');
     await expect(vouchersLink).toBeVisible();
-    await expect(chrome.navbar.getByRole('link', { name: 'Pilot Logbook & Bookings' })).toBeVisible();
+    // An anonymous visitor is offered the member handoff. The logbook label is
+    // deliberately shown only after a successful sign-in.
+    await expect(chrome.navbar.getByRole('link', { name: 'Pilot Login' }).last()).toBeVisible();
     // Phones keep the theme and language controls in the drawer only, so the header fits 320px (UX-1).
     await expect(chrome.navbar.getByRole('button', { name: /Switch UI Interface/ }).filter({ visible: true })).toHaveCount(1);
     await expect(chrome.languageButton()).toBeVisible();

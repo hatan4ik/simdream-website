@@ -35,10 +35,6 @@ function persistLanguagePreference(language: Language) {
   } catch {
     // Storage can be unavailable in privacy-restricted browser contexts.
   }
-  // A non-sensitive preference cookie lets the server render a returning
-  // visitor's chosen language on the first paint. This prevents a translated
-  // page from reflowing after hydration while preserving the Hebrew default.
-  document.cookie = `simdream_lang=${encodeURIComponent(language)}; Path=/; Max-Age=31536000; SameSite=Lax`;
 }
 
 export function LanguageProvider({
@@ -49,6 +45,7 @@ export function LanguageProvider({
   initialLanguage?: Language;
 }) {
   const [language, setLanguageState] = useState<Language>(initialLanguage);
+  const [preferenceResolved, setPreferenceResolved] = useState(false);
 
   useEffect(() => {
     let saved: string | null = null;
@@ -59,9 +56,18 @@ export function LanguageProvider({
     }
     const selectedLanguage = resolveLanguagePreference(saved ?? initialLanguage);
     setLanguageState(selectedLanguage);
-    applyDocumentLanguage(selectedLanguage);
     persistLanguagePreference(selectedLanguage);
+    setPreferenceResolved(true);
   }, [initialLanguage]);
+
+  useEffect(() => {
+    if (!preferenceResolved) return;
+    applyDocumentLanguage(language);
+    // app/layout.tsx hides only the interval between an inline bootstrap and
+    // this committed client preference. A broken client bundle still reveals
+    // the server-rendered Hebrew fallback after its short bootstrap timeout.
+    document.documentElement.removeAttribute('data-language-pending');
+  }, [language, preferenceResolved]);
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);

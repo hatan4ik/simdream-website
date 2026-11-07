@@ -201,6 +201,15 @@ test.describe('cookies', () => {
 
     expect(await context.cookies()).toEqual([]);
   });
+
+  test('a saved language preference remains browser-local and never creates a cookie', async ({ page, context }) => {
+    await page.goto('/vouchers');
+    await page.evaluate(() => localStorage.setItem('simdream_lang', 'ar'));
+    await page.reload();
+
+    await expect(page.locator('html')).toHaveAttribute('lang', 'ar');
+    expect(await context.cookies()).toEqual([]);
+  });
 });
 
 test.describe('redirects', () => {

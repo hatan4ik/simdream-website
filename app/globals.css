@@ -100,6 +100,14 @@ html {
   overflow-x: clip;
 }
 
+/* The server always renders Israel-first Hebrew and never reads a public locale cookie.
+   A returning visitor's local browser choice commits immediately after hydration; hide only
+   that hand-over so neither the wrong language nor a hydration mismatch reaches the screen.
+   app/layout.tsx removes this attribute after 3 seconds even if the client bundle cannot load. */
+html[data-language-pending='true'] body {
+  visibility: hidden;
+}
+
 /* The native fieldset minimum is min-content, so a long <select> option pushed the /book
    buy box 3px past a 320px screen. */
 fieldset {

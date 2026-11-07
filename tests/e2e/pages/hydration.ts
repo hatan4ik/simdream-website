@@ -2,15 +2,22 @@ import type { Locator } from '@playwright/test';
 import { expect } from '../../support/e2e';
 
 /**
- * Resolves once React has hydrated `control`, i.e. its event handlers are
- * attached. Before that a click on a server-rendered button does nothing and a
- * submit falls back to a native page reload, which makes journeys flaky under
- * load. React stores the props of every hydrated node under `__reactProps$*`.
+ * Resolves once React has hydrated `control` and the visitor's browser-local
+ * language preference has committed. Before that a click on a server-rendered
+ * button does nothing and a submit falls back to a native page reload, which
+ * makes journeys flaky under load. React stores the props of every hydrated
+ * node under `__reactProps$*`; app/layout's language guard keeps the UI hidden
+ * until LanguageProvider has completed its preference hand-over.
  */
 export async function waitUntilInteractive(control: Locator): Promise<void> {
   await expect
     .poll(
-      () => control.evaluate((element) => Object.keys(element).some((key) => key.startsWith('__reactProps$'))),
+      () =>
+        control.evaluate(
+          (element) =>
+            Object.keys(element).some((key) => key.startsWith('__reactProps$')) &&
+            !document.documentElement.hasAttribute('data-language-pending')
+        ),
       // A synchronisation point, not a behaviour check: hydration time depends on machine load.
       { message: 'React should hydrate the control before the journey uses it', timeout: 30_000 }
     )
@@ -30,8 +37,19 @@ export async function activate(control: Locator, how: 'click' | 'tap' = 'click')
  */
 const NAVIGATION_TIMEOUT_MS = 30_000;
 
-/** Follows a link like a visitor and waits until the browser is on `url`. */
+/**
+ * Follows a real link like a visitor and waits until the browser is on `url`.
+ *
+ * Next links are only followed after their client handler is attached. Under a loaded
+ * browser runner, a click that lands during hydration can be intercepted before the
+ * router has completed its handoff, leaving the visitor on the current page. Waiting
+ * for the interactive contract turns this into the same one-click journey a customer
+ * receives after the page is ready.
+ */
 export async function follow(link: Locator, url: string | RegExp, how: 'click' | 'tap' = 'click'): Promise<void> {
-  await activate(link, how);
-  await link.page().waitForURL(url, { timeout: NAVIGATION_TIMEOUT_MS });
+  const page = link.page();
+  await waitUntilInteractive(link);
+  const arrived = page.waitForURL(url, { timeout: NAVIGATION_TIMEOUT_MS });
+  await (how === 'tap' ? link.tap() : link.click());
+  await arrived;
 }

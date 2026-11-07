@@ -683,7 +683,7 @@ export const translations = {
       privacyPoint1:
         '1. Data Security: Contact details (name, email, phone) are used strictly for flight dispatch, vouchers, and customer service. Payments are processed via encrypted PCI-DSS gateways.',
       privacyPoint2:
-        '2. Cookies & Privacy Rights: We use cookies to maintain booking state, language preferences, and analytics. For privacy requests: desk@simdream.co.il.',
+        '2. Privacy Rights: Language and display preferences stay in browser local storage; public browsing creates no language cookie. For privacy requests: desk@simdream.co.il.',
       readFullPrivacy: 'Read Full Privacy & Cookie Policy →',
       proTraining: 'Professional Training',
       disclaimer:
@@ -1509,7 +1509,7 @@ export const translations = {
       privacyPoint1:
         '1. אבטחת מידע וסליקה: פרטי הקשר (שם, דוא״ל, טלפון) משמשים לתיאום הטיסה, שליחת שוברים ומתן שירות לקוחות בלבד. הסליקה מתבצעת בתקן PCI-DSS מוצפן.',
       privacyPoint2:
-        '2. קובצי Cookie וזכויות: האתר משתמש בעוגיות לתפעול תקין, שמירת העדפות שפה וניתוח תנועה. לבקשות פרטיות: desk@simdream.co.il.',
+        '2. זכויות פרטיות: העדפות שפה ותצוגה נשמרות באחסון המקומי בדפדפן; גלישה ציבורית אינה יוצרת עוגיית שפה. לבקשות פרטיות: desk@simdream.co.il.',
       readFullPrivacy: 'קראו את מדיניות הפרטיות המלאה ←',
       proTraining: 'הדרכה מקצועית לטייסים',
       disclaimer:
@@ -2330,7 +2330,7 @@ export const translations = {
       privacyPoint1:
         '1. Безопасность данных: Контактные данные (имя, email, телефон) используются строго для организации полетов, выдачи ваучеров и клиентского сервиса. Платежи защищены PCI-DSS.',
       privacyPoint2:
-        '2. Файлы Cookie и права: Сайт использует Cookie для сохранения бронирований, настроек языка и аналитики. Запросы: desk@simdream.co.il.',
+        '2. Права на конфиденциальность: Языковые и визуальные настройки хранятся локально в браузере; публичный просмотр не создаёт языковой Cookie. Запросы: desk@simdream.co.il.',
       readFullPrivacy: 'Читать полную политику конфиденциальности →',
       proTraining: 'Профессиональная подготовка',
       disclaimer:
@@ -3157,7 +3157,7 @@ export const translations = {
       privacyPoint1:
         '1. Sécurité des données : Vos coordonnées sont utilisées exclusivement pour la planification des vols, les bons cadeaux et le service client. Paiements sécurisés PCI-DSS.',
       privacyPoint2:
-        '2. Cookies et droits : Nous utilisons des cookies pour maintenir l\'état des réservations, les préférences linguistiques et les statistiques. Contact : desk@simdream.co.il.',
+        '2. Droits de confidentialité : Les préférences de langue et d\'affichage restent dans le stockage local du navigateur ; la navigation publique ne crée aucun cookie de langue. Contact : desk@simdream.co.il.',
       readFullPrivacy: 'Lire toute la politique de confidentialité →',
       proTraining: 'Formation Professionnelle',
       disclaimer:
@@ -3990,7 +3990,7 @@ export const translations = {
       privacyPoint1:
         '1. أمان البيانات والدفع: تُستخدم البيانات (الاسم، البريد، الهاتف) حصرياً لتنسيق الرحلات وإصدار القسائم وخدمة العملاء. عمليات الدفع مشفرة بمعيار PCI-DSS.',
       privacyPoint2:
-        '2. ملفات تعريف الارتباط: يستخدم الموقع ملفات تعريف الارتباط لإدارة الحجز وتفضيلات اللغة والتحليلات. للاستفسارات: desk@simdream.co.il.',
+        '2. حقوق الخصوصية: تُحفظ تفضيلات اللغة والعرض محلياً في المتصفح؛ ولا تنشئ التصفحات العامة ملف تعريف ارتباط للغة. للاستفسارات: desk@simdream.co.il.',
       readFullPrivacy: 'قراءة سياسة الخصوصية الكاملة ←',
       proTraining: 'تدريب احترافي للطيارين',
       disclaimer:

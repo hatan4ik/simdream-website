@@ -126,8 +126,8 @@ export function PrivacyPolicyContentView() {
           </h2>
           <p className="text-xs sm:text-sm">
             {isHe
-              ? 'האתר עושה שימוש בקובצי Cookie (עוגיות) ובאחסון מקומי בדפדפן לצורך תפעולו השוטף והתקין, שמירת העדפות שפה ותצוגה, ניתוח תעבורת גולשים ושיפור חוויית המשתמש. הגלישה באתר או לחיצה על אישור בהודעת העוגיות מהווה הסכמה לשימוש זה בהתאם למדיניות הפרטיות. ניתן לשנות את הגדרות ה-Cookies בכל עת דרך הגדרות הדפדפן.'
-              : 'Our website uses cookies and local storage technologies to ensure reliable booking functionality, remember your language and cockpit display preferences, analyze site traffic, and improve user experience. By using the site or accepting the cookie notice, you consent to our cookie practices. You may disable or clear cookies at any time in your browser settings.'}
+              ? 'האתר שומר את העדפות השפה והתצוגה באחסון מקומי בדפדפן. גלישה ציבורית רגילה אינה יוצרת עוגיית שפה. שירותי חשבון, הזמנה או תשלום חיצוניים עשויים להשתמש בעוגיות הכרחיות בהתאם למדיניות שלהם. ניתן לנקות אחסון מקומי ועוגיות בכל עת דרך הגדרות הדפדפן.'
+              : 'The site stores language and display preferences in browser local storage. Normal public browsing does not create a language cookie. Connected account, booking, or payment services may use essential cookies under their own policies. You may clear local storage and cookies at any time in your browser settings.'}
           </p>
         </Card>
 
@@ -193,4 +193,3 @@ export function PrivacyPolicyContentView() {
     </div>
   );
 }
-

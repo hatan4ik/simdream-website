@@ -1,0 +1,128 @@
+name: Publish released Wix frontend
+
+on:
+  repository_dispatch:
+    types: [simdream-release-created]
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Existing immutable SimDream SemVer tag to verify and publish
+        required: true
+        type: string
+      release_sha:
+        description: Commit SHA recorded by the release (optional; checked when supplied)
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: wix-production
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: 22
+  WIX_CLI_VERSION: 1.2.9
+  TZ: Asia/Jerusalem
+
+jobs:
+  verify-release:
+    name: Rebuild and verify immutable release
+    runs-on: ubuntu-latest
+    timeout-minutes: 70
+    env:
+      RELEASE_TAG: ${{ github.event.client_payload.release_tag || inputs.release_tag }}
+      EXPECTED_SHA: ${{ github.event.client_payload.release_sha || inputs.release_sha }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.client_payload.release_tag || inputs.release_tag }}
+          fetch-depth: 0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - name: Verify release provenance and SemVer
+        run: |
+          [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$ ]] || {
+            echo 'Release tag must be SemVer, for example v1.4.0.' >&2
+            exit 1
+          }
+          git fetch origin main --depth=1
+          release_sha="$(git rev-list -n 1 "$RELEASE_TAG")"
+          test -z "$EXPECTED_SHA" || test "$release_sha" = "$EXPECTED_SHA"
+          git merge-base --is-ancestor "$release_sha" origin/main || {
+            echo 'Release tag must reference a commit already on main.' >&2
+            exit 1
+          }
+          test "$(node -p 'require("./package.json").version')" = "${RELEASE_TAG#v}" || {
+            echo 'package.json version must equal the release tag.' >&2
+            exit 1
+          }
+      - run: npm ci
+      # This is deliberately independent of the earlier main run. A release is
+      # deployed only when the exact immutable tag passes the full product gate.
+      - run: npm run test:all
+
+  publish:
+    name: Publish approved Wix release
+    needs: verify-release
+    if: vars.WIX_PRODUCTION_CI_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment:
+      name: wix-production
+      url: ${{ steps.wix.outputs.url }}
+    env:
+      RELEASE_TAG: ${{ github.event.client_payload.release_tag || inputs.release_tag }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.client_payload.release_tag || inputs.release_tag }}
+          fetch-depth: 0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - name: Authenticate the Wix CLI with the production automation key
+        env:
+          WIX_CI_API_KEY: ${{ secrets.WIX_CI_API_KEY }}
+        run: |
+          test -n "$WIX_CI_API_KEY" || { echo 'Missing wix-production WIX_CI_API_KEY secret.' >&2; exit 1; }
+          npx --yes @wix/cli@${WIX_CLI_VERSION} login --api-key "$WIX_CI_API_KEY"
+      - name: Build the exact Wix Worker artifact for this release
+        run: |
+          set -o pipefail
+          npm run wix:build | tee wix-build.log
+      - name: Publish to Wix
+        id: wix
+        run: |
+          set -o pipefail
+          CI=1 npx --yes @wix/cli@${WIX_CLI_VERSION} release --comment "$RELEASE_TAG @ ${GITHUB_SHA}" | tee wix-deploy.log
+          url="$(tr -d '\r' < wix-deploy.log | grep -Eo 'https://[^[:space:]]+' | grep 'wix-site-host\.com' | tail -n 1 || true)"
+          test -n "$url" || { echo 'Wix release succeeded but no Wix-host URL was found in its output.' >&2; exit 1; }
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          {
+            echo "### Wix production release"
+            echo "- Version: \`$RELEASE_TAG\`"
+            echo "- Commit: \`$GITHUB_SHA\`"
+            echo "- URL: $url"
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Smoke-check the published site
+        env:
+          SITE_URL: ${{ steps.wix.outputs.url }}
+        run: |
+          for path in / /book /vouchers; do
+            curl --fail --location --retry 3 --retry-all-errors --silent --show-error "$SITE_URL$path" > /dev/null
+          done
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: wix-production-${{ github.event.client_payload.release_tag || inputs.release_tag }}
+          path: |
+            wix-build.log
+            wix-deploy.log
+          if-no-files-found: ignore

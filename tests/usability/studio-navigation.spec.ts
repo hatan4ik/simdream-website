@@ -33,6 +33,7 @@ test('opens the desktop flyout with the keyboard and restores focus on Escape', 
 test('treats the language selector as a keyboard-accessible choice list', async ({ page }) => {
   await gotoSettled(page, '/');
   const trigger = page.locator('[data-language-selector-trigger]').first();
+  await waitUntilInteractive(trigger);
   await trigger.focus();
   await page.keyboard.press('ArrowDown');
 
