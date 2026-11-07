@@ -38,7 +38,7 @@
     "wix:readiness": "tsx scripts/wix-readiness.ts",
     "wix:build": "opennextjs-cloudflare build && node scripts/prepare-opennext-for-wix.mjs && wrangler deploy --dry-run --outdir .wix-worker && node scripts/prepare-wix-worker.mjs",
     "wix:preview": "opennextjs-cloudflare preview",
-    "wix:release": "npm run wix:build && CI=1 npx @wix/cli@latest release"
+    "wix:release": "npm run wix:build && CI=1 npx --yes @wix/cli@1.2.9 release"
   },
   "dependencies": {
     "@sendgrid/mail": "^8.1.3",

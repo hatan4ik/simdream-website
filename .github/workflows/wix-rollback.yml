@@ -21,6 +21,8 @@ concurrency:
 
 env:
   NODE_VERSION: 22
+  # Pin this executable: it receives the environment-scoped Wix deployment key.
+  WIX_CLI_VERSION: 1.2.9
   TZ: Asia/Jerusalem
 
 jobs:
@@ -36,11 +38,11 @@ jobs:
       name: wix-production
       url: ${{ steps.wix.outputs.url }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ inputs.release_tag }}
           fetch-depth: 0
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
@@ -61,7 +63,7 @@ jobs:
           WIX_CI_API_KEY: ${{ secrets.WIX_CI_API_KEY }}
         run: |
           test -n "$WIX_CI_API_KEY" || { echo 'Missing wix-production WIX_CI_API_KEY secret.' >&2; exit 1; }
-          npx @wix/cli@latest login --api-key "$WIX_CI_API_KEY"
+          npx --yes @wix/cli@${WIX_CLI_VERSION} login --api-key "$WIX_CI_API_KEY"
       - name: Build the historical Wix Worker artifact
         run: |
           set -o pipefail
@@ -73,7 +75,7 @@ jobs:
           ROLLBACK_REASON: ${{ inputs.reason }}
         run: |
           set -o pipefail
-          CI=1 npx @wix/cli@latest release --comment "rollback to $ROLLBACK_TAG (${GITHUB_SHA}): $ROLLBACK_REASON" | tee wix-deploy.log
+          CI=1 npx --yes @wix/cli@${WIX_CLI_VERSION} release --comment "rollback to $ROLLBACK_TAG (${GITHUB_SHA}): $ROLLBACK_REASON" | tee wix-deploy.log
           url="$(tr -d '\r' < wix-deploy.log | grep -Eo 'https://[^[:space:]]+' | grep 'wix-site-host\.com' | tail -n 1 || true)"
           test -n "$url" || { echo 'Wix rollback completed but no Wix-host URL was found in its output.' >&2; exit 1; }
           echo "url=$url" >> "$GITHUB_OUTPUT"
@@ -91,7 +93,7 @@ jobs:
           for path in / /book /vouchers; do
             curl --fail --location --retry 3 --retry-all-errors --silent --show-error "$SITE_URL$path" > /dev/null
           done
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
           name: wix-rollback-${{ github.run_id }}

@@ -15,6 +15,8 @@ concurrency:
 
 env:
   NODE_VERSION: 22
+  # Pin this executable: it receives the environment-scoped Wix deployment key.
+  WIX_CLI_VERSION: 1.2.9
   # Seed data and local-date helpers are time-zone sensitive; match the test harness.
   TZ: Asia/Jerusalem
 
@@ -24,8 +26,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
@@ -36,7 +38,7 @@ jobs:
       - name: Vitest with coverage ratchet
         run: npx vitest run --coverage --reporter=default --reporter=junit --outputFile.junit=test-results/vitest-junit.xml
       - run: npm audit --audit-level=high
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
           name: results-vitest
@@ -54,7 +56,7 @@ jobs:
     steps:
       # Full history is intentional: removing a leaked value in a later commit does
       # not make the original public commit safe.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
       - uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3
@@ -68,8 +70,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
@@ -82,7 +84,7 @@ jobs:
         run: npx vitest run --project security tests/security/secrets-hygiene.test.ts
         env:
           REQUIRE_CLIENT_BUNDLE: '1'
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: next-build
           path: |
@@ -106,13 +108,13 @@ jobs:
           - { project: mobile-chrome, browser: chromium }
           - { project: mobile-safari, browser: webkit }
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
       - run: npm ci
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: next-build
           path: .next-test
@@ -120,7 +122,7 @@ jobs:
       - run: npx playwright test --project=${{ matrix.project }}
         env:
           PW_PORT: 3801
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
           name: results-e2e-${{ matrix.project }}
@@ -136,13 +138,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
       - run: npm ci
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: next-build
           path: .next-test
@@ -155,7 +157,7 @@ jobs:
         if: always()
         env:
           PW_PORT: 3803
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
           name: results-web-quality
@@ -174,18 +176,18 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
       - run: npm ci
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: next-build
           path: .next-test
       - run: npm run test:load
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
           name: results-load
@@ -198,20 +200,20 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
       - run: npm ci
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: next-build
           path: .next-test
       - run: npx playwright install --with-deps chromium
       # @lhci/cli runs through a pinned npx so its dependency tree stays out of the lockfile.
       - run: npm run test:lighthouse
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
           name: results-lighthouse
@@ -225,13 +227,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
       - run: npm ci
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           pattern: results-*
           path: test-results
@@ -257,8 +259,8 @@ jobs:
       group: wix-preview-${{ github.sha }}
       cancel-in-progress: false
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
@@ -268,7 +270,7 @@ jobs:
           WIX_CI_API_KEY: ${{ secrets.WIX_CI_API_KEY }}
         run: |
           test -n "$WIX_CI_API_KEY" || { echo 'Missing wix-preview WIX_CI_API_KEY secret.' >&2; exit 1; }
-          npx @wix/cli@latest login --api-key "$WIX_CI_API_KEY"
+          npx --yes @wix/cli@${WIX_CLI_VERSION} login --api-key "$WIX_CI_API_KEY"
       - name: Build the exact Wix Worker artifact for this commit
         run: |
           set -o pipefail
@@ -277,7 +279,7 @@ jobs:
         id: wix
         run: |
           set -o pipefail
-          CI=1 npx @wix/cli@latest preview | tee wix-deploy.log
+          CI=1 npx --yes @wix/cli@${WIX_CLI_VERSION} preview | tee wix-deploy.log
           url="$(tr -d '\r' < wix-deploy.log | grep -Eo 'https://[^[:space:]]+' | grep 'wix-site-host\.com' | tail -n 1 || true)"
           test -n "$url" || { echo 'Wix preview succeeded but no Wix-host URL was found in its output.' >&2; exit 1; }
           echo "url=$url" >> "$GITHUB_OUTPUT"
@@ -293,7 +295,7 @@ jobs:
           for path in / /book /vouchers; do
             curl --fail --location --retry 3 --retry-all-errors --silent --show-error "$SITE_URL$path" > /dev/null
           done
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
           name: wix-preview-${{ github.sha }}
@@ -320,10 +322,10 @@ jobs:
       group: wix-production
       cancel-in-progress: false
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
@@ -339,7 +341,7 @@ jobs:
           WIX_CI_API_KEY: ${{ secrets.WIX_CI_API_KEY }}
         run: |
           test -n "$WIX_CI_API_KEY" || { echo 'Missing wix-production WIX_CI_API_KEY secret.' >&2; exit 1; }
-          npx @wix/cli@latest login --api-key "$WIX_CI_API_KEY"
+          npx --yes @wix/cli@${WIX_CLI_VERSION} login --api-key "$WIX_CI_API_KEY"
       - name: Build the exact Wix Worker artifact for this release
         run: |
           set -o pipefail
@@ -348,7 +350,7 @@ jobs:
         id: wix
         run: |
           set -o pipefail
-          CI=1 npx @wix/cli@latest release --comment "${GITHUB_REF_NAME} @ ${GITHUB_SHA}" | tee wix-deploy.log
+          CI=1 npx --yes @wix/cli@${WIX_CLI_VERSION} release --comment "${GITHUB_REF_NAME} @ ${GITHUB_SHA}" | tee wix-deploy.log
           url="$(tr -d '\r' < wix-deploy.log | grep -Eo 'https://[^[:space:]]+' | grep 'wix-site-host\.com' | tail -n 1 || true)"
           test -n "$url" || { echo 'Wix release succeeded but no Wix-host URL was found in its output.' >&2; exit 1; }
           echo "url=$url" >> "$GITHUB_OUTPUT"
@@ -365,7 +367,7 @@ jobs:
           for path in / /book /vouchers; do
             curl --fail --location --retry 3 --retry-all-errors --silent --show-error "$SITE_URL$path" > /dev/null
           done
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
           name: wix-production-${{ github.ref_name }}
