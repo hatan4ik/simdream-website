@@ -1,0 +1,32 @@
+name: Historical secret audit
+
+on:
+  workflow_dispatch:
+    inputs:
+      acknowledge_legacy_history:
+        description: I understand this audit scans every reachable commit and may fail on historical findings.
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    name: Full Git history secret audit
+    if: inputs.acknowledge_legacy_history == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+      # This is deliberately separate from the PR gate. Existing historical
+      # findings must be rotated and remediated, not broad-allowlisted to make
+      # every new change appear green.
+      - uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_CONFIG: .gitleaks.toml
+          GITLEAKS_ENABLE_COMMENTS: 'false'

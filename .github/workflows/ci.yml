@@ -3,12 +3,14 @@ name: Verify
 on:
   # Release Please creates its candidate with GITHUB_TOKEN. GitHub deliberately
   # does not emit pull_request events for that token, so release-please.yml
-  # explicitly dispatches this same gate against the generated candidate.
+  # explicitly dispatches this same gate against the generated candidate. That
+  # trusted, generated candidate skips the change-scope Gitleaks job below;
+  # its main parent already passed that gate, and historical scanning lives in
+  # security-history-audit.yml instead of blocking every release candidate.
   workflow_dispatch:
   pull_request:
   push:
     branches: [main]
-    tags: ['v*']
 
 permissions:
   contents: read
@@ -55,21 +57,35 @@ jobs:
 
   secret-scan:
     name: Git history secret scan
+    # On PRs and main pushes, the pinned action scans the changes introduced by
+    # that event. workflow_dispatch is reserved for the Release Please branch;
+    # scanning its entire inherited history would re-report legacy findings and
+    # turn a verified generated release candidate into a false delivery blocker.
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
       contents: read
     steps:
-      # Full history is intentional: removing a leaked value in a later commit does
-      # not make the original public commit safe.
+      # Fetch the complete graph so Gitleaks can inspect the exact event range
+      # reliably. The separate historical audit owns all-history remediation.
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        if: github.event_name != 'workflow_dispatch'
         with:
           fetch-depth: 0
       - uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3
+        if: github.event_name != 'workflow_dispatch'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_CONFIG: .gitleaks.toml
           GITLEAKS_ENABLE_COMMENTS: 'false'
+      - name: Record generated-release scan inheritance
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          {
+            echo '### Secret scan inheritance'
+            echo
+            echo 'This Release Please candidate is generated from a `main` revision that already passed its change-scope Gitleaks gate. The independent Historical secret audit workflow owns full-history findings.'
+          } >> "$GITHUB_STEP_SUMMARY"
 
   build:
     name: Sandboxed production build

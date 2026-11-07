@@ -1,0 +1,90 @@
+name: PR mergeability preflight
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: pr-mergeability-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  preflight:
+    name: Clean merge with base
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # This job only asks Git to calculate a merge tree. It never executes PR code.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Prove the branch can merge with its current base
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin "${BASE_REF}:refs/remotes/origin/${BASE_REF}"
+          if git merge-tree --write-tree "origin/$BASE_REF" "$HEAD_SHA" > "$RUNNER_TEMP/merge-tree.txt" 2>&1; then
+            echo 'Local Git merge-tree is clean.'
+          else
+            {
+              echo '### Mergeability preflight failed'
+              echo
+              echo 'Git found a real source conflict with the current base branch. Resolve it on the PR branch; this workflow deliberately never chooses a conflict side.'
+              echo
+              echo '```text'
+              cat "$RUNNER_TEMP/merge-tree.txt"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+            cat "$RUNNER_TEMP/merge-tree.txt" >&2
+            exit 1
+          fi
+      - name: Confirm GitHub has the same mergeability result
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 12); do
+            response="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}")"
+            mergeable="$(jq -r '.mergeable // "pending"' <<< "$response")"
+            merge_state="$(jq -r '.mergeable_state // "unknown"' <<< "$response")"
+            if [[ "$mergeable" != 'pending' ]]; then
+              break
+            fi
+            sleep 5
+          done
+
+          {
+            echo '### Mergeability preflight'
+            echo
+            echo "- Local merge tree: clean"
+            echo "- GitHub mergeable: \`$mergeable\`"
+            echo "- GitHub merge state: \`$merge_state\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [[ "$mergeable" == 'true' ]]; then
+            exit 0
+          fi
+
+          if [[ "$mergeable" == 'false' ]]; then
+            {
+              echo
+              echo '> GitHub reports a conflict even though local Git produced a clean merge tree. Do not recreate the PR or force-push speculative resolutions. Re-run this preflight once; if the discrepancy remains, attach this run URL and the two results above to GitHub Support.'
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+          {
+            echo
+            echo '> GitHub did not calculate mergeability within 60 seconds. Re-run this preflight; it is unsafe to enable auto-merge before GitHub has an answer.'
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit 1

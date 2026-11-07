@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:ec30c532ff317f20c189104d9dcecbf6043dcffbf912e4454479f725f683dd8a -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:dbedd599977421447eb27d3964dfb028132a76f75f3e1a7c51235152ded3016b -->
 
 ## Verification contract
 
@@ -32,7 +32,7 @@ The fingerprint above covers the reviewed source/configuration/test/docs surface
 | Auth, membership, ownership | [`lib/auth/`](lib/auth), [`lib/wix/member-client.ts`](lib/wix/member-client.ts), [`lib/wix/member-profile.ts`](lib/wix/member-profile.ts), [`lib/wix/member-auth.ts`](lib/wix/member-auth.ts), [`lib/wix/member-bookings.ts`](lib/wix/member-bookings.ts), [`app/dashboard/page.tsx`](app/dashboard/page.tsx) | Code-verified; Wix member and Calendar permissions remain external configuration |
 | Database and data integrity | [`lib/db/schema.sql`](lib/db/schema.sql), [`lib/db/migrations/`](lib/db/migrations), [`lib/db/store.ts`](lib/db/store.ts) | Code-verified; applied production migrations still external |
 | Brand and customer UX | [`app/globals.css`](app/globals.css), [`components/brand/`](components/brand), [`components/about/`](components/about) | Code-verified |
-| Test/CI quality gates and Wix delivery | [`tests/`](tests), [`scripts/test-all.ts`](scripts/test-all.ts), [`.github/workflows/ci.yml`](.github/workflows/ci.yml), [`.github/workflows/codeql.yml`](.github/workflows/codeql.yml), [`.github/workflows/release-please.yml`](.github/workflows/release-please.yml), [`.github/workflows/wix-release.yml`](.github/workflows/wix-release.yml), [`.github/workflows/wix-rollback.yml`](.github/workflows/wix-rollback.yml), [`docs/GITHUB_WIX_CICD.md`](docs/GITHUB_WIX_CICD.md) | Code-verified; GitHub's environment secrets/approvals and a passing remote deployment are external state |
+| Test/CI quality gates and Wix delivery | [`tests/`](tests), [`scripts/test-all.ts`](scripts/test-all.ts), [`.github/workflows/ci.yml`](.github/workflows/ci.yml), [`.github/workflows/codeql.yml`](.github/workflows/codeql.yml), [`.github/workflows/pr-mergeability.yml`](.github/workflows/pr-mergeability.yml), [`.github/workflows/enable-trusted-automerge.yml`](.github/workflows/enable-trusted-automerge.yml), [`.github/workflows/security-history-audit.yml`](.github/workflows/security-history-audit.yml), [`.github/workflows/release-please.yml`](.github/workflows/release-please.yml), [`.github/workflows/wix-release.yml`](.github/workflows/wix-release.yml), [`.github/workflows/wix-rollback.yml`](.github/workflows/wix-rollback.yml), [`docs/GITHUB_WIX_CICD.md`](docs/GITHUB_WIX_CICD.md), [`docs/GITHUB_PR_AUTOMATION.md`](docs/GITHUB_PR_AUTOMATION.md) | Code-verified; GitHub's environment secrets/approvals and a passing remote deployment are external state |
 
 No repository review can prove Supabase OAuth providers, Stripe webhook delivery, SendGrid sender verification, Google Places access, or applied production migrations. Those must pass the live verification checklist in **Definition of Done** before launch.
 
@@ -395,7 +395,7 @@ Add 3 curated one-click combos. Localize every package and add-on in all six lan
    - visual baselines per platform.
 
    Run against a sandboxed production build in a separate build folder.
-4. **Supply-chain and secret security**: `npm audit --audit-level=high`, Dependabot, CodeQL and a full-history Gitleaks scan (including a custom Wix API-key rule) run before a Wix preview or release. GitHub native secret scanning and push protection remain enabled for the public repository.
+4. **Supply-chain and secret security**: `npm audit --audit-level=high`, Dependabot, CodeQL and an event-scope Gitleaks scan (including a custom Wix API-key rule) run before a Wix preview or release. A separately owner-triggered full-history audit surfaces legacy findings for rotation and a reviewed remediation; it is not broad-allowlisted to make routine PRs pass. GitHub native secret scanning and push protection remain enabled for the public repository.
 5. **Load and performance**: autocannon p99 budgets on hot endpoints. Lighthouse budgets: accessibility ≥ 0.95, SEO ≥ 0.95, performance ≥ 0.8, best practices ≥ 0.9, LCP ≤ 2.5 s, CLS ≤ 0.1.
 
 Playwright projects: `chromium`, `firefox`, `webkit`, `mobile-chrome` (Pixel 7), `mobile-safari` (iPhone 15), `a11y`, `usability`, `security-web`, `resilience`, `visual`.
@@ -614,7 +614,7 @@ proxy.ts                          # /admin guard
 public/brand/                     # official logo assets; theme-bootstrap.js
 tests/  unit/ integration/ security/ reliability/ e2e/ a11y/ usability/ security-web/ resilience/ visual/ load/ perf/ support/
 scripts/ test-all.ts run-sandboxed.ts with-server.ts update-visual-baselines.sh check-genesis-coverage.ts
-.github/workflows/ ci.yml codeql.yml release-please.yml wix-release.yml wix-rollback.yml nightly.yml (OWASP ZAP baseline)
+.github/workflows/ ci.yml codeql.yml pr-mergeability.yml enable-trusted-automerge.yml security-history-audit.yml release-please.yml wix-release.yml wix-rollback.yml nightly.yml (OWASP ZAP baseline)
 AGENTS.md  ARCHITECTURE.md  README.md  TESTING.md  KANTOROVICH_SCHEDULER_SPEC.md
 ```
 

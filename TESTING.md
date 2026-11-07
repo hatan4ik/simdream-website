@@ -49,7 +49,7 @@ No secrets, Stripe account or Supabase project are needed. Every test runs in a 
 | `npm run test:load` / `test:lighthouse` | Starts a sandboxed server and runs the load smoke or Lighthouse |
 | `npm run docs:verify` / `docs:genesis` | Fails unless canonical [`GENESIS.md`](GENESIS.md) still covers every route, table, migration, environment variable, catalog price, domain function, module, component, test script and AGENTS.md invariant—and has a reviewed source fingerprint. Also runs in `test:all`, `test:quick` and CI. |
 | `tests/security/secrets-hygiene.test.ts` | Scans the production client bundle (`.next-test/static`, or `.next/static` when that is the only build) for server-only names and secret-shaped values. Without any build the bundle suite skips; the CI build job runs it with `REQUIRE_CLIENT_BUNDLE=1` right after `npm run test:build`, where a missing bundle fails. |
-| Git history secret scan | The `secret-scan` CI job runs Gitleaks against the complete Git history on every pull request and `main` push. It extends provider rules with a Wix Headless API-key rule; the only allowlisted values are retired, explicitly named test fixtures in historical commits. |
+| Git history secret scan | The `secret-scan` CI job uses Gitleaks to block secrets introduced by every pull request and `main` push. It extends provider rules with a Wix Headless API-key rule. [`security-history-audit.yml`](.github/workflows/security-history-audit.yml) is the separately owner-triggered full-history audit; historical findings require rotation and a reviewed remediation, never a broad allowlist. |
 | `npm run docs:genesis:stamp` | Re-stamps the canonical document after a human source review. Use only after verifying the code change is accurately reflected in `GENESIS.md`; CI rejects a stale fingerprint. The fingerprint hashes only files git would commit (tracked, or untracked and not ignored), so a stamp made locally matches the clean checkout CI verifies; git-ignored output such as `tests/perf/reports/` never affects it. |
 
 Browser tests run against a sandboxed **production build** in `.next-test`. That's a separate folder from `.next`, so tests never disturb a server you started with `npm run start`. Run `npm run test:build` after changing app code; a direct `npx playwright test` refuses to run on a missing or out-of-date test build (`PW_ALLOW_STALE_BUILD=1` overrides it). `test:all` rebuilds for you.
@@ -126,7 +126,7 @@ Import `test` and `expect` from `tests/support/e2e.ts`, or from the folder's `fi
 | Job | Content |
 | --- | --- |
 | quality | Typecheck/type hygiene, Vitest with the coverage ratchet and JUnit, `npm audit --audit-level=high` |
-| secret-scan | Full Git history secret detection with Gitleaks before any Wix preview or production release |
+| secret-scan | Event-scope Git history secret detection with Gitleaks before any Wix preview or production release; an explicitly dispatched Release Please candidate inherits a previously verified `main` parent and skips this duplicate scan |
 | build | Sandboxed production build, shared with later jobs as an artifact |
 | e2e | Matrix over the five browser projects |
 | web-quality | a11y, usability, security-web, resilience, then visual against committed Linux baselines |
