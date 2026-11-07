@@ -1,0 +1,68 @@
+name: Prepare semantic release
+
+on:
+  # A release proposal is created only after the exact main commit has passed
+  # the complete Verify workflow. workflow_run also avoids accidental releases
+  # from PRs and from GitHub Actions' own tag/release events.
+  workflow_run:
+    workflows: [Verify]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: release-please-main
+  cancel-in-progress: false
+
+jobs:
+  release-please:
+    name: Prepare release PR or publish approved release
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - id: verified-tip
+        name: Confirm Verify covered the current main tip
+        env:
+          VERIFIED_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          if test "$(git rev-parse HEAD)" = "$VERIFIED_SHA"; then
+            echo 'current=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'current=false' >> "$GITHUB_OUTPUT"
+            echo 'main advanced after Verify; the newer commit will receive its own release evaluation.' >&2
+          fi
+      - id: release
+        if: steps.verified-tip.outputs.current == 'true'
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        with:
+          config-file: .release-please-config.json
+          manifest-file: .release-please-manifest.json
+      # Tags created with GITHUB_TOKEN do not emit a push workflow. GitHub
+      # explicitly permits repository_dispatch to start a separate workflow,
+      # where the tag is rebuilt and fully verified before Wix can deploy it.
+      - name: Dispatch the released tag to the protected Wix pipeline
+        if: steps.verified-tip.outputs.current == 'true' && steps.release.outputs.release_created == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.release.outputs.tag_name }}
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          test -n "$RELEASE_TAG"
+          test -n "$RELEASE_SHA"
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/dispatches" \
+            -f event_type='simdream-release-created' \
+            -f "client_payload[release_tag]=$RELEASE_TAG" \
+            -f "client_payload[release_sha]=$RELEASE_SHA"

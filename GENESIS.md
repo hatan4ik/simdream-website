@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:d96bd3552da7e91023d2d91bfa1b359c94e188a6e6eb705437d617dbc1ff73a7 -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:12427f6cb2f16fd86179e9ead7f441606e38ea01c6a0137cde4a6bd873f08bb4 -->
 
 ## Verification contract
 
@@ -32,7 +32,7 @@ The fingerprint above covers the reviewed source/configuration/test/docs surface
 | Auth, membership, ownership | [`lib/auth/`](lib/auth), [`lib/wix/member-client.ts`](lib/wix/member-client.ts), [`lib/wix/member-profile.ts`](lib/wix/member-profile.ts), [`lib/wix/member-auth.ts`](lib/wix/member-auth.ts), [`lib/wix/member-bookings.ts`](lib/wix/member-bookings.ts), [`app/dashboard/page.tsx`](app/dashboard/page.tsx) | Code-verified; Wix member and Calendar permissions remain external configuration |
 | Database and data integrity | [`lib/db/schema.sql`](lib/db/schema.sql), [`lib/db/migrations/`](lib/db/migrations), [`lib/db/store.ts`](lib/db/store.ts) | Code-verified; applied production migrations still external |
 | Brand and customer UX | [`app/globals.css`](app/globals.css), [`components/brand/`](components/brand), [`components/about/`](components/about) | Code-verified |
-| Test/CI quality gates and Wix delivery | [`tests/`](tests), [`scripts/test-all.ts`](scripts/test-all.ts), [`.github/workflows/ci.yml`](.github/workflows/ci.yml), [`.github/workflows/wix-rollback.yml`](.github/workflows/wix-rollback.yml), [`docs/GITHUB_WIX_CICD.md`](docs/GITHUB_WIX_CICD.md) | Code-verified; GitHub's environment secrets/approvals and a passing remote deployment are external state |
+| Test/CI quality gates and Wix delivery | [`tests/`](tests), [`scripts/test-all.ts`](scripts/test-all.ts), [`.github/workflows/ci.yml`](.github/workflows/ci.yml), [`.github/workflows/codeql.yml`](.github/workflows/codeql.yml), [`.github/workflows/release-please.yml`](.github/workflows/release-please.yml), [`.github/workflows/wix-release.yml`](.github/workflows/wix-release.yml), [`.github/workflows/wix-rollback.yml`](.github/workflows/wix-rollback.yml), [`docs/GITHUB_WIX_CICD.md`](docs/GITHUB_WIX_CICD.md) | Code-verified; GitHub's environment secrets/approvals and a passing remote deployment are external state |
 
 No repository review can prove Supabase OAuth providers, Stripe webhook delivery, SendGrid sender verification, Google Places access, or applied production migrations. Those must pass the live verification checklist in **Definition of Done** before launch.
 
@@ -411,7 +411,7 @@ Wire all four gates into one command (`npm run test:all`) and into CI jobs that 
 | `start:local` | `next start` with the demo store opt-in, for laptops without Supabase |
 | `docs:genesis` | Fails unless this blueprint still covers the codebase |
 
-**Continuous delivery:** GitHub Actions never receives a Wix credential in a pull-request job. After the owner enables the non-secret `WIX_PREVIEW_CI_ENABLED=true` repository variable, a passing push to `main` builds an immutable Wix preview using the `wix-preview` environment secret. A separately enabled `WIX_PRODUCTION_CI_ENABLED=true` is required before a protected SemVer tag (`vX.Y.Z`) runs the same gates, waits for the separately protected `wix-production` environment, and invokes `wix release`; Wix's release comment records the tag and commit SHA. This allows a staging-only credential to automate previews without enabling production. [`docs/GITHUB_WIX_CICD.md`](docs/GITHUB_WIX_CICD.md) defines the one-time owner secret/approval configuration and the historical-tag rollback workflow. Wix business data, payment settings, coupons and customer records are intentionally outside source-delivery automation.
+**Continuous delivery:** GitHub Actions never receives a Wix credential in a pull-request job. After the owner enables the non-secret `WIX_PREVIEW_CI_ENABLED=true` repository variable, a passing push to `main` builds an immutable Wix preview using the `wix-preview` environment secret. `release-please.yml` evaluates only a passing current `main` commit and maintains a Conventional-Commit-based release PR; merging it writes the changelog, version, GitHub Release and immutable SemVer tag (`vX.Y.Z`). It dispatches `wix-release.yml`, which rebuilds and reruns the full gate against that exact tag before the separately protected `wix-production` environment may invoke `wix release`. A separately enabled `WIX_PRODUCTION_CI_ENABLED=true` remains required. Wix's release comment records the tag and commit SHA. This allows a staging-only credential to automate previews without enabling production. [`docs/GITHUB_WIX_CICD.md`](docs/GITHUB_WIX_CICD.md) defines the environment secret/approval configuration and the historical-tag rollback workflow. Wix business data, payment settings, coupons and customer records are intentionally outside source-delivery automation.
 
 ### CLOSE THESE KNOWN GAPS (do not reproduce them)
 
@@ -612,7 +612,7 @@ proxy.ts                          # /admin guard
 public/brand/                     # official logo assets; theme-bootstrap.js
 tests/  unit/ integration/ security/ reliability/ e2e/ a11y/ usability/ security-web/ resilience/ visual/ load/ perf/ support/
 scripts/ test-all.ts run-sandboxed.ts with-server.ts update-visual-baselines.sh check-genesis-coverage.ts
-.github/workflows/ ci.yml nightly.yml (OWASP ZAP baseline)
+.github/workflows/ ci.yml codeql.yml release-please.yml wix-release.yml wix-rollback.yml nightly.yml (OWASP ZAP baseline)
 AGENTS.md  ARCHITECTURE.md  README.md  TESTING.md  KANTOROVICH_SCHEDULER_SPEC.md
 ```
 
