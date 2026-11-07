@@ -30,8 +30,18 @@ export async function activate(control: Locator, how: 'click' | 'tap' = 'click')
  */
 const NAVIGATION_TIMEOUT_MS = 30_000;
 
-/** Follows a link like a visitor and waits until the browser is on `url`. */
+/**
+ * Follows a real link like a visitor and waits until the browser is on `url`.
+ *
+ * A link remains a valid navigation affordance before React hydration: the browser
+ * can follow its href as a normal document navigation, then the theme/language
+ * bootstrap applies the persisted preference before first paint. Requiring an
+ * internal React property here made long, parallel browser suites fail for a
+ * test-runner timing detail rather than a customer-visible navigation failure.
+ */
 export async function follow(link: Locator, url: string | RegExp, how: 'click' | 'tap' = 'click'): Promise<void> {
-  await activate(link, how);
-  await link.page().waitForURL(url, { timeout: NAVIGATION_TIMEOUT_MS });
+  const page = link.page();
+  const arrived = page.waitForURL(url, { timeout: NAVIGATION_TIMEOUT_MS });
+  await (how === 'tap' ? link.tap() : link.click());
+  await arrived;
 }

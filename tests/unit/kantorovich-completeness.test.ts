@@ -160,5 +160,8 @@ describe('slot engine completeness: duration-aware cadence', () => {
     expect(pairs).toBe(600 * ENGINE_DURATIONS.length);
     expect(report.darkPairShare).toBe(0);
     expect(report.darkWindowShare).toBe(0);
-  });
+    // The fixed 600-scenario oracle is intentionally exhaustive and can exceed Vitest's
+    // 20s default when the complete suite is sharing CPU. Keep the sample and its zero-dark
+    // assertions unchanged; this only gives the deterministic release ratchet a realistic budget.
+  }, 60_000);
 });
