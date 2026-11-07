@@ -1,18 +1,17 @@
 name: Verify
 
 on:
-  # Release Please creates its candidate with GITHUB_TOKEN. GitHub deliberately
-  # does not emit pull_request events for that token, so release-please.yml
-  # explicitly dispatches this same gate against the generated candidate. That
-  # trusted, generated candidate skips the change-scope Gitleaks job below;
-  # its main parent already passed that gate, and historical scanning lives in
-  # security-history-audit.yml instead of blocking every release candidate.
+  # Release Please candidates are normal same-repository pull requests. Their
+  # release-integrity job below proves they only contain generated versioning
+  # files and inherit a verified main parent, so they receive fresh fast gates
+  # without replaying browser suites already run on the application source.
   workflow_dispatch:
   pull_request:
   push:
     branches: [main]
 
 permissions:
+  actions: read
   contents: read
 
 concurrency:
@@ -29,6 +28,78 @@ env:
   TZ: Asia/Jerusalem
 
 jobs:
+  release-integrity:
+    name: Release source inheritance
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      fast_path: ${{ steps.classify.outputs.fast_path }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+      - id: classify
+        name: Classify and verify the source lineage
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+          RELEASE_BRANCH: release-please--branches--main--components--simdream-website
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          fast_path=false
+          base_sha=''
+          source=''
+
+          if test "$GITHUB_EVENT_NAME" = 'pull_request' && test "$GITHUB_HEAD_REF" = "$RELEASE_BRANCH"; then
+            test "$BASE_REF" = 'main' || { echo "Release candidate base must be main, got $BASE_REF" >&2; exit 1; }
+            test -n "$BASE_SHA" || { echo 'Release candidate has no base SHA.' >&2; exit 1; }
+            base_sha="$BASE_SHA"
+            source='generated Release Please pull request'
+          elif test "$GITHUB_EVENT_NAME" = 'push' && test "$GITHUB_REF" = 'refs/heads/main'; then
+            case "$(git log -1 --format=%s)" in
+              'chore(main): release '*) ;;
+              *)
+                echo 'fast_path=false' >> "$GITHUB_OUTPUT"
+                echo 'Normal source change: complete browser quality matrix required.' >> "$GITHUB_STEP_SUMMARY"
+                exit 0
+                ;;
+            esac
+            # The exact title is deliberately not used as a trust boundary. It
+            # merely selects the fast path; the allowed-file diff and verified
+            # parent checks below make the decision fail closed.
+            base_sha="$(git rev-parse HEAD^)"
+            source='merged generated Release Please commit'
+          fi
+
+          if test -z "$source"; then
+            echo 'fast_path=false' >> "$GITHUB_OUTPUT"
+            echo 'Normal source change: complete browser quality matrix required.' >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          while IFS= read -r changed_path; do
+            case "$changed_path" in
+              .release-please-manifest.json|CHANGELOG.md|package.json|package-lock.json) ;;
+              *) echo "Unexpected file in generated release diff: $changed_path" >&2; exit 1 ;;
+            esac
+          done < <(git diff --name-only "$base_sha...HEAD")
+
+          verify_url="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?event=push&status=completed&head_sha=${base_sha}&per_page=100" \
+            --jq '[.workflow_runs[] | select(.name == "Verify" and .conclusion == "success" and .event == "push" and .head_branch == "main") | .html_url][0] // empty')"
+          test -n "$verify_url" || { echo "No successful main Verify run attests parent $base_sha." >&2; exit 1; }
+
+          echo 'fast_path=true' >> "$GITHUB_OUTPUT"
+          {
+            echo '### Generated release lineage accepted'
+            echo
+            echo "- Source: $source"
+            echo "- Verified parent: \`$base_sha\`"
+            echo "- Parent Verify: $verify_url"
+            echo '- Fresh lint, unit/security/audit, production-build and secret checks still run; browser, visual, load and Lighthouse suites are inherited from the verified application source.'
+          } >> "$GITHUB_STEP_SUMMARY"
+
   quality:
     name: Typecheck and hygiene, Vitest (unit · integration · security · reliability), audit
     runs-on: ubuntu-latest
@@ -57,10 +128,9 @@ jobs:
 
   secret-scan:
     name: Git history secret scan
-    # On PRs and main pushes, the pinned action scans the changes introduced by
-    # that event. workflow_dispatch is reserved for the Release Please branch;
-    # scanning its entire inherited history would re-report legacy findings and
-    # turn a verified generated release candidate into a false delivery blocker.
+    # The pinned action scans the changes introduced by each event. Generated
+    # release candidates scan their small allowed diff too; the independent
+    # historical audit owns full-history remediation.
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -69,24 +139,13 @@ jobs:
       # Fetch the complete graph so Gitleaks can inspect the exact event range
       # reliably. The separate historical audit owns all-history remediation.
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-        if: github.event_name != 'workflow_dispatch'
         with:
           fetch-depth: 0
       - uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3
-        if: github.event_name != 'workflow_dispatch'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_CONFIG: .gitleaks.toml
           GITLEAKS_ENABLE_COMMENTS: 'false'
-      - name: Record generated-release scan inheritance
-        if: github.event_name == 'workflow_dispatch'
-        run: |
-          {
-            echo '### Secret scan inheritance'
-            echo
-            echo 'This Release Please candidate is generated from a `main` revision that already passed its change-scope Gitleaks gate. The independent Historical secret audit workflow owns full-history findings.'
-          } >> "$GITHUB_STEP_SUMMARY"
-
   build:
     name: Sandboxed production build
     runs-on: ubuntu-latest
@@ -117,7 +176,8 @@ jobs:
 
   e2e:
     name: E2E (${{ matrix.project }})
-    needs: build
+    needs: [build, release-integrity]
+    if: needs.release-integrity.outputs.fast_path != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
@@ -162,7 +222,8 @@ jobs:
 
   web-quality:
     name: Accessibility, usability, security-web, resilience, visual
-    needs: build
+    needs: [build, release-integrity]
+    if: needs.release-integrity.outputs.fast_path != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -200,7 +261,8 @@ jobs:
 
   load-smoke:
     name: Load smoke
-    needs: build
+    needs: [build, release-integrity]
+    if: needs.release-integrity.outputs.fast_path != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -224,7 +286,8 @@ jobs:
 
   lighthouse:
     name: Lighthouse budgets
-    needs: build
+    needs: [build, release-integrity]
+    if: needs.release-integrity.outputs.fast_path != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -250,7 +313,7 @@ jobs:
 
   report:
     name: Quality report
-    needs: [quality, secret-scan, e2e, web-quality, load-smoke, lighthouse]
+    needs: [release-integrity, quality, secret-scan, build, e2e, web-quality, load-smoke, lighthouse]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -266,6 +329,23 @@ jobs:
           pattern: results-*
           path: test-results
           merge-multiple: true
+      - name: Fail closed if any required verification gate failed
+        env:
+          RELEASE_INTEGRITY: ${{ needs.release-integrity.result }}
+          QUALITY: ${{ needs.quality.result }}
+          SECRET_SCAN: ${{ needs.secret-scan.result }}
+          BUILD: ${{ needs.build.result }}
+          E2E: ${{ needs.e2e.result }}
+          WEB_QUALITY: ${{ needs.web-quality.result }}
+          LOAD_SMOKE: ${{ needs.load-smoke.result }}
+          LIGHTHOUSE: ${{ needs.lighthouse.result }}
+        run: |
+          set -euo pipefail
+          for gate in "$RELEASE_INTEGRITY" "$QUALITY" "$SECRET_SCAN" "$BUILD" "$E2E" "$WEB_QUALITY" "$LOAD_SMOKE" "$LIGHTHOUSE"; do
+            case "$gate" in
+              failure|cancelled) echo "A verification gate did not pass: $gate" >&2; exit 1 ;;
+            esac
+          done
       # Writes test-results/quality-report.md and the job summary.
       - run: npm run test:report
 
@@ -273,8 +353,8 @@ jobs:
     name: Wix immutable preview
     # Every accepted main commit receives its own testable Wix URL. Pull requests
     # deliberately never receive the Wix credential, including forked PRs.
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.WIX_PREVIEW_CI_ENABLED == 'true'
-    needs: [quality, secret-scan, build, e2e, web-quality, load-smoke, lighthouse]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.release-integrity.outputs.fast_path != 'true' && vars.WIX_PREVIEW_CI_ENABLED == 'true'
+    needs: [release-integrity, quality, secret-scan, build, e2e, web-quality, load-smoke, lighthouse]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:

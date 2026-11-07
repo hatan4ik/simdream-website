@@ -126,7 +126,7 @@ Import `test` and `expect` from `tests/support/e2e.ts`, or from the folder's `fi
 | Job | Content |
 | --- | --- |
 | quality | Typecheck/type hygiene, Vitest with the coverage ratchet and JUnit, `npm audit --audit-level=high` |
-| secret-scan | Event-scope Git history secret detection with Gitleaks before any Wix preview or production release; an explicitly dispatched Release Please candidate inherits a previously verified `main` parent and skips this duplicate scan |
+| secret-scan | Event-scope Git history secret detection with Gitleaks before any Wix preview or production release; a generated Release Please candidate scans its constrained release diff while `release-integrity` proves it inherits an exact verified `main` parent |
 | build | Sandboxed production build, shared with later jobs as an artifact |
 | e2e | Matrix over the five browser projects |
 | web-quality | a11y, usability, security-web, resilience, then visual against committed Linux baselines |
