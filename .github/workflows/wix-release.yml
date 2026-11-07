@@ -103,7 +103,8 @@ jobs:
         run: |
           set -o pipefail
           CI=1 npx --yes @wix/cli@${WIX_CLI_VERSION} release --comment "$RELEASE_TAG @ ${GITHUB_SHA}" | tee wix-deploy.log
-          url="$(tr -d '\r' < wix-deploy.log | grep -Eo 'https://[^[:space:]]+' | grep 'wix-site-host\.com' | tail -n 1 || true)"
+          # Match a valid Wix hostname, excluding any CLI formatting punctuation.
+          url="$(tr -d '\r' < wix-deploy.log | grep -Eo 'https://[[:alnum:].-]+\.wix-site-host\.com' | tail -n 1 || true)"
           test -n "$url" || { echo 'Wix release succeeded but no Wix-host URL was found in its output.' >&2; exit 1; }
           echo "url=$url" >> "$GITHUB_OUTPUT"
           {
