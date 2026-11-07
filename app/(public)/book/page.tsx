@@ -230,6 +230,20 @@ function BookContent() {
   const [selectedAddons, setSelectedAddons] = useState<string[]>(preselectedAddonIds);
   const appliedAddonIntentRef = useRef<string | null>(null);
 
+  // A deep-linked World Trio is an explicit customer choice, not a suggestion
+  // that may disappear while the calendar hydrates. Use the whole manifest to
+  // select and render only departures that can accommodate the base flight plus
+  // every chosen add-on. The server remains the final pricing/capacity authority.
+  const requiredMissionMinutes = React.useMemo(
+    () =>
+      activePackage.durationMinutes +
+      selectedAddons.reduce(
+        (total, addonId) => total + (scopedAddons.find((addon) => addon.id === addonId)?.durationMinutes ?? 0),
+        0
+      ),
+    [activePackage.durationMinutes, scopedAddons, selectedAddons]
+  );
+
   // Keep a deep link shareable across in-app navigation, but apply a given URL intent only once
   // so a customer may freely remove or alter an add-on afterwards.
   const addonIntentKey = requestedAddonIds.join(',');
@@ -384,17 +398,22 @@ function BookContent() {
           setEfficiencyReport(data.efficiency);
         }
 
-        // Prefer smart 150m block pairing or first available slot
-        const smartMatch = slotList.find(
+        // Prefer a smart pairing or an open departure which can accommodate
+        // the entire selected mission. Selecting a short base-flight slot and
+        // then pruning a URL-selected World Trio loses explicit customer intent.
+        const compatibleSlots = slotList.filter(
+          (slot: FlightSlot) => slot.available && (slot.maxAvailableMinutes ?? 0) >= requiredMissionMinutes
+        );
+        const smartMatch = compatibleSlots.find(
           (s: FlightSlot) => s.available && s.smartRecommendation === 'optimal_150_pair'
         );
-        const firstAvailable = smartMatch || slotList.find((s: FlightSlot) => s.available) || null;
+        const firstAvailable = smartMatch || compatibleSlots[0] || null;
 
         setSelectedSlot((prev) => {
           if (
             prev &&
             prev.date === selectedDate &&
-            slotList.some((s) => s.id === prev.id && s.available)
+            compatibleSlots.some((s) => s.id === prev.id)
           ) {
             return slotList.find((s) => s.id === prev.id) || firstAvailable;
           }
@@ -413,7 +432,18 @@ function BookContent() {
     }
     fetchSlots();
     return () => controller.abort();
-  }, [browserIsraelToday, selectedDate, selectedPackage, slotsReloadKey]);
+  }, [browserIsraelToday, requiredMissionMinutes, selectedDate, selectedPackage, slotsReloadKey]);
+
+  // Both storefronts consume the same manifest-compatible departures. This
+  // keeps a selected route or add-on visible rather than offering a departure
+  // that would immediately invalidate it.
+  const missionCompatibleSlots = React.useMemo(
+    () =>
+      availableSlots.filter(
+        (slot) => slot.available && (slot.maxAvailableMinutes ?? 0) >= requiredMissionMinutes
+      ),
+    [availableSlots, requiredMissionMinutes]
+  );
 
   // Canonical Single-Source-of-Truth Mission Manifest calculation
   const manifest = React.useMemo(
@@ -992,7 +1022,7 @@ function BookContent() {
           selectedPackage={activePackage}
           packages={scopedPackages}
           onSelectPackage={setSelectedPackage}
-          slots={availableSlots}
+          slots={missionCompatibleSlots}
           selectedSlot={selectedSlot}
           onSelectSlot={setSelectedSlot}
           durationAvailability={durationAvailability}
@@ -1092,7 +1122,7 @@ function BookContent() {
             selectedPackage={activePackage}
             packages={scopedPackages}
             onSelectPackage={setSelectedPackage}
-            slots={availableSlots}
+            slots={missionCompatibleSlots}
             selectedSlot={selectedSlot}
             onSelectSlot={setSelectedSlot}
             efficiencyReport={efficiencyReport}
