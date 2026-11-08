@@ -2,6 +2,7 @@ import 'server-only';
 
 import type { Booking, GiftVoucher } from '@/types';
 import { FLIGHT_ADDONS, SIMULATOR_PACKAGES } from '@/lib/db/seed-data';
+import { BOOKING_HORIZON_MESSAGE, isBeyondBookingHorizon } from '@/lib/scheduler/booking-horizon';
 import { hasDeparted, israelToday } from '@/lib/scheduler/israel-clock';
 import { giftCertificateAmount, giftCertificatePackageById } from '@/lib/catalog/gift-voucher-packages';
 import { DEFAULT_GIFT_CARD_DESIGN_ID } from '@/lib/catalog/gift-card-designs';
@@ -65,6 +66,9 @@ async function createBookingFromRequest(
   }
   if (hasDeparted(input.bookingDate, input.startTime)) {
     throw new CheckoutError('This departure time has already passed. Please choose a later departure.');
+  }
+  if (isBeyondBookingHorizon(input.bookingDate, israelToday(dependencies.clock.now()))) {
+    throw new CheckoutError(BOOKING_HORIZON_MESSAGE);
   }
 
   const pkg = SIMULATOR_PACKAGES.find((item) => item.id === input.packageId);

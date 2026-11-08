@@ -1,3 +1,4 @@
+import { isBeyondBookingHorizon } from '@/lib/scheduler/booking-horizon';
 import type { Language, LocalizedRecord } from './translations';
 
 export const CALENDAR_LOCALES: LocalizedRecord<string> = {
@@ -25,15 +26,48 @@ const WEEK_STARTS_ON: LocalizedRecord<number> = {
 export interface CalendarNavigationLabels {
   previousWeek: string;
   nextWeek: string;
+  today: string;
+  /** Shown at the end of the one-year booking horizon, where "next" is no longer offered. */
+  horizonNote: string;
 }
 
 const CALENDAR_NAVIGATION_LABELS: LocalizedRecord<CalendarNavigationLabels> = {
-  en: { previousWeek: 'Previous week', nextWeek: 'Next week' },
-  he: { previousWeek: 'השבוע הקודם', nextWeek: 'השבוע הבא' },
-  ru: { previousWeek: 'Предыдущая неделя', nextWeek: 'Следующая неделя' },
-  fr: { previousWeek: 'Semaine précédente', nextWeek: 'Semaine suivante' },
-  ar: { previousWeek: 'الأسبوع السابق', nextWeek: 'الأسبوع التالي' },
-  es: { previousWeek: 'Semana anterior', nextWeek: 'Semana siguiente' },
+  en: {
+    previousWeek: 'Previous week',
+    nextWeek: 'Next week',
+    today: 'Today',
+    horizonNote: 'Flights can be booked up to one year ahead.',
+  },
+  he: {
+    previousWeek: 'השבוע הקודם',
+    nextWeek: 'השבוע הבא',
+    today: 'היום',
+    horizonNote: 'ניתן להזמין טיסה עד שנה מראש.',
+  },
+  ru: {
+    previousWeek: 'Предыдущая неделя',
+    nextWeek: 'Следующая неделя',
+    today: 'Сегодня',
+    horizonNote: 'Полёт можно забронировать не более чем на год вперёд.',
+  },
+  fr: {
+    previousWeek: 'Semaine précédente',
+    nextWeek: 'Semaine suivante',
+    today: 'Aujourd’hui',
+    horizonNote: 'Les vols se réservent jusqu’à un an à l’avance.',
+  },
+  ar: {
+    previousWeek: 'الأسبوع السابق',
+    nextWeek: 'الأسبوع التالي',
+    today: 'اليوم',
+    horizonNote: 'يمكن حجز الرحلات حتى سنة مقدماً.',
+  },
+  es: {
+    previousWeek: 'Semana anterior',
+    nextWeek: 'Semana siguiente',
+    today: 'Hoy',
+    horizonNote: 'Los vuelos se pueden reservar con hasta un año de antelación.',
+  },
 };
 
 export interface CalendarDay {
@@ -47,6 +81,7 @@ export interface CalendarDay {
 export interface CalendarMonthCell extends CalendarDay {
   isCurrentMonth: boolean;
   isPast: boolean;
+  isBeyondHorizon: boolean;
 }
 
 function dateAtUtcNoon(year: number, monthIndex: number, day: number): Date {
@@ -154,6 +189,7 @@ export function calendarMonthCells(viewMonthDate: Date, language: Language, toda
       monthShortLabel: formatter(language, { month: 'short' }).format(date),
       isCurrentMonth: date.getUTCMonth() === month,
       isPast: dateStr < todayYmd,
+      isBeyondHorizon: isBeyondBookingHorizon(dateStr, todayYmd),
     };
   });
 }

@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:29462c7b4d8c6fa8b57a50c9365dc085db4e4198524927f1d58980c5e02028c2 -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:2fe32e43e2f0d482b52c7e8949ebc61e764513123462391eac657f01194e58c1 -->
 
 ## Verification contract
 
@@ -262,6 +262,7 @@ Add 3 curated one-click combos. Localize every package and add-on in all six lan
 - **Pricing**: `packagePriceForSlot()` applies prime-time pricing. `calculateMissionManifest()` totals the package and add-ons and rejects add-ons that would run past the next booking or the window close.
 - **Building blocks** (keep these as small, separately tested functions):
   - time: `timeToMinutes()`, `minutesToTime()`, `addMinutesToTime()`, and the Israel clock's `israelToday()`, `israelMinutesNow()`, `hasDeparted()`;
+  - booking horizon (`lib/scheduler/booking-horizon.ts`): `maxBookableDate()` is the same calendar date one year after today's Israel date (a leap day rolls back to 28 February), `isBeyondBookingHorizon()` and `clampToBookingHorizon()` apply it; the checkout service and `GET /api/slots` reject a later date with HTTP 400, so the limit never depends on the browser;
   - days and capacity: `getDayOperatingConfig()`, `is45MinutePromoDay()`, `longestMissionWithin()`, `canTileIntervalZeroWaste()`, `getKantorovichPricing()`;
   - packages and add-ons: `packageAllowsAddons()`, `packageFromPriceIls()`, `sanitizePackageTitle()`, `canAddonFitInSlot()`, `pruneAddonsExceedingSlot()`;
   - shared customer presentation: `getPackageFormulaBadge()` supplies identical, localized formula labels to both booking interfaces;
@@ -273,7 +274,7 @@ Add 3 curated one-click combos. Localize every package and add-on in all six lan
 - Two interfaces over **identical** availability and recovery logic:
   - `AmazonFlightStorefront` (one page, sticky buy box);
   - `KantorovichCalendarScheduler` (guided wizard).
-- `BookingWeekPager` is their shared, six-language week-navigation boundary. It shifts the selected Israel date by exactly seven days, prevents travel before today, and flips only directional chevrons for RTL (not text).
+- `BookingWeekPager` and `BookingMonthPager` are their shared, six-language navigation boundaries. The week pager shifts the selected Israel date by exactly seven days and the month pager by one month; both prevent travel before today and past the one-year booking horizon (the next control is disabled, days past the horizon are disabled, and a short note explains the limit), and both offer a **Today** button that returns to today's date once the view has moved away from it. Only directional chevrons flip for RTL (not text).
 - The calendar defaults to a **localized week view**, with the month grid retained as an explicit toggle. Weeks start on Sunday for he, ar and en, and on Monday for ru and fr. RTL arrows are flipped.
 - `/book` renders a localized initialization state until the browser supplies the live **Israel** date; it never places a fictional date in server HTML. Do not read the device clock in calendar render paths: a visitor west of UTC must never get a date-shift or React hydration mismatch.
 - **Never hide packages or durations** with zero open slots. Show them with a "0 slots open today" badge and keep the user's selection.
@@ -598,7 +599,7 @@ components/
   about/AboutExperienceView  pro/ProSessionsView  legal/ PrivacyPolicyContentView RulesContentView
   seo/StructuredDataJsonLd  ui/ Button Card Badge
 lib/
-  scheduler/ kantorovich-engine mission-calculator package-presentation tiled-interval-optimizer israel-clock
+  scheduler/ kantorovich-engine mission-calculator package-presentation tiled-interval-optimizer israel-clock booking-horizon
   booking/checkout-service checkout-ports checkout-composition checkout-runtime
   wix/ client config catalog bookings availability-adapter booking-checkout booking-checkout-client subscription-redemption subscription-booking checkout-shadow member-client
   catalog/gift-voucher-packages  data/experience-routes subscription-passes subscription-page-copy  db/ store schema.sql seed-data supabase-admin migrations/

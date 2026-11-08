@@ -49,10 +49,26 @@ describe('localized calendar presentation', () => {
       const labels = calendarNavigationLabels(language);
       expect(labels.previousWeek).not.toHaveLength(0);
       expect(labels.nextWeek).not.toHaveLength(0);
+      expect(labels.today).not.toHaveLength(0);
+      expect(labels.horizonNote).not.toHaveLength(0);
     }
 
     expect(calendarNavigationLabels('he').nextWeek).toMatch(/[\u0590-\u05FF]/);
     expect(calendarNavigationLabels('ar').nextWeek).toMatch(/[\u0600-\u06FF]/);
+    for (const key of ['today', 'horizonNote'] as const) {
+      expect(calendarNavigationLabels('he')[key]).toMatch(/[\u0590-\u05FF]/);
+      expect(calendarNavigationLabels('he')[key]).not.toMatch(/[\u0600-\u06FF]/);
+      expect(calendarNavigationLabels('ar')[key]).toMatch(/[\u0600-\u06FF]/);
+      expect(calendarNavigationLabels('ar')[key]).not.toMatch(/[\u0590-\u05FF]/);
+    }
+  });
+
+  it('flags month cells past the one-year booking horizon', () => {
+    const cells = calendarMonthCells(new Date(2027, 10, 1), 'en', '2026-11-08');
+
+    expect(cells.find((cell) => cell.dateStr === '2027-11-08')?.isBeyondHorizon).toBe(false);
+    expect(cells.find((cell) => cell.dateStr === '2027-11-09')?.isBeyondHorizon).toBe(true);
+    expect(calendarMonthCells(new Date(2026, 10, 1), 'en', '2026-11-08').some((cell) => cell.isBeyondHorizon)).toBe(false);
   });
 
   it('retains safe, readable output when an upstream calendar value is malformed', () => {

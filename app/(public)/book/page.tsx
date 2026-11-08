@@ -32,6 +32,7 @@ import {
   packageAllowsAddons,
   pruneAddonsExceedingSlot,
 } from '@/lib/scheduler/mission-calculator';
+import { clampToBookingHorizon } from '@/lib/scheduler/booking-horizon';
 import { israelToday } from '@/lib/scheduler/israel-clock';
 import { useClientValue } from '@/lib/ui/use-client-value';
 import { WIX_SUBSCRIPTION_BOOKING_COPY } from '@/lib/i18n/wix-subscription-booking-copy';
@@ -209,9 +210,13 @@ function BookContent() {
   const selectedDate =
     selectedDateOverride ??
     (browserIsraelToday ? addDaysToYmd(browserIsraelToday, 1) : '');
-  const setSelectedDate = React.useCallback((date: string) => {
-    setSelectedDateOverride(date);
-  }, []);
+  // Whatever the control, a visitor can never land past the one-year booking horizon.
+  const setSelectedDate = React.useCallback(
+    (date: string) => {
+      setSelectedDateOverride(clampToBookingHorizon(date, calendarTodayYmd));
+    },
+    [calendarTodayYmd]
+  );
   const [availableSlots, setAvailableSlots] = useState<FlightSlot[]>([]);
   const [efficiencyReport, setEfficiencyReport] = useState<PublicCapacityReport | null>(null);
   const [durationAvailability, setDurationAvailability] = useState<

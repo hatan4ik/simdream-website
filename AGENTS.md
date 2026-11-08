@@ -108,6 +108,7 @@ The calendar must follow each selected package's actual reserved duration from r
    - [`AmazonFlightStorefront.tsx`](components/scheduler/AmazonFlightStorefront.tsx): Amazon-style 1-page catalog view with sticky buy-box.
    - [`KantorovichCalendarScheduler.tsx`](components/scheduler/KantorovichCalendarScheduler.tsx): Guided 3-step wizard view.
    - Both components must share identical availability and zero-slots recovery logic.
+5. **One-Year Booking Horizon**: a flight can be booked from today up to the same calendar date one year ahead (`maxBookableDate()` in [`lib/scheduler/booking-horizon.ts`](lib/scheduler/booking-horizon.ts), on the Israel date). The shared `BookingWeekPager` and `BookingMonthPager` disable "next" and every day past it (with the localized `horizonNote`), `/book` clamps any selected date, and the server is authoritative: `POST /api/checkout` and `GET /api/slots` answer 400 for a later date. Both pagers also show a **Today** button whenever the view has moved away from today (`data-calendar-today`); `tests/e2e/booking-horizon.spec.ts` covers both interfaces.
 
 ---
 

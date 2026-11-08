@@ -59,6 +59,38 @@ describe('POST /api/checkout: Wix booking authority', () => {
   });
 });
 
+describe('POST /api/checkout: one-year booking horizon', () => {
+  it('refuses a departure after the last bookable day and creates nothing', async () => {
+    const app = await loadApp({ stripe: 'mocked' });
+    const bookingsBefore = (await app.store.getBookings()).length;
+
+    const response = await postCheckout(
+      app,
+      bookingCheckoutBody({ packageId: 'pkg-captain-60', bookingDate: '2027-11-02', startTime: '10:00' })
+    );
+
+    expect(response.status).toBe(400);
+    expect(expectContract(errorBody, response.body).error).toBe(
+      'Flights can be booked up to one year ahead. Please choose an earlier date.'
+    );
+    expect((await app.store.getBookings()).length).toBe(bookingsBefore);
+    expect(app.checkoutSessions).toHaveLength(0);
+  });
+
+  it('still books the last bookable day', async () => {
+    const app = await loadApp({ stripe: 'mocked' });
+    const slot = await findSlotWhere(app, '2027-11-01', 60, (candidate) => candidate.available, 'open');
+
+    const response = await postCheckout(
+      app,
+      bookingCheckoutBody({ packageId: 'pkg-captain-60', bookingDate: '2027-11-01', startTime: slot.startTime })
+    );
+
+    expect(response.status).toBe(201);
+    expect(app.checkoutSessions).toHaveLength(1);
+  });
+});
+
 describe('POST /api/checkout: captain-confirmed route requests', () => {
   it('retains a valid on-request World Trio with the order without inventing a route surcharge', async () => {
     const app = await loadApp({ stripe: 'mocked' });

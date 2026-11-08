@@ -41,8 +41,9 @@ const OPENING_HOURS_CASES = [
   { date: '2026-12-31', day: 'Thursday, year end', firstDeparture: '09:00' },
   { date: '2027-01-01', day: 'Friday, new year', firstDeparture: '09:00' },
   { date: '2027-01-02', day: 'Saturday', firstDeparture: '09:00' },
-  { date: '2028-02-29', day: 'Tuesday, leap day', firstDeparture: '09:00' },
-  { date: '2028-03-01', day: 'Wednesday after leap day', firstDeparture: '09:00' },
+  // Bookings open one year ahead, so these are read from a clock that has reached them.
+  { date: '2028-02-29', day: 'Tuesday, leap day', firstDeparture: '09:00', now: '2027-12-01T08:00:00+02:00' },
+  { date: '2028-03-01', day: 'Wednesday after leap day', firstDeparture: '09:00', now: '2027-12-01T08:00:00+02:00' },
 ];
 
 // Neither date is seeded relative to the default test clock, so both grids start empty.
@@ -90,8 +91,8 @@ describe.each(SERVER_TIME_ZONES)('with the server clock in %s', (timeZone) => {
     ]);
   });
 
-  it.each(OPENING_HOURS_CASES)('opens $date ($day) at $firstDeparture', async ({ date, firstDeparture }) => {
-    const app = await loadApp();
+  it.each(OPENING_HOURS_CASES)('opens $date ($day) at $firstDeparture', async ({ date, firstDeparture, now }) => {
+    const app = await loadApp({ now });
 
     const response = await getSlots(app, date, 60);
 
