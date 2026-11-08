@@ -38,6 +38,8 @@ describe('gift-card design registry', () => {
     });
     expect(Math.min(...GIFT_CARD_DESIGNS.map((design) => design.amountIls))).toBe(MIN_GIFT_VOUCHER_AMOUNT_ILS);
     expect(new Set(GIFT_CARD_DESIGNS.map((design) => design.amountIls)).size).toBe(GIFT_CARD_DESIGNS.length);
+    expect(new Set(GIFT_CARD_DESIGNS.map((design) => design.wixVariantId)).size).toBe(GIFT_CARD_DESIGNS.length);
+    expect(GIFT_CARD_DESIGNS.every((design) => design.wixMediaId.endsWith('~mv2.jpg'))).toBe(true);
     expect(giftCardDesignForAmount(300)?.id).toBe('aurora');
     expect(giftCardDesignForAmount(250)).toBeUndefined();
   });

@@ -1,9 +1,14 @@
 import { NextResponse } from 'next/server';
 import { CheckoutError } from '@/lib/booking/checkout-service';
 import { startBookingCheckout, startVoucherCheckout } from '@/lib/booking/checkout-runtime';
-import { requirePaymentsEnabled } from '@/lib/stripe';
+import { isPaymentsConfigured, requirePaymentsEnabled } from '@/lib/stripe';
 import { checkoutRequestSchema, validationError } from '@/lib/validation';
-import { isWixAvailabilityAdapterEnabled, scheduleWixCheckoutShadow } from '@/lib/wix';
+import {
+  createWixGiftCardCheckout,
+  isWixAvailabilityAdapterEnabled,
+  isWixConfigured,
+  scheduleWixCheckoutShadow,
+} from '@/lib/wix';
 import { SIMULATOR_PACKAGES } from '@/lib/db/seed-data';
 
 export const runtime = 'nodejs';
@@ -31,11 +36,16 @@ export async function POST(request: Request) {
     );
   }
 
+  // When running on the Wix Headless platform (where Stripe is not configured),
+  // gift voucher purchases route directly to the native Wix Gift Cards cart & checkout.
+  const isWixGiftCardCheckout = parsed.data.kind === 'voucher' && !isPaymentsConfigured && isWixConfigured();
+
   // A fully funded voucher is an already-paid tender. All card transactions
   // require Stripe plus webhook configuration before any pending record is made.
   const requiresCardPayment =
-    parsed.data.kind === 'voucher' ||
-    (parsed.data.kind === 'booking' && !parsed.data.voucherCode);
+    !isWixGiftCardCheckout &&
+    (parsed.data.kind === 'voucher' ||
+      (parsed.data.kind === 'booking' && !parsed.data.voucherCode));
   if (requiresCardPayment) {
     const paymentsDisabled = requirePaymentsEnabled();
     if (paymentsDisabled) return paymentsDisabled;
@@ -45,7 +55,9 @@ export async function POST(request: Request) {
     const result =
       parsed.data.kind === 'booking'
         ? await startBookingCheckout(request, parsed.data)
-        : await startVoucherCheckout(request, parsed.data);
+        : isWixGiftCardCheckout
+          ? await createWixGiftCardCheckout(parsed.data)
+          : await startVoucherCheckout(request, parsed.data);
 
     // This is a diagnostic-only, feature-flagged Wix visitor read. Next's
     // `after()` keeps it outside the customer response, and it receives no
