@@ -106,7 +106,7 @@ Production-grade website, multi-step booking engine, Amazon-style flight storefr
 10. **Google Places Review Feed (`/api/reviews`)**:
     - The home-page carousel is rendered in the browser and loads its data from `/api/reviews`; the route obtains rating, count, and available review excerpts from the listed Google Maps Place ID without exposing `GOOGLE_PLACES_API_KEY` to visitors.
     - If the API is absent or a refresh fails, it deliberately serves **no rating, count, or review excerpts**. The website never substitutes local or generated review content for Google data.
-    - **15-Minute Server Cache**: [`lib/reviews/google-reviews-cache.ts`](lib/reviews/google-reviews-cache.ts) and `/api/reviews` refresh the attributable feed at most every 15 minutes. The carousel is intentionally absent when no live Google data is available.
+    - **1-Minute Server Cache**: [`lib/reviews/google-reviews-cache.ts`](lib/reviews/google-reviews-cache.ts) and `/api/reviews` refresh the attributable feed at most once a minute, so every page open or refresh shows the current Google rating and review count while one busy day still costs only a few hundred Places calls. The browser asks again when a long-open tab is shown. The utility-bar rating row and the carousel need `GOOGLE_PLACES_API_KEY`; without it the bar shows five outline stars and a link to the Google profile, never an invented rating or count.
 
 11. **Voucher Management & 1-Click Session Cache Reapply**:
     - **Instant Removal & Price Reset**: Customers can remove applied gift vouchers or promo codes at any time to verify the original package price without page reloads.

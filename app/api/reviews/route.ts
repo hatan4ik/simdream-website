@@ -2,14 +2,14 @@ import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth/admin-guard';
 import { getCachedGoogleReviews, syncGoogleReviews } from '@/lib/reviews/google-reviews-cache';
 
-export const revalidate = 900; // 15 minutes shared freshness for the browser carousel.
+export const revalidate = 60; // Shared freshness: the rating and review count are never older than about a minute.
 
 export async function GET() {
   try {
     const data = await getCachedGoogleReviews(false);
     return NextResponse.json(data, {
       headers: {
-        'Cache-Control': 'public, s-maxage=900, stale-while-revalidate=300',
+        'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=30',
       },
     });
   } catch (error) {
