@@ -9,6 +9,7 @@ export type SeoPageKey =
   | 'about'
   | 'simulator'
   | 'pro'
+  | 'fearOfFlying'
   | 'workshops'
   | 'vouchers'
   | 'contact'
@@ -149,6 +150,21 @@ export const PAGE_SEO_DEFINITIONS: Record<SeoPageKey, PageSeoDefinition> = {
       'professional flight training Tel Aviv',
       'הדרכה מקצועית לטייסים',
       'הכנה למבדקי חברות תעופה',
+    ],
+  },
+  fearOfFlying: {
+    path: '/fear-of-flying',
+    title: 'Fear of Flying Session with an Airline Captain | Sim Dream Tel Aviv (סדנת חרדת טיסה)',
+    description:
+      'A private, unhurried fear-of-flying session in a real Boeing 737 MAX cockpit at Gershon Shatz 36, Tel Aviv: a 15-minute conversation with an airline captain, then hands-on time at your own pace. One single package, a companion welcome. Aviation coaching, not medical treatment.',
+    keywords: [
+      ...COMMON_KEYWORDS,
+      'fear of flying course Tel Aviv',
+      'aerophobia flight simulator Israel',
+      'flight anxiety session airline captain',
+      'חרדת טיסה',
+      'פחד מטיסות',
+      'סדנת חרדת טיסה תל אביב',
     ],
   },
   workshops: {

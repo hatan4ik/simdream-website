@@ -14,6 +14,7 @@ export const ADMIN_CREDENTIALS = { username: TEST_ADMIN.user, password: TEST_ADM
 export const PUBLIC_ROUTES = [
   '/',
   '/pro',
+  '/fear-of-flying',
   '/experiences',
   '/subscriptions',
   '/book',
