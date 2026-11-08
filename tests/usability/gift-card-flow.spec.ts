@@ -80,7 +80,7 @@ for (const language of LANGUAGES) {
       await expect(section(page, 'balance')).toBeVisible();
       await expect(heading(page, v.cardPresetsLabel)).toBeVisible();
       const presets = page.locator('[data-gift-card-presets]');
-      for (const amount of ['100', '200', '500', '1,000']) {
+      for (const amount of ['50', '100', '200', '300', '500', '700', '1,000']) {
         await expect(presets.getByRole('button', { name: new RegExp(`(?<![\\d,])${amount}(?!\\d)`) })).toBeVisible();
       }
       await expect(page.locator('#voucher-custom-amount')).toBeVisible();
@@ -157,7 +157,7 @@ for (const language of LANGUAGES) {
             .map(label),
           presetCount: presets.length,
           presetDirections: presets.map((element) => getComputedStyle(element).direction),
-          // Chips wrap into two tidy rows of two on a phone, never a ragged strip.
+          // Chips wrap into tidy rows of two on a phone, never a ragged strip.
           presetRows: new Set(presets.map((element) => Math.round(element.getBoundingClientRect().top))).size,
           firstBeforeSecond: first && second ? (document.documentElement.dir === 'rtl' ? first.left > second.left : first.left < second.left) : false,
           emailDirections: [...document.querySelectorAll<HTMLInputElement>('form input[type="email"]')].map((element) => getComputedStyle(element).direction),
@@ -169,8 +169,8 @@ for (const language of LANGUAGES) {
       expect(layout.overflow, 'page does not scroll sideways').toBe(0);
       expect(layout.outside, 'every control stays on screen').toEqual([]);
       expect(layout.tooShort, 'every control is at least 44px tall').toEqual([]);
-      expect(layout.presetCount).toBe(4);
-      expect(layout.presetRows, 'four presets wrap into two rows').toBe(2);
+      expect(layout.presetCount).toBe(7);
+      expect(layout.presetRows, 'seven presets wrap into rows of two, the odd last one spans its row').toBe(4);
       expect(layout.firstBeforeSecond, 'presets follow the reading direction').toBe(true);
       expect(layout.direction).toBe(language === 'he' ? 'rtl' : 'ltr');
       // Amounts and e-mail addresses read left to right on every page direction.

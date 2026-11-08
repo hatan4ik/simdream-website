@@ -38,6 +38,10 @@ import { Button } from '@/components/ui/Button';
 import { GiftCardDesignPicker } from '@/components/vouchers/GiftCardDesignPicker';
 import {
   DEFAULT_GIFT_CARD_DESIGN_ID,
+  GIFT_CARD_DESIGNS,
+  MIN_GIFT_VOUCHER_AMOUNT_ILS,
+  getGiftCardDesign,
+  giftCardDesignForAmount,
   type GiftCardDesignId,
 } from '@/lib/catalog/gift-card-designs';
 
@@ -46,10 +50,13 @@ type GiftFormatMode = 'certificate' | 'card';
 /**
  * A Gift Card carries an open NIS balance. Keep this intentionally separate
  * from the named flight-certificate amounts below: a buyer should never see a
- * flight package selected as the monetary-card default.
+ * flight package selected as the monetary-card default. Each preset is the balance of one card
+ * design, so the quick-select chips, the card colours and the credit shown are one choice.
  */
-const GIFT_CARD_PRESETS = [100, 200, 500, 1000] as const;
-const DEFAULT_GIFT_CARD_AMOUNT = GIFT_CARD_PRESETS[0];
+const GIFT_CARD_PRESETS = GIFT_CARD_DESIGNS.map((design) => design.amountIls);
+const DEFAULT_GIFT_CARD_AMOUNT = 100;
+const POPULAR_GIFT_CARD_AMOUNT = 200;
+const INITIAL_GIFT_CARD_DESIGN_ID = giftCardDesignForAmount(DEFAULT_GIFT_CARD_AMOUNT)?.id ?? DEFAULT_GIFT_CARD_DESIGN_ID;
 
 interface VerifiedVoucherInfo {
   code: string;
@@ -82,11 +89,10 @@ export default function GiftVouchersPage() {
   const [selectedCertificateAmount, setSelectedCertificateAmount] = useState<number>(
     DEFAULT_GIFT_CERTIFICATE_AMOUNT
   );
-  const [selectedGiftCardAmount, setSelectedGiftCardAmount] = useState<number>(DEFAULT_GIFT_CARD_AMOUNT);
   const [customAmount, setCustomAmount] = useState<string>('');
   const [hidePriceOnCertificate, setHidePriceOnCertificate] = useState<boolean>(false);
   const [deliveryMethod, setDeliveryMethod] = useState<'direct' | 'print'>('direct');
-  const [giftCardDesignId, setGiftCardDesignId] = useState<GiftCardDesignId>(DEFAULT_GIFT_CARD_DESIGN_ID);
+  const [giftCardDesignId, setGiftCardDesignId] = useState<GiftCardDesignId>(INITIAL_GIFT_CARD_DESIGN_ID);
 
   const [recipientName, setRecipientName] = useState('Aviad Stern');
   const [recipientEmail, setRecipientEmail] = useState('');
@@ -133,6 +139,8 @@ export default function GiftVouchersPage() {
     }
   };
 
+  // A card design is sold at one balance, so the design is the Gift Card's selected amount.
+  const selectedGiftCardAmount = getGiftCardDesign(giftCardDesignId).amountIls;
   const selectedAmount = giftMode === 'certificate' ? selectedCertificateAmount : selectedGiftCardAmount;
   const activeAmount = customAmount ? parseInt(customAmount, 10) || 0 : selectedAmount;
   const activeTierObj =
@@ -147,7 +155,7 @@ export default function GiftVouchersPage() {
   const detailsTitle = isCardMode ? t.vouchers.cardDetailsTitle : t.vouchers.customizeDesignTitle;
   const detailsSubtitle = isCardMode ? t.vouchers.cardDetailsSubtitle : t.vouchers.customizeDesignSubtitle;
 
-  /** One custom-amount field for both formats (same id, name and placeholder; min ₪100 is checked on submit). */
+  /** One custom-amount field for both formats (same id, name and placeholder; the minimum is checked on submit). */
   const customAmountField = (
     <div className="pt-4 border-t border-slate-800">
       <label htmlFor="voucher-custom-amount" className="block text-xs font-medium text-slate-400 mb-2">
@@ -193,13 +201,19 @@ export default function GiftVouchersPage() {
 
   const handleSelectCardPreset = (amount: number) => {
     selectGiftCardFormat();
-    setSelectedGiftCardAmount(amount);
+    const design = giftCardDesignForAmount(amount);
+    if (design) setGiftCardDesignId(design.id);
+  };
+
+  const handleSelectGiftCardDesign = (designId: GiftCardDesignId) => {
+    setGiftCardDesignId(designId);
+    setCustomAmount('');
   };
 
   const handlePurchase = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (activeAmount < 100) {
-      alert('Please select or enter a valid voucher amount (min ₪100).');
+    if (activeAmount < MIN_GIFT_VOUCHER_AMOUNT_ILS) {
+      alert(`Please select or enter a valid voucher amount (min ₪${MIN_GIFT_VOUCHER_AMOUNT_ILS}).`);
       return;
     }
 
@@ -454,12 +468,12 @@ export default function GiftVouchersPage() {
                   </div>
                 </div>
 
-                {/* Flexible Gift Card Quick Denominations */}
+                {/* Flexible Gift Card Quick Denominations: one chip per card design; on a phone the odd last chip spans the row. */}
                 <div
                   role="group"
                   aria-labelledby="voucher-card-balance-heading"
                   data-gift-card-presets
-                  className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-5"
+                  className="grid grid-cols-2 sm:grid-cols-4 gap-x-2.5 gap-y-4 pt-2 mb-5"
                 >
                   {GIFT_CARD_PRESETS.map((preset) => {
                     const isPresetSelected = !customAmount && selectedGiftCardAmount === preset;
@@ -469,13 +483,22 @@ export default function GiftVouchersPage() {
                         type="button"
                         onClick={() => handleSelectCardPreset(preset)}
                         aria-pressed={isPresetSelected}
-                        className={`min-h-11 py-2.5 px-3 rounded-xl border text-center font-mono font-bold text-sm transition-[background-color,border-color,box-shadow,color] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 ${
+                        className={`relative max-sm:last:col-span-2 min-h-11 py-2.5 px-3 rounded-xl border text-center font-mono font-bold text-sm transition-[background-color,border-color,box-shadow,color] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 ${
                           isPresetSelected
                             ? 'bg-sky-500/15 border-sky-500 text-white'
                             : 'bg-slate-950/60 border-slate-800 text-slate-300 hover:border-slate-700'
                         }`}
                         dir="ltr"
                       >
+                        {preset === POPULAR_GIFT_CARD_AMOUNT && (
+                          <span
+                            data-gift-card-popular
+                            className="absolute -top-2.5 end-1.5 px-1.5 py-0.5 rounded-full bg-amber-500 text-slate-950 font-sans font-bold text-xs leading-none tracking-wide uppercase"
+                            dir={isRTL ? 'rtl' : 'ltr'}
+                          >
+                            {t.vouchers.popularBadge}
+                          </span>
+                        )}
                         {formatCurrency(preset)}
                       </button>
                     );
@@ -519,7 +542,7 @@ export default function GiftVouchersPage() {
                       >
                         {tier.popular && (
                           <span className="absolute -top-2.5 right-3 px-2 py-0.5 rounded-full bg-amber-500 text-slate-950 font-bold text-[10px] uppercase tracking-wider">
-                            Popular
+                            {t.vouchers.popularBadge}
                           </span>
                         )}
                         <div className="text-xl font-extrabold text-white mb-1" dir="ltr">
@@ -908,7 +931,7 @@ export default function GiftVouchersPage() {
               <div className="rounded-3xl bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 border-2 border-orange-500/40 shadow-2xl shadow-orange-500/10 overflow-clip relative">
                 <GiftCardDesignPicker
                   selectedDesignId={giftCardDesignId}
-                  onChange={setGiftCardDesignId}
+                  onChange={handleSelectGiftCardDesign}
                   label={t.vouchers.cardDesignLabel}
                 />
 
@@ -938,7 +961,7 @@ export default function GiftVouchersPage() {
                       <div className="text-[10px] font-mono uppercase tracking-widest text-slate-300">
                         {t.vouchers.creditBalanceLabel}
                       </div>
-                      <div className="text-3xl sm:text-4xl font-black text-white mt-1" dir="ltr">
+                      <div data-gift-card-credit className="text-3xl sm:text-4xl font-black text-white mt-1" dir="ltr">
                         {formatCurrency(activeAmount)}
                       </div>
                     </div>

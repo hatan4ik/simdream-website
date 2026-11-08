@@ -67,7 +67,7 @@ const validVoucherArb = fc.record(
   {
     kind: fc.constant('voucher' as const),
     // Agora precision: money schemas reject finer fractions (API-10).
-    amountIls: fc.integer({ min: 10_000, max: 10_000_000 }).map((agorot) => agorot / 100),
+    amountIls: fc.integer({ min: 5_000, max: 10_000_000 }).map((agorot) => agorot / 100),
     recipientName: text(120),
     recipientEmail: emailArb,
     senderName: text(120),
@@ -178,7 +178,7 @@ describe('voucherCheckoutSchema', () => {
   });
 
   it.each([
-    ['amountIls', 99.99],
+    ['amountIls', 49.99],
     ['amountIls', 100_000.01],
     ['amountIls', -500],
     ['amountIls', Number.POSITIVE_INFINITY],

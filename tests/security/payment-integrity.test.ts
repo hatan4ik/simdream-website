@@ -209,7 +209,7 @@ describe('server-authoritative pricing', () => {
   it.each([
     ['negative', -500],
     ['zero', 0],
-    ['below the minimum', 99.99],
+    ['below the minimum', 49.99],
     ['above the maximum', 100_000.01],
     ['astronomically large', 1e308],
     ['a numeric string', '500'],

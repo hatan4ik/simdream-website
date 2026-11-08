@@ -6,7 +6,9 @@ import {
   DEFAULT_GIFT_CARD_DESIGN_ID,
   GIFT_CARD_ART,
   GIFT_CARD_DESIGNS,
+  MIN_GIFT_VOUCHER_AMOUNT_ILS,
   getGiftCardDesign,
+  giftCardDesignForAmount,
   isGiftCardDesignId,
 } from '@/lib/catalog/gift-card-designs';
 
@@ -22,6 +24,22 @@ describe('gift-card design registry', () => {
     expect(isGiftCardDesignId('aurora')).toBe(true);
     expect(isGiftCardDesignId('https://untrusted.example.invalid/card.jpg')).toBe(false);
     expect(getGiftCardDesign('https://untrusted.example.invalid/card.jpg').id).toBe(DEFAULT_GIFT_CARD_DESIGN_ID);
+  });
+
+  it('sells every design at one balance, from the minimum purchase up', () => {
+    expect(Object.fromEntries(GIFT_CARD_DESIGNS.map((design) => [design.id, design.amountIls]))).toEqual({
+      skyline: 50,
+      ivory: 100,
+      moonlight: 200,
+      aurora: 300,
+      sunset: 500,
+      dusk: 700,
+      pearl: 1000,
+    });
+    expect(Math.min(...GIFT_CARD_DESIGNS.map((design) => design.amountIls))).toBe(MIN_GIFT_VOUCHER_AMOUNT_ILS);
+    expect(new Set(GIFT_CARD_DESIGNS.map((design) => design.amountIls)).size).toBe(GIFT_CARD_DESIGNS.length);
+    expect(giftCardDesignForAmount(300)?.id).toBe('aurora');
+    expect(giftCardDesignForAmount(250)).toBeUndefined();
   });
 
   // The preview shows each card whole at its natural proportions, with no per-design cropping, so
