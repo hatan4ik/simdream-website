@@ -143,6 +143,7 @@ function BookContent() {
   const initialPackage =
     localizedPackages.find((p) => p.slug === defaultPackageSlug) || localizedPackages[2] || localizedPackages[0];
   const [selectedPackage, setSelectedPackage] = useState<SimulatorPackage>(initialPackage);
+  const previousNonProPackageIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     const requestedSlug = searchParams.get('package');
@@ -150,6 +151,7 @@ function BookContent() {
       const pkgSlug = resolvePackageSlug(requestedSlug);
       const matched = localizedPackages.find((p) => p.slug === pkgSlug);
       if (matched) {
+        previousNonProPackageIdRef.current = null;
         setSelectedPackage(matched);
       }
     }
@@ -287,10 +289,52 @@ function BookContent() {
   }, [user?.email, user?.fullName, user?.id]);
 
   useEffect(() => {
-    if (isProBooking && experienceLevel === 'beginner') {
+    if (isProBooking) {
       setExperienceLevel('atpl');
     }
-  }, [isProBooking, experienceLevel]);
+  }, [isProBooking]);
+
+  const handleSelectPackage = React.useCallback((nextPackage: SimulatorPackage) => {
+    previousNonProPackageIdRef.current = null;
+    setSelectedPackage(nextPackage);
+    if (nextPackage.category === 'training') {
+      setExperienceLevel('atpl');
+    } else {
+      setExperienceLevel((current) => (current === 'atpl' ? 'beginner' : current));
+    }
+  }, []);
+
+  const handleChangeExperienceLevel = React.useCallback(
+    (nextLevel: PilotExperienceLevel) => {
+      setExperienceLevel(nextLevel);
+      if (isWixSubscriptionRedemption) return;
+
+      if (nextLevel === 'atpl') {
+        if (activePackage.category !== 'training') {
+          previousNonProPackageIdRef.current = activePackage.id;
+          const pro60Package = localizedPackages.find(
+            (pkg) => pkg.id === 'pkg-pro-60' || pkg.slug === 'airline-prep-60-pro'
+          );
+          if (pro60Package) {
+            setSelectedPackage(pro60Package);
+            setSelectedAddons([]);
+          }
+        }
+        return;
+      }
+
+      if (previousNonProPackageIdRef.current) {
+        const previousPackage = localizedPackages.find(
+          (pkg) => pkg.id === previousNonProPackageIdRef.current
+        );
+        previousNonProPackageIdRef.current = null;
+        if (previousPackage) {
+          setSelectedPackage(previousPackage);
+        }
+      }
+    },
+    [activePackage.category, activePackage.id, isWixSubscriptionRedemption, localizedPackages]
+  );
 
   // Voucher Code & Session Cache
   const initialVoucher = searchParams.get('voucher') || '';
@@ -306,13 +350,14 @@ function BookContent() {
   // Wix is the native writer for simple single-service bookings. The local checkout
   // keeps ownership of multi-item missions, locally funded vouchers and route intent
   // until those catalog concepts have matching Wix Bookings entities.
+  const activeRequestedRoute = isNoiseFreeBooking ? undefined : requestedRoute;
   const wixBookingFrontendActive = isWixBrowserClientConfigured();
   const canUseWixNativeCheckout =
     !isWixSubscriptionRedemption &&
     wixBookingsAuthoritative &&
     wixBookingFrontendActive &&
     selectedAddons.length === 0 &&
-    !requestedRoute;
+    !activeRequestedRoute;
   // A live Wix calendar has one reservation writer. Add-ons and captain-confirmed
   // route requests remain unavailable in that mode until they are represented by
   // native Wix catalog entities; falling back to local checkout would permit the
@@ -855,7 +900,7 @@ function BookContent() {
           pilotPhone,
           experienceLevel,
           addons: selectedAddons,
-          requestedRouteId: requestedRoute?.id,
+          requestedRouteId: activeRequestedRoute?.id,
           voucherCode: voucherDiscount > 0 ? voucherCode : undefined,
           notes,
         }),
@@ -1026,7 +1071,7 @@ function BookContent() {
           onSelectDate={setSelectedDate}
           selectedPackage={activePackage}
           packages={scopedPackages}
-          onSelectPackage={setSelectedPackage}
+          onSelectPackage={handleSelectPackage}
           slots={missionCompatibleSlots}
           selectedSlot={selectedSlot}
           onSelectSlot={setSelectedSlot}
@@ -1050,7 +1095,7 @@ function BookContent() {
           pilotPhone={pilotPhone}
           onChangePilotPhone={setPilotPhone}
           experienceLevel={experienceLevel}
-          onChangeExperienceLevel={setExperienceLevel}
+          onChangeExperienceLevel={handleChangeExperienceLevel}
           notes={notes}
           onChangeNotes={setNotes}
           voucherCode={voucherCode}
@@ -1126,7 +1171,7 @@ function BookContent() {
             onSelectDate={setSelectedDate}
             selectedPackage={activePackage}
             packages={scopedPackages}
-            onSelectPackage={setSelectedPackage}
+            onSelectPackage={handleSelectPackage}
             slots={missionCompatibleSlots}
             selectedSlot={selectedSlot}
             onSelectSlot={setSelectedSlot}
@@ -1356,7 +1401,7 @@ function BookContent() {
               <select
                 id={`${formId}-pilot-experience`}
                 value={experienceLevel}
-                onChange={(e) => setExperienceLevel(e.target.value as PilotExperienceLevel)}
+                onChange={(e) => handleChangeExperienceLevel(e.target.value as PilotExperienceLevel)}
                 className="w-full rounded-lg bg-slate-950 border border-slate-800 p-2.5 text-base sm:text-sm text-white focus:outline-none focus:border-sky-500"
               >
                 <option value="beginner">{t.experienceLevels.beginner}</option>
