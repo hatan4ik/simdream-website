@@ -41,6 +41,8 @@ const FINGERPRINT_FILES = [
   'tsconfig.json',
   'vitest.config.ts',
 ];
+/** Data files that automation rewrites on a schedule; hashing them would make every refresh PR fail docs:verify. */
+const VOLATILE_DATA = new Set(['lib/reviews/last-known-rating.json']);
 
 /** Passes when any pattern matches, or when every pattern matches if `allOf` is set. */
 type Item = { category: string; label: string; patterns: RegExp[]; allOf?: boolean };
@@ -78,7 +80,7 @@ function reviewSurfaceFiles(): string[] {
   );
   const files = listing
     .split('\0')
-    .filter((file) => file && SOURCE_EXTENSIONS.has(extension(file)) && !file.includes('/node_modules/'))
+    .filter((file) => file && SOURCE_EXTENSIONS.has(extension(file)) && !file.includes('/node_modules/') && !VOLATILE_DATA.has(file))
     .filter((file) => existsSync(file) && statSync(file).isFile());
   return [...new Set(files)].sort();
 }

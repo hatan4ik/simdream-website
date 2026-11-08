@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import type { Locator } from '@playwright/test';
 import { expect, LANGUAGES, preferLanguage } from '../support/e2e';
 import { test } from './support/fixtures';
@@ -6,6 +7,14 @@ import { gotoSettled, isolateFromThirdParties } from './support/page';
 test.use({ reducedMotion: 'no-preference', video: 'off' });
 
 const DIRECT_URL = 'https://search.google.com/local/reviews?placeid=test';
+// The offline fallback is refreshed weekly by automation (google-rating-refresh.yml): read it, never pin it.
+const KNOWN: { overallRating: number; totalReviewsCount: number } = JSON.parse(
+  readFileSync(new URL('../../lib/reviews/last-known-rating.json', import.meta.url), 'utf8')
+);
+const KNOWN_GRADE = KNOWN.overallRating.toFixed(1);
+// The bar formats counts for the locale (1,234), so the expectations do too.
+const KNOWN_COUNT = KNOWN.totalReviewsCount.toLocaleString('en-US');
+const KNOWN_COUNT_LABEL = `${KNOWN_COUNT} reviews`;
 
 function snapshot(totalReviewsCount: number, reviewCount = 3, overallRating = 4.9) {
   return {
@@ -227,8 +236,11 @@ test('keeps WhatsApp in the top bar on a 320px screen, where the navbar has no r
   expect(navOverflow).toBe(0);
 });
 
-/** Every star is drawn fully in yellow: the filled layer spans the whole star and its icon has a fill. */
-async function expectFullYellowStars(rating: Locator) {
+/**
+ * Five yellow stars filled to the last-known grade (all five while it is 5.0, 90% of the last at 4.9, as
+ * Google draws it): each filled layer spans its share of the star and its icon has a fill.
+ */
+async function expectLastKnownStars(rating: Locator) {
   const stars = rating.locator('[data-google-star]');
   await expect(stars).toHaveCount(5);
   const drawn = await stars.evaluateAll((elements) =>
@@ -243,12 +255,13 @@ async function expectFullYellowStars(rating: Locator) {
       };
     })
   );
-  for (const star of drawn) {
-    expect(star.fill).toBe('1.00');
-    expect(star.coverage).toBeGreaterThanOrEqual(0.99);
+  drawn.forEach((star, index) => {
+    const share = Math.max(0, Math.min(1, KNOWN.overallRating - index));
+    expect(star.fill).toBe(share.toFixed(2));
+    expect(star.coverage).toBeCloseTo(share, 1);
     expect(star.filled).toBe(true);
     expect(star.amber).toBe(true);
-  }
+  });
 }
 
 test('shows the grade, five full yellow stars and the count even when Google has no data to give', async ({ page }) => {
@@ -263,12 +276,12 @@ test('shows the grade, five full yellow stars and the count even when Google has
   await expect(summary).toHaveAttribute('data-google-rating-live', 'false');
   await expect(summary).toHaveAttribute('href', /search\.google\.com\/local\/reviews\?placeid=/);
   await expect(summary).toHaveAttribute('target', '_blank');
-  await expect(summary.locator('[data-google-rating-value]')).toHaveText('5.0');
-  await expect(summary.locator('[data-google-review-count]')).toHaveText('422 reviews');
-  await expectFullYellowStars(summary);
+  await expect(summary.locator('[data-google-rating-value]')).toHaveText(KNOWN_GRADE);
+  await expect(summary.locator('[data-google-review-count]')).toHaveText(KNOWN_COUNT_LABEL);
+  await expectLastKnownStars(summary);
   // No review text exists to show, so there is no dropdown and nothing is invented.
   await expect(bar.locator('[data-google-reviews-trigger]')).toHaveCount(0);
-  await expect(summary).toHaveAccessibleName(/5\.0 stars from 422 Google reviews/);
+  await expect(summary).toHaveAccessibleName(new RegExp(`${KNOWN_GRADE.replace('.', '\\.')} stars from ${KNOWN_COUNT} Google reviews`));
 });
 
 test('keeps the grade, stars and count on screen when the review service is down', async ({ page }) => {
@@ -276,22 +289,23 @@ test('keeps the grade, stars and count on screen when the review service is down
   await gotoSettled(page, '/');
 
   const summary = page.locator('[data-google-rating-summary]');
-  await expect(summary.locator('[data-google-rating-value]')).toHaveText('5.0');
-  await expect(summary.locator('[data-google-review-count]')).toHaveText('422 reviews');
-  await expectFullYellowStars(summary);
+  await expect(summary.locator('[data-google-rating-value]')).toHaveText(KNOWN_GRADE);
+  await expect(summary.locator('[data-google-review-count]')).toHaveText(KNOWN_COUNT_LABEL);
+  await expectLastKnownStars(summary);
 });
 
 test("replaces the last-known rating with Google's own numbers when only the rating is supplied", async ({ page }) => {
   // Google returned a rating and a count but no review texts: still live, still a plain link.
-  await page.route('**/api/reviews', (route) => route.fulfill({ json: snapshot(250, 0, 4.8) }));
+  const liveCount = KNOWN.totalReviewsCount + 1; // always differs from the fallback, whatever the last refresh wrote
+  await page.route('**/api/reviews', (route) => route.fulfill({ json: snapshot(liveCount, 0, 4.8) }));
   await gotoSettled(page, '/');
 
   const summary = page.locator('[data-google-rating-summary]');
   await expect(summary).toHaveAttribute('data-google-rating-live', 'true');
   await expect(summary).toHaveAttribute('href', DIRECT_URL);
   await expect(summary.locator('[data-google-rating-value]')).toHaveText('4.8');
-  await expect(summary.locator('[data-google-review-count]')).toHaveText('250 reviews');
-  await expect(page.locator('[data-site-utility-bar]')).not.toContainText('422');
+  await expect(summary.locator('[data-google-review-count]')).toHaveText(`${liveCount.toLocaleString('en-US')} reviews`);
+  await expect(page.locator('[data-site-utility-bar]')).not.toContainText(KNOWN_COUNT_LABEL);
 });
 
 for (const language of ['en', 'he'] as const) {
@@ -305,9 +319,9 @@ for (const language of ['en', 'he'] as const) {
 
     const summary = page.locator('[data-google-rating-summary]');
     await expect(summary.locator('[data-google-rating-value]')).toBeVisible();
-    await expect(summary.locator('[data-google-rating-value]')).toHaveText('5.0');
+    await expect(summary.locator('[data-google-rating-value]')).toHaveText(KNOWN_GRADE);
     await expect(summary.locator('[data-google-review-count]')).toBeVisible();
-    await expectFullYellowStars(summary);
+    await expectLastKnownStars(summary);
     expect((await box(page.locator('[data-site-utility-bar]'))).height).toBeLessThanOrEqual(48);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow).toBe(0);
