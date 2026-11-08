@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.4](https://github.com/hatan4ik/simdream-website/compare/v1.2.3...v1.2.4) (2026-11-08)
+
+
+### Bug Fixes
+
+* **vouchers:** fit digital gift card preview to whole frame ([#42](https://github.com/hatan4ik/simdream-website/issues/42)) ([35b2b33](https://github.com/hatan4ik/simdream-website/commit/35b2b3330a1caaa62e74176d345b3342c455fcd6))
+
 ## [1.2.3](https://github.com/hatan4ik/simdream-website/compare/v1.2.2...v1.2.3) (2026-11-07)
 
 
