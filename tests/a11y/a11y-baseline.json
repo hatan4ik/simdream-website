@@ -112,6 +112,9 @@
     "secondary not found page [studio]": [],
     "secondary password reset [brand]": [],
     "secondary password reset [cockpit]": [],
-    "secondary password reset [studio]": []
+    "secondary password reset [studio]": [],
+    "voucher gift card flow [brand]": [],
+    "voucher gift card flow [cockpit]": [],
+    "voucher gift card flow [studio]": []
   }
 }

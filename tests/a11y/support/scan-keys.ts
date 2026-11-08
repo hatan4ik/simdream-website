@@ -15,6 +15,8 @@ export const PUBLIC_SCAN_LANGUAGES: ReadonlyArray<{ language: Language; routes: 
 export const MOBILE_SCAN_ROUTES = ['/', '/book', '/vouchers'] as const;
 export const ADMIN_SCAN_ROUTES = ['/admin', '/admin/bookings', '/admin/vouchers', '/admin/workshops'] as const;
 export const BOOKING_SCAN_STATES = ['add-on step', 'manifest with errors', 'zero-slot state', 'wizard manifest step'] as const;
+/** /vouchers states a plain page scan never reaches: the certificate flow is the default, so the Gift Card flow is scanned here. */
+export const VOUCHER_SCAN_STATES = ['gift card flow'] as const;
 /** Pages outside PUBLIC_ROUTES that customers still land on: post-checkout, member, auth and error pages. */
 export const SECONDARY_SCAN_STATES = [
   'boarding pass (paid)',
@@ -26,11 +28,13 @@ export const SECONDARY_SCAN_STATES = [
 ] as const;
 
 export type BookingScanState = (typeof BOOKING_SCAN_STATES)[number];
+export type VoucherScanState = (typeof VOUCHER_SCAN_STATES)[number];
 export type SecondaryScanState = (typeof SECONDARY_SCAN_STATES)[number];
 
 export const publicScanKey = (route: string, theme: UiTheme, language: Language) => `public ${route} [${theme}/${language}]`;
 export const bookingScanKey = (state: BookingScanState, theme: UiTheme) => `booking ${state} [${theme}]`;
 export const secondaryScanKey = (state: SecondaryScanState, theme: UiTheme) => `secondary ${state} [${theme}]`;
+export const voucherScanKey = (state: VoucherScanState, theme: UiTheme) => `voucher ${state} [${theme}]`;
 export const mobileScanKey = (route: string) => `mobile ${route}`;
 export const adminScanKey = (route: string) => `admin ${route}`;
 
@@ -42,6 +46,7 @@ export function allScanKeys(): string[] {
     ),
     ...SCAN_THEMES.flatMap((theme) => BOOKING_SCAN_STATES.map((state) => bookingScanKey(state, theme))),
     ...SCAN_THEMES.flatMap((theme) => SECONDARY_SCAN_STATES.map((state) => secondaryScanKey(state, theme))),
+    ...SCAN_THEMES.flatMap((theme) => VOUCHER_SCAN_STATES.map((state) => voucherScanKey(state, theme))),
     ...MOBILE_SCAN_ROUTES.map(mobileScanKey),
     ...ADMIN_SCAN_ROUTES.map(adminScanKey),
   ];
