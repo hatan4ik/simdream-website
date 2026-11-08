@@ -79,7 +79,28 @@ describe('refresh-google-rating', () => {
         encoding: 'utf8',
         env: { PATH: process.env.PATH ?? '', NODE_ENV: 'test', ...env },
       });
-    const googleReturns = (status: number, body: string) => `globalThis.fetch = async () => new Response(${JSON.stringify(body)}, { status: ${status} });`;
+    const escapeForJsSource = (value: string) =>
+      value.replace(/[<>\u2028\u2029\b\f\n\r\t\0\\\/]/g, (ch) => {
+        switch (ch) {
+          case '<': return '\\u003C';
+          case '>': return '\\u003E';
+          case '/': return '\\u002F';
+          case '\\': return '\\\\';
+          case '\b': return '\\b';
+          case '\f': return '\\f';
+          case '\n': return '\\n';
+          case '\r': return '\\r';
+          case '\t': return '\\t';
+          case '\0': return '\\0';
+          case '\u2028': return '\\u2028';
+          case '\u2029': return '\\u2029';
+          default: return ch;
+        }
+      });
+    const googleReturns = (status: number, body: string) => {
+      const safeBodyLiteral = escapeForJsSource(JSON.stringify(body));
+      return `globalThis.fetch = async () => new Response(${safeBodyLiteral}, { status: ${status} });`;
+    };
 
     it('prints exactly the data file text on stdout and nothing else', () => {
       const result = run({ GOOGLE_PLACES_API_KEY: 'k' }, googleReturns(200, '{"rating":4.86,"userRatingCount":500}'));
