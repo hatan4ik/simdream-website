@@ -46,11 +46,8 @@ export function GiftCardDesignPicker({
           unoptimized
           className="block h-full w-full object-cover object-center scale-[1.3] transition-transform duration-300"
         />
-        <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/90 via-slate-950/50 to-transparent px-5 pb-3.5 pt-10 text-xs font-semibold text-white flex items-center justify-between">
-          <span>{t.vouchers[selected.nameKey]}</span>
-          <span className="text-[10px] font-mono uppercase tracking-wider text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded border border-orange-500/20">
-            {t.vouchers.officialGiftCard}
-          </span>
+        <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/90 via-slate-950/50 to-transparent px-5 pb-3.5 pt-10 text-xs font-semibold text-white">
+          {t.vouchers[selected.nameKey]}
         </figcaption>
       </figure>
 
