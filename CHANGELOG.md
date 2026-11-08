@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.0](https://github.com/hatan4ik/simdream-website/compare/v1.6.0...v1.7.0) (2026-11-08)
+
+
+### Features
+
+* **marketing:** emotion-first hero copy and a calm /fear-of-flying landing page ([#62](https://github.com/hatan4ik/simdream-website/issues/62)) ([2b1787c](https://github.com/hatan4ik/simdream-website/commit/2b1787c6a0e0c6156cdb4a76d7c1a18c57d6b7ed))
+
 ## [1.6.0](https://github.com/hatan4ik/simdream-website/compare/v1.5.0...v1.6.0) (2026-11-08)
 
 
