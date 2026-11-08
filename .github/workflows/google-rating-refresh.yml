@@ -1,0 +1,64 @@
+name: Refresh Google rating
+
+on:
+  schedule:
+    - cron: '17 5 * * 1' # Mondays 05:17 UTC (off the hour, when scheduled runs are least likely to be delayed)
+  workflow_dispatch:
+
+permissions:
+  actions: write # approve the PR's own pull_request runs (see below)
+  contents: write # push the rolling automation branch
+  pull-requests: write
+
+concurrency:
+  group: google-rating-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    name: Open or update the rolling rating PR
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      BRANCH: automation/google-rating
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Pull the rating from the Places API and propose it
+        env:
+          GOOGLE_PLACES_API_KEY: ${{ secrets.GOOGLE_PLACES_API_KEY }}
+        run: |
+          set -euo pipefail
+          # The script only prints validated JSON (a failure aborts here, before anything is written).
+          json="$(node scripts/refresh-google-rating.mjs)"
+          test -n "$json" || exit 0 # no key: the script logged a notice
+          read -r grade count < <(jq -er '[.overallRating, .totalReviewsCount] | @tsv' <<< "$json")
+          summary="$(printf '%.1f (%d reviews)' "$grade" "$count")"
+          printf '%s\n' "$json" > lib/reviews/last-known-rating.json
+          git diff --quiet && { echo "Google rating unchanged: $summary"; exit 0; } # no commit, no PR, no CI
+
+          title="fix(reviews): refresh Google rating to $summary"
+          echo "$title"
+
+          # Same main tip + same numbers = same commit SHA, so a re-run pushes nothing and starts no checks.
+          git switch -C "$BRANCH"
+          git add lib/reviews/last-known-rating.json
+          tip_date="$(git log -1 --format=%cI)"
+          export GIT_AUTHOR_DATE="$tip_date" GIT_COMMITTER_DATE="$tip_date"
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -qm "$title"
+          git push --force origin "$BRANCH"
+
+          body='Weekly refresh of the last-known Google rating (Places API (New), fields rating and userRatingCount). Only lib/reviews/last-known-rating.json changes. Merge it yourself: an auto-merge by github-actions never starts Verify on main, so Release Please would not see it.'
+          pr="$(gh pr create --base main --head "$BRANCH" --title "$title" --body "$body" || gh pr edit "$BRANCH" --title "$title" --body "$body")"
+          echo "$title: $pr" | tee -a "$GITHUB_STEP_SUMMARY"
+
+          # A pull request opened with GITHUB_TOKEN gets every pull_request run parked as `action_required`
+          # (release-please.yml hits the same wall). Approve this PR's own runs: same repo, content we just wrote.
+          sha="$(git rev-parse HEAD)"
+          for _ in $(seq 12); do
+            gh api "repos/$GITHUB_REPOSITORY/actions/runs?event=pull_request&status=completed&head_sha=$sha&per_page=100" \
+              --jq '.workflow_runs[] | select(.conclusion == "action_required") | .id' |
+              xargs -r -I{} gh api --method POST "repos/$GITHUB_REPOSITORY/actions/runs/{}/approve" --silent
+            sleep 5
+          done

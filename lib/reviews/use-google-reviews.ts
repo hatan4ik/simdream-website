@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { FACILITY_INFO } from '@/lib/config/facility-info';
+import lastKnownRating from '@/lib/reviews/last-known-rating.json';
 import type { Language } from '@/lib/i18n/translations';
 
 export interface LiveGoogleReview {
@@ -26,13 +27,14 @@ export interface LiveGoogleReviewsSnapshot extends GoogleReviewsFeed {
 }
 
 /**
- * The aggregate shown on the Google listing, read from the screenshot the owner supplied on
- * 2026-11-08 (5.0 from 422 reviews). It is the only thing shown while the server has no Google data
- * (the Places key is not configured, or a refresh failed), so the bar never draws an empty rating.
- * It carries no review text, is never presented as a fresh fetch, and Google's own numbers replace
- * it as soon as /api/reviews returns them. Update it when the listing's totals change.
+ * The aggregate shown on the Google listing (grade and count only, never review text). It is the
+ * only thing shown while the server has no Google data (the Places key is not configured, or a
+ * refresh failed), so the bar never draws an empty rating. It is never presented as a fresh fetch,
+ * and Google's own numbers replace it as soon as /api/reviews returns them. The numbers live in
+ * last-known-rating.json, which .github/workflows/google-rating-refresh.yml refreshes weekly from
+ * the official Places API (New); do not edit them by hand.
  */
-export const LAST_KNOWN_GOOGLE_RATING = { overallRating: 5, totalReviewsCount: 422 } as const;
+export const LAST_KNOWN_GOOGLE_RATING = lastKnownRating;
 
 const LAST_KNOWN_SNAPSHOT: LiveGoogleReviewsSnapshot = {
   ...LAST_KNOWN_GOOGLE_RATING,

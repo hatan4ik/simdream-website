@@ -1,5 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { FACILITY_INFO } from '@/lib/config/facility-info';
+import lastKnown from '@/lib/reviews/last-known-rating.json';
+
+// The fallback numbers are refreshed weekly by automation (google-rating-refresh.yml), so the
+// expectations come from the data file; a refresh PR must never fail on a pinned number.
+const { overallRating: KNOWN_RATING, totalReviewsCount: KNOWN_COUNT } = lastKnown;
 
 const REVIEW = { id: 'r1', author: 'Maya', rating: 5, quote: 'Great flight.', relativeTime: 'a week ago', language: 'en' };
 
@@ -24,10 +29,12 @@ describe('Google reviews browser data', () => {
   it('shows the labelled last-known rating, with no review texts, until Google data arrives', async () => {
     const { displaySnapshot, LAST_KNOWN_GOOGLE_RATING } = await loadHook(vi.fn());
 
-    expect(LAST_KNOWN_GOOGLE_RATING).toEqual({ overallRating: 5, totalReviewsCount: 422 });
+    expect(LAST_KNOWN_GOOGLE_RATING).toEqual(lastKnown);
+    expect(KNOWN_RATING).toBeGreaterThan(0);
+    expect(Number.isInteger(KNOWN_COUNT) && KNOWN_COUNT > 0).toBe(true);
     expect(displaySnapshot()).toEqual({
-      overallRating: 5,
-      totalReviewsCount: 422,
+      overallRating: KNOWN_RATING,
+      totalReviewsCount: KNOWN_COUNT,
       directReviewsUrl: FACILITY_INFO.googleReviewsDirectUrl,
       reviews: [],
       live: false,
@@ -67,7 +74,7 @@ describe('Google reviews browser data', () => {
       const { loadGoogleReviews, displaySnapshot } = await loadHook(vi.fn().mockResolvedValue(response));
 
       await expect(loadGoogleReviews()).resolves.toBeNull();
-      expect(displaySnapshot()).toMatchObject({ overallRating: 5, totalReviewsCount: 422, live: false });
+      expect(displaySnapshot()).toMatchObject({ overallRating: KNOWN_RATING, totalReviewsCount: KNOWN_COUNT, live: false });
     }
   });
 
@@ -75,7 +82,7 @@ describe('Google reviews browser data', () => {
     const { loadGoogleReviews, displaySnapshot } = await loadHook(vi.fn().mockRejectedValue(new Error('offline')));
 
     await expect(loadGoogleReviews()).resolves.toBeNull();
-    expect(displaySnapshot()).toMatchObject({ totalReviewsCount: 422, live: false });
+    expect(displaySnapshot()).toMatchObject({ totalReviewsCount: KNOWN_COUNT, live: false });
   });
 
   it('keeps the last good live numbers when a later refresh fails', async () => {
