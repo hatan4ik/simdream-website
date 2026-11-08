@@ -92,5 +92,31 @@ describe('Wix Headless cutover readiness', () => {
     expect(report.canRunShadowReads).toBe(false);
     expect(report.canPilotWixBookings).toBe(false);
     expect(report.canRouteSubscriptionCheckout).toBe(true);
+    expect(report.canRouteGiftCardCheckout).toBe(true);
+  });
+
+  it('blocks gift card checkout routing when Wix Gift Card preset variants drift', () => {
+    const report = assessWixReadiness({
+      wixConfigured: true,
+      unmappedPackageIds: [],
+      catalogMismatches: [],
+      sharedCapacityResourceTypeIds: ['boeing-737-resource-type'],
+      expectedSubscriptionPassIds: PASS_IDS,
+      resolvedSubscriptionPassIds: PASS_IDS,
+      giftCardMismatches: [
+        {
+          designId: 'skyline',
+          amountIls: 50,
+          field: 'variant_missing',
+          expected: '1110f759-2c10-48d0-8642-6440a873479a',
+          actual: 'missing',
+        },
+      ],
+    });
+
+    expect(report.giftCardsAligned).toBe(false);
+    expect(report.canRouteGiftCardCheckout).toBe(false);
+    expect(report.canPilotWixBookings).toBe(true);
+    expect(report.blockers.map((blocker) => blocker.code)).toEqual(['gift-card-drift']);
   });
 });

@@ -1,12 +1,14 @@
 import type { SubscriptionPassId } from '@/lib/data/subscription-passes';
 import type { CatalogMismatch } from './bookings';
+import type { GiftCardVariantMismatch } from './gift-cards';
 
 export type WixReadinessBlockerCode =
   | 'wix-not-configured'
   | 'unmapped-packages'
   | 'catalog-drift'
   | 'no-shared-capacity-resource'
-  | 'unresolved-subscription-plans';
+  | 'unresolved-subscription-plans'
+  | 'gift-card-drift';
 
 export interface WixReadinessBlocker {
   code: WixReadinessBlockerCode;
@@ -21,15 +23,19 @@ export interface WixReadinessInput {
   sharedCapacityResourceTypeIds: readonly string[];
   expectedSubscriptionPassIds: readonly SubscriptionPassId[];
   resolvedSubscriptionPassIds: readonly SubscriptionPassId[];
+  /** Optional Wix Gift Card product & preset variant reconciliation mismatches. */
+  giftCardMismatches?: readonly GiftCardVariantMismatch[];
 }
 
 export interface WixReadinessReport {
   catalogAligned: boolean;
   capacityPoolAligned: boolean;
+  giftCardsAligned: boolean;
   unresolvedSubscriptionPassIds: SubscriptionPassId[];
   canRunShadowReads: boolean;
   canPilotWixBookings: boolean;
   canRouteSubscriptionCheckout: boolean;
+  canRouteGiftCardCheckout: boolean;
   blockers: WixReadinessBlocker[];
 }
 
@@ -43,6 +49,7 @@ export function assessWixReadiness(input: WixReadinessInput): WixReadinessReport
   const expectedPlanIds = [...new Set(input.expectedSubscriptionPassIds)];
   const resolvedPlanIds = new Set(input.resolvedSubscriptionPassIds);
   const unresolvedSubscriptionPassIds = expectedPlanIds.filter((id) => !resolvedPlanIds.has(id));
+  const giftCardMismatches = input.giftCardMismatches ?? [];
   const blockers: WixReadinessBlocker[] = [];
 
   if (!input.wixConfigured) {
@@ -82,18 +89,31 @@ export function assessWixReadiness(input: WixReadinessInput): WixReadinessReport
     });
   }
 
+  if (giftCardMismatches.length > 0) {
+    const drift = giftCardMismatches
+      .map((mismatch) => `${mismatch.designId}(₪${mismatch.amountIls}):${mismatch.field}`)
+      .join(', ');
+    blockers.push({
+      code: 'gift-card-drift',
+      message: `Wix Gift Card product differs from the SimDream signature design tiers: ${drift}.`,
+    });
+  }
+
   const catalogAligned = input.unmappedPackageIds.length === 0 && input.catalogMismatches.length === 0;
   const capacityPoolAligned = input.sharedCapacityResourceTypeIds.length > 0;
+  const giftCardsAligned = giftCardMismatches.length === 0;
   const bookingPoolReady = catalogAligned && capacityPoolAligned;
   const wixReachable = input.wixConfigured;
 
   return {
     catalogAligned,
     capacityPoolAligned,
+    giftCardsAligned,
     unresolvedSubscriptionPassIds,
     canRunShadowReads: wixReachable && bookingPoolReady,
     canPilotWixBookings: wixReachable && bookingPoolReady,
     canRouteSubscriptionCheckout: wixReachable && unresolvedSubscriptionPassIds.length === 0,
+    canRouteGiftCardCheckout: wixReachable && giftCardsAligned,
     blockers,
   };
 }

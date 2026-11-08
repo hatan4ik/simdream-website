@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { giftCertificateAmount, giftCertificatePackageById } from '@/lib/catalog/gift-voucher-packages';
-import { getGiftCardDesign, type GiftCardDesignId } from '@/lib/catalog/gift-card-designs';
+import { GIFT_CARD_DESIGNS, getGiftCardDesign, type GiftCardDesignId } from '@/lib/catalog/gift-card-designs';
 import { getWixClient, wixPost } from './client';
 import { isWixConfigured } from './config';
 import {
@@ -251,4 +251,79 @@ export async function createWixGiftCardCheckout(
     amountIls: resolvedAmountIls,
   };
 }
+
+export interface GiftCardVariantMismatch {
+  designId: string;
+  amountIls: number;
+  field: 'product_missing' | 'variant_missing' | 'variant_id' | 'price';
+  expected: string;
+  actual: string;
+}
+
+/**
+ * Verifies that the live Wix Gift Card product exists and carries all 7
+ * signature design preset variants (50, 100, 200, 300, 500, 700, 1000 ILS)
+ * with their canonical Wix variant UUIDs.
+ */
+export function reconcileGiftCardProduct(
+  products: readonly WixGiftCardProduct[]
+): GiftCardVariantMismatch[] {
+  const product =
+    products.find((entry) => entry.id === WIX_GIFT_CARD_PRODUCT_ID) ?? products[0];
+
+  if (!product) {
+    return [
+      {
+        designId: 'product',
+        amountIls: 0,
+        field: 'product_missing',
+        expected: WIX_GIFT_CARD_PRODUCT_ID,
+        actual: 'no gift card product found',
+      },
+    ];
+  }
+
+  const mismatches: GiftCardVariantMismatch[] = [];
+  for (const design of GIFT_CARD_DESIGNS) {
+    const byId = product.presetVariants.find((variant) => variant.id === design.wixVariantId);
+    const byAmount = product.presetVariants.find(
+      (variant) => Number(variant.price.amount) === design.amountIls
+    );
+    const matched = byId ?? byAmount;
+
+    if (!matched) {
+      mismatches.push({
+        designId: design.id,
+        amountIls: design.amountIls,
+        field: 'variant_missing',
+        expected: design.wixVariantId,
+        actual: 'missing',
+      });
+      continue;
+    }
+
+    if (matched.id !== design.wixVariantId) {
+      mismatches.push({
+        designId: design.id,
+        amountIls: design.amountIls,
+        field: 'variant_id',
+        expected: design.wixVariantId,
+        actual: matched.id,
+      });
+    }
+
+    if (Number(matched.price.amount) !== design.amountIls) {
+      mismatches.push({
+        designId: design.id,
+        amountIls: design.amountIls,
+        field: 'price',
+        expected: String(design.amountIls),
+        actual: matched.price.amount,
+      });
+    }
+  }
+
+  return mismatches;
+}
+
 
