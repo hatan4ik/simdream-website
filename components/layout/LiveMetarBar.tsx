@@ -4,8 +4,7 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { ChevronDown, ExternalLink, Star, X } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n/language-context';
 import type { Language } from '@/lib/i18n/translations';
-import { FACILITY_INFO } from '@/lib/config/facility-info';
-import { useGoogleReviews } from '@/lib/reviews/use-google-reviews';
+import { useGoogleReviews, type LiveGoogleReviewsSnapshot } from '@/lib/reviews/use-google-reviews';
 import { LanguageSelector } from './LanguageSelector';
 import { SOCIAL_CHANNELS } from './social-channels';
 import { WhatsAppAction } from './WhatsAppAction';
@@ -129,6 +128,23 @@ function RatingStars({ rating }: { rating: number }) {
   );
 }
 
+/** Same order and weight as Google's own rating row: large score, stars, grey count. */
+function RatingRow({ snapshot, language, formattedCount }: { snapshot: LiveGoogleReviewsSnapshot; language: Language; formattedCount: string }) {
+  return (
+    <>
+      {/* The score is dropped only on the narrowest phones, where it stays in the accessible name. */}
+      <span data-google-rating-value className="hidden shrink-0 text-base font-light leading-none tabular-nums text-slate-300 min-[380px]:inline min-[420px]:text-xl" translate="no">
+        {snapshot.overallRating.toFixed(1)}
+      </span>
+      <RatingStars rating={snapshot.overallRating} />
+      <span data-google-review-count className="shrink-0 whitespace-nowrap text-slate-400">
+        {formattedCount}
+        <span className="hidden sm:inline"> {reviewNoun(language, snapshot.totalReviewsCount)}</span>
+      </span>
+    </>
+  );
+}
+
 function reviewDirection(language: Language): 'rtl' | 'ltr' {
   return language === 'he' || language === 'ar' ? 'rtl' : 'ltr';
 }
@@ -147,9 +163,10 @@ function localeFor(language: Language): string {
 }
 
 /**
- * Persistent site utility bar. It deliberately carries only independently
- * verified Google review data; when the backend lacks Google credentials, the
- * control links to the public Google profile rather than inventing a rating.
+ * Persistent site utility bar. The rating row always shows a grade, five stars and a review count.
+ * With Google review texts it opens a dropdown of recent reviews; without them (live numbers but no
+ * text, or the labelled last-known rating while the server has no Google data) it is a plain link to
+ * the Google profile. Review texts are never invented.
  */
 export function LiveMetarBar() {
   const { language } = useLanguage();
@@ -158,12 +175,10 @@ export function LiveMetarBar() {
   const [isOpen, setIsOpen] = useState(false);
   const reviewsPanelId = useId();
   const triggerRef = useRef<HTMLButtonElement>(null);
-  const reviews = snapshot?.reviews.slice(0, 10) ?? [];
+  const reviews = snapshot.reviews.slice(0, 10);
   // The dropdown is a short, scannable list; the full set stays one click away on Google.
   const dropdownReviews = reviews.slice(0, DROPDOWN_REVIEW_LIMIT);
-  const formattedCount = snapshot
-    ? new Intl.NumberFormat(localeFor(language)).format(snapshot.totalReviewsCount)
-    : '';
+  const formattedCount = new Intl.NumberFormat(localeFor(language)).format(snapshot.totalReviewsCount);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -193,7 +208,7 @@ export function LiveMetarBar() {
         {/* A phone keeps the rating and the quick links on one centred row and only wraps them when
             the screen is too narrow for both; nothing is ever drawn on top of anything else. */}
         <div className="max-w-full flex-none sm:relative sm:min-w-0 sm:flex-1 lg:flex-none">
-          {snapshot && reviews.length > 0 ? (
+          {reviews.length > 0 ? (
             <button
               ref={triggerRef}
               type="button"
@@ -203,15 +218,7 @@ export function LiveMetarBar() {
               onClick={() => setIsOpen((open) => !open)}
               className="flex min-h-11 w-auto min-w-0 items-center justify-center gap-1.5 rounded-lg px-1 text-sm transition-colors hover:bg-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-inset touch-manipulation sm:w-full sm:gap-2.5 sm:px-2 lg:w-auto"
             >
-              {/* Same order and weight as Google's own rating row: large score, stars, grey count. */}
-              <span data-google-rating-value className="hidden shrink-0 text-xl font-light leading-none tabular-nums text-slate-300 min-[420px]:inline" translate="no">
-                {snapshot.overallRating.toFixed(1)}
-              </span>
-              <RatingStars rating={snapshot.overallRating} />
-              <span data-google-review-count className="shrink-0 whitespace-nowrap text-slate-400">
-                {formattedCount}
-                <span className="hidden sm:inline"> {reviewNoun(language, snapshot.totalReviewsCount)}</span>
-              </span>
+              <RatingRow snapshot={snapshot} language={language} formattedCount={formattedCount} />
               <ChevronDown
                 className={`h-4 w-4 shrink-0 text-sky-300 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
                 aria-hidden="true"
@@ -222,23 +229,21 @@ export function LiveMetarBar() {
             </button>
           ) : (
             <a
-              href={FACILITY_INFO.googleReviewsDirectUrl}
+              href={snapshot.directReviewsUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex min-h-11 items-center gap-2 whitespace-nowrap rounded-lg px-1.5 text-xs font-semibold text-sky-300 transition-colors hover:bg-slate-900 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-inset touch-manipulation"
+              data-google-rating-summary
+              data-google-rating-live={snapshot.live ? 'true' : 'false'}
+              className="flex min-h-11 w-auto min-w-0 items-center justify-center gap-1.5 rounded-lg px-1 text-sm transition-colors hover:bg-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-inset touch-manipulation sm:w-full sm:gap-2.5 sm:px-2 lg:w-auto"
             >
-              <span className="flex shrink-0 items-center gap-0.5" aria-hidden="true" data-google-reviews-stars="unrated">
-                {Array.from({ length: 5 }, (_, index) => (
-                  <Star key={index} className="h-3.5 w-3.5 text-amber-500" />
-                ))}
+              <RatingRow snapshot={snapshot} language={language} formattedCount={formattedCount} />
+              <ExternalLink className="h-3.5 w-3.5 shrink-0 text-sky-300" aria-hidden="true" />
+              <span className="sr-only">
+                {copy.rating(snapshot.overallRating.toFixed(1), formattedCount)}. {copy.unavailable}
               </span>
-              <span translate="no">Google</span>
-              {/* A phone has no room for the words; they stay in the accessible name. */}
-              <span className="sr-only text-slate-300 sm:not-sr-only">{copy.heading}</span>
-              <ExternalLink className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
             </a>
           )}
-          {snapshot && isOpen ? (
+          {isOpen && reviews.length > 0 ? (
             <section
               id={reviewsPanelId}
               data-google-reviews-panel

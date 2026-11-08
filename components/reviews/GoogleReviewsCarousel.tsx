@@ -126,7 +126,8 @@ export function GoogleReviewsCarousel() {
     return () => window.clearInterval(timer);
   }, [isPaused, snapshot]);
 
-  if (!snapshot) return null;
+  // The carousel shows review texts only; a rating without texts is the utility bar's job.
+  if (snapshot.reviews.length === 0) return null;
 
   const reviews = snapshot.reviews;
   const activeReview = reviews[activeIndex] || reviews[0];

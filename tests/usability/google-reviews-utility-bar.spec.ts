@@ -227,15 +227,89 @@ test('keeps WhatsApp in the top bar on a 320px screen, where the navbar has no r
   expect(navOverflow).toBe(0);
 });
 
-test('shows five stars even before Google review data is available, without inventing a rating', async ({ page }) => {
+/** Every star is drawn fully in yellow: the filled layer spans the whole star and its icon has a fill. */
+async function expectFullYellowStars(rating: Locator) {
+  const stars = rating.locator('[data-google-star]');
+  await expect(stars).toHaveCount(5);
+  const drawn = await stars.evaluateAll((elements) =>
+    elements.map((star) => {
+      const layer = star.querySelector('span') as HTMLElement;
+      const icon = layer.querySelector('svg') as SVGElement;
+      return {
+        fill: star.getAttribute('data-star-fill'),
+        coverage: layer.getBoundingClientRect().width / star.getBoundingClientRect().width,
+        filled: getComputedStyle(icon).fill !== 'none',
+        amber: icon.getAttribute('class')?.includes('fill-amber-400') ?? false,
+      };
+    })
+  );
+  for (const star of drawn) {
+    expect(star.fill).toBe('1.00');
+    expect(star.coverage).toBeGreaterThanOrEqual(0.99);
+    expect(star.filled).toBe(true);
+    expect(star.amber).toBe(true);
+  }
+}
+
+test('shows the grade, five full yellow stars and the count even when Google has no data to give', async ({ page }) => {
+  // The server answers "no data" (no Places key, or a failed refresh): the bar must still show a rating.
   await page.route('**/api/reviews', (route) =>
     route.fulfill({ json: { overallRating: 0, totalReviewsCount: 0, directReviewsUrl: DIRECT_URL, reviews: [] } })
   );
   await gotoSettled(page, '/');
 
   const bar = page.locator('[data-site-utility-bar]');
-  await expect(bar.locator('[data-google-reviews-stars="unrated"] svg.lucide-star')).toHaveCount(5);
+  const summary = bar.locator('[data-google-rating-summary]');
+  await expect(summary).toHaveAttribute('data-google-rating-live', 'false');
+  await expect(summary).toHaveAttribute('href', /search\.google\.com\/local\/reviews\?placeid=/);
+  await expect(summary).toHaveAttribute('target', '_blank');
+  await expect(summary.locator('[data-google-rating-value]')).toHaveText('5.0');
+  await expect(summary.locator('[data-google-review-count]')).toHaveText('422 reviews');
+  await expectFullYellowStars(summary);
+  // No review text exists to show, so there is no dropdown and nothing is invented.
   await expect(bar.locator('[data-google-reviews-trigger]')).toHaveCount(0);
-  await expect(bar.getByRole('link', { name: /Google/ })).toHaveAttribute('target', '_blank');
-  await expect(bar).not.toContainText('4.9');
+  await expect(summary).toHaveAccessibleName(/5\.0 stars from 422 Google reviews/);
 });
+
+test('keeps the grade, stars and count on screen when the review service is down', async ({ page }) => {
+  await page.route('**/api/reviews', (route) => route.fulfill({ status: 500, json: { error: 'down' } }));
+  await gotoSettled(page, '/');
+
+  const summary = page.locator('[data-google-rating-summary]');
+  await expect(summary.locator('[data-google-rating-value]')).toHaveText('5.0');
+  await expect(summary.locator('[data-google-review-count]')).toHaveText('422 reviews');
+  await expectFullYellowStars(summary);
+});
+
+test("replaces the last-known rating with Google's own numbers when only the rating is supplied", async ({ page }) => {
+  // Google returned a rating and a count but no review texts: still live, still a plain link.
+  await page.route('**/api/reviews', (route) => route.fulfill({ json: snapshot(250, 0, 4.8) }));
+  await gotoSettled(page, '/');
+
+  const summary = page.locator('[data-google-rating-summary]');
+  await expect(summary).toHaveAttribute('data-google-rating-live', 'true');
+  await expect(summary).toHaveAttribute('href', DIRECT_URL);
+  await expect(summary.locator('[data-google-rating-value]')).toHaveText('4.8');
+  await expect(summary.locator('[data-google-review-count]')).toHaveText('250 reviews');
+  await expect(page.locator('[data-site-utility-bar]')).not.toContainText('422');
+});
+
+for (const language of ['en', 'he'] as const) {
+  test(`shows the grade beside the stars on a 390px phone without wrapping (${language})`, async ({ page }) => {
+    await page.route('**/api/reviews', (route) =>
+      route.fulfill({ json: { overallRating: 0, totalReviewsCount: 0, directReviewsUrl: DIRECT_URL, reviews: [] } })
+    );
+    await preferLanguage(page, language);
+    await page.setViewportSize({ width: 390, height: 800 });
+    await gotoSettled(page, '/');
+
+    const summary = page.locator('[data-google-rating-summary]');
+    await expect(summary.locator('[data-google-rating-value]')).toBeVisible();
+    await expect(summary.locator('[data-google-rating-value]')).toHaveText('5.0');
+    await expect(summary.locator('[data-google-review-count]')).toBeVisible();
+    await expectFullYellowStars(summary);
+    expect((await box(page.locator('[data-site-utility-bar]'))).height).toBeLessThanOrEqual(48);
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow).toBe(0);
+  });
+}

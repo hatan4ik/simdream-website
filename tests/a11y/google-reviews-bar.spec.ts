@@ -5,8 +5,9 @@ import { freezeCssMotion, gotoSettled, isolateFromThirdParties } from '../usabil
 import { WCAG_A_AA_TAGS } from './support/axe-baseline';
 import { SCAN_THEMES } from './support/scan-keys';
 
-// The public-route scans run without Google review data, so they never see the rating row or its
-// dropdown. This scan mocks the review feed and holds that part of the utility bar to zero violations.
+// The public-route scans run without Google review data, so they only see the last-known rating link,
+// never the dropdown. This scan mocks the review feed and holds both states of the utility bar's
+// rating row (dropdown with review texts, and the plain rating link) to zero violations.
 test.use({ reducedMotion: 'reduce', video: 'off' });
 
 const FEED = {
@@ -47,6 +48,24 @@ for (const theme of SCAN_THEMES) {
           `axe violations with the dropdown ${open ? 'open' : 'closed'}`
         ).toEqual([]);
       }
+    });
+
+    test(`Google rating link has no WCAG A/AA violations without review texts (${theme}, ${language})`, async ({ page, baseURL }) => {
+      await isolateFromThirdParties(page, baseURL);
+      // "No data": the bar falls back to the last-known grade, stars and count as a plain link.
+      await page.route('**/api/reviews', (route) =>
+        route.fulfill({ json: { overallRating: 0, totalReviewsCount: 0, directReviewsUrl: FEED.directReviewsUrl, reviews: [] } })
+      );
+      await preferTheme(page, theme);
+      await preferLanguage(page, language);
+      await gotoSettled(page, '/');
+
+      await expect(page.locator('[data-google-rating-summary]')).toBeVisible();
+      await freezeCssMotion(page);
+      const results = await new AxeBuilder({ page }).include('[data-site-utility-bar]').withTags(WCAG_A_AA_TAGS).analyze();
+      expect(
+        results.violations.map((violation) => ({ rule: violation.id, targets: violation.nodes.map((node) => node.target.join(' ')) }))
+      ).toEqual([]);
     });
   }
 }
