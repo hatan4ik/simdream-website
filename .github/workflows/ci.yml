@@ -34,6 +34,11 @@ jobs:
     timeout-minutes: 5
     outputs:
       fast_path: ${{ steps.classify.outputs.fast_path }}
+      # True when every changed path is Markdown or under docs/: the browser, load,
+      # Lighthouse and Wix preview stages are skipped because no .md is read by the
+      # application or its build. quality (incl. the GENESIS.md fingerprint over
+      # README.md, TESTING.md and the specs), secret-scan and build still run.
+      docs_only: ${{ steps.classify.outputs.docs_only }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -62,23 +67,53 @@ jobs:
             source='explicit generated Release Please verification'
           elif test "$GITHUB_EVENT_NAME" = 'push' && test "$GITHUB_REF" = 'refs/heads/main'; then
             case "$(git log -1 --format=%s)" in
-              'chore(main): release '*) ;;
-              *)
-                echo 'fast_path=false' >> "$GITHUB_OUTPUT"
-                echo 'Normal source change: complete browser quality matrix required.' >> "$GITHUB_STEP_SUMMARY"
-                exit 0
+              'chore(main): release '*)
+                # The exact title is deliberately not used as a trust boundary. It
+                # merely selects the fast path; the allowed-file diff and verified
+                # parent checks below make the decision fail closed.
+                base_sha="$(git rev-parse HEAD^)"
+                source='merged generated Release Please commit'
                 ;;
             esac
-            # The exact title is deliberately not used as a trust boundary. It
-            # merely selects the fast path; the allowed-file diff and verified
-            # parent checks below make the decision fail closed.
-            base_sha="$(git rev-parse HEAD^)"
-            source='merged generated Release Please commit'
           fi
 
           if test -z "$source"; then
+            # Not a generated release. Decide whether this is a documentation-only
+            # change: the diff against the base (PR base, or the squash parent on
+            # main; the repository enforces squash merges and linear history) must
+            # be non-empty and contain only *.md files or paths under docs/.
+            docs_base=''
+            if test "$GITHUB_EVENT_NAME" = 'pull_request' && test -n "$BASE_SHA"; then
+              docs_base="$(git merge-base "$BASE_SHA" HEAD)"
+            elif test "$GITHUB_EVENT_NAME" = 'push' && test "$GITHUB_REF" = 'refs/heads/main'; then
+              docs_base="$(git rev-parse HEAD^)"
+            fi
+            docs_only=false
+            if test -n "$docs_base"; then
+              changed_paths="$(git diff --name-only "$docs_base" HEAD)"
+              if test -n "$changed_paths"; then
+                docs_only=true
+                while IFS= read -r changed_path; do
+                  case "$changed_path" in
+                    *.md|docs/*) ;;
+                    *) docs_only=false; break ;;
+                  esac
+                done <<< "$changed_paths"
+              fi
+            fi
             echo 'fast_path=false' >> "$GITHUB_OUTPUT"
-            echo 'Normal source change: complete browser quality matrix required.' >> "$GITHUB_STEP_SUMMARY"
+            echo "docs_only=$docs_only" >> "$GITHUB_OUTPUT"
+            if test "$docs_only" = 'true'; then
+              {
+                echo '### Documentation-only change'
+                echo
+                echo '- Every changed path is Markdown or under `docs/`; nothing the application or its build reads.'
+                echo '- Typecheck, Vitest, the GENESIS.md coverage and fingerprint check, the secret scan and the production build still run.'
+                echo '- Browser, visual, load, Lighthouse and Wix preview stages are skipped (no behaviour can have changed).'
+              } >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo 'Normal source change: complete browser quality matrix required.' >> "$GITHUB_STEP_SUMMARY"
+            fi
             exit 0
           fi
 
@@ -94,6 +129,7 @@ jobs:
           test -n "$verify_url" || { echo "No successful main Verify run attests parent $base_sha." >&2; exit 1; }
 
           echo 'fast_path=true' >> "$GITHUB_OUTPUT"
+          echo 'docs_only=false' >> "$GITHUB_OUTPUT"
           {
             echo '### Generated release lineage accepted'
             echo
@@ -209,31 +245,31 @@ jobs:
           - { project: mobile-safari, browser: webkit, test_path: tests/e2e/mobile.spec.ts }
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-        if: needs.release-integrity.outputs.fast_path != 'true'
+        if: needs.release-integrity.outputs.fast_path != 'true' && needs.release-integrity.outputs.docs_only != 'true'
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        if: needs.release-integrity.outputs.fast_path != 'true'
+        if: needs.release-integrity.outputs.fast_path != 'true' && needs.release-integrity.outputs.docs_only != 'true'
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
       - run: npm ci
-        if: needs.release-integrity.outputs.fast_path != 'true'
+        if: needs.release-integrity.outputs.fast_path != 'true' && needs.release-integrity.outputs.docs_only != 'true'
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
-        if: needs.release-integrity.outputs.fast_path != 'true'
+        if: needs.release-integrity.outputs.fast_path != 'true' && needs.release-integrity.outputs.docs_only != 'true'
         with:
           name: next-build
           path: .next-test
       - run: npx playwright install --with-deps ${{ matrix.browser }}
-        if: needs.release-integrity.outputs.fast_path != 'true'
+        if: needs.release-integrity.outputs.fast_path != 'true' && needs.release-integrity.outputs.docs_only != 'true'
       - run: npx playwright test ${{ matrix.test_path }} --project=${{ matrix.project }}
-        if: needs.release-integrity.outputs.fast_path != 'true'
+        if: needs.release-integrity.outputs.fast_path != 'true' && needs.release-integrity.outputs.docs_only != 'true'
         env:
           PW_PORT: 3801
       - name: Inherit verified browser coverage
-        if: needs.release-integrity.outputs.fast_path == 'true'
+        if: needs.release-integrity.outputs.fast_path == 'true' || needs.release-integrity.outputs.docs_only == 'true'
         run: |
-          echo "${{ matrix.project }} coverage is inherited from the exact verified main parent recorded by release-integrity."
+          echo "${{ matrix.project }} coverage is inherited from the verified parent: generated release (fast_path) or documentation-only change (docs_only), as recorded by release-integrity."
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        if: always() && needs.release-integrity.outputs.fast_path != 'true'
+        if: always() && needs.release-integrity.outputs.fast_path != 'true' && needs.release-integrity.outputs.docs_only != 'true'
         with:
           name: results-e2e-${{ matrix.project }}
           path: |
@@ -245,7 +281,7 @@ jobs:
   web-quality:
     name: Accessibility, usability, security-web, resilience, visual
     needs: [build, release-integrity]
-    if: needs.release-integrity.outputs.fast_path != 'true'
+    if: needs.release-integrity.outputs.fast_path != 'true' && needs.release-integrity.outputs.docs_only != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -284,7 +320,7 @@ jobs:
   load-smoke:
     name: Load smoke
     needs: [build, release-integrity]
-    if: needs.release-integrity.outputs.fast_path != 'true'
+    if: needs.release-integrity.outputs.fast_path != 'true' && needs.release-integrity.outputs.docs_only != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -309,7 +345,7 @@ jobs:
   lighthouse:
     name: Lighthouse budgets
     needs: [build, release-integrity]
-    if: needs.release-integrity.outputs.fast_path != 'true'
+    if: needs.release-integrity.outputs.fast_path != 'true' && needs.release-integrity.outputs.docs_only != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -375,7 +411,7 @@ jobs:
     name: Wix immutable preview
     # Every accepted main commit receives its own testable Wix URL. Pull requests
     # deliberately never receive the Wix credential, including forked PRs.
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.release-integrity.outputs.fast_path != 'true' && vars.WIX_PREVIEW_CI_ENABLED == 'true'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.release-integrity.outputs.fast_path != 'true' && needs.release-integrity.outputs.docs_only != 'true' && vars.WIX_PREVIEW_CI_ENABLED == 'true'
     needs: [release-integrity, quality, secret-scan, build, e2e, web-quality, load-smoke, lighthouse]
     runs-on: ubuntu-latest
     timeout-minutes: 30
