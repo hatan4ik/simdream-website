@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.0](https://github.com/hatan4ik/simdream-website/compare/v1.4.0...v1.5.0) (2026-11-08)
+
+
+### Features
+
+* **vouchers:** map 7 gift card designs to native Wix Gift Card variants and checkout ([#53](https://github.com/hatan4ik/simdream-website/issues/53)) ([9dd909b](https://github.com/hatan4ik/simdream-website/commit/9dd909bc4bf7d502a8e7c42cd1e7629ef8f9fa6f))
+
 ## [1.4.0](https://github.com/hatan4ik/simdream-website/compare/v1.3.0...v1.4.0) (2026-11-08)
 
 
