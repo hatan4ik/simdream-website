@@ -115,8 +115,9 @@ Run the repository's checks after changing scheduling or checkout behavior:
 
 ```bash
 npm run typecheck       # Verify strict TypeScript types
+npm run docs:verify     # Verify canonical GENESIS.md source coverage and fingerprint
 npm run test:quick      # Fast unit & integration test run with Vitest
-npm run build           # Verify 35 Next.js production routes
+npm run build           # Verify all 43 Next.js production routes
 npm run test:all        # Full automated quality framework (see TESTING.md)
 ```
 

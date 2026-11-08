@@ -15,7 +15,8 @@ The booking calendar is no longer English-first or limited to a 14-day ribbon:
   - Russian (`ru-RU`), LTR
   - French (`fr-FR`), LTR
   - Arabic (`ar-IL`), RTL
-- Weeks begin on **Sunday** for Hebrew, Arabic, and English; **Monday** for Russian and French.
+  - Spanish (`es-ES`), LTR
+- Weeks begin on **Sunday** for Hebrew, Arabic, and English; **Monday** for Russian, French, and Spanish.
 - Month names, weekday labels, date order, and day numerals are rendered through `Intl`, not English lookup tables.
 - RTL navigation arrows flip visually, while aviation telemetry such as slot times remains explicitly LTR.
 
@@ -62,8 +63,10 @@ The existing scheduling and payment boundaries remain unchanged:
 Calendar controls expose neutral attributes:
 
 - `data-calendar-date="YYYY-MM-DD"`
-- `data-calendar-previous-month`
-- `data-calendar-next-month`
+- `data-calendar-previous-month` / `data-calendar-next-month` (`components/scheduler/BookingMonthPager.tsx`)
+- `data-calendar-previous-week` / `data-calendar-next-week` (`components/scheduler/BookingWeekPager.tsx`)
+- `data-calendar-today` (shown whenever the view has moved away from today)
+- `data-calendar-horizon-note` (shown at the one-year booking horizon enforced by `maxBookableDate()` in `lib/scheduler/booking-horizon.ts`)
 
 Browser tests use those ISO identifiers rather than English accessible names. This allows Hebrew and Arabic to use correctly localized accessible names while retaining deterministic test selection, including a date in the next month.
 
@@ -116,7 +119,7 @@ npx playwright test --project=visual
 
 - [x] Month view is the default in both booking interfaces.
 - [x] Week remains an optional compact view.
-- [x] Hebrew, English, Russian, French, and Arabic render their own calendar presentation.
+- [x] Hebrew, English, Russian, French, Arabic, and Spanish render their own calendar presentation.
 - [x] Arabic and Hebrew render RTL navigation correctly.
 - [x] Flight times remain LTR and readable in RTL interfaces.
 - [x] Dates outside the visible month remain reachable through month navigation.

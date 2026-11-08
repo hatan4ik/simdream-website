@@ -7,7 +7,7 @@
 
 Production-grade website, multi-step booking engine, Amazon-style flight storefront, gift-voucher terminal, corporate CRM workshop portal, member purchase dashboard, and flight-dispatch command system for **Sim Dream LTD** (`simdream.co.il`), located at **Gershon Shatz St 36, Tel Aviv-Yafo, Israel** (Yehudit Light Rail / HaShalom Train Station • `055-507-1307` • `desk@simdream.co.il`).
 
-> **Wix Headless architecture:** [`docs/WIX_HEADLESS_ARCHITECTURE.md`](docs/WIX_HEADLESS_ARCHITECTURE.md) describes the platform boundary, [`docs/WIX_HEADLESS_CUTOVER_RUNBOOK.md`](docs/WIX_HEADLESS_CUTOVER_RUNBOOK.md) is the controlled activation guide, [`docs/GITHUB_WIX_CICD.md`](docs/GITHUB_WIX_CICD.md) is the GitHub-controlled preview, release and rollback procedure, and [`docs/GITHUB_PR_AUTOMATION.md`](docs/GITHUB_PR_AUTOMATION.md) defines protected PR preflight and native auto-merge. The codebase includes visitor service reads, live slot availability, catalog reconciliation (`npm run wix:smoke`), a no-write activation gate (`npm run wix:readiness`), non-blocking shadow reads, and a Pricing Plans hosted-checkout handoff with a Captain Dispatch fallback. Wix is not the active writer for one-off bookings.
+> **Wix Headless architecture:** [`docs/WIX_HEADLESS_ARCHITECTURE.md`](docs/WIX_HEADLESS_ARCHITECTURE.md) describes the platform boundary, [`docs/WIX_HEADLESS_CUTOVER_RUNBOOK.md`](docs/WIX_HEADLESS_CUTOVER_RUNBOOK.md) is the controlled activation guide, [`docs/GITHUB_WIX_CICD.md`](docs/GITHUB_WIX_CICD.md) is the GitHub-controlled preview, release and rollback procedure, and [`docs/GITHUB_PR_AUTOMATION.md`](docs/GITHUB_PR_AUTOMATION.md) defines protected PR preflight and native auto-merge. The codebase includes visitor service reads, live slot availability, catalog reconciliation (`npm run wix:smoke`), a no-write activation gate (`npm run wix:readiness`), non-blocking shadow reads, native Wix Bookings single-service checkout (`lib/wix/booking-checkout-client.ts`, active when `WIX_AVAILABILITY_ADAPTER_ENABLED=true`), native Wix eCommerce Cart V2 + Redirects V1 Gift Card variant checkout (`lib/wix/gift-cards.ts`), and a Pricing Plans hosted-checkout handoff with a Captain Dispatch fallback.
 
 > 📐 **System Architecture & Visual Diagrams**: See [`ARCHITECTURE.md`](ARCHITECTURE.md) for full Mermaid sequence, workflow, topology, and interval-scheduling engine diagrams.
 > 🧬 **Canonical Genesis & System Blueprint**: [`GENESIS.md`](GENESIS.md) is the sole current architecture/reconstruction prompt. Its source-coverage and fingerprint verification runs in CI; historical drafts live in [`docs/archive/`](docs/archive/README.md).
@@ -26,7 +26,7 @@ Production-grade website, multi-step booking engine, Amazon-style flight storefr
    - Real-time **Ben Gurion Airport (LLBG)** METAR weather ticker and simulator operational status ribbon.
    - Dedicated **Customer Story & How It Works** page ([`/about`](app/(public)/about/page.tsx)) explaining the Sim Dream mission, the guided Boeing 737 session, and official Instagram/Facebook channels.
    - Dedicated **Professional Training Portal** ([`/pro`](app/(public)/pro/page.tsx), with automatic redirects from `/simulator` and `/training`) tailored for airline assessment preparation (El Al, Arkia, Israir, Wizz Air, Ryanair), raw data hand flying, single-engine ILS, and QRH abnormal checklists. Features the 3 official commercial tiers from `simdream.co.il`: **Airline Interview Prep 60 PRO** (₪890), **Airline Interview Prep 90 PRO** (₪1,250), and **Airline Interview Prep 120 PRO** (₪1,590), plus direct booking and links to official service pages. Technical hardware specifications (CPflight avionics, Sismo CDU/FMC, motorized autothrottles) are cleanly presented in a collapsible specs disclosure.
-   - **Specialized Noise-Free Booking Engine**: When booking a Professional Training or Fear of Flying session, the booking flow automatically suppresses all recreational add-on clutter, combos, and tourist options. The candidate is presented with a serene, noise-free 2-step booking flow (`Date & Operational Slot` &rarr; `Pilot Manifest & Checkout`).
+   - **Specialized Noise-Free Booking Engine**: When booking a Professional Training or Fear of Flying session, the booking flow automatically suppresses all recreational add-on clutter, combos, and tourist options. The candidate is presented with a serene, noise-free 2-step booking flow (`Date & Operational Slot` &rarr; `Pilot Manifest & Checkout`). During checkout on [`/book`](app/(public)/book/page.tsx), selecting **"Commercial / ATPL / Screening Prep"** (`atpl`) in **Aviation Experience Level** dynamically switches a consumer checkout to **Airline Interview Prep 60 PRO** (`pkg-pro-60`, ₪890) and clears any consumer add-ons (restoring the previous consumer package if switched back).
 
 2. **Triple UX/UI Interface Engine (🌙 Cockpit Night, ☀️ Brand Daylight & ✨ Clean Studio)**:
    - **Official Sim Dream identity**: all interfaces use the **`simdream.co.il`** logo (orange airplane `#FF5500` and cerulean "SIM DREAM" wordmark `#2096C7`) with no tagline under it in the header (the translated tagline remains in the footer). The colours are design tokens in `app/globals.css`: Tailwind `sky-*` is the Sim Dream cerulean scale and `orange-*` the Sim Dream orange scale (rules in AGENTS.md §1, Brand Identity).
@@ -73,15 +73,15 @@ Production-grade website, multi-step booking engine, Amazon-style flight storefr
      - **iPhone & Modern Smartphone Ergonomics**: Localized **month calendar by default** with an optional compact week view, 2-column generous mobile time-slot grid (`min-h-[64px]`), floating sticky bottom confirmation bar (`sticky bottom-3`), and `touch-action: manipulation` (zero 300ms tap delay).
      - **100% Browser-Blocker Immunity**: Built with semantic first-party `<button type="button">` elements and inline React state—zero iframes, popups, or ad-triggering class names.
    - **35-Day Pre-Populated QA Seed Dataset (`lib/db/seed-data.ts`)**:
-     - `generateMonthAheadBookings()` pre-populates **105+ realistic flight bookings across the next 35 days** covering all 5 packages across the seven-day `09:00–24:00` schedule; Saturday retains Prime-Time pricing semantics.
+     - `generateMonthAheadBookings()` pre-populates **105+ realistic flight bookings across the next 35 days** covering all 5 duration profiles alongside the 9-package `SIMULATOR_PACKAGES` catalog across the seven-day `09:00–24:00` schedule; Saturday retains Prime-Time pricing semantics.
 
 5. **Corporate CRM Leadership Workshops (`/workshops`)**:
    - Executive leadership & team offsite modules based on commercial aviation **Crew Resource Management (CRM)** and **Threat & Error Management (TEM)**.
    - Dynamic inquiry submission pipeline directly feeding the Admin Dispatch board.
 
 6. **Gift Voucher System (`/vouchers`)**:
-   - Customizable digital boarding pass gift certificates with live visual preview.
-   - Flexible Gift Cards skip the package value picker: a quick-select balance (or custom amount, min ₪50) followed by "Personalized Gift Card Details". Each card colour is one balance (Skyline Blue ₪50 … Pearl ₪1,000): picking a colour sets the credit and the chip, picking a chip shows the colour.
+   - Customizable digital boarding pass gift certificates (`voucherType: 'flight_certificate'`, package tiers `₪450`, `₪690`, `₪850`, `₪1,590` or custom amount `min ₪50`) with live visual preview.
+   - Flexible **Gift Cards** (`voucherType: 'gift_card'`) skip the package value picker and offer the 7 fixed preset denominations (`GIFT_CARD_AMOUNTS_ILS`: `₪50`, `₪100`, `₪200`, `₪300`, `₪500`, `₪700`, `₪1,000`) followed by "Personalized Gift Card Details". Each card colour is mapped 1:1 to one balance (`skyline` ₪50, `ivory` ₪100, `moonlight` ₪200, `aurora` ₪300, `sunset` ₪500, `dusk` ₪700, `pearl` ₪1,000) and its live Wix Gift Card `variantId` and `wixMediaId` (`lib/catalog/gift-card-designs.ts`, `lib/wix/gift-cards.ts`).
    - Cryptographically generated, high-entropy redeemable flight codes valid for 12 months with online and counter redemption.
 
 7. **Member Flight Deck (`/dashboard`)**:
@@ -119,7 +119,7 @@ Production-grade website, multi-step booking engine, Amazon-style flight storefr
     - **Legal Compliance Pages**: Integrated flight simulator safety regulations ([`/rules`](app/(public)/rules/page.tsx)) and privacy policies ([`/privacy-policy`](app/(public)/privacy-policy/page.tsx)).
 
 13. **Dedicated Annual Flight Subscriptions Portal ([`/subscriptions`](app/(public)/subscriptions/page.tsx)) & Wix Pricing Plans Checkout**:
-    - **Customer-Centric Google-Style Learning Portal**: Dedicated 5-language hub designed to communicate the value of structured captain-led progression over 12 months with savings up to ₪2,550.
+    - **Customer-Centric Google-Style Learning Portal**: Dedicated 6-language hub (`he`, `en`, `ru`, `fr`, `ar`, `es`) designed to communicate the value of structured captain-led progression over 12 months with savings up to ₪2,550.
     - **4 Structured Subscription Tracks**:
       - **Flight Foundations 5 × 60 min** (`₪2,750`): Cockpit orientation, FMS logic, crosswind and ILS foundations.
       - **Advanced Captain 5 × 90 min** (`₪3,390`): SOP rationale, instruments, abnormal situations, and captain judgement.
@@ -244,20 +244,38 @@ To verify TypeScript types, generate the optimized production build, and preview
 # Verify TypeScript strict type-checking and no unsafe type escapes
 npm run lint
 
+# Verify canonical GENESIS.md source coverage and reviewed source fingerprint
+npm run docs:verify
+
+# Fast developer loop: typecheck, type hygiene, and Vitest (unit/integration/security/reliability)
+npm run test:quick
+
 # Verify scheduling and checkout-domain contracts
 npm test
 
-# Generate optimized static & serverless production build
+# Generate optimized static & serverless production build (all 43 routes)
 npm run build
+
+# Build isolated test bundle in .next-test (used by Playwright suites)
+npm run test:build
 
 # Preview the production build locally on http://localhost:3000 with demo data
 npm run start:local   # plain `npm run start` needs Supabase (fails closed without it)
 
+# Verify Wix Headless Bookings catalog, capacity pool, and Pricing Plans readiness (read-only)
+npm run wix:smoke
+npm run wix:readiness
+
+# Build and preview/release the OpenNext Cloudflare Worker bundle for Wix Managed Hosting
+npm run wix:build
+npm run wix:preview
+npm run wix:release
+
 # Verify dependency advisories
 npm audit --audit-level=high
 
-# Full automated quality framework: unit/integration/security/reliability, e2e on 5 browsers,
-# accessibility, usability, visual, load and Lighthouse (see TESTING.md)
+# Full automated quality framework: unit/integration/security/reliability, e2e on Chromium,
+# accessibility, usability, visual, and load smoke (use `npm run test:full` for all 5 browsers + Lighthouse; see TESTING.md)
 npm run test:all
 ```
 
