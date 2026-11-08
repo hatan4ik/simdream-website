@@ -861,7 +861,7 @@ export default function GiftVouchersPage() {
               </div>
             ) : (
               /* Flexible Monetary Gift Card Preview */
-              <div className="rounded-3xl bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 border-2 border-orange-500/40 shadow-2xl shadow-orange-500/10 overflow-hidden relative">
+              <div className="rounded-3xl bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 border-2 border-orange-500/40 shadow-2xl shadow-orange-500/10 overflow-clip relative">
                 <GiftCardDesignPicker
                   selectedDesignId={giftCardDesignId}
                   onChange={setGiftCardDesignId}
@@ -869,12 +869,12 @@ export default function GiftVouchersPage() {
                 />
 
                 <div className="p-5 sm:p-6 pt-2 space-y-5">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-700 flex items-center justify-center">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <div className="w-10 h-10 shrink-0 rounded-xl bg-slate-900 border border-slate-700 flex items-center justify-center">
                         <BrandMark className="w-6 h-6" />
                       </div>
-                      <div>
+                      <div className="min-w-0">
                         <div className="text-xs font-black tracking-wider text-orange-400 uppercase font-mono">
                           {t.vouchers.officialGiftCard}
                         </div>
@@ -884,7 +884,7 @@ export default function GiftVouchersPage() {
                       </div>
                     </div>
                     {/* Metallic EMV Chip Aesthetic */}
-                    <div className="w-11 h-8 rounded-md bg-gradient-to-br from-amber-300 via-amber-400 to-orange-500 border border-amber-200/60 shadow-inner flex items-center justify-center">
+                    <div className="w-11 h-8 shrink-0 rounded-md bg-gradient-to-br from-amber-300 via-amber-400 to-orange-500 border border-amber-200/60 shadow-inner flex items-center justify-center">
                       <div className="w-7 h-5 rounded-sm border border-slate-950/30" />
                     </div>
                   </div>
