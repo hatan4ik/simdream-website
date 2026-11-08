@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/hatan4ik/simdream-website/compare/v1.2.5...v1.3.0) (2026-11-08)
+
+
+### Features
+
+* **vouchers:** give Gift Cards a balance-first flow and the primary checkout button ([#49](https://github.com/hatan4ik/simdream-website/issues/49)) ([e861b5f](https://github.com/hatan4ik/simdream-website/commit/e861b5fc95246c85845e457b9ffa35173d2df972))
+
 ## [1.2.5](https://github.com/hatan4ik/simdream-website/compare/v1.2.4...v1.2.5) (2026-11-08)
 
 
