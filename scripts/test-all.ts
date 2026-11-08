@@ -156,9 +156,14 @@ function writeReport(results: StageResult[]): string {
     lines.push('');
   }
 
-  // Only this framework's stage outputs; ad-hoc runs on other ports leave their own files.
-  const junitFiles = ['vitest-junit.xml', 'playwright-junit-3801.xml', 'playwright-junit-3802.xml', 'playwright-junit-3803.xml'].filter(
-    (file) => existsSync(join(RESULTS, file))
+  // CI browser artifacts include test-results/ under the download directory;
+  // local stage outputs and the Vitest artifact live directly in that directory.
+  const junitNames = [
+    'vitest-junit.xml',
+    ...[3801, 3802, 3803, 3806, 3807, 3811, 3812, 3813, 3814, 3815].map((port) => `playwright-junit-${port}.xml`),
+  ];
+  const junitFiles = junitNames.flatMap((file) =>
+    [file, join(RESULTS, file)].filter((path) => existsSync(join(RESULTS, path)))
   );
   if (junitFiles.length) {
     lines.push('## Test results', '', '| Suite file | Tests | Failed | Skipped |', '| --- | --- | --- | --- |');

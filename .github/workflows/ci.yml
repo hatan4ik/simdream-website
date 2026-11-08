@@ -234,15 +234,15 @@ jobs:
         include:
           # The shared suite exercises both booking GUIs, including the optional
           # desktop-only Express Shop. It belongs on desktop engines only.
-          - { project: chromium, browser: chromium, test_path: tests/e2e }
-          - { project: firefox, browser: firefox, test_path: tests/e2e }
-          - { project: webkit, browser: webkit, test_path: tests/e2e }
+          - { project: chromium, browser: chromium, test_path: tests/e2e, port: 3801, shard: '1/1' }
+          - { project: firefox, browser: firefox, test_path: tests/e2e, port: 3811, shard: '1/1' }
+          - { project: webkit, browser: webkit, test_path: tests/e2e, port: 3812, shard: '1/2' }
           # Phone customers have a deliberately different product surface: Guided
           # Wizard only, navigation drawer, sticky utility controls and safe-area
           # behaviour. Run its dedicated touch journey rather than asserting that
           # a hidden desktop storefront is visible.
-          - { project: mobile-chrome, browser: chromium, test_path: tests/e2e/mobile.spec.ts }
-          - { project: mobile-safari, browser: webkit, test_path: tests/e2e/mobile.spec.ts }
+          - { project: mobile-chrome, browser: chromium, test_path: tests/e2e/mobile.spec.ts, port: 3813, shard: '1/1' }
+          - { project: mobile-safari, browser: webkit, test_path: tests/e2e/mobile.spec.ts, port: 3814, shard: '1/1' }
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         if: needs.release-integrity.outputs.fast_path != 'true' && needs.release-integrity.outputs.docs_only != 'true'
@@ -260,22 +260,53 @@ jobs:
           path: .next-test
       - run: npx playwright install --with-deps ${{ matrix.browser }}
         if: needs.release-integrity.outputs.fast_path != 'true' && needs.release-integrity.outputs.docs_only != 'true'
-      - run: npx playwright test ${{ matrix.test_path }} --project=${{ matrix.project }}
+      - run: npx playwright test ${{ matrix.test_path }} --project=${{ matrix.project }} --shard=${{ matrix.shard }}
         if: needs.release-integrity.outputs.fast_path != 'true' && needs.release-integrity.outputs.docs_only != 'true'
         env:
-          PW_PORT: 3801
-      - name: Inherit verified browser coverage
+          PW_PORT: ${{ matrix.port }}
+      - name: Record browser coverage skip
         if: needs.release-integrity.outputs.fast_path == 'true' || needs.release-integrity.outputs.docs_only == 'true'
         run: |
-          echo "${{ matrix.project }} coverage is inherited from the verified parent: generated release (fast_path) or documentation-only change (docs_only), as recorded by release-integrity."
+          echo "${{ matrix.project }} coverage is skipped for a generated release or documentation-only change, as recorded by release-integrity."
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always() && needs.release-integrity.outputs.fast_path != 'true' && needs.release-integrity.outputs.docs_only != 'true'
         with:
           name: results-e2e-${{ matrix.project }}
           path: |
-            test-results/playwright-junit-3801.xml
-            playwright-report-3801/
-            test-results/playwright-3801/
+            test-results/playwright-junit-${{ matrix.port }}.xml
+            playwright-report-${{ matrix.port }}/
+            test-results/playwright-${{ matrix.port }}/
+          if-no-files-found: ignore
+
+  e2e-webkit-shard:
+    name: E2E (webkit shard 2)
+    needs: [build, release-integrity]
+    if: needs.release-integrity.outputs.fast_path != 'true' && needs.release-integrity.outputs.docs_only != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: next-build
+          path: .next-test
+      - run: npx playwright install --with-deps webkit
+      - run: npx playwright test tests/e2e --project=webkit --shard=2/2
+        env:
+          PW_PORT: 3815
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: results-e2e-webkit-shard-2
+          path: |
+            test-results/playwright-junit-3815.xml
+            playwright-report-3815/
+            test-results/playwright-3815/
           if-no-files-found: ignore
 
   web-quality:
@@ -296,25 +327,55 @@ jobs:
           name: next-build
           path: .next-test
       - run: npx playwright install --with-deps chromium
-      - run: npx playwright test --project=a11y --project=usability --project=security-web --project=resilience
+      - run: npx playwright test --project=a11y --project=usability --project=security-web --project=resilience --project=visual --shard=1/3
         env:
           PW_PORT: 3802
-      # Compares against the committed Linux baselines (npm run test:visual:update).
-      - run: npx playwright test --project=visual
-        if: always()
-        env:
-          PW_PORT: 3803
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
           name: results-web-quality
           path: |
             test-results/playwright-junit-3802.xml
-            test-results/playwright-junit-3803.xml
             playwright-report-3802/
-            playwright-report-3803/
             test-results/playwright-3802/
-            test-results/playwright-3803/
+          if-no-files-found: ignore
+
+  web-quality-shards:
+    name: Web quality (shard ${{ matrix.shard }} of 3)
+    needs: [build, release-integrity]
+    if: needs.release-integrity.outputs.fast_path != 'true' && needs.release-integrity.outputs.docs_only != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { shard: 2, port: 3806 }
+          - { shard: 3, port: 3807 }
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: next-build
+          path: .next-test
+      - run: npx playwright install --with-deps chromium
+      # Visual comparisons use the same committed Linux baselines in every shard.
+      - run: npx playwright test --project=a11y --project=usability --project=security-web --project=resilience --project=visual --shard=${{ matrix.shard }}/3
+        env:
+          PW_PORT: ${{ matrix.port }}
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: results-web-quality-shard-${{ matrix.shard }}
+          path: |
+            test-results/playwright-junit-${{ matrix.port }}.xml
+            playwright-report-${{ matrix.port }}/
+            test-results/playwright-${{ matrix.port }}/
           if-no-files-found: ignore
 
   load-smoke:
@@ -371,7 +432,7 @@ jobs:
 
   report:
     name: Quality report
-    needs: [release-integrity, quality, secret-scan, build, e2e, web-quality, load-smoke, lighthouse]
+    needs: [release-integrity, quality, secret-scan, build, e2e, e2e-webkit-shard, web-quality, web-quality-shards, load-smoke, lighthouse]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -394,25 +455,35 @@ jobs:
           SECRET_SCAN: ${{ needs.secret-scan.result }}
           BUILD: ${{ needs.build.result }}
           E2E: ${{ needs.e2e.result }}
+          E2E_WEBKIT_SHARD: ${{ needs.e2e-webkit-shard.result }}
           WEB_QUALITY: ${{ needs.web-quality.result }}
+          WEB_QUALITY_SHARDS: ${{ needs.web-quality-shards.result }}
           LOAD_SMOKE: ${{ needs.load-smoke.result }}
           LIGHTHOUSE: ${{ needs.lighthouse.result }}
+          FAST_PATH: ${{ needs.release-integrity.outputs.fast_path }}
+          DOCS_ONLY: ${{ needs.release-integrity.outputs.docs_only }}
         run: |
           set -euo pipefail
-          for gate in "$RELEASE_INTEGRITY" "$QUALITY" "$SECRET_SCAN" "$BUILD" "$E2E" "$WEB_QUALITY" "$LOAD_SMOKE" "$LIGHTHOUSE"; do
-            case "$gate" in
-              failure|cancelled) echo "A verification gate did not pass: $gate" >&2; exit 1 ;;
-            esac
+          for gate in "$RELEASE_INTEGRITY" "$QUALITY" "$SECRET_SCAN" "$BUILD" "$E2E"; do
+            test "$gate" = success || { echo "A required verification gate did not pass: $gate" >&2; exit 1; }
+          done
+          for gate in "$E2E_WEBKIT_SHARD" "$WEB_QUALITY" "$WEB_QUALITY_SHARDS" "$LOAD_SMOKE" "$LIGHTHOUSE"; do
+            if test "$FAST_PATH" = true || test "$DOCS_ONLY" = true; then
+              test "$gate" = skipped || { echo "Expected inherited verification gate to be skipped: $gate" >&2; exit 1; }
+            else
+              test "$gate" = success || { echo "A required verification gate did not pass: $gate" >&2; exit 1; }
+            fi
           done
       # Writes test-results/quality-report.md and the job summary.
       - run: npm run test:report
+        if: always()
 
   wix-preview:
     name: Wix immutable preview
     # Every accepted main commit receives its own testable Wix URL. Pull requests
     # deliberately never receive the Wix credential, including forked PRs.
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.release-integrity.outputs.fast_path != 'true' && needs.release-integrity.outputs.docs_only != 'true' && vars.WIX_PREVIEW_CI_ENABLED == 'true'
-    needs: [release-integrity, quality, secret-scan, build, e2e, web-quality, load-smoke, lighthouse]
+    needs: [release-integrity, quality, secret-scan, build, e2e, e2e-webkit-shard, web-quality, web-quality-shards, load-smoke, lighthouse]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
