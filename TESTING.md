@@ -110,7 +110,7 @@ Import `test` and `expect` from `tests/support/e2e.ts`, or from the folder's `fi
 - CI retries a failed Playwright test twice and sets `failOnFlakyTests`, so a test that passes only on retry still fails the build. Locally there are no retries.
 - Wait on state, never on time: no `waitForTimeout`. For a request a click triggers, start `waitForResponse` (or `waitForEvent('requestfailed')`) **before** the click.
 - Property-based tests print their seed on failure. Replay with `FC_SEED=<seed> npx vitest run <file>`.
-- Each orchestrator stage uses its own port (3801–3805) and output folder, so suites never share a server or overwrite reports.
+- Each orchestrator stage uses its own port (3801–3805) and output folder. CI also assigns distinct ports to browser projects and shards (3806–3807, 3811–3815), so their reports do not overwrite each other.
 
 ## Debugging a failure
 
@@ -129,8 +129,8 @@ Import `test` and `expect` from `tests/support/e2e.ts`, or from the folder's `fi
 | quality | Typecheck and hygiene, Vitest (…), audit | Typecheck/type hygiene, Vitest with the coverage ratchet and JUnit, `npm audit --audit-level=high` |
 | secret-scan | Git history secret scan | Event-scope Git history secret detection with Gitleaks before any Wix preview or production release |
 | build | Sandboxed production build | Sandboxed production build, shared with later jobs as an artifact |
-| e2e | E2E (project) | Chromium, Firefox and WebKit run `tests/e2e`; Pixel 7 and iPhone 15 run `tests/e2e/mobile.spec.ts`. Every step is skipped on the fast path |
-| web-quality | Accessibility, usability, security-web, resilience, visual | a11y, usability, security-web, resilience, then visual against committed Linux baselines. Skipped on the fast path |
+| e2e, e2e-webkit-shard | E2E (project), E2E (webkit shard 2) | Chromium, Firefox and WebKit run `tests/e2e`; WebKit is split into two shards. Pixel 7 and iPhone 15 run `tests/e2e/mobile.spec.ts`. Inherited on the fast path |
+| web-quality, web-quality-shards | Accessibility, usability, security-web, resilience, visual; Web quality (shard) | a11y, usability, security-web, resilience and visual against committed Linux baselines, split across three shards. Inherited on the fast path |
 | load-smoke | Load smoke | p99 budgets. Skipped on the fast path |
 | lighthouse | Lighthouse budgets | Lighthouse budgets. Skipped on the fast path |
 | report | Quality report | Merges every job's results into the quality report and the job summary; it runs `always()`, so it reports red when any earlier job failed |
