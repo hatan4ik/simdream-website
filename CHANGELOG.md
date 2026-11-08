@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.5](https://github.com/hatan4ik/simdream-website/compare/v1.2.4...v1.2.5) (2026-11-08)
+
+
+### Bug Fixes
+
+* **reviews:** show the grade, five yellow stars and the count when Google has no data ([#46](https://github.com/hatan4ik/simdream-website/issues/46)) ([874a16c](https://github.com/hatan4ik/simdream-website/commit/874a16c536d03ecf6c2da79a2fc53a60deec0400))
+* **vouchers:** fit gift-card art to one shared frame and stop sideways scroll ([#45](https://github.com/hatan4ik/simdream-website/issues/45)) ([e6e3e14](https://github.com/hatan4ik/simdream-website/commit/e6e3e14fe9bec3477a01819a90f9614a0451a4e1))
+
 ## [1.2.4](https://github.com/hatan4ik/simdream-website/compare/v1.2.3...v1.2.4) (2026-11-08)
 
 
