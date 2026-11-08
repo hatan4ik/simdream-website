@@ -74,36 +74,20 @@ describe('refresh-google-rating', () => {
   });
 
   describe('as the CLI that the workflow runs', () => {
-    const run = (env: Record<string, string>, preload = '') =>
-      spawnSync(process.execPath, [...(preload ? ['--import', `data:text/javascript,${encodeURIComponent(preload)}`] : []), SCRIPT], {
+    const STUB = fileURLToPath(new URL('./_support/stub-places-fetch.mjs', import.meta.url));
+    const run = (env: Record<string, string>, google?: { status: number; body: string }) =>
+      spawnSync(process.execPath, [...(google ? ['--import', STUB] : []), SCRIPT], {
         encoding: 'utf8',
-        env: { PATH: process.env.PATH ?? '', NODE_ENV: 'test', ...env },
+        env: {
+          PATH: process.env.PATH ?? '',
+          NODE_ENV: 'test',
+          ...(google && { STUB_PLACES_STATUS: String(google.status), STUB_PLACES_BODY: google.body }),
+          ...env,
+        },
       });
-    const escapeForJsSource = (value: string) =>
-      value.replace(/[<>\u2028\u2029\b\f\n\r\t\0\\\/]/g, (ch) => {
-        switch (ch) {
-          case '<': return '\\u003C';
-          case '>': return '\\u003E';
-          case '/': return '\\u002F';
-          case '\\': return '\\\\';
-          case '\b': return '\\b';
-          case '\f': return '\\f';
-          case '\n': return '\\n';
-          case '\r': return '\\r';
-          case '\t': return '\\t';
-          case '\0': return '\\0';
-          case '\u2028': return '\\u2028';
-          case '\u2029': return '\\u2029';
-          default: return ch;
-        }
-      });
-    const googleReturns = (status: number, body: string) => {
-      const safeBodyLiteral = escapeForJsSource(JSON.stringify(body));
-      return `globalThis.fetch = async () => new Response(${safeBodyLiteral}, { status: ${status} });`;
-    };
 
     it('prints exactly the data file text on stdout and nothing else', () => {
-      const result = run({ GOOGLE_PLACES_API_KEY: 'k' }, googleReturns(200, '{"rating":4.86,"userRatingCount":500}'));
+      const result = run({ GOOGLE_PLACES_API_KEY: 'k' }, { status: 200, body: '{"rating":4.86,"userRatingCount":500}' });
 
       expect(result.status).toBe(0);
       expect(result.stdout).toBe(fileText(4.9, 500));
@@ -119,7 +103,7 @@ describe('refresh-google-rating', () => {
     });
 
     it('exits 1 with an error annotation and an empty stdout when Google answers badly', () => {
-      const result = run({ GOOGLE_PLACES_API_KEY: 'k' }, googleReturns(500, 'nope'));
+      const result = run({ GOOGLE_PLACES_API_KEY: 'k' }, { status: 500, body: 'nope' });
 
       expect(result.status).toBe(1);
       expect(result.stdout).toBe('');
@@ -127,7 +111,7 @@ describe('refresh-google-rating', () => {
     });
 
     it('exits 1 with an empty stdout on an implausible payload', () => {
-      const result = run({ GOOGLE_PLACES_API_KEY: 'k' }, googleReturns(200, '{"rating":5,"userRatingCount":0}'));
+      const result = run({ GOOGLE_PLACES_API_KEY: 'k' }, { status: 200, body: '{"rating":5,"userRatingCount":0}' });
 
       expect(result.status).toBe(1);
       expect(result.stdout).toBe('');
