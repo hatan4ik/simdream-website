@@ -20,11 +20,10 @@ The released tag is rebuilt and tested independently before it can enter the pro
 ## Required checks before requesting review
 
 ```bash
-npm run test:quick
-npm run docs:verify
+npm run test:quick   # typecheck and type hygiene, GENESIS.md coverage (docs:verify) and Vitest
 ```
 
-Run `npm run test:all` for an end-to-end feature. Follow the scheduling, localization, security and payment invariants in [AGENTS.md](AGENTS.md).
+`test:quick` already runs `docs:verify`, so a separate call is only needed to re-check [`GENESIS.md`](GENESIS.md) after re-stamping it (`npm run docs:genesis:stamp`). Run `npm run test:all` for an end-to-end feature. Follow the scheduling, localization, security and payment invariants in [AGENTS.md](AGENTS.md).
 
 ## Fast CLI approvals
 
