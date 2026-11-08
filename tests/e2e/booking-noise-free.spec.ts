@@ -1,5 +1,6 @@
-import { expect, test } from './fixtures';
+import { expect, recordRequests, test } from './fixtures';
 import type { BookingPage } from './pages/booking-page';
+import { ilsPattern } from './pages/format';
 import type { ScheduleApi } from './pages/schedule-api';
 import { follow } from './pages/hydration';
 
@@ -102,6 +103,50 @@ test.describe('professional training booking', () => {
     await expect(page.getByRole('heading', { level: 1, name: 'Airline Interview Prep 90 PRO' })).toBeVisible();
     await expect(page.getByText('🎯 NOISE-FREE AIRLINE ASSESSMENT SCHEDULING')).toBeVisible();
     await expect(booking.storefront.experience('Licensed Pilot')).toBeChecked();
+  });
+
+  test('dynamically switches checkout to Airline Interview Prep 60 PRO (₪890) when ATPL / Screening Prep is selected', async ({
+    page,
+    booking,
+    schedule,
+  }) => {
+    const { date, slot } = await schedule.findOpenSlot({ duration: 60 });
+    const checkoutRequests = recordRequests(page, '/api/checkout');
+
+    await booking.goto('?package=captains-command-60');
+    const wizard = await booking.openWizard();
+    await booking.selectDate(date);
+    await wizard.slot(slot.startTime).click();
+    await wizard.continueToAddons().click();
+    await wizard.continueToPilot().click();
+
+    await expect(page.getByRole('heading', { level: 3, name: "Captain's Command" })).toBeVisible();
+    await expect(wizard.experienceLevel()).toHaveValue('beginner');
+
+    await wizard.experienceLevel().selectOption('atpl');
+
+    await expect(page.getByRole('heading', { level: 3, name: 'Airline Interview Prep 60 PRO' })).toBeVisible();
+    await expect(wizard.submit()).toHaveText(ilsPattern(890));
+    await expect(wizard.progressSteps()).toHaveText(['2. DATE & SLOT', '4. PILOT & PAY']);
+
+    await wizard.fillPilot({
+      name: 'Capt. Avi Screening',
+      email: 'avi.screening@example.com',
+      phone: '+972-54-555-0199',
+    });
+    const checkoutResponse = page.waitForResponse((response) => response.url().endsWith('/api/checkout'));
+    await wizard.submit().click();
+    await checkoutResponse;
+
+    expect(checkoutRequests).toHaveLength(1);
+    expect(checkoutRequests[0].postDataJSON()).toMatchObject({
+      kind: 'booking',
+      packageId: 'pkg-pro-60',
+      bookingDate: date,
+      startTime: slot.startTime,
+      experienceLevel: 'atpl',
+      addons: [],
+    });
   });
 });
 
