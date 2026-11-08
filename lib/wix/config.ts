@@ -20,6 +20,9 @@ function managedProjectValue(value: unknown): string | null {
  * local command from silently calling the live Wix project.
  */
 function productionManifestValue(value: unknown): string | null {
+  if (process.env.ALLOW_IN_MEMORY_STORE === 'true' || process.env.NEXT_DIST_DIR === '.next-test') {
+    return null;
+  }
   return process.env.NODE_ENV === 'production' ? managedProjectValue(value) : null;
 }
 

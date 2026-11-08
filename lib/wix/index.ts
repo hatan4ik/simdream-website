@@ -16,6 +16,10 @@ export {
   wixPlanIdFor,
   subscriptionPassIdForWixPlan,
   unmappedSubscriptionPassIds,
+  WIX_GIFT_CARDS_APP_ID,
+  WIX_GIFT_CARD_PRODUCT_ID,
+  WIX_GIFT_CARD_VARIANT_IDS,
+  wixGiftCardVariantIdFor,
 } from './catalog';
 export {
   listWixServices,
@@ -50,6 +54,15 @@ export {
   type WixPlan,
   type PlanCheckoutOptions,
 } from './plans';
+export {
+  listWixGiftCardProducts,
+  resolveWixGiftCardVariant,
+  createWixGiftCardCheckout,
+  type WixGiftCardProduct,
+  type WixGiftCardPresetVariant,
+  type WixGiftCardCheckoutInput,
+  type WixGiftCardCheckoutResult,
+} from './gift-cards';
 export {
   createWixCheckoutShadowObserver,
   scheduleWixCheckoutShadow,
