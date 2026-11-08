@@ -91,6 +91,44 @@ const REVIEWS_BAR_COPY: Record<Language, ReviewsBarCopy> = {
   },
 };
 
+const DROPDOWN_REVIEW_LIMIT = 3;
+
+type ReviewNouns = { other: string } & Partial<Record<Intl.LDMLPluralRule, string>>;
+
+/** "reviews" in each language, by CLDR plural category, so 1, 2, 5 and 21 all read correctly. */
+const REVIEW_NOUNS: Record<Language, ReviewNouns> = {
+  en: { one: 'review', other: 'reviews' },
+  he: { one: 'ביקורת', other: 'ביקורות' },
+  ru: { one: 'отзыв', few: 'отзыва', many: 'отзывов', other: 'отзыва' },
+  fr: { one: 'avis', other: 'avis' },
+  ar: { zero: 'تقييم', one: 'تقييم', two: 'تقييمان', few: 'تقييمات', many: 'تقييمًا', other: 'تقييم' },
+  es: { one: 'reseña', other: 'reseñas' },
+};
+
+function reviewNoun(language: Language, count: number): string {
+  const nouns = REVIEW_NOUNS[language];
+  return nouns[new Intl.PluralRules(localeFor(language)).select(count)] ?? nouns.other;
+}
+
+/** Five stars filled to the rating (partial for 4.6, as Google draws it); always left-to-right. */
+function RatingStars({ rating }: { rating: number }) {
+  return (
+    <span className="flex shrink-0 items-center gap-0.5" dir="ltr" aria-hidden="true" data-google-stars>
+      {Array.from({ length: 5 }, (_, index) => {
+        const fill = Math.max(0, Math.min(1, rating - index));
+        return (
+          <span key={index} className="relative inline-block h-3.5 w-3.5 sm:h-4 sm:w-4" data-google-star data-star-fill={fill.toFixed(2)}>
+            <Star className="absolute inset-0 h-3.5 w-3.5 text-slate-600 sm:h-4 sm:w-4" />
+            <span className="absolute inset-y-0 left-0 overflow-hidden" style={{ width: `${fill * 100}%` }}>
+              <Star className="h-3.5 w-3.5 max-w-none shrink-0 fill-amber-400 text-amber-400 sm:h-4 sm:w-4" />
+            </span>
+          </span>
+        );
+      })}
+    </span>
+  );
+}
+
 function reviewDirection(language: Language): 'rtl' | 'ltr' {
   return language === 'he' || language === 'ar' ? 'rtl' : 'ltr';
 }
@@ -118,26 +156,14 @@ export function LiveMetarBar() {
   const copy = REVIEWS_BAR_COPY[language];
   const snapshot = useGoogleReviews();
   const [isOpen, setIsOpen] = useState(false);
-  const [activeIndex, setActiveIndex] = useState(0);
   const reviewsPanelId = useId();
   const triggerRef = useRef<HTMLButtonElement>(null);
   const reviews = snapshot?.reviews.slice(0, 10) ?? [];
-  const activeReview = reviews[activeIndex] ?? reviews[0];
+  // The dropdown is a short, scannable list; the full set stays one click away on Google.
+  const dropdownReviews = reviews.slice(0, DROPDOWN_REVIEW_LIMIT);
   const formattedCount = snapshot
     ? new Intl.NumberFormat(localeFor(language)).format(snapshot.totalReviewsCount)
     : '';
-
-  useEffect(() => {
-    setActiveIndex((index) => Math.min(index, Math.max(reviews.length - 1, 0)));
-  }, [reviews.length]);
-
-  useEffect(() => {
-    if (reviews.length < 2 || isOpen || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const timer = window.setInterval(() => {
-      setActiveIndex((index) => (index + 1) % reviews.length);
-    }, 2_000);
-    return () => window.clearInterval(timer);
-  }, [isOpen, reviews.length]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -158,9 +184,16 @@ export function LiveMetarBar() {
       aria-label={copy.sectionLabel}
       className="relative z-[60] w-full border-b border-slate-800/80 bg-slate-950 px-3 text-slate-200 sm:px-4"
     >
-      <div className="mx-auto flex min-h-11 max-w-7xl items-center justify-between gap-1 sm:gap-3">
-        <div className="min-w-0 flex-1">
-          {snapshot && activeReview ? (
+      {/* One centred cluster (reviews | quick links) that shares the navbar's column, so the top bar
+          no longer pins reviews and icons to opposite screen edges on wide desktops. */}
+      <div
+        data-site-utility-bar-inner
+        className="mx-auto flex min-h-11 max-w-7xl flex-wrap items-center justify-center gap-x-2 sm:flex-nowrap sm:justify-between lg:justify-center lg:gap-x-6"
+      >
+        {/* A phone keeps the rating and the quick links on one centred row and only wraps them when
+            the screen is too narrow for both; nothing is ever drawn on top of anything else. */}
+        <div className="max-w-full flex-none sm:relative sm:min-w-0 sm:flex-1 lg:flex-none">
+          {snapshot && reviews.length > 0 ? (
             <button
               ref={triggerRef}
               type="button"
@@ -168,24 +201,19 @@ export function LiveMetarBar() {
               aria-expanded={isOpen}
               aria-controls={reviewsPanelId}
               onClick={() => setIsOpen((open) => !open)}
-              className="flex min-h-11 w-full min-w-0 items-center gap-2 rounded-lg text-left text-xs transition-colors hover:bg-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-inset touch-manipulation rtl:text-right"
+              className="flex min-h-11 w-auto min-w-0 items-center justify-center gap-1.5 rounded-lg px-1 text-sm transition-colors hover:bg-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-inset touch-manipulation sm:w-full sm:gap-2.5 sm:px-2 lg:w-auto"
             >
-              <span className="flex shrink-0 items-center gap-0.5" aria-hidden="true">
-                {Array.from({ length: 5 }, (_, index) => (
-                  <Star
-                    key={index}
-                    className={`h-3.5 w-3.5 ${index < Math.round(snapshot.overallRating) ? 'fill-amber-400 text-amber-400' : 'text-slate-700'}`}
-                  />
-                ))}
+              {/* Same order and weight as Google's own rating row: large score, stars, grey count. */}
+              <span data-google-rating-value className="hidden shrink-0 text-xl font-light leading-none tabular-nums text-slate-300 min-[420px]:inline" translate="no">
+                {snapshot.overallRating.toFixed(1)}
               </span>
-              <span className="shrink-0 font-semibold text-white" translate="no">Google</span>
-              <span className="shrink-0 font-semibold text-amber-200">{snapshot.overallRating.toFixed(1)}</span>
-              <span className="shrink-0 text-slate-400">({formattedCount})</span>
-              <span className="min-w-0 truncate text-slate-400" aria-hidden="true">
-                “{activeReview.quote}”
+              <RatingStars rating={snapshot.overallRating} />
+              <span data-google-review-count className="shrink-0 whitespace-nowrap text-slate-400">
+                {formattedCount}
+                <span className="hidden sm:inline"> {reviewNoun(language, snapshot.totalReviewsCount)}</span>
               </span>
               <ChevronDown
-                className={`ms-auto h-4 w-4 shrink-0 text-sky-300 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+                className={`h-4 w-4 shrink-0 text-sky-300 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
                 aria-hidden="true"
               />
               <span className="sr-only">
@@ -197,17 +225,98 @@ export function LiveMetarBar() {
               href={FACILITY_INFO.googleReviewsDirectUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex min-h-11 items-center gap-2 rounded-lg text-xs font-semibold text-sky-300 transition-colors hover:bg-slate-900 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-inset touch-manipulation"
+              className="flex min-h-11 items-center gap-2 whitespace-nowrap rounded-lg px-1.5 text-xs font-semibold text-sky-300 transition-colors hover:bg-slate-900 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-inset touch-manipulation"
             >
-              <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" aria-hidden="true" />
+              <span className="flex shrink-0 items-center gap-0.5" aria-hidden="true" data-google-reviews-stars="unrated">
+                {Array.from({ length: 5 }, (_, index) => (
+                  <Star key={index} className="h-3.5 w-3.5 text-amber-500" />
+                ))}
+              </span>
               <span translate="no">Google</span>
-              <span className="text-slate-300">{copy.heading}</span>
-              <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+              {/* A phone has no room for the words; they stay in the accessible name. */}
+              <span className="sr-only text-slate-300 sm:not-sr-only">{copy.heading}</span>
+              <ExternalLink className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
             </a>
           )}
+          {snapshot && isOpen ? (
+            <section
+              id={reviewsPanelId}
+              data-google-reviews-panel
+              aria-label={copy.heading}
+              className="absolute inset-x-0 top-full z-10 border-b border-slate-700 bg-slate-950 shadow-2xl sm:inset-x-auto sm:start-0 sm:w-[min(32rem,calc(100vw-2rem))] sm:rounded-b-2xl sm:border sm:border-t-0"
+            >
+              <div className="max-h-[min(70svh,34rem)] overflow-y-auto overscroll-contain px-3 py-3 sm:px-4 sm:py-4">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <div>
+                    <h2 className="text-sm font-semibold text-white">{copy.heading}</h2>
+                    <p className="mt-0.5 text-xs text-slate-400">{copy.rating(snapshot.overallRating.toFixed(1), formattedCount)}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsOpen(false);
+                      requestAnimationFrame(() => triggerRef.current?.focus());
+                    }}
+                    aria-label={copy.close}
+                    className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full text-slate-300 transition-colors hover:bg-slate-800 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 touch-manipulation"
+                  >
+                    <X className="h-4 w-4" aria-hidden="true" />
+                  </button>
+                </div>
+
+                <ol className="grid gap-2.5">
+                  {dropdownReviews.map((review, index) => {
+                    const filledStars = Math.max(0, Math.min(5, Math.round(review.rating)));
+                    return (
+                      <li key={review.id}>
+                        <article className="rounded-xl border border-slate-800 bg-slate-900/80 p-3.5">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex items-center gap-0.5" role="img" aria-label={copy.individualRating(review.rating)}>
+                              {Array.from({ length: 5 }, (_, starIndex) => (
+                                <Star
+                                  key={starIndex}
+                                  className={`h-3.5 w-3.5 ${starIndex < filledStars ? 'fill-amber-400 text-amber-400' : 'text-slate-700'}`}
+                                  aria-hidden="true"
+                                />
+                              ))}
+                            </div>
+                            <span className="shrink-0 text-[11px] text-slate-400">{copy.review(index + 1, dropdownReviews.length)}</span>
+                          </div>
+                          <blockquote className="mt-2.5 line-clamp-3 text-sm leading-relaxed text-slate-200" lang={review.language} dir={reviewDirection(review.language)}>
+                            “{review.quote}”
+                          </blockquote>
+                          <footer className="mt-2.5 flex flex-wrap items-baseline gap-x-2 border-t border-slate-800 pt-2.5">
+                            <p className="text-xs font-semibold text-white" lang={review.language} dir={reviewDirection(review.language)}>{review.author}</p>
+                            {review.relativeTime ? (
+                              <p className="text-[11px] text-slate-400" lang={review.language} dir={reviewDirection(review.language)}>{review.relativeTime}</p>
+                            ) : null}
+                          </footer>
+                        </article>
+                      </li>
+                    );
+                  })}
+                </ol>
+
+                <a
+                  href={snapshot.directReviewsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-3 inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2 text-sm font-semibold text-sky-300 underline decoration-sky-500/50 underline-offset-4 transition-colors hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
+                >
+                  <span>{copy.readAll}</span>
+                  <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+                </a>
+              </div>
+            </section>
+          ) : null}
         </div>
 
-        <div className="flex min-h-11 shrink-0 items-center justify-end" data-top-bar-social-links>
+        <span className="hidden h-5 w-px shrink-0 bg-slate-800 lg:block" aria-hidden="true" data-top-bar-divider />
+
+        <div
+          className="flex min-h-11 shrink-0 items-center justify-center sm:justify-end"
+          data-top-bar-social-links
+        >
           {SOCIAL_CHANNELS.map(({ name, href, icon: Icon, iconClassName, hoverClassName }) => (
             <a
               key={href}
@@ -221,82 +330,13 @@ export function LiveMetarBar() {
               <Icon className="h-4 w-4" aria-hidden="true" />
             </a>
           ))}
-          <WhatsAppAction />
+          <span className="contents min-[360px]:hidden md:contents">
+            <WhatsAppAction />
+          </span>
           <LanguageSelector />
         </div>
       </div>
 
-      {snapshot && isOpen ? (
-        <section
-          id={reviewsPanelId}
-          data-google-reviews-panel
-          aria-label={copy.heading}
-          className="absolute inset-x-0 top-full border-b border-slate-700 bg-slate-950/98 shadow-2xl backdrop-blur"
-        >
-          <div className="mx-auto max-h-[min(75svh,42rem)] max-w-7xl overflow-y-auto overscroll-contain px-3 py-4 sm:px-4 sm:py-5">
-            <div className="mb-4 flex items-center justify-between gap-3">
-              <div>
-                <h2 className="text-sm font-semibold text-white">{copy.heading}</h2>
-                <p className="mt-0.5 text-xs text-slate-400">{copy.rating(snapshot.overallRating.toFixed(1), formattedCount)}</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsOpen(false);
-                  requestAnimationFrame(() => triggerRef.current?.focus());
-                }}
-                aria-label={copy.close}
-                className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full text-slate-300 transition-colors hover:bg-slate-800 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 touch-manipulation"
-              >
-                <X className="h-4 w-4" aria-hidden="true" />
-              </button>
-            </div>
-
-            <ol className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-              {reviews.map((review, index) => {
-                const filledStars = Math.max(0, Math.min(5, Math.round(review.rating)));
-                return (
-                  <li key={review.id}>
-                    <article className="h-full rounded-xl border border-slate-800 bg-slate-900/80 p-4">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex items-center gap-0.5" aria-label={copy.individualRating(review.rating)}>
-                          {Array.from({ length: 5 }, (_, starIndex) => (
-                            <Star
-                              key={starIndex}
-                              className={`h-3.5 w-3.5 ${starIndex < filledStars ? 'fill-amber-400 text-amber-400' : 'text-slate-700'}`}
-                              aria-hidden="true"
-                            />
-                          ))}
-                        </div>
-                        <span className="shrink-0 text-[11px] text-slate-500">{copy.review(index + 1, reviews.length)}</span>
-                      </div>
-                      <blockquote className="mt-3 line-clamp-4 text-sm leading-relaxed text-slate-200" lang={review.language} dir={reviewDirection(review.language)}>
-                        “{review.quote}”
-                      </blockquote>
-                      <footer className="mt-3 border-t border-slate-800 pt-3">
-                        <p className="text-xs font-semibold text-white" lang={review.language} dir={reviewDirection(review.language)}>{review.author}</p>
-                        {review.relativeTime ? (
-                          <p className="mt-0.5 text-[11px] text-slate-400" lang={review.language} dir={reviewDirection(review.language)}>{review.relativeTime}</p>
-                        ) : null}
-                      </footer>
-                    </article>
-                  </li>
-                );
-              })}
-            </ol>
-
-            <a
-              href={snapshot.directReviewsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-4 inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2 text-sm font-semibold text-sky-300 underline decoration-sky-500/50 underline-offset-4 transition-colors hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
-            >
-              <span>{copy.readAll}</span>
-              <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-            </a>
-          </div>
-        </section>
-      ) : null}
     </aside>
   );
 }

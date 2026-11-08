@@ -19,7 +19,11 @@ export interface LiveGoogleReviewsSnapshot {
   reviews: LiveGoogleReview[];
 }
 
+/** A tab left open is refreshed when it is shown again once its numbers are older than this. */
+const STALE_AFTER_MS = 60_000;
+
 let cachedSnapshot: LiveGoogleReviewsSnapshot | null = null;
+let cachedAt = 0;
 let snapshotRequest: Promise<LiveGoogleReviewsSnapshot | null> | null = null;
 
 function isUsableSnapshot(value: unknown): value is LiveGoogleReviewsSnapshot {
@@ -37,12 +41,13 @@ function isUsableSnapshot(value: unknown): value is LiveGoogleReviewsSnapshot {
 }
 
 /**
- * Fetch the public Google snapshot once per browser session. The utility bar and
- * the home-page carousel consume the same immutable response, avoiding duplicate
- * API calls and ensuring their rating/count never disagree during a visit.
+ * Fetch the public Google snapshot. A page load starts with an empty module cache, so every open or
+ * refresh asks the server for the current rating and review count. The utility bar and the home-page
+ * carousel share one request and one response, so their numbers never disagree during a visit.
+ * A failed refresh keeps the last good numbers instead of blanking them.
  */
-async function loadGoogleReviews(): Promise<LiveGoogleReviewsSnapshot | null> {
-  if (cachedSnapshot) return cachedSnapshot;
+async function loadGoogleReviews(force = false): Promise<LiveGoogleReviewsSnapshot | null> {
+  if (!force && cachedSnapshot) return cachedSnapshot;
   if (snapshotRequest) return snapshotRequest;
 
   snapshotRequest = fetch('/api/reviews', {
@@ -50,13 +55,14 @@ async function loadGoogleReviews(): Promise<LiveGoogleReviewsSnapshot | null> {
     cache: 'no-store',
   })
     .then(async (response) => {
-      if (!response.ok) return null;
+      if (!response.ok) return cachedSnapshot;
       const data = await response.json();
-      if (!isUsableSnapshot(data)) return null;
+      if (!isUsableSnapshot(data)) return cachedSnapshot;
       cachedSnapshot = data;
+      cachedAt = Date.now();
       return data;
     })
-    .catch(() => null)
+    .catch(() => cachedSnapshot)
     .finally(() => {
       snapshotRequest = null;
     });
@@ -73,11 +79,20 @@ export function useGoogleReviews(): LiveGoogleReviewsSnapshot | null {
 
   useEffect(() => {
     let mounted = true;
-    void loadGoogleReviews().then((nextSnapshot) => {
+    const apply = (nextSnapshot: LiveGoogleReviewsSnapshot | null) => {
       if (mounted) setSnapshot(nextSnapshot);
-    });
+    };
+    void loadGoogleReviews().then(apply);
+
+    // Coming back to a tab that has been open for a while shows the current count again.
+    const refreshWhenShown = () => {
+      if (document.visibilityState !== 'visible' || Date.now() - cachedAt < STALE_AFTER_MS) return;
+      void loadGoogleReviews(true).then(apply);
+    };
+    document.addEventListener('visibilitychange', refreshWhenShown);
     return () => {
       mounted = false;
+      document.removeEventListener('visibilitychange', refreshWhenShown);
     };
   }, []);
 

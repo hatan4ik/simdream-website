@@ -2,8 +2,12 @@ import 'server-only';
 
 import { FACILITY_INFO } from '@/lib/config/facility-info';
 
-/** Browser-facing feed freshness: balance current feedback with Google Places API usage. */
-const CACHE_TTL_MS = 15 * 60 * 1000;
+/**
+ * Browser-facing feed freshness. Every page open or refresh asks this route for the current Google
+ * rating and review count; one shared Places lookup per minute keeps that effectively live while
+ * a busy day still costs a few hundred Places calls, not one per visitor.
+ */
+const CACHE_TTL_MS = 60 * 1000;
 const PLACEHOLDER_VALUES = ['your_', 'your-', 'example', 'placeholder', '...'];
 
 export interface GoogleReview {

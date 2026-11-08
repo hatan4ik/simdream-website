@@ -29,7 +29,7 @@ flowchart TD
         KantorovichEngine["Tiled Interval Scheduler Engine<br/>lib/scheduler/kantorovich-engine.ts"]
         MissionCalc["Mission Calculator<br/>Flight time + Addons + Voucher Manifest"]
         WixPlansResolver["Wix Pricing Plans Resolver<br/>lib/wix/plans.ts (Price & Pattern Matching)"]
-        ReviewsCache["Google Places Review Cache<br/>15m browser feed; no local fallback claims"]
+        ReviewsCache["Google Places Review Cache<br/>1m browser feed; no local fallback claims"]
     end
 
     subgraph APILayer["Next.js Serverless API Routes (14 Handlers)"]

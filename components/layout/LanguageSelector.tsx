@@ -97,7 +97,7 @@ export function LanguageSelector({
           }
         }}
         className={`flex min-h-11 items-center gap-1.5 rounded-full text-xs text-slate-200 transition-colors hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 touch-manipulation cursor-pointer ${
-          variant === 'full' ? 'w-full justify-between px-3 py-2.5' : 'min-w-11 justify-center px-2.5 py-1.5'
+          variant === 'full' ? 'w-full justify-between px-3 py-2.5' : 'min-w-11 justify-center px-1.5 py-1.5 sm:px-2.5'
         }`}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
@@ -111,7 +111,10 @@ export function LanguageSelector({
             <span className="sr-only">{currentLanguageInfo.nativeName}</span>
           </>
         )}
-        <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
+        <ChevronDown
+          className={`w-3.5 h-3.5 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''} ${variant === 'compact' ? 'hidden sm:block' : ''}`}
+          aria-hidden="true"
+        />
       </button>
 
       {isOpen && (

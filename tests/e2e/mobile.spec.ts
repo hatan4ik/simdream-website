@@ -66,9 +66,12 @@ test.describe('mobile affordances', () => {
     await expect(utility.getByRole('link', { name: 'Instagram', exact: true })).toBeVisible();
     await expect(utility.getByRole('link', { name: 'Facebook', exact: true })).toBeVisible();
     await expect(utility.getByRole('link', { name: 'YouTube', exact: true })).toBeVisible();
-    const whatsapp = utility.getByRole('link', { name: 'Contact Sim Dream on WhatsApp: +972 55 507 1307' });
+    // On phones WhatsApp sits beside Book in the navbar (between the logo and the menu), which keeps
+    // the top bar free for the reviews, the social icons and the language selector.
+    const whatsapp = chrome.navbar.getByRole('link', { name: 'Contact Sim Dream on WhatsApp: +972 55 507 1307' });
     await expect(whatsapp).toBeVisible();
     await expect(whatsapp).toHaveAttribute('href', 'https://wa.me/972555071307');
+    await expect(utility.getByRole('link', { name: /WhatsApp/ })).toHaveCount(0);
     await expect(chrome.languageButton()).toBeVisible();
 
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));

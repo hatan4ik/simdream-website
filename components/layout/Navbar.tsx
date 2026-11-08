@@ -20,6 +20,7 @@ import { buttonClassName } from '@/components/ui/Button';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { UiThemeSwitcher } from './UiThemeSwitcher';
+import { WhatsAppAction } from './WhatsAppAction';
 import { SOCIAL_CHANNELS } from './social-channels';
 
 const demoModeEnabled = process.env.NODE_ENV !== 'production' && !process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -259,8 +260,10 @@ export function Navbar() {
       className="sticky top-0 z-50 relative bg-slate-950/85 backdrop-blur-lg border-b border-slate-800/80"
       onMouseLeave={closeDesktopMenuOnPointerExit}
     >
-      <div data-site-navbar-inner className="max-w-[96rem] mx-auto px-4 sm:px-6 lg:px-8">
-        <div data-site-navbar-row className="flex items-center justify-between gap-3 h-20">
+      {/* Same 80rem column as the utility bar and the page content, so on a wide Mac screen the logo,
+          menu and actions sit together in the middle instead of at the far screen edges. */}
+      <div data-site-navbar-inner className="max-w-7xl mx-auto px-3 min-[380px]:px-4 sm:px-6 lg:px-8">
+        <div data-site-navbar-row className="flex items-center justify-between gap-2 sm:gap-3 h-20">
           {/* The header shows the brand image alone, with no tagline beneath it in any language
               (AGENTS.md §1). The link's accessible name comes from the logo's alt text. */}
           <Link href="/" className="flex items-center group shrink-0">
@@ -436,6 +439,12 @@ export function Navbar() {
               <div className="hidden sm:flex items-center gap-1.5">
                 <UiThemeSwitcher variant="compact" />
               </div>
+              {/* From 360px WhatsApp lives beside Book, between the logo and the menu, which frees the
+                  top bar for the reviews, the social icons and the language selector. On narrower
+                  screens (no room beside Book) and from md up it stays in the top bar. */}
+              <span className="hidden min-[360px]:contents">
+                <WhatsAppAction />
+              </span>
               <Link
                 href="/book"
                 data-ui-control="button"
