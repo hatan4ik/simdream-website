@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { store } from '@/lib/db/store';
+import { BOOKING_HORIZON_MESSAGE, isBeyondBookingHorizon } from '@/lib/scheduler/booking-horizon';
+import { israelToday } from '@/lib/scheduler/israel-clock';
 import { toPublicCapacityReport } from '@/lib/scheduler/kantorovich-engine';
 import { isoDate } from '@/lib/validation';
 import {
@@ -70,6 +72,9 @@ export async function GET(request: Request) {
 
   if (!date || !isoDate.safeParse(date).success || !VALID_DURATIONS.has(duration)) {
     return NextResponse.json({ error: 'Use a valid YYYY-MM-DD date and supported duration.' }, { status: 400 });
+  }
+  if (isBeyondBookingHorizon(date, israelToday())) {
+    return NextResponse.json({ error: BOOKING_HORIZON_MESSAGE }, { status: 400 });
   }
 
   try {

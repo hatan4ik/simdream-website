@@ -205,8 +205,9 @@ describe('GET /api/slots', () => {
   it('only offers open departures inside the operating window of their weekday (property)', async () => {
     const app = await loadApp();
     const firstEmptyDay = Date.UTC(2026, 11, 8);
+    // 328 days after 8 Dec 2026 is 1 Nov 2027, the last day of the one-year horizon from DEFAULT_TEST_NOW.
     const date = fc
-      .integer({ min: 0, max: 380 })
+      .integer({ min: 0, max: 328 })
       .map((offset) => new Date(firstEmptyDay + offset * 86_400_000).toISOString().slice(0, 10));
     const duration = fc.constantFrom(30, 45, 60, 90, 120);
 
@@ -237,6 +238,19 @@ describe('GET /api/slots', () => {
 
     expect(response.status).toBe(400);
     expectContract(errorBody, response.body);
+  });
+
+  it('serves the last day of the one-year horizon and rejects the day after it', async () => {
+    const app = await loadApp();
+
+    const last = await slotsResponse(app, '?date=2027-11-01&duration=60');
+    const beyond = await slotsResponse(app, '?date=2027-11-02&duration=60');
+
+    expect(last.status).toBe(200);
+    expect(beyond.status).toBe(400);
+    expect(expectContract(errorBody, beyond.body).error).toBe(
+      'Flights can be booked up to one year ahead. Please choose an earlier date.'
+    );
   });
 
   it('lists departures that already left today (Israel time) as unavailable (API-3)', async () => {

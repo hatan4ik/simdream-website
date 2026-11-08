@@ -5,7 +5,6 @@ import {
   Calendar as CalendarIcon,
   Clock,
   Sparkles,
-  ChevronLeft,
   ChevronRight,
   Check,
   Users,
@@ -25,6 +24,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+import { BookingMonthPager } from '@/components/scheduler/BookingMonthPager';
 import { BookingWeekPager } from '@/components/scheduler/BookingWeekPager';
 import {
   FlightSlot,
@@ -47,6 +47,7 @@ import {
   formatCalendarMonth,
   monthStartForYmd,
 } from '@/lib/i18n/calendar-presentation';
+import { isBeyondBookingHorizon, maxBookableDate } from '@/lib/scheduler/booking-horizon';
 import { canAddonFitInSlot, packageFromPriceIls, sanitizePackageTitle } from '@/lib/scheduler/mission-calculator';
 import { getPackageFormulaBadge } from '@/lib/scheduler/package-presentation';
 import { BOOKING_BLUEPRINT_COPY } from '@/lib/i18n/booking-blueprint-copy';
@@ -483,6 +484,7 @@ export function AmazonFlightStorefront({
   }, [selectedDate]);
 
   const weekDays = useMemo(() => calendarWeekDays(selectedDate, language), [language, selectedDate]);
+  const maxDate = maxBookableDate(calendarTodayYmd);
   const weekdayNames = useMemo(() => calendarWeekdayNames(language), [language]);
   const monthGridDays = useMemo(
     () => calendarMonthCells(viewMonthDate, language, calendarTodayYmd),
@@ -698,8 +700,9 @@ export function AmazonFlightStorefront({
                       type="button"
                       data-calendar-date={day.dateStr}
                       aria-pressed={isSelected}
+                      disabled={maxDate !== '' && day.dateStr > maxDate}
                       onClick={() => selectCalendarDate(day.dateStr)}
-                      className={`min-h-[64px] py-2 px-1 sm:p-2 rounded-xl border text-center transition-all flex flex-col items-center justify-center touch-manipulation select-none cursor-pointer active:scale-95 ${
+                      className={`min-h-[64px] py-2 px-1 sm:p-2 rounded-xl border text-center transition-all flex flex-col items-center justify-center touch-manipulation select-none cursor-pointer active:scale-95 disabled:cursor-not-allowed disabled:opacity-35 ${
                         isSelected
                           ? 'border-amber-400 bg-amber-500/15 text-white shadow-md ring-1 ring-amber-400/50'
                           : 'border-slate-800/90 bg-slate-950/70 hover:border-slate-700 text-slate-300'
@@ -715,37 +718,17 @@ export function AmazonFlightStorefront({
             </div>
           ) : (
             <div className="p-3 sm:p-4 rounded-xl border border-slate-800 bg-slate-950/80 space-y-3">
-              <div className="flex items-center justify-between gap-2">
-                <button
-                  type="button"
-                  data-calendar-previous-month
-                  aria-label={calendarCopy.previousMonth}
-                  onClick={() =>
-                    setViewMonthOverride(
-                      new Date(viewMonthDate.getFullYear(), viewMonthDate.getMonth() - 1, 1)
-                    )
-                  }
-                  className="min-w-[48px] min-h-[48px] p-2 rounded-xl border border-slate-800 bg-slate-900/90 hover:border-slate-700 text-slate-200 flex items-center justify-center touch-manipulation cursor-pointer active:scale-95 transition-all"
-                >
-                  <ChevronLeft className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
-                </button>
-                <span className="text-sm sm:text-base font-bold text-white font-mono">
-                  {formatCalendarMonth(viewMonthDate, language)}
-                </span>
-                <button
-                  type="button"
-                  data-calendar-next-month
-                  aria-label={calendarCopy.nextMonth}
-                  onClick={() =>
-                    setViewMonthOverride(
-                      new Date(viewMonthDate.getFullYear(), viewMonthDate.getMonth() + 1, 1)
-                    )
-                  }
-                  className="min-w-[48px] min-h-[48px] p-2 rounded-xl border border-slate-800 bg-slate-900/90 hover:border-slate-700 text-slate-200 flex items-center justify-center touch-manipulation cursor-pointer active:scale-95 transition-all"
-                >
-                  <ChevronRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
-                </button>
-              </div>
+              <BookingMonthPager
+                viewMonthDate={viewMonthDate}
+                selectedDate={selectedDate}
+                calendarTodayYmd={calendarTodayYmd}
+                language={language}
+                isRTL={isRTL}
+                previousLabel={calendarCopy.previousMonth}
+                nextLabel={calendarCopy.nextMonth}
+                onChangeMonth={setViewMonthOverride}
+                onToday={() => selectCalendarDate(calendarTodayYmd)}
+              />
               <div className="overflow-x-auto pb-1 [-webkit-overflow-scrolling:touch]">
                 <div className="grid min-w-[384px] grid-cols-7 gap-2 text-center">
                   {weekdayNames.map((d) => (
@@ -762,10 +745,10 @@ export function AmazonFlightStorefront({
                         data-calendar-date={cell.dateStr}
                         aria-label={cell.dayLabel}
                         aria-pressed={isSelected}
-                        disabled={cell.isPast}
+                        disabled={cell.isPast || cell.isBeyondHorizon}
                         onClick={() => selectCalendarDate(cell.dateStr)}
                         className={`min-h-[48px] min-w-[48px] h-12 w-12 rounded-xl border font-mono text-xs sm:text-sm font-semibold transition-colors flex items-center justify-center touch-manipulation select-none ${
-                          cell.isPast
+                          cell.isPast || cell.isBeyondHorizon
                             ? 'border-transparent text-slate-700 opacity-35 cursor-not-allowed'
                           : isSelected
                           ? 'border-amber-300 bg-amber-400 text-slate-950 font-black shadow-md ring-2 ring-amber-400/40 cursor-pointer'
@@ -846,6 +829,7 @@ export function AmazonFlightStorefront({
                     type="button"
                     variant="outline"
                     size="sm"
+                    disabled={isBeyondBookingHorizon(addDaysToYmd(selectedDate, 1), calendarTodayYmd)}
                     onClick={() => selectCalendarDate(addDaysToYmd(selectedDate, 1))}
                     className="font-mono text-xs text-sky-400 border-sky-500/40 hover:bg-sky-500/10"
                   >
@@ -895,6 +879,7 @@ export function AmazonFlightStorefront({
                     type="button"
                     variant="outline"
                     size="sm"
+                    disabled={isBeyondBookingHorizon(addDaysToYmd(selectedDate, 1), calendarTodayYmd)}
                     onClick={() => selectCalendarDate(addDaysToYmd(selectedDate, 1))}
                     className="font-mono text-xs text-sky-400 border-sky-500/40 hover:bg-sky-500/10"
                   >

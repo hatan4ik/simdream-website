@@ -5,7 +5,6 @@ import {
   Calendar as CalendarIcon,
   Clock,
   Sparkles,
-  ChevronLeft,
   ChevronRight,
   Check,
   Users,
@@ -14,6 +13,7 @@ import {
   X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { BookingMonthPager } from '@/components/scheduler/BookingMonthPager';
 import { BookingWeekPager } from '@/components/scheduler/BookingWeekPager';
 import {
   FlightSlot,
@@ -34,6 +34,7 @@ import {
   formatCalendarMonth,
   monthStartForYmd,
 } from '@/lib/i18n/calendar-presentation';
+import { isBeyondBookingHorizon, maxBookableDate } from '@/lib/scheduler/booking-horizon';
 import { addMinutesToTime, packageFromPriceIls, packagePriceForSlot } from '@/lib/scheduler/mission-calculator';
 import { getPackageFormulaBadge } from '@/lib/scheduler/package-presentation';
 import { BOOKING_BLUEPRINT_COPY } from '@/lib/i18n/booking-blueprint-copy';
@@ -350,6 +351,7 @@ export function KantorovichCalendarScheduler({
   }, [packages, selectedPackage.id]);
 
   const weekDays = useMemo(() => calendarWeekDays(selectedDate, language), [language, selectedDate]);
+  const maxDate = maxBookableDate(calendarTodayYmd);
   const weekdayNames = useMemo(() => calendarWeekdayNames(language), [language]);
   const monthGridDays = useMemo(
     () => calendarMonthCells(viewMonthDate, language, calendarTodayYmd),
@@ -460,8 +462,9 @@ export function KantorovichCalendarScheduler({
                     type="button"
                     data-calendar-date={day.dateStr}
                     aria-pressed={isSelected}
+                    disabled={maxDate !== '' && day.dateStr > maxDate}
                     onClick={() => handleSelectDate(day.dateStr)}
-                    className={`snap-start shrink-0 min-w-[68px] sm:min-w-0 min-h-[72px] p-2.5 rounded-xl border text-center transition-all flex flex-col items-center justify-center ${
+                    className={`snap-start shrink-0 min-w-[68px] sm:min-w-0 min-h-[72px] p-2.5 rounded-xl border text-center transition-all flex flex-col items-center justify-center disabled:cursor-not-allowed disabled:opacity-35 ${
                       isSelected
                         ? 'border-sky-400 bg-sky-500/20 text-white ring-2 ring-sky-400 shadow-glow'
                         : 'border-slate-800 bg-slate-950/70 text-slate-300 hover:border-slate-700'
@@ -488,37 +491,17 @@ export function KantorovichCalendarScheduler({
         {/* FULL MONTH CALENDAR GRID: Clean mobile-friendly cells */}
         {calendarMode === 'month' && (
           <div className="space-y-3">
-            <div className="flex items-center justify-between px-1">
-              <button
-                type="button"
-                data-calendar-previous-month
-                aria-label={copy.previousMonth}
-                onClick={() =>
-                  setViewMonthOverride(
-                    new Date(viewMonthDate.getFullYear(), viewMonthDate.getMonth() - 1, 1)
-                  )
-                }
-                className="min-w-[48px] min-h-[48px] p-2 rounded-xl border border-slate-800 bg-slate-950 text-slate-300 hover:text-white flex items-center justify-center touch-manipulation cursor-pointer active:scale-95 transition-all"
-              >
-                <ChevronLeft className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
-              </button>
-              <span className="text-sm sm:text-base font-bold text-white">
-                {formatCalendarMonth(viewMonthDate, language)}
-              </span>
-              <button
-                type="button"
-                data-calendar-next-month
-                aria-label={copy.nextMonth}
-                onClick={() =>
-                  setViewMonthOverride(
-                    new Date(viewMonthDate.getFullYear(), viewMonthDate.getMonth() + 1, 1)
-                  )
-                }
-                className="min-w-[48px] min-h-[48px] p-2 rounded-xl border border-slate-800 bg-slate-950 text-slate-300 hover:text-white flex items-center justify-center touch-manipulation cursor-pointer active:scale-95 transition-all"
-              >
-                <ChevronRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
-              </button>
-            </div>
+            <BookingMonthPager
+              viewMonthDate={viewMonthDate}
+              selectedDate={selectedDate}
+              calendarTodayYmd={calendarTodayYmd}
+              language={language}
+              isRTL={isRTL}
+              previousLabel={copy.previousMonth}
+              nextLabel={copy.nextMonth}
+              onChangeMonth={setViewMonthOverride}
+              onToday={() => handleSelectDate(calendarTodayYmd)}
+            />
 
             <div className="overflow-x-auto pb-1 [-webkit-overflow-scrolling:touch]">
               <div className="grid min-w-[384px] grid-cols-7 gap-2 text-center text-[11px] font-medium text-slate-400">
@@ -539,10 +522,10 @@ export function KantorovichCalendarScheduler({
                       data-calendar-date={cell.dateStr}
                       aria-label={cell.dayLabel}
                       aria-pressed={isSelected}
-                      disabled={cell.isPast}
+                      disabled={cell.isPast || cell.isBeyondHorizon}
                       onClick={() => handleSelectDate(cell.dateStr)}
                       className={`min-h-[48px] min-w-[48px] h-12 w-12 rounded-xl border text-center font-semibold text-sm transition-colors flex items-center justify-center touch-manipulation select-none ${
-                        cell.isPast
+                        cell.isPast || cell.isBeyondHorizon
                           ? 'opacity-25 border-transparent text-slate-600 cursor-not-allowed'
                           : isSelected
                           ? 'border-sky-400 bg-sky-500 text-slate-950 font-black shadow-glow cursor-pointer'
@@ -697,6 +680,7 @@ export function KantorovichCalendarScheduler({
                 variant="outline"
                 size="sm"
                 className="border-sky-500/50 text-sky-300 hover:bg-sky-500/10"
+                disabled={isBeyondBookingHorizon(addDaysToYmd(selectedDate, 1), calendarTodayYmd)}
                 onClick={() => {
                   handleSelectDate(addDaysToYmd(selectedDate, 1));
                 }}
