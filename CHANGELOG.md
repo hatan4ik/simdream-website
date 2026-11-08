@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.6.0](https://github.com/hatan4ik/simdream-website/compare/v1.5.0...v1.6.0) (2026-11-08)
+
+
+### Features
+
+* **booking:** dynamically switch checkout to Airline Interview Prep 60 PRO on ATPL selection ([#56](https://github.com/hatan4ik/simdream-website/issues/56)) ([39f4500](https://github.com/hatan4ik/simdream-website/commit/39f45001582cc1736eec44254a190e24afd3184f))
+* **booking:** limit the calendar to one year ahead and add a Today button ([#55](https://github.com/hatan4ik/simdream-website/issues/55)) ([4bab45b](https://github.com/hatan4ik/simdream-website/commit/4bab45bd354297c95f55419fca2a55e5eb77745d))
+
 ## [1.5.0](https://github.com/hatan4ik/simdream-website/compare/v1.4.0...v1.5.0) (2026-11-08)
 
 
