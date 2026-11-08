@@ -135,7 +135,7 @@ test.describe('gift vouchers', () => {
     await expect(colour).toHaveAttribute('aria-checked', 'true');
     const preview = page.locator('[data-gift-card-design-preview="aurora"]');
     await expect(preview).toBeVisible();
-    await expect(preview).toHaveAttribute('src', /aurora\.jpg/);
+    await expect(preview).toHaveAttribute('src', /aurora\.webp/);
 
     const checkoutResponse = page.waitForResponse((response) => response.url().endsWith('/api/checkout'));
     await vouchers.submit().click();

@@ -5,6 +5,7 @@ import { Check } from 'lucide-react';
 import { useRef } from 'react';
 import { useLanguage } from '@/lib/i18n/language-context';
 import {
+  GIFT_CARD_ART,
   GIFT_CARD_DESIGNS,
   getGiftCardDesign,
   type GiftCardDesignId,
@@ -16,7 +17,7 @@ interface GiftCardDesignPickerProps {
   label: string;
 }
 
-/** Apple-style colour choice that loads only the selected, locally served preview asset. */
+/** Apple-style colour choice that loads only the selected, locally served preview asset, shown whole. */
 export function GiftCardDesignPicker({
   selectedDesignId,
   onChange,
@@ -34,25 +35,35 @@ export function GiftCardDesignPicker({
 
   return (
     <div className="w-full" aria-label={label}>
-      <figure className="relative overflow-hidden w-full aspect-[16/9] sm:aspect-[1.65/1] bg-slate-950 flex items-center justify-center">
+      {/* The art is one shared canvas with the whole card centred on it (see GIFT_CARD_ART), so it
+          is shown uncropped at its natural proportions on every screen. The name sits beside the
+          swatches below; a caption over the card would cover its tagline. */}
+      <figure className="relative flex w-full items-center justify-center overflow-clip bg-gradient-to-b from-slate-900 to-slate-950 px-2 pb-1 pt-3 sm:px-5 sm:pb-2 sm:pt-5">
         <Image
           key={selected.id}
           data-gift-card-design-preview={selected.id}
           src={selected.image}
           alt={t.vouchers[selected.nameKey]}
-          width={960}
-          height={536}
+          width={GIFT_CARD_ART.width}
+          height={GIFT_CARD_ART.height}
           sizes="(max-width: 1024px) 100vw, 42vw"
           unoptimized
-          className="block h-full w-full object-cover object-center scale-[1.3] transition-transform duration-300"
+          className="block h-auto w-full max-w-[42rem] drop-shadow-[0_16px_22px_rgba(2,6,23,0.5)]"
         />
-        <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/90 via-slate-950/50 to-transparent px-5 pb-3.5 pt-10 text-xs font-semibold text-white">
-          {t.vouchers[selected.nameKey]}
-        </figcaption>
+        <figcaption className="sr-only">{t.vouchers[selected.nameKey]}</figcaption>
       </figure>
 
-      <div className="px-5 sm:px-6 pt-4 pb-1 flex items-center gap-3">
-        <div className="flex items-center gap-2" role="radiogroup" aria-label={label}>
+      {/* The seven swatches share the panel width in a grid of 44px-minimum cells. A fixed-width row was
+          wider than a phone panel, and focusing its last swatch scrolled the whole panel sideways,
+          dragging the card left and cutting its text. */}
+      <div className="@container px-5 sm:px-6 pt-3 pb-1">
+        {/* Seven columns as soon as seven 44px cells fit the panel (19.25rem); a narrower panel
+            wraps five and two instead of leaving one swatch alone on a row. */}
+        <div
+          className="grid max-w-[21rem] grid-cols-5 @[19.25rem]:grid-cols-7"
+          role="radiogroup"
+          aria-label={label}
+        >
           {GIFT_CARD_DESIGNS.map((design, index) => {
             const selectedDesign = selected.id === design.id;
             return (
@@ -84,7 +95,7 @@ export function GiftCardDesignPicker({
                     chooseAt(GIFT_CARD_DESIGNS.length - 1);
                   }
                 }}
-                className="relative inline-flex h-12 w-12 items-center justify-center rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+                className="relative inline-flex h-12 w-full items-center justify-center rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
               >
                 <span
                   aria-hidden="true"
@@ -101,7 +112,7 @@ export function GiftCardDesignPicker({
             );
           })}
         </div>
-        <p className="min-w-0 text-xs text-slate-300">
+        <p className="mt-1 min-w-0 text-xs text-slate-300">
           <span className="font-semibold text-white">{t.vouchers[selected.nameKey]}</span>
         </p>
       </div>

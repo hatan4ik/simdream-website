@@ -1,52 +1,62 @@
 /**
- * Lightweight, locally served art directions for the digital gift-card preview.
+ * Locally served art for the digital gift-card preview and the activation email.
  *
- * Each image is deliberately a 960px compressed source. Next/Image generates the
- * final responsive AVIF/WebP payload, so selecting a design never requires a
- * round-trip to a third-party image host.
+ * Every design ships twice, both built from the master renders by
+ * `scripts/build-gift-card-art.mjs`: a transparent WebP for the voucher page (the card trimmed to
+ * its exact edge with clean rounded corners) and a JPEG on white for email clients. All of them
+ * share one canvas, so the preview needs no per-design cropping and never cuts the logo.
  */
+export const GIFT_CARD_ART = { width: 1280, height: 711 } as const;
+
 export const GIFT_CARD_DESIGNS = [
   {
     id: 'skyline',
     nameKey: 'cardDesignSkyline',
-    image: '/gift-cards/skyline.jpg',
-    swatch: 'linear-gradient(135deg, #d9f2ff 0%, #2096C7 48%, #061426 100%)',
+    image: '/gift-cards/skyline.webp',
+    emailImage: '/gift-cards/skyline.jpg',
+    swatch: 'linear-gradient(135deg, #5aa3d0 0%, #2a5579 50%, #12304d 100%)',
   },
   {
     id: 'ivory',
     nameKey: 'cardDesignIvory',
-    image: '/gift-cards/ivory.jpg',
-    swatch: 'linear-gradient(135deg, #ffffff 0%, #ede7df 55%, #c7a78e 100%)',
+    image: '/gift-cards/ivory.webp',
+    emailImage: '/gift-cards/ivory.jpg',
+    swatch: 'linear-gradient(135deg, #f6f0e4 0%, #d6c8b2 50%, #b09e84 100%)',
   },
   {
     id: 'moonlight',
     nameKey: 'cardDesignMoonlight',
-    image: '/gift-cards/moonlight.jpg',
-    swatch: 'linear-gradient(135deg, #edf3fa 0%, #55677f 48%, #101827 100%)',
+    image: '/gift-cards/moonlight.webp',
+    emailImage: '/gift-cards/moonlight.jpg',
+    swatch: 'linear-gradient(135deg, #4a515c 0%, #2a2f38 50%, #14171d 100%)',
   },
   {
     id: 'aurora',
     nameKey: 'cardDesignAurora',
-    image: '/gift-cards/aurora.jpg',
-    swatch: 'linear-gradient(135deg, #ff4b2b 0%, #2096C7 52%, #1b153e 100%)',
+    image: '/gift-cards/aurora.webp',
+    emailImage: '/gift-cards/aurora.jpg',
+    swatch: 'linear-gradient(135deg, #ff6a13 0%, #ff8a3d 35%, #0aa0d8 70%, #057db0 100%)',
   },
   {
     id: 'sunset',
     nameKey: 'cardDesignSunset',
-    image: '/gift-cards/sunset.jpg',
-    swatch: 'linear-gradient(135deg, #f09a4b 0%, #8a5544 48%, #0b2741 100%)',
+    image: '/gift-cards/sunset.webp',
+    emailImage: '/gift-cards/sunset.jpg',
+    swatch: 'linear-gradient(135deg, #7d8ea3 0%, #d98a3a 45%, #6b2f12 100%)',
   },
   {
     id: 'dusk',
     nameKey: 'cardDesignDusk',
-    image: '/gift-cards/dusk.jpg',
-    swatch: 'linear-gradient(135deg, #b8d8e5 0%, #d5a95f 52%, #172033 100%)',
+    image: '/gift-cards/dusk.webp',
+    emailImage: '/gift-cards/dusk.jpg',
+    swatch: 'linear-gradient(135deg, #4c5a85 0%, #5b5876 45%, #b0784f 100%)',
   },
   {
     id: 'pearl',
     nameKey: 'cardDesignPearl',
-    image: '/gift-cards/pearl.jpg',
-    swatch: 'linear-gradient(135deg, #6e91b8 0%, #f8f4ed 52%, #d7ae67 100%)',
+    image: '/gift-cards/pearl.webp',
+    emailImage: '/gift-cards/pearl.jpg',
+    swatch: 'linear-gradient(135deg, #f4f2ef 0%, #d3cfc9 55%, #b3aea7 100%)',
   },
 ] as const;
 
