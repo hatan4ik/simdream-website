@@ -85,6 +85,12 @@ const nextConfig = {
         destination: '/pro',
         permanent: true,
       },
+      {
+        // The live Editor site's fear-of-flying page.
+        source: '/aerophobia',
+        destination: '/fear-of-flying',
+        permanent: true,
+      },
       // Legacy Wix paths that have an exact, behaviour-preserving replacement.
       // Do not add broad fallbacks for /promotion, /aerophobia, /blog or
       // /service-page/:slug: each needs an approved content/SKU migration map.

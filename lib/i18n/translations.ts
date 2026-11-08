@@ -66,7 +66,7 @@ const baseTranslations = {
       titleHighlight: 'Boeing 737 MAX',
       titlePart2: 'In Tel Aviv',
       subtitle:
-        'Step into the Captain’s seat of an authentic 1:1 scale airliner flight deck. Featuring dual-linked control columns, a motorized throttle quadrant, and an immersive Boeing 737 cockpit environment. No prior flight training needed.',
+        'Take the captain’s seat, push the throttles and feel a 70-ton airliner answer to your hands. The flight deck is a 1:1 Boeing 737 MAX with dual-linked control columns, motorized control loading and a motorized throttle quadrant. No prior flight training needed.',
       bookFlight: 'Book Flight Session',
       cockpitSpecs: 'About & How It Works',
     },
@@ -904,7 +904,7 @@ const baseTranslations = {
       titleHighlight: 'הבואינג 737 MAX',
       titlePart2: 'בלב תל אביב',
       subtitle:
-        'שבו בכיסא הקברניט של מטוס נוסעים אמיתי בקנה מידה 1:1. עמודי הגה כפולים ומקושרים עם עומס בקרה דינמי, מצערת מנועים ממונעת וסביבת תא טייס אותנטית של בואינג 737. אין צורך בניסיון טיסה קודם.',
+        'שבו בכיסא הקברניט, דחפו את המצערות והרגישו מטוס נוסעים של 70 טון מגיב לידיים שלכם. תא הטייס הוא בואינג 737 מקס בקנה מידה 1:1, עם עמודי הגה כפולים ומקושרים, עומס בקרה ממונע ומצערת מנועים ממונעת. אין צורך בניסיון טיסה קודם.',
       bookFlight: 'הזמנת טיסה בסימולטור',
       cockpitSpecs: 'אודות ומהלך הטיסה',
     },
@@ -1737,7 +1737,7 @@ const baseTranslations = {
       titleHighlight: 'Boeing 737 MAX',
       titlePart2: 'В Тель-Авиве',
       subtitle:
-        'Займите кресло командира воздушного судна (КВС) в аутентичной кабине масштаба 1:1. Связанные штурвальные колонки с динамической загрузкой усилий, моторизованный сектор газа и аутентичная среда кабины Boeing 737. Предварительный опыт полетов не требуется.',
+        'Займите кресло командира, дайте взлётный режим и почувствуйте, как 70-тонный лайнер слушается ваших рук. Кабина — Boeing 737 MAX в масштабе 1:1: связанные штурвальные колонки, моторизованная загрузка усилий и моторизованный сектор газа. Предварительный опыт полётов не требуется.',
       bookFlight: 'Забронировать полет',
       cockpitSpecs: 'О центре и ходе полета',
     },
@@ -2576,7 +2576,7 @@ const baseTranslations = {
       titleHighlight: 'Boeing 737 MAX',
       titlePart2: 'À Tel Aviv',
       subtitle:
-        'Installez-vous dans le siège du commandant de bord d’un cockpit authentique à l’échelle 1:1. Colonnes de manche couplées à retour d’effort dynamique, quadrant de gaz motorisé et environnement authentique de cockpit Boeing 737. Aucune expérience aéronautique préalable requise.',
+        'Prenez le siège du commandant, poussez les manettes et sentez un avion de ligne de 70 tonnes répondre à vos mains. Le cockpit est un Boeing 737 MAX à l’échelle 1:1 : colonnes de manche couplées, retour d’effort motorisé et quadrant de gaz motorisé. Aucune expérience aéronautique préalable requise.',
       bookFlight: 'Réserver une session de vol',
       cockpitSpecs: 'À Propos & Déroulement',
     },
@@ -3421,7 +3421,7 @@ const baseTranslations = {
       titleHighlight: 'بوينغ 737 ماكس',
       titlePart2: 'في قلب تل أبيب',
       subtitle:
-        'اجلس في مقعد القبطان داخل قمرة قيادة حقيقية بمقياس 1:1 لطائرة ركاب مدنية. أعمدة مقاود تحكم مزدوجة ومقترنة بنظام مقاومة هوائية ديناميكية، ومنصة أذرع دفع آلية، وبيئة قمرة بوينغ 737 أصيلة. لا تشترط أي خبرة سابقة.',
+        'اجلس في مقعد القبطان، وادفع أذرع الدفع، واشعر بطائرة ركاب تزن 70 طنًا تستجيب ليديك. قمرة القيادة هي بوينغ 737 ماكس بمقياس 1:1، مع أعمدة تحكم مزدوجة مقترنة، ومقاومة تحكم آلية، ومنصة أذرع دفع آلية. لا تشترط أي خبرة سابقة في الطيران.',
       bookFlight: 'حجز جلسة طيران',
       cockpitSpecs: 'عن المركز وكيف تطير',
     },
@@ -4253,7 +4253,7 @@ const spanishTranslations = {
     titlePart1: 'Toma el mando de un',
     titleHighlight: 'Boeing 737 MAX',
     titlePart2: 'en Tel Aviv',
-    subtitle: 'Vuela, despega y aterriza en una cabina Boeing 737 MAX de escala real, acompañado por un capitán de aerolínea activo.',
+    subtitle: 'Toma el asiento del capitán, empuja las palancas de gases y siente cómo un avión de 70 toneladas responde a tus manos. La cabina es un Boeing 737 MAX a escala 1:1, con columnas de mando acopladas, carga de control motorizada y cuadrante de gases motorizado. No se necesita experiencia previa de vuelo.',
     bookFlight: 'Reserva tu vuelo',
     cockpitSpecs: 'Cómo funciona',
   },

@@ -18,6 +18,7 @@ const FOOTER_NAV = [
 const LEGACY_ALIASES = [
   { alias: '/simulator', destination: '/pro' },
   { alias: '/training', destination: '/pro' },
+  { alias: '/aerophobia', destination: '/fear-of-flying' },
   { alias: '/book-online', destination: '/book' },
   { alias: '/לקנות-כמתנה', destination: '/vouchers' },
   { alias: '/cooperation', destination: '/workshops' },

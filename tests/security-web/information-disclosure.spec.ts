@@ -213,8 +213,12 @@ test.describe('cookies', () => {
 });
 
 test.describe('redirects', () => {
-  for (const alias of ['/simulator', '/training']) {
-    test(`${alias} redirects permanently to /pro on the same origin, even with a hostile forwarded host`, async ({ request, baseURL }) => {
+  for (const { alias, destination } of [
+    { alias: '/simulator', destination: '/pro' },
+    { alias: '/training', destination: '/pro' },
+    { alias: '/aerophobia', destination: '/fear-of-flying' },
+  ]) {
+    test(`${alias} redirects permanently to ${destination} on the same origin, even with a hostile forwarded host`, async ({ request, baseURL }) => {
       const response = await request.get(alias, {
         maxRedirects: 0,
         headers: { 'x-forwarded-host': 'evil.example', 'x-forwarded-proto': 'https' },
@@ -223,7 +227,7 @@ test.describe('redirects', () => {
 
       expect(response.status()).toBe(308);
       expect(new URL(location, baseURL).origin).toBe(new URL(baseURL ?? '').origin);
-      expect(new URL(location, baseURL).pathname).toBe('/pro');
+      expect(new URL(location, baseURL).pathname).toBe(destination);
     });
   }
 
