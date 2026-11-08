@@ -81,6 +81,7 @@ Production-grade website, multi-step booking engine, Amazon-style flight storefr
 
 6. **Gift Voucher System (`/vouchers`)**:
    - Customizable digital boarding pass gift certificates with live visual preview.
+   - Flexible Gift Cards skip the package value picker: a quick-select balance (or custom amount, min ₪100) followed by "Personalized Gift Card Details".
    - Cryptographically generated, high-entropy redeemable flight codes valid for 12 months with online and counter redemption.
 
 7. **Member Flight Deck (`/dashboard`)**:

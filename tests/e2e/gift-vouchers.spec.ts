@@ -146,4 +146,57 @@ test.describe('gift vouchers', () => {
       ...ORDER,
     });
   });
+
+  test('swaps the package value picker for a quick-select balance step in Gift Card mode', async ({ page, vouchers }) => {
+    await vouchers.goto();
+    const valueTitle = page.getByRole('heading', { level: 2, name: '1. Select Gift Voucher Value' });
+    const certificateDetails = page.getByRole('heading', { level: 2, name: '2. Personalize Voucher Details' });
+    await expect(valueTitle).toBeVisible();
+    await expect(certificateDetails).toBeVisible();
+
+    await page.getByRole('button', { name: /Flexible Monetary Gift Card/ }).click();
+    await expect(valueTitle).toHaveCount(0);
+    await expect(certificateDetails).toHaveCount(0);
+    await expect(vouchers.tier(/90-Min Ultimate Aviator/)).toHaveCount(0);
+    await expect(page.getByRole('heading', { level: 2, name: 'Quick-Select Gift Card Credit Balance' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 2, name: 'Personalized Gift Card Details' })).toBeVisible();
+    await expect(vouchers.customAmount()).toBeVisible();
+
+    // Back to the certificate: the package picker and its titles return untouched.
+    await page.getByRole('button', { name: /Flight Experience Gift Certificate/ }).click();
+    await expect(valueTitle).toBeVisible();
+    await expect(certificateDetails).toBeVisible();
+    await expect(vouchers.tier(/90-Min Ultimate Aviator/)).toBeVisible();
+    await expect(page.getByRole('heading', { level: 2, name: 'Personalized Gift Card Details' })).toHaveCount(0);
+  });
+
+  test('validates a custom Gift Card amount (min ₪100) and sends a valid one as an open balance', async ({ page, vouchers }) => {
+    const checkoutRequests = recordRequests(page, '/api/checkout');
+    await vouchers.goto();
+    await vouchers.fill(ORDER);
+    await page.getByRole('button', { name: /Flexible Monetary Gift Card/ }).click();
+
+    await vouchers.customAmount().fill('50');
+    await expect(vouchers.submit()).toHaveText(ilsPattern(50));
+    const dialogs: string[] = [];
+    page.once('dialog', (dialog) => {
+      dialogs.push(dialog.message());
+      void dialog.dismiss();
+    });
+    await vouchers.submit().click();
+    await expect.poll(() => dialogs).toEqual(['Please select or enter a valid voucher amount (min ₪100).']);
+    await page.evaluate(() => fetch('/api/packages').then((response) => response.status));
+    expect(checkoutRequests).toHaveLength(0);
+
+    // A typed amount replaces the preset selection and is what the server receives.
+    await vouchers.customAmount().fill('250');
+    await expect(vouchers.submit()).toHaveText(ilsPattern(250));
+    await expect(page.locator('[data-gift-card-presets]').getByRole('button', { pressed: true })).toHaveCount(0);
+    const checkoutResponse = page.waitForResponse((response) => response.url().endsWith('/api/checkout'));
+    await vouchers.submit().click();
+    const body = (await checkoutResponse).request().postDataJSON();
+    expect(body).toMatchObject({ kind: 'voucher', amountIls: 250, ...ORDER });
+    expect(body).toHaveProperty('giftCardDesignId');
+    expect(body).not.toHaveProperty('packageId');
+  });
 });
