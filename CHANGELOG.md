@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/hatan4ik/simdream-website/compare/v1.3.0...v1.4.0) (2026-11-08)
+
+
+### Features
+
+* **vouchers:** link each Gift Card colour to one balance and lower the minimum to 50 ([#51](https://github.com/hatan4ik/simdream-website/issues/51)) ([65514c9](https://github.com/hatan4ik/simdream-website/commit/65514c98d713273e640488810f2c195c3dac560b))
+
 ## [1.3.0](https://github.com/hatan4ik/simdream-website/compare/v1.2.5...v1.3.0) (2026-11-08)
 
 
