@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { GIFT_CARD_DESIGNS, type GiftCardDesignId } from '@/lib/catalog/gift-card-designs';
+import { GIFT_CARD_DESIGNS, MIN_GIFT_VOUCHER_AMOUNT_ILS, type GiftCardDesignId } from '@/lib/catalog/gift-card-designs';
 
 /** True only for dates that exist on the calendar (rejects 2027-02-30, 2026-13-01, ...). */
 export function isCalendarDate(value: string): boolean {
@@ -38,7 +38,7 @@ export const bookingCheckoutSchema = z.object({
 
 export const voucherCheckoutSchema = z.object({
   kind: z.literal('voucher'),
-  amountIls: money.min(100),
+  amountIls: money.min(MIN_GIFT_VOUCHER_AMOUNT_ILS),
   recipientName: safeText(120),
   // Optional: left blank, the voucher is emailed to the buyer to print and present.
   recipientEmail: z.preprocess(

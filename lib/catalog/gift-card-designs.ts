@@ -8,9 +8,14 @@
  */
 export const GIFT_CARD_ART = { width: 1280, height: 711 } as const;
 
+/**
+ * Every card is sold at one balance, so the design and the credit are a single choice: picking a card
+ * sets the credit and picking a credit shows its card. The cheapest card sets the minimum purchase.
+ */
 export const GIFT_CARD_DESIGNS = [
   {
     id: 'skyline',
+    amountIls: 50,
     nameKey: 'cardDesignSkyline',
     image: '/gift-cards/skyline.webp',
     emailImage: '/gift-cards/skyline.jpg',
@@ -18,6 +23,7 @@ export const GIFT_CARD_DESIGNS = [
   },
   {
     id: 'ivory',
+    amountIls: 100,
     nameKey: 'cardDesignIvory',
     image: '/gift-cards/ivory.webp',
     emailImage: '/gift-cards/ivory.jpg',
@@ -25,6 +31,7 @@ export const GIFT_CARD_DESIGNS = [
   },
   {
     id: 'moonlight',
+    amountIls: 200,
     nameKey: 'cardDesignMoonlight',
     image: '/gift-cards/moonlight.webp',
     emailImage: '/gift-cards/moonlight.jpg',
@@ -32,6 +39,7 @@ export const GIFT_CARD_DESIGNS = [
   },
   {
     id: 'aurora',
+    amountIls: 300,
     nameKey: 'cardDesignAurora',
     image: '/gift-cards/aurora.webp',
     emailImage: '/gift-cards/aurora.jpg',
@@ -39,6 +47,7 @@ export const GIFT_CARD_DESIGNS = [
   },
   {
     id: 'sunset',
+    amountIls: 500,
     nameKey: 'cardDesignSunset',
     image: '/gift-cards/sunset.webp',
     emailImage: '/gift-cards/sunset.jpg',
@@ -46,6 +55,7 @@ export const GIFT_CARD_DESIGNS = [
   },
   {
     id: 'dusk',
+    amountIls: 700,
     nameKey: 'cardDesignDusk',
     image: '/gift-cards/dusk.webp',
     emailImage: '/gift-cards/dusk.jpg',
@@ -53,12 +63,15 @@ export const GIFT_CARD_DESIGNS = [
   },
   {
     id: 'pearl',
+    amountIls: 1000,
     nameKey: 'cardDesignPearl',
     image: '/gift-cards/pearl.webp',
     emailImage: '/gift-cards/pearl.jpg',
     swatch: 'linear-gradient(135deg, #f4f2ef 0%, #d3cfc9 55%, #b3aea7 100%)',
   },
 ] as const;
+
+export const MIN_GIFT_VOUCHER_AMOUNT_ILS = 50;
 
 export type GiftCardDesignId = (typeof GIFT_CARD_DESIGNS)[number]['id'];
 
@@ -75,4 +88,9 @@ export function getGiftCardDesign(id: string | undefined) {
 
 export function isGiftCardDesignId(id: string): id is GiftCardDesignId {
   return GIFT_CARD_DESIGNS.some((design) => design.id === id);
+}
+
+/** The card sold at exactly this balance, or undefined for a custom amount. */
+export function giftCardDesignForAmount(amountIls: number) {
+  return GIFT_CARD_DESIGNS.find((design) => design.amountIls === amountIls);
 }

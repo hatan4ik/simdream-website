@@ -28,7 +28,7 @@ export class GiftVoucherPage {
   }
 
   customAmount(): Locator {
-    return this.page.getByPlaceholder('Min ₪100');
+    return this.page.getByPlaceholder('Min ₪50');
   }
 
   recipientName(): Locator {
