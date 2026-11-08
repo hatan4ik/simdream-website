@@ -861,70 +861,72 @@ export default function GiftVouchersPage() {
               </div>
             ) : (
               /* Flexible Monetary Gift Card Preview */
-              <div className="rounded-3xl bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 border-2 border-orange-500/40 shadow-2xl shadow-orange-500/10 overflow-hidden relative p-6 sm:p-7 space-y-6">
+              <div className="rounded-3xl bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 border-2 border-orange-500/40 shadow-2xl shadow-orange-500/10 overflow-hidden relative">
                 <GiftCardDesignPicker
                   selectedDesignId={giftCardDesignId}
                   onChange={setGiftCardDesignId}
                   label={t.vouchers.cardDesignLabel}
                 />
 
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-700 flex items-center justify-center">
-                      <BrandMark className="w-6 h-6" />
+                <div className="p-5 sm:p-6 pt-2 space-y-5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-700 flex items-center justify-center">
+                        <BrandMark className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <div className="text-xs font-black tracking-wider text-orange-400 uppercase font-mono">
+                          {t.vouchers.officialGiftCard}
+                        </div>
+                        <div className="text-[11px] text-slate-400 font-mono" dir="ltr">
+                          SIM DREAM TEL AVIV • 737 MAX
+                        </div>
+                      </div>
                     </div>
+                    {/* Metallic EMV Chip Aesthetic */}
+                    <div className="w-11 h-8 rounded-md bg-gradient-to-br from-amber-300 via-amber-400 to-orange-500 border border-amber-200/60 shadow-inner flex items-center justify-center">
+                      <div className="w-7 h-5 rounded-sm border border-slate-950/30" />
+                    </div>
+                  </div>
+
+                  <div className="p-5 rounded-2xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-between">
                     <div>
-                      <div className="text-xs font-black tracking-wider text-orange-400 uppercase font-mono">
-                        {t.vouchers.officialGiftCard}
+                      <div className="text-[10px] font-mono uppercase tracking-widest text-slate-300">
+                        {t.vouchers.creditBalanceLabel}
                       </div>
-                      <div className="text-[11px] text-slate-400 font-mono" dir="ltr">
-                        SIM DREAM TEL AVIV • 737 MAX
+                      <div className="text-3xl sm:text-4xl font-black text-white mt-1" dir="ltr">
+                        {formatCurrency(activeAmount)}
                       </div>
                     </div>
-                  </div>
-                  {/* Metallic EMV Chip Aesthetic */}
-                  <div className="w-11 h-8 rounded-md bg-gradient-to-br from-amber-300 via-amber-400 to-orange-500 border border-amber-200/60 shadow-inner flex items-center justify-center">
-                    <div className="w-7 h-5 rounded-sm border border-slate-950/30" />
-                  </div>
-                </div>
-
-                <div className="p-5 rounded-2xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-between">
-                  <div>
-                    <div className="text-[10px] font-mono uppercase tracking-widest text-slate-300">
-                      {t.vouchers.creditBalanceLabel}
-                    </div>
-                    <div className="text-3xl sm:text-4xl font-black text-white mt-1" dir="ltr">
-                      {formatCurrency(activeAmount)}
+                    <div className="text-right" dir="ltr">
+                      <div className="text-[10px] font-mono uppercase text-sky-400">MULTI-USE CREDIT</div>
+                      <div className="text-xs font-mono font-bold text-slate-300 mt-1">SD-VOUCH-CARD</div>
                     </div>
                   </div>
-                  <div className="text-right" dir="ltr">
-                    <div className="text-[10px] font-mono uppercase text-sky-400">MULTI-USE CREDIT</div>
-                    <div className="text-xs font-mono font-bold text-slate-300 mt-1">SD-VOUCH-CARD</div>
-                  </div>
-                </div>
 
-                <div className="grid grid-cols-2 gap-4 border-b border-slate-800 pb-4">
-                  <div>
-                    <div className="text-[10px] font-mono uppercase text-slate-400">{t.vouchers.passenger}</div>
-                    <div className="text-base font-bold text-white mt-0.5">
-                      {recipientName || 'Passenger Name'}
+                  <div className="grid grid-cols-2 gap-4 border-b border-slate-800 pb-4">
+                    <div>
+                      <div className="text-[10px] font-mono uppercase text-slate-400">{t.vouchers.passenger}</div>
+                      <div className="text-base font-bold text-white mt-0.5">
+                        {recipientName || 'Passenger Name'}
+                      </div>
+                    </div>
+                    <div className="text-end">
+                      <div className="text-[10px] font-mono uppercase text-slate-400">{t.vouchers.giftFrom}</div>
+                      <div className="text-base font-bold text-slate-200 mt-0.5">{senderName || 'Sender'}</div>
                     </div>
                   </div>
-                  <div className="text-end">
-                    <div className="text-[10px] font-mono uppercase text-slate-400">{t.vouchers.giftFrom}</div>
-                    <div className="text-base font-bold text-slate-200 mt-0.5">{senderName || 'Sender'}</div>
+
+                  <div className="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 italic text-slate-300 text-xs leading-relaxed">
+                    &ldquo;{personalMessage || t.vouchers.defaultMessage}&rdquo;
                   </div>
-                </div>
 
-                <div className="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 italic text-slate-300 text-xs leading-relaxed">
-                  &ldquo;{personalMessage || t.vouchers.defaultMessage}&rdquo;
-                </div>
-
-                <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1">
-                  <span>{t.vouchers.cardRedeemableNote}</span>
-                  <span className="text-emerald-400 font-mono font-semibold shrink-0 ms-2">
-                    {t.vouchers.validityPeriod}
-                  </span>
+                  <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1">
+                    <span>{t.vouchers.cardRedeemableNote}</span>
+                    <span className="text-emerald-400 font-mono font-semibold shrink-0 ms-2">
+                      {t.vouchers.validityPeriod}
+                    </span>
+                  </div>
                 </div>
               </div>
             )}
