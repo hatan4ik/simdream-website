@@ -12,7 +12,7 @@ test.beforeEach(async ({ page, baseURL }) => {
 });
 
 async function mockLiveGoogleReviews(page: Page) {
-  await page.route('**/api/reviews', (route) =>
+  await page.route('**/api/reviews*', (route) =>
     route.fulfill({
       json: {
         overallRating: 4.8,

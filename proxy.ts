@@ -10,7 +10,8 @@ function createContentSecurityPolicy(nonce: string): string {
     // React and the existing utility-first UI render style attributes. Unlike script-src,
     // style-src 'unsafe-inline' does not permit JavaScript execution in modern browsers.
     "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: blob:",
+    // Google Maps author photos on reviews (Places policy asks for the avatar).
+    "img-src 'self' data: blob: https://lh3.googleusercontent.com",
     "font-src 'self' data:",
     // The browser-side Wix Headless client mints its anonymous visitor token
     // and calls Bookings/Cart V2 at this API origin. Keep this explicit instead

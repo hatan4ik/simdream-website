@@ -110,13 +110,26 @@ describe('GET /api/reviews', () => {
     const app = await loadApp();
     const { GET } = await app.routes.reviews();
 
-    const response = await readJson(await GET());
+    const response = await readJson(await GET(apiRequest('/api/reviews')));
 
     expect(response.status).toBe(200);
     expect(response.headers.get('cache-control')).toBe('public, s-maxage=60, stale-while-revalidate=30');
     const snapshot = expectContract(reviewsSnapshot, response.body);
     expect(snapshot.source).toMatch(/not configured/);
-    expect(snapshot).toMatchObject({ overallRating: 0, totalReviewsCount: 0, reviews: [] });
+    expect(snapshot).toMatchObject({ language: 'en', overallRating: 0, totalReviewsCount: 0, reviews: [] });
+  });
+
+  it('serves the snapshot in the requested page language and falls back to English for an unsupported one', async () => {
+    const app = await loadApp();
+    const { GET } = await app.routes.reviews();
+
+    const hebrew = await readJson(await GET(apiRequest('/api/reviews?lang=he')));
+    const unsupported = await readJson(await GET(apiRequest('/api/reviews?lang=xx')));
+
+    expect(hebrew.status).toBe(200);
+    expect(expectContract(reviewsSnapshot, hebrew.body).language).toBe('he');
+    expect(unsupported.status).toBe(200);
+    expect(expectContract(reviewsSnapshot, unsupported.body).language).toBe('en');
   });
 });
 
@@ -140,7 +153,7 @@ describe('POST /api/reviews (admin sync)', () => {
 
     expect(response.status).toBe(200);
     const sync = expectContract(reviewsSync, response.body);
-    const snapshot = expectContract(reviewsSnapshot, (await readJson(await reviews.GET())).body);
+    const snapshot = expectContract(reviewsSnapshot, (await readJson(await reviews.GET(apiRequest('/api/reviews')))).body);
     expect(sync).toMatchObject({
       syncedAt: snapshot.lastUpdated,
       totalReviews: snapshot.totalReviewsCount,
