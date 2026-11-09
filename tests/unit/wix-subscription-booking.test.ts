@@ -1,23 +1,17 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { apiRequest, readJson } from '../support/http';
 
-// The checkout resolver closes departed starts against the real clock, so a fixture dated
-// 2026-11-09 10:15 started failing on that date at 10:15 Israel time. Freeze the clock at the
-// harness reference (the same moment loadApp() uses) so the departure is always in the future.
-const FROZEN_NOW = new Date('2026-11-01T08:00:00+02:00');
+// Rolling fixture date 2 days in the future to keep departures ahead of current Israel time
+// without depending on a hard-coded calendar date.
+const BOOKING_DATE = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
 const BOOKING_INPUT = {
   packageId: 'pkg-captain-60',
-  bookingDate: '2026-11-09',
+  bookingDate: BOOKING_DATE,
   startTime: '10:15',
 } as const;
 
-beforeEach(() => {
-  vi.useFakeTimers({ toFake: ['Date'], now: FROZEN_NOW });
-});
-
 afterEach(() => {
-  vi.useRealTimers();
   vi.resetModules();
   vi.doUnmock('@/lib/wix/bookings');
   vi.doUnmock('@/lib/wix/catalog');
@@ -32,8 +26,8 @@ describe('Wix subscription booking checkout slot', () => {
       timeSlots: [
         {
           serviceId: 'svc-captain-60',
-          localStartDate: '2026-11-09T10:15:00',
-          localEndDate: '2026-11-09T11:15:00',
+          localStartDate: `${BOOKING_DATE}T10:15:00`,
+          localEndDate: `${BOOKING_DATE}T11:15:00`,
           bookable: true,
         },
       ],
@@ -59,13 +53,13 @@ describe('Wix subscription booking checkout slot', () => {
 
     expect(listWixAvailability).toHaveBeenCalledWith({
       serviceId: 'svc-captain-60',
-      fromLocalDate: '2026-11-09T00:00:00',
-      toLocalDate: '2026-11-09T23:59:59',
+      fromLocalDate: `${BOOKING_DATE}T00:00:00`,
+      toLocalDate: `${BOOKING_DATE}T23:59:59`,
       includeResourceTypeIds: ['simulator-resource'],
     });
     expect(result).toEqual({
       timeZone: 'Asia/Jerusalem',
-      slotAvailability: expect.objectContaining({ localStartDate: '2026-11-09T10:15:00', bookable: true }),
+      slotAvailability: expect.objectContaining({ localStartDate: `${BOOKING_DATE}T10:15:00`, bookable: true }),
     });
   });
 
@@ -75,8 +69,8 @@ describe('Wix subscription booking checkout slot', () => {
         timeSlots: [
           {
             serviceId: 'svc-captain-60',
-            localStartDate: '2026-11-09T10:00:00',
-            localEndDate: '2026-11-09T11:00:00',
+            localStartDate: `${BOOKING_DATE}T10:00:00`,
+            localEndDate: `${BOOKING_DATE}T11:00:00`,
             bookable: true,
           },
         ],
@@ -116,8 +110,8 @@ describe('POST /api/wix/bookings/checkout', () => {
               timeZone: 'Asia/Jerusalem',
               slotAvailability: {
                 serviceId: 'svc-captain-60',
-                localStartDate: '2026-11-09T10:00:00',
-                localEndDate: '2026-11-09T11:00:00',
+                localStartDate: `${BOOKING_DATE}T10:00:00`,
+                localEndDate: `${BOOKING_DATE}T11:00:00`,
                 bookable: true,
               },
               location: { id: 'location-id', locationType: 'BUSINESS' },
@@ -141,7 +135,7 @@ describe('POST /api/wix/bookings/checkout', () => {
     expect(accepted.status).toBe(200);
     expect(accepted.body).toMatchObject({
       timeZone: 'Asia/Jerusalem',
-      slotAvailability: { serviceId: 'svc-captain-60', localStartDate: '2026-11-09T10:00:00' },
+      slotAvailability: { serviceId: 'svc-captain-60', localStartDate: `${BOOKING_DATE}T10:00:00` },
     });
 
     const rejected = await readJson(await POST(apiRequest('/api/wix/bookings/checkout', { body: { ...BOOKING_INPUT, startTime: '25:90' } })));
