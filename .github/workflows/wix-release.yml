@@ -52,7 +52,11 @@ jobs:
             echo 'Release tag must be SemVer, for example v1.4.0.' >&2
             exit 1
           }
-          git fetch origin main --depth=1
+          # Full history of main: the released commit is usually the main tip, but when another
+          # pull request merges between the release PR and the tag (as on 2026-11-09, v1.10.0),
+          # a depth-1 fetch has no ancestry and `merge-base --is-ancestor` wrongly rejects a
+          # commit that is on main.
+          git fetch origin main
           release_sha="$(git rev-list -n 1 "$RELEASE_TAG")"
           test -z "$EXPECTED_SHA" || test "$release_sha" = "$EXPECTED_SHA"
           git merge-base --is-ancestor "$release_sha" origin/main || {
