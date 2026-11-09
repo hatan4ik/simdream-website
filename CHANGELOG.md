@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.14.0](https://github.com/hatan4ik/simdream-website/compare/v1.13.1...v1.14.0) (2026-11-09)
+
+
+### Features
+
+* **blog:** add wix multilingual translation CLI for english and russian ([#91](https://github.com/hatan4ik/simdream-website/issues/91)) ([daefe85](https://github.com/hatan4ik/simdream-website/commit/daefe8513ef3c4d409354feaa3217132e7397b18))
+
 ## [1.13.1](https://github.com/hatan4ik/simdream-website/compare/v1.13.0...v1.13.1) (2026-11-09)
 
 
