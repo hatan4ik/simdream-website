@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:547263b09943e0d69825bea15fcb6702fd10a64f5b3a0cf062c5ad39d5289cd5 -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:92bfaab8043f67312c409f5fb6046ea110602cdb3196c265a3a7f6dce26415c9 -->
 
 ## Verification contract
 
@@ -94,7 +94,7 @@ Sim Dream LTD runs one full-size **Boeing 737 MAX 8 flight simulator** at Gersho
 
 | Feature | Route(s) | Behaviour |
 | --- | --- | --- |
-| Marketing pages | `/`, `/experiences`, `/subscriptions`, `/subscriptions/thank-you`, `/about`, `/pro`, `/fear-of-flying`, `/contact`, `/rules`, `/privacy-policy` | Five customer value pillars, live METAR ticker (LLBG) and facility open/closed status, Google reviews. `/about` is the customer story; `/pro` is professional airline-assessment training; `/fear-of-flying` (`FearOfFlyingView`) is the single-package, calm landing page for the fear-of-flying session, which reuses the localized `pkg-fear-of-flying-90` copy and promises coaching, never a cure; `/subscriptions` is the dedicated six-language annual flight-subscription portal, with post-checkout order confirmation on `/subscriptions/thank-you`. |
+| Marketing pages | `/`, `/experiences`, `/subscriptions`, `/subscriptions/thank-you`, `/about`, `/pro`, `/fear-of-flying`, `/blog`, `/post/[slug]`, `/contact`, `/rules`, `/privacy-policy` | Five customer value pillars, live METAR ticker (LLBG) and facility open/closed status, Google reviews. `/about` is the customer story; `/pro` is professional airline-assessment training; `/fear-of-flying` (`FearOfFlyingView`) is the single-package, calm landing page for the fear-of-flying session, which reuses the localized `pkg-fear-of-flying-90` copy and promises coaching, never a cure; `/subscriptions` is the dedicated six-language annual flight-subscription portal, with post-checkout order confirmation on `/subscriptions/thank-you`; `/blog` (`BlogIndexView`) is the flight deck journal with category filtering, search, and reading times; `/post/[slug]` preserves 1:1 legacy URL parity for all 39 indexed articles with rich semantic content (`BlogContentRenderer`), contextual in-cockpit booking cards (`BlogConversionCta`, `BlogCard`), author bylines, and JSON-LD `BlogPosting` schema. |
 | Booking engine | `/book`, `/book/success` | Two interfaces over identical availability logic: the guided 3-step wizard is the default; the one-page “Amazon-style” Express Shop remains an optional desktop-only view and is never rendered as a phone choice. The default calendar is week view (month is togglable), with slot selection, add-ons, pilot manifest and checkout. It does not serialize a fabricated server date: until the browser resolves the Israel date, it renders a localized initialization state. Each calendar option uses the selected package's reserved cadence (30m → 45m, 45m → 60m, 60m → 75m, 90m → 105m, 120m → 150m) and preserves zero-waste capacity. With Wix authority enabled, a mapped one-service base flight takes the Wix-native guest/member flow (fresh slot validation → booking → Cart V2 `customerInfo` → calculation → Wix hosted checkout), including Wix coupons; Wix receives the already-completed name, email and normalized phone so the payment page can prefill them. The local checkout endpoint refuses to create a competing reservation. Add-ons and on-request World Trio routes display a localized Wix-authority notice until their native catalog mapping is delivered; when Wix authority is disabled, they retain Supabase/Stripe checkout. An active Wix subscription member can enter `/book?subscription=wix` from the subscription flight deck; only the mapped 60m or 90m base session is eligible, and the browser opens Wix-hosted Bookings checkout with an exact server-resolved live slot. An on-request World Trio opens calendar-first, saves a validated request with the booking and explicitly awaits captain confirmation when local checkout is active. The success page shows a boarding pass from a narrow public projection looked up by booking reference. |
 | Persistent mobile chrome | `app/layout.tsx`, `LiveMetarBar`, `Navbar`, `Footer` | The utility bar and navigation share one centred 80rem column (the reviews and the quick links form one centred cluster, so a wide desktop never pins them to opposite screen edges; on phones with review data the quick links take their own row), and they travel as one sticky header, so language selection, all three official native-colour social channels, and the prominent official WhatsApp action remain reachable while scrolling. On phones from 360px the WhatsApp action sits beside Book in the navbar, between the logo and the menu, so the top bar holds the Google rating, the three social icons and the language selector on one row (it wraps to two only below about 340px, where WhatsApp returns to the top bar); from the tablet width up WhatsApp stays in the top bar. On phones, the footer is deliberately removed from page flow; its customer-story, contact, rules and privacy links are reachable through the localized “About Us” disclosure in the mobile menu. |
 | Noise-free flows | `/book?package=…` | Professional Training and Fear of Flying suppress all add-ons and combos (2-step flow), including in compact duration-picker labels; recreational uses the full 3-step flow. |
@@ -583,7 +583,7 @@ Ship the schema as `lib/db/schema.sql` for new projects and as ordered, reviewed
 ```text
 app/
   layout.tsx, page.tsx, globals.css, icon.png, apple-icon.png, robots.ts, sitemap.ts
-  (public)/  about/ pro/ experiences/ subscriptions/ (layout + page, thank-you/) book/ book/success/ vouchers/ workshops/ contact/ rules/ privacy-policy/ simulator/ (redirect)
+  (public)/  about/ pro/ experiences/ subscriptions/ (layout + page, thank-you/) fear-of-flying/ blog/ post/[slug]/ book/ book/success/ vouchers/ workshops/ contact/ rules/ privacy-policy/ simulator/ (redirect)
   (auth)/login/
   auth/callback/  auth/reset-password/
   dashboard/  (layout + page)
@@ -596,13 +596,13 @@ components/
   layout/  Navbar Footer LanguageSelector UiThemeSwitcher LiveMetarBar SkipLink
   scheduler/ AmazonFlightStorefront KantorovichCalendarScheduler
   reviews/GoogleReviewsCarousel ReviewMeta
-  about/AboutExperienceView  pro/ProSessionsView  fear-of-flying/FearOfFlyingView  legal/ PrivacyPolicyContentView RulesContentView
+  about/AboutExperienceView  pro/ProSessionsView  fear-of-flying/FearOfFlyingView  blog/BlogCard BlogContentRenderer BlogConversionCta BlogIndexView  legal/ PrivacyPolicyContentView RulesContentView
   seo/StructuredDataJsonLd  ui/ Button Card Badge
 lib/
   scheduler/ kantorovich-engine mission-calculator package-presentation tiled-interval-optimizer israel-clock booking-horizon
   booking/checkout-service checkout-ports checkout-composition checkout-runtime
-  wix/ client config catalog bookings availability-adapter booking-checkout booking-checkout-client subscription-redemption subscription-booking checkout-shadow member-client backend-blueprint gift-cards plans readiness
-  catalog/gift-voucher-packages  data/experience-routes subscription-passes subscription-page-copy  db/ store schema.sql seed-data supabase-admin migrations/
+  wix/ client config catalog bookings availability-adapter booking-checkout booking-checkout-client subscription-redemption subscription-booking checkout-shadow member-client backend-blueprint gift-cards plans readiness blog
+  catalog/gift-voucher-packages  data/experience-routes subscription-passes subscription-page-copy blog-posts  db/ store schema.sql seed-data supabase-admin migrations/
   auth/ admin-guard request-auth member-ownership safe-redirect auth-context
   security/rate-limit
   i18n/ translations language-context language-preference calendar-presentation booking-blueprint-copy wix-subscription-booking-copy
@@ -614,7 +614,7 @@ types/index.ts
 proxy.ts                          # /admin guard
 public/brand/                     # official logo assets; theme-bootstrap.js
 tests/  unit/ integration/ security/ reliability/ e2e/ a11y/ usability/ security-web/ resilience/ visual/ load/ perf/ support/
-scripts/ test-all.ts run-sandboxed.ts with-server.ts update-visual-baselines.sh check-genesis-coverage.ts refresh-google-rating.mjs setup-google-places-key.sh wix-provision.ts wix-readiness.ts wix-smoke.ts
+scripts/ test-all.ts run-sandboxed.ts with-server.ts update-visual-baselines.sh check-genesis-coverage.ts refresh-google-rating.mjs setup-google-places-key.sh wix-provision.ts wix-readiness.ts wix-smoke.ts migrate-wix-blog.ts harvest-wix-blog.py
 .github/workflows/ ci.yml codeql.yml pr-mergeability.yml enable-trusted-automerge.yml security-history-audit.yml release-please.yml wix-release.yml wix-rollback.yml nightly.yml (OWASP ZAP baseline) google-rating-refresh.yml (weekly Places API (New) rating PR)
 AGENTS.md  ARCHITECTURE.md  README.md  TESTING.md  KANTOROVICH_SCHEDULER_SPEC.md
 ```

@@ -93,3 +93,10 @@ export {
   runWixCheckoutShadow,
   type WixCheckoutShadowReport,
 } from './checkout-shadow';
+export {
+  listWixBlogPosts,
+  resolveBlogPost,
+  wixBlogPostSchema,
+  type WixBlogPost,
+  type WixBlogListOptions,
+} from './blog';
