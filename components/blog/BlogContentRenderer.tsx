@@ -1,5 +1,5 @@
 import React from 'react';
-import type { BlogContentNode } from '@/lib/data/blog-posts';
+import type { BlogContentNode } from '@/lib/data/blog-categories';
 
 interface BlogContentRendererProps {
   nodes: readonly BlogContentNode[];

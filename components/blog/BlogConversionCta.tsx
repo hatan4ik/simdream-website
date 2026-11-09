@@ -4,7 +4,7 @@ import { Plane, Award, Gift, Compass, HeartPulse, ArrowLeft } from 'lucide-react
 import { BrandMark } from '@/components/brand/BrandLogo';
 import { buttonClassName } from '@/components/ui/Button';
 import { FACILITY_INFO } from '@/lib/config/facility-info';
-import type { BlogCtaTarget } from '@/lib/data/blog-posts';
+import type { BlogCtaTarget } from '@/lib/data/blog-categories';
 
 interface BlogConversionCtaProps {
   target: BlogCtaTarget;

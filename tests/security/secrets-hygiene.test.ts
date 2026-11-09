@@ -91,6 +91,15 @@ describe.skipIf(!CLIENT_BUNDLE && !REQUIRE_CLIENT_BUNDLE)('client bundle (.next-
     expect(offenders).toEqual([]);
   });
 
+  // The blog corpus (lib/data/blog-posts.json) belongs to server components only. A
+  // client component importing lib/data/blog-posts ships all 39 articles to every
+  // browser and duplicates them in the Wix Worker (HTTP 413 on 2026-11-09).
+  it('never ships the blog corpus to browsers', () => {
+    const corpusRecord = /readingTimeMinutes["']?\s*:\s*\d/;
+    const offenders = scripts.filter((file) => corpusRecord.test(readFileSync(file, 'utf8'))).map((file) => relative(ROOT, file));
+    expect(offenders).toEqual([]);
+  });
+
   it.each(['sk_live_', 'sk_test_', 'rk_live_', 'whsec_'])('never contains the Stripe secret prefix %s', (prefix) => {
     const offenders = files.filter((file) => readFileSync(file, 'utf8').includes(prefix)).map((file) => relative(ROOT, file));
     expect(offenders).toEqual([]);

@@ -8,7 +8,7 @@ const reportScript = reportBlock?.split('        run: |\n')[1]?.split('      # W
   ?.replace(/^          /gm, '');
 
 const requiredGates = ['RELEASE_INTEGRITY', 'QUALITY', 'SECRET_SCAN', 'BUILD', 'E2E'];
-const optionalGates = ['E2E_WEBKIT_SHARD', 'WEB_QUALITY', 'WEB_QUALITY_SHARDS', 'LOAD_SMOKE', 'LIGHTHOUSE'];
+const optionalGates = ['WIX_BUNDLE', 'E2E_WEBKIT_SHARD', 'WEB_QUALITY', 'WEB_QUALITY_SHARDS', 'LOAD_SMOKE', 'LIGHTHOUSE'];
 
 function runGate(overrides: Record<string, string> = {}) {
   if (!reportScript) throw new Error('Cannot find the CI report gate script');
@@ -40,7 +40,7 @@ describe('CI verification gates', () => {
     }
   });
 
-  it.each(['e2e-webkit-shard', 'web-quality-shards'])('skips %s for both fast paths', (job) => {
+  it.each(['wix-bundle', 'e2e-webkit-shard', 'web-quality-shards'])('skips %s for both fast paths', (job) => {
     const block = workflow.split(`  ${job}:\n`)[1]?.split(/\n  [\w-]+:\n/)[0];
     expect(block).toContain("needs.release-integrity.outputs.fast_path != 'true'");
     expect(block).toContain("needs.release-integrity.outputs.docs_only != 'true'");
