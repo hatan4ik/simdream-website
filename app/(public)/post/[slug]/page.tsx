@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Calendar, Clock, ArrowRight, UserCheck, Share2 } from 'lucide-react';
+import { Calendar, Clock, ArrowRight, UserCheck } from 'lucide-react';
 import {
   getAllBlogPosts,
   getBlogPostBySlug,
