@@ -196,6 +196,7 @@ const draftPosts = posts.map((post) => {
   return {
     title: post.title,
     memberId: authorMemberId,
+    language: 'he',
     excerpt: post.excerpt,
     richContent: {
       nodes: ricosNodes,

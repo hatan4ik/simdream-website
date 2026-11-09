@@ -31,6 +31,7 @@ const [{ getAllBlogPosts }, { CANONICAL_STAGING_WIX_SITE_ID }] = await Promise.a
 const QUERY_POSTS_URL = 'https://www.wixapis.com/blog/v3/posts/query';
 const MULTILINGUAL_DRAFT_URL = (postId: string) => `https://www.wixapis.com/blog/v3/multilingual/draft/${postId}`;
 const UPDATE_DRAFT_URL = (draftId: string) => `https://www.wixapis.com/blog/v3/draft-posts/${draftId}`;
+const PUBLISH_DRAFT_URL = (draftId: string) => `https://www.wixapis.com/blog/v3/draft-posts/${draftId}/publish`;
 
 type SupportedTargetLang = 'en' | 'ru';
 
@@ -212,14 +213,15 @@ for (let i = 0; i < publishedPosts.length; i++) {
       continue;
     }
 
-    const draftData = (await draftRes.json()) as { draftPost?: { id: string } };
+    const draftData = (await draftRes.json()) as { draftPost?: { id: string; memberId?: string } };
     const draftId = draftData.draftPost?.id;
+    const memberId = draftData.draftPost?.memberId;
     if (!draftId) {
       console.warn(`      No draftPost ID returned in response.`);
       continue;
     }
 
-    // Step B: Update draft post with translated content and publish
+    // Step B: Update draft post with translated content
     const updateRes = await fetch(UPDATE_DRAFT_URL(draftId), {
       method: 'PATCH',
       headers: {
@@ -229,20 +231,37 @@ for (let i = 0; i < publishedPosts.length; i++) {
       },
       body: JSON.stringify({
         draftPost: {
+          memberId,
           title: translatedTitle,
           excerpt: translatedExcerpt,
           slug: translatedSlug,
         },
-        action: 'UPDATE_PUBLISH',
       }),
     });
 
-    if (updateRes.ok) {
+    if (!updateRes.ok) {
+      const updateErr = await updateRes.text();
+      console.warn(`      Failed to update draft ${draftId}: HTTP ${updateRes.status}: ${updateErr}`);
+      continue;
+    }
+
+    // Step C: Publish draft post
+    const pubRes = await fetch(PUBLISH_DRAFT_URL(draftId), {
+      method: 'POST',
+      headers: {
+        Authorization: adminApiKey,
+        'wix-site-id': CANONICAL_STAGING_WIX_SITE_ID,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({}),
+    });
+
+    if (pubRes.ok) {
       successfulTranslations++;
       console.log(`      ✓ Published ${args.targetLang.toUpperCase()} version: /post/${translatedSlug}`);
     } else {
-      const updateErr = await updateRes.text();
-      console.warn(`      Failed to publish draft ${draftId}: HTTP ${updateRes.status}: ${updateErr}`);
+      const pubErr = await pubRes.text();
+      console.warn(`      Failed to publish draft ${draftId}: HTTP ${pubRes.status}: ${pubErr}`);
     }
   } catch (err) {
     console.warn(`      Error translating post ${post.id}:`, err);
