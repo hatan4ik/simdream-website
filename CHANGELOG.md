@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.14.1](https://github.com/hatan4ik/simdream-website/compare/v1.14.0...v1.14.1) (2026-11-09)
+
+
+### Bug Fixes
+
+* **blog:** ensure language he on import and use 3-step publish in translate cli ([#93](https://github.com/hatan4ik/simdream-website/issues/93)) ([0027fa8](https://github.com/hatan4ik/simdream-website/commit/0027fa868fe22f5fa8e3e21cae44f34bf4de7bb8))
+
 ## [1.14.0](https://github.com/hatan4ik/simdream-website/compare/v1.13.1...v1.14.0) (2026-11-09)
 
 
