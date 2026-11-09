@@ -161,6 +161,13 @@ for (const language of LANGUAGES) {
           presetRows: new Set(presets.map((element) => Math.round(element.getBoundingClientRect().top))).size,
           firstBeforeSecond: first && second ? (document.documentElement.dir === 'rtl' ? first.left > second.left : first.left < second.left) : false,
           emailDirections: [...document.querySelectorAll<HTMLInputElement>('form input[type="email"]')].map((element) => getComputedStyle(element).direction),
+          // On a phone the live preview follows the balance choice and precedes the details, never the payment button.
+          previewBetweenSteps: (() => {
+            const balance = document.querySelector('[data-voucher-section="balance"]')?.getBoundingClientRect();
+            const preview = document.querySelector('[data-voucher-preview]')?.getBoundingClientRect();
+            const details = document.querySelector('[data-voucher-section="details"]')?.getBoundingClientRect();
+            return Boolean(balance && preview && details && balance.bottom <= preview.top && preview.bottom <= details.top);
+          })(),
           direction: getComputedStyle(doc).direction,
         };
       });
@@ -171,6 +178,7 @@ for (const language of LANGUAGES) {
       expect(layout.presetCount).toBe(7);
       expect(layout.presetRows, 'seven presets wrap into rows of two, the odd last one spans its row').toBe(4);
       expect(layout.firstBeforeSecond, 'presets follow the reading direction').toBe(true);
+      expect(layout.previewBetweenSteps, 'the live preview sits between the balance choice and the details').toBe(true);
       expect(layout.direction).toBe(language === 'he' ? 'rtl' : 'ltr');
       // Amounts and e-mail addresses read left to right on every page direction.
       expect(layout.presetDirections.every((direction) => direction === 'ltr')).toBe(true);
