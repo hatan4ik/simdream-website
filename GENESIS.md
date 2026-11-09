@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:50411409b3c956aecf668eef7978d351e8a9ef6ccedc9bcd6c643dbb6373a7a7 -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:8141f772fd52ea1cb5e1ca4b626289ca4571be225da86bc6d796952ea2008da3 -->
 
 ## Verification contract
 
@@ -614,7 +614,7 @@ types/index.ts
 proxy.ts                          # /admin guard
 public/brand/                     # official logo assets; theme-bootstrap.js
 tests/  unit/ integration/ security/ reliability/ e2e/ a11y/ usability/ security-web/ resilience/ visual/ load/ perf/ support/
-scripts/ test-all.ts run-sandboxed.ts with-server.ts update-visual-baselines.sh check-genesis-coverage.ts refresh-google-rating.mjs wix-provision.ts wix-readiness.ts wix-smoke.ts
+scripts/ test-all.ts run-sandboxed.ts with-server.ts update-visual-baselines.sh check-genesis-coverage.ts refresh-google-rating.mjs setup-google-places-key.sh wix-provision.ts wix-readiness.ts wix-smoke.ts
 .github/workflows/ ci.yml codeql.yml pr-mergeability.yml enable-trusted-automerge.yml security-history-audit.yml release-please.yml wix-release.yml wix-rollback.yml nightly.yml (OWASP ZAP baseline) google-rating-refresh.yml (weekly Places API (New) rating PR)
 AGENTS.md  ARCHITECTURE.md  README.md  TESTING.md  KANTOROVICH_SCHEDULER_SPEC.md
 ```
