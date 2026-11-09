@@ -156,6 +156,6 @@ These are coverage gaps the framework review found that are not yet closed. Each
 | GAP-9 | Transactional email rendering (escaping, recipient routing, no PII in logs) is untested |
 | GAP-11 | No browser checks that booked slots stay hidden (open slots only), storefront/wizard parity or the Friday/Saturday grids (AGENTS.md §4) |
 | GAP-12 | The `/pro` page content required by AGENTS.md §2 is unverified |
-| GAP-13 | The SEO and metadata contract (sitemap, canonical, hreflang, OpenGraph, JSON-LD, noindex) is untested |
+| GAP-13 | The SEO and metadata contract is only partly tested: `tests/unit/route-coverage.test.ts` (sitemap vs `app/(public)` pages and `noindex`), `tests/unit/llms-txt.test.ts` (generated `public/llms.txt`) and `tests/unit/blog-structured-data.test.ts` (article `BlogPosting`/`BreadcrumbList`) exist; canonical URLs, hreflang, OpenGraph and the global JSON-LD graph are still unverified |
 | GAP-15 | CSP violations are checked on only four routes, in Chromium |
 | GAP-16 | No JavaScript bundle-size budget. Load and Lighthouse now run in CI. |

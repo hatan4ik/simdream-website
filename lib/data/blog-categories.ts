@@ -9,6 +9,8 @@
  * here only; `tests/security/secrets-hygiene.test.ts` checks the client bundle.
  */
 
+import type { BlogAuthorId } from './blog-authors';
+
 export type BlogCategory =
   | 'airline_prep'
   | 'cockpit_skills'
@@ -50,7 +52,15 @@ export interface BlogPost {
   title: string;
   excerpt: string;
   coverImage: string;
+  /** ISO date (YYYY-MM-DD) of first publication. */
   datePublished: string;
+  /**
+   * ISO date of the last substantive edit, when the corpus records one. The JSON-LD
+   * emits `dateModified` only from this field; it never mirrors `datePublished`.
+   */
+  dateModified?: string;
+  /** Byline in `lib/data/blog-authors.ts`; the default Sim Dream byline when absent. */
+  authorId?: BlogAuthorId;
   readingTimeMinutes: number;
   category: BlogCategory;
   ctaTarget: BlogCtaTarget;

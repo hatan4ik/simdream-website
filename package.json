@@ -11,6 +11,7 @@
     "docs:verify": "tsx scripts/check-genesis-coverage.ts --require GENESIS.md",
     "docs:genesis": "npm run docs:verify",
     "docs:genesis:stamp": "tsx scripts/check-genesis-coverage.ts --stamp GENESIS.md",
+    "llms:generate": "tsx scripts/generate-llms-txt.ts",
     "preview": "next start",
     "typecheck": "tsc --noEmit",
     "lint": "npm run typecheck && tsx scripts/check-type-hygiene.ts",
