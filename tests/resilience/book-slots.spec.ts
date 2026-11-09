@@ -82,6 +82,40 @@ test.describe('/book when the slots API fails', () => {
     });
   }
 
+  for (const mode of FAILURE_MODES) {
+    test(`the guided wizard also says departures could not be loaded and offers a retry (${mode.name})`, async ({
+      page,
+      baseURL,
+    }) => {
+      let healthy = false;
+      let failuresServed = 0;
+      await openBookingPage(
+        page,
+        baseURL,
+        async (route) => {
+          if (healthy) return fulfillOpenSlots(route);
+          await mode.fail(route);
+          failuresServed += 1;
+        },
+        { view: 'wizard' }
+      );
+      await expect.poll(() => failuresServed).toBeGreaterThan(0);
+
+      // The wizard owns the same failure contract as the storefront: an alert, never a sold-out day.
+      const failed = page.locator('[data-wizard-slots-failed]');
+      await expect(failed.getByRole('alert')).toContainText(/could(n['’]t| not) load|unable to load|temporarily unavailable/i);
+      await expect(page.getByText(/no open runway slots/i)).toBeHidden();
+      await expect(page.locator('[data-wizard-try-duration]')).toHaveCount(0);
+
+      healthy = true;
+      const recovered = page.waitForResponse((response) => isSlotsApi(new URL(response.url())));
+      await failed.getByRole('button', { name: 'Try again' }).click();
+      await recovered;
+      await expect(failed).toHaveCount(0);
+      await expect(page.getByRole('button', { name: /\d{2}:\d{2} – \d{2}:\d{2} \(60m\)$/ }).first()).toBeVisible();
+    });
+  }
+
   test('recovers when the customer picks another date once the API is healthy again', async ({ page, baseURL }) => {
     let healthy = false;
     let failuresServed = 0;

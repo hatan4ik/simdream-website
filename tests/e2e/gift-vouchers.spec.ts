@@ -11,6 +11,25 @@ const ORDER: VoucherOrder = {
 };
 
 test.describe('gift vouchers', () => {
+  test('starts with empty names, labels the preview as a sample, and will not submit sample names', async ({ page, vouchers }) => {
+    await vouchers.goto();
+    await expect(vouchers.recipientName()).toHaveValue('');
+    await expect(vouchers.senderName()).toHaveValue('');
+    const sample = page.locator('[data-voucher-preview-sample]').first();
+    await expect(sample).toBeVisible();
+    await expect(sample).toContainText(/sample/i);
+
+    // Browser validation blocks the empty required fields before any request is made.
+    const checkoutRequests = recordRequests(page, '/api/checkout');
+    await page.locator('form button[type="submit"]').first().click();
+    expect(await vouchers.recipientName().evaluate((element) => (element as HTMLInputElement).validity.valueMissing)).toBe(true);
+    expect(checkoutRequests).toHaveLength(0);
+
+    await vouchers.recipientName().fill(ORDER.recipientName);
+    await vouchers.senderName().fill(ORDER.senderName);
+    await expect(page.locator('[data-voucher-preview-sample]')).toHaveCount(0);
+  });
+
   test('updates the live boarding-pass preview as the buyer personalises the voucher', async ({ page, vouchers }) => {
     await vouchers.goto();
 

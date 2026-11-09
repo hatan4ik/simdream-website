@@ -1178,6 +1178,8 @@ function BookContent() {
             efficiencyReport={efficiencyReport}
             durationAvailability={durationAvailability}
             loading={loadingSlots}
+            slotsLoadFailed={slotsLoadFailed}
+            onRetrySlots={() => setSlotsReloadKey((key) => key + 1)}
           />
 
           {/* Sticky Mobile-First Action Bar */}
@@ -1251,7 +1253,7 @@ function BookContent() {
                 >
                   <div className="space-y-2.5">
                     <div className="flex items-start justify-between gap-3">
-                      <span className="text-base font-bold text-white leading-snug">
+                      <span id={`${formId}-addon-${addon.id}-name`} className="text-base font-bold text-white leading-snug">
                         {addon.name}
                       </span>
                       <div className="flex items-center gap-1.5 shrink-0">
@@ -1285,11 +1287,16 @@ function BookContent() {
                       </span>
                     )}
                     <input
+                      id={`${formId}-addon-${addon.id}`}
                       type="checkbox"
-                      aria-label={addon.name}
+                      aria-labelledby={`${formId}-addon-${addon.id}-name`}
                       checked={isChecked}
                       disabled={exceedsSlotWindow}
-                      onChange={() => {}}
+                      // The checkbox is the real control (keyboard, switch access, screen readers). The
+                      // card's onClick remains for pointer users; stopping propagation here keeps one toggle.
+                      // Deliberately not a <label htmlFor>: a forwarded label click plus the card click would toggle twice.
+                      onChange={() => !exceedsSlotWindow && toggleAddon(addon.id)}
+                      onClick={(event) => event.stopPropagation()}
                       className="rounded border-slate-700 text-sky-500 focus:ring-sky-400 disabled:opacity-40"
                     />
                   </div>
