@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:99ad0e43c914306ce3521e05568d38666778ec728fdf368ae33be1c8a86b908f -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:99dce487c011a597e6de9f30c420834a3d2fec606fafa8040960711ade7260a1 -->
 
 ## Verification contract
 

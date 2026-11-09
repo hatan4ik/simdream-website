@@ -16,11 +16,9 @@
  *   WIX_ADMIN_API_KEY=IST... npx tsx scripts/migrate-wix-blog.ts --apply
  */
 
-import { existsSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import { loadWixLocalEnv } from './wix-env';
 
-loadWixLocalEnv(['NEXT_PUBLIC_WIX_CLIENT_ID', 'WIX_SITE_ID']);
+loadWixLocalEnv(['NEXT_PUBLIC_WIX_CLIENT_ID', 'WIX_SITE_ID', 'WIX_ADMIN_API_KEY']);
 
 const [{ getAllBlogPosts }, { CANONICAL_STAGING_WIX_SITE_ID }] = await Promise.all([
   import('../lib/data/blog-posts'),
@@ -63,31 +61,9 @@ if (!args.apply) {
   process.exit(0);
 }
 
-function resolveAuthToken(): string {
-  if (process.env.WIX_ADMIN_API_KEY?.trim()) {
-    return process.env.WIX_ADMIN_API_KEY.trim();
-  }
-  const homeDir = process.env.HOME || '';
-  const siteAuthPath = join(homeDir, '.wix', 'auth', `${CANONICAL_STAGING_WIX_SITE_ID}.json`);
-  if (existsSync(siteAuthPath)) {
-    try {
-      const data = JSON.parse(readFileSync(siteAuthPath, 'utf8'));
-      if (data.accessToken) return data.accessToken;
-    } catch {}
-  }
-  const accountAuthPath = join(homeDir, '.wix', 'auth', 'account.json');
-  if (existsSync(accountAuthPath)) {
-    try {
-      const data = JSON.parse(readFileSync(accountAuthPath, 'utf8'));
-      if (data.accessToken) return data.accessToken;
-    } catch {}
-  }
-  return '';
-}
-
-const adminApiKey = resolveAuthToken();
+const adminApiKey = (process.env.WIX_ADMIN_API_KEY ?? '').trim();
 if (!adminApiKey) {
-  console.error('\nABORTED: No Wix authentication token found in WIX_ADMIN_API_KEY or ~/.wix/auth.');
+  console.error('\nABORTED: WIX_ADMIN_API_KEY environment variable is required for --apply.');
   process.exit(1);
 }
 
