@@ -136,11 +136,6 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/blog" className="hover:text-sky-400 transition-colors">
-                  {language === 'he' ? 'יומן הטיסה (בלוג)' : 'Flight Journal & Blog'}
-                </Link>
-              </li>
-              <li>
                 <Link href="/pro" className="hover:text-sky-400 transition-colors">
                   {t.nav.simulator}
                 </Link>
