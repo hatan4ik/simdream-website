@@ -36,6 +36,7 @@
     "test:lighthouse": "tsx scripts/with-server.ts --port 3805 -- tsx tests/perf/run-lighthouse.ts",
     "wix:smoke": "tsx scripts/wix-smoke.ts",
     "wix:blog:migrate": "tsx scripts/migrate-wix-blog.ts",
+    "wix:blog:translate": "tsx scripts/translate-wix-blog.ts",
     "wix:readiness": "tsx scripts/wix-readiness.ts",
     "wix:provision": "tsx scripts/wix-provision.ts",
     "wix:build": "opennextjs-cloudflare build && node scripts/prepare-opennext-for-wix.mjs && wrangler deploy --dry-run --outdir .wix-worker && node scripts/prepare-wix-worker.mjs",
