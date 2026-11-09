@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.11.0](https://github.com/hatan4ik/simdream-website/compare/v1.10.1...v1.11.0) (2026-11-09)
+
+
+### Features
+
+* **blog:** integrate 39 Wix blog articles with 1:1 SEO routes, static pre-rendering, and conversion CTAs ([#76](https://github.com/hatan4ik/simdream-website/issues/76)) ([0b7621a](https://github.com/hatan4ik/simdream-website/commit/0b7621ae13d2433ed290cbd5280fe9b1075280df))
+
+
+### Bug Fixes
+
+* **wix:** keep the Worker under Wix's upload limit (UTF-8 output, single blog corpus, size budget) ([#79](https://github.com/hatan4ik/simdream-website/issues/79)) ([c5673b2](https://github.com/hatan4ik/simdream-website/commit/c5673b2ec95119fed780e1e0b7d486aeb0e5809b))
+
 ## [1.10.1](https://github.com/hatan4ik/simdream-website/compare/v1.10.0...v1.10.1) (2026-11-09)
 
 
