@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:0675a223ccb05f76de85dd550951e4ade04eb3751fef27dfdcf6e42a10d256ab -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:a9a193873ae57b52e0e2677d1a34ec119961ad459c0c8533e825254dbf348e0c -->
 
 ## Verification contract
 
@@ -610,7 +610,7 @@ lib/
   security/rate-limit constant-time
   i18n/ translations language-context language-preference calendar-presentation booking-blueprint-copy wix-subscription-booking-copy
   config/ facility-info server-env use-live-facility-status
-  theme/ui-theme-context  ui/ use-client-value use-modal-focus  seo/ seo-config site-routes llms-txt blog-structured-data
+  theme/ui-theme-context  ui/ use-client-value use-modal-focus  seo/ seo-config structured-data site-routes llms-txt blog-structured-data
   reviews/google-reviews-cache google-reviews-source reviews-snapshot-store use-google-reviews review-language last-known-rating.json  i18n/booking-blueprint-copy
   stripe.ts  sendgrid.ts  validation.ts  utils.ts  supabaseClient.ts
 types/index.ts
