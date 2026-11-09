@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.8.0](https://github.com/hatan4ik/simdream-website/compare/v1.7.0...v1.8.0) (2026-11-09)
+
+
+### Features
+
+* **wix:** add Wix-as-Code backend blueprint and multi-lock protected provisioner ([#64](https://github.com/hatan4ik/simdream-website/issues/64)) ([8fd6516](https://github.com/hatan4ik/simdream-website/commit/8fd65161fc99f1b35fba3485c980805c53bddfaf))
+
+
+### Bug Fixes
+
+* **booking:** trust and recovery fixes from the source-based CX audit ([#65](https://github.com/hatan4ik/simdream-website/issues/65)) ([45c57e3](https://github.com/hatan4ik/simdream-website/commit/45c57e38024950bbda5df261189c5c8035d4ff5c))
+
 ## [1.7.0](https://github.com/hatan4ik/simdream-website/compare/v1.6.0...v1.7.0) (2026-11-08)
 
 
