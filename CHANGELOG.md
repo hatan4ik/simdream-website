@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.1](https://github.com/hatan4ik/simdream-website/compare/v1.9.0...v1.9.1) (2026-11-09)
+
+
+### Bug Fixes
+
+* **reviews:** refresh Google rating to 5.0 (424 reviews) ([#70](https://github.com/hatan4ik/simdream-website/issues/70)) ([88612dc](https://github.com/hatan4ik/simdream-website/commit/88612dc2b083f206a7f0aca7e8094e09d36c5965))
+
 ## [1.9.0](https://github.com/hatan4ik/simdream-website/compare/v1.8.0...v1.9.0) (2026-11-09)
 
 
