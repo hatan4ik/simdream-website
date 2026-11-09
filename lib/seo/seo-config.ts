@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { FACILITY_INFO } from '@/lib/config/facility-info';
+import { SIMULATOR_PACKAGES } from '@/lib/db/seed-data';
 
 export type SeoPageKey =
   | 'home'
@@ -25,6 +26,22 @@ interface PageSeoDefinition {
 
 const BASE_URL = FACILITY_INFO.primaryDomain;
 
+/**
+ * Prices and hours quoted in metadata come from the registries (AGENTS.md §8): a
+ * description never repeats a number that `SIMULATOR_PACKAGES` or `FACILITY_INFO` owns.
+ */
+const ils = (amount: number) => `₪${amount.toLocaleString('en-US')}`;
+const packageById = (id: string) => {
+  const pkg = SIMULATOR_PACKAGES.find((candidate) => candidate.id === id);
+  if (!pkg) throw new Error(`Unknown package ${id} in SEO copy`);
+  return pkg;
+};
+const DISCOVERY_30 = packageById('pkg-discovery-30');
+const PROMO_45 = packageById('pkg-promo-45');
+const CAPTAIN_60 = packageById('pkg-captain-60');
+const ULTIMATE_90 = packageById('pkg-ultimate-90');
+const OPENING_HOURS = `Sun-Sat ${FACILITY_INFO.hours.daily.open}-${FACILITY_INFO.hours.daily.close}`;
+
 const COMMON_GEO_AND_BUSINESS_META: Record<string, string> = {
   'geo.region': 'IL-TA',
   'geo.placename': 'Tel Aviv-Yafo, Israel',
@@ -32,7 +49,7 @@ const COMMON_GEO_AND_BUSINESS_META: Record<string, string> = {
   ICBM: `${FACILITY_INFO.coordinates.lat}, ${FACILITY_INFO.coordinates.lng}`,
   'business:contact_data:street_address': FACILITY_INFO.address.streetEn,
   'business:contact_data:locality': 'Tel Aviv-Yafo',
-  'business:contact_data:postal_code': '6701772',
+  'business:contact_data:postal_code': FACILITY_INFO.address.postalCode,
   'business:contact_data:country_name': 'Israel',
   'business:contact_data:email': FACILITY_INFO.contact.email,
   'business:contact_data:phone_number': FACILITY_INFO.contact.phoneInternational,
@@ -85,7 +102,10 @@ export const PAGE_SEO_DEFINITIONS: Record<SeoPageKey, PageSeoDefinition> = {
     path: '/experiences',
     title: 'Flight Simulator Packages, World Airport Bundles & Pricing | Sim Dream Tel Aviv',
     description:
-      'Compare Boeing 737 flight simulator packages in Tel Aviv: 30-min Discovery Flight (₪450), 45-min Daytime Flight (₪490), 60-min Captain’s Experience (₪690), 90-min Ultimate Aviator (₪850 daytime / ₪950 prime time), Fearless Flying therapy, and global airport bundles.',
+      `Compare Boeing 737 flight simulator packages in Tel Aviv: ${DISCOVERY_30.durationMinutes}-min Discovery Flight (${ils(DISCOVERY_30.priceIls)}), ` +
+      `${PROMO_45.durationMinutes}-min Daytime Flight (${ils(PROMO_45.priceIls)}), ${CAPTAIN_60.durationMinutes}-min Captain’s Experience (${ils(CAPTAIN_60.priceIls)}), ` +
+      `${ULTIMATE_90.durationMinutes}-min Ultimate Aviator (${ils(ULTIMATE_90.priceIls)} daytime / ${ils(ULTIMATE_90.primeTimePriceIls ?? ULTIMATE_90.priceIls)} prime time), ` +
+      'Fearless Flying therapy, and global airport bundles.',
     keywords: [
       ...COMMON_KEYWORDS,
       'flight simulator packages Israel',
@@ -198,15 +218,16 @@ export const PAGE_SEO_DEFINITIONS: Record<SeoPageKey, PageSeoDefinition> = {
     path: '/contact',
     title: 'Location, Arrival Instructions & Opening Hours — Gershon Shatz 36 | Sim Dream Tel Aviv',
     description:
-      'Visit Sim Dream at Gershon Shatz St 36, Tel Aviv-Yafo (4 min walk from Yehudit Light Rail, 8 min from HaShalom Train Station). Live opening hours (Sun-Sat 09:00-24:00), parking info, phone 055-507-1307 & email desk@simdream.co.il.',
+      `Visit Sim Dream at ${FACILITY_INFO.address.streetEn}, Tel Aviv-Yafo (a short walk from Yehudit Light Rail and HaShalom Train Station). ` +
+      `Live opening hours (${OPENING_HOURS}), parking info, phone ${FACILITY_INFO.contact.phoneDisplay} & email ${FACILITY_INFO.contact.email}.`,
     keywords: [
       ...COMMON_KEYWORDS,
       'Sim Dream address Tel Aviv',
       'Gershon Shatz 36 parking',
       'Yehudit light rail station to Sim Dream',
       'HaShalom train station to Sim Dream',
-      '055-507-1307',
-      'desk@simdream.co.il',
+      FACILITY_INFO.contact.phoneDisplay,
+      FACILITY_INFO.contact.email,
     ],
   },
   rules: {
