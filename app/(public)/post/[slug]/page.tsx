@@ -10,6 +10,13 @@ import {
   getRelatedBlogPosts,
   BLOG_CATEGORIES,
 } from '@/lib/data/blog-posts';
+import { getBlogAuthor } from '@/lib/data/blog-authors';
+import {
+  BLOG_BREADCRUMB_LABELS_HE,
+  blogPostCanonicalUrl,
+  buildBlogBreadcrumbJsonLd,
+  buildBlogPostingJsonLd,
+} from '@/lib/seo/blog-structured-data';
 import { BlogContentRenderer } from '@/components/blog/BlogContentRenderer';
 import { BlogConversionCta } from '@/components/blog/BlogConversionCta';
 import { BlogCard } from '@/components/blog/BlogCard';
@@ -30,11 +37,13 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
   const post = getBlogPostBySlug(slug);
   if (!post) return { title: 'מאמר לא נמצא | SimDream' };
 
-  const canonicalUrl = `https://www.simdream.co.il/post/${encodeURIComponent(post.slug)}`;
+  const canonicalUrl = blogPostCanonicalUrl(post);
+  const author = getBlogAuthor(post.authorId);
 
   return {
     title: `${post.title} | בלוג סימולטור טיסה SimDream`,
     description: post.excerpt,
+    authors: [{ name: author.nameHe, url: author.url }],
     alternates: {
       canonical: canonicalUrl,
     },
@@ -44,6 +53,9 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
       url: canonicalUrl,
       type: 'article',
       publishedTime: post.datePublished,
+      // Only a recorded modification date is published; never mirror datePublished.
+      ...(post.dateModified ? { modifiedTime: post.dateModified } : {}),
+      authors: [author.url],
       images: [
         {
           url: post.coverImage,
@@ -80,43 +92,22 @@ export default async function SinglePostPage({ params }: PostPageProps) {
   }).format(new Date(post.datePublished));
 
   const relatedPosts = getRelatedBlogPosts(post, 3);
-  const canonicalUrl = `https://www.simdream.co.il/post/${encodeURIComponent(post.slug)}`;
+  const author = getBlogAuthor(post.authorId);
 
-  // JSON-LD Structured Data for Google rich results
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'BlogPosting',
-    headline: post.title,
-    description: post.excerpt,
-    image: [post.coverImage],
-    datePublished: post.datePublished,
-    dateModified: post.datePublished,
-    inLanguage: 'he-IL',
-    mainEntityOfPage: {
-      '@type': 'WebPage',
-      '@id': canonicalUrl,
-    },
-    author: {
-      '@type': 'Organization',
-      name: 'Sim Dream Aviation Team',
-      url: 'https://www.simdream.co.il',
-    },
-    publisher: {
-      '@type': 'Organization',
-      name: 'Sim Dream LTD',
-      url: 'https://www.simdream.co.il',
-      logo: {
-        '@type': 'ImageObject',
-        url: 'https://www.simdream.co.il/brand/simdream-logo.png',
-      },
-    },
-  };
+  // JSON-LD for rich results: BlogPosting (Person author, real dateModified only) and
+  // BreadcrumbList, both built in lib/seo/blog-structured-data.ts and unit-tested there.
+  const blogPostingJsonLd = buildBlogPostingJsonLd(post);
+  const breadcrumbJsonLd = buildBlogBreadcrumbJsonLd(post);
 
   return (
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(blogPostingJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
 
       <article className="min-h-screen bg-slate-950 pt-8 pb-24">
@@ -127,11 +118,11 @@ export default async function SinglePostPage({ params }: PostPageProps) {
             className="flex items-center gap-2 text-xs text-slate-400 mb-8"
           >
             <Link href="/" className="hover:text-white transition-colors">
-              ראשי
+              {BLOG_BREADCRUMB_LABELS_HE.home}
             </Link>
             <span>/</span>
             <Link href="/blog" className="hover:text-white transition-colors">
-              יומן הטיסה
+              {BLOG_BREADCRUMB_LABELS_HE.blog}
             </Link>
             <span>/</span>
             <span className="text-slate-300 font-medium truncate max-w-[200px] sm:max-w-none">
@@ -172,8 +163,8 @@ export default async function SinglePostPage({ params }: PostPageProps) {
                 <UserCheck className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-sm font-bold text-white">קברניטי וצוות המבצעים | סים דרים</p>
-                <p className="text-xs text-slate-400">מרכז הדרכה והדמיית טיסה מסחרית, תל אביב</p>
+                <p className="text-sm font-bold text-white">{author.nameHe}</p>
+                <p className="text-xs text-slate-400">{author.roleHe}</p>
               </div>
             </div>
           </header>
