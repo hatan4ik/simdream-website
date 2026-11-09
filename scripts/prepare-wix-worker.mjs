@@ -1,4 +1,4 @@
-import { access, readFile, rm, stat, writeFile } from 'node:fs/promises';
+import { readFile, rm, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { restoreUtf8Literals } from './wix-worker-charset.mjs';
 
@@ -14,8 +14,8 @@ const entryPath = resolve(outputDirectory, 'entry.mjs');
 const WORKER_BUDGET_BYTES = Number(process.env.WIX_WORKER_BUDGET_BYTES) || 14 * 1024 * 1024;
 
 // Wix requires this conventional server entry name. Wrangler has already
-// bundled the OpenNext module graph into worker.js for an ESM runtime.
-await access(workerPath);
+// bundled the OpenNext module graph into worker.js for an ESM runtime; a missing
+// worker.js fails the read below with ENOENT, no separate existence check needed.
 await rm(sourceMapPath, { force: true });
 
 // Wrangler's esbuild writes non-ASCII text as `\uXXXX` escapes; this site is mostly
@@ -24,7 +24,7 @@ const escapedWorker = await readFile(workerPath, 'utf8');
 const utf8Worker = restoreUtf8Literals(escapedWorker);
 await writeFile(workerPath, utf8Worker, 'utf8');
 
-const { size } = await stat(workerPath);
+const size = Buffer.byteLength(utf8Worker);
 const mib = (bytes) => `${(bytes / 1024 / 1024).toFixed(2)} MiB`;
 console.log(
   `Wix worker: ${mib(size)} as UTF-8 (${mib(Buffer.byteLength(escapedWorker))} with \\u escapes), budget ${mib(WORKER_BUDGET_BYTES)}.`
