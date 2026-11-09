@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.10.0](https://github.com/hatan4ik/simdream-website/compare/v1.9.1...v1.10.0) (2026-11-09)
+
+
+### Features
+
+* **reviews:** newest first, publish date, author attribution and Google's translation with "show original" ([#72](https://github.com/hatan4ik/simdream-website/issues/72)) ([6f38e49](https://github.com/hatan4ik/simdream-website/commit/6f38e4953a5433cbb8231ef3426e3b6385027d43))
+
 ## [1.9.1](https://github.com/hatan4ik/simdream-website/compare/v1.9.0...v1.9.1) (2026-11-09)
 
 
