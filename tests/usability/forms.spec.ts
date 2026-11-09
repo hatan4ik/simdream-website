@@ -179,6 +179,8 @@ test.describe('validation and error feedback', () => {
 
   test('announces a failed gift voucher purchase in an alert', async ({ page }) => {
     await gotoSettled(page, '/vouchers');
+    await page.getByPlaceholder('e.g. Aviad Stern').fill('Gift Recipient');
+    await page.getByPlaceholder('e.g. Danielle Cohen').fill('Gift Sender');
     await page.getByPlaceholder('aviad@example.com').fill('gift.recipient@example.com');
     await page.getByPlaceholder('danielle@example.com').fill('gift.sender@example.com');
     const response = page.waitForResponse((candidate) => new URL(candidate.url()).pathname === '/api/checkout');
@@ -192,6 +194,8 @@ test.describe('validation and error feedback', () => {
   test('accepts a gift voucher order that leaves the optional recipient email empty', async ({ page }) => {
     await gotoSettled(page, '/vouchers');
     await expect(page.getByText('Leave empty if you wish to print and present the voucher yourself.')).toBeVisible();
+    await page.getByPlaceholder('e.g. Aviad Stern').fill('Gift Recipient');
+    await page.getByPlaceholder('e.g. Danielle Cohen').fill('Gift Sender');
     await page.getByPlaceholder('danielle@example.com').fill('gift.sender@example.com');
     const response = page.waitForResponse((candidate) => new URL(candidate.url()).pathname === '/api/checkout');
 

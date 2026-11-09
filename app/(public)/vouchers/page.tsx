@@ -94,9 +94,10 @@ export default function GiftVouchersPage() {
   const [deliveryMethod, setDeliveryMethod] = useState<'direct' | 'print'>('direct');
   const [giftCardDesignId, setGiftCardDesignId] = useState<GiftCardDesignId>(INITIAL_GIFT_CARD_DESIGN_ID);
 
-  const [recipientName, setRecipientName] = useState('Aviad Stern');
+  // Real names are the buyer's to type; the preview shows a labelled sample until they do (never a pre-filled value).
+  const [recipientName, setRecipientName] = useState('');
   const [recipientEmail, setRecipientEmail] = useState('');
-  const [senderName, setSenderName] = useState('Danielle Cohen');
+  const [senderName, setSenderName] = useState('');
   const [senderEmail, setSenderEmail] = useState('');
   const [personalMessage, setPersonalMessage] = useState(t.vouchers.defaultMessage);
 
@@ -871,11 +872,16 @@ export default function GiftVouchersPage() {
                     <div>
                       <div className="text-[10px] font-mono uppercase text-slate-400">{t.vouchers.passenger}</div>
                       <div className="text-xl font-extrabold text-white mt-0.5">
-                        {recipientName || 'Passenger Name'}
+                        {recipientName || t.vouchers.previewSampleRecipient}
                       </div>
                       <div className="text-xs text-slate-400 mt-1">
-                        {t.vouchers.giftFrom}: <span className="text-slate-200 font-medium">{senderName || 'Sender'}</span>
+                        {t.vouchers.giftFrom}: <span className="text-slate-200 font-medium">{senderName || t.vouchers.previewSampleSender}</span>
                       </div>
+                      {(!recipientName || !senderName) && (
+                        <p data-voucher-preview-sample className="mt-1.5 text-[11px] text-amber-300">
+                          {t.vouchers.previewSampleLabel}
+                        </p>
+                      )}
                     </div>
                     <div className="text-right">
                       <div className="text-[10px] font-mono uppercase text-slate-400">{t.vouchers.voucherValue}</div>
@@ -975,12 +981,17 @@ export default function GiftVouchersPage() {
                     <div>
                       <div className="text-[10px] font-mono uppercase text-slate-400">{t.vouchers.passenger}</div>
                       <div className="text-base font-bold text-white mt-0.5">
-                        {recipientName || 'Passenger Name'}
+                        {recipientName || t.vouchers.previewSampleRecipient}
                       </div>
+                      {(!recipientName || !senderName) && (
+                        <p data-voucher-preview-sample className="mt-1 text-[11px] text-amber-300">
+                          {t.vouchers.previewSampleLabel}
+                        </p>
+                      )}
                     </div>
                     <div className="text-end">
                       <div className="text-[10px] font-mono uppercase text-slate-400">{t.vouchers.giftFrom}</div>
-                      <div className="text-base font-bold text-slate-200 mt-0.5">{senderName || 'Sender'}</div>
+                      <div className="text-base font-bold text-slate-200 mt-0.5">{senderName || t.vouchers.previewSampleSender}</div>
                     </div>
                   </div>
 

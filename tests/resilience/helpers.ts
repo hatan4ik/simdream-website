@@ -73,16 +73,22 @@ export function gate(): Gate {
 export async function openBookingPage(
   page: Page,
   baseURL: string | undefined,
-  slots: (route: Route) => Promise<void> = fulfillOpenSlots
+  slots: (route: Route) => Promise<void> = fulfillOpenSlots,
+  options: { view?: 'storefront' | 'wizard' } = {}
 ): Promise<void> {
   if (!baseURL) throw new Error('baseURL is required');
   await blockThirdPartyRequests(page, baseURL);
   await preferLanguage(page, 'en');
   await page.route(isSlotsApi, slots);
   await page.goto('/book');
-  // Guided Wizard is the customer default. Resilience coverage below exercises
-  // the desktop Express Shop's independently implemented error and checkout
-  // states, so opt into that surface explicitly.
+  // Guided Wizard is the customer default and the only view on phones. Most
+  // resilience coverage exercises the desktop Express Shop's independently
+  // implemented error and checkout states, so it opts into that surface explicitly;
+  // `view: 'wizard'` stays on the default to check the wizard's own recovery.
+  if (options.view === 'wizard') {
+    await expect(page.getByRole('heading', { level: 1, name: 'Choose Flight Date & Operational Slot' })).toBeVisible();
+    return;
+  }
   const storefront = page.getByRole('button', { name: 'Express Shop View (1-Page)', exact: true });
   await expect(storefront).toBeVisible();
   await storefront.click();
