@@ -258,7 +258,7 @@ export default function ExperiencesPage() {
                 <div className="rounded-xl border border-slate-700/80 bg-slate-950/60 p-4 space-y-2">
                   <div className="flex items-baseline justify-between gap-3">
                     <span className="text-3xl font-black text-white">{formatCurrency(pass.priceIls)}</span>
-                    <span className="text-xs text-slate-400">{subscriptionCopy.validityLabel}</span>
+                    <span className="text-xs text-slate-400">{subscriptionCopy.flexibilityLabel}</span>
                   </div>
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400">
                     <span>

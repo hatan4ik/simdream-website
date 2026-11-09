@@ -2,9 +2,9 @@ import { FLIGHT_ADDONS, SIMULATOR_PACKAGES } from '@/lib/db/seed-data';
 import type { Language, LocalizedRecord } from '@/lib/i18n/translations';
 
 /**
- * Single-payment flight subscriptions. These are deliberately separate from a
- * one-off booking package: a subscription describes commercial terms and a structured learning
- * journey, while the booking engine remains the authority for an individual
+ * Single-payment flight tracks (sold to customers as "flight tracks", held in Wix as
+ * Pricing Plans). These are deliberately separate from a one-off booking package: a
+ * track describes commercial terms and a structured learning journey, while the booking engine remains the authority for an individual
  * departure and its reserved capacity.
  *
  * Wix Pricing Plans is the eventual authority for a purchased subscription and its
@@ -29,13 +29,15 @@ export interface SubscriptionSectionCopy {
   subtitle: string;
   sessionLabel: string;
   totalFlightTimeLabel: string;
-  validityLabel: string;
+  /** Pace and payment reassurance shown on each card; never a validity deadline. */
+  flexibilityLabel: string;
   standardValueLabel: string;
   savingsLabel: string;
   curriculumLabel: string;
   trainingModulesLabel: string;
   trainingModulesDescription: string;
   requestEnrollment: string;
+  redirectingToPayment: string;
   educationalDisclosure: string;
   consultDispatch: string;
 }
@@ -46,8 +48,13 @@ export interface SubscriptionPass {
   packageId: string;
   sessions: 5 | 10;
   sessionMinutes: 60 | 90;
-  /** Single-payment subscription price. Recurring billing is intentionally not implied. */
+  /** Single-payment price. Recurring billing is intentionally not implied. */
   priceIls: number;
+  /**
+   * Commercial validity of the Wix plan. Marketing copy never leads with it
+   * (AGENTS.md / GENESIS: outcome-first, no limited-time phrasing); it is disclosed
+   * once, in the billing FAQ answer.
+   */
   validityMonths: 12;
   /**
    * Existing add-on modules used as instructor-led curriculum themes. They do
@@ -59,96 +66,101 @@ export interface SubscriptionPass {
 
 export const SUBSCRIPTION_SECTION_COPY: LocalizedRecord<SubscriptionSectionCopy> = {
   en: {
-    badge: 'CAPTAIN-LED FLIGHT SUBSCRIPTIONS',
-    title: 'Your Flight Subscription Journey',
+    badge: 'CAPTAIN-LED FLIGHT TRACKS',
+    title: 'Choose Your Flight Track',
     subtitle:
-      'Choose a 12-month, single-payment flight subscription with five or ten Boeing 737 sessions. Build judgement, confidence and cockpit fluency with a captain-led progression—not a one-off ride.',
-    sessionLabel: 'included flight sessions',
+      'Five or ten Boeing 737 flights with the same captain, paid once and flown at your pace. Judgement, confidence and cockpit fluency that one ride cannot give.',
+    sessionLabel: 'included flights',
     totalFlightTimeLabel: 'total cockpit time',
-    validityLabel: 'valid for 12 months',
-    standardValueLabel: 'standard session value',
-    savingsLabel: 'subscription value',
+    flexibilityLabel: 'book each flight whenever it suits you · one payment',
+    standardValueLabel: 'single-flight value',
+    savingsLabel: 'you save',
     curriculumLabel: 'Captain-led learning sequence',
     trainingModulesLabel: 'Focused add-on training themes',
     trainingModulesDescription:
-      'Your captain can place these instructor-led themes within a subscription session. Any separately listed add-on time remains subject to booking capacity and the terms confirmed at enrolment.',
-    requestEnrollment: 'Buy Subscription',
+      'Your captain can place these instructor-led themes within a track flight. Any separately listed add-on time remains subject to booking capacity and the terms confirmed at enrolment.',
+    requestEnrollment: 'Start this track',
+    redirectingToPayment: 'Redirecting to payment...',
     educationalDisclosure:
       'ATPL-level explanations are educational simulator coaching only. They do not grant flight hours, a licence, a type rating, assessment credit, or an airline-employment guarantee.',
     consultDispatch: 'Have questions? Consult Dispatch',
   },
   he: {
-    badge: 'מנויי טיסה בהנחיית קברניט',
-    title: 'מסע המנוי שלכם בתא הטייס',
+    badge: 'מסלולי טיסה בהנחיית קברניט',
+    title: 'בחרו את מסלול הטיסה שלכם',
     subtitle:
-      'בחרו מנוי טיסה בתשלום חד־פעמי ל־12 חודשים, עם חמש או עשר פגישות בבואינג 737. בנו שיקול דעת, ביטחון ושליטה בתא הטייס עם התקדמות בהנחיית קברניט — לא רק חוויה חד־פעמית.',
-    sessionLabel: 'מפגשי טיסה כלולים',
+      'חמש או עשר טיסות בבואינג 737 עם אותו קברניט, בתשלום אחד ובקצב שלכם. שיקול דעת, ביטחון ושליטה בתא הטייס שחוויה אחת לא יכולה לתת.',
+    sessionLabel: 'טיסות כלולות',
     totalFlightTimeLabel: 'זמן מצטבר בתא הטייס',
-    validityLabel: 'בתוקף ל-12 חודשים',
-    standardValueLabel: 'שווי מפגשים רגיל',
-    savingsLabel: 'ערך המנוי',
+    flexibilityLabel: 'מתאמים כל טיסה כשמתאים לכם · תשלום אחד',
+    standardValueLabel: 'שווי בטיסות בודדות',
+    savingsLabel: 'אתם חוסכים',
     curriculumLabel: 'רצף למידה בהנחיית קברניט',
     trainingModulesLabel: 'נושאי אימון ממוקדים מתוך התוספות',
     trainingModulesDescription:
-      'הקברניט יכול לשלב נושאים אלה בהנחיית מדריך בתוך מפגש מנוי. זמן תוספת המופיע בנפרד כפוף לקיבולת ההזמנה ולתנאים שאושרו בהרשמה.',
-    requestEnrollment: 'רכישת מנוי',
+      'הקברניט יכול לשלב נושאים אלה בהנחיית מדריך בתוך טיסה במסלול. זמן תוספת המופיע בנפרד כפוף לקיבולת ההזמנה ולתנאים שאושרו בהרשמה.',
+    requestEnrollment: 'להתחיל את המסלול הזה',
+    redirectingToPayment: 'מעביר לתשלום...',
     educationalDisclosure:
       'הסברי ATPL הם הדרכת סימולטור לימודית בלבד. הם אינם מקנים שעות טיסה, רישיון, הגדר סוג, זיכוי למבדק או הבטחת העסקה בחברת תעופה.',
     consultDispatch: 'לשאלות והתאמה אישית: פנו למבצעים',
   },
   ru: {
-    badge: 'ЛЁТНЫЕ АБОНЕМЕНТЫ С КАПИТАНОМ',
-    title: 'Ваш путь по лётному абонементу',
+    badge: 'ЛЁТНЫЕ ПРОГРАММЫ С КАПИТАНОМ',
+    title: 'Выберите свою лётную программу',
     subtitle:
-      'Выберите лётный абонемент с единовременной оплатой и сроком 12 месяцев: пять или десять сессий Boeing 737. Развивайте уверенность, осознанность и навыки кабины вместе с капитаном, а не просто получайте разовое впечатление.',
-    sessionLabel: 'включённых лётных сессий',
+      'Пять или десять полётов на Boeing 737 с одним капитаном, одна оплата и ваш собственный ритм. Уверенность, осознанность и навыки кабины, которых не даст разовое впечатление.',
+    sessionLabel: 'включённых полётов',
     totalFlightTimeLabel: 'всего времени в кабине',
-    validityLabel: 'действует 12 месяцев',
-    standardValueLabel: 'обычная стоимость сессий',
-    savingsLabel: 'выгода абонемента',
+    flexibilityLabel: 'каждый полёт — когда удобно · одна оплата',
+    standardValueLabel: 'стоимость разовых полётов',
+    savingsLabel: 'ваша экономия',
     curriculumLabel: 'Последовательность занятий с капитаном',
     trainingModulesLabel: 'Фокусные темы из модулей-дополнений',
     trainingModulesDescription:
-      'Капитан может включить эти темы с инструктором в сессию абонемента. Отдельно указанное дополнительное время зависит от доступной ёмкости и условий, подтверждённых при оформлении.',
-    requestEnrollment: 'Купить абонемент',
+      'Капитан может включить эти темы с инструктором в полёт программы. Отдельно указанное дополнительное время зависит от доступной ёмкости и условий, подтверждённых при оформлении.',
+    requestEnrollment: 'Начать эту программу',
+    redirectingToPayment: 'Переход к оплате...',
     educationalDisclosure:
       'Объяснения уровня ATPL — это только учебный коучинг в симуляторе. Они не дают лётные часы, лицензию, type rating, зачёт отбора или гарантию трудоустройства в авиакомпании.',
     consultDispatch: 'Есть вопросы? Напишите диспетчеру',
   },
   fr: {
-    badge: 'ABONNEMENTS DE VOL AVEC COMMANDANT',
-    title: 'Votre parcours d’abonnement de vol',
+    badge: 'PARCOURS DE VOL AVEC COMMANDANT',
+    title: 'Choisissez votre parcours de vol',
     subtitle:
-      'Choisissez un abonnement de vol réglé en une fois, valable 12 mois, avec cinq ou dix séances Boeing 737. Développez votre jugement, votre assurance et vos réflexes au poste avec un commandant, au-delà d’une expérience unique.',
-    sessionLabel: 'séances de vol incluses',
+      'Cinq ou dix vols sur Boeing 737 avec le même commandant, réglés en une fois et volés à votre rythme. Du jugement, de l’assurance et une aisance au poste qu’une expérience unique ne peut pas donner.',
+    sessionLabel: 'vols inclus',
     totalFlightTimeLabel: 'temps total au poste de pilotage',
-    validityLabel: 'valable 12 mois',
-    standardValueLabel: 'valeur des séances à l’unité',
-    savingsLabel: 'avantage abonnement',
+    flexibilityLabel: 'chaque vol quand cela vous convient · un seul paiement',
+    standardValueLabel: 'valeur des vols à l’unité',
+    savingsLabel: 'vous économisez',
     curriculumLabel: 'Parcours d’apprentissage avec un commandant',
     trainingModulesLabel: 'Thèmes ciblés issus des modules additionnels',
     trainingModulesDescription:
-      'Votre commandant peut intégrer ces thèmes guidés à une séance d’abonnement. Tout temps additionnel affiché séparément reste soumis à la capacité de réservation et aux conditions confirmées lors de l’inscription.',
-    requestEnrollment: 'Acheter l’abonnement',
+      'Votre commandant peut intégrer ces thèmes guidés à un vol du parcours. Tout temps additionnel affiché séparément reste soumis à la capacité de réservation et aux conditions confirmées lors de l’inscription.',
+    requestEnrollment: 'Commencer ce parcours',
+    redirectingToPayment: 'Redirection vers le paiement...',
     educationalDisclosure:
       'Les explications de niveau ATPL constituent uniquement un accompagnement pédagogique sur simulateur. Elles ne donnent ni heures de vol, ni licence, ni qualification de type, ni crédit de sélection, ni garantie d’emploi en compagnie aérienne.',
     consultDispatch: 'Une question ? Consulter le Dispatch',
   },
   ar: {
-    badge: 'اشتراكات طيران بإشراف كابتن',
-    title: 'رحلتكم مع اشتراك الطيران',
+    badge: 'مسارات طيران بإشراف كابتن',
+    title: 'اختاروا مسار طيرانكم',
     subtitle:
-      'اختاروا اشتراك طيران بدفعة واحدة لمدة 12 شهراً يضم خمس أو عشر جلسات على بوينغ 737. ابنوا الثقة وحسن التقدير والطلاقة في قمرة القيادة مع كابتن، بدلاً من تجربة واحدة فقط.',
-    sessionLabel: 'جلسات طيران مشمولة',
+      'خمس أو عشر رحلات على بوينغ 737 مع الكابتن نفسه، بدفعة واحدة وبإيقاعكم. حسن تقدير وثقة وطلاقة في قمرة القيادة لا تمنحها تجربة واحدة.',
+    sessionLabel: 'رحلات مشمولة',
     totalFlightTimeLabel: 'إجمالي الوقت في قمرة القيادة',
-    validityLabel: 'صالحة لمدة 12 شهراً',
-    standardValueLabel: 'القيمة العادية للجلسات',
-    savingsLabel: 'قيمة الاشتراك',
+    flexibilityLabel: 'كل رحلة في الوقت الذي يناسبكم · دفعة واحدة',
+    standardValueLabel: 'قيمة الرحلات الفردية',
+    savingsLabel: 'توفرون',
     curriculumLabel: 'مسار تعلّم بإشراف كابتن',
     trainingModulesLabel: 'موضوعات تدريب مركزة من الإضافات',
     trainingModulesDescription:
-      'يمكن للكابتن دمج هذه الموضوعات بإشراف مدرب ضمن جلسة من الاشتراك. أي وقت إضافي معروض بصورة منفصلة يبقى خاضعاً لسعة الحجز والشروط المؤكدة عند التسجيل.',
-    requestEnrollment: 'شراء الاشتراك',
+      'يمكن للكابتن دمج هذه الموضوعات بإشراف مدرب ضمن رحلة من المسار. أي وقت إضافي معروض بصورة منفصلة يبقى خاضعاً لسعة الحجز والشروط المؤكدة عند التسجيل.',
+    requestEnrollment: 'ابدؤوا هذا المسار',
+    redirectingToPayment: 'جارٍ التحويل للدفع...',
     educationalDisclosure:
       'شروحات مستوى ATPL هي تدريب تعليمي على جهاز المحاكاة فقط. لا تمنح ساعات طيران أو رخصة أو تأهيلاً على طراز أو رصيداً لاختبار أو ضمان عمل لدى شركة طيران.',
     consultDispatch: 'هل لديكم استفسار؟ تواصلوا مع العمليات',
@@ -166,7 +178,7 @@ export const SUBSCRIPTION_PASSES: readonly SubscriptionPass[] = [
     trainingAddonIds: ['addon-xwind-ifr', 'addon-cold-dark'],
     copy: {
       en: {
-        title: 'Flight Foundations Subscription · 5 × 60 min',
+        title: 'Flight Foundations · 5 × 60 min',
         summary: 'A confident first progression from cockpit orientation to a stable, weather-aware landing.',
         curriculum: [
           'Captain’s flow: controls, instrument scan and stable approach',
@@ -177,7 +189,7 @@ export const SUBSCRIPTION_PASSES: readonly SubscriptionPass[] = [
         ],
       },
       he: {
-        title: 'מנוי יסודות הטיסה · 5 × 60 דקות',
+        title: 'יסודות הטיסה · 5 × 60 דקות',
         summary: 'מסלול ראשון שבונה ביטחון, מהיכרות עם תא הטייס ועד נחיתה יציבה ומודעת למזג האוויר.',
         curriculum: [
           'זרימת עבודה של קברניט: הגאים, סריקת מכשירים וגישה מיוצבת',
@@ -188,7 +200,7 @@ export const SUBSCRIPTION_PASSES: readonly SubscriptionPass[] = [
         ],
       },
       ru: {
-        title: 'Абонемент «Основы полёта» · 5 × 60 мин',
+        title: '«Основы полёта» · 5 × 60 мин',
         summary: 'Уверенный первый путь от знакомства с кабиной до стабильной посадки с учётом погоды.',
         curriculum: [
           'Поток работы капитана: органы управления, приборный скан и стабильный заход',
@@ -199,7 +211,7 @@ export const SUBSCRIPTION_PASSES: readonly SubscriptionPass[] = [
         ],
       },
       fr: {
-        title: 'Abonnement Fondations de vol · 5 × 60 min',
+        title: 'Fondations de vol · 5 × 60 min',
         summary: 'Une première progression sûre, de la découverte du poste de pilotage à un atterrissage stabilisé et conscient de la météo.',
         curriculum: [
           'Flux du commandant : commandes, balayage instruments et approche stabilisée',
@@ -210,7 +222,7 @@ export const SUBSCRIPTION_PASSES: readonly SubscriptionPass[] = [
         ],
       },
       ar: {
-        title: 'اشتراك أساسيات الطيران · 5 × 60 دقيقة',
+        title: 'أساسيات الطيران · 5 × 60 دقيقة',
         summary: 'مسار أول واثق من التعرف على قمرة القيادة إلى هبوط مستقر مع فهم للطقس.',
         curriculum: [
           'تسلسل عمل الكابتن: أدوات التحكم ومسح العدادات والاقتراب المستقر',
@@ -232,7 +244,7 @@ export const SUBSCRIPTION_PASSES: readonly SubscriptionPass[] = [
     trainingAddonIds: ['addon-cold-dark', 'addon-xwind-ifr', 'addon-extreme-airports'],
     copy: {
       en: {
-        title: 'Advanced Captain Subscription · 5 × 90 min',
+        title: 'Advanced Captain · 5 × 90 min',
         summary: 'Five deeper missions for pilots who want time to plan, fly, recover and debrief each scenario.',
         curriculum: [
           'Airliner set-up: route logic, performance and SOP rationale',
@@ -243,7 +255,7 @@ export const SUBSCRIPTION_PASSES: readonly SubscriptionPass[] = [
         ],
       },
       he: {
-        title: 'מנוי קברניט מתקדם · 5 × 90 דקות',
+        title: 'קברניט מתקדם · 5 × 90 דקות',
         summary: 'חמש משימות עמוקות יותר למי שרוצה זמן לתכנן, להטיס, להתאושש ולתחקר כל תרחיש.',
         curriculum: [
           'הכנת מטוס נוסעים: לוגיקת נתיב, ביצועים והסיבה שמאחורי SOP',
@@ -254,7 +266,7 @@ export const SUBSCRIPTION_PASSES: readonly SubscriptionPass[] = [
         ],
       },
       ru: {
-        title: 'Абонемент продвинутого капитана · 5 × 90 мин',
+        title: '«Продвинутый капитан» · 5 × 90 мин',
         summary: 'Пять более глубоких миссий для тех, кому нужно время планировать, лететь, восстанавливаться и разбирать каждый сценарий.',
         curriculum: [
           'Подготовка лайнера: логика маршрута, характеристики и смысл SOP',
@@ -265,7 +277,7 @@ export const SUBSCRIPTION_PASSES: readonly SubscriptionPass[] = [
         ],
       },
       fr: {
-        title: 'Abonnement Commandant avancé · 5 × 90 min',
+        title: 'Commandant avancé · 5 × 90 min',
         summary: 'Cinq missions approfondies pour disposer du temps de préparer, voler, récupérer et débriefer chaque scénario.',
         curriculum: [
           'Préparation de l’avion : logique route, performances et raison des SOP',
@@ -276,7 +288,7 @@ export const SUBSCRIPTION_PASSES: readonly SubscriptionPass[] = [
         ],
       },
       ar: {
-        title: 'اشتراك الكابتن المتقدم · 5 × 90 دقيقة',
+        title: 'الكابتن المتقدم · 5 × 90 دقيقة',
         summary: 'خمس مهام أعمق لمن يريد وقتاً للتخطيط والطيران والتعافي واستخلاص الدروس من كل سيناريو.',
         curriculum: [
           'إعداد طائرة النقل: منطق المسار والأداء وسبب إجراءات SOP',
@@ -298,7 +310,7 @@ export const SUBSCRIPTION_PASSES: readonly SubscriptionPass[] = [
     trainingAddonIds: ['addon-xwind-ifr', 'addon-cold-dark'],
     copy: {
       en: {
-        title: 'ATPL Concepts Subscription · 10 × 60 min',
+        title: 'ATPL Concepts · 10 × 60 min',
         summary: 'Ten concise flights pairing hands-on practice with clear airline-style explanations of why crews use each procedure.',
         curriculum: [
           'Aircraft systems story: power, air, hydraulics and redundancy',
@@ -309,7 +321,7 @@ export const SUBSCRIPTION_PASSES: readonly SubscriptionPass[] = [
         ],
       },
       he: {
-        title: 'מנוי מושגי ATPL · 10 × 60 דקות',
+        title: 'מושגי ATPL · 10 × 60 דקות',
         summary: 'עשר טיסות ממוקדות שמשלבות תרגול מעשי והסברים ברורים בסגנון חברות תעופה על הסיבה לכל נוהל.',
         curriculum: [
           'סיפור מערכות המטוס: חשמל, אוויר, הידראוליקה ויתירות',
@@ -320,7 +332,7 @@ export const SUBSCRIPTION_PASSES: readonly SubscriptionPass[] = [
         ],
       },
       ru: {
-        title: 'Абонемент «Концепции ATPL» · 10 × 60 мин',
+        title: '«Концепции ATPL» · 10 × 60 мин',
         summary: 'Десять сфокусированных полётов, сочетающих практику с понятными объяснениями в стиле авиалиний: зачем экипаж применяет каждую процедуру.',
         curriculum: [
           'История систем самолёта: электропитание, воздух, гидравлика и резервирование',
@@ -331,7 +343,7 @@ export const SUBSCRIPTION_PASSES: readonly SubscriptionPass[] = [
         ],
       },
       fr: {
-        title: 'Abonnement Concepts ATPL · 10 × 60 min',
+        title: 'Concepts ATPL · 10 × 60 min',
         summary: 'Dix vols ciblés mêlant pratique et explications claires de style compagnie aérienne sur la raison de chaque procédure.',
         curriculum: [
           'Histoire des systèmes : électrique, air, hydraulique et redondance',
@@ -342,7 +354,7 @@ export const SUBSCRIPTION_PASSES: readonly SubscriptionPass[] = [
         ],
       },
       ar: {
-        title: 'اشتراك مفاهيم ATPL · 10 × 60 دقيقة',
+        title: 'مفاهيم ATPL · 10 × 60 دقيقة',
         summary: 'عشر رحلات مركزة تجمع بين التدريب العملي وشروحات واضحة بأسلوب شركات الطيران عن سبب استخدام الطواقم لكل إجراء.',
         curriculum: [
           'قصة أنظمة الطائرة: الكهرباء والهواء والهيدروليك والازدواجية',
@@ -364,7 +376,7 @@ export const SUBSCRIPTION_PASSES: readonly SubscriptionPass[] = [
     trainingAddonIds: ['addon-cold-dark', 'addon-xwind-ifr', 'addon-extreme-airports'],
     copy: {
       en: {
-        title: 'Airline Readiness Subscription · 10 × 90 min',
+        title: 'Airline Readiness · 10 × 90 min',
         summary: 'Our most complete educational progression: ten 90-minute missions for deliberate practice, scenario repetition and captain-level explanations.',
         curriculum: [
           'SOP discipline: flows, callouts, cross-checks and workload priorities',
@@ -375,7 +387,7 @@ export const SUBSCRIPTION_PASSES: readonly SubscriptionPass[] = [
         ],
       },
       he: {
-        title: 'מנוי מוכנות לחברת תעופה · 10 × 90 דקות',
+        title: 'מוכנות לחברת תעופה · 10 × 90 דקות',
         summary: 'המסלול הלימודי המקיף ביותר: עשר משימות של 90 דקות לתרגול מכוון, חזרתיות בתרחישים והסברים ברמת קברניט.',
         curriculum: [
           'משמעת SOP: זרימות, קריאות, הצלבות וסדרי עדיפויות בעומס',
@@ -386,7 +398,7 @@ export const SUBSCRIPTION_PASSES: readonly SubscriptionPass[] = [
         ],
       },
       ru: {
-        title: 'Абонемент «Готовность к авиакомпании» · 10 × 90 мин',
+        title: '«Готовность к авиакомпании» · 10 × 90 мин',
         summary: 'Самая полная учебная программа: десять 90-минутных миссий для осознанной практики, повторения сценариев и объяснений уровня капитана.',
         curriculum: [
           'Дисциплина SOP: потоки, доклады, взаимные проверки и приоритеты нагрузки',
@@ -397,7 +409,7 @@ export const SUBSCRIPTION_PASSES: readonly SubscriptionPass[] = [
         ],
       },
       fr: {
-        title: 'Abonnement Préparation compagnie · 10 × 90 min',
+        title: 'Préparation compagnie · 10 × 90 min',
         summary: 'Notre progression pédagogique la plus complète : dix missions de 90 minutes pour une pratique délibérée, la répétition des scénarios et des explications de niveau commandant.',
         curriculum: [
           'Discipline SOP : flows, callouts, vérifications croisées et priorités de charge',
@@ -408,7 +420,7 @@ export const SUBSCRIPTION_PASSES: readonly SubscriptionPass[] = [
         ],
       },
       ar: {
-        title: 'اشتراك الجاهزية لشركات الطيران · 10 × 90 دقيقة',
+        title: 'الجاهزية لشركات الطيران · 10 × 90 دقيقة',
         summary: 'أكمل تقدم تعليمي لدينا: عشر مهام مدة كل منها 90 دقيقة للتدريب المتعمد وتكرار السيناريوهات وشروحات بمستوى الكابتن.',
         curriculum: [
           'انضباط SOP: التسلسلات والنداءات والتحققات المتبادلة وأولويات عبء العمل',

@@ -27,12 +27,12 @@ interface ThankYouCopy {
 
 const THANK_YOU_COPY: LocalizedRecord<ThankYouCopy> = {
   he: {
-    badge: 'רכישת מנוי הושלמה',
+    badge: 'הרכישה הושלמה',
     title: 'ברוכים הבאים למועדון הטיסה של Sim Dream!',
     subtitle:
-      'מנוי הטיסה השנתי שלכם אושר בהצלחה. כל המפגשים הכלולים זמינים כעת לתיאום בבואינג 737 לאורך 12 החודשים הקרובים.',
-    orderRefLabel: 'מספר הזמנת מנוי',
-    nextStepsTitle: 'השלבים הבאים למימוש המנוי',
+      'מסלול הטיסה שלכם אושר בהצלחה. כל הטיסות הכלולות פעילות כעת, ואפשר לתאם אותן בבואינג 737 בקצב שלכם.',
+    orderRefLabel: 'מספר ההזמנה',
+    nextStepsTitle: 'השלבים הבאים לטיסה הראשונה',
     step1: 'פרטי ההזמנה והקבלה נשלחו לכתובת האימייל שלכם.',
     step2: 'באפשרותכם לתאם את הטיסה הראשונה ישירות ביומן או מול מחלקת המבצעים.',
     step3: 'בכל מפגש תיהנו מהדרכה אישית 1-על-1 עם קברניט פעיל בחברת תעופה.',
@@ -41,11 +41,11 @@ const THANK_YOU_COPY: LocalizedRecord<ThankYouCopy> = {
     dispatchNotice: 'זקוקים לעזרה או לתיאום מיוחד? מחלקת המבצעים עומדת לרשותכם.',
   },
   en: {
-    badge: 'SUBSCRIPTION CONFIRMED',
+    badge: 'PURCHASE CONFIRMED',
     title: 'Welcome to the Sim Dream Flight Club!',
     subtitle:
-      'Your annual Boeing 737 flight subscription has been confirmed. Your included flight sessions are now active and ready to schedule across the next 12 months.',
-    orderRefLabel: 'Subscription Order Reference',
+      'Your Boeing 737 flight track is confirmed. Your included flights are active now, and you book each one whenever it suits you.',
+    orderRefLabel: 'Order Reference',
     nextStepsTitle: 'Next Steps to Take Command',
     step1: 'Your confirmation and receipt have been sent to your email address.',
     step2: 'Schedule your first flight session directly via the calendar or with Dispatch.',
@@ -55,11 +55,11 @@ const THANK_YOU_COPY: LocalizedRecord<ThankYouCopy> = {
     dispatchNotice: 'Need custom scheduling or assistance? Dispatch is on standby for you.',
   },
   ru: {
-    badge: 'АБОНЕМЕНТ ОФОРМЛЕН',
+    badge: 'ПОКУПКА ПОДТВЕРЖДЕНА',
     title: 'Добро пожаловать в лётный клуб Sim Dream!',
     subtitle:
-      'Ваш годовой абонемент на Boeing 737 успешно подтверждён. Все включённые сессии активны и доступны для бронирования в течение следующих 12 месяцев.',
-    orderRefLabel: 'Номер заказа абонемента',
+      'Ваша лётная программа на Boeing 737 подтверждена. Все включённые полёты активны, и вы бронируете каждый из них, когда вам удобно.',
+    orderRefLabel: 'Номер заказа',
     nextStepsTitle: 'Следующие шаги для полётов',
     step1: 'Подтверждение и чек отправлены на вашу электронную почту.',
     step2: 'Вы можете забронировать первую сессию через календарь или диспетчера.',
@@ -69,11 +69,11 @@ const THANK_YOU_COPY: LocalizedRecord<ThankYouCopy> = {
     dispatchNotice: 'Нужна помощь с расписанием? Диспетчер всегда на связи.',
   },
   fr: {
-    badge: 'ABONNEMENT CONFIRMÉ',
+    badge: 'ACHAT CONFIRMÉ',
     title: 'Bienvenue au Club des Commandants Sim Dream !',
     subtitle:
-      'Votre abonnement annuel Boeing 737 est confirmé. Vos séances de vol incluses sont actives et prêtes à être programmées au cours des 12 prochains mois.',
-    orderRefLabel: 'Référence de commande d’abonnement',
+      'Votre parcours de vol Boeing 737 est confirmé. Vos vols inclus sont actifs dès maintenant et vous réservez chacun d’eux quand cela vous convient.',
+    orderRefLabel: 'Référence de commande',
     nextStepsTitle: 'Prochaines étapes pour planifier vos vols',
     step1: 'Votre confirmation et votre reçu ont été envoyés par e-mail.',
     step2: 'Planifiez votre première séance directement sur le calendrier ou avec le Dispatch.',
@@ -83,11 +83,11 @@ const THANK_YOU_COPY: LocalizedRecord<ThankYouCopy> = {
     dispatchNotice: 'Besoin d’aide ou d’un créneau sur mesure ? Le Dispatch est à votre écoute.',
   },
   ar: {
-    badge: 'تم تأكيد الاشتراك',
+    badge: 'تم تأكيد الشراء',
     title: 'أهلاً بكم في نادي طيران Sim Dream!',
     subtitle:
-      'تم تأكيد اشتراككم السنوي على بوينغ 737 بنجاح. جلسات الطيران المشمولة مفعلة وجاهزة للجدولة على مدار الـ 12 شهراً القادمة.',
-    orderRefLabel: 'رقم مرجع طلب الاشتراك',
+      'تم تأكيد مسار طيرانكم على بوينغ 737. رحلاتكم المشمولة مفعلة الآن، وتحجزون كل واحدة منها في الوقت الذي يناسبكم.',
+    orderRefLabel: 'رقم مرجع الطلب',
     nextStepsTitle: 'الخطوات التالية لخوض التجربة',
     step1: 'أُرسلت تفاصيل الطلب والإيصال إلى بريدكم الإلكتروني.',
     step2: 'يمكنكم حجز الجلسة الأولى عبر التقويم مباشرة أو بالتنسيق مع قسم العمليات.',
