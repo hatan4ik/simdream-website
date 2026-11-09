@@ -1,6 +1,9 @@
 import { z } from 'zod';
 import { GIFT_CARD_DESIGNS, MIN_GIFT_VOUCHER_AMOUNT_ILS, type GiftCardDesignId } from '@/lib/catalog/gift-card-designs';
 
+/** The only balances a flexible Gift Card is sold at: one per card design. There is no custom amount. */
+const GIFT_CARD_AMOUNTS_ILS = new Set<number>(GIFT_CARD_DESIGNS.map((design) => design.amountIls));
+
 /** True only for dates that exist on the calendar (rejects 2027-02-30, 2026-13-01, ...). */
 export function isCalendarDate(value: string): boolean {
   const [year, month, day] = value.split('-').map(Number);
@@ -52,6 +55,10 @@ export const voucherCheckoutSchema = z.object({
   packageTitle: z.string().trim().max(160).optional(),
   // A card design is a closed registry value, never customer-controlled markup or a media URL.
   giftCardDesignId: z.enum(giftCardDesignIds).optional(),
+}).refine((command) => Boolean(command.packageId) || GIFT_CARD_AMOUNTS_ILS.has(command.amountIls), {
+  // A named certificate takes its price from the catalogue; a Gift Card must be one of the preset balances.
+  path: ['amountIls'],
+  message: 'Choose one of the Gift Card balances.',
 });
 
 export const checkoutRequestSchema = z.discriminatedUnion('kind', [
