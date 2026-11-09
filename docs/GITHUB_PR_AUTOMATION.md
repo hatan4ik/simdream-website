@@ -27,6 +27,20 @@ The repository never lets an action invent a source-conflict resolution. A real 
 | Change-scope secret gate | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) | Gitleaks blocks a new secret introduced by a pull request or `main` push. The generated Release Please candidate deliberately skips this duplicate check because it is derived from an already verified `main` commit. |
 | Historical audit | [`.github/workflows/security-history-audit.yml`](../.github/workflows/security-history-audit.yml) | Owner-triggered, full-history Gitleaks audit. It is not a merge gate: old findings need credential rotation and a separately reviewed history-rewrite plan, never a broad allowlist. |
 
+## Scheduled Google reviews snapshot (twice a day)
+
+Review texts never come from a page view. [`.github/workflows/google-reviews-snapshot.yml`](../.github/workflows/google-reviews-snapshot.yml) fires at 03:07, 04:07, 14:07 and 15:07 UTC; [`scripts/google-reviews-snapshot-hour.mjs`](../scripts/google-reviews-snapshot-hour.mjs) keeps only the two runs that are 06:xx and 17:xx on the Israel clock (daylight saving moves which UTC hour that is), and the kept run calls `POST /api/reviews/refresh` on the production host with the `REVIEWS_REFRESH_TOKEN` repository secret as a Bearer token. The route reads the newest reviews from the legacy Place Details service (`reviews_sort=newest`) for all six page languages and stores one row in `google_reviews_snapshot`; `GET /api/reviews` serves that row to every visitor. The workflow fails on any non-200 answer so a broken key or missing storage is visible in Actions, and it skips with a notice while the secret is missing.
+
+**One-time setup (owner).**
+
+1. Generate a random token of at least 32 characters (for example `openssl rand -hex 32`) and never paste it anywhere but the two secret stores below.
+2. In GitHub **Settings → Secrets and variables → Actions → New repository secret**, add `REVIEWS_REFRESH_TOKEN`.
+3. On the Wix site, set the same value as a secret environment variable: `wix env set REVIEWS_REFRESH_TOKEN` (the route answers 503 until it exists and 401 to any other caller). The site also needs `GOOGLE_PLACES_API_KEY`, and in production the Supabase variables, because the snapshot is persisted there (migration `009_google_reviews_snapshot.sql`) and production fails closed without storage.
+4. If the host changes, set the repository variable `REVIEWS_REFRESH_HOST` (Settings → Secrets and variables → Actions → Variables); the workflow falls back to the current Wix host.
+5. Run **Actions → Google reviews snapshot → Run workflow** with *force* ticked once; the step summary shows the rating, the count, the newest publish time and the texts stored per language.
+
+The key used by the refresh needs **Places API** (legacy, `places-backend.googleapis.com`) enabled on the Cloud project and listed in the key's API restriction next to Places API (New); the weekly rating refresh below keeps using Places API (New).
+
 ## Scheduled Google rating refresh
 
 The utility bar shows `LAST_KNOWN_GOOGLE_RATING` whenever `/api/reviews` has no Google data. Its two numbers live in [`lib/reviews/last-known-rating.json`](../lib/reviews/last-known-rating.json) and are refreshed by [`.github/workflows/google-rating-refresh.yml`](../.github/workflows/google-rating-refresh.yml), which runs [`scripts/refresh-google-rating.mjs`](../scripts/refresh-google-rating.mjs). The script only fetches and validates: it prints the new file text on stdout and touches no file (no place ID read from disk, no network data written to disk, which also keeps CodeQL's data-flow queries quiet without suppressions). The workflow step writes the file with plain shell, lets `git diff` decide whether anything changed, and builds the title with `jq` and `printf`:

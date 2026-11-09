@@ -28,8 +28,8 @@ export function displayedReviewText(review: LiveGoogleReview, showOriginal: bool
 }
 
 /**
- * Author attribution, publish date and the translation switch shared by the carousel and the
- * utility-bar dropdown. Places policy: credit the author (avatar, name, profile link), make readers
+ * Author attribution, publish date and the translation switch for a review in the utility-bar
+ * dropdown (the only place Google reviews are rendered). Places policy: credit the author (avatar, name, profile link), make readers
  * aware a review was translated, and let them see the original text.
  */
 export function ReviewMeta({ review, language, copy, showOriginal, onToggleOriginal, size = 'md' }: ReviewMetaProps) {

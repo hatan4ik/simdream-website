@@ -1,7 +1,7 @@
 import { describe, expect, it, vi, type MockInstance } from 'vitest';
 import { bookingCheckoutBody, findOpenSlot, loadApp, type TestApp } from '../support/app';
 import { adminHeaders, apiRequest, basicAuth, bearer, routeParams, TEST_ORIGIN } from '../support/http';
-import { TEST_ADMIN } from '../support/test-env';
+import { TEST_ADMIN, TEST_REVIEWS_REFRESH_TOKEN } from '../support/test-env';
 import {
   BOOKING_DATE,
   FAKE_LIVE_STRIPE_KEY,
@@ -25,9 +25,10 @@ import {
  * - member: verified-member Bearer token; an unverified email is refused with 403
  * - verified-member: verified-member Bearer token; anything else is 401
  * - stripe-signature: no caller identity grants access; only a Stripe signature does
+ * - refresh-token: no caller identity grants access; only the REVIEWS_REFRESH_TOKEN Bearer does
  * - method-not-allowed: nobody
  */
-type Policy = 'public' | 'admin' | 'member' | 'verified-member' | 'stripe-signature' | 'method-not-allowed';
+type Policy = 'public' | 'admin' | 'member' | 'verified-member' | 'stripe-signature' | 'refresh-token' | 'method-not-allowed';
 type RouteName = keyof TestApp['routes'];
 type Method = 'GET' | 'POST' | 'PATCH';
 
@@ -146,6 +147,8 @@ const ROUTES: RouteCase[] = [
   { label: 'GET /api/packages', route: 'packages', method: 'GET', policy: 'public', allowedStatus: 200, path: () => '/api/packages' },
   { label: 'GET /api/reviews', route: 'reviews', method: 'GET', policy: 'public', allowedStatus: 200, path: () => '/api/reviews' },
   { label: 'POST /api/reviews (sync)', route: 'reviews', method: 'POST', policy: 'admin', allowedStatus: 200, path: () => '/api/reviews' },
+  // Admin Basic auth and member tokens are not the refresh token: every identity is refused with 401.
+  { label: 'POST /api/reviews/refresh', route: 'reviewsRefresh', method: 'POST', policy: 'refresh-token', allowedStatus: 200, path: () => '/api/reviews/refresh' },
   {
     label: 'GET /api/slots',
     route: 'slots',
@@ -220,6 +223,8 @@ function expectedOutcome(route: RouteCase, identity: Identity): Outcome {
       return { allowed: false, status: 405 };
     case 'stripe-signature':
       return { allowed: false, status: 400 };
+    case 'refresh-token':
+      return { allowed: false, status: 401 };
     case 'admin':
       if (identity === 'admin') return { allowed: true };
       if (identity === 'admin from a cross-origin page') {
@@ -235,7 +240,8 @@ function expectedOutcome(route: RouteCase, identity: Identity): Outcome {
 }
 
 async function arrange(): Promise<Arranged> {
-  const app = await loadApp({ stripe: 'mocked', members: MEMBERS });
+  // The refresh token is configured so its route answers 401 (not the unconfigured 503) to every identity.
+  const app = await loadApp({ stripe: 'mocked', members: MEMBERS, env: { REVIEWS_REFRESH_TOKEN: TEST_REVIEWS_REFRESH_TOKEN } });
   const slot = await findOpenSlot(app, BOOKING_DATE, 30);
   const owned = await seedBooking(app, { userId: MEMBER_A.id, pilotEmail: MEMBER_A.email });
 

@@ -29,7 +29,7 @@ const BLUEPRINT_TRIGGER = "See what's included";
 const FOCUS_SETTLE = { timeout: 2_000 };
 
 test.describe.configure({ timeout: 120_000 });
-// Reduced motion freezes the review carousel so focus paths stay stable (see the carousel test).
+// Reduced motion keeps decorative animation still so focus paths stay stable.
 test.use({ reducedMotion: 'reduce' });
 
 test.beforeEach(async ({ page, baseURL }) => {
@@ -388,10 +388,10 @@ test.describe('mobile navigation menu', () => {
   });
 });
 
-test.describe('review carousel', () => {
+test.describe('Google reviews dropdown', () => {
   test.use({ reducedMotion: 'no-preference' });
 
-  test('keeps keyboard focus on a review link while the carousel would auto-rotate', async ({ page }) => {
+  test('keeps keyboard focus on the review link inside the open header dropdown over time', async ({ page }) => {
     await page.clock.install();
     await page.route('**/api/reviews*', (route) =>
       route.fulfill({
@@ -407,12 +407,19 @@ test.describe('review carousel', () => {
       })
     );
     await gotoSettled(page, '/');
+    // The header utility bar is the only place reviews render; the page body has no review section.
+    await expect(page.getByRole('link', { name: 'Read all reviews on Google' })).toHaveCount(0);
+    const trigger = page.getByRole('button', { name: 'Show recent Google reviews' });
+    await tabTo(page, trigger, { maxPresses: 30 });
+    await page.keyboard.press('Enter');
     const reviewLink = page.getByRole('link', { name: 'Read all reviews on Google' });
-    await tabTo(page, reviewLink, { maxPresses: 120 });
+    await expect(reviewLink).toHaveCount(1);
+    await tabTo(page, reviewLink, { maxPresses: 40 });
     expect(await isFocused(reviewLink)).toBe(true);
 
     await page.clock.runFor(8_000);
 
+    expect(await isFocused(reviewLink)).toBe(true);
     expect(await describeActiveElement(page)).not.toBe('<body>');
   });
 });

@@ -1,0 +1,70 @@
+name: Google reviews snapshot
+
+# Google is read exactly twice a day, at 06:00 and 17:00 Israel time (Asia/Jerusalem). Cron is UTC
+# and knows nothing about daylight saving, so both candidate UTC hours are scheduled for each pull
+# (06:00 IDT = 03:00 UTC, 06:00 IST = 04:00 UTC; 17:00 IDT = 14:00 UTC, 17:00 IST = 15:00 UTC) and
+# scripts/google-reviews-snapshot-hour.mjs skips the run whose Israel hour is not 06 or 17.
+on:
+  schedule:
+    - cron: '7 3,4,14,15 * * *' # off the hour, when scheduled runs are least likely to be delayed
+  workflow_dispatch:
+    inputs:
+      force:
+        description: Refresh now, whatever the Israel hour
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: google-reviews-snapshot
+  cancel-in-progress: false
+
+env:
+  # The production host answering POST /api/reviews/refresh. Override with the repository variable
+  # REVIEWS_REFRESH_HOST when the Wix-managed host changes; the default is the current one.
+  REVIEWS_REFRESH_HOST: ${{ vars.REVIEWS_REFRESH_HOST || 'https://headless-ciwstxzqhgf-hatan4ik-1408.wix-site-host.com' }}
+
+jobs:
+  refresh:
+    name: Store the newest Google reviews on the site
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Is it 06:00 or 17:00 in Israel?
+        id: hour
+        run: |
+          set -euo pipefail
+          if [ "${{ inputs.force }}" = "true" ]; then
+            echo "decision=run" >> "$GITHUB_OUTPUT"
+            echo "Manual run: skipping the Israel-hour guard."
+          else
+            echo "decision=$(node scripts/google-reviews-snapshot-hour.mjs)" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Ask the site to pull the newest reviews from Google
+        if: steps.hour.outputs.decision == 'run'
+        env:
+          REVIEWS_REFRESH_TOKEN: ${{ secrets.REVIEWS_REFRESH_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${REVIEWS_REFRESH_TOKEN:-}" ]; then
+            echo "::notice::REVIEWS_REFRESH_TOKEN is not set; skipping the Google reviews snapshot. Set the same value as a repository secret and as a Wix site environment variable (wix env set REVIEWS_REFRESH_TOKEN)."
+            exit 0
+          fi
+          # The token travels only in the Authorization header; curl never echoes it and the
+          # response body carries counts and timestamps, never credentials.
+          status="$(curl --silent --show-error --output response.json --write-out '%{http_code}' \
+            --max-time 120 --request POST \
+            --header "Authorization: Bearer ${REVIEWS_REFRESH_TOKEN}" \
+            --header 'Accept: application/json' \
+            "${REVIEWS_REFRESH_HOST%/}/api/reviews/refresh")"
+          echo "HTTP $status"
+          if [ "$status" != "200" ]; then
+            echo "::error::POST /api/reviews/refresh answered HTTP $status: $(head -c 300 response.json)"
+            exit 1
+          fi
+          summary="$(jq -r '"Google rating \(.rating) from \(.totalReviews) reviews; newest review \(.newestPublishedAt // "n/a"); texts per language \(.reviewCount | to_entries | map("\(.key)=\(.value)") | join(", ")); fetched \(.fetchedAt)"' response.json)"
+          echo "$summary" | tee -a "$GITHUB_STEP_SUMMARY"

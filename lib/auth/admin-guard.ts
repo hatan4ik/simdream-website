@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { hasUsableValue, isProduction } from '@/lib/config/server-env';
+import { constantTimeEqual } from '@/lib/security/constant-time';
 import {
   consumeRateLimit,
   rateLimitClientAddress,
@@ -22,15 +23,6 @@ type AdminAuthResult = 'authorized' | 'unauthorized' | 'not_configured';
 interface AdminAuthCheck {
   result: AdminAuthResult;
   attemptedUsername: string;
-}
-
-function constantTimeEqual(a: string, b: string): boolean {
-  let mismatch = a.length ^ b.length;
-  const length = Math.max(a.length, b.length);
-  for (let i = 0; i < length; i++) {
-    mismatch |= (a.charCodeAt(i) || 0) ^ (b.charCodeAt(i) || 0);
-  }
-  return mismatch === 0;
 }
 
 function decodeBasicCredentials(header: string): { user: string; password: string } | null {

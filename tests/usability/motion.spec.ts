@@ -11,28 +11,6 @@ test.beforeEach(async ({ page, baseURL }) => {
   await isolateFromThirdParties(page, baseURL);
 });
 
-async function mockLiveGoogleReviews(page: Page) {
-  await page.route('**/api/reviews*', (route) =>
-    route.fulfill({
-      json: {
-        overallRating: 4.8,
-        totalReviewsCount: 3,
-        directReviewsUrl: 'https://search.google.com/local/reviews?placeid=test',
-        reviews: [
-          { id: 'one', author: 'Ari', rating: 5, quote: 'An actual Google review.', relativeTime: 'a week ago', language: 'en' },
-          { id: 'two', author: 'Maya', rating: 5, quote: 'A second actual Google review.', relativeTime: '2 weeks ago', language: 'en' },
-          { id: 'three', author: 'Noam', rating: 4, quote: 'A third actual Google review.', relativeTime: 'a month ago', language: 'en' },
-        ],
-      },
-    })
-  );
-}
-
-/** Position status exposed by the live-data carousel. */
-function reviewPosition(page: Page, current: number) {
-  return page.getByText(`Review ${current} of 3`, { exact: true });
-}
-
 /** Infinite (looping) animations currently running on the page, described for failure messages. */
 async function infiniteAnimations(page: Page): Promise<string[]> {
   return page.evaluate(() =>
@@ -49,17 +27,6 @@ async function infiniteAnimations(page: Page): Promise<string[]> {
 
 test.describe('when the visitor requests reduced motion', () => {
   test.use({ reducedMotion: 'reduce' });
-
-  test('keeps the review carousel still', async ({ page }) => {
-    await page.clock.install();
-    await mockLiveGoogleReviews(page);
-    await gotoSettled(page, '/');
-    await expect(reviewPosition(page, 1)).toBeVisible();
-
-    await page.clock.runFor(20_000);
-
-    await expect(reviewPosition(page, 1)).toBeVisible();
-  });
 
   test('stops looping decorative animations', async ({ page }) => {
     await gotoSettled(page, '/');
@@ -78,17 +45,6 @@ test.describe('when the visitor requests reduced motion', () => {
 // Positive controls: prove the checks above can observe motion when it is allowed.
 test.describe('when motion is allowed', () => {
   test.use({ reducedMotion: 'no-preference' });
-
-  test('auto-rotates the review carousel', async ({ page }) => {
-    await page.clock.install();
-    await mockLiveGoogleReviews(page);
-    await gotoSettled(page, '/');
-    await expect(reviewPosition(page, 1)).toBeVisible();
-
-    await page.clock.runFor(8_000);
-
-    await expect(reviewPosition(page, 2)).toBeVisible();
-  });
 
   test('celebrates a confirmed boarding pass with confetti', async ({ page }) => {
     await showPaidBoardingPass(page);

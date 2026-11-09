@@ -1,39 +1,28 @@
 import 'server-only';
 
 import { FACILITY_INFO } from '@/lib/config/facility-info';
-import { isReviewLanguage, type ReviewLanguage } from './review-language';
+import {
+  configuredPlacesKey,
+  fetchNewestGoogleReviews,
+  type GoogleReview,
+  type StoredReviewsSnapshot,
+} from './google-reviews-source';
+import { readReviewsSnapshot, saveReviewsSnapshot } from './reviews-snapshot-store';
+import type { ReviewLanguage } from './review-language';
+
+export type { GoogleReview, StoredReviewsSnapshot } from './google-reviews-source';
 
 /**
- * Browser-facing feed freshness. Every page open or refresh asks this route for the current Google
- * rating and review count; one shared Places lookup per minute and language keeps that effectively
- * live while a busy day still costs a few hundred Places calls, not one per visitor.
+ * Visitors never reach Google. `GET /api/reviews` serves the stored snapshot that the twice-daily
+ * refresh (06:00 and 17:00 Israel time, `.github/workflows/google-reviews-snapshot.yml` calling
+ * `POST /api/reviews/refresh`) wrote to the snapshot store. This module only memoises that stored
+ * row per process for a minute so a busy page does not read the database on every request; the
+ * memo is dropped as soon as this process writes a new snapshot.
  */
-const CACHE_TTL_MS = 60 * 1000;
-const PLACEHOLDER_VALUES = ['your_', 'your-', 'example', 'placeholder', '...'];
-
-/** Google Maps author photos are served from this host (allowed in the CSP img-src, proxy.ts). */
-const GOOGLE_AUTHOR_PHOTO_HOSTS = ['lh3.googleusercontent.com'];
-
-export interface GoogleReview {
-  id: string;
-  author: string;
-  /** Google Maps profile of the author, for the policy's author attribution. */
-  authorUrl: string | null;
-  authorPhotoUrl: string | null;
-  rating: number;
-  /** The review text in the requested language: Google's translation, or the original when it already is that language. */
-  quote: string;
-  relativeTime: string;
-  /** RFC 3339 publish time from Google, or an empty string when Google supplied none. */
-  publishedAt: string;
-  /** Language of `quote`. */
-  language: ReviewLanguage;
-  /** The text as written when it differs from `quote`, so a reader can switch to the original (Places policy). */
-  original: { text: string; language: ReviewLanguage } | null;
-  characterCount: number;
-}
+const READ_MEMO_TTL_MS = 60 * 1000;
 
 export interface GoogleReviewsSnapshot {
+  /** When Google was last read for this snapshot. */
   lastUpdated: string;
   source: string;
   /** Language the review texts were requested in. */
@@ -44,59 +33,14 @@ export interface GoogleReviewsSnapshot {
   reviews: GoogleReview[];
 }
 
-interface ReviewsCacheStore {
-  timestamp: number;
-  snapshot: GoogleReviewsSnapshot;
-}
-
-interface GooglePlacesLocalizedText {
-  text?: string;
-  languageCode?: string;
-}
-
-interface GooglePlacesReview {
-  name?: string;
-  rating?: number;
-  text?: GooglePlacesLocalizedText;
-  originalText?: GooglePlacesLocalizedText;
-  relativePublishTimeDescription?: string;
-  publishTime?: string;
-  authorAttribution?: { displayName?: string; uri?: string; photoUri?: string };
-}
-
-interface GooglePlacesResponse {
-  rating?: number;
-  userRatingCount?: number;
-  reviews?: GooglePlacesReview[];
-}
-
-const memoryCache = new Map<ReviewLanguage, ReviewsCacheStore>();
-
-function configuredPlacesKey(): string | null {
-  const key = process.env.GOOGLE_PLACES_API_KEY?.trim();
-  return key && !PLACEHOLDER_VALUES.some((placeholder) => key.includes(placeholder)) ? key : null;
-}
-
-// Google still tags Hebrew with the legacy BCP-47 code "iw" (seen on the live listing); the page uses "he".
-const LEGACY_LANGUAGE_CODES: Record<string, ReviewLanguage> = { iw: 'he' };
-
-function reviewLanguage(value: string | undefined, fallback: ReviewLanguage): ReviewLanguage {
-  const language = value?.toLowerCase().slice(0, 2) ?? '';
-  const normalized = LEGACY_LANGUAGE_CODES[language] ?? language;
-  return isReviewLanguage(normalized) ? normalized : fallback;
-}
-
-function safeHttpsUrl(value: string | undefined, allowedHosts?: readonly string[]): string | null {
-  if (!value) return null;
-  try {
-    const url = new URL(value);
-    if (url.protocol !== 'https:') return null;
-    if (allowedHosts && !allowedHosts.includes(url.hostname)) return null;
-    return url.toString();
-  } catch {
-    return null;
+export class ReviewsNotConfiguredError extends Error {
+  constructor() {
+    super('GOOGLE_PLACES_API_KEY is not configured.');
+    this.name = 'ReviewsNotConfiguredError';
   }
 }
+
+let memo: { readAt: number; snapshot: StoredReviewsSnapshot | null } | null = null;
 
 function unavailableSnapshot(now: number, language: ReviewLanguage, reason: string): GoogleReviewsSnapshot {
   return {
@@ -110,98 +54,67 @@ function unavailableSnapshot(now: number, language: ReviewLanguage, reason: stri
   };
 }
 
-async function fetchGooglePlacesSnapshot(now: number, language: ReviewLanguage): Promise<GoogleReviewsSnapshot | null> {
-  const key = configuredPlacesKey();
-  if (!key) return null;
-
-  // `languageCode` makes Google return `text` translated into the visitor's language and `originalText`
-  // as written, so the page can offer "show original" without translating anything itself.
-  const url = new URL(`https://places.googleapis.com/v1/places/${FACILITY_INFO.placeId}`);
-  url.searchParams.set('languageCode', language);
-  const response = await fetch(url, {
-    headers: {
-      'X-Goog-Api-Key': key,
-      'X-Goog-FieldMask':
-        'rating,userRatingCount,reviews.name,reviews.rating,reviews.text,reviews.originalText,reviews.relativePublishTimeDescription,reviews.authorAttribution,reviews.publishTime',
-    },
-    cache: 'no-store',
-  });
-  if (!response.ok) throw new Error(`Google Places returned ${response.status}.`);
-
-  const payload = await response.json() as GooglePlacesResponse;
-  const reviews = (payload.reviews || [])
-    .map((review, index): (GoogleReview & { publishedAtMs: number }) | null => {
-      const quote = review.text?.text?.trim();
-      const author = review.authorAttribution?.displayName?.trim();
-      if (!quote || !author) return null;
-      const parsedPublishedAt = review.publishTime ? Date.parse(review.publishTime) : Number.NaN;
-      const publishedAtMs = Number.isFinite(parsedPublishedAt) ? parsedPublishedAt : 0;
-      const quoteLanguage = reviewLanguage(review.text?.languageCode, language);
-      const originalText = review.originalText?.text?.trim();
-      const original =
-        originalText && originalText !== quote
-          ? { text: originalText, language: reviewLanguage(review.originalText?.languageCode, quoteLanguage) }
-          : null;
-      return {
-        id: review.name || `google-${index}`,
-        author,
-        authorUrl: safeHttpsUrl(review.authorAttribution?.uri),
-        authorPhotoUrl: safeHttpsUrl(review.authorAttribution?.photoUri, GOOGLE_AUTHOR_PHOTO_HOSTS),
-        rating: typeof review.rating === 'number' ? review.rating : 0,
-        quote,
-        relativeTime: review.relativePublishTimeDescription || '',
-        publishedAt: publishedAtMs ? new Date(publishedAtMs).toISOString() : '',
-        language: quoteLanguage,
-        original,
-        characterCount: quote.length,
-        publishedAtMs,
-      };
-    })
-    .filter((review): review is GoogleReview & { publishedAtMs: number } => review !== null)
-    // Google returns at most five relevance-ranked reviews; they are shown newest first. The page
-    // says so next to them (Places policy: state how reviews are ordered).
-    .sort((a, b) => b.publishedAtMs - a.publishedAtMs || b.rating - a.rating || b.characterCount - a.characterCount)
-    .map(({ publishedAtMs: _publishedAtMs, ...review }) => review);
-
+function toSnapshot(stored: StoredReviewsSnapshot, language: ReviewLanguage): GoogleReviewsSnapshot {
   return {
-    lastUpdated: new Date(now).toISOString(),
-    source: `Google Places API (Place ID: ${FACILITY_INFO.placeId})`,
+    lastUpdated: stored.fetchedAt,
+    source: stored.source,
     language,
-    overallRating: typeof payload.rating === 'number' ? payload.rating : 0,
-    totalReviewsCount: typeof payload.userRatingCount === 'number' ? payload.userRatingCount : 0,
+    overallRating: stored.overallRating,
+    totalReviewsCount: stored.totalReviewsCount,
     directReviewsUrl: FACILITY_INFO.googleReviewsDirectUrl,
-    reviews,
+    reviews: stored.reviewsByLanguage[language] ?? [],
   };
 }
 
-/** Returns only data supplied by Google Places; absent or failed refreshes return no review claims. */
-export async function getCachedGoogleReviews(
-  forceRefresh = false,
-  language: ReviewLanguage = 'en'
-): Promise<GoogleReviewsSnapshot> {
-  const now = Date.now();
-  const cached = memoryCache.get(language);
-  if (!forceRefresh && cached && now - cached.timestamp < CACHE_TTL_MS) {
-    return cached.snapshot;
-  }
-
-  let snapshot: GoogleReviewsSnapshot;
-  try {
-    snapshot =
-      (await fetchGooglePlacesSnapshot(now, language)) ||
-      unavailableSnapshot(now, language, 'Google Places API is not configured; no review data is served.');
-  } catch {
-    console.warn('Google Places refresh failed; no review data is served');
-    snapshot = unavailableSnapshot(now, language, 'Google Places API refresh failed; no review data is served.');
-  }
-  memoryCache.set(language, { timestamp: now, snapshot });
+async function storedSnapshot(now: number): Promise<StoredReviewsSnapshot | null> {
+  if (memo && now - memo.readAt < READ_MEMO_TTL_MS) return memo.snapshot;
+  const snapshot = await readReviewsSnapshot();
+  memo = { readAt: now, snapshot };
   return snapshot;
 }
 
+/**
+ * The stored snapshot in the page language; never a Google call. Without a stored snapshot (or
+ * with storage unavailable) it reports zeros and no reviews, and the browser shows its labelled
+ * last-known rating instead.
+ */
+export async function getCachedGoogleReviews(language: ReviewLanguage = 'en'): Promise<GoogleReviewsSnapshot> {
+  const now = Date.now();
+  try {
+    const stored = await storedSnapshot(now);
+    if (stored) return toSnapshot(stored, language);
+    return unavailableSnapshot(now, language, 'No Google reviews snapshot has been stored yet; no review data is served.');
+  } catch (error) {
+    console.warn('Google reviews snapshot is unavailable; no review data is served', error instanceof Error ? error.message : error);
+    return unavailableSnapshot(now, language, 'Google reviews snapshot storage is unavailable; no review data is served.');
+  }
+}
+
+/**
+ * Reads Google once (all six languages, newest first) and replaces the stored snapshot. Throws
+ * `ReviewsNotConfiguredError` without a Places key, `PersistenceError` when production has no
+ * storage, and `GoogleReviewsSourceError` when Google refuses; the caller maps those to statuses.
+ */
+export async function refreshGoogleReviewsSnapshot(now = new Date()): Promise<StoredReviewsSnapshot> {
+  const key = configuredPlacesKey();
+  if (!key) throw new ReviewsNotConfiguredError();
+  const snapshot = await fetchNewestGoogleReviews({ key, now });
+  await saveReviewsSnapshot(snapshot);
+  memo = { readAt: now.getTime(), snapshot };
+  return snapshot;
+}
+
+/**
+ * Admin sync (`POST /api/reviews`): refreshes from Google when a key is configured, otherwise
+ * reports the stored state so an operator sees `refreshed: false` instead of a stale success.
+ */
 export async function syncGoogleReviews() {
-  const snapshot = await getCachedGoogleReviews(true);
+  const refreshed = configuredPlacesKey() !== null;
+  if (refreshed) await refreshGoogleReviewsSnapshot();
+  const snapshot = await getCachedGoogleReviews('en');
   return {
-    success: true,
+    success: true as const,
+    refreshed,
     syncedAt: snapshot.lastUpdated,
     totalReviews: snapshot.totalReviewsCount,
     rating: snapshot.overallRating,

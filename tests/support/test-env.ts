@@ -9,6 +9,9 @@ export const TEST_ADMIN = {
   password: 'qa-admin-password-0123456789',
 } as const;
 
+/** Bearer token for POST /api/reviews/refresh in tests (32+ characters, as the route requires); not a real secret. */
+export const TEST_REVIEWS_REFRESH_TOKEN = 'qa-reviews-refresh-token-0123456789abcdef';
+
 export const TEST_STRIPE = {
   // Prefixes exercise Stripe's format guards, while short fixture suffixes cannot
   // be mistaken for a deployable credential by repository secret scanners.
@@ -30,6 +33,7 @@ export const SANDBOX_ENV: Record<string, string> = {
   STRIPE_WEBHOOK_SECRET: '',
   SENDGRID_API_KEY: '',
   GOOGLE_PLACES_API_KEY: '',
+  REVIEWS_REFRESH_TOKEN: '',
   // Tests must never use a developer's Wix client or turn a browser journey into
   // a live Wix Bookings checkout. Individual integration tests opt in explicitly.
   NEXT_PUBLIC_WIX_CLIENT_ID: '',
