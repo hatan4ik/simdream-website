@@ -3,8 +3,12 @@
 import { useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight, Pause, Play, Star } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n/language-context';
-import type { Language, LocalizedRecord } from '@/lib/i18n/translations';
+import type { LocalizedRecord } from '@/lib/i18n/translations';
+import { reviewDirection } from '@/lib/reviews/review-language';
 import { useGoogleReviews } from '@/lib/reviews/use-google-reviews';
+import { displayedReviewText, ReviewMeta } from './ReviewMeta';
+
+const GOOGLE_REVIEW_POLICY_URL = 'https://support.google.com/contributionpolicy/answer/7400114';
 
 interface ReviewCarouselCopy {
   badge: string;
@@ -18,6 +22,13 @@ interface ReviewCarouselCopy {
   resume: string;
   rating: (value: number) => string;
   position: (current: number, total: number) => string;
+  translatedByGoogle: string;
+  showOriginal: string;
+  showTranslation: string;
+  orderingNotice: string;
+  policyNote: string;
+  policyLink: string;
+  authorProfile: (name: string) => string;
 }
 
 const REVIEW_COPY: LocalizedRecord<ReviewCarouselCopy> = {
@@ -33,6 +44,13 @@ const REVIEW_COPY: LocalizedRecord<ReviewCarouselCopy> = {
     resume: 'Resume review carousel',
     rating: (value) => `${value} out of 5 stars`,
     position: (current, total) => `Review ${current} of ${total}`,
+    translatedByGoogle: 'Translated by Google',
+    showOriginal: 'Show original',
+    showTranslation: 'Show translation',
+    orderingNotice: 'Google’s five most relevant reviews, newest first.',
+    policyNote: 'Reviews are not verified by Google; Google removes fake content it identifies.',
+    policyLink: 'Google review policy',
+    authorProfile: (name) => `Open ${name}’s Google profile`,
   },
   he: {
     badge: 'ביקורות Google',
@@ -46,6 +64,13 @@ const REVIEW_COPY: LocalizedRecord<ReviewCarouselCopy> = {
     resume: 'חידוש קרוסלת הביקורות',
     rating: (value) => `${value} מתוך 5 כוכבים`,
     position: (current, total) => `ביקורת ${current} מתוך ${total}`,
+    translatedByGoogle: 'תורגם על ידי Google',
+    showOriginal: 'הצגת המקור',
+    showTranslation: 'הצגת התרגום',
+    orderingNotice: 'חמש הביקורות הרלוונטיות ביותר לפי Google, מהחדשה לישנה.',
+    policyNote: 'הביקורות אינן מאומתות על ידי Google; Google מסירה תוכן מזויף שהיא מזהה.',
+    policyLink: 'מדיניות הביקורות של Google',
+    authorProfile: (name) => `לפרופיל Google של ${name}`,
   },
   ru: {
     badge: 'ОТЗЫВЫ GOOGLE',
@@ -59,6 +84,13 @@ const REVIEW_COPY: LocalizedRecord<ReviewCarouselCopy> = {
     resume: 'Продолжить карусель отзывов',
     rating: (value) => `${value} из 5 звёзд`,
     position: (current, total) => `Отзыв ${current} из ${total}`,
+    translatedByGoogle: 'Переведено Google',
+    showOriginal: 'Показать оригинал',
+    showTranslation: 'Показать перевод',
+    orderingNotice: 'Пять самых релевантных отзывов по версии Google, сначала новые.',
+    policyNote: 'Google не проверяет отзывы, но удаляет выявленный поддельный контент.',
+    policyLink: 'Правила Google для отзывов',
+    authorProfile: (name) => `Открыть профиль Google: ${name}`,
   },
   fr: {
     badge: 'AVIS GOOGLE',
@@ -72,6 +104,13 @@ const REVIEW_COPY: LocalizedRecord<ReviewCarouselCopy> = {
     resume: 'Reprendre le carrousel d’avis',
     rating: (value) => `${value} sur 5 étoiles`,
     position: (current, total) => `Avis ${current} sur ${total}`,
+    translatedByGoogle: 'Traduit par Google',
+    showOriginal: 'Afficher l’original',
+    showTranslation: 'Afficher la traduction',
+    orderingNotice: 'Les cinq avis les plus pertinents selon Google, du plus récent au plus ancien.',
+    policyNote: 'Les avis ne sont pas vérifiés par Google ; Google supprime les faux contenus qu’il détecte.',
+    policyLink: 'Règles Google relatives aux avis',
+    authorProfile: (name) => `Ouvrir le profil Google de ${name}`,
   },
   ar: {
     badge: 'تقييمات Google',
@@ -85,6 +124,13 @@ const REVIEW_COPY: LocalizedRecord<ReviewCarouselCopy> = {
     resume: 'استئناف شريط التقييمات',
     rating: (value) => `${value} من 5 نجوم`,
     position: (current, total) => `التقييم ${current} من ${total}`,
+    translatedByGoogle: 'ترجمة Google',
+    showOriginal: 'عرض النص الأصلي',
+    showTranslation: 'عرض الترجمة',
+    orderingNotice: 'أكثر خمسة تقييمات صلةً بحسب Google، الأحدث أولًا.',
+    policyNote: 'لا تتحقق Google من التقييمات، لكنها تزيل المحتوى المزيف الذي ترصده.',
+    policyLink: 'سياسة التقييمات في Google',
+    authorProfile: (name) => `فتح ملف ${name} على Google`,
   },
   es: {
     badge: 'RESEÑAS DE GOOGLE',
@@ -98,12 +144,15 @@ const REVIEW_COPY: LocalizedRecord<ReviewCarouselCopy> = {
     resume: 'Reanudar el carrusel de reseñas',
     rating: (value) => `${value} de 5 estrellas`,
     position: (current, total) => `Reseña ${current} de ${total}`,
+    translatedByGoogle: 'Traducido por Google',
+    showOriginal: 'Mostrar original',
+    showTranslation: 'Mostrar traducción',
+    orderingNotice: 'Las cinco reseñas más relevantes según Google, de la más reciente a la más antigua.',
+    policyNote: 'Google no verifica las reseñas; elimina el contenido falso que detecta.',
+    policyLink: 'Política de reseñas de Google',
+    authorProfile: (name) => `Abrir el perfil de Google de ${name}`,
   },
 };
-
-function reviewDirection(language: Language): 'rtl' | 'ltr' {
-  return language === 'he' || language === 'ar' ? 'rtl' : 'ltr';
-}
 
 /**
  * Browser-rendered carousel of Google Places data. The browser never receives the
@@ -116,6 +165,8 @@ export function GoogleReviewsCarousel() {
   const snapshot = useGoogleReviews();
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  // Per review: the reader asked for the text as written instead of Google's translation.
+  const [originals, setOriginals] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (!snapshot || snapshot.reviews.length < 2 || isPaused) return;
@@ -132,6 +183,8 @@ export function GoogleReviewsCarousel() {
   const reviews = snapshot.reviews;
   const activeReview = reviews[activeIndex] || reviews[0];
   const stars = Math.max(0, Math.min(5, Math.round(activeReview.rating)));
+  const showOriginal = Boolean(originals[activeReview.id]);
+  const shown = displayedReviewText(activeReview, showOriginal);
   const setPrevious = () => setActiveIndex((index) => (index - 1 + reviews.length) % reviews.length);
   const setNext = () => setActiveIndex((index) => (index + 1) % reviews.length);
 
@@ -142,6 +195,7 @@ export function GoogleReviewsCarousel() {
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-sky-300">{copy.badge}</p>
           <h2 className="text-3xl font-black tracking-tight text-white sm:text-4xl">{copy.title}</h2>
           <p className="text-sm leading-relaxed text-slate-300 sm:text-base">{copy.subtitle}</p>
+          <p data-reviews-ordering className="text-xs text-slate-400">{copy.orderingNotice}</p>
           <div className="flex flex-wrap items-center justify-center gap-3 lg:justify-start rtl:lg:justify-end">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1.5 text-sm font-bold text-amber-200">
               <Star className="h-4 w-4 fill-amber-400 text-amber-400" aria-hidden="true" />
@@ -157,6 +211,12 @@ export function GoogleReviewsCarousel() {
               {copy.readAll}
             </a>
           </div>
+          <p className="text-xs text-slate-400">
+            {copy.policyNote}{' '}
+            <a href={GOOGLE_REVIEW_POLICY_URL} target="_blank" rel="noopener noreferrer" className="underline underline-offset-4 hover:text-slate-300">
+              {copy.policyLink}
+            </a>
+          </p>
         </div>
 
         <figure
@@ -179,21 +239,18 @@ export function GoogleReviewsCarousel() {
             <span className="text-xs font-mono text-slate-400">{copy.googleReview}</span>
           </div>
 
-          <blockquote className="mt-5 text-lg font-medium leading-relaxed text-white sm:text-xl" lang={activeReview.language} dir={reviewDirection(activeReview.language)}>
-            “{activeReview.quote}”
+          <blockquote className="mt-5 text-lg font-medium leading-relaxed text-white sm:text-xl" lang={shown.language} dir={reviewDirection(shown.language)}>
+            “{shown.text}”
           </blockquote>
 
-          <figcaption className="mt-6 flex items-center justify-between gap-4 border-t border-slate-800 pt-4">
-            <div>
-              <p className="font-semibold text-slate-100" lang={activeReview.language} dir={reviewDirection(activeReview.language)}>
-                {activeReview.author}
-              </p>
-              {activeReview.relativeTime ? (
-                <p className="mt-0.5 text-xs text-slate-400" lang={activeReview.language} dir={reviewDirection(activeReview.language)}>
-                  {activeReview.relativeTime}
-                </p>
-              ) : null}
-            </div>
+          <figcaption className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-slate-800 pt-4">
+            <ReviewMeta
+              review={activeReview}
+              language={language}
+              copy={copy}
+              showOriginal={showOriginal}
+              onToggleOriginal={() => setOriginals((state) => ({ ...state, [activeReview.id]: !state[activeReview.id] }))}
+            />
             <span className="text-xs font-mono text-slate-400">{copy.position(activeIndex + 1, reviews.length)}</span>
           </figcaption>
 

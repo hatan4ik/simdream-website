@@ -26,6 +26,8 @@ function snapshot(totalReviewsCount: number, reviewCount = 3, overallRating = 4.
       author: `Reviewer ${index + 1}`,
       rating: index === 2 ? 4 : 5,
       quote: `Google review number ${index + 1}.`,
+      publishedAt: `2026-11-0${(index % 9) + 1}T10:00:00Z`,
+      original: index === 0 ? { text: 'ביקורת Google מספר אחת.', language: 'he' } : null,
       relativeTime: 'a week ago',
       language: 'en',
     })),
@@ -40,7 +42,7 @@ async function box(locator: Locator) {
 
 test.beforeEach(async ({ page, baseURL }) => {
   await isolateFromThirdParties(page, baseURL);
-  await page.route('**/api/reviews', (route) => route.fulfill({ json: snapshot(127) }));
+  await page.route('**/api/reviews*', (route) => route.fulfill({ json: snapshot(127) }));
 });
 
 test('shows the rating the way Google does (score, five stars, grey count) and opens the recent reviews', async ({ page }) => {
@@ -66,7 +68,7 @@ test('shows the rating the way Google does (score, five stars, grey count) and o
 });
 
 test('reads "review" or "reviews" correctly for the count', async ({ page }) => {
-  await page.route('**/api/reviews', (route) => route.fulfill({ json: snapshot(1, 1, 5) }));
+  await page.route('**/api/reviews*', (route) => route.fulfill({ json: snapshot(1, 1, 5) }));
   await gotoSettled(page, '/');
   await expect(page.locator('[data-google-review-count]')).toHaveText('1 review');
   await expect(page.locator('[data-google-rating-value]')).toHaveText('5.0');
@@ -97,7 +99,7 @@ for (const language of LANGUAGES) {
 
 test('picks up the current count on every refresh and when a long-open tab is shown again', async ({ page }) => {
   let calls = 0;
-  await page.route('**/api/reviews', (route) => {
+  await page.route('**/api/reviews*', (route) => {
     calls += 1;
     return route.fulfill({ json: snapshot(421 + calls) });
   });
@@ -115,7 +117,7 @@ test('picks up the current count on every refresh and when a long-open tab is sh
   await expect(page.locator('[data-google-review-count]')).toHaveText('424 reviews');
 
   // A failed refresh keeps the last good numbers on screen instead of blanking them.
-  await page.route('**/api/reviews', (route) => route.fulfill({ status: 500, json: { error: 'down' } }));
+  await page.route('**/api/reviews*', (route) => route.fulfill({ status: 500, json: { error: 'down' } }));
   await page.clock.fastForward(61_000);
   await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
   await expect(page.locator('[data-google-review-count]')).toHaveText('424 reviews');
@@ -152,7 +154,7 @@ test('sits in one centred column on a wide Mac screen', async ({ page }) => {
 });
 
 test('opens a compact dropdown under the rating with a short list of reviews', async ({ page }) => {
-  await page.route('**/api/reviews', (route) => route.fulfill({ json: snapshot(127, 4) }));
+  await page.route('**/api/reviews*', (route) => route.fulfill({ json: snapshot(127, 4) }));
   await page.setViewportSize({ width: 1558, height: 700 });
   await gotoSettled(page, '/');
 
@@ -266,7 +268,7 @@ async function expectLastKnownStars(rating: Locator) {
 
 test('shows the grade, five full yellow stars and the count even when Google has no data to give', async ({ page }) => {
   // The server answers "no data" (no Places key, or a failed refresh): the bar must still show a rating.
-  await page.route('**/api/reviews', (route) =>
+  await page.route('**/api/reviews*', (route) =>
     route.fulfill({ json: { overallRating: 0, totalReviewsCount: 0, directReviewsUrl: DIRECT_URL, reviews: [] } })
   );
   await gotoSettled(page, '/');
@@ -285,7 +287,7 @@ test('shows the grade, five full yellow stars and the count even when Google has
 });
 
 test('keeps the grade, stars and count on screen when the review service is down', async ({ page }) => {
-  await page.route('**/api/reviews', (route) => route.fulfill({ status: 500, json: { error: 'down' } }));
+  await page.route('**/api/reviews*', (route) => route.fulfill({ status: 500, json: { error: 'down' } }));
   await gotoSettled(page, '/');
 
   const summary = page.locator('[data-google-rating-summary]');
@@ -297,7 +299,7 @@ test('keeps the grade, stars and count on screen when the review service is down
 test("replaces the last-known rating with Google's own numbers when only the rating is supplied", async ({ page }) => {
   // Google returned a rating and a count but no review texts: still live, still a plain link.
   const liveCount = KNOWN.totalReviewsCount + 1; // always differs from the fallback, whatever the last refresh wrote
-  await page.route('**/api/reviews', (route) => route.fulfill({ json: snapshot(liveCount, 0, 4.8) }));
+  await page.route('**/api/reviews*', (route) => route.fulfill({ json: snapshot(liveCount, 0, 4.8) }));
   await gotoSettled(page, '/');
 
   const summary = page.locator('[data-google-rating-summary]');
@@ -310,7 +312,7 @@ test("replaces the last-known rating with Google's own numbers when only the rat
 
 for (const language of ['en', 'he'] as const) {
   test(`shows the grade beside the stars on a 390px phone without wrapping (${language})`, async ({ page }) => {
-    await page.route('**/api/reviews', (route) =>
+    await page.route('**/api/reviews*', (route) =>
       route.fulfill({ json: { overallRating: 0, totalReviewsCount: 0, directReviewsUrl: DIRECT_URL, reviews: [] } })
     );
     await preferLanguage(page, language);
@@ -327,3 +329,24 @@ for (const language of ['en', 'he'] as const) {
     expect(overflow).toBe(0);
   });
 }
+
+test('shows each review\u2019s date and lets the reader switch between Google\u2019s translation and the original', async ({ page, baseURL }) => {
+  await isolateFromThirdParties(page, baseURL);
+  await page.route('**/api/reviews*', (route) => route.fulfill({ json: snapshot(127) }));
+  await gotoSettled(page, '/');
+  await page.locator('[data-google-reviews-trigger]').click();
+  const panel = page.locator('[data-google-reviews-panel]');
+  await expect(panel.locator('[data-reviews-ordering]')).toHaveText('Google\u2019s five most relevant reviews, newest first.');
+  const first = panel.getByRole('article').first();
+  await expect(first.locator('time')).toHaveAttribute('datetime', '2026-11-01T10:00:00Z');
+  await expect(first.locator('time')).toHaveText(/2026/);
+  await expect(first).toContainText('Translated by Google');
+  const toggle = first.locator('[data-review-toggle-original]');
+  await expect(toggle).toHaveText('Show original');
+  await toggle.click();
+  await expect(first.locator('blockquote')).toHaveText(/ביקורת Google מספר אחת/);
+  await expect(first.locator('blockquote')).toHaveAttribute('dir', 'rtl');
+  await expect(toggle).toHaveText('Show translation');
+  // A review Google did not translate offers no switch.
+  await expect(panel.getByRole('article').nth(1).locator('[data-review-toggle-original]')).toHaveCount(0);
+});

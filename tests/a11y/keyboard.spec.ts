@@ -393,7 +393,7 @@ test.describe('review carousel', () => {
 
   test('keeps keyboard focus on a review link while the carousel would auto-rotate', async ({ page }) => {
     await page.clock.install();
-    await page.route('**/api/reviews', (route) =>
+    await page.route('**/api/reviews*', (route) =>
       route.fulfill({
         json: {
           overallRating: 4.8,
