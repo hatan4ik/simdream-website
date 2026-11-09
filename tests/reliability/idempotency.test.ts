@@ -170,7 +170,7 @@ describe('Stripe webhook replays', () => {
     const app = await loadApp({ stripe: 'mocked', env: MAIL_ENV });
     const started = await postCheckout(app, {
       kind: 'voucher',
-      amountIls: 800,
+      amountIls: 700,
       recipientName: 'Replay Recipient',
       recipientEmail: 'replay-recipient@example.test',
       senderName: 'Replay Sender',
@@ -192,7 +192,7 @@ describe('Stripe webhook replays', () => {
     const replayed = await webhook.POST(signedWebhookRequest(activation));
 
     expect(replayed.status).toBe(200);
-    expect(await app.store.getVoucherById(voucherId)).toMatchObject({ paymentStatus: 'paid', currentBalanceIls: 500 });
+    expect(await app.store.getVoucherById(voucherId)).toMatchObject({ paymentStatus: 'paid', currentBalanceIls: 400 });
     expect(mail.activationsTo('replay-recipient@example.test')).toBe(1);
   });
 

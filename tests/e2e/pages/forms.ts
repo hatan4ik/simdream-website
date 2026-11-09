@@ -27,10 +27,6 @@ export class GiftVoucherPage {
     return this.page.getByRole('button', { name: label });
   }
 
-  customAmount(): Locator {
-    return this.page.getByPlaceholder('Min ₪50');
-  }
-
   recipientName(): Locator {
     return this.page.getByPlaceholder('e.g. Aviad Stern');
   }

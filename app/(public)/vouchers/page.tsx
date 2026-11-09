@@ -39,7 +39,6 @@ import { GiftCardDesignPicker } from '@/components/vouchers/GiftCardDesignPicker
 import {
   DEFAULT_GIFT_CARD_DESIGN_ID,
   GIFT_CARD_DESIGNS,
-  MIN_GIFT_VOUCHER_AMOUNT_ILS,
   getGiftCardDesign,
   giftCardDesignForAmount,
   type GiftCardDesignId,
@@ -89,7 +88,6 @@ export default function GiftVouchersPage() {
   const [selectedCertificateAmount, setSelectedCertificateAmount] = useState<number>(
     DEFAULT_GIFT_CERTIFICATE_AMOUNT
   );
-  const [customAmount, setCustomAmount] = useState<string>('');
   const [hidePriceOnCertificate, setHidePriceOnCertificate] = useState<boolean>(false);
   const [deliveryMethod, setDeliveryMethod] = useState<'direct' | 'print'>('direct');
   const [giftCardDesignId, setGiftCardDesignId] = useState<GiftCardDesignId>(INITIAL_GIFT_CARD_DESIGN_ID);
@@ -142,12 +140,10 @@ export default function GiftVouchersPage() {
 
   // A card design is sold at one balance, so the design is the Gift Card's selected amount.
   const selectedGiftCardAmount = getGiftCardDesign(giftCardDesignId).amountIls;
-  const selectedAmount = giftMode === 'certificate' ? selectedCertificateAmount : selectedGiftCardAmount;
-  const activeAmount = customAmount ? parseInt(customAmount, 10) || 0 : selectedAmount;
+  // There is no custom amount: a certificate is a named package and a Gift Card is one of the preset balances.
+  const activeAmount = giftMode === 'certificate' ? selectedCertificateAmount : selectedGiftCardAmount;
   const activeTierObj =
-    giftMode === 'certificate' && !customAmount
-      ? VOUCHER_TIERS.find((tier) => tier.amount === selectedCertificateAmount)
-      : undefined;
+    giftMode === 'certificate' ? VOUCHER_TIERS.find((tier) => tier.amount === selectedCertificateAmount) : undefined;
 
   const isCardMode = giftMode === 'card';
   // The he-IL currency format embeds right-to-left marks that add a stray gap inside the button label.
@@ -156,44 +152,9 @@ export default function GiftVouchersPage() {
   const detailsTitle = isCardMode ? t.vouchers.cardDetailsTitle : t.vouchers.customizeDesignTitle;
   const detailsSubtitle = isCardMode ? t.vouchers.cardDetailsSubtitle : t.vouchers.customizeDesignSubtitle;
 
-  /** One custom-amount field for both formats (same id, name and placeholder; the minimum is checked on submit). */
-  const customAmountField = (
-    <div className="pt-4 border-t border-slate-800">
-      <label htmlFor="voucher-custom-amount" className="block text-xs font-medium text-slate-400 mb-2">
-        {t.vouchers.customAmountLabel}
-      </label>
-      {/* Amounts always read left to right, so the shekel sign sits at the left edge in RTL pages too. */}
-      <div className="relative max-w-xs" dir="ltr">
-        <span
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-y-0 left-3.5 flex items-center text-slate-400 font-bold"
-        >
-          ₪
-        </span>
-        <input
-          id="voucher-custom-amount"
-          name="customAmount"
-          type="number"
-          inputMode="numeric"
-          value={customAmount}
-          onChange={(e) => setCustomAmount(e.target.value)}
-          onBlur={syncAriaInvalid}
-          placeholder={t.vouchers.customAmountPlaceholder}
-          className="w-full min-h-11 pl-9 pr-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-sm focus:outline-none focus:border-sky-500"
-        />
-      </div>
-    </div>
-  );
+  const selectCertificateFormat = () => setGiftMode('certificate');
 
-  const selectCertificateFormat = () => {
-    setGiftMode('certificate');
-    setCustomAmount('');
-  };
-
-  const selectGiftCardFormat = () => {
-    setGiftMode('card');
-    setCustomAmount('');
-  };
+  const selectGiftCardFormat = () => setGiftMode('card');
 
   const handleSelectCertificateTier = (amount: number) => {
     selectCertificateFormat();
@@ -206,17 +167,10 @@ export default function GiftVouchersPage() {
     if (design) setGiftCardDesignId(design.id);
   };
 
-  const handleSelectGiftCardDesign = (designId: GiftCardDesignId) => {
-    setGiftCardDesignId(designId);
-    setCustomAmount('');
-  };
+  const handleSelectGiftCardDesign = (designId: GiftCardDesignId) => setGiftCardDesignId(designId);
 
   const handlePurchase = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (activeAmount < MIN_GIFT_VOUCHER_AMOUNT_ILS) {
-      alert(`Please select or enter a valid voucher amount (min ₪${MIN_GIFT_VOUCHER_AMOUNT_ILS}).`);
-      return;
-    }
 
     setIsSubmitting(true);
     setCheckoutError(null);
@@ -477,7 +431,7 @@ export default function GiftVouchersPage() {
                   className="grid grid-cols-2 sm:grid-cols-4 gap-x-2.5 gap-y-4 pt-2 mb-5"
                 >
                   {GIFT_CARD_PRESETS.map((preset) => {
-                    const isPresetSelected = !customAmount && selectedGiftCardAmount === preset;
+                    const isPresetSelected = selectedGiftCardAmount === preset;
                     return (
                       <button
                         key={preset}
@@ -505,8 +459,6 @@ export default function GiftVouchersPage() {
                     );
                   })}
                 </div>
-
-                {customAmountField}
               </div>
             ) : (
               /* Certificate step 1: choose a named flight package or a custom value. */
@@ -528,7 +480,7 @@ export default function GiftVouchersPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
                   {VOUCHER_TIERS.map((tier) => {
                     const isSelected =
-                      giftMode === 'certificate' && !customAmount && selectedCertificateAmount === tier.amount;
+                      giftMode === 'certificate' && selectedCertificateAmount === tier.amount;
                     return (
                       <button
                         type="button"
@@ -554,8 +506,6 @@ export default function GiftVouchersPage() {
                     );
                   })}
                 </div>
-
-                {customAmountField}
 
                 {/* Certificate Price Privacy Toggle (SMM Gift Etiquette Feature) */}
                 {giftMode === 'certificate' && (

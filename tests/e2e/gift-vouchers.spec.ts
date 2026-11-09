@@ -57,25 +57,6 @@ test.describe('gift vouchers', () => {
     expect(checkoutRequests).toHaveLength(0);
   });
 
-  test('rejects a custom amount below ₪50 with an explanation', async ({ page, vouchers }) => {
-    const checkoutRequests = recordRequests(page, '/api/checkout');
-    await vouchers.goto();
-    await vouchers.fill(ORDER);
-    await vouchers.customAmount().fill('49');
-    await expect(vouchers.submit()).toHaveText(ilsPattern(49));
-
-    const dialogs: string[] = [];
-    page.once('dialog', (dialog) => {
-      dialogs.push(dialog.message());
-      void dialog.dismiss();
-    });
-    await vouchers.submit().click();
-    await expect.poll(() => dialogs).toEqual(['Please select or enter a valid voucher amount (min ₪50).']);
-
-    await page.evaluate(() => fetch('/api/packages').then((response) => response.status));
-    expect(checkoutRequests).toHaveLength(0);
-  });
-
   test('explains that online payment is unavailable and keeps the order details', async ({ page, vouchers }) => {
     await vouchers.goto();
     await vouchers.fill(ORDER);
@@ -194,16 +175,11 @@ test.describe('gift vouchers', () => {
       await expect(chosen).toHaveText(ilsPattern(amount));
     }
 
-    // Choosing a chip shows its colour, and a typed amount gives way to the next colour click.
+    // Choosing a chip shows its colour; choosing a colour shows its chip.
     await presets.getByRole('button', { name: ilsPattern(300) }).click();
     await expect(page.getByRole('radio', { name: 'Choose card colour: Aurora' })).toHaveAttribute('aria-checked', 'true');
     await expect(credit).toHaveText(ilsPattern(300));
-
-    await vouchers.customAmount().fill('250');
-    await expect(credit).toHaveText(ilsPattern(250));
-    await expect(presets.getByRole('button', { pressed: true })).toHaveCount(0);
     await page.getByRole('radio', { name: 'Choose card colour: Moonlight' }).click();
-    await expect(vouchers.customAmount()).toHaveValue('');
     await expect(credit).toHaveText(ilsPattern(200));
 
     // ₪200 is the one chip marked Popular.
@@ -224,7 +200,6 @@ test.describe('gift vouchers', () => {
     await expect(vouchers.tier(/90-Min Ultimate Aviator/)).toHaveCount(0);
     await expect(page.getByRole('heading', { level: 2, name: 'Quick-Select Gift Card Credit Balance' })).toBeVisible();
     await expect(page.getByRole('heading', { level: 2, name: 'Personalized Gift Card Details' })).toBeVisible();
-    await expect(vouchers.customAmount()).toBeVisible();
 
     // Back to the certificate: the package picker and its titles return untouched.
     await page.getByRole('button', { name: /Flight Experience Gift Certificate/ }).click();
@@ -234,33 +209,22 @@ test.describe('gift vouchers', () => {
     await expect(page.getByRole('heading', { level: 2, name: 'Personalized Gift Card Details' })).toHaveCount(0);
   });
 
-  test('validates a custom Gift Card amount (min ₪50) and sends a valid one as an open balance', async ({ page, vouchers }) => {
-    const checkoutRequests = recordRequests(page, '/api/checkout');
+  test('offers no custom amount: the chosen preset balance is what the server receives', async ({ page, vouchers }) => {
     await vouchers.goto();
     await vouchers.fill(ORDER);
     await page.getByRole('button', { name: /Flexible Monetary Gift Card/ }).click();
 
-    await vouchers.customAmount().fill('49');
-    await expect(vouchers.submit()).toHaveText(ilsPattern(49));
-    const dialogs: string[] = [];
-    page.once('dialog', (dialog) => {
-      dialogs.push(dialog.message());
-      void dialog.dismiss();
-    });
-    await vouchers.submit().click();
-    await expect.poll(() => dialogs).toEqual(['Please select or enter a valid voucher amount (min ₪50).']);
-    await page.evaluate(() => fetch('/api/packages').then((response) => response.status));
-    expect(checkoutRequests).toHaveLength(0);
+    // No typed-amount control exists in either format.
+    await expect(page.locator('#voucher-custom-amount')).toHaveCount(0);
+    await expect(page.locator('input[type="number"]')).toHaveCount(0);
 
-    // A typed amount replaces the preset selection and is what the server receives.
-    await vouchers.customAmount().fill('250');
-    await expect(vouchers.submit()).toHaveText(ilsPattern(250));
-    await expect(page.locator('[data-gift-card-presets]').getByRole('button', { pressed: true })).toHaveCount(0);
+    const presets = page.locator('[data-gift-card-presets]');
+    await presets.getByRole('button', { name: ilsPattern(300) }).click();
+    await expect(vouchers.submit()).toHaveText(ilsPattern(300));
     const checkoutResponse = page.waitForResponse((response) => response.url().endsWith('/api/checkout'));
     await vouchers.submit().click();
     const body = (await checkoutResponse).request().postDataJSON();
-    expect(body).toMatchObject({ kind: 'voucher', amountIls: 250, ...ORDER });
-    expect(body).toHaveProperty('giftCardDesignId');
+    expect(body).toMatchObject({ kind: 'voucher', amountIls: 300, giftCardDesignId: 'aurora', ...ORDER });
     expect(body).not.toHaveProperty('packageId');
   });
 });

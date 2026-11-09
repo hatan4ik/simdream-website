@@ -80,7 +80,7 @@ Production-grade website, multi-step booking engine, Amazon-style flight storefr
    - Dynamic inquiry submission pipeline directly feeding the Admin Dispatch board.
 
 6. **Gift Voucher System (`/vouchers`)**:
-   - Customizable digital boarding pass gift certificates (`voucherType: 'flight_certificate'`, package tiers `₪450`, `₪690`, `₪850`, `₪1,590` or custom amount `min ₪50`) with live visual preview.
+   - Customizable digital boarding pass gift certificates (`voucherType: 'flight_certificate'`, package tiers `₪450`, `₪690`, `₪850`, `₪1,590`; no custom amount) with live visual preview.
    - Flexible **Gift Cards** (`voucherType: 'gift_card'`) skip the package value picker and offer the 7 fixed preset denominations (`GIFT_CARD_AMOUNTS_ILS`: `₪50`, `₪100`, `₪200`, `₪300`, `₪500`, `₪700`, `₪1,000`) followed by "Personalized Gift Card Details". Each card colour is mapped 1:1 to one balance (`skyline` ₪50, `ivory` ₪100, `moonlight` ₪200, `aurora` ₪300, `sunset` ₪500, `dusk` ₪700, `pearl` ₪1,000) and its live Wix Gift Card `variantId` and `wixMediaId` (`lib/catalog/gift-card-designs.ts`, `lib/wix/gift-cards.ts`).
    - Cryptographically generated, high-entropy redeemable flight codes valid for 12 months with online and counter redemption.
 
