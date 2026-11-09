@@ -42,6 +42,9 @@ async function openVoucherForm(page: Page, baseURL: string | undefined) {
   await preferLanguage(page, 'en');
   await page.goto('/vouchers');
   // The voucher form has no programmatic labels yet; placeholders are its only accessible hooks.
+  // Names start empty (the preview shows a labelled sample), so a purchase must type them.
+  await page.getByPlaceholder('e.g. Aviad Stern').fill('Resilience Recipient');
+  await page.getByPlaceholder('e.g. Danielle Cohen').fill('Resilience Sender');
   await page.getByPlaceholder('aviad@example.com').fill('recipient.resilience@example.test');
   await page.getByPlaceholder('danielle@example.com').fill('sender.resilience@example.test');
 }

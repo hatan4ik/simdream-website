@@ -826,6 +826,7 @@ describe('POST /api/checkout: request validation', () => {
     { name: 'more than 16 add-ons', body: { ...booking, addons: Array.from({ length: 17 }, (_, i) => `addon-${i}`) }, field: 'addons' },
     { name: 'notes over 2,000 characters', body: { ...booking, notes: 'x'.repeat(2_001) }, field: 'notes' },
     { name: 'a gift voucher under 50 ILS', body: { ...voucher, amountIls: 49 }, field: 'amountIls' },
+    { name: 'a Gift Card amount that is not a preset balance', body: { ...voucher, amountIls: 250 }, field: 'amountIls' },
     { name: 'a non-numeric gift amount', body: { ...voucher, amountIls: '500' }, field: 'amountIls' },
     { name: 'an invalid recipient email', body: { ...voucher, recipientEmail: 'nobody' }, field: 'recipientEmail' },
   ])('rejects $name with 400 and a field error', async ({ body, field }) => {

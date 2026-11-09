@@ -143,7 +143,7 @@ describe('concurrent webhook deliveries', () => {
     const app = await loadApp({ stripe: 'mocked', env: MAIL_ENV });
     const started = await postCheckout(app, {
       kind: 'voucher',
-      amountIls: 650,
+      amountIls: 700,
       recipientName: 'Concurrent Recipient',
       recipientEmail: 'concurrent-recipient@example.test',
       senderName: 'Concurrent Sender',
@@ -161,7 +161,7 @@ describe('concurrent webhook deliveries', () => {
     expect(statuses).toContain(200);
     expect(statuses.filter((status) => status !== 200 && status !== 503)).toEqual([]);
     expect((await webhook.POST(signedWebhookRequest(event))).status).toBe(200);
-    expect(await app.store.getVoucherById(voucherId)).toMatchObject({ paymentStatus: 'paid', currentBalanceIls: 650 });
+    expect(await app.store.getVoucherById(voucherId)).toMatchObject({ paymentStatus: 'paid', currentBalanceIls: 700 });
     expect(mail.activationsTo('concurrent-recipient@example.test')).toBe(1);
   });
 });

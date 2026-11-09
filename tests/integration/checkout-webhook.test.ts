@@ -49,7 +49,7 @@ async function verifyVoucher(app: TestApp, code: string) {
   return readJson(await POST(apiRequest('/api/vouchers', { body: { action: 'verify', code } })));
 }
 
-async function purchaseGiftVoucher(app: TestApp, amountIls = 750) {
+async function purchaseGiftVoucher(app: TestApp, amountIls = 700) {
   const response = await postCheckout(app, voucherCheckoutBody({ amountIls, senderEmail: 'gifter@pilots.test' }));
   if (response.status !== 201) throw new Error(`Gift voucher checkout returned ${response.status}`);
   const session = app.checkoutSessions[app.checkoutSessions.length - 1];
@@ -99,7 +99,7 @@ async function voidedGiftVoucher() {
   const app = await loadApp({ stripe: 'mocked', stripeFailure: new Error('Stripe API unreachable') });
   vi.spyOn(console, 'error').mockImplementation(() => undefined);
   const senderEmail = 'late.gifter@pilots.test';
-  const response = await postCheckout(app, voucherCheckoutBody({ amountIls: 600, senderEmail }));
+  const response = await postCheckout(app, voucherCheckoutBody({ amountIls: 500, senderEmail }));
   if (response.status !== 503) throw new Error(`Gift voucher checkout during an outage returned ${response.status}`);
   const voucher = (await app.store.getVouchers()).find((candidate) => candidate.senderEmail === senderEmail);
   if (!voucher) throw new Error('The voided gift voucher was not stored');
@@ -362,18 +362,18 @@ describe('Gift voucher purchase lifecycle', () => {
   it('creates a pending, unverifiable voucher and sends Stripe the exact purchase amount', async () => {
     const app = await loadApp({ stripe: 'mocked' });
 
-    const { response, session, voucher } = await purchaseGiftVoucher(app, 750);
+    const { response, session, voucher } = await purchaseGiftVoucher(app, 700);
 
     expect(expectContract(stripeCheckoutStarted, response.body).sessionId).toBe('cs_test_mock_1');
     expect(session).toMatchObject({
-      amountIls: 750,
+      amountIls: 700,
       customerEmail: 'gifter@pilots.test',
       successUrl: 'http://localhost:3000/vouchers?purchase=processing&session_id={CHECKOUT_SESSION_ID}',
       cancelUrl: 'http://localhost:3000/vouchers?cancelled=true',
     });
     expect(session.bookingId).toBeUndefined();
     expect(voucher).toMatchObject({
-      initialValueIls: 750,
+      initialValueIls: 700,
       currentBalanceIls: 0,
       paymentStatus: 'pending',
       isRedeemed: false,
@@ -410,7 +410,7 @@ describe('Gift voucher purchase lifecycle', () => {
 
   it('activates the voucher with its full balance on a completed webhook and makes it verifiable', async () => {
     const app = await loadApp({ stripe: 'mocked' });
-    const { voucher } = await purchaseGiftVoucher(app, 750);
+    const { voucher } = await purchaseGiftVoucher(app, 700);
 
     const ack = await deliverWebhook(
       app,
@@ -420,7 +420,7 @@ describe('Gift voucher purchase lifecycle', () => {
     expect(ack.status).toBe(200);
     expect(await app.store.getVoucherById(voucher.id)).toMatchObject({
       paymentStatus: 'paid',
-      currentBalanceIls: 750,
+      currentBalanceIls: 700,
       stripeCheckoutSessionId: 'cs_test_gift_paid',
       activatedAt: new Date().toISOString(),
     });
@@ -429,14 +429,14 @@ describe('Gift voucher purchase lifecycle', () => {
     expect(verification.headers.get('cache-control')).toBe(PRIVATE_NO_STORE);
     expect(expectContract(publicVoucher, verification.body)).toEqual({
       code: voucher.code,
-      currentBalanceIls: 750,
+      currentBalanceIls: 700,
       expiryDate: voucher.expiryDate,
     });
   });
 
   it('activates a gift voucher only once, so a replayed webhook cannot restore a spent balance', async () => {
     const app = await loadApp({ stripe: 'mocked' });
-    const { voucher } = await purchaseGiftVoucher(app, 750);
+    const { voucher } = await purchaseGiftVoucher(app, 700);
     const completed = checkoutSessionEvent('checkout.session.completed', { metadata: { voucherId: voucher.id } });
     await deliverWebhook(app, completed);
     const vouchers = await app.routes.vouchers();
@@ -448,7 +448,7 @@ describe('Gift voucher purchase lifecycle', () => {
     const replay = await deliverWebhook(app, completed);
 
     expect(replay.status).toBe(200);
-    expect((await app.store.getVoucherById(voucher.id))?.currentBalanceIls).toBe(500);
+    expect((await app.store.getVoucherById(voucher.id))?.currentBalanceIls).toBe(450);
   });
 
   it('sends the activation email exactly once across replayed completed deliveries', async () => {
@@ -509,7 +509,7 @@ describe('Gift voucher purchase lifecycle', () => {
 
     await fc.assert(
       fc.asyncProperty(
-        fc.integer({ min: 100, max: 5_000 }),
+        fc.constantFrom(50, 100, 200, 300, 500, 700, 1000),
         fc.dictionary(injectedKey, injectedValue, { minKeys: 1 }),
         async (amountIls, injected) => {
           const sessionsBefore = app.checkoutSessions.length;

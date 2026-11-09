@@ -20,7 +20,11 @@ const FEED = {
     rating: number === 3 ? 4 : 5,
     quote: `Google review number ${number}.`,
     relativeTime: 'a week ago',
+    publishedAt: `2026-11-0${number}T10:00:00Z`,
     language: 'en',
+    authorUrl: 'https://www.google.com/maps/contrib/test',
+    // One translated review exercises the "show original" switch in the scan.
+    original: number === 1 ? { text: 'ביקורת Google מספר אחת.', language: 'he' } : null,
   })),
 };
 
@@ -28,7 +32,7 @@ for (const theme of SCAN_THEMES) {
   for (const language of ['en', 'he'] as const) {
     test(`Google rating row and dropdown have no WCAG A/AA violations (${theme}, ${language})`, async ({ page, baseURL }) => {
       await isolateFromThirdParties(page, baseURL);
-      await page.route('**/api/reviews', (route) => route.fulfill({ json: FEED }));
+      await page.route('**/api/reviews*', (route) => route.fulfill({ json: FEED }));
       await preferTheme(page, theme);
       await preferLanguage(page, language);
       await gotoSettled(page, '/');
@@ -53,7 +57,7 @@ for (const theme of SCAN_THEMES) {
     test(`Google rating link has no WCAG A/AA violations without review texts (${theme}, ${language})`, async ({ page, baseURL }) => {
       await isolateFromThirdParties(page, baseURL);
       // "No data": the bar falls back to the last-known grade, stars and count as a plain link.
-      await page.route('**/api/reviews', (route) =>
+      await page.route('**/api/reviews*', (route) =>
         route.fulfill({ json: { overallRating: 0, totalReviewsCount: 0, directReviewsUrl: FEED.directReviewsUrl, reviews: [] } })
       );
       await preferTheme(page, theme);

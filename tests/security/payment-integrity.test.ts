@@ -1,5 +1,6 @@
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
+import { GIFT_CARD_DESIGNS } from '@/lib/catalog/gift-card-designs';
 import { bookingCheckoutBody, loadApp, voucherCheckoutBody, type TestApp } from '../support/app';
 import { apiRequest, basicAuth, readJson } from '../support/http';
 import { TEST_ADMIN } from '../support/test-env';
@@ -129,7 +130,8 @@ describe('server-authoritative pricing', () => {
   it('creates a gift voucher worth exactly what is charged, ignoring injected balance fields', async () => {
     await fc.assert(
       fc.asyncProperty(
-        fc.integer({ min: 100, max: 100_000 }),
+        // A Gift Card is sold only at the preset balances; any other amount is rejected below.
+        fc.constantFrom(...GIFT_CARD_DESIGNS.map((design) => design.amountIls)),
         fc.record(
           {
             initialValueIls: injectedNumber,
@@ -210,6 +212,7 @@ describe('server-authoritative pricing', () => {
     ['negative', -500],
     ['zero', 0],
     ['below the minimum', 49.99],
+    ['not a preset Gift Card balance', 250],
     ['above the maximum', 100_000.01],
     ['astronomically large', 1e308],
     ['a numeric string', '500'],

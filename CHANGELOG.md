@@ -1,5 +1,52 @@
 # Changelog
 
+## [1.10.1](https://github.com/hatan4ik/simdream-website/compare/v1.10.0...v1.10.1) (2026-11-09)
+
+
+### Bug Fixes
+
+* **vouchers:** show the live preview after the amount choice on phones ([#74](https://github.com/hatan4ik/simdream-website/issues/74)) ([05144d4](https://github.com/hatan4ik/simdream-website/commit/05144d4697ddab98afe32db9daac4ae7898296e7))
+
+## [1.10.0](https://github.com/hatan4ik/simdream-website/compare/v1.9.1...v1.10.0) (2026-11-09)
+
+
+### Features
+
+* **reviews:** newest first, publish date, author attribution and Google's translation with "show original" ([#72](https://github.com/hatan4ik/simdream-website/issues/72)) ([6f38e49](https://github.com/hatan4ik/simdream-website/commit/6f38e4953a5433cbb8231ef3426e3b6385027d43))
+
+## [1.9.1](https://github.com/hatan4ik/simdream-website/compare/v1.9.0...v1.9.1) (2026-11-09)
+
+
+### Bug Fixes
+
+* **reviews:** refresh Google rating to 5.0 (424 reviews) ([#70](https://github.com/hatan4ik/simdream-website/issues/70)) ([88612dc](https://github.com/hatan4ik/simdream-website/commit/88612dc2b083f206a7f0aca7e8094e09d36c5965))
+
+## [1.9.0](https://github.com/hatan4ik/simdream-website/compare/v1.8.0...v1.9.0) (2026-11-09)
+
+
+### Features
+
+* **vouchers:** sell gift cards and certificates only at fixed amounts, no custom sum ([#67](https://github.com/hatan4ik/simdream-website/issues/67)) ([c6a696c](https://github.com/hatan4ik/simdream-website/commit/c6a696c12a84793bb1998e53022b650969e3eecf))
+
+## [1.8.0](https://github.com/hatan4ik/simdream-website/compare/v1.7.0...v1.8.0) (2026-11-09)
+
+
+### Features
+
+* **wix:** add Wix-as-Code backend blueprint and multi-lock protected provisioner ([#64](https://github.com/hatan4ik/simdream-website/issues/64)) ([8fd6516](https://github.com/hatan4ik/simdream-website/commit/8fd65161fc99f1b35fba3485c980805c53bddfaf))
+
+
+### Bug Fixes
+
+* **booking:** trust and recovery fixes from the source-based CX audit ([#65](https://github.com/hatan4ik/simdream-website/issues/65)) ([45c57e3](https://github.com/hatan4ik/simdream-website/commit/45c57e38024950bbda5df261189c5c8035d4ff5c))
+
+## [1.7.0](https://github.com/hatan4ik/simdream-website/compare/v1.6.0...v1.7.0) (2026-11-08)
+
+
+### Features
+
+* **marketing:** emotion-first hero copy and a calm /fear-of-flying landing page ([#62](https://github.com/hatan4ik/simdream-website/issues/62)) ([2b1787c](https://github.com/hatan4ik/simdream-website/commit/2b1787c6a0e0c6156cdb4a76d7c1a18c57d6b7ed))
+
 ## [1.6.0](https://github.com/hatan4ik/simdream-website/compare/v1.5.0...v1.6.0) (2026-11-08)
 
 

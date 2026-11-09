@@ -66,8 +66,8 @@ const validBookingArb = fc.record(
 const validVoucherArb = fc.record(
   {
     kind: fc.constant('voucher' as const),
-    // Agora precision: money schemas reject finer fractions (API-10).
-    amountIls: fc.integer({ min: 5_000, max: 10_000_000 }).map((agorot) => agorot / 100),
+    // A Gift Card is sold only at the preset balances (agora precision is covered separately on a certificate).
+    amountIls: fc.constantFrom(50, 100, 200, 300, 500, 700, 1000),
     recipientName: text(120),
     recipientEmail: emailArb,
     senderName: text(120),
@@ -197,7 +197,8 @@ describe('voucherCheckoutSchema', () => {
 
   it.each([
     ['amountIls', 100],
-    ['amountIls', 100_000],
+    // The highest preset Gift Card balance; the schema maximum is reachable only with a certificate package.
+    ['amountIls', 1000],
     ['personalMessage', 'm'.repeat(1_500)],
   ])('accepts the boundary value %s = %j', (field, value) => {
     expect(failedFields(voucherCheckoutSchema, voucherCheckoutBody({ [field]: value }))).toEqual([]);
@@ -228,8 +229,17 @@ describe('checkoutRequestSchema', () => {
   });
 
   it('rejects voucher amounts finer than one agora', () => {
-    expect(failedFields(checkoutRequestSchema, voucherCheckoutBody({ amountIls: 500.005 }))).toEqual(['amountIls']);
-    expect(failedFields(checkoutRequestSchema, voucherCheckoutBody({ amountIls: 500.05 }))).toEqual([]);
+    // A named certificate carries the package id; its amount is replaced by the catalogue price on the server.
+    expect(failedFields(checkoutRequestSchema, voucherCheckoutBody({ amountIls: 500.005, packageId: 'pkg-captain-60' }))).toEqual(['amountIls']);
+    expect(failedFields(checkoutRequestSchema, voucherCheckoutBody({ amountIls: 500.05, packageId: 'pkg-captain-60' }))).toEqual([]);
+  });
+
+  it('sells a Gift Card only at the preset balances', () => {
+    for (const amountIls of [50, 100, 200, 300, 500, 700, 1000]) {
+      expect(failedFields(checkoutRequestSchema, voucherCheckoutBody({ amountIls }))).toEqual([]);
+    }
+    expect(failedFields(checkoutRequestSchema, voucherCheckoutBody({ amountIls: 250 }))).toEqual(['amountIls']);
+    expect(failedFields(checkoutRequestSchema, voucherCheckoutBody({ amountIls: 1_500 }))).toEqual(['amountIls']);
   });
 
   it('ignores a client-chosen amount on a booking command', () => {

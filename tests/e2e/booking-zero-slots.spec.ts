@@ -116,8 +116,10 @@ test.describe('zero-slot recovery (AGENTS.md section 4), guided wizard', () => {
     await expect(page.getByText('No open times for this duration on the selected date.')).toBeVisible();
     // The selected package's description stays on screen; the selection is not overwritten.
     await expect(page.getByText('🌤️ Daytime Flight • 2 Landings (until 18:00)')).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Switch to 60 Min Flight' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Switch to 30 Min Flight' })).toBeVisible();
+    // Only durations with open departures that Saturday are offered; the sold-out 45m promo never is.
+    await expect(page.getByRole('button', { name: 'Switch to the 60 min flight' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Switch to the 30 min flight' })).toBeVisible();
+    await expect(page.locator('[data-wizard-try-duration="45"]')).toHaveCount(0);
 
     await page.getByRole('button', { name: 'Check Next Day →' }).click();
     await expect(wizard.departureHeading(addDays(saturday, 1))).toBeVisible();
@@ -132,7 +134,7 @@ test.describe('zero-slot recovery (AGENTS.md section 4), guided wizard', () => {
     const wizard = await booking.openWizard();
     await booking.selectDate(saturday);
 
-    await page.getByRole('button', { name: 'Switch to 60 Min Flight' }).click();
+    await page.getByRole('button', { name: 'Switch to the 60 min flight' }).click();
 
     await expect(page.getByText('⭐ Takeoff/Landing + 1 World Trio (3 Airports Included)')).toBeVisible();
     await expect(wizard.departureHeading(saturday)).toBeVisible();

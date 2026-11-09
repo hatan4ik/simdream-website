@@ -53,6 +53,9 @@ interface KantorovichCalendarSchedulerProps {
   efficiencyReport: PublicCapacityReport | null;
   durationAvailability?: Record<number, { availableCount: number; minPriceIls: number }>;
   loading: boolean;
+  /** The availability request failed: show the error and a retry, never a sold-out day (REL-10). */
+  slotsLoadFailed?: boolean;
+  onRetrySlots?: () => void;
 }
 
 const CLEAN_COPY: Record<
@@ -72,8 +75,8 @@ const CLEAN_COPY: Record<
     recommended: string;
     availableCount: string;
     noSlotsForDuration: string;
-    try60Min: string;
-    try30Min: string;
+    /** Offered only for a duration that has open departures on the selected day. */
+    tryDuration: (minutes: number) => string;
     guestsIncluded: string;
     captainIncluded: string;
     dayNamesShort: string[];
@@ -95,8 +98,7 @@ const CLEAN_COPY: Record<
     recommended: 'Best Match',
     availableCount: 'slots available',
     noSlotsForDuration: 'No open times for this duration on the selected date.',
-    try60Min: 'Switch to 60 Min Flight',
-    try30Min: 'Switch to 30 Min Flight',
+    tryDuration: (minutes) => `Switch to the ${minutes} min flight`,
     guestsIncluded: 'Up to 2 guests included',
     captainIncluded: '1-on-1 Airline Captain Instructor',
     dayNamesShort: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
@@ -130,8 +132,7 @@ const CLEAN_COPY: Record<
     recommended: 'מומלץ',
     availableCount: 'שעות פנויות',
     noSlotsForDuration: 'אין שעות פנויות למשך טיסה זה בתאריך שנבחר.',
-    try60Min: 'עבור לטיסת 60 דקות',
-    try30Min: 'עבור לטיסת 30 דקות',
+    tryDuration: (minutes) => `עברו לטיסת ${minutes} דקות`,
     guestsIncluded: 'עד 2 מלווים בקוקפיט ללא תוספת',
     captainIncluded: 'הדרכה אישית עם קברניט',
     dayNamesShort: ['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳', 'ש׳'],
@@ -165,8 +166,7 @@ const CLEAN_COPY: Record<
     recommended: 'Рекомендуем',
     availableCount: 'свободных слотов',
     noSlotsForDuration: 'На выбранную дату нет свободных окон для этой длительности.',
-    try60Min: 'Переключить на 60 минут',
-    try30Min: 'Переключить на 30 минут',
+    tryDuration: (minutes) => `Переключиться на полёт ${minutes} минут`,
     guestsIncluded: 'До 2 гостей в кабине бесплатно',
     captainIncluded: 'Инструктор — действующий пилот',
     dayNamesShort: ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'],
@@ -200,8 +200,7 @@ const CLEAN_COPY: Record<
     recommended: 'Recommandé',
     availableCount: 'créneaux disponibles',
     noSlotsForDuration: 'Aucun créneau disponible pour cette durée à cette date.',
-    try60Min: 'Passer au vol 60 min',
-    try30Min: 'Passer au vol 30 min',
+    tryDuration: (minutes) => `Passer au vol de ${minutes} min`,
     guestsIncluded: 'Jusqu’à 2 accompagnants inclus',
     captainIncluded: 'Commandant de bord instructeur',
     dayNamesShort: ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'],
@@ -235,8 +234,7 @@ const CLEAN_COPY: Record<
     recommended: 'موصى به',
     availableCount: 'مواعيد متاحة',
     noSlotsForDuration: 'لا توجد مواعيد متاحة لهذه المدة في التاريخ المختار.',
-    try60Min: 'التبديل إلى رحلة 60 دقيقة',
-    try30Min: 'التبديل إلى رحلة 30 دقيقة',
+    tryDuration: (minutes) => `التبديل إلى رحلة ${minutes} دقيقة`,
     guestsIncluded: 'يشمل ضيفين في القمرة مجاناً',
     captainIncluded: 'مدرب طيران كابتن طائرة',
     dayNamesShort: ['أحد', 'إثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة', 'سبت'],
@@ -312,8 +310,10 @@ export function KantorovichCalendarScheduler({
   onSelectSlot,
   durationAvailability,
   loading,
+  slotsLoadFailed = false,
+  onRetrySlots,
 }: KantorovichCalendarSchedulerProps) {
-  const { language, isRTL } = useLanguage();
+  const { t, language, isRTL } = useLanguage();
   const copy = CLEAN_COPY[language] || CLEAN_COPY.en;
   const bpCopy = BOOKING_BLUEPRINT_COPY[language] || BOOKING_BLUEPRINT_COPY.en;
 
@@ -390,12 +390,14 @@ export function KantorovichCalendarScheduler({
     [slots]
   );
 
-  const handleSwitchDuration = (mins: number) => {
-    const target = packages.find(
-      (p) => p.category !== 'corporate' && p.durationMinutes === mins
-    );
-    if (target) onSelectPackage(target);
-  };
+  // Zero-slot recovery offers only durations that exist in this booking's scope and
+  // have open departures on the selected day (AGENTS.md §4 rule 3), so a tap never
+  // lands on a missing package or another sold-out duration.
+  const alternativeDurations = durationOptions.filter(
+    (pkg) =>
+      pkg.durationMinutes !== selectedPackage.durationMinutes &&
+      (durationAvailability?.[pkg.durationMinutes]?.availableCount ?? 0) > 0
+  );
 
   const handleSelectDate = (date: string) => {
     setViewMonthOverride(null);
@@ -671,6 +673,30 @@ export function KantorovichCalendarScheduler({
               />
             ))}
           </div>
+        ) : slotsLoadFailed ? (
+          <div data-wizard-slots-failed className="p-6 rounded-xl bg-slate-950/90 border border-red-500/30 text-center space-y-4">
+            <div role="alert" className="space-y-1">
+              <h3 className="text-sm sm:text-base font-bold text-white">{t.booking.slotsLoadError}</h3>
+              <p className="text-xs text-slate-400 max-w-md mx-auto">{t.booking.slotsLoadErrorHint}</p>
+            </div>
+            <div className="flex flex-wrap justify-center gap-2 pt-1">
+              {onRetrySlots && (
+                <Button type="button" variant="secondary" size="sm" onClick={onRetrySlots}>
+                  {t.booking.retryLoad}
+                </Button>
+              )}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="border-sky-500/50 text-sky-300 hover:bg-sky-500/10"
+                disabled={isBeyondBookingHorizon(addDaysToYmd(selectedDate, 1), calendarTodayYmd)}
+                onClick={() => handleSelectDate(addDaysToYmd(selectedDate, 1))}
+              >
+                {copy.checkNextDay}
+              </Button>
+            </div>
+          </div>
         ) : openSlotCount === 0 ? (
           <div className="p-6 rounded-xl bg-slate-950/70 border border-slate-800 text-center space-y-4">
             <p className="text-sm text-slate-300">{copy.noSlotsForDuration}</p>
@@ -687,26 +713,18 @@ export function KantorovichCalendarScheduler({
               >
                 {copy.checkNextDay}
               </Button>
-              {selectedPackage.durationMinutes !== 60 && (
+              {alternativeDurations.map((pkg) => (
                 <Button
+                  key={pkg.id}
                   type="button"
                   variant="secondary"
                   size="sm"
-                  onClick={() => handleSwitchDuration(60)}
+                  data-wizard-try-duration={pkg.durationMinutes}
+                  onClick={() => onSelectPackage(pkg)}
                 >
-                  {copy.try60Min}
+                  {copy.tryDuration(pkg.durationMinutes)}
                 </Button>
-              )}
-              {selectedPackage.durationMinutes !== 30 && (
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => handleSwitchDuration(30)}
-                >
-                  {copy.try30Min}
-                </Button>
-              )}
+              ))}
             </div>
           </div>
         ) : (

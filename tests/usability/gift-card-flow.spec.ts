@@ -76,14 +76,14 @@ for (const language of LANGUAGES) {
         await expect(page.getByRole('button', { name: label })).toHaveCount(0);
       }
 
-      // Step 1 is the balance: its presets are visible and the custom amount is still reachable.
+      // Step 1 is the balance: its presets are visible; there is no custom amount to type.
       await expect(section(page, 'balance')).toBeVisible();
       await expect(heading(page, v.cardPresetsLabel)).toBeVisible();
       const presets = page.locator('[data-gift-card-presets]');
       for (const amount of ['50', '100', '200', '300', '500', '700', '1,000']) {
         await expect(presets.getByRole('button', { name: new RegExp(`(?<![\\d,])${amount}(?!\\d)`) })).toBeVisible();
       }
-      await expect(page.locator('#voucher-custom-amount')).toBeVisible();
+      await expect(page.locator('#voucher-custom-amount')).toHaveCount(0);
 
       // Step 2 carries the card title, not the certificate one, and the badges number 1 then 2.
       const details = heading(page, v.cardDetailsTitle);
@@ -161,7 +161,13 @@ for (const language of LANGUAGES) {
           presetRows: new Set(presets.map((element) => Math.round(element.getBoundingClientRect().top))).size,
           firstBeforeSecond: first && second ? (document.documentElement.dir === 'rtl' ? first.left > second.left : first.left < second.left) : false,
           emailDirections: [...document.querySelectorAll<HTMLInputElement>('form input[type="email"]')].map((element) => getComputedStyle(element).direction),
-          amountDirection: getComputedStyle(document.querySelector('#voucher-custom-amount') as Element).direction,
+          // On a phone the live preview follows the balance choice and precedes the details, never the payment button.
+          previewBetweenSteps: (() => {
+            const balance = document.querySelector('[data-voucher-section="balance"]')?.getBoundingClientRect();
+            const preview = document.querySelector('[data-voucher-preview]')?.getBoundingClientRect();
+            const details = document.querySelector('[data-voucher-section="details"]')?.getBoundingClientRect();
+            return Boolean(balance && preview && details && balance.bottom <= preview.top && preview.bottom <= details.top);
+          })(),
           direction: getComputedStyle(doc).direction,
         };
       });
@@ -172,11 +178,11 @@ for (const language of LANGUAGES) {
       expect(layout.presetCount).toBe(7);
       expect(layout.presetRows, 'seven presets wrap into rows of two, the odd last one spans its row').toBe(4);
       expect(layout.firstBeforeSecond, 'presets follow the reading direction').toBe(true);
+      expect(layout.previewBetweenSteps, 'the live preview sits between the balance choice and the details').toBe(true);
       expect(layout.direction).toBe(language === 'he' ? 'rtl' : 'ltr');
       // Amounts and e-mail addresses read left to right on every page direction.
       expect(layout.presetDirections.every((direction) => direction === 'ltr')).toBe(true);
       expect(layout.emailDirections).toEqual(['ltr', 'ltr']);
-      expect(layout.amountDirection).toBe('ltr');
 
       await expectPrimaryButton(page);
     });

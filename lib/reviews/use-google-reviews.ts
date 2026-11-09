@@ -2,16 +2,24 @@
 
 import { useEffect, useState } from 'react';
 import { FACILITY_INFO } from '@/lib/config/facility-info';
+import { useLanguage } from '@/lib/i18n/language-context';
 import lastKnownRating from '@/lib/reviews/last-known-rating.json';
-import type { Language } from '@/lib/i18n/translations';
+import type { ReviewLanguage } from '@/lib/reviews/review-language';
 
 export interface LiveGoogleReview {
   id: string;
   author: string;
+  authorUrl?: string | null;
+  authorPhotoUrl?: string | null;
   rating: number;
+  /** Review text in the page language (Google's translation, or the original when already that language). */
   quote: string;
   relativeTime: string;
-  language: Language;
+  /** RFC 3339 publish time, when Google supplied one. */
+  publishedAt?: string;
+  language: ReviewLanguage;
+  /** The text as written, when it differs from `quote`. */
+  original?: { text: string; language: ReviewLanguage } | null;
 }
 
 type GoogleReviewsFeed = {
@@ -46,9 +54,11 @@ const LAST_KNOWN_SNAPSHOT: LiveGoogleReviewsSnapshot = {
 /** A tab left open is refreshed when it is shown again once its numbers are older than this. */
 const STALE_AFTER_MS = 60_000;
 
-let cachedSnapshot: LiveGoogleReviewsSnapshot | null = null;
-let cachedAt = 0;
-let snapshotRequest: Promise<LiveGoogleReviewsSnapshot | null> | null = null;
+// One snapshot per language: the review texts are translated by Google into the page language, so
+// switching language asks the server again while the rating and count stay the same numbers.
+const cachedSnapshots = new Map<ReviewLanguage, LiveGoogleReviewsSnapshot>();
+const cachedAt = new Map<ReviewLanguage, number>();
+const snapshotRequests = new Map<ReviewLanguage, Promise<LiveGoogleReviewsSnapshot | null>>();
 
 /** A feed is usable when Google supplied a rating and a count; the review texts may be absent. */
 function isUsableFeed(value: unknown): value is GoogleReviewsFeed {
@@ -64,67 +74,85 @@ function isUsableFeed(value: unknown): value is GoogleReviewsFeed {
   );
 }
 
-/**
- * Fetch the public Google snapshot. A page load starts with an empty module cache, so every open or
- * refresh asks the server for the current rating and review count. The utility bar and the home-page
- * carousel share one request and one response, so their numbers never disagree during a visit.
- * A failed refresh keeps the last good numbers instead of blanking them.
- */
-export async function loadGoogleReviews(force = false): Promise<LiveGoogleReviewsSnapshot | null> {
-  if (!force && cachedSnapshot) return cachedSnapshot;
-  if (snapshotRequest) return snapshotRequest;
+/** The last good snapshot for this language, else for any language (the numbers are the same). */
+function lastGoodSnapshot(language: ReviewLanguage): LiveGoogleReviewsSnapshot | null {
+  return cachedSnapshots.get(language) ?? cachedSnapshots.values().next().value ?? null;
+}
 
-  snapshotRequest = fetch('/api/reviews', {
+/**
+ * Fetch the public Google snapshot in the page language. A page load starts with an empty module
+ * cache, so every open or refresh asks the server for the current rating and review count. The
+ * utility bar and the home-page carousel share one request and one response per language, so their
+ * numbers never disagree during a visit. A failed refresh keeps the last good numbers instead of
+ * blanking them.
+ */
+export async function loadGoogleReviews(force = false, language: ReviewLanguage = 'en'): Promise<LiveGoogleReviewsSnapshot | null> {
+  const cached = cachedSnapshots.get(language);
+  if (!force && cached) return cached;
+  const inFlight = snapshotRequests.get(language);
+  if (inFlight) return inFlight;
+
+  const request = fetch(`/api/reviews?lang=${language}`, {
     headers: { Accept: 'application/json' },
     cache: 'no-store',
   })
     .then(async (response) => {
-      if (!response.ok) return cachedSnapshot;
+      if (!response.ok) return lastGoodSnapshot(language);
       const data = await response.json();
-      if (!isUsableFeed(data)) return cachedSnapshot;
-      cachedSnapshot = { ...data, live: true };
-      cachedAt = Date.now();
-      return cachedSnapshot;
+      if (!isUsableFeed(data)) return lastGoodSnapshot(language);
+      const snapshot: LiveGoogleReviewsSnapshot = { ...data, live: true };
+      cachedSnapshots.set(language, snapshot);
+      cachedAt.set(language, Date.now());
+      return snapshot;
     })
-    .catch(() => cachedSnapshot)
+    .catch(() => lastGoodSnapshot(language))
     .finally(() => {
-      snapshotRequest = null;
+      snapshotRequests.delete(language);
     });
+  snapshotRequests.set(language, request);
 
-  return snapshotRequest;
+  return request;
 }
 
 /** What the bar shows right now: the newest snapshot, else the last good one, else the last-known rating. */
-export function displaySnapshot(next: LiveGoogleReviewsSnapshot | null = null): LiveGoogleReviewsSnapshot {
-  return next ?? cachedSnapshot ?? LAST_KNOWN_SNAPSHOT;
+export function displaySnapshot(
+  next: LiveGoogleReviewsSnapshot | null = null,
+  language: ReviewLanguage = 'en'
+): LiveGoogleReviewsSnapshot {
+  return next ?? lastGoodSnapshot(language) ?? LAST_KNOWN_SNAPSHOT;
 }
 
 /**
- * Browser-facing Google review data. It starts from the current numbers, or the labelled last-known
- * rating, so the first paint already shows the grade and count. There are no made-up review texts:
- * `reviews` is empty unless Google supplied them.
+ * Browser-facing Google review data in the page language. It starts from the current numbers, or
+ * the labelled last-known rating, so the first paint already shows the grade and count. There are
+ * no made-up review texts: `reviews` is empty unless Google supplied them.
  */
 export function useGoogleReviews(): LiveGoogleReviewsSnapshot {
-  const [snapshot, setSnapshot] = useState<LiveGoogleReviewsSnapshot>(() => displaySnapshot());
+  const { language, languageResolved } = useLanguage();
+  const [snapshot, setSnapshot] = useState<LiveGoogleReviewsSnapshot>(() => displaySnapshot(null, language));
 
   useEffect(() => {
+    // Wait for the saved language: fetching for the server default and again for the visitor's
+    // language would cost two Places lookups per page open.
+    if (!languageResolved) return;
     let mounted = true;
     const apply = (nextSnapshot: LiveGoogleReviewsSnapshot | null) => {
-      if (mounted) setSnapshot(displaySnapshot(nextSnapshot));
+      if (mounted) setSnapshot(displaySnapshot(nextSnapshot, language));
     };
-    void loadGoogleReviews().then(apply);
+    setSnapshot(displaySnapshot(null, language));
+    void loadGoogleReviews(false, language).then(apply);
 
     // Coming back to a tab that has been open for a while shows the current count again.
     const refreshWhenShown = () => {
-      if (document.visibilityState !== 'visible' || Date.now() - cachedAt < STALE_AFTER_MS) return;
-      void loadGoogleReviews(true).then(apply);
+      if (document.visibilityState !== 'visible' || Date.now() - (cachedAt.get(language) ?? 0) < STALE_AFTER_MS) return;
+      void loadGoogleReviews(true, language).then(apply);
     };
     document.addEventListener('visibilitychange', refreshWhenShown);
     return () => {
       mounted = false;
       document.removeEventListener('visibilitychange', refreshWhenShown);
     };
-  }, []);
+  }, [language, languageResolved]);
 
   return snapshot;
 }

@@ -179,7 +179,7 @@ test.describe('real phone layout', () => {
       // The home page fetches /api/reviews after mount. A hard navigation while that request is
       // still pending makes WebKit report the cancelled fetch as a page error ("due to access
       // control checks"), which the page-error guard would count as a crash; let it settle first.
-      const reviewsSettled = route === '/' ? page.waitForResponse((response) => response.url().endsWith('/api/reviews')) : null;
+      const reviewsSettled = route === '/' ? page.waitForResponse((response) => response.url().includes('/api/reviews')) : null;
       await page.goto(route);
       await expect(chrome.homeLink()).toBeVisible();
       if (reviewsSettled) await reviewsSettled;

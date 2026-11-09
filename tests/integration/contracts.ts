@@ -308,13 +308,22 @@ export const scheduleOptimizationPreview = z.strictObject({
   rationale: z.string().min(1),
 });
 
+const reviewLanguage = z.enum(['he', 'en', 'ru', 'fr', 'ar', 'es']);
+
 const googleReview = z.strictObject({
   id: z.string().min(1),
   author: z.string().min(1),
+  // Author attribution links only ever point at https (Google Maps profile and lh3 photo), or are absent.
+  authorUrl: z.url().startsWith('https://').nullable(),
+  authorPhotoUrl: z.url().startsWith('https://lh3.googleusercontent.com/').nullable(),
   rating: z.number().min(0).max(5),
   quote: z.string().min(1),
   relativeTime: z.string(),
-  language: z.enum(['he', 'en', 'ru', 'fr', 'ar', 'es']),
+  // RFC 3339 from Google, or empty when Google supplied no publish time.
+  publishedAt: z.union([isoDateTime, z.literal('')]),
+  language: reviewLanguage,
+  // Present only when Google translated the review: the text as written, so a reader can switch to it.
+  original: z.strictObject({ text: z.string().min(1), language: reviewLanguage }).nullable(),
   characterCount: z.number().int().positive(),
   highlightPill: z.string().optional(),
 });
@@ -322,6 +331,7 @@ const googleReview = z.strictObject({
 export const reviewsSnapshot = z.strictObject({
   lastUpdated: isoDateTime,
   source: z.string().min(1),
+  language: reviewLanguage,
   overallRating: z.number().min(0).max(5),
   totalReviewsCount: nonNegativeInt,
   directReviewsUrl: z.url(),

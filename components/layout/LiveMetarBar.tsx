@@ -4,7 +4,9 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { ChevronDown, ExternalLink, Star, X } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n/language-context';
 import type { Language } from '@/lib/i18n/translations';
+import { reviewDirection } from '@/lib/reviews/review-language';
 import { useGoogleReviews, type LiveGoogleReviewsSnapshot } from '@/lib/reviews/use-google-reviews';
+import { displayedReviewText, ReviewMeta } from '@/components/reviews/ReviewMeta';
 import { LanguageSelector } from './LanguageSelector';
 import { SOCIAL_CHANNELS } from './social-channels';
 import { WhatsAppAction } from './WhatsAppAction';
@@ -19,7 +21,16 @@ interface ReviewsBarCopy {
   rating: (rating: string, count: string) => string;
   individualRating: (rating: number) => string;
   review: (current: number, total: number) => string;
+  translatedByGoogle: string;
+  showOriginal: string;
+  showTranslation: string;
+  orderingNotice: string;
+  policyNote: string;
+  policyLink: string;
+  authorProfile: (name: string) => string;
 }
+
+const GOOGLE_REVIEW_POLICY_URL = 'https://support.google.com/contributionpolicy/answer/7400114';
 
 const REVIEWS_BAR_COPY: Record<Language, ReviewsBarCopy> = {
   en: {
@@ -32,6 +43,13 @@ const REVIEWS_BAR_COPY: Record<Language, ReviewsBarCopy> = {
     rating: (rating, count) => `${rating} stars from ${count} Google reviews`,
     individualRating: (rating) => `${rating} out of 5 stars`,
     review: (current, total) => `Review ${current} of ${total}`,
+    translatedByGoogle: 'Translated by Google',
+    showOriginal: 'Show original',
+    showTranslation: 'Show translation',
+    orderingNotice: 'Google’s five most relevant reviews, newest first.',
+    policyNote: 'Reviews are not verified by Google; Google removes fake content it identifies.',
+    policyLink: 'Google review policy',
+    authorProfile: (name) => `Open ${name}’s Google profile`,
   },
   he: {
     sectionLabel: 'ביקורות Google וקישורים מהירים',
@@ -43,6 +61,13 @@ const REVIEWS_BAR_COPY: Record<Language, ReviewsBarCopy> = {
     rating: (rating, count) => `${rating} כוכבים מתוך ${count} ביקורות Google`,
     individualRating: (rating) => `${rating} מתוך 5 כוכבים`,
     review: (current, total) => `ביקורת ${current} מתוך ${total}`,
+    translatedByGoogle: 'תורגם על ידי Google',
+    showOriginal: 'הצגת המקור',
+    showTranslation: 'הצגת התרגום',
+    orderingNotice: 'חמש הביקורות הרלוונטיות ביותר לפי Google, מהחדשה לישנה.',
+    policyNote: 'הביקורות אינן מאומתות על ידי Google; Google מסירה תוכן מזויף שהיא מזהה.',
+    policyLink: 'מדיניות הביקורות של Google',
+    authorProfile: (name) => `לפרופיל Google של ${name}`,
   },
   ru: {
     sectionLabel: 'Отзывы Google и быстрые ссылки',
@@ -54,6 +79,13 @@ const REVIEWS_BAR_COPY: Record<Language, ReviewsBarCopy> = {
     rating: (rating, count) => `${rating} звезды: ${count} отзывов Google`,
     individualRating: (rating) => `${rating} из 5 звёзд`,
     review: (current, total) => `Отзыв ${current} из ${total}`,
+    translatedByGoogle: 'Переведено Google',
+    showOriginal: 'Показать оригинал',
+    showTranslation: 'Показать перевод',
+    orderingNotice: 'Пять самых релевантных отзывов по версии Google, сначала новые.',
+    policyNote: 'Google не проверяет отзывы, но удаляет выявленный поддельный контент.',
+    policyLink: 'Правила Google для отзывов',
+    authorProfile: (name) => `Открыть профиль Google: ${name}`,
   },
   fr: {
     sectionLabel: 'Avis Google et liens rapides',
@@ -65,6 +97,13 @@ const REVIEWS_BAR_COPY: Record<Language, ReviewsBarCopy> = {
     rating: (rating, count) => `${rating} étoiles sur ${count} avis Google`,
     individualRating: (rating) => `${rating} sur 5 étoiles`,
     review: (current, total) => `Avis ${current} sur ${total}`,
+    translatedByGoogle: 'Traduit par Google',
+    showOriginal: 'Afficher l’original',
+    showTranslation: 'Afficher la traduction',
+    orderingNotice: 'Les cinq avis les plus pertinents selon Google, du plus récent au plus ancien.',
+    policyNote: 'Les avis ne sont pas vérifiés par Google ; Google supprime les faux contenus qu’il détecte.',
+    policyLink: 'Règles Google relatives aux avis',
+    authorProfile: (name) => `Ouvrir le profil Google de ${name}`,
   },
   ar: {
     sectionLabel: 'تقييمات Google وروابط سريعة',
@@ -76,6 +115,13 @@ const REVIEWS_BAR_COPY: Record<Language, ReviewsBarCopy> = {
     rating: (rating, count) => `${rating} نجوم من ${count} تقييمات Google`,
     individualRating: (rating) => `${rating} من 5 نجوم`,
     review: (current, total) => `التقييم ${current} من ${total}`,
+    translatedByGoogle: 'ترجمة Google',
+    showOriginal: 'عرض النص الأصلي',
+    showTranslation: 'عرض الترجمة',
+    orderingNotice: 'أكثر خمسة تقييمات صلةً بحسب Google، الأحدث أولًا.',
+    policyNote: 'لا تتحقق Google من التقييمات، لكنها تزيل المحتوى المزيف الذي ترصده.',
+    policyLink: 'سياسة التقييمات في Google',
+    authorProfile: (name) => `فتح ملف ${name} على Google`,
   },
   es: {
     sectionLabel: 'Reseñas de Google y enlaces rápidos',
@@ -87,6 +133,13 @@ const REVIEWS_BAR_COPY: Record<Language, ReviewsBarCopy> = {
     rating: (rating, count) => `${rating} estrellas de ${count} reseñas de Google`,
     individualRating: (rating) => `${rating} de 5 estrellas`,
     review: (current, total) => `Reseña ${current} de ${total}`,
+    translatedByGoogle: 'Traducido por Google',
+    showOriginal: 'Mostrar original',
+    showTranslation: 'Mostrar traducción',
+    orderingNotice: 'Las cinco reseñas más relevantes según Google, de la más reciente a la más antigua.',
+    policyNote: 'Google no verifica las reseñas; elimina el contenido falso que detecta.',
+    policyLink: 'Política de reseñas de Google',
+    authorProfile: (name) => `Abrir el perfil de Google de ${name}`,
   },
 };
 
@@ -145,10 +198,6 @@ function RatingRow({ snapshot, language, formattedCount }: { snapshot: LiveGoogl
   );
 }
 
-function reviewDirection(language: Language): 'rtl' | 'ltr' {
-  return language === 'he' || language === 'ar' ? 'rtl' : 'ltr';
-}
-
 function localeFor(language: Language): string {
   return (
     {
@@ -173,6 +222,7 @@ export function LiveMetarBar() {
   const copy = REVIEWS_BAR_COPY[language];
   const snapshot = useGoogleReviews();
   const [isOpen, setIsOpen] = useState(false);
+  const [originals, setOriginals] = useState<Record<string, boolean>>({});
   const reviewsPanelId = useId();
   const triggerRef = useRef<HTMLButtonElement>(null);
   const reviews = snapshot.reviews.slice(0, 10);
@@ -255,6 +305,7 @@ export function LiveMetarBar() {
                   <div>
                     <h2 className="text-sm font-semibold text-white">{copy.heading}</h2>
                     <p className="mt-0.5 text-xs text-slate-400">{copy.rating(snapshot.overallRating.toFixed(1), formattedCount)}</p>
+                    <p data-reviews-ordering className="mt-0.5 text-[11px] text-slate-400">{copy.orderingNotice}</p>
                   </div>
                   <button
                     type="button"
@@ -272,6 +323,8 @@ export function LiveMetarBar() {
                 <ol className="grid gap-2.5">
                   {dropdownReviews.map((review, index) => {
                     const filledStars = Math.max(0, Math.min(5, Math.round(review.rating)));
+                    const showOriginal = Boolean(originals[review.id]);
+                    const shown = displayedReviewText(review, showOriginal);
                     return (
                       <li key={review.id}>
                         <article className="rounded-xl border border-slate-800 bg-slate-900/80 p-3.5">
@@ -287,14 +340,18 @@ export function LiveMetarBar() {
                             </div>
                             <span className="shrink-0 text-[11px] text-slate-400">{copy.review(index + 1, dropdownReviews.length)}</span>
                           </div>
-                          <blockquote className="mt-2.5 line-clamp-3 text-sm leading-relaxed text-slate-200" lang={review.language} dir={reviewDirection(review.language)}>
-                            “{review.quote}”
+                          <blockquote className="mt-2.5 line-clamp-3 text-sm leading-relaxed text-slate-200" lang={shown.language} dir={reviewDirection(shown.language)}>
+                            “{shown.text}”
                           </blockquote>
-                          <footer className="mt-2.5 flex flex-wrap items-baseline gap-x-2 border-t border-slate-800 pt-2.5">
-                            <p className="text-xs font-semibold text-white" lang={review.language} dir={reviewDirection(review.language)}>{review.author}</p>
-                            {review.relativeTime ? (
-                              <p className="text-[11px] text-slate-400" lang={review.language} dir={reviewDirection(review.language)}>{review.relativeTime}</p>
-                            ) : null}
+                          <footer className="mt-2.5 border-t border-slate-800 pt-2.5">
+                            <ReviewMeta
+                              review={review}
+                              language={language}
+                              copy={copy}
+                              size="sm"
+                              showOriginal={showOriginal}
+                              onToggleOriginal={() => setOriginals((state) => ({ ...state, [review.id]: !state[review.id] }))}
+                            />
                           </footer>
                         </article>
                       </li>
@@ -311,6 +368,12 @@ export function LiveMetarBar() {
                   <span>{copy.readAll}</span>
                   <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
                 </a>
+                <p className="mt-1 px-2 text-[11px] text-slate-400">
+                  {copy.policyNote}{' '}
+                  <a href={GOOGLE_REVIEW_POLICY_URL} target="_blank" rel="noopener noreferrer" className="underline underline-offset-4 hover:text-slate-300">
+                    {copy.policyLink}
+                  </a>
+                </p>
               </div>
             </section>
           ) : null}

@@ -163,7 +163,7 @@ describe('PATCH /api/vouchers (admin redemption)', () => {
 
   it('refuses to redeem a gift voucher whose purchase is still unpaid with 409', async () => {
     const app = await loadApp({ stripe: 'mocked' });
-    expect((await postCheckout(app, voucherCheckoutBody({ amountIls: 600 }))).status).toBe(201);
+    expect((await postCheckout(app, voucherCheckoutBody({ amountIls: 500 }))).status).toBe(201);
     const pending = await app.store.getVoucherById(app.checkoutSessions[0].voucherId ?? '');
 
     const response = await redeem(app, { code: pending?.code, amount: 1 });

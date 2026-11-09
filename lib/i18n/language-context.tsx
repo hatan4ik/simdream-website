@@ -17,6 +17,8 @@ interface LanguageContextType {
   isRTL: boolean;
   t: typeof translations['en'];
   currentLanguageInfo: LanguageInfo;
+  /** False until the saved preference has been read after mount; language-keyed fetches wait for it. */
+  languageResolved: boolean;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -92,6 +94,7 @@ export function LanguageProvider({
         isRTL,
         t,
         currentLanguageInfo,
+        languageResolved: preferenceResolved,
       }}
     >
       <div dir={dir} className={isRTL ? 'font-hebrew' : ''}>
