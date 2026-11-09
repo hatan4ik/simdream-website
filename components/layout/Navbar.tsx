@@ -69,6 +69,7 @@ export function Navbar() {
     { name: t.nav.simulator, href: '/pro' },
     { name: t.nav.workshops, href: '/workshops' },
     { name: t.nav.vouchers, href: '/vouchers' },
+    { name: t.nav.blog, href: '/blog' },
     { name: t.nav.contact, href: '/contact' },
   ];
 
@@ -108,6 +109,7 @@ export function Navbar() {
       items: [
         { name: t.nav.contact, href: '/contact' },
         { name: t.nav.about, href: '/about' },
+        { name: t.nav.blog, href: '/blog' },
       ],
     },
     {

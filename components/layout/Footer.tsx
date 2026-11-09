@@ -146,6 +146,11 @@ export function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/blog" className="hover:text-sky-400 transition-colors">
+                  {t.nav.blog}
+                </Link>
+              </li>
+              <li>
                 <Link href="/rules" className="hover:text-sky-400 transition-colors flex items-center gap-1.5 text-slate-300">
                   <FileText className="w-3.5 h-3.5 text-sky-400 shrink-0" />
                   <span>{t.footer.termsRules}</span>
