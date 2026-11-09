@@ -31,7 +31,7 @@ jobs:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           set -euo pipefail
-          git fetch --no-tags --depth=1 origin "${BASE_REF}:refs/remotes/origin/${BASE_REF}"
+          git fetch --no-tags origin "${BASE_REF}:refs/remotes/origin/${BASE_REF}"
           if git merge-tree --write-tree "origin/$BASE_REF" "$HEAD_SHA" > "$RUNNER_TEMP/merge-tree.txt" 2>&1; then
             echo 'Local Git merge-tree is clean.'
           else
