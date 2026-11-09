@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.12.0](https://github.com/hatan4ik/simdream-website/compare/v1.11.0...v1.12.0) (2026-11-09)
+
+
+### Features
+
+* **wix-blog:** enhance migration script with batching and local CLI auth ([#81](https://github.com/hatan4ik/simdream-website/issues/81)) ([b15e06c](https://github.com/hatan4ik/simdream-website/commit/b15e06c985ca33d87b60348eac367468ab8a6fb4))
+
 ## [1.11.0](https://github.com/hatan4ik/simdream-website/compare/v1.10.1...v1.11.0) (2026-11-09)
 
 
