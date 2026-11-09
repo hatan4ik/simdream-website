@@ -9,15 +9,22 @@ import {
 } from './google-reviews-source';
 import { readReviewsSnapshot, saveReviewsSnapshot } from './reviews-snapshot-store';
 import type { ReviewLanguage } from './review-language';
+import { snapshotWindowId } from './snapshot-window';
 
 export type { GoogleReview, StoredReviewsSnapshot } from './google-reviews-source';
 
 /**
- * Visitors never reach Google. `GET /api/reviews` serves the stored snapshot that the twice-daily
- * refresh (06:00 and 17:00 Israel time, `.github/workflows/google-reviews-snapshot.yml` calling
- * `POST /api/reviews/refresh`) wrote to the snapshot store. This module only memoises that stored
- * row per process for a minute so a busy page does not read the database on every request; the
- * memo is dropped as soon as this process writes a new snapshot.
+ * `GET /api/reviews` serves the snapshot that the twice-daily refresh (06:00 and 17:00 Israel time,
+ * `.github/workflows/google-reviews-snapshot.yml` calling `POST /api/reviews/refresh`) wrote to the
+ * snapshot store; that stored row is memoised per process for a minute so a busy page does not
+ * read the database on every request, and the memo is dropped as soon as this process writes a
+ * new snapshot.
+ *
+ * Without a stored snapshot (no refresh yet, or no snapshot store at all, which is the case on a
+ * Wix site with no Supabase variables) the server keeps the same cadence itself: it reads Google
+ * once per process per window (`snapshotWindowId()`, the 06:00 and 17:00 Israel boundaries) with
+ * the same newest-first source, and serves that read until the next boundary. Visitors therefore
+ * always see live, newest-first reviews; the stored snapshot only removes the per-process reads.
  */
 const READ_MEMO_TTL_MS = 60 * 1000;
 
@@ -41,6 +48,8 @@ export class ReviewsNotConfiguredError extends Error {
 }
 
 let memo: { readAt: number; snapshot: StoredReviewsSnapshot | null } | null = null;
+let liveWindow: { windowId: string; snapshot: StoredReviewsSnapshot } | null = null;
+let liveInFlight: Promise<StoredReviewsSnapshot | null> | null = null;
 
 function unavailableSnapshot(now: number, language: ReviewLanguage, reason: string): GoogleReviewsSnapshot {
   return {
@@ -74,20 +83,58 @@ async function storedSnapshot(now: number): Promise<StoredReviewsSnapshot | null
 }
 
 /**
- * The stored snapshot in the page language; never a Google call. Without a stored snapshot (or
- * with storage unavailable) it reports zeros and no reviews, and the browser shows its labelled
- * last-known rating instead.
+ * One Google read per process per 06:00/17:00 Israel window, shared by concurrent requests. A
+ * refused read keeps the previous window's snapshot (stale beats empty); the first read in a cold
+ * process that Google refuses yields null.
+ */
+async function liveWindowSnapshot(now: number): Promise<StoredReviewsSnapshot | null> {
+  const key = configuredPlacesKey();
+  if (!key) return null;
+  const windowId = snapshotWindowId(new Date(now));
+  if (liveWindow?.windowId === windowId) return liveWindow.snapshot;
+  if (liveInFlight) return liveInFlight;
+  liveInFlight = fetchNewestGoogleReviews({ key, now: new Date(now) })
+    .then((snapshot) => {
+      liveWindow = {
+        windowId,
+        snapshot: { ...snapshot, source: `${snapshot.source} (read by this server for the ${windowId} Israel window; no snapshot store)` },
+      };
+      return liveWindow.snapshot;
+    })
+    .catch((error: unknown) => {
+      console.warn('Google reviews window read failed; serving the previous window if any', error instanceof Error ? error.message : error);
+      return liveWindow?.snapshot ?? null;
+    })
+    .finally(() => {
+      liveInFlight = null;
+    });
+  return liveInFlight;
+}
+
+/**
+ * The snapshot in the page language: the stored twice-daily snapshot when one exists, otherwise
+ * this server's own once-per-window Google read. Only with no Places key, or when Google refuses
+ * the very first read, does it report zeros and no reviews, and the browser then shows its labelled
+ * last-known rating instead. Never throws.
  */
 export async function getCachedGoogleReviews(language: ReviewLanguage = 'en'): Promise<GoogleReviewsSnapshot> {
   const now = Date.now();
+  let storeUnavailable = false;
   try {
     const stored = await storedSnapshot(now);
     if (stored) return toSnapshot(stored, language);
-    return unavailableSnapshot(now, language, 'No Google reviews snapshot has been stored yet; no review data is served.');
   } catch (error) {
-    console.warn('Google reviews snapshot is unavailable; no review data is served', error instanceof Error ? error.message : error);
-    return unavailableSnapshot(now, language, 'Google reviews snapshot storage is unavailable; no review data is served.');
+    storeUnavailable = true;
+    console.warn('Google reviews snapshot store is unavailable; reading Google once per window instead', error instanceof Error ? error.message : error);
   }
+  const live = await liveWindowSnapshot(now);
+  if (live) return toSnapshot(live, language);
+  if (!configuredPlacesKey()) {
+    return unavailableSnapshot(now, language, storeUnavailable
+      ? 'Google reviews snapshot storage is unavailable and GOOGLE_PLACES_API_KEY is not configured; no review data is served.'
+      : 'No Google reviews snapshot has been stored yet and GOOGLE_PLACES_API_KEY is not configured; no review data is served.');
+  }
+  return unavailableSnapshot(now, language, 'Google refused the reviews read for this window; no review data is served until the next window.');
 }
 
 /**
@@ -101,6 +148,7 @@ export async function refreshGoogleReviewsSnapshot(now = new Date()): Promise<St
   const snapshot = await fetchNewestGoogleReviews({ key, now });
   await saveReviewsSnapshot(snapshot);
   memo = { readAt: now.getTime(), snapshot };
+  liveWindow = null;
   return snapshot;
 }
 
