@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.0](https://github.com/hatan4ik/simdream-website/compare/v1.8.0...v1.9.0) (2026-11-09)
+
+
+### Features
+
+* **vouchers:** sell gift cards and certificates only at fixed amounts, no custom sum ([#67](https://github.com/hatan4ik/simdream-website/issues/67)) ([c6a696c](https://github.com/hatan4ik/simdream-website/commit/c6a696c12a84793bb1998e53022b650969e3eecf))
+
 ## [1.8.0](https://github.com/hatan4ik/simdream-website/compare/v1.7.0...v1.8.0) (2026-11-09)
 
 
