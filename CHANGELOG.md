@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.10.1](https://github.com/hatan4ik/simdream-website/compare/v1.10.0...v1.10.1) (2026-11-09)
+
+
+### Bug Fixes
+
+* **vouchers:** show the live preview after the amount choice on phones ([#74](https://github.com/hatan4ik/simdream-website/issues/74)) ([05144d4](https://github.com/hatan4ik/simdream-website/commit/05144d4697ddab98afe32db9daac4ae7898296e7))
+
 ## [1.10.0](https://github.com/hatan4ik/simdream-website/compare/v1.9.1...v1.10.0) (2026-11-09)
 
 
