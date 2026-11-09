@@ -25,6 +25,7 @@ export const FACILITY_INFO = {
   },
   address: {
     streetEn: 'Gershon Shatz St 36',
+    postalCode: '6701772',
     cityEn: 'Tel Aviv-Yafo, 6701772, Israel',
     neighborhoodEn: 'Montefiore Quarter (Near Yehudit Light Rail & HaShalom Train)',
     streetHe: 'גרשון ש"ץ 36',

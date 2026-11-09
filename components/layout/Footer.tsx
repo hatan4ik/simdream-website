@@ -117,6 +117,11 @@ export function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/fear-of-flying" className="hover:text-sky-400 transition-colors">
+                  {t.nav.fearOfFlying}
+                </Link>
+              </li>
+              <li>
                 <Link href="/vouchers" className="hover:text-sky-400 transition-colors text-sky-400 font-semibold">
                   {t.nav.vouchers} &rarr;
                 </Link>
@@ -143,6 +148,11 @@ export function Footer() {
               <li>
                 <Link href="/workshops" className="hover:text-sky-400 transition-colors">
                   {t.nav.workshops}
+                </Link>
+              </li>
+              <li>
+                <Link href="/blog" className="hover:text-sky-400 transition-colors">
+                  {t.nav.blog}
                 </Link>
               </li>
               <li>

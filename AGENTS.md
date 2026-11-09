@@ -176,3 +176,14 @@ Before completing any feature or code change:
 8. Verify member authentication & dashboard localization across all 6 languages (`tests/usability/member-i18n.spec.ts`).
 9. Verify iPhone/iPad behaviour (`tests/usability/apple-web-app.spec.ts`, the 320px test in `tests/e2e/mobile.spec.ts`): `viewport-fit=cover` with pinch zoom intact, safe-area utilities (`pb-safe-area-*`, `px-safe-area-*`, `bottom-safe-area-*`) on sticky bars, dialogs and the footer, `overflow-x: clip` (never `hidden`, which detaches the sticky navbar on iOS), the 48px coarse-pointer control floor with 8px calendar/slot gaps and a 12px phone text floor (Material and Lighthouse; Apple asks 44px), an opaque 180px `app/apple-icon.png` and the manifest icons regenerated with `node scripts/generate-app-icons.mjs` whenever the brand mark changes. Recipes: `npx skills add https://github.com/joe-bell/skills --skill apple-web-app`.
 10. Run the automated quality framework ([`TESTING.md`](TESTING.md)): `npm run test:quick` for every change, `npm run test:all` before completing a feature. The accessibility baseline must stay empty (0 axe violations) and visual baselines change only on purpose.
+
+---
+
+## 8. Structured Data & SEO Facts
+
+Search engines and AI assistants quote whatever the site publishes about itself, so every published fact must be the registry's fact:
+1. **No hand-typed prices, hours or ratings**: JSON-LD, page metadata ([`lib/seo/seo-config.ts`](lib/seo/seo-config.ts)) and `public/llms.txt` take prices and durations from `SIMULATOR_PACKAGES` / `FLIGHT_ADDONS`, hours, address, contact and social URLs from [`lib/config/facility-info.ts`](lib/config/facility-info.ts) (operating window 09:00–24:00; schema.org `Time` writes an end-of-day close as `23:59`), and languages from `LANGUAGES`. Never retype a number a registry already owns.
+2. **One site-wide graph**: [`lib/seo/structured-data.ts`](lib/seo/structured-data.ts) builds the `@graph` that [`components/seo/StructuredDataJsonLd.tsx`](components/seo/StructuredDataJsonLd.tsx) renders once in the root layout (LocalBusiness, offer catalogues including an `Offer` for each PRO tier, WebSite with all six `inLanguage` tags). `sameAs` lists Google Maps, the alternate domain, WhatsApp and the three social profiles from the facility config.
+3. **FAQPage only beside a visible FAQ**: emit [`components/seo/FaqPageJsonLd.tsx`](components/seo/FaqPageJsonLd.tsx) inside the FAQ section of the route, passing the exact array that section maps over in the visitor's language. Never add FAQPage to the root layout or to a route without the same questions and answers on screen.
+4. **Ratings are never hard-coded**: no `aggregateRating` or `review` in any schema; Google's own numbers reach the page only through the review bar (§1.7).
+5. `tests/unit/seo-integrity.test.ts` renders the graph and enforces all of the above, and keeps the CSP `img-src` in step with the blog cover hosts.

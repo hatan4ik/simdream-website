@@ -70,6 +70,8 @@ export function Navbar() {
     { name: t.nav.workshops, href: '/workshops' },
     { name: t.nav.vouchers, href: '/vouchers' },
     { name: t.nav.contact, href: '/contact' },
+    { name: t.nav.fearOfFlying, href: '/fear-of-flying' },
+    { name: t.nav.blog, href: '/blog' },
   ];
 
   const socialLinks: NavigationItem[] = SOCIAL_CHANNELS.map(({ name, href, icon, iconClassName }) => ({
@@ -92,6 +94,7 @@ export function Navbar() {
         { name: t.nav.experiences, href: '/experiences' },
         { name: t.nav.subscriptions, href: '/subscriptions' },
         { name: t.nav.vouchers, href: '/vouchers' },
+        { name: t.nav.fearOfFlying, href: '/fear-of-flying' },
       ],
     },
     {
@@ -108,6 +111,7 @@ export function Navbar() {
       items: [
         { name: t.nav.contact, href: '/contact' },
         { name: t.nav.about, href: '/about' },
+        { name: t.nav.blog, href: '/blog' },
       ],
     },
     {

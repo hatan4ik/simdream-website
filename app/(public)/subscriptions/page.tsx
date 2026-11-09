@@ -34,6 +34,8 @@ import {
   SUBSCRIPTION_SECTION_COPY,
 } from '@/lib/data/subscription-passes';
 import { SUBSCRIPTION_PAGE_COPY } from '@/lib/data/subscription-page-copy';
+import { FaqPageJsonLd } from '@/components/seo/FaqPageJsonLd';
+import { PAGE_SEO_DEFINITIONS } from '@/lib/seo/seo-config';
 import { WixMemberSubscriptionPanel } from '@/components/wix/WixMemberSubscriptionPanel';
 import { useAuth } from '@/lib/auth/auth-context';
 import { getWixMemberClient } from '@/lib/wix/member-client';
@@ -86,6 +88,8 @@ export default function SubscriptionsPage() {
   };
 
   const pageCopy = SUBSCRIPTION_PAGE_COPY[language] || SUBSCRIPTION_PAGE_COPY.en;
+  // The FAQ markup must name the language of the strings actually shown (English fallback included).
+  const pageCopyLanguage = SUBSCRIPTION_PAGE_COPY[language] ? language : 'en';
   const sectionCopy = SUBSCRIPTION_SECTION_COPY[language] || SUBSCRIPTION_SECTION_COPY.en;
   const localizedAddons = getLocalizedAddons(language);
 
@@ -441,6 +445,12 @@ export default function SubscriptionsPage() {
 
       {/* 6. GOOGLE-STYLE EXPANDABLE FAQ ACCORDION */}
       <section className="max-w-3xl mx-auto space-y-8 pt-4">
+        {/* FAQPage markup from the very array rendered below, in the visitor's language (AGENTS.md §8). */}
+        <FaqPageJsonLd
+          url={`${FACILITY_INFO.primaryDomain}${PAGE_SEO_DEFINITIONS.subscriptions.path}`}
+          language={pageCopyLanguage}
+          faqs={pageCopy.faqs}
+        />
         <div className="text-center space-y-2">
           <div className="inline-flex items-center gap-1.5 text-sky-400 text-xs font-mono uppercase tracking-wider">
             <HelpCircle className="w-4 h-4" />
