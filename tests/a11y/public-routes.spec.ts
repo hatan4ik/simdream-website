@@ -4,7 +4,7 @@ import { expectLanguageRendered, gotoSettled, isolateFromThirdParties } from '..
 import { expectAxeBaseline } from './support/axe-baseline';
 import { publicScanKey, PUBLIC_SCAN_LANGUAGES, SCAN_THEMES } from './support/scan-keys';
 
-// Reduced motion stops the review carousel, so every scan sees the same reviews.
+// Reduced motion keeps decorative animation still, so every scan sees the same page.
 test.use({ reducedMotion: 'reduce', video: 'off' });
 // Full-page axe runs are CPU-heavy; allow for a loaded CI machine.
 test.describe.configure({ timeout: 120_000 });

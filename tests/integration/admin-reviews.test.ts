@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { DEFAULT_TEST_NOW, loadApp, type TestApp } from '../support/app';
 import { apiRequest, readJson } from '../support/http';
 import { adminRequest, EMPTY_DAY, PRIVATE_NO_STORE } from './api-helpers';
@@ -106,7 +106,7 @@ describe('POST /api/admin/schedule-optimization', () => {
 });
 
 describe('GET /api/reviews', () => {
-  it('serves the review snapshot publicly with a one-minute shared cache so each page open shows the current count', async () => {
+  it('serves the stored review snapshot publicly with a one-minute shared cache, and zeros while none is stored', async () => {
     const app = await loadApp();
     const { GET } = await app.routes.reviews();
 
@@ -115,7 +115,7 @@ describe('GET /api/reviews', () => {
     expect(response.status).toBe(200);
     expect(response.headers.get('cache-control')).toBe('public, s-maxage=60, stale-while-revalidate=30');
     const snapshot = expectContract(reviewsSnapshot, response.body);
-    expect(snapshot.source).toMatch(/not configured/);
+    expect(snapshot.source).toMatch(/No Google reviews snapshot has been stored yet/);
     expect(snapshot).toMatchObject({ language: 'en', overallRating: 0, totalReviewsCount: 0, reviews: [] });
   });
 
@@ -145,20 +145,80 @@ describe('POST /api/reviews (admin sync)', () => {
     expectContract(errorBody, response.body);
   });
 
-  it('refreshes the snapshot for an admin and reports what was synced', async () => {
+  it('reports the stored state to an admin, marked unrefreshed while no Places key is configured', async () => {
     const app = await loadApp();
     const reviews = await app.routes.reviews();
 
     const response = await readJson(await reviews.POST(adminRequest('/api/reviews', { method: 'POST' })));
 
     expect(response.status).toBe(200);
+    expect(response.headers.get('cache-control')).toBe(PRIVATE_NO_STORE);
     const sync = expectContract(reviewsSync, response.body);
     const snapshot = expectContract(reviewsSnapshot, (await readJson(await reviews.GET(apiRequest('/api/reviews')))).body);
     expect(sync).toMatchObject({
+      refreshed: false,
       syncedAt: snapshot.lastUpdated,
       totalReviews: snapshot.totalReviewsCount,
       rating: snapshot.overallRating,
     });
     expect(sync.reviews).toEqual(snapshot.reviews);
+  });
+
+  const legacyPayload = (status: string, reviews: unknown[] = []) =>
+    new Response(JSON.stringify({ status, result: { rating: 4.9, user_ratings_total: 127, reviews } }), { status: 200 });
+
+  it('refreshes from Google for an admin when a key is configured, and reports Google refusals as 502', async () => {
+    const fetchSpy = vi.fn().mockImplementation(() => Promise.resolve(legacyPayload('OK')));
+    vi.stubGlobal('fetch', fetchSpy);
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    try {
+      const app = await loadApp({ env: { GOOGLE_PLACES_API_KEY: 'test-google-places-key' } });
+      const { POST } = await app.routes.reviews();
+
+      const synced = await readJson(await POST(adminRequest('/api/reviews', { method: 'POST' })));
+      fetchSpy.mockImplementation(() => Promise.resolve(legacyPayload('OVER_QUERY_LIMIT')));
+      const refused = await readJson(await POST(adminRequest('/api/reviews', { method: 'POST' })));
+
+      expect(synced.status).toBe(200);
+      expect(expectContract(reviewsSync, synced.body)).toMatchObject({ refreshed: true, totalReviews: 127, rating: 4.9 });
+      expect(refused.status).toBe(502);
+      expect(expectContract(errorBody, refused.body).error).toBe('Google Places refused the refresh.');
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it('answers 503 for an admin when production has no storage for the snapshot', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockImplementation(() => Promise.resolve(legacyPayload('OK'))));
+    vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    try {
+      const app = await loadApp({ env: { GOOGLE_PLACES_API_KEY: 'test-google-places-key', NODE_ENV: 'production', ALLOW_IN_MEMORY_STORE: '', NEXT_PUBLIC_APP_URL: 'https://simdream.test' } });
+      const { POST } = await app.routes.reviews();
+
+      const response = await readJson(await POST(adminRequest('/api/reviews', { method: 'POST' })));
+
+      expect(response.status).toBe(503);
+      expect(expectContract(errorBody, response.body).error).toBe('Google reviews refresh is unavailable.');
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it('answers a generic 500 without internals when the sync fails unexpectedly', async () => {
+    const app = await loadApp();
+    vi.doMock('@/lib/reviews/google-reviews-cache', async (importOriginal) => ({
+      ...(await importOriginal<typeof import('@/lib/reviews/google-reviews-cache')>()),
+      syncGoogleReviews: () => Promise.reject(new TypeError('unexpected at /srv/app/route.ts:12:5')),
+    }));
+    try {
+      const { POST } = await app.routes.reviews();
+
+      const response = await readJson(await POST(adminRequest('/api/reviews', { method: 'POST' })));
+
+      expect(response.status).toBe(500);
+      expect(expectContract(errorBody, response.body).error).toBe('Failed to sync Google reviews');
+    } finally {
+      vi.doUnmock('@/lib/reviews/google-reviews-cache');
+    }
   });
 });

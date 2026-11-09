@@ -180,6 +180,17 @@ CREATE TABLE IF NOT EXISTS public.flight_logs (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- Twice-daily Google reviews snapshot (migration 009): one row, replaced by POST /api/reviews/refresh.
+CREATE TABLE IF NOT EXISTS public.google_reviews_snapshot (
+  id INTEGER PRIMARY KEY CHECK (id = 1),
+  fetched_at TIMESTAMPTZ NOT NULL,
+  source TEXT NOT NULL CHECK (length(source) BETWEEN 1 AND 300),
+  overall_rating NUMERIC(2, 1) NOT NULL CHECK (overall_rating >= 0 AND overall_rating <= 5),
+  total_reviews_count INTEGER NOT NULL CHECK (total_reviews_count >= 0),
+  reviews_by_language JSONB NOT NULL DEFAULT '{}'::jsonb,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 CREATE OR REPLACE FUNCTION public.redeem_gift_voucher(p_code TEXT, p_amount NUMERIC)
 RETURNS SETOF public.gift_vouchers
 LANGUAGE plpgsql
@@ -212,6 +223,7 @@ ALTER TABLE public.bookings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.gift_vouchers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.corporate_inquiries ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.flight_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.google_reviews_snapshot ENABLE ROW LEVEL SECURITY;
 
 -- Public browser access is deliberately limited to active package catalog data.
 DROP POLICY IF EXISTS "Packages are publicly readable" ON public.packages;
@@ -231,5 +243,5 @@ DROP POLICY IF EXISTS "Admins can view and manage inquiries" ON public.corporate
 DROP POLICY IF EXISTS "Users can view own flight logs" ON public.flight_logs;
 DROP POLICY IF EXISTS "Admins can manage flight logs" ON public.flight_logs;
 
-REVOKE ALL ON public.bookings, public.gift_vouchers, public.corporate_inquiries, public.flight_logs FROM anon, authenticated;
+REVOKE ALL ON public.bookings, public.gift_vouchers, public.corporate_inquiries, public.flight_logs, public.google_reviews_snapshot FROM anon, authenticated;
 REVOKE EXECUTE ON FUNCTION public.redeem_gift_voucher(TEXT, NUMERIC) FROM PUBLIC, anon, authenticated;

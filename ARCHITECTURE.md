@@ -29,14 +29,14 @@ flowchart TD
         KantorovichEngine["Tiled Interval Scheduler Engine<br/>lib/scheduler/kantorovich-engine.ts"]
         MissionCalc["Mission Calculator<br/>Flight time + Addons + Voucher Manifest"]
         WixPlansResolver["Wix Pricing Plans Resolver<br/>lib/wix/plans.ts (Price & Pattern Matching)"]
-        ReviewsCache["Google Places Review Cache<br/>1m browser feed; no local fallback claims"]
+        ReviewsCache["Google Reviews Snapshot<br/>stored twice a day (06:00/17:00 Israel); no Google call per page view; no local fallback claims"]
     end
 
     subgraph APILayer["Next.js Serverless API Routes (14 Handlers)"]
         BookingAPIs["Booking & Capacity APIs<br/>GET /api/slots • GET /api/packages<br/>POST /api/checkout • POST /api/webhooks/stripe"]
         SubscriptionAPIs["Subscription Checkout API<br/>POST & GET /api/subscriptions/checkout"]
         MemberAPIs["Member Profile & Receipts<br/>GET /api/my-bookings • GET /api/my-bookings/[ref]/receipt<br/>POST /api/membership/bootstrap"]
-        OperationsAPIs["Operational Entities<br/>GET/PATCH /api/bookings • GET/POST/PATCH /api/vouchers<br/>GET/POST/PATCH /api/workshops • GET/POST /api/reviews"]
+        OperationsAPIs["Operational Entities<br/>GET/PATCH /api/bookings • GET/POST/PATCH /api/vouchers<br/>GET/POST/PATCH /api/workshops • GET/POST /api/reviews • POST /api/reviews/refresh (token)"]
         AdminAPIs["Admin Optimization<br/>GET /api/admin/schedule-efficiency • POST /api/admin/schedule-optimization"]
     end
 

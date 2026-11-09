@@ -340,6 +340,8 @@ export const reviewsSnapshot = z.strictObject({
 
 export const reviewsSync = z.strictObject({
   success: z.literal(true),
+  // False when no Places key is configured: the admin sees the stored state, not a pretended refresh.
+  refreshed: z.boolean(),
   syncedAt: isoDateTime,
   totalReviews: nonNegativeInt,
   rating: z.number().min(0).max(5),

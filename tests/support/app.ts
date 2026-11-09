@@ -19,7 +19,7 @@ export interface LoadAppOptions {
   stripeFailure?: Error;
 }
 
-type StoreGlobal = typeof globalThis & { __simDreamStoreV10?: unknown };
+type StoreGlobal = typeof globalThis & { __simDreamStoreV10?: unknown; __simDreamReviewsSnapshotV1?: unknown };
 
 /**
  * Loads the application's server modules with a fresh in-memory store, a frozen
@@ -31,6 +31,7 @@ export async function loadApp(options: LoadAppOptions = {}) {
   vi.doUnmock('@/lib/stripe');
   vi.doUnmock('@/lib/auth/request-auth');
   delete (globalThis as StoreGlobal).__simDreamStoreV10;
+  delete (globalThis as StoreGlobal).__simDreamReviewsSnapshotV1;
 
   if (options.now !== null) {
     vi.useFakeTimers({ toFake: ['Date'], now: new Date(options.now ?? DEFAULT_TEST_NOW) });
@@ -92,6 +93,7 @@ export async function loadApp(options: LoadAppOptions = {}) {
       myBookingReceipt: () => import('@/app/api/my-bookings/[bookingReference]/receipt/route'),
       packages: () => import('@/app/api/packages/route'),
       reviews: () => import('@/app/api/reviews/route'),
+      reviewsRefresh: () => import('@/app/api/reviews/refresh/route'),
       slots: () => import('@/app/api/slots/route'),
       stripeWebhook: () => import('@/app/api/webhooks/stripe/route'),
       vouchers: () => import('@/app/api/vouchers/route'),

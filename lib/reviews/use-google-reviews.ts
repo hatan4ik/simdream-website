@@ -81,10 +81,10 @@ function lastGoodSnapshot(language: ReviewLanguage): LiveGoogleReviewsSnapshot |
 
 /**
  * Fetch the public Google snapshot in the page language. A page load starts with an empty module
- * cache, so every open or refresh asks the server for the current rating and review count. The
- * utility bar and the home-page carousel share one request and one response per language, so their
- * numbers never disagree during a visit. A failed refresh keeps the last good numbers instead of
- * blanking them.
+ * cache, so every open or refresh asks the server for the stored rating and review count (the
+ * server never calls Google for a page view: it serves the twice-daily snapshot). One request and
+ * one response per language; the header utility bar is the only reader. A failed request keeps
+ * the last good numbers instead of blanking them.
  */
 export async function loadGoogleReviews(force = false, language: ReviewLanguage = 'en'): Promise<LiveGoogleReviewsSnapshot | null> {
   const cached = cachedSnapshots.get(language);

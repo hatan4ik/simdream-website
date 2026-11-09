@@ -336,7 +336,7 @@ test('shows each review\u2019s date and lets the reader switch between Google\u2
   await gotoSettled(page, '/');
   await page.locator('[data-google-reviews-trigger]').click();
   const panel = page.locator('[data-google-reviews-panel]');
-  await expect(panel.locator('[data-reviews-ordering]')).toHaveText('Google\u2019s five most relevant reviews, newest first.');
+  await expect(panel.locator('[data-reviews-ordering]')).toHaveText('The five newest Google reviews, newest first (updated twice a day).');
   const first = panel.getByRole('article').first();
   await expect(first.locator('time')).toHaveAttribute('datetime', '2026-11-01T10:00:00Z');
   await expect(first.locator('time')).toHaveText(/2026/);
