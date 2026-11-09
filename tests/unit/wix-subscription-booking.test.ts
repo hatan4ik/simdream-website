@@ -1,9 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { apiRequest, readJson } from '../support/http';
 
+const BOOKING_DATE = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
 const BOOKING_INPUT = {
   packageId: 'pkg-captain-60',
-  bookingDate: '2026-11-09',
+  bookingDate: BOOKING_DATE,
   startTime: '10:15',
 } as const;
 
@@ -22,8 +23,8 @@ describe('Wix subscription booking checkout slot', () => {
       timeSlots: [
         {
           serviceId: 'svc-captain-60',
-          localStartDate: '2026-11-09T10:15:00',
-          localEndDate: '2026-11-09T11:15:00',
+          localStartDate: `${BOOKING_DATE}T10:15:00`,
+          localEndDate: `${BOOKING_DATE}T11:15:00`,
           bookable: true,
         },
       ],
@@ -49,13 +50,13 @@ describe('Wix subscription booking checkout slot', () => {
 
     expect(listWixAvailability).toHaveBeenCalledWith({
       serviceId: 'svc-captain-60',
-      fromLocalDate: '2026-11-09T00:00:00',
-      toLocalDate: '2026-11-09T23:59:59',
+      fromLocalDate: `${BOOKING_DATE}T00:00:00`,
+      toLocalDate: `${BOOKING_DATE}T23:59:59`,
       includeResourceTypeIds: ['simulator-resource'],
     });
     expect(result).toEqual({
       timeZone: 'Asia/Jerusalem',
-      slotAvailability: expect.objectContaining({ localStartDate: '2026-11-09T10:15:00', bookable: true }),
+      slotAvailability: expect.objectContaining({ localStartDate: `${BOOKING_DATE}T10:15:00`, bookable: true }),
     });
   });
 
@@ -65,8 +66,8 @@ describe('Wix subscription booking checkout slot', () => {
         timeSlots: [
           {
             serviceId: 'svc-captain-60',
-            localStartDate: '2026-11-09T10:00:00',
-            localEndDate: '2026-11-09T11:00:00',
+            localStartDate: `${BOOKING_DATE}T10:00:00`,
+            localEndDate: `${BOOKING_DATE}T11:00:00`,
             bookable: true,
           },
         ],
