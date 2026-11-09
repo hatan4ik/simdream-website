@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.13.1](https://github.com/hatan4ik/simdream-website/compare/v1.13.0...v1.13.1) (2026-11-09)
+
+
+### Bug Fixes
+
+* **reviews:** keep live newest-first reviews in the header when no snapshot store exists ([#88](https://github.com/hatan4ik/simdream-website/issues/88)) ([27ed239](https://github.com/hatan4ik/simdream-website/commit/27ed239ee3cb8b1b3b970dfe4fc15d2d67cbcf29))
+
 ## [1.13.0](https://github.com/hatan4ik/simdream-website/compare/v1.12.0...v1.13.0) (2026-11-09)
 
 
