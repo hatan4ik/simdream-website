@@ -223,6 +223,32 @@ jobs:
           include-hidden-files: true
           retention-days: 3
 
+  # The Wix Worker is only built on a `main` push (wix-preview), so a bundle that
+  # grew past Wix's ~20 MB upload limit (HTTP 413) was first seen after merging.
+  # Build the exact artifact on every pull request and fail on the size budget in
+  # scripts/prepare-wix-worker.mjs; no Wix credential is involved (dry run only).
+  wix-bundle:
+    name: Wix Worker bundle budget
+    needs: [release-integrity]
+    if: needs.release-integrity.outputs.fast_path != 'true' && needs.release-integrity.outputs.docs_only != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - name: Build the Wix Worker artifact and check its size budget
+        run: |
+          set -o pipefail
+          npm run wix:build | tee wix-build.log
+          {
+            echo "### Wix Worker bundle"
+            grep -E 'Total Upload|Wix worker:' wix-build.log | sed 's/^/- /'
+          } >> "$GITHUB_STEP_SUMMARY"
+
   e2e:
     name: E2E (${{ matrix.project }})
     needs: [build, release-integrity]
@@ -432,7 +458,7 @@ jobs:
 
   report:
     name: Quality report
-    needs: [release-integrity, quality, secret-scan, build, e2e, e2e-webkit-shard, web-quality, web-quality-shards, load-smoke, lighthouse]
+    needs: [release-integrity, quality, secret-scan, build, wix-bundle, e2e, e2e-webkit-shard, web-quality, web-quality-shards, load-smoke, lighthouse]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -454,6 +480,7 @@ jobs:
           QUALITY: ${{ needs.quality.result }}
           SECRET_SCAN: ${{ needs.secret-scan.result }}
           BUILD: ${{ needs.build.result }}
+          WIX_BUNDLE: ${{ needs.wix-bundle.result }}
           E2E: ${{ needs.e2e.result }}
           E2E_WEBKIT_SHARD: ${{ needs.e2e-webkit-shard.result }}
           WEB_QUALITY: ${{ needs.web-quality.result }}
@@ -467,7 +494,7 @@ jobs:
           for gate in "$RELEASE_INTEGRITY" "$QUALITY" "$SECRET_SCAN" "$BUILD" "$E2E"; do
             test "$gate" = success || { echo "A required verification gate did not pass: $gate" >&2; exit 1; }
           done
-          for gate in "$E2E_WEBKIT_SHARD" "$WEB_QUALITY" "$WEB_QUALITY_SHARDS" "$LOAD_SMOKE" "$LIGHTHOUSE"; do
+          for gate in "$WIX_BUNDLE" "$E2E_WEBKIT_SHARD" "$WEB_QUALITY" "$WEB_QUALITY_SHARDS" "$LOAD_SMOKE" "$LIGHTHOUSE"; do
             if test "$FAST_PATH" = true || test "$DOCS_ONLY" = true; then
               test "$gate" = skipped || { echo "Expected inherited verification gate to be skipped: $gate" >&2; exit 1; }
             else

@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { Search, Compass, BookOpen } from 'lucide-react';
-import { BLOG_CATEGORIES, type BlogPost, type BlogCategory } from '@/lib/data/blog-posts';
+import { BLOG_CATEGORIES, type BlogPost, type BlogCategory } from '@/lib/data/blog-categories';
 import { BlogCard } from './BlogCard';
 
 interface BlogIndexViewProps {
