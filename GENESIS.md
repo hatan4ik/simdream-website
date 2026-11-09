@@ -183,7 +183,7 @@ Build **simdream.co.il**, the booking and marketing platform for **Sim Dream LTD
    - `/pro` is the single page for professional airline-assessment training.
    - `/about` is the customer story, kept separate from `/pro`.
   - `/simulator` and `/training` redirect permanently to `/pro`; `/aerophobia` (the live site's fear-of-flying page) redirects permanently to `/fear-of-flying`; `/book-online`, `/לקנות-כמתנה`, `/cooperation`, and `/pricing-plans/list` preserve their exact intent through permanent redirects to `/book`, `/vouchers`, `/workshops`, and `/subscriptions` respectively. Do not add broad legacy redirects until each legacy offering has an approved content/SKU mapping.
-   - Navigation, footer and sitemap point at canonical routes only. The indexable static routes live once in `lib/seo/site-routes.ts` (`PUBLIC_SITE_ROUTES`, `blogPostPath()`), read by both `app/sitemap.ts` and the generated `public/llms.txt`; `tests/unit/route-coverage.test.ts` fails when an `app/(public)` page is neither in the sitemap nor explicitly `noindex`, when the sitemap lists a `noindex`, redirecting or missing page, or when the 39 article slugs are not all present.
+   - Navigation, footer and sitemap point at canonical routes only, and every public marketing route is reachable from them: `/fear-of-flying` sits in the Flight Experiences menu group and footer column, `/blog` in the Location & Contact group and the Aviation & Corporate footer column (labels `t.nav.fearOfFlying`, `t.nav.blog`). The indexable static routes live once in `lib/seo/site-routes.ts` (`PUBLIC_SITE_ROUTES`, `blogPostPath()`), read by both `app/sitemap.ts` and the generated `public/llms.txt`; `tests/unit/route-coverage.test.ts` fails when an `app/(public)` page is neither in the sitemap nor explicitly `noindex`, when the sitemap lists a `noindex`, redirecting or missing page, or when the 39 article slugs are not all present.
 3. **Noise-free flow suppression.**
    - Professional Training and Fear of Flying bookings show zero add-ons and zero combos, in a 2-step flow: *Date & Slot → Pilot Manifest & Checkout*.
    - The default pilot level is `atpl` for training and `beginner` for fear of flying.
@@ -369,7 +369,7 @@ Add 3 curated one-click combos. Localize every package and add-on in all six lan
 - **SEO**:
   - per-page metadata and canonical URLs;
   - a sitemap of canonical routes, `robots.txt` disallowing `/admin` and `/api`, and an explicit `noindex, nofollow, noarchive` meta directive for every `*.wix-site-host.com` preview host;
-  - JSON-LD: WebSite, the local business (address, geo coordinates, opening hours, aggregate rating), an offer catalog, and an FAQ;
+  - JSON-LD (AGENTS.md §8): one site-wide `@graph` from `lib/seo/structured-data.ts`, rendered by `StructuredDataJsonLd` in the root layout — the WebSite (`inLanguage` for all six languages) and the local business (address, geo coordinates, opening hours derived from the 09:00–24:00 operating window, `priceRange` from the cheapest and most expensive package, `sameAs` for Google Maps, the alternate domain, WhatsApp and the three social profiles, an offer catalogue for the consumer and fear-of-flying packages and a second one with an `Offer` for each of the three PRO tiers, every price read from `SIMULATOR_PACKAGES`). It carries no aggregate rating and no FAQ: `FaqPageJsonLd` emits FAQPage markup only inside a visible FAQ section, from the same array that section renders in the visitor's language (today `/subscriptions`). `tests/unit/seo-integrity.test.ts` compares the rendered graph with the registries;
   - `noindex` on `/login` and on the post-checkout confirmations `/book/success` and `/subscriptions/thank-you` (a `layout.tsx` beside each client page carries the metadata);
   - `public/llms.txt`, the machine-readable business summary for AI assistants, is a generated file: `scripts/generate-llms-txt.ts` (`npm run llms:generate`, `--check` to verify) calls `buildLlmsTxt()` in `lib/seo/llms-txt.ts`, which prints the address, every-day hours (`FACILITY_INFO.hours.daily`), phone, rules and transit from `FACILITY_INFO`/`ROUTE_ORIGIN_PRESETS`, every package and add-on price and duration from `SIMULATOR_PACKAGES`/`FLIGHT_ADDONS`, the pages from `PUBLIC_SITE_ROUTES`, the 39 article URLs from the corpus, and the Google grade and count from `lib/reviews/last-known-rating.json` labelled "last known" with a link to the live Google profile — never a number typed by hand. The output carries no timestamp, so `tests/unit/llms-txt.test.ts` rebuilds it in memory and fails on any diff from the committed file.
 
@@ -377,7 +377,7 @@ Add 3 curated one-click combos. Localize every package and add-on in all six lan
 
 - Configure in `next.config.mjs`: `poweredByHeader: false`, the 301 redirects, and the headers below.
 - Headers: HSTS (`max-age=63072000; includeSubDomains`), `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` denying camera, microphone and geolocation.
-- `proxy.ts` generates a unique CSP nonce for every HTML response, forwards it through `x-nonce`, and emits `script-src 'self' 'nonce-…' 'strict-dynamic'`. Root-layout and JSON-LD scripts carry that nonce. This deliberately makes rendered pages dynamic; monitor the caching and latency trade-off.
+- `proxy.ts` generates a unique CSP nonce for every HTML response, forwards it through `x-nonce`, and emits `script-src 'self' 'nonce-…' 'strict-dynamic'`. Root-layout and JSON-LD scripts carry that nonce. `img-src` names only the remote image hosts the site really renders: Google's review avatars (`lh3.googleusercontent.com`) and the Wix media host of the blog covers (`static.wixstatic.com`); the SEO integrity test fails when a blog cover host is missing from it. This deliberately makes rendered pages dynamic; monitor the caching and latency trade-off.
 - Escape all user content in pages and emails. Never log secrets or payment metadata.
 
 #### Quality gates (automated; all must be green)
@@ -600,7 +600,7 @@ components/
   scheduler/ AmazonFlightStorefront KantorovichCalendarScheduler
   reviews/ReviewMeta               # header dropdown only; no page carousel
   about/AboutExperienceView  pro/ProSessionsView  fear-of-flying/FearOfFlyingView  blog/BlogCard BlogContentRenderer BlogConversionCta BlogIndexView  legal/ PrivacyPolicyContentView RulesContentView
-  seo/StructuredDataJsonLd  ui/ Button Card Badge
+  seo/ StructuredDataJsonLd FaqPageJsonLd  ui/ Button Card Badge
 lib/
   scheduler/ kantorovich-engine mission-calculator package-presentation tiled-interval-optimizer israel-clock booking-horizon
   booking/checkout-service checkout-ports checkout-composition checkout-runtime
