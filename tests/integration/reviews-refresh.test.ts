@@ -47,9 +47,15 @@ describe('POST /api/reviews/refresh', () => {
     expect(anonymous.headers.get('cache-control')).toBe('no-store');
     expectContract(errorBody, anonymous.body);
     expect(wrong.status).toBe(401);
-    expect(fetchSpy).not.toHaveBeenCalled();
-    const stored = await readJson(await (await app.routes.reviews()).GET(apiRequest('/api/reviews')));
-    expect(expectContract(reviewsSnapshot, stored.body).reviews).toEqual([]);
+    expect(fetchSpy, 'a refused refresh never reaches Google').not.toHaveBeenCalled();
+    // Without a stored snapshot a page view falls back to this server's own once-per-window read.
+    const served = await readJson(await (await app.routes.reviews()).GET(apiRequest('/api/reviews')));
+    const body = expectContract(reviewsSnapshot, served.body);
+    expect(body.reviews.length).toBeGreaterThan(0);
+    expect(body.source).toMatch(/no snapshot store/);
+    const callsAfterWindowRead = fetchSpy.mock.calls.length;
+    await (await app.routes.reviews()).GET(apiRequest('/api/reviews?lang=he'));
+    expect(fetchSpy, 'one Google read per window, shared across page views').toHaveBeenCalledTimes(callsAfterWindowRead);
   });
 
   it('is disabled (503) until REVIEWS_REFRESH_TOKEN is configured, and refuses a short token', async () => {
@@ -168,7 +174,7 @@ describe('POST /api/reviews/refresh', () => {
     }
   });
 
-  it('fails closed (503) in production without Supabase, storing nothing', async () => {
+  it('fails closed (503) in production without Supabase, storing nothing, while page views still get a per-window live read', async () => {
     const fetchSpy = stubGoogle();
     const app = await loadApp({ env: { ...CONFIGURED.env, NODE_ENV: 'production', ALLOW_IN_MEMORY_STORE: '' } });
     const { POST } = await app.routes.reviewsRefresh();
@@ -178,8 +184,13 @@ describe('POST /api/reviews/refresh', () => {
     expect(response.status).toBe(503);
     expect(expectContract(errorBody, response.body).error).toBe('Persistent storage is unavailable.');
     expect(fetchSpy).toHaveBeenCalled(); // Google was read; only the write refused
-    const stored = await readJson(await (await app.routes.reviews()).GET(apiRequest('/api/reviews')));
-    expect(stored.status).toBe(200);
-    expect(expectContract(reviewsSnapshot, stored.body)).toMatchObject({ overallRating: 0, totalReviewsCount: 0, reviews: [] });
+    // Production without a snapshot store still serves visitors: the server reads Google once per
+    // 06:00/17:00 Israel window instead of showing nothing (the Wix site has no Supabase today).
+    const served = await readJson(await (await app.routes.reviews()).GET(apiRequest('/api/reviews')));
+    expect(served.status).toBe(200);
+    const body = expectContract(reviewsSnapshot, served.body);
+    expect(body.totalReviewsCount).toBe(127);
+    expect(body.reviews.length).toBeGreaterThan(0);
+    expect(body.source).toMatch(/no snapshot store/);
   });
 });

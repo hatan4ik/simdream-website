@@ -215,10 +215,10 @@ describe('Google reviews source (legacy Place Details, reviews_sort=newest)', ()
 });
 
 describe('Google reviews cache (stored snapshot)', () => {
-  it('never calls Google for a read: without a stored snapshot it reports zeros and no reviews', async () => {
+  it('without a Places key and without a stored snapshot it reports zeros and no reviews, never calling Google', async () => {
     const fetchSpy = googleFetch();
     vi.stubGlobal('fetch', fetchSpy);
-    const { getCachedGoogleReviews } = await loadCache();
+    const { getCachedGoogleReviews } = await loadCache('');
 
     const snapshot = await getCachedGoogleReviews('he');
 
@@ -231,6 +231,55 @@ describe('Google reviews cache (stored snapshot)', () => {
       reviews: [],
     });
     expect(snapshot.source).toMatch(/snapshot/i);
+  });
+
+  it('without a stored snapshot it reads Google once per 06:00/17:00 Israel window and serves newest first', async () => {
+    const fetchSpy = googleFetch();
+    vi.stubGlobal('fetch', fetchSpy);
+    vi.useFakeTimers({ now: new Date('2026-11-09T09:00:00Z') }); // 11:00 Israel: the 06:00 window
+    const { getCachedGoogleReviews } = await loadCache();
+
+    const [hebrew, english] = await Promise.all([getCachedGoogleReviews('he'), getCachedGoogleReviews('en')]);
+    await getCachedGoogleReviews('ar');
+
+    // One read for the whole window (originals + the six languages), shared by concurrent requests.
+    expect(fetchSpy).toHaveBeenCalledTimes(1 + REVIEW_LANGUAGES.length);
+    expect(hebrew).toMatchObject({ language: 'he', overallRating: 4.9, totalReviewsCount: 127 });
+    expect(hebrew.reviews.map((review) => review.publishedAt)).toEqual([
+      '2026-11-01T10:00:00.000Z',
+      '2026-10-01T10:00:00.000Z',
+      '2026-09-01T10:00:00.000Z',
+    ]);
+    expect(english.source).toMatch(/2026-11-09T06 Israel window/);
+
+    vi.setSystemTime(new Date('2026-11-09T14:59:00Z')); // 16:59 Israel: same window, no new read
+    await getCachedGoogleReviews('en');
+    expect(fetchSpy).toHaveBeenCalledTimes(1 + REVIEW_LANGUAGES.length);
+
+    vi.setSystemTime(new Date('2026-11-09T15:00:00Z')); // 17:00 Israel: the next window reads again
+    const evening = await getCachedGoogleReviews('en');
+    expect(fetchSpy).toHaveBeenCalledTimes(2 * (1 + REVIEW_LANGUAGES.length));
+    expect(evening.source).toMatch(/2026-11-09T17 Israel window/);
+    vi.useRealTimers();
+  });
+
+  it('keeps the previous window when Google refuses the next read, and reports zeros only when it never answered', async () => {
+    const fetchSpy = googleFetch();
+    vi.stubGlobal('fetch', fetchSpy);
+    vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    vi.useFakeTimers({ now: new Date('2026-11-09T09:00:00Z') });
+    const { getCachedGoogleReviews } = await loadCache();
+
+    expect((await getCachedGoogleReviews('en')).totalReviewsCount).toBe(127);
+    fetchSpy.mockResolvedValue(new Response('temporarily unavailable', { status: 503 }));
+    vi.setSystemTime(new Date('2026-11-09T15:00:00Z'));
+    expect((await getCachedGoogleReviews('en')).totalReviewsCount).toBe(127);
+
+    const cold = await loadCache();
+    const empty = await cold.getCachedGoogleReviews('en');
+    expect(empty).toMatchObject({ overallRating: 0, totalReviewsCount: 0, reviews: [] });
+    expect(empty.source).toMatch(/refused/);
+    vi.useRealTimers();
   });
 
   it('refreshes from Google on demand, then serves the stored snapshot per language without calling Google again', async () => {
@@ -268,11 +317,25 @@ describe('Google reviews cache (stored snapshot)', () => {
     expect((await getCachedGoogleReviews('en')).totalReviewsCount).toBe(127);
   });
 
-  it('serves zeros when the snapshot store itself is unavailable, without throwing at the route', async () => {
-    vi.stubGlobal('fetch', googleFetch());
+  it('reads Google once per window when the snapshot store itself is unavailable, without throwing at the route', async () => {
+    const fetchSpy = googleFetch();
+    vi.stubGlobal('fetch', fetchSpy);
     vi.spyOn(console, 'warn').mockImplementation(() => undefined);
     const { getCachedGoogleReviews } = await loadCache();
-    vi.stubEnv('NODE_ENV', 'production'); // too late for isProduction, so simulate the store failing instead
+    const store = await import('@/lib/reviews/reviews-snapshot-store');
+    vi.spyOn(store, 'readReviewsSnapshot').mockRejectedValue(new Error('database down'));
+
+    const snapshot = await getCachedGoogleReviews('fr');
+
+    expect(fetchSpy).toHaveBeenCalledTimes(1 + REVIEW_LANGUAGES.length);
+    expect(snapshot).toMatchObject({ language: 'fr', overallRating: 4.9, totalReviewsCount: 127 });
+    expect(snapshot.source).toMatch(/no snapshot store/);
+  });
+
+  it('serves zeros when the store is unavailable and no Places key is configured', async () => {
+    vi.stubGlobal('fetch', googleFetch());
+    vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const { getCachedGoogleReviews } = await loadCache('');
     const store = await import('@/lib/reviews/reviews-snapshot-store');
     vi.spyOn(store, 'readReviewsSnapshot').mockRejectedValue(new Error('database down'));
 
