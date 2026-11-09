@@ -29,6 +29,7 @@ It uses the public Wix visitor client and exits non-zero when any of these gates
 | Headless connection | `NEXT_PUBLIC_WIX_CLIENT_ID` is configured and public service reads succeed | The frontend cannot safely use Wix without a visitor session. |
 | Bookings parity and capacity | Every local package is mapped, its Wix service name, base duration, and base price match, and every mapped service requires the same physical Boeing 737 resource type | A customer must never be shown one offer and reserve another, and a booking of one duration must block every other duration from using the physical simulator. |
 | Subscription-plan resolvability | Each of the four local subscriptions resolves to one public Wix Pricing Plan | A checkout redirect must target an explicit, published plan. |
+| Gift Card variant parity | The live Wix Gift Card product (`07209324-1536-4ca3-aad2-d8782d04398a`) carries all 7 signature design tiers (`50`, `100`, `200`, `300`, `500`, `700`, `1000` ILS) with their mapped variant UUIDs | Voucher checkout (`POST /api/checkout`) relies on exact preset variant UUIDs to display the buyer's chosen card artwork on Wix Checkout. |
 
 The command performs no write: it does not publish a service or plan, create a checkout session, charge a card, alter availability, or turn on a feature flag. A non-zero result is an intentional stop signal, not a runtime outage.
 
@@ -239,5 +240,32 @@ Items 3–5 that create or settle an order become payment-launch tests once the
 provider is enabled. Until then, use only Wix sandbox/test data and immediately
 cancel any temporary operational booking; never occupy real customer capacity
 to prove a pre-production flow.
+
+## 9. Disaster Recovery & Protected Wix-as-Code Provisioning (`npm run wix:provision`)
+
+All Wix backend definitions (9 Bookings services, turnaround buffers, shared Boeing 737 simulator resource pool, 4 Pricing Plans, and 17 Gift Card preset variants including the 7 signature design media bindings) are codified in [`lib/wix/backend-blueprint.ts`](../lib/wix/backend-blueprint.ts) and audited by [`scripts/wix-provision.ts`](../scripts/wix-provision.ts).
+
+### Why Accidental Backend Recreation Is Dangerous (Risks of Running a Restore by Mistake)
+
+1. **Duplicate Services & Orphaned Bookings / Plan Benefits**: Calling `POST /_api/bookings/v2/services` or `POST /pricing-plans/v3/plans` against an already-populated Wix site creates duplicate services and plans with new UUIDs. Existing customer bookings stay bound to the old service IDs, active Pricing Plan benefit links break, and staff calendars split across duplicate services.
+2. **Physical Simulator Capacity Desynchronization**: If a newly created service is not bound to the exact same shared `Boeing 737 Flight Simulator` resource type ID, a 60-minute booking and a 90-minute booking can double-book the physical simulator at the same time.
+3. **Gift Card Variant UUID Churn**: Recreating or overwriting `presetVariants` on the Wix Gift Card product without preserving existing variant UUIDs invalidates `WIX_GIFT_CARD_VARIANT_IDS` in [`lib/wix/catalog.ts`](../lib/wix/catalog.ts), breaking signature card design selection in `/vouchers`.
+4. **Cross-Site Contamination**: Running mutations against the live Wix Editor site (`simdream.co.il`) or the retired Headless site (`4c5e1c7a-163c-48ce-8278-cdc42e4deed4`) violates [`AGENTS.md` §6.7](../AGENTS.md).
+
+### 5-Layer Safety Gate Built into `lib/wix/backend-blueprint.ts` & `scripts/wix-provision.ts`
+
+To prevent any accidental backend recreation, `evaluateWixProvisionSafetyGate()` enforces five sequential locks:
+
+1. **Lock 1 — Read-Only Default (`--dry-run`)**: Running `npm run wix:provision` (or `npm run wix:provision -- --dry-run`) performs **zero writes**. It queries the public visitor APIs and prints the reconciliation diff (`in_sync`, `create`, `update`).
+2. **Lock 2 — Forbidden Site Denylist (`forbidden-site-id`)**: Hard-blocks the retired site ID `4c5e1c7a-163c-48ce-8278-cdc42e4deed4` and any missing `WIX_SITE_ID`.
+3. **Lock 3 — Already-Provisioned Circuit Breaker (`already-provisioned`)**: If `planWixBackendProvisioning()` finds that the target Wix site already has all 9 services, the shared simulator resource pool, all 4 Pricing Plans, and all 7 signature Gift Card variants in sync (`alreadyFullyProvisioned === true`), `--apply` is **unconditionally blocked** even if all flags and keys are supplied.
+4. **Lock 4 — Explicit Site Confirmation (`missing-site-confirmation`)**: Requires `--confirm-site-id=<exact-WIX_SITE_ID>` on the command line.
+5. **Lock 5 — Environment Interlock & Ephemeral Admin Key (`missing-apply-interlock` / `missing-admin-api-key`)**: Requires both `WIX_PROVISION_ALLOW_APPLY=true` and an ephemeral `WIX_ADMIN_API_KEY` in the shell environment (never stored in `.env*` or committed to Git).
+
+### Safe Audit Command (Read-Only)
+
+```bash
+npm run wix:provision
+```
 
 For the long-form architecture, data-migration principles, and system diagrams, see [WIX_HEADLESS_ARCHITECTURE.md](WIX_HEADLESS_ARCHITECTURE.md). The current codebase blueprint remains [GENESIS.md](../GENESIS.md).

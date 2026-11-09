@@ -27,6 +27,7 @@ const [
   { isWixConfigured },
   { unmappedPackageIds, WIX_SERVICE_IDS },
   { resolveWixPlanId },
+  { listWixGiftCardProducts, reconcileGiftCardProduct },
   { assessWixReadiness },
 ] = await Promise.all([
   import('../lib/data/subscription-passes'),
@@ -34,6 +35,7 @@ const [
   import('../lib/wix/config'),
   import('../lib/wix/catalog'),
   import('../lib/wix/plans'),
+  import('../lib/wix/gift-cards'),
   import('../lib/wix/readiness'),
 ]);
 
@@ -43,7 +45,10 @@ if (!isWixConfigured()) {
 }
 
 try {
-  const services = await listWixServices();
+  const [services, giftCardProducts] = await Promise.all([
+    listWixServices(),
+    listWixGiftCardProducts(),
+  ]);
   const expectedSubscriptionPassIds = SUBSCRIPTION_PASSES.map((pass) => pass.id);
   const resolvedSubscriptionPassIds = [] as typeof expectedSubscriptionPassIds;
   for (const passId of expectedSubscriptionPassIds) {
@@ -57,14 +62,17 @@ try {
     sharedCapacityResourceTypeIds: sharedWixResourceTypeIds(services, Object.values(WIX_SERVICE_IDS)),
     expectedSubscriptionPassIds,
     resolvedSubscriptionPassIds,
+    giftCardMismatches: reconcileGiftCardProduct(giftCardProducts),
   });
 
   console.log(`Wix readiness: ${services.length} Bookings services read; ${report.blockers.length} blocker(s).`);
   console.log(`  catalog aligned: ${report.catalogAligned ? 'yes' : 'no'}`);
   console.log(`  shared simulator capacity pool: ${report.capacityPoolAligned ? 'yes' : 'no'}`);
+  console.log(`  gift card variants aligned: ${report.giftCardsAligned ? 'yes' : 'no'}`);
   console.log(`  shadow reads may be enabled: ${report.canRunShadowReads ? 'yes' : 'no'}`);
   console.log(`  Bookings pilot may start: ${report.canPilotWixBookings ? 'yes' : 'no'}`);
   console.log(`  subscription checkout may route: ${report.canRouteSubscriptionCheckout ? 'yes' : 'no'}`);
+  console.log(`  gift card checkout may route: ${report.canRouteGiftCardCheckout ? 'yes' : 'no'}`);
 
   for (const blocker of report.blockers) console.error(`  BLOCKER [${blocker.code}]: ${blocker.message}`);
 
