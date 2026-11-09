@@ -602,7 +602,7 @@ lib/
   scheduler/ kantorovich-engine mission-calculator package-presentation tiled-interval-optimizer israel-clock booking-horizon
   booking/checkout-service checkout-ports checkout-composition checkout-runtime
   wix/ client config catalog bookings availability-adapter booking-checkout booking-checkout-client subscription-redemption subscription-booking checkout-shadow member-client backend-blueprint gift-cards plans readiness blog
-  catalog/gift-voucher-packages  data/experience-routes subscription-passes subscription-page-copy blog-posts  db/ store schema.sql seed-data supabase-admin migrations/
+  catalog/gift-voucher-packages  data/experience-routes subscription-passes subscription-page-copy blog-posts blog-categories  db/ store schema.sql seed-data supabase-admin migrations/
   auth/ admin-guard request-auth member-ownership safe-redirect auth-context
   security/rate-limit
   i18n/ translations language-context language-preference calendar-presentation booking-blueprint-copy wix-subscription-booking-copy
