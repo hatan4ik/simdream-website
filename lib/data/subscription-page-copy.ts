@@ -1,5 +1,16 @@
 import type { Language, LocalizedRecord } from '@/lib/i18n/translations';
 
+/**
+ * Copy for the dedicated `/subscriptions` portal.
+ *
+ * Product decision (2026-11-09): the page sells the outcome of a flight track,
+ * never its duration. "12 months", "annual", "365 days" and similar limited-time
+ * phrases are banned from the marketing copy because they read as a deadline and
+ * a lock-in. The validity term is still a real commercial condition, so it is
+ * disclosed exactly once, in the billing FAQ answer, as reassurance ("a full year,
+ * no rush"). `tests/unit/subscription-passes.test.ts` enforces this.
+ */
+
 export interface SubscriptionPillarCopy {
   title: string;
   description: string;
@@ -21,17 +32,18 @@ export interface SubscriptionPageCopy {
   heroTitle: string;
   heroSubtitle: string;
   stats: {
-    validityLabel: string;
-    validityValue: string;
-    savingsLabel: string;
-    savingsValue: string;
+    paymentLabel: string;
+    paymentValue: string;
+    paceLabel: string;
+    paceValue: string;
     mentorshipLabel: string;
     mentorshipValue: string;
-    guestLabel: string;
-    guestValue: string;
+    savingsLabel: string;
+    savingsValue: string;
   };
-  whySubscribeTitle: string;
-  whySubscribeSubtitle: string;
+  reasonsTitle: string;
+  reasonsSubtitle: string;
+  /** First-person reasons ("why I need this"), each pointing at a track. */
   pillars: [
     SubscriptionPillarCopy,
     SubscriptionPillarCopy,
@@ -86,55 +98,54 @@ export interface SubscriptionPageCopy {
 
 export const SUBSCRIPTION_PAGE_COPY: LocalizedRecord<SubscriptionPageCopy> = {
   en: {
-    eyebrow: "SIM DREAM CAPTAIN'S CLUB · ANNUAL SUBSCRIPTIONS",
-    heroTitle: 'One Flight Is a Memory. A Subscription Builds Flight Confidence.',
+    eyebrow: "SIM DREAM CAPTAIN'S CLUB · FLIGHT TRACKS",
+    heroTitle: 'By Your Fifth Flight, You Fly the 737 Yourself.',
     heroSubtitle:
-      'Build confidence in the Boeing 737 across five or ten structured flight sessions. Follow a captain-led learning pathway over 12 months and see the value of every included session, with savings of up to ₪2,550 compared with individual sessions.',
+      'One flight is a memory. A track of five or ten captain-led flights turns it into a skill: you program the FMC, fly the pattern by hand and land in a crosswind, with an airline captain beside you every time. Pay once, fly at your own pace, and save up to ₪2,550 against single flights.',
     stats: {
-      validityLabel: 'Scheduling Window',
-      validityValue: '12 Months Valid',
-      savingsLabel: 'Subscription Value',
-      savingsValue: 'Up to ₪2,550 Off',
-      mentorshipLabel: 'Personal Coaching',
+      paymentValue: 'Pay Once',
+      paymentLabel: 'No renewal, no monthly charge',
+      paceValue: 'Your Pace',
+      paceLabel: 'Book each flight whenever it suits you',
       mentorshipValue: 'Active Captains',
-      guestLabel: 'Learning Pathway',
-      guestValue: 'Captain-led Sessions',
+      mentorshipLabel: '1-on-1 in every flight',
+      savingsValue: 'Save up to 30%',
+      savingsLabel: 'Against single flights',
     },
-    whySubscribeTitle: 'Why Choose an Annual Flight Subscription?',
-    whySubscribeSubtitle:
-      'A single flight gives you a taste of the cockpit. An annual subscription builds muscle memory, system comprehension, and authentic airmanship.',
+    reasonsTitle: 'Why Would I Need More Than One Flight?',
+    reasonsSubtitle: 'Pick the reason that sounds like you. Each one has a track built for it.',
     pillars: [
       {
-        title: 'Structured Pilot Progression',
+        title: 'I never want to be just a passenger again.',
         description:
-          'Move systematically from basic visual traffic patterns to flight management computer (FMC) programming, autothrottle logic, CAT III bad weather landings, and emergency procedures.',
+          'Flight one is about feel. By flight five you run the captain’s flows yourself, read the instruments and fly a stabilised approach to a landing you planned. Start with Flight Foundations, 5 × 60.',
       },
       {
-        title: 'Maximum Economic Value',
+        title: 'I want the big missions, not a short taste.',
         description:
-          'Lock in our lowest flight-hour tariff and save between ₪700 and ₪2,550 compared to booking standalone flights, with full protection against seasonal price updates.',
+          'Ninety-minute flights give you time to plan the route, fly it, recover from a windshear or a go-around and debrief it properly. Advanced Captain, 5 × 90, is built for exactly that.',
       },
       {
-        title: '365 Days of Scheduling Freedom',
+        title: 'I am preparing for an airline assessment.',
         description:
-          'Plan sessions across a full calendar year. Requests are scheduled through the live calendar and confirmed by Captain Dispatch, so you can shape a rhythm that fits your goals.',
+          'Ten flights of deliberate practice: SOP discipline, raw-data flying, FMC briefings, QRH thinking and two-pilot communication, explained the way airlines expect. ATPL Concepts 10 × 60 or Airline Readiness 10 × 90.',
       },
       {
-        title: 'Captain-Tailored Mission Design',
+        title: 'I am afraid of flying and want to understand it.',
         description:
-          'Your captain adapts each mission to your current confidence, interests and learning goals. Optional observer seating and separately listed add-ons remain subject to availability and confirmed terms.',
+          'Turbulence, engine sounds and go-arounds stop being mysteries once you have handled them from the left seat. Several calm flights with the same captain build an understanding one flight cannot. Begin with Flight Foundations, or ask Dispatch for a gentler pace.',
       },
     ],
-    filterAll: 'All Subscriptions',
-    filter5: '5-Flight Track (Mastery)',
-    filter10: '10-Flight Track (Airline Syllabus)',
+    filterAll: 'All Tracks',
+    filter5: '5-Flight Tracks (Mastery)',
+    filter10: '10-Flight Tracks (Airline Syllabus)',
     recommendedBadge: 'CAPTAIN RECOMMENDED',
     perSessionLabel: 'effective per flight',
     minutesLabel: 'min',
     totalMinutesLabel: 'minutes total',
     roadmapTitle: 'The 5-Stage Flight Deck Learning Journey',
     roadmapSubtitle:
-      'Every session builds on the last. Here is the structured syllabus you master alongside active airline captains.',
+      'Every flight builds on the last. Here is the structured syllabus you master alongside active airline captains.',
     stages: [
       {
         stage: 'Stage 01',
@@ -167,14 +178,14 @@ export const SUBSCRIPTION_PAGE_COPY: LocalizedRecord<SubscriptionPageCopy> = {
           'Fly the checkerboard turn at Hong Kong Kai Tak, navigate the narrow alpine valley into Innsbruck, and descend into Paro Bhutan.',
       },
     ],
-    comparisonTitle: 'Standalone Flights vs. Annual Subscription',
+    comparisonTitle: 'One Flight vs. a Flight Track',
     comparisonSubtitle:
-      'Compare standard one-off flight bookings with our 5-flight and 10-flight structured subscription programmes.',
+      'What changes between booking a single flight and following a five- or ten-flight track.',
     comparisonHeaders: {
-      feature: 'Included Feature',
-      singleFlight: '1-Time Flight',
-      sub5: '5-Flight Subscription',
-      sub10: '10-Flight Subscription',
+      feature: 'What you get',
+      singleFlight: 'Single Flight',
+      sub5: '5-Flight Track',
+      sub10: '10-Flight Track',
     },
     comparisonRows: [
       {
@@ -184,10 +195,16 @@ export const SUBSCRIPTION_PAGE_COPY: LocalizedRecord<SubscriptionPageCopy> = {
         sub10: '600–900 min (10 flights)',
       },
       {
-        feature: 'Effective Hourly Savings',
+        feature: 'Price per Flight',
         single: 'Standard rate',
         sub5: 'Save 20% (up to ₪860)',
         sub10: 'Save 30% (up to ₪2,550)',
+      },
+      {
+        feature: 'What You Fly Yourself by the End',
+        single: 'Take-off and a guided landing',
+        sub5: 'FMC set-up, hand-flown pattern, crosswind landing',
+        sub10: 'Full airline-style flights, abnormals and a line mission',
       },
       {
         feature: 'Training Syllabus',
@@ -196,16 +213,10 @@ export const SUBSCRIPTION_PAGE_COPY: LocalizedRecord<SubscriptionPageCopy> = {
         sub10: 'Comprehensive airline syllabus',
       },
       {
-        feature: 'Validity Window',
-        single: 'Booked date only',
-        sub5: '12 full months (365 days)',
-        sub10: '12 full months (365 days)',
-      },
-      {
-        feature: 'Mission progression',
-        single: 'One guided mission',
-        sub5: 'Five-session progression',
-        sub10: 'Ten-session progression',
+        feature: 'Booking',
+        single: 'One fixed date',
+        sub5: 'Each flight whenever it suits you',
+        sub10: 'Each flight whenever it suits you',
       },
       {
         feature: 'Personal Pilot Debrief',
@@ -214,15 +225,14 @@ export const SUBSCRIPTION_PAGE_COPY: LocalizedRecord<SubscriptionPageCopy> = {
         sub10: 'Full pilot development debrief',
       },
     ],
-    faqTitle: 'Frequently Asked Questions About Subscriptions',
-    faqSubtitle:
-      'Everything you need to know about purchasing, scheduling, and enjoying your annual flight subscription.',
-    faqEyebrow: 'Subscription questions',
+    faqTitle: 'Questions Before You Choose a Track',
+    faqSubtitle: 'How buying, booking and flying a track works.',
+    faqEyebrow: 'Track questions',
     faqs: [
       {
-        question: 'How are subscription sessions scheduled?',
+        question: 'How do I book the flights in my track?',
         answer:
-          'Captain Dispatch can help you plan sessions together or one at a time. Every reservation remains subject to the live calendar and confirmed operating availability.',
+          'One at a time or all together, whichever you prefer. Captain Dispatch can plan them with you, and every reservation is confirmed against the live calendar and operating availability.',
       },
       {
         question: 'Can I add focused cockpit-training themes?',
@@ -235,69 +245,68 @@ export const SUBSCRIPTION_PAGE_COPY: LocalizedRecord<SubscriptionPageCopy> = {
           'Zero experience is required. Every flight is conducted 1-on-1 with an active commercial airline pilot who adapts each mission to your personal comfort level and aspirations.',
       },
       {
-        question: 'Is this an automatically recurring subscription charge?',
+        question: 'Is this a recurring subscription charge?',
         answer:
-          'No. All our flight subscriptions are paid as a single one-time payment with zero recurring billing, zero commitments, and 12 full months of validity.',
+          'No. You pay once and nothing is ever charged again: no renewal, no monthly fee, no commitment. Your flights stay bookable for a full year from purchase, so there is no rush to use them.',
       },
     ],
-    bottomCtaTitle: 'Ready to Begin Your Pilot Progression?',
+    bottomCtaTitle: 'Your First Flight Can Be This Week.',
     bottomCtaSubtitle:
-      'Choose your subscription track or consult with our Chief Flight Instructor to design a custom training journey.',
+      'Choose the track that matches your reason, or talk to our Chief Flight Instructor about a custom one.',
     bottomCtaBadge: 'SIM DREAM PILOT PROGRESSION',
-    bottomCtaButton: 'Buy Your Subscription Now',
+    bottomCtaButton: 'Choose my track',
     bottomContactConcierge: 'Have questions? Call or WhatsApp Captain Dispatch directly',
   },
 
   he: {
-    eyebrow: 'מועדון הטיסה של סים דרים · מנויים שנתיים',
-    heroTitle: 'טיסה אחת היא חוויה בלתי נשכחת. מנוי בונה ביטחון בתא הטייס.',
+    eyebrow: 'מועדון הקברניטים של סים דרים · מסלולי טיסה',
+    heroTitle: 'בטיסה החמישית אתם כבר מטיסים את ה-737 בעצמכם.',
     heroSubtitle:
-      'בנו ביטחון בבואינג 737 לאורך חמש או עשר פגישות טיסה מובנות. עקבו אחר מסלול למידה בהנחיית קברניט במשך 12 חודשים וראו את הערך של כל מפגש כלול, עם חיסכון של עד 2,550 ₪ ביחס למפגשים בודדים.',
+      'טיסה אחת היא זיכרון. מסלול של חמש או עשר טיסות בהנחיית קברניט הופך אותו למיומנות: אתם מתכנתים את ה-FMC, מטיסים את ההקפה ביד ונוחתים ברוח צד, כשקברניט חברת תעופה לצידכם בכל טיסה. משלמים פעם אחת, טסים בקצב שלכם וחוסכים עד 2,550 ₪ ביחס לטיסות בודדות.',
     stats: {
-      validityLabel: 'תוקף למימוש',
-      validityValue: '12 חודשים מלאים',
-      savingsLabel: 'ערך המנוי',
-      savingsValue: 'עד 2,550 ₪ הנחה',
-      mentorshipLabel: 'הדרכה אישית',
+      paymentValue: 'תשלום אחד',
+      paymentLabel: 'בלי חידוש ובלי חיוב חודשי',
+      paceValue: 'בקצב שלכם',
+      paceLabel: 'מתאמים כל טיסה כשמתאים לכם',
       mentorshipValue: 'קברניטים פעילים',
-      guestLabel: 'מסלול למידה',
-      guestValue: 'מפגשים בהנחיית קברניט',
+      mentorshipLabel: '1-על-1 בכל טיסה',
+      savingsValue: 'חיסכון של עד 30%',
+      savingsLabel: 'ביחס לטיסות בודדות',
     },
-    whySubscribeTitle: 'למה לבחור במנוי טיסה שנתי?',
-    whySubscribeSubtitle:
-      'טיסה בודדת מעניקה טעימה ראשונית מתא הטייס. מנוי שנתי מעניק שליטה אמיתית, זיכרון שרירי, הבנה מעמיקה ומיומנות תעופתית.',
+    reasonsTitle: 'למה אני צריך יותר מטיסה אחת?',
+    reasonsSubtitle: 'בחרו את הסיבה שנשמעת כמוכם. לכל אחת נבנה מסלול משלה.',
     pillars: [
       {
-        title: 'התקדמות מובנית שלב אחר שלב',
+        title: 'אני לא רוצה להיות שוב רק נוסע.',
         description:
-          'מתקדמים באופן שיטתי מהקפות ראייה בסיסיות, דרך תכנות מחשב הטיסה (FMC), ניהול מצערת אוטומטית, נחיתות ILS במזג אוויר סוער ועד התמודדות עם תקלות חירום.',
+          'הטיסה הראשונה היא על תחושה. בטיסה החמישית אתם מריצים בעצמכם את זרימות הקברניט, קוראים את המכשירים ומטיסים גישה מיוצבת לנחיתה שאתם תכננתם. מתחילים ביסודות הטיסה, 5 × 60.',
       },
       {
-        title: 'ערך כלכלי מרבי וחיסכון כספי',
+        title: 'אני רוצה את המשימות הגדולות, לא רק טעימה.',
         description:
-          'מבטיחים את תעריף שעת הטיסה המשתלם ביותר וחוסכים בין 700 ₪ ל-2,550 ₪ ביחס להזמנת טיסות בודדות, עם חסינות מלאה מעדכוני מחירים.',
+          'טיסות של 90 דקות נותנות זמן לתכנן את הנתיב, להטיס אותו, להתאושש מגזירת רוח או מהליכה סביב ולתחקר כמו שצריך. מסלול קברניט מתקדם, 5 × 90, נבנה בדיוק לזה.',
       },
       {
-        title: '365 ימים של גמישות מוחלטת',
+        title: 'אני מתכונן למיון בחברת תעופה.',
         description:
-          'אפשר לתכנן מפגשים לאורך שנה קלנדרית מלאה. הבקשות מתוזמנות לפי היומן החי ומאושרות על ידי מחלקת המבצעים, כדי לבנות קצב שמתאים למטרות שלכם.',
+          'עשר טיסות של תרגול מכוון: משמעת SOP, טיסה ללא נתונים מעובדים, תדריכי FMC, חשיבת QRH ותקשורת של שני טייסים, מוסברים כפי שחברות התעופה מצפות. מושגי ATPL 10 × 60 או מוכנות לחברת תעופה 10 × 90.',
       },
       {
-        title: 'עיצוב משימה אישי עם קברניט',
+        title: 'אני חושש מטיסות ורוצה להבין מה קורה.',
         description:
-          'הקברניט מתאים כל משימה לביטחון, לתחומי העניין ולמטרות הלמידה שלכם. מושב צופה ותוספות המופיעות בנפרד כפופים לזמינות ולתנאים המאושרים.',
+          'כיסי אוויר, רעשי מנוע והליכה סביב מפסיקים להיות תעלומה אחרי שהתמודדתם איתם מהמושב השמאלי. כמה טיסות רגועות עם אותו קברניט בונות הבנה שטיסה אחת לא יכולה לתת. התחילו ביסודות הטיסה, או בקשו ממחלקת המבצעים קצב עדין יותר.',
       },
     ],
-    filterAll: 'כל המנויים',
-    filter5: 'מסלול 5 טיסות (בניית שליטה)',
-    filter10: 'מסלול 10 טיסות (סילבוס חברת תעופה)',
+    filterAll: 'כל המסלולים',
+    filter5: 'מסלולי 5 טיסות (בניית שליטה)',
+    filter10: 'מסלולי 10 טיסות (סילבוס חברת תעופה)',
     recommendedBadge: 'הבחירה המומלצת',
     perSessionLabel: 'מחיר אפקטיבי לטיסה',
     minutesLabel: 'דקות',
     totalMinutesLabel: 'דקות בסך הכול',
     roadmapTitle: 'מסע הלמידה בתא הטייס ב-5 שלבים',
     roadmapSubtitle:
-      'כל מפגש נבנה על גבי קודמו. זהו הסילבוס המקצועי שתתרגלו לצד קברניטי חברות תעופה.',
+      'כל טיסה נבנית על גבי קודמתה. זהו הסילבוס המקצועי שתתרגלו לצד קברניטי חברות תעופה.',
     stages: [
       {
         stage: 'שלב 01',
@@ -330,14 +339,13 @@ export const SUBSCRIPTION_PAGE_COPY: LocalizedRecord<SubscriptionPageCopy> = {
           'ביצוע הפנייה המפורסמת בשחמט של קאי טאק הונג קונג, ניווט בעמק האלפיני של אינסברוק ונחיתה מאתגרת בפארו בהוטן.',
       },
     ],
-    comparisonTitle: 'טיסות בודדות מול מנוי טיסה שנתי',
-    comparisonSubtitle:
-      'השוואה ברורה בין הזמנת טיסות בודדות לבין מנוי טיסה מובנה של חמש או עשר טיסות.',
+    comparisonTitle: 'טיסה אחת מול מסלול טיסות',
+    comparisonSubtitle: 'מה משתנה בין הזמנת טיסה בודדת לבין מסלול של חמש או עשר טיסות.',
     comparisonHeaders: {
-      feature: 'מאפיין כלול',
+      feature: 'מה מקבלים',
       singleFlight: 'טיסה בודדת',
-      sub5: 'מנוי 5 טיסות',
-      sub10: 'מנוי 10 טיסות',
+      sub5: 'מסלול 5 טיסות',
+      sub10: 'מסלול 10 טיסות',
     },
     comparisonRows: [
       {
@@ -347,10 +355,16 @@ export const SUBSCRIPTION_PAGE_COPY: LocalizedRecord<SubscriptionPageCopy> = {
         sub10: '600–900 דקות (10 טיסות)',
       },
       {
-        feature: 'חיסכון אפקטיבי בשעות',
+        feature: 'מחיר לטיסה',
         single: 'תעריף רגיל',
         sub5: 'חיסכון של 20% (עד 860 ₪)',
         sub10: 'חיסכון של 30% (עד 2,550 ₪)',
+      },
+      {
+        feature: 'מה תטיסו בעצמכם בסוף',
+        single: 'המראה ונחיתה מודרכת',
+        sub5: 'הגדרת FMC, הקפה ביד ונחיתה ברוח צד',
+        sub10: 'טיסות מלאות בסגנון חברת תעופה, תקלות ומשימת קו',
       },
       {
         feature: 'סילבוס הדרכה מובנה',
@@ -359,16 +373,10 @@ export const SUBSCRIPTION_PAGE_COPY: LocalizedRecord<SubscriptionPageCopy> = {
         sub10: 'סילבוס קו תעופה מקיף',
       },
       {
-        feature: 'תוקף מימוש הטיסות',
-        single: 'המועד המוזמן בלבד',
-        sub5: '12 חודשים מלאים (365 ימים)',
-        sub10: '12 חודשים מלאים (365 ימים)',
-      },
-      {
-        feature: 'התקדמות במשימות',
-        single: 'משימה מודרכת אחת',
-        sub5: 'התקדמות לאורך חמישה מפגשים',
-        sub10: 'התקדמות לאורך עשרה מפגשים',
+        feature: 'תיאום',
+        single: 'מועד קבוע אחד',
+        sub5: 'כל טיסה כשמתאים לכם',
+        sub10: 'כל טיסה כשמתאים לכם',
       },
       {
         feature: 'תחקיר אישי ומשוב',
@@ -377,15 +385,14 @@ export const SUBSCRIPTION_PAGE_COPY: LocalizedRecord<SubscriptionPageCopy> = {
         sub10: 'תחקיר התפתחות מקיף',
       },
     ],
-    faqTitle: 'שאלות נפוצות על מנויי הטיסה',
-    faqSubtitle:
-      'כל מה שחשוב לדעת על רכישה, תיאום המועדים והחוויה במנוי הטיסה השנתי.',
-    faqEyebrow: 'שאלות על המנוי',
+    faqTitle: 'שאלות לפני שבוחרים מסלול',
+    faqSubtitle: 'איך עובדים הרכישה, התיאום והטיסות במסלול.',
+    faqEyebrow: 'שאלות על המסלול',
     faqs: [
       {
-        question: 'כיצד מתאמים את מפגשי המנוי?',
+        question: 'איך מתאמים את הטיסות במסלול?',
         answer:
-          'מחלקת המבצעים יכולה לסייע בתכנון כל המפגשים יחד או אחד בכל פעם. כל הזמנה כפופה ליומן החי ולאישור זמינות תפעולית.',
+          'אחת בכל פעם או כולן יחד, איך שנוח לכם. מחלקת המבצעים תתכנן אותן איתכם, וכל הזמנה מאושרת מול היומן החי והזמינות התפעולית.',
       },
       {
         question: 'האם אפשר לשלב נושאי אימון ממוקדים בתא הטייס?',
@@ -393,74 +400,73 @@ export const SUBSCRIPTION_PAGE_COPY: LocalizedRecord<SubscriptionPageCopy> = {
           'הקברניט יכול לשלב, לפי התאמה, נושאים לימודיים כגון Cold & Dark, רוח צד ו-IFR ושדות תעופה קיצוניים. זמן תוספת, מחיר ומושב צופה המופיעים בנפרד מאושרים לפני ההזמנה.',
       },
       {
-        question: 'האם נדרש ניסיון טיסה קודם כדי להצטרף למנוי?',
+        question: 'האם נדרש ניסיון טיסה קודם?',
         answer:
           'אין צורך בניסיון קודם כלל. כל טיסה מתבצעת בליווי אישי של קברניט פעיל שמתאים את רמת המשימה והאתגר לקצב האישי שלכם.',
       },
       {
-        question: 'האם מדובר בחיוב חודשי מתחדש?',
+        question: 'האם מדובר במנוי עם חיוב חודשי מתחדש?',
         answer:
-          'לא. כל מנויי הטיסה נרכשים בתשלום חד-פעמי מלא, ללא כל חיובים אוטומטיים מתחדשים, ללא התחייבויות עתידיות ועם תוקף של שנה שלמה.',
+          'לא. משלמים פעם אחת ולא מחויבים שוב לעולם: בלי חידוש, בלי דמי מנוי חודשיים ובלי התחייבות. הטיסות שלכם נשארות זמינות לתיאום במשך שנה שלמה מהרכישה, כך שאין שום לחץ לנצל אותן.',
       },
     ],
-    bottomCtaTitle: 'מוכנים לקחת פיקוד על תא הטייס?',
+    bottomCtaTitle: 'הטיסה הראשונה שלכם יכולה להיות כבר השבוע.',
     bottomCtaSubtitle:
-      'בחרו את מסלול המנוי המתאים לכם או התייעצו עם המדריך הראשי לתכנון מסלול טיסה מותאם אישית.',
+      'בחרו את המסלול שמתאים לסיבה שלכם, או דברו עם המדריך הראשי על מסלול מותאם אישית.',
     bottomCtaBadge: 'מסלול התקדמות לטייסי Sim Dream',
-    bottomCtaButton: 'רכישת מנוי עכשיו',
+    bottomCtaButton: 'לבחירת המסלול שלי',
     bottomContactConcierge: 'יש שאלות? חייגו או שלחו הודעת וואטסאפ ישירות לדיספצ׳ר',
   },
 
   ru: {
-    eyebrow: 'ЛЁТНЫЙ КЛУБ SIM DREAM · ГОДОВЫЕ АБОНЕМЕНТЫ',
-    heroTitle: 'Один полёт — впечатление. Абонемент развивает уверенность в кабине.',
+    eyebrow: 'КЛУБ КАПИТАНОВ SIM DREAM · ЛЁТНЫЕ ПРОГРАММЫ',
+    heroTitle: 'К пятому полёту вы ведёте 737 сами.',
     heroSubtitle:
-      'Развивайте уверенность в Boeing 737 за пять или десять структурированных лётных сессий. Следуйте учебному пути с капитаном в течение 12 месяцев и видьте ценность каждой включённой сессии: выгода до 2550 ₪ по сравнению с отдельными сессиями.',
+      'Один полёт — впечатление. Программа из пяти или десяти полётов с капитаном превращает его в навык: вы программируете FMC, летите круг вручную и садитесь при боковом ветре, а рядом каждый раз капитан авиакомпании. Платите один раз, летаете в своём ритме и экономите до 2550 ₪ по сравнению с разовыми полётами.',
     stats: {
-      validityLabel: 'Срок действия',
-      validityValue: '12 месяцев',
-      savingsLabel: 'Выгода абонемента',
-      savingsValue: 'До 2550 ₪ экономии',
-      mentorshipLabel: 'Обучение с пилотом',
+      paymentValue: 'Одна оплата',
+      paymentLabel: 'Без продлений и ежемесячных списаний',
+      paceValue: 'В своём ритме',
+      paceLabel: 'Бронируйте каждый полёт, когда удобно',
       mentorshipValue: 'Капитаны авиалиний',
-      guestLabel: 'Учебный путь',
-      guestValue: 'Сессии с капитаном',
+      mentorshipLabel: 'Один на один в каждом полёте',
+      savingsValue: 'Экономия до 30%',
+      savingsLabel: 'По сравнению с разовыми полётами',
     },
-    whySubscribeTitle: 'Почему стоит выбрать годовой абонемент?',
-    whySubscribeSubtitle:
-      'Разовый полёт даёт первое знакомство с кабиной. Годовой абонемент формирует мышечную память, глубокое понимание систем и уверенное пилотирование.',
+    reasonsTitle: 'Зачем мне больше одного полёта?',
+    reasonsSubtitle: 'Выберите причину, которая похожа на вашу. Под каждую собрана своя программа.',
     pillars: [
       {
-        title: 'Последовательный лётный прогресс',
+        title: 'Я больше не хочу быть просто пассажиром.',
         description:
-          'Системный переход от визуальных кругов к программированию FMC, автомату тяги, заходам по ILS в сложных метеоусловиях и отказам двигателей.',
+          'Первый полёт — про ощущения. К пятому вы сами выполняете процедуры капитана, читаете приборы и выполняете стабилизированный заход на посадку, которую спланировали сами. Начните с программы «Основы полёта», 5 × 60.',
       },
       {
-        title: 'Максимальная финансовая выгода',
+        title: 'Мне нужны большие миссии, а не короткая проба.',
         description:
-          'Фиксация минимального тарифа за лётный час и экономия от 700 ₪ до 2550 ₪ по сравнению с разовыми сессиями, без влияния сезонных повышений цен.',
+          'Девяностоминутные полёты дают время спланировать маршрут, пролететь его, справиться со сдвигом ветра или уходом на второй круг и спокойно всё разобрать. Программа «Продвинутый капитан», 5 × 90, создана именно для этого.',
       },
       {
-        title: '365 дней полной свободы графика',
+        title: 'Я готовлюсь к отбору в авиакомпанию.',
         description:
-          'Планируйте сессии в течение полного календарного года. Запросы проходят через живой календарь и подтверждаются диспетчерской, чтобы вы выбрали удобный для своих целей ритм.',
+          'Десять полётов осознанной практики: дисциплина SOP, полёт по сырым данным, брифинги FMC, мышление QRH и взаимодействие двух пилотов — так, как ожидают авиакомпании. «Концепции ATPL» 10 × 60 или «Готовность к авиакомпании» 10 × 90.',
       },
       {
-        title: 'Миссии, настроенные капитаном',
+        title: 'Я боюсь летать и хочу понять, что происходит.',
         description:
-          'Капитан адаптирует каждую миссию к вашей уверенности, интересам и целям обучения. Место наблюдателя и отдельно указанные дополнения зависят от доступности и подтверждённых условий.',
+          'Турбулентность, звуки двигателей и уход на второй круг перестают быть загадкой, когда вы сами справились с ними с левого кресла. Несколько спокойных полётов с одним капитаном дают понимание, которого не даст один полёт. Начните с «Основ полёта» или попросите диспетчера о более мягком темпе.',
       },
     ],
-    filterAll: 'Все абонементы',
-    filter5: '5 полётов (Базовое мастерство)',
-    filter10: '10 полётов (Курс авиалинии)',
+    filterAll: 'Все программы',
+    filter5: 'Программы из 5 полётов (мастерство)',
+    filter10: 'Программы из 10 полётов (курс авиакомпании)',
     recommendedBadge: 'ВЫБОР КАПИТАНА',
     perSessionLabel: 'за каждый полёт',
     minutesLabel: 'мин',
     totalMinutesLabel: 'минут всего',
     roadmapTitle: '5 этапов освоения лайнера',
     roadmapSubtitle:
-      'Каждое занятие строится на базе предыдущего. Вот программа, которую вы пройдёте рука об руку с капитаном.',
+      'Каждый полёт строится на базе предыдущего. Вот программа, которую вы пройдёте рука об руку с капитаном.',
     stages: [
       {
         stage: 'Этап 01',
@@ -493,27 +499,32 @@ export const SUBSCRIPTION_PAGE_COPY: LocalizedRecord<SubscriptionPageCopy> = {
           'Легендарный визуальный доворот в Гонконге (Кай Так), ущелье Инсбрука и высокогорный заход в Паро (Бутан).',
       },
     ],
-    comparisonTitle: 'Разовые полёты или годовой абонемент?',
-    comparisonSubtitle:
-      'Наглядное сравнение разовых бронирований с программами на пять и десять полётов.',
+    comparisonTitle: 'Один полёт или лётная программа?',
+    comparisonSubtitle: 'Что меняется между разовым бронированием и программой из пяти или десяти полётов.',
     comparisonHeaders: {
-      feature: 'Параметр',
+      feature: 'Что вы получаете',
       singleFlight: 'Разовый полёт',
-      sub5: 'Абонемент 5 полётов',
-      sub10: 'Абонемент 10 полётов',
+      sub5: 'Программа 5 полётов',
+      sub10: 'Программа 10 полётов',
     },
     comparisonRows: [
       {
         feature: 'Время в кабине',
-        single: '60–90 мин (1 раз)',
-        sub5: '300–450 мин (5 сессий)',
-        sub10: '600–900 мин (10 сессий)',
+        single: '60–90 мин (1 полёт)',
+        sub5: '300–450 мин (5 полётов)',
+        sub10: '600–900 мин (10 полётов)',
       },
       {
-        feature: 'Экономия на часах',
+        feature: 'Цена за полёт',
         single: 'Базовый тариф',
         sub5: 'Выгода 20% (до 860 ₪)',
         sub10: 'Выгода 30% (до 2550 ₪)',
+      },
+      {
+        feature: 'Что вы летите сами к концу',
+        single: 'Взлёт и посадка с подсказками',
+        sub5: 'Настройка FMC, круг вручную, посадка при боковом ветре',
+        sub10: 'Полные полёты в стиле авиакомпании, нештатные ситуации и линейная миссия',
       },
       {
         feature: 'Программа обучения',
@@ -522,33 +533,26 @@ export const SUBSCRIPTION_PAGE_COPY: LocalizedRecord<SubscriptionPageCopy> = {
         sub10: 'Полный линейный курс',
       },
       {
-        feature: 'Срок действия',
-        single: 'Только дата брони',
-        sub5: '12 месяцев (365 дней)',
-        sub10: '12 месяцев (365 дней)',
-      },
-      {
-        feature: 'Прогресс по миссиям',
-        single: 'Одна миссия с инструктором',
-        sub5: 'Прогресс в пяти сессиях',
-        sub10: 'Прогресс в десяти сессиях',
+        feature: 'Бронирование',
+        single: 'Одна фиксированная дата',
+        sub5: 'Каждый полёт — когда вам удобно',
+        sub10: 'Каждый полёт — когда вам удобно',
       },
       {
         feature: 'Разбор от пилота',
         single: 'Краткий устный итог',
-        sub5: 'Записи в летной книжке',
-        sub10: 'Полный отчет прогресса',
+        sub5: 'Записи в лётной книжке',
+        sub10: 'Полный отчёт о прогрессе',
       },
     ],
-    faqTitle: 'Частые вопросы об абонементах',
-    faqSubtitle:
-      'Всё о приобретении, бронировании времени и прохождении лётной программы.',
-    faqEyebrow: 'Вопросы об абонементе',
+    faqTitle: 'Вопросы перед выбором программы',
+    faqSubtitle: 'Как устроены покупка, бронирование и полёты по программе.',
+    faqEyebrow: 'Вопросы о программе',
     faqs: [
       {
-        question: 'Как планируются сессии по абонементу?',
+        question: 'Как бронировать полёты из программы?',
         answer:
-          'Диспетчерская может помочь спланировать сессии вместе или по одной. Каждое бронирование зависит от живого календаря и подтверждённой операционной доступности.',
+          'По одному или все сразу — как вам удобнее. Диспетчер спланирует их вместе с вами, а каждое бронирование подтверждается по живому календарю и операционной доступности.',
       },
       {
         question: 'Можно ли добавить целевые темы для тренировки в кабине?',
@@ -556,74 +560,73 @@ export const SUBSCRIPTION_PAGE_COPY: LocalizedRecord<SubscriptionPageCopy> = {
           'Капитан может включить подходящие учебные темы, например Cold & Dark, Crosswind/IFR и Extreme Airports. Отдельно указанное дополнительное время, цена и место наблюдателя подтверждаются до бронирования.',
       },
       {
-        question: 'Нужен ли предварительный опыт полетов?',
+        question: 'Нужен ли предварительный опыт полётов?',
         answer:
           'Опыт не требуется. Занятия проходят один на один с пилотом гражданской авиации, который настраивает уровень сложности под вас.',
       },
       {
-        question: 'Будут ли автоматические ежемесячные списания?',
+        question: 'Это абонемент с автоматическими ежемесячными списаниями?',
         answer:
-          'Нет. Абонемент оплачивается один раз. Никаких скрытых платежей, подписок или автопродлений — у вас есть 12 месяцев на полёты.',
+          'Нет. Вы платите один раз, и больше ничего не списывается: без продления, без ежемесячной платы, без обязательств. Ваши полёты остаются доступными для бронирования целый год с момента покупки, так что спешить некуда.',
       },
     ],
-    bottomCtaTitle: 'Готовы взять управление на себя?',
+    bottomCtaTitle: 'Ваш первый полёт может быть уже на этой неделе.',
     bottomCtaSubtitle:
-      'Выберите свой абонемент или обсудите индивидуальную программу с шеф-пилотом.',
+      'Выберите программу под вашу причину или обсудите индивидуальную с шеф-пилотом.',
     bottomCtaBadge: 'Путь развития пилота Sim Dream',
-    bottomCtaButton: 'Купить абонемент онлайн',
+    bottomCtaButton: 'Выбрать мою программу',
     bottomContactConcierge: 'Вопросы? Позвоните или напишите в WhatsApp диспетчеру',
   },
 
   fr: {
-    eyebrow: 'CLUB DES COMMANDANTS SIM DREAM · ABONNEMENTS ANNUELS',
-    heroTitle: 'Un vol est un souvenir. Un abonnement développe votre assurance aux commandes.',
+    eyebrow: 'CLUB DES COMMANDANTS SIM DREAM · PARCOURS DE VOL',
+    heroTitle: 'Au cinquième vol, vous pilotez le 737 vous-même.',
     heroSubtitle:
-      'Développez votre assurance sur Boeing 737 en cinq ou dix séances structurées. Suivez un parcours avec commandant pendant 12 mois et découvrez la valeur de chaque séance incluse, avec jusqu’à 2 550 ₪ d’économie par rapport aux séances individuelles.',
+      'Un vol est un souvenir. Un parcours de cinq ou dix vols avec commandant en fait une compétence : vous programmez le FMC, volez le tour de piste à la main et vous posez par vent de travers, un commandant de ligne à vos côtés à chaque fois. Payez une fois, volez à votre rythme et économisez jusqu’à 2 550 ₪ par rapport aux vols à l’unité.',
     stats: {
-      validityLabel: 'Période de validité',
-      validityValue: '12 mois complets',
-      savingsLabel: 'Avantage abonnement',
-      savingsValue: 'Jusqu’à 2 550 ₪',
-      mentorshipLabel: 'Formation dédiée',
-      mentorshipValue: 'Commandants de ligne',
-      guestLabel: 'Parcours d’apprentissage',
-      guestValue: 'Séances avec commandant',
+      paymentValue: 'Un seul paiement',
+      paymentLabel: 'Ni renouvellement, ni prélèvement mensuel',
+      paceValue: 'À votre rythme',
+      paceLabel: 'Réservez chaque vol quand cela vous convient',
+      mentorshipValue: 'Commandants en activité',
+      mentorshipLabel: 'En 1-sur-1 à chaque vol',
+      savingsValue: 'Jusqu’à 30% d’économie',
+      savingsLabel: 'Par rapport aux vols à l’unité',
     },
-    whySubscribeTitle: 'Pourquoi choisir un abonnement annuel ?',
-    whySubscribeSubtitle:
-      'Un vol unique offre une première découverte. Un abonnement annuel ancre la mémoire musculaire, la logique des systèmes et une réelle aisance en poste de pilotage.',
+    reasonsTitle: 'Pourquoi aurais-je besoin de plus d’un vol ?',
+    reasonsSubtitle: 'Choisissez la raison qui vous ressemble. Chacune a son parcours.',
     pillars: [
       {
-        title: 'Progression structurée et cohérente',
+        title: 'Je ne veux plus être un simple passager.',
         description:
-          'Avancez pas à pas : du tour de piste visuel à la programmation du FMC, la gestion de l’automanette, les approches CAT III par gros temps et les pannes critiques.',
+          'Le premier vol, c’est la sensation. Au cinquième, vous déroulez vous-même les flux du commandant, lisez les instruments et volez une approche stabilisée vers un atterrissage que vous avez planifié. Commencez par Fondations de vol, 5 × 60.',
       },
       {
-        title: 'Valeur économique maximale',
+        title: 'Je veux les grandes missions, pas un simple aperçu.',
         description:
-          'Bénéficiez de notre tarif horaire le plus avantageux et économisez entre 700 ₪ et 2 550 ₪ par rapport aux séances individuelles, à l’abri de toute hausse tarifaire.',
+          'Des vols de quatre-vingt-dix minutes laissent le temps de préparer la route, de la voler, de gérer un cisaillement de vent ou une remise de gaz et de débriefer correctement. Commandant avancé, 5 × 90, est conçu pour cela.',
       },
       {
-        title: '365 jours de liberté pour voler',
+        title: 'Je prépare une sélection en compagnie aérienne.',
         description:
-          'Planifiez vos séances pendant une année civile complète. Les demandes passent par le calendrier en direct et sont confirmées par le Dispatch, afin de créer un rythme adapté à vos objectifs.',
+          'Dix vols de pratique délibérée : discipline SOP, pilotage raw data, briefings FMC, raisonnement QRH et communication à deux pilotes, expliqués comme les compagnies l’attendent. Concepts ATPL 10 × 60 ou Préparation compagnie 10 × 90.',
       },
       {
-        title: 'Missions adaptées avec votre commandant',
+        title: 'J’ai peur de l’avion et je veux comprendre.',
         description:
-          'Votre commandant adapte chaque mission à votre assurance, vos intérêts et vos objectifs. La place observateur et les options affichées séparément dépendent des disponibilités et des conditions confirmées.',
+          'Turbulences, bruits de moteur et remises de gaz cessent d’être des mystères une fois que vous les avez gérés depuis le siège gauche. Plusieurs vols calmes avec le même commandant construisent une compréhension qu’un seul vol ne peut pas donner. Commencez par Fondations de vol, ou demandez au Dispatch un rythme plus doux.',
       },
     ],
-    filterAll: 'Tous les abonnements',
-    filter5: 'Cursus 5 vols (Maîtrise)',
-    filter10: 'Cursus 10 vols (Ligne aérienne)',
+    filterAll: 'Tous les parcours',
+    filter5: 'Parcours 5 vols (Maîtrise)',
+    filter10: 'Parcours 10 vols (Syllabus compagnie)',
     recommendedBadge: 'RECOMMANDÉ PAR LE CAPITAINE',
     perSessionLabel: 'coût effectif par vol',
     minutesLabel: 'min',
     totalMinutesLabel: 'minutes au total',
     roadmapTitle: 'Parcours d’apprentissage en 5 étapes',
     roadmapSubtitle:
-      'Chaque séance consolide la précédente. Voici le syllabus professionnel développé avec nos commandants de bord.',
+      'Chaque vol consolide le précédent. Voici le syllabus professionnel développé avec nos commandants de bord.',
     stages: [
       {
         stage: 'Étape 01',
@@ -656,27 +659,32 @@ export const SUBSCRIPTION_PAGE_COPY: LocalizedRecord<SubscriptionPageCopy> = {
           'Le virage mythique de Kai Tak à Hong Kong, la vallée alpine d’Innsbruck et la descente exigeante de Paro au Bhoutan.',
       },
     ],
-    comparisonTitle: 'Séances uniques ou abonnement annuel ?',
-    comparisonSubtitle:
-      'Tableau comparatif entre des vols ponctuels et nos formules d’abonnement de 5 ou 10 séances.',
+    comparisonTitle: 'Un vol ou un parcours de vol ?',
+    comparisonSubtitle: 'Ce qui change entre un vol à l’unité et un parcours de cinq ou dix vols.',
     comparisonHeaders: {
-      feature: 'Prestation',
+      feature: 'Ce que vous obtenez',
       singleFlight: 'Vol à l’unité',
-      sub5: 'Abonnement 5 vols',
-      sub10: 'Abonnement 10 vols',
+      sub5: 'Parcours 5 vols',
+      sub10: 'Parcours 10 vols',
     },
     comparisonRows: [
       {
         feature: 'Temps de cockpit',
-        single: '60–90 min (1 séance)',
-        sub5: '300–450 min (5 séances)',
-        sub10: '600–900 min (10 séances)',
+        single: '60–90 min (1 vol)',
+        sub5: '300–450 min (5 vols)',
+        sub10: '600–900 min (10 vols)',
       },
       {
-        feature: 'Économie horaire',
+        feature: 'Prix par vol',
         single: 'Tarif standard',
         sub5: 'Économie de 20% (jusqu’à 860 ₪)',
         sub10: 'Économie de 30% (jusqu’à 2 550 ₪)',
+      },
+      {
+        feature: 'Ce que vous volez vous-même à la fin',
+        single: 'Décollage et atterrissage guidé',
+        sub5: 'Préparation FMC, tour de piste à la main, atterrissage par vent de travers',
+        sub10: 'Vols complets de style compagnie, pannes et mission de ligne',
       },
       {
         feature: 'Syllabus de formation',
@@ -685,16 +693,10 @@ export const SUBSCRIPTION_PAGE_COPY: LocalizedRecord<SubscriptionPageCopy> = {
         sub10: 'Syllabus complet compagnie',
       },
       {
-        feature: 'Durée de validité',
-        single: 'Date réservée',
-        sub5: '12 mois complets (365 jours)',
-        sub10: '12 mois complets (365 jours)',
-      },
-      {
-        feature: 'Progression des missions',
-        single: 'Une mission accompagnée',
-        sub5: 'Progression en cinq séances',
-        sub10: 'Progression en dix séances',
+        feature: 'Réservation',
+        single: 'Une date fixe',
+        sub5: 'Chaque vol quand cela vous convient',
+        sub10: 'Chaque vol quand cela vous convient',
       },
       {
         feature: 'Débriefing personnalisé',
@@ -703,15 +705,14 @@ export const SUBSCRIPTION_PAGE_COPY: LocalizedRecord<SubscriptionPageCopy> = {
         sub10: 'Bilan complet de progression',
       },
     ],
-    faqTitle: 'Questions fréquentes sur les abonnements',
-    faqSubtitle:
-      'Toutes les réponses pour choisir, planifier et profiter pleinement de votre abonnement.',
-    faqEyebrow: 'Questions sur l’abonnement',
+    faqTitle: 'Questions avant de choisir un parcours',
+    faqSubtitle: 'Comment fonctionnent l’achat, la réservation et les vols d’un parcours.',
+    faqEyebrow: 'Questions sur le parcours',
     faqs: [
       {
-        question: 'Comment les séances de l’abonnement sont-elles planifiées ?',
+        question: 'Comment réserver les vols de mon parcours ?',
         answer:
-          'Le Dispatch peut vous aider à planifier les séances ensemble ou une à une. Chaque réservation dépend du calendrier en direct et de la disponibilité opérationnelle confirmée.',
+          'Un à la fois ou tous ensemble, comme vous préférez. Le Dispatch les planifie avec vous et chaque réservation est confirmée sur le calendrier en direct selon la disponibilité opérationnelle.',
       },
       {
         question: 'Puis-je ajouter des thèmes d’entraînement ciblés au cockpit ?',
@@ -724,69 +725,68 @@ export const SUBSCRIPTION_PAGE_COPY: LocalizedRecord<SubscriptionPageCopy> = {
           'Aucune expérience n’est nécessaire. Chaque vol est encadré individuellement par un commandant de ligne qui adapte la mission à votre niveau.',
       },
       {
-        question: 'S’agit-il d’un prélèvement automatique récurrent ?',
+        question: 'S’agit-il d’un abonnement à prélèvement récurrent ?',
         answer:
-          'Non. Nos abonnements sont réglés en un paiement unique, sans reconduction tacite ni frais dissimulés, avec 12 mois de validité.',
+          'Non. Vous payez une fois et rien n’est jamais prélevé ensuite : ni renouvellement, ni frais mensuels, ni engagement. Vos vols restent réservables pendant une année entière à compter de l’achat, sans aucune précipitation.',
       },
     ],
-    bottomCtaTitle: 'Prêt à prendre les commandes ?',
+    bottomCtaTitle: 'Votre premier vol peut avoir lieu cette semaine.',
     bottomCtaSubtitle:
-      'Sélectionnez votre formule ou échangez avec notre chef-pilote pour construire votre parcours sur mesure.',
+      'Choisissez le parcours qui correspond à votre raison, ou parlez-en avec notre chef-pilote pour un parcours sur mesure.',
     bottomCtaBadge: 'Parcours pilote Sim Dream',
-    bottomCtaButton: 'Acheter mon abonnement en ligne',
+    bottomCtaButton: 'Choisir mon parcours',
     bottomContactConcierge: 'Une question ? Contactez le Dispatch par téléphone ou WhatsApp',
   },
 
   ar: {
-    eyebrow: 'نادي كباتن سيم دريم · اشتراكات سنوية',
-    heroTitle: 'رحلة واحدة هي ذكرى لا تُنسى. الاشتراك يبني ثقتكم في قمرة القيادة.',
+    eyebrow: 'نادي كباتن سيم دريم · مسارات الطيران',
+    heroTitle: 'في رحلتكم الخامسة، تقودون الـ737 بأنفسكم.',
     heroSubtitle:
-      'ابنوا ثقتكم في بوينغ 737 عبر خمس أو عشر جلسات طيران منظمة. اتبعوا مساراً تعليمياً بإشراف كابتن لمدة 12 شهراً واكتشفوا قيمة كل جلسة مشمولة، مع توفير يصل إلى 2,550 شيكل مقارنة بالجلسات الفردية.',
+      'رحلة واحدة هي ذكرى. مسار من خمس أو عشر رحلات بإشراف كابتن يحوّلها إلى مهارة: تبرمجون FMC، وتطيرون الدائرة يدوياً، وتهبطون في رياح جانبية، وكابتن خطوط جوية بجانبكم في كل مرة. تدفعون مرة واحدة، وتطيرون بإيقاعكم، وتوفرون حتى 2,550 شيكل مقارنة بالرحلات الفردية.',
     stats: {
-      validityLabel: 'صلاحية الاستخدام',
-      validityValue: '12 شهراً كاملاً',
-      savingsLabel: 'قيمة الاشتراك',
-      savingsValue: 'خصم حتى 2,550 شيكل',
-      mentorshipLabel: 'تدريب فردي',
+      paymentValue: 'دفعة واحدة',
+      paymentLabel: 'بلا تجديد وبلا خصم شهري',
+      paceValue: 'بإيقاعكم',
+      paceLabel: 'احجزوا كل رحلة في الوقت الذي يناسبكم',
       mentorshipValue: 'كباتن خطوط جوية',
-      guestLabel: 'مسار التعلّم',
-      guestValue: 'جلسات بإشراف كابتن',
+      mentorshipLabel: 'فردياً 1-على-1 في كل رحلة',
+      savingsValue: 'توفير حتى 30%',
+      savingsLabel: 'مقارنة بالرحلات الفردية',
     },
-    whySubscribeTitle: 'لماذا تختارون اشتراك طيران سنوياً؟',
-    whySubscribeSubtitle:
-      'الرحلة الواحدة تمنحكم فكرة أولية عن قمرة القيادة. الاشتراك السنوي يبني ذاكرة عضلية حقيقية وفهماً شاملاً لأنظمة الطيران وإتقاناً للتحليق.',
+    reasonsTitle: 'لماذا أحتاج إلى أكثر من رحلة واحدة؟',
+    reasonsSubtitle: 'اختاروا السبب الأقرب إليكم. لكل سبب مسار مبني له.',
     pillars: [
       {
-        title: 'تدرج تعليمي منهجي ومنظم',
+        title: 'لا أريد أن أكون مجرد مسافر مرة أخرى.',
         description:
-          'انتقال مدروس من مناورات الدوائر البصرية الأولية إلى برمجة كمبيوتر إدارة الرحلة (FMC)، وضبط السرعة الآلي، وهبوط ILS في أصعب الظروف والتعامل مع الطوارئ.',
+          'الرحلة الأولى عن الإحساس. في الرحلة الخامسة تنفذون تسلسلات الكابتن بأنفسكم، وتقرؤون العدادات، وتطيرون اقتراباً مستقراً نحو هبوط خططتم له. ابدؤوا بأساسيات الطيران، 5 × 60.',
       },
       {
-        title: 'أعلى قيمة اقتصادية وتوفير مالي',
+        title: 'أريد المهام الكبيرة، لا مجرد تجربة قصيرة.',
         description:
-          'تضمنون الحصول على أفضل سعر لساعة الطيران وتوفرون ما بين 700 و2,550 شيكل مقارنة بحجز الرحلات الفردية، مع حماية كاملة من تغير الأسعار.',
+          'رحلات التسعين دقيقة تمنحكم الوقت لتخطيط المسار والطيران به والتعافي من قص الرياح أو الذهاب حول واستخلاص الدروس كما ينبغي. الكابتن المتقدم، 5 × 90، مبني لهذا تماماً.',
       },
       {
-        title: '365 يوماً من المرونة الكاملة',
+        title: 'أستعد لاختبار قبول في شركة طيران.',
         description:
-          'خططوا الجلسات خلال سنة تقويمية كاملة. تمر الطلبات عبر التقويم المباشر ويؤكدها قسم العمليات، لتبنوا إيقاعاً يناسب أهدافكم.',
+          'عشر رحلات من التدريب المتعمد: انضباط SOP، والطيران بالبيانات الخام، وإحاطات FMC، وتفكير QRH، وتواصل طاقم من طيارين، مشروحة كما تتوقعه شركات الطيران. مفاهيم ATPL 10 × 60 أو الجاهزية لشركات الطيران 10 × 90.',
       },
       {
-        title: 'مهام مصممة مع الكابتن',
+        title: 'أخاف من الطيران وأريد أن أفهم ما يحدث.',
         description:
-          'يكيّف الكابتن كل مهمة مع مستوى ثقتكم واهتماماتكم وأهدافكم التعليمية. مقعد المراقب والإضافات المعروضة بشكل منفصل تخضع للتوفر والشروط المؤكدة.',
+          'المطبات الهوائية وأصوات المحركات والذهاب حول تتوقف عن كونها ألغازاً بعد أن تتعاملوا معها من المقعد الأيسر. عدة رحلات هادئة مع الكابتن نفسه تبني فهماً لا تمنحه رحلة واحدة. ابدؤوا بأساسيات الطيران، أو اطلبوا من قسم العمليات إيقاعاً أهدأ.',
       },
     ],
-    filterAll: 'جميع الاشتراكات',
-    filter5: 'مسار 5 رحلات (بناء الإتقان)',
-    filter10: 'مسار 10 رحلات (منهج شركات الطيران)',
+    filterAll: 'جميع المسارات',
+    filter5: 'مسارات 5 رحلات (بناء الإتقان)',
+    filter10: 'مسارات 10 رحلات (منهج شركات الطيران)',
     recommendedBadge: 'الخيار المفضل للكابتن',
     perSessionLabel: 'التكلفة الفعلية للرحلة',
     minutesLabel: 'دقيقة',
     totalMinutesLabel: 'دقيقة إجمالاً',
     roadmapTitle: 'رحلة تعلّم الطيران في 5 مراحل',
     roadmapSubtitle:
-      'كل جلسة تكمل ما قبلها. هذا هو المنهج التدريبي المنظم الذي ستتدربون عليه مع كباتن الخطوط الجوية.',
+      'كل رحلة تكمل ما قبلها. هذا هو المنهج التدريبي المنظم الذي ستتدربون عليه مع كباتن الخطوط الجوية.',
     stages: [
       {
         stage: 'المرحلة 01',
@@ -819,27 +819,32 @@ export const SUBSCRIPTION_PAGE_COPY: LocalizedRecord<SubscriptionPageCopy> = {
           'تنفيذ الانعطاف الشهير في كاي تاك بهونغ كونغ، وملاحة وادي إنسبروك في جبال الألب، والهبوط في بارو بوتان.',
       },
     ],
-    comparisonTitle: 'الرحلات الفردية مقارنة بالاشتراك السنوي',
-    comparisonSubtitle:
-      'مقارنة واضحة بين حجز الرحلات الفردية وبرامج الاشتراكات لخمس أو عشر رحلات.',
+    comparisonTitle: 'رحلة واحدة أم مسار طيران؟',
+    comparisonSubtitle: 'ما الذي يتغير بين حجز رحلة واحدة ومسار من خمس أو عشر رحلات.',
     comparisonHeaders: {
-      feature: 'الميزة المشمولة',
+      feature: 'ما تحصلون عليه',
       singleFlight: 'رحلة فردية',
-      sub5: 'اشتراك 5 رحلات',
-      sub10: 'اشتراك 10 رحلات',
+      sub5: 'مسار 5 رحلات',
+      sub10: 'مسار 10 رحلات',
     },
     comparisonRows: [
       {
         feature: 'الوقت في قمرة القيادة',
-        single: '60–90 دقيقة (جلسة واحدة)',
-        sub5: '300–450 دقيقة (5 جلسات)',
-        sub10: '600–900 دقيقة (10 جلسات)',
+        single: '60–90 دقيقة (رحلة واحدة)',
+        sub5: '300–450 دقيقة (5 رحلات)',
+        sub10: '600–900 دقيقة (10 رحلات)',
       },
       {
-        feature: 'التوفير الفعلي في الساعات',
+        feature: 'السعر لكل رحلة',
         single: 'السعر الأساسي',
         sub5: 'توفير 20% (حتى 860 شيكل)',
         sub10: 'توفير 30% (حتى 2,550 شيكل)',
+      },
+      {
+        feature: 'ما تطيرونه بأنفسكم في النهاية',
+        single: 'إقلاع وهبوط بإرشاد',
+        sub5: 'إعداد FMC ودائرة يدوية وهبوط في رياح جانبية',
+        sub10: 'رحلات كاملة بأسلوب شركات الطيران وحالات غير عادية ومهمة خطية',
       },
       {
         feature: 'المنهج التدريبي',
@@ -848,16 +853,10 @@ export const SUBSCRIPTION_PAGE_COPY: LocalizedRecord<SubscriptionPageCopy> = {
         sub10: 'منهج تدريب خطوط متكامل',
       },
       {
-        feature: 'صلاحية الاستخدام',
-        single: 'الموعد المحدد فقط',
-        sub5: '12 شهراً كاملاً (365 يوماً)',
-        sub10: '12 شهراً كاملاً (365 يوماً)',
-      },
-      {
-        feature: 'التقدم في المهام',
-        single: 'مهمة واحدة بإرشاد',
-        sub5: 'تقدم عبر خمس جلسات',
-        sub10: 'تقدم عبر عشر جلسات',
+        feature: 'الحجز',
+        single: 'موعد واحد ثابت',
+        sub5: 'كل رحلة في الوقت الذي يناسبكم',
+        sub10: 'كل رحلة في الوقت الذي يناسبكم',
       },
       {
         feature: 'التقييم الشخصي والتحليل',
@@ -866,15 +865,14 @@ export const SUBSCRIPTION_PAGE_COPY: LocalizedRecord<SubscriptionPageCopy> = {
         sub10: 'تقرير تقييم وتطوير شامل',
       },
     ],
-    faqTitle: 'الأسئلة الشائعة حول اشتراكات الطيران',
-    faqSubtitle:
-      'كل ما تودون معرفته عن شراء وجدولة وخوض تجربة اشتراكات الطيران السنوية.',
-    faqEyebrow: 'أسئلة عن الاشتراك',
+    faqTitle: 'أسئلة قبل اختيار المسار',
+    faqSubtitle: 'كيف يعمل الشراء والحجز والطيران في المسار.',
+    faqEyebrow: 'أسئلة عن المسار',
     faqs: [
       {
-        question: 'كيف يتم تخطيط جلسات الاشتراك؟',
+        question: 'كيف أحجز رحلات مساري؟',
         answer:
-          'يمكن لقسم العمليات مساعدتكم على تخطيط الجلسات معاً أو جلسة بجلسة. يبقى كل حجز خاضعاً للتقويم المباشر وتأكيد التوفر التشغيلي.',
+          'واحدة تلو الأخرى أو كلها معاً، كما تفضلون. يخططها قسم العمليات معكم، ويُؤكد كل حجز وفق التقويم المباشر والتوفر التشغيلي.',
       },
       {
         question: 'هل يمكن إضافة موضوعات تدريب مركزة في قمرة القيادة؟',
@@ -889,14 +887,13 @@ export const SUBSCRIPTION_PAGE_COPY: LocalizedRecord<SubscriptionPageCopy> = {
       {
         question: 'هل هذا اشتراك يتجدد بخصم شهري تلقائي؟',
         answer:
-          'كلا. تدفع الاشتراكات بدفعة واحدة دون أي اقتطاعات شهرية أو التزامات متكررة، مع صلاحية كاملة لمدة 12 شهراً.',
+          'كلا. تدفعون مرة واحدة ولا يُخصم منكم شيء بعدها أبداً: بلا تجديد وبلا رسوم شهرية وبلا التزام. تبقى رحلاتكم متاحة للحجز سنة كاملة من تاريخ الشراء، فلا داعي للعجلة.',
       },
     ],
-    bottomCtaTitle: 'هل أنتم مستعدون لتولي القيادة؟',
-    bottomCtaSubtitle:
-      'اختاروا مسار الاشتراك الأنسب لكم أو استشيروا كبير المدربين لتصميم رحلة تدريبية مخصصة.',
+    bottomCtaTitle: 'رحلتكم الأولى يمكن أن تكون هذا الأسبوع.',
+    bottomCtaSubtitle: 'اختاروا المسار الذي يناسب سببكم، أو تحدثوا مع كبير المدربين عن مسار مخصص.',
     bottomCtaBadge: 'مسار تطور طيار Sim Dream',
-    bottomCtaButton: 'شراء الاشتراك الآن',
+    bottomCtaButton: 'اختيار مساري',
     bottomContactConcierge: 'هل لديكم استفسار؟ اتصلوا أو تواصلوا عبر واتساب مباشرة مع العمليات',
   },
 };

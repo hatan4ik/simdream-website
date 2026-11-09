@@ -7,14 +7,15 @@ import {
   Award,
   ArrowRight,
   Calendar,
-  Users,
   ShieldCheck,
+  CreditCard,
   TrendingUp,
   ChevronDown,
   Plane,
   Clock,
   Compass,
-  Phone,
+  Heart,
+  GraduationCap,
   MessageSquare,
   Sparkles,
   HelpCircle,
@@ -127,14 +128,14 @@ export default function SubscriptionsPage() {
         {/* Quick Stats Ribbon (4 metric pills) */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 pt-4 max-w-4xl mx-auto">
           <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 text-center space-y-1">
-            <Calendar className="w-5 h-5 text-sky-400 mx-auto mb-1" />
-            <p className="text-sm font-bold text-white">{pageCopy.stats.validityValue}</p>
-            <p className="text-xs text-slate-400">{pageCopy.stats.validityLabel}</p>
+            <CreditCard className="w-5 h-5 text-sky-400 mx-auto mb-1" />
+            <p className="text-sm font-bold text-white">{pageCopy.stats.paymentValue}</p>
+            <p className="text-xs text-slate-400">{pageCopy.stats.paymentLabel}</p>
           </div>
           <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 text-center space-y-1">
-            <TrendingUp className="w-5 h-5 text-emerald-400 mx-auto mb-1" />
-            <p className="text-sm font-bold text-white">{pageCopy.stats.savingsValue}</p>
-            <p className="text-xs text-slate-400">{pageCopy.stats.savingsLabel}</p>
+            <Calendar className="w-5 h-5 text-orange-400 mx-auto mb-1" />
+            <p className="text-sm font-bold text-white">{pageCopy.stats.paceValue}</p>
+            <p className="text-xs text-slate-400">{pageCopy.stats.paceLabel}</p>
           </div>
           <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 text-center space-y-1">
             <ShieldCheck className="w-5 h-5 text-sky-400 mx-auto mb-1" />
@@ -142,29 +143,29 @@ export default function SubscriptionsPage() {
             <p className="text-xs text-slate-400">{pageCopy.stats.mentorshipLabel}</p>
           </div>
           <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 text-center space-y-1">
-            <Users className="w-5 h-5 text-orange-400 mx-auto mb-1" />
-            <p className="text-sm font-bold text-white">{pageCopy.stats.guestValue}</p>
-            <p className="text-xs text-slate-400">{pageCopy.stats.guestLabel}</p>
+            <TrendingUp className="w-5 h-5 text-emerald-400 mx-auto mb-1" />
+            <p className="text-sm font-bold text-white">{pageCopy.stats.savingsValue}</p>
+            <p className="text-xs text-slate-400">{pageCopy.stats.savingsLabel}</p>
           </div>
         </div>
       </section>
 
       <WixMemberSubscriptionPanel language={language} />
 
-      {/* 2. THE 4 VALUE PILLARS (Customer Orientation) */}
-      <section className="space-y-8">
+      {/* 2. "WHY WOULD I NEED THIS?" — four first-person reasons, each pointing at a track */}
+      <section className="space-y-8" data-subscription-reasons>
         <div className="text-center max-w-2xl mx-auto space-y-2">
           <h2 className="text-2xl sm:text-3xl font-bold text-white">
-            {pageCopy.whySubscribeTitle}
+            {pageCopy.reasonsTitle}
           </h2>
           <p className="text-sm sm:text-base text-slate-400 leading-relaxed">
-            {pageCopy.whySubscribeSubtitle}
+            {pageCopy.reasonsSubtitle}
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {pageCopy.pillars.map((pillar, idx) => {
-            const icons = [Compass, TrendingUp, Clock, Users];
+            const icons = [Compass, Clock, GraduationCap, Heart];
             const Icon = icons[idx] || Award;
             return (
               <Card
@@ -300,7 +301,7 @@ export default function SubscriptionsPage() {
                   <div className="text-xs text-slate-400 flex items-center gap-4">
                     <span>{pass.sessions} {sectionCopy.sessionLabel}</span>
                     <span>•</span>
-                    <span>{sectionCopy.validityLabel}</span>
+                    <span>{sectionCopy.flexibilityLabel}</span>
                   </div>
                 </div>
 
@@ -351,17 +352,7 @@ export default function SubscriptionsPage() {
                     {pendingPassId === pass.id ? (
                       <span className="inline-flex items-center gap-2">
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>
-                          {language === 'he'
-                            ? 'מעביר לתשלום...'
-                            : language === 'ru'
-                              ? 'Переход к оплате...'
-                              : language === 'fr'
-                                ? 'Redirection vers le paiement...'
-                                : language === 'ar'
-                                  ? 'جارٍ التحويل للدفع...'
-                                  : 'Redirecting to payment...'}
-                        </span>
+                        <span>{sectionCopy.redirectingToPayment}</span>
                       </span>
                     ) : (
                       <>

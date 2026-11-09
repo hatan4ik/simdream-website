@@ -135,3 +135,47 @@ describe('flight subscription five-language discipline', () => {
     expect(curriculum.filter((item) => !ownScript.test(item))).toEqual([]);
   });
 });
+
+/**
+ * Product decision (2026-11-09): the portal sells the outcome of a track, never its
+ * duration. Limited-time phrasing reads as a deadline and a lock-in, so it is banned
+ * from the marketing copy. The validity term is a real commercial condition and is
+ * disclosed exactly once, in the billing FAQ answer, as reassurance.
+ */
+const LIMITED_TIME_TERMS: Record<Exclude<Language, 'es'>, RegExp> = {
+  en: /\b12[- ]?months?\b|\bannual|\b365\b|\byears?\b|\bvalid(?:ity)?\b|\bexpir|\bunlimited\b/i,
+  he: /12 חודש|שנתי|שנה|365|תוקף|פג|ללא הגבלה/,
+  ru: /12 месяц|годов|(?:^|\s)года?(?=[\s.,;:!?]|$)|365|срок действ|действует|действителен|истек|безлимит|неограничен/iu,
+  fr: /12 mois|annuel|\ban\b|année|365|validit|valable|expir|illimit/i,
+  ar: /12 شهر|سنوي|سنة|365|صلاحي|صالح|تنتهي|غير محدود/,
+};
+
+describe('flight track copy never leads with a deadline', () => {
+  it.each(Object.keys(LIMITED_TIME_TERMS) as Array<keyof typeof LIMITED_TIME_TERMS>)(
+    'mentions the validity only in the %s billing FAQ answer, never as a limited-time hook',
+    (language) => {
+      const page = SUBSCRIPTION_PAGE_COPY[language];
+      const billingFaqAnswer = page.faqs[3].answer;
+      const copy = [
+        ...stringLeaves(SUBSCRIPTION_SECTION_COPY[language]),
+        ...stringLeaves(page),
+        ...SUBSCRIPTION_PASSES.flatMap((track) => stringLeaves(track.copy[language])),
+      ];
+      const offenders = copy.filter((text) => LIMITED_TIME_TERMS[language].test(text));
+      expect(offenders).toEqual([billingFaqAnswer]);
+      // The one disclosure is reassurance, not a hook: it sits next to the no-renewal promise.
+      expect(page.faqs[3].question).toMatch(SUBSCRIPTION_TERMS[language]);
+    }
+  );
+
+  it('keeps the commercial validity on the data model for Wix, where it belongs', () => {
+    for (const track of SUBSCRIPTION_PASSES) expect(track.validityMonths).toBe(12);
+  });
+
+  it.each(['he', 'ar'] as const)('writes the %s first-person reasons in their own script', (language) => {
+    const ownScript = language === 'he' ? HEBREW : ARABIC;
+    const page = SUBSCRIPTION_PAGE_COPY[language];
+    const prose = [page.heroTitle, page.heroSubtitle, page.reasonsTitle, ...page.pillars.flatMap((pillar) => [pillar.title, pillar.description])];
+    expect(prose.filter((text) => !ownScript.test(text))).toEqual([]);
+  });
+});

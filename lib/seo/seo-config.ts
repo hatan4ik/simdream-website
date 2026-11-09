@@ -99,7 +99,7 @@ export const PAGE_SEO_DEFINITIONS: Record<SeoPageKey, PageSeoDefinition> = {
     path: '/subscriptions',
     title: 'Boeing 737 Flight Subscriptions | Sim Dream Tel Aviv (מנויי טיסה)',
     description:
-      'Build Boeing 737 confidence across 5 or 10 structured captain-led flight sessions at Sim Dream Tel Aviv. Compare the value of each 12-month, single-payment flight subscription and plan requests through the live calendar.',
+      'Build Boeing 737 confidence across 5 or 10 captain-led flights at Sim Dream Tel Aviv. Pay once, book each flight at your own pace, and save up to 30% against single flights.',
     keywords: [
       ...COMMON_KEYWORDS,
       'flight subscriptions Israel',
