@@ -1,5 +1,10 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { apiRequest, readJson } from '../support/http';
+
+// The checkout resolver closes departed starts against the real clock, so a fixture dated
+// 2026-11-09 10:15 started failing on that date at 10:15 Israel time. Freeze the clock at the
+// harness reference (the same moment loadApp() uses) so the departure is always in the future.
+const FROZEN_NOW = new Date('2026-11-01T08:00:00+02:00');
 
 const BOOKING_INPUT = {
   packageId: 'pkg-captain-60',
@@ -7,7 +12,12 @@ const BOOKING_INPUT = {
   startTime: '10:15',
 } as const;
 
+beforeEach(() => {
+  vi.useFakeTimers({ toFake: ['Date'], now: FROZEN_NOW });
+});
+
 afterEach(() => {
+  vi.useRealTimers();
   vi.resetModules();
   vi.doUnmock('@/lib/wix/bookings');
   vi.doUnmock('@/lib/wix/catalog');
