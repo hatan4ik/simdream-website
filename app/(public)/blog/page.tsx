@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Metadata } from 'next';
-import { BookOpen, Sparkles } from 'lucide-react';
+import { BookOpen } from 'lucide-react';
 import { getAllBlogPosts } from '@/lib/data/blog-posts';
 import { BlogIndexView } from '@/components/blog/BlogIndexView';
 
