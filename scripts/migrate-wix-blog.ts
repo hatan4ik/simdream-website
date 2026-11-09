@@ -16,6 +16,8 @@
  *   WIX_ADMIN_API_KEY=IST... npx tsx scripts/migrate-wix-blog.ts --apply
  */
 
+import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { loadWixLocalEnv } from './wix-env';
 
 loadWixLocalEnv(['NEXT_PUBLIC_WIX_CLIENT_ID', 'WIX_SITE_ID']);
@@ -61,9 +63,31 @@ if (!args.apply) {
   process.exit(0);
 }
 
-const adminApiKey = (process.env.WIX_ADMIN_API_KEY ?? '').trim();
+function resolveAuthToken(): string {
+  if (process.env.WIX_ADMIN_API_KEY?.trim()) {
+    return process.env.WIX_ADMIN_API_KEY.trim();
+  }
+  const homeDir = process.env.HOME || '';
+  const siteAuthPath = join(homeDir, '.wix', 'auth', `${CANONICAL_STAGING_WIX_SITE_ID}.json`);
+  if (existsSync(siteAuthPath)) {
+    try {
+      const data = JSON.parse(readFileSync(siteAuthPath, 'utf8'));
+      if (data.accessToken) return data.accessToken;
+    } catch {}
+  }
+  const accountAuthPath = join(homeDir, '.wix', 'auth', 'account.json');
+  if (existsSync(accountAuthPath)) {
+    try {
+      const data = JSON.parse(readFileSync(accountAuthPath, 'utf8'));
+      if (data.accessToken) return data.accessToken;
+    } catch {}
+  }
+  return '';
+}
+
+const adminApiKey = resolveAuthToken();
 if (!adminApiKey) {
-  console.error('\nABORTED: WIX_ADMIN_API_KEY environment variable is required for --apply.');
+  console.error('\nABORTED: No Wix authentication token found in WIX_ADMIN_API_KEY or ~/.wix/auth.');
   process.exit(1);
 }
 
@@ -203,31 +227,43 @@ const draftPosts = posts.map((post) => {
   };
 });
 
-try {
-  const bulkRes = await fetch(BULK_CREATE_URL, {
-    method: 'POST',
-    headers: {
-      Authorization: adminApiKey,
-      'wix-site-id': CANONICAL_STAGING_WIX_SITE_ID,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      draftPosts,
-      publish: true,
-    }),
-  });
+const BATCH_SIZE = 20;
+let totalImported = 0;
 
-  if (!bulkRes.ok) {
-    const text = await bulkRes.text();
-    console.error(`Bulk import failed with HTTP ${bulkRes.status}:`, text);
+for (let i = 0; i < draftPosts.length; i += BATCH_SIZE) {
+  const batch = draftPosts.slice(i, i + BATCH_SIZE);
+  console.log(`   Importing batch [${i + 1}..${i + batch.length} of ${draftPosts.length}]...`);
+
+  try {
+    const bulkRes = await fetch(BULK_CREATE_URL, {
+      method: 'POST',
+      headers: {
+        Authorization: adminApiKey,
+        'wix-site-id': CANONICAL_STAGING_WIX_SITE_ID,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        draftPosts: batch,
+        publish: true,
+      }),
+    });
+
+    if (!bulkRes.ok) {
+      const text = await bulkRes.text();
+      console.error(`Bulk import failed on batch with HTTP ${bulkRes.status}:`, text);
+      process.exit(1);
+    }
+
+    const result = (await bulkRes.json()) as { results?: Array<{ itemMetadata?: { success: boolean; id: string } }> };
+    const successCount = result.results?.filter((r) => r.itemMetadata?.success).length ?? 0;
+    totalImported += successCount;
+    console.log(`   ✓ Batch imported: ${successCount}/${batch.length} posts successful.`);
+  } catch (err) {
+    console.error('Network error during bulk import batch:', err);
     process.exit(1);
   }
-
-  const result = (await bulkRes.json()) as { results?: Array<{ itemMetadata?: { success: boolean; id: string } }> };
-  console.log(`\n=== Migration Complete ===`);
-  console.log(`Imported ${result.results?.length ?? 0} articles successfully to Wix Blog backend.`);
-} catch (err) {
-  console.error('Network error during bulk import:', err);
-  process.exit(1);
 }
+
+console.log(`\n=== Migration Complete ===`);
+console.log(`Imported ${totalImported}/${posts.length} articles successfully to Wix Blog backend.`);
 
