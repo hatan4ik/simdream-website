@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:5a595a66ddb18144883621bf4c8ec3332340b11099b8bced37823caddfabe16f -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:99dce487c011a597e6de9f30c420834a3d2fec606fafa8040960711ade7260a1 -->
 
 ## Verification contract
 
@@ -162,7 +162,7 @@ Build **simdream.co.il**, the booking and marketing platform for **Sim Dream LTD
 - **WhatsApp** is the persistent human contact route (`+972 55 507 1307`). Do not add a second chat widget to the Headless frontend without an approved customer-support ownership and data-retention decision.
 - **Stripe** Checkout (hosted) and a signature-verified webhook. **SendGrid** for email. **Google Places API** for attributable reviews: the browser calls the same-origin review route, while the server protects the key and refreshes the feed at most every 15 minutes; the carousel is blank when unavailable.
 - Testing: **Vitest** (+ coverage, **fast-check**), **Playwright** (+ **axe-core**), **autocannon**, **Lighthouse CI**.
-- Node 24.22.1 or newer. Build the existing self-managed target normally, or use `npm run wix:build` followed by `npm run wix:release` to host the Next.js frontend on Wix-managed Headless. `wix:build` ends in `scripts/prepare-wix-worker.mjs`, which emits the bundled worker as UTF-8 (Wrangler's esbuild would write every Hebrew, Arabic or Cyrillic character as a six-byte `\uXXXX` escape) and fails over a 14 MiB worker budget, because Wix refuses a deployment near 20 MB with HTTP 413; CI builds that worker on every pull request (`wix-bundle`). Large data such as the blog corpus (`lib/data/blog-posts.json`) is imported by server modules only — client components take types and `BLOG_CATEGORIES` from `lib/data/blog-categories` — so Turbopack bundles it once, not once per server, SSR and browser layer. CI on **GitHub Actions**.
+- Node 24.22.1 or newer. Build the existing self-managed target normally, or use `npm run wix:build` followed by `npm run wix:release` to host the Next.js frontend on Wix-managed Headless. CI on **GitHub Actions**.
 - Environment variables (document them in `.env.example`, never commit values): `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `ADMIN_USER`, `ADMIN_PASSWORD` (≥16 chars in production), `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `SENDGRID_API_KEY`, `NEXT_PUBLIC_SUPPORT_EMAIL`, `GOOGLE_PLACES_API_KEY`, the demo-only opt-in `ALLOW_IN_MEMORY_STORE`, the two public Wix Headless identifiers `NEXT_PUBLIC_WIX_CLIENT_ID` and `WIX_SITE_ID`, server-only Wix plan mappings `WIX_PLAN_ID_FOUNDATIONS_5X60`, `WIX_PLAN_ID_ADVANCED_5X90`, `WIX_PLAN_ID_ATPL_10X60`, and `WIX_PLAN_ID_AIRLINE_10X90`, plus default-off `WIX_SHADOW_READS_ENABLED` and `WIX_AVAILABILITY_ADAPTER_ENABLED` flags. The availability flag permits only a Wix availability read/intersection; native simple-flight checkout relies on the public Wix OAuth app id and always creates the booking/cart in the browser visitor session, never with a server credential. Public identifiers may be in `wix.config.json`; secrets never are.
 
 ### NON-NEGOTIABLE INVARIANTS (the five pillars of this build)
@@ -602,7 +602,7 @@ lib/
   scheduler/ kantorovich-engine mission-calculator package-presentation tiled-interval-optimizer israel-clock booking-horizon
   booking/checkout-service checkout-ports checkout-composition checkout-runtime
   wix/ client config catalog bookings availability-adapter booking-checkout booking-checkout-client subscription-redemption subscription-booking checkout-shadow member-client backend-blueprint gift-cards plans readiness blog
-  catalog/gift-voucher-packages  data/experience-routes subscription-passes subscription-page-copy blog-categories blog-posts  db/ store schema.sql seed-data supabase-admin migrations/
+  catalog/gift-voucher-packages  data/experience-routes subscription-passes subscription-page-copy blog-posts blog-categories  db/ store schema.sql seed-data supabase-admin migrations/
   auth/ admin-guard request-auth member-ownership safe-redirect auth-context
   security/rate-limit
   i18n/ translations language-context language-preference calendar-presentation booking-blueprint-copy wix-subscription-booking-copy
@@ -614,7 +614,7 @@ types/index.ts
 proxy.ts                          # /admin guard
 public/brand/                     # official logo assets; theme-bootstrap.js
 tests/  unit/ integration/ security/ reliability/ e2e/ a11y/ usability/ security-web/ resilience/ visual/ load/ perf/ support/
-scripts/ test-all.ts run-sandboxed.ts with-server.ts update-visual-baselines.sh check-genesis-coverage.ts refresh-google-rating.mjs setup-google-places-key.sh wix-provision.ts wix-readiness.ts wix-smoke.ts migrate-wix-blog.ts harvest-wix-blog.py prepare-opennext-for-wix.mjs prepare-wix-worker.mjs wix-worker-charset.mjs
+scripts/ test-all.ts run-sandboxed.ts with-server.ts update-visual-baselines.sh check-genesis-coverage.ts refresh-google-rating.mjs setup-google-places-key.sh wix-provision.ts wix-readiness.ts wix-smoke.ts migrate-wix-blog.ts harvest-wix-blog.py
 .github/workflows/ ci.yml codeql.yml pr-mergeability.yml enable-trusted-automerge.yml security-history-audit.yml release-please.yml wix-release.yml wix-rollback.yml nightly.yml (OWASP ZAP baseline) google-rating-refresh.yml (weekly Places API (New) rating PR)
 AGENTS.md  ARCHITECTURE.md  README.md  TESTING.md  KANTOROVICH_SCHEDULER_SPEC.md
 ```
