@@ -115,6 +115,11 @@ const nextConfig = {
         destination: '/subscriptions',
         permanent: true,
       },
+      {
+        source: '/blog/:slug',
+        destination: '/post/:slug',
+        permanent: true,
+      },
     ];
   },
   async headers() {

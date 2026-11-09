@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { FACILITY_INFO } from '@/lib/config/facility-info';
+import { getAllBlogPosts } from '@/lib/data/blog-posts';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = FACILITY_INFO.primaryDomain;
@@ -14,6 +15,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: '/book', changeFrequency: 'daily', priority: 0.95 },
     { path: '/experiences', changeFrequency: 'weekly', priority: 0.9 },
     { path: '/subscriptions', changeFrequency: 'weekly', priority: 0.9 },
+    { path: '/blog', changeFrequency: 'weekly', priority: 0.85 },
     { path: '/about', changeFrequency: 'monthly', priority: 0.8 },
     { path: '/pro', changeFrequency: 'weekly', priority: 0.9 },
     { path: '/fear-of-flying', changeFrequency: 'weekly', priority: 0.85 },
@@ -24,10 +26,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: '/privacy-policy', changeFrequency: 'monthly', priority: 0.5 },
   ];
 
-  return routes.map((route) => ({
+  const staticEntries: MetadataRoute.Sitemap = routes.map((route) => ({
     url: `${baseUrl}${route.path}`,
     lastModified: now,
     changeFrequency: route.changeFrequency,
     priority: route.priority,
   }));
+
+  const blogEntries: MetadataRoute.Sitemap = getAllBlogPosts().map((post) => ({
+    url: `${baseUrl}/post/${encodeURIComponent(post.slug)}`,
+    lastModified: new Date(post.datePublished),
+    changeFrequency: 'monthly',
+    priority: 0.7,
+  }));
+
+  return [...staticEntries, ...blogEntries];
 }
