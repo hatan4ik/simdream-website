@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.13.0](https://github.com/hatan4ik/simdream-website/compare/v1.12.0...v1.13.0) (2026-11-09)
+
+
+### Features
+
+* **reviews:** header-only, newest-first Google reviews from a twice-daily snapshot ([#86](https://github.com/hatan4ik/simdream-website/issues/86)) ([e4a36e8](https://github.com/hatan4ik/simdream-website/commit/e4a36e8ac6a2978607e1772fef30d1c694e5a45a))
+* **seo:** generate llms.txt from the registries, add blog Person author and breadcrumbs, test route coverage ([#84](https://github.com/hatan4ik/simdream-website/issues/84)) ([ddc85b0](https://github.com/hatan4ik/simdream-website/commit/ddc85b00cfca5a939113aaaf2aca6bdc7e29f34e))
+* **subscriptions:** sell flight tracks by outcome, never by the 12-month term ([#82](https://github.com/hatan4ik/simdream-website/issues/82)) ([ec1e1a7](https://github.com/hatan4ik/simdream-website/commit/ec1e1a78398fd2041da8e3f6cd69b3410957805c))
+
+
+### Bug Fixes
+
+* **seo:** derive structured data from the registries; FAQPage only beside a visible FAQ ([#85](https://github.com/hatan4ik/simdream-website/issues/85)) ([fbe9f6e](https://github.com/hatan4ik/simdream-website/commit/fbe9f6e7f4515106b12c1f23f31a1abd31c968f1))
+
 ## [1.12.0](https://github.com/hatan4ik/simdream-website/compare/v1.11.0...v1.12.0) (2026-11-09)
 
 
