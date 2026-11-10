@@ -98,6 +98,7 @@ export async function loadApp(options: LoadAppOptions = {}) {
       stripeWebhook: () => import('@/app/api/webhooks/stripe/route'),
       vouchers: () => import('@/app/api/vouchers/route'),
       workshops: () => import('@/app/api/workshops/route'),
+      blog: () => import('@/app/api/blog/route'),
     },
   };
 }

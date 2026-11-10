@@ -9,12 +9,12 @@
     }
   },
   "production": {
-    "id": "afb5f6b0-94c1-478d-8fed-2106e2627e18",
+    "id": "8db945c2-f8af-4345-8275-a3d1bf993fe5",
     "site": {
-      "main": "https://ri2yso-headless-ciwstxzqhgf-hatan4ik-1408.wix-site-host.com"
+      "main": "https://b3acma-headless-ciwstxzqhgf-hatan4ik-1408.wix-site-host.com"
     },
     "dashboard": {
-      "main": "https://manage.wix.com/dashboard/317b0c6d-6608-499a-bb3c-b1c37650e460?apps-override=afb5f6b0-94c1-478d-8fed-2106e2627e18"
+      "main": "https://manage.wix.com/dashboard/317b0c6d-6608-499a-bb3c-b1c37650e460?apps-override=8db945c2-f8af-4345-8275-a3d1bf993fe5"
     }
   }
 }
