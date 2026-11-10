@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.16.0](https://github.com/hatan4ik/simdream-website/compare/v1.15.0...v1.16.0) (2026-11-10)
+
+
+### Features
+
+* **blog:** wire multilingual blog mapping, routing and language synchronization ([#97](https://github.com/hatan4ik/simdream-website/issues/97)) ([5a36f55](https://github.com/hatan4ik/simdream-website/commit/5a36f559ccee28b62dba1d1c524b8e4c871e66e6))
+
 ## [1.15.0](https://github.com/hatan4ik/simdream-website/compare/v1.14.1...v1.15.0) (2026-11-10)
 
 
