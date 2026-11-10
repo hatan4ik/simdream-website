@@ -9,12 +9,12 @@
     }
   },
   "production": {
-    "id": "5316d9d0-6525-4dea-a9d8-8f2f37451e23",
+    "id": "afb5f6b0-94c1-478d-8fed-2106e2627e18",
     "site": {
-      "main": "https://ukbijj-headless-ciwstxzqhgf-hatan4ik-1408.wix-site-host.com"
+      "main": "https://ri2yso-headless-ciwstxzqhgf-hatan4ik-1408.wix-site-host.com"
     },
     "dashboard": {
-      "main": "https://manage.wix.com/dashboard/317b0c6d-6608-499a-bb3c-b1c37650e460?apps-override=5316d9d0-6525-4dea-a9d8-8f2f37451e23"
+      "main": "https://manage.wix.com/dashboard/317b0c6d-6608-499a-bb3c-b1c37650e460?apps-override=afb5f6b0-94c1-478d-8fed-2106e2627e18"
     }
   }
 }
