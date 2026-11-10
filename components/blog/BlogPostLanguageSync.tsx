@@ -20,12 +20,16 @@ export function BlogPostLanguageSync({
 }: BlogPostLanguageSyncProps) {
   const router = useRouter();
   const { language, setLanguage, languageResolved } = useLanguage();
-  const initialMountRef = useRef(true);
+  const initialLangRef = useRef<string | null>(null);
 
   // 1. When directly loading a post with a distinct language (e.g. English, Russian),
   // sync the site language selector if it differs from the article language.
   useEffect(() => {
     if (!languageResolved) return;
+
+    if (!initialLangRef.current) {
+      initialLangRef.current = currentLang;
+    }
 
     if (
       currentLang &&
@@ -38,18 +42,23 @@ export function BlogPostLanguageSync({
 
   // 2. When the visitor actively toggles the language dropdown in the navbar:
   useEffect(() => {
-    if (initialMountRef.current) {
-      initialMountRef.current = false;
+    if (!languageResolved) return;
+
+    // Do nothing until initialLangRef is seeded
+    if (!initialLangRef.current) {
+      initialLangRef.current = currentLang;
       return;
     }
 
-    if (!language || language === currentLang) return;
+    // Only redirect if language is different from both the initial loaded language AND currentLang
+    if (!language || language === currentLang || language === initialLangRef.current) return;
 
+    initialLangRef.current = language;
     const targetSlug = siblingSlugs[language];
     if (targetSlug && targetSlug !== siblingSlugs[currentLang]) {
       router.push(`/post/${encodeURIComponent(targetSlug)}`);
     }
-  }, [language, currentLang, siblingSlugs, router]);
+  }, [language, currentLang, languageResolved, siblingSlugs, router]);
 
   return null;
 }
