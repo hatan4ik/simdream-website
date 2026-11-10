@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.15.0](https://github.com/hatan4ik/simdream-website/compare/v1.14.1...v1.15.0) (2026-11-10)
+
+
+### Features
+
+* **blog:** complete multilingual translations and batch publisher engine ([#95](https://github.com/hatan4ik/simdream-website/issues/95)) ([dca545d](https://github.com/hatan4ik/simdream-website/commit/dca545de23ad40bd04d705482bf46e9ded18f8f7))
+
 ## [1.14.1](https://github.com/hatan4ik/simdream-website/compare/v1.14.0...v1.14.1) (2026-11-09)
 
 
