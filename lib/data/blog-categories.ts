@@ -65,12 +65,19 @@ export interface BlogPost {
   category: BlogCategory;
   ctaTarget: BlogCtaTarget;
   contentNodes: BlogContentNode[];
+  language?: string;
+  translationId?: string;
+  siblingSlugs?: Record<string, string>;
 }
 
 export interface BlogCategoryMeta {
   id: BlogCategory;
   labelHe: string;
   labelEn: string;
+  labelRu: string;
+  labelFr: string;
+  labelEs: string;
+  labelAr: string;
   descriptionHe: string;
   badgeColor: string;
 }
@@ -80,6 +87,10 @@ export const BLOG_CATEGORIES: readonly BlogCategoryMeta[] = [
     id: 'airline_prep',
     labelHe: 'הכנה למיונים ו-ATPL',
     labelEn: 'Airline Screening & ATPL',
+    labelRu: 'Подготовка к собеседованиям и ATPL',
+    labelFr: 'Sélection compagnie & ATPL',
+    labelEs: 'Preparación para aerolíneas y ATPL',
+    labelAr: 'التحضير لاختبارات الطيران وATPL',
     descriptionHe: 'מדריכים מעשיים להכנה למיוני טייס בחברות תעופה, תכנות FMC ונהלי קוקפיט.',
     badgeColor: 'border-sky-500/30 bg-sky-500/10 text-sky-400',
   },
@@ -87,6 +98,10 @@ export const BLOG_CATEGORIES: readonly BlogCategoryMeta[] = [
     id: 'cockpit_skills',
     labelHe: 'תא הטייס ואתגרי טיסה',
     labelEn: 'Cockpit Skills & Challenges',
+    labelRu: 'Навыки пилотирования и испытания',
+    labelFr: 'Compétences cockpit & défis',
+    labelEs: 'Habilidades de cabina y desafíos',
+    labelAr: 'مهارات قمرة القيادة وتحديات الطيران',
     descriptionHe: 'גישות מורכבות, נחיתות רוח צד, שדות תעופה מאתגרים בעולם ומערכות בואינג 737.',
     badgeColor: 'border-orange-500/30 bg-orange-500/10 text-orange-400',
   },
@@ -94,6 +109,10 @@ export const BLOG_CATEGORIES: readonly BlogCategoryMeta[] = [
     id: 'gifts_and_events',
     labelHe: 'מתנות, זוגיות ואירועים',
     labelEn: 'Gifts & Unique Experiences',
+    labelRu: 'Подарки и уникальные события',
+    labelFr: 'Cadeaux et événements uniques',
+    labelEs: 'Regalos y experiencias únicas',
+    labelAr: 'الهدايا والفعاليات المميزة',
     descriptionHe: 'רעיונות למתנות יום הולדת, דייטים בלתי נשכחים ופעילויות גיבוש יוקרתיות.',
     badgeColor: 'border-amber-500/30 bg-amber-500/10 text-amber-400',
   },
@@ -101,6 +120,10 @@ export const BLOG_CATEGORIES: readonly BlogCategoryMeta[] = [
     id: 'fear_of_flying',
     labelHe: 'התמודדות עם פחד טיסה',
     labelEn: 'Fear of Flying Coaching',
+    labelRu: 'Преодоление аэрофобии',
+    labelFr: 'Surmonter la peur de voler',
+    labelEs: 'Superar el miedo a volar',
+    labelAr: 'التغلب على الخوف من الطيران',
     descriptionHe: 'הסברים מרגיעים מהקוקפיט וכלים מעשיים להתגברות על חרדת טיסה.',
     badgeColor: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400',
   },
@@ -108,7 +131,31 @@ export const BLOG_CATEGORIES: readonly BlogCategoryMeta[] = [
     id: 'aviation_knowledge',
     labelHe: 'ידע תעופתי ומערכות',
     labelEn: 'Aviation Knowledge',
+    labelRu: 'Авиационные знания и системы',
+    labelFr: 'Connaissances aéronautiques & systèmes',
+    labelEs: 'Conocimientos aeronáuticos y sistemas',
+    labelAr: 'المعرفة وأنظمة الطيران',
     descriptionHe: 'מערכות בואינג 737, השוואות תעופתיות ומה קורה באמת מאחורי דלת תא הטייס.',
     badgeColor: 'border-indigo-500/30 bg-indigo-500/10 text-indigo-400',
   },
 ] as const;
+
+export function getBlogCategoryLabel(category: BlogCategory, lang = 'he'): string {
+  const meta = BLOG_CATEGORIES.find((c) => c.id === category);
+  if (!meta) return '';
+  switch (lang) {
+    case 'en':
+      return meta.labelEn;
+    case 'ru':
+      return meta.labelRu;
+    case 'fr':
+      return meta.labelFr;
+    case 'es':
+      return meta.labelEs;
+    case 'ar':
+      return meta.labelAr;
+    case 'he':
+    default:
+      return meta.labelHe;
+  }
+}

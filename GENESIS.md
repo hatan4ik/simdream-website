@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:80d7372e1a0e6e3d11d6bfdbaa04afa0d6cdc4fa39bcd88c6a7af700a65b0cd5 -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:b5669bd2169a5d6596b7690ae223ab45391dd7bf6c0290d6cd7755d73f1ca996 -->
 
 ## Verification contract
 
@@ -343,6 +343,7 @@ Add 3 curated one-click combos. Localize every package and add-on in all six lan
 | `/api/membership/bootstrap` | POST | member | Profile and guest-booking linking |
 | `/api/admin/schedule-efficiency` | GET | admin | Full day report |
 | `/api/admin/schedule-optimization` | POST | admin | Dry-run optimization preview |
+| `/api/blog` | GET | public | Localized blog articles catalog query by ?lang= |
 
 #### Frontend platform
 
@@ -593,13 +594,13 @@ app/
   admin/      (layout + page, bookings/, vouchers/, workshops/)
   api/        packages/ slots/ checkout/ subscriptions/checkout/ wix/bookings/checkout/ webhooks/stripe/ bookings/ vouchers/ workshops/ reviews/ reviews/refresh/
               my-bookings/ my-bookings/[bookingReference]/receipt/ membership/bootstrap/
-              admin/schedule-efficiency/ admin/schedule-optimization/
+              blog/ admin/schedule-efficiency/ admin/schedule-optimization/
 components/
   brand/BrandLogo.tsx            # BrandLogo (airplane + wordmark), BrandMark (airplane)
   layout/  Navbar Footer LanguageSelector UiThemeSwitcher LiveMetarBar SkipLink
   scheduler/ AmazonFlightStorefront KantorovichCalendarScheduler
   reviews/ReviewMeta               # header dropdown only; no page carousel
-  about/AboutExperienceView  pro/ProSessionsView  fear-of-flying/FearOfFlyingView  blog/BlogCard BlogContentRenderer BlogConversionCta BlogIndexView  legal/ PrivacyPolicyContentView RulesContentView
+  about/AboutExperienceView  pro/ProSessionsView  fear-of-flying/FearOfFlyingView  blog/BlogCard BlogContentRenderer BlogConversionCta BlogIndexView BlogPostLanguageSync  legal/ PrivacyPolicyContentView RulesContentView
   seo/ StructuredDataJsonLd FaqPageJsonLd  ui/ Button Card Badge
 lib/
   scheduler/ kantorovich-engine mission-calculator package-presentation tiled-interval-optimizer israel-clock booking-horizon

@@ -1,0 +1,1490 @@
+{
+  "bySlug": {
+    "симулятор-боинга-для-новичков--как-начать-правильно": {
+      "translationId": "a9bb1a95-fec0-46fd-9856-02634e071efa",
+      "language": "ru"
+    },
+    "boeing-simulator-for-beginners---how-to-start-right": {
+      "translationId": "a9bb1a95-fec0-46fd-9856-02634e071efa",
+      "language": "en"
+    },
+    "simulateur-boeing-pour-débutants---comment-bien-commencer": {
+      "translationId": "a9bb1a95-fec0-46fd-9856-02634e071efa",
+      "language": "fr"
+    },
+    "محاكاة-بوينغ-للمبتدئين---كيف-تبدأ-بشكل-صحيح": {
+      "translationId": "a9bb1a95-fec0-46fd-9856-02634e071efa",
+      "language": "ar"
+    },
+    "simulador-de-boeing-para-principiantes-cómo-empezar-bien": {
+      "translationId": "a9bb1a95-fec0-46fd-9856-02634e071efa",
+      "language": "es"
+    },
+    "סימולטור-בואינג-למתחילים---איך-מתחילים-נכון": {
+      "translationId": "a9bb1a95-fec0-46fd-9856-02634e071efa",
+      "language": "he"
+    },
+    "סימולטור-בואינג-למתחילים-איך-מתחילים-נכון": {
+      "translationId": "a9bb1a95-fec0-46fd-9856-02634e071efa",
+      "language": "he"
+    },
+    "רעיון-לדייט-לא-שגרתי-שבאמת-יפתיע": {
+      "translationId": "15e8cba2-59fd-4f67-b36c-f89d7e1f5927",
+      "language": "he"
+    },
+    "una-idea-para-una-cita-inusual-que-realmente-sorprenderá": {
+      "translationId": "15e8cba2-59fd-4f67-b36c-f89d7e1f5927",
+      "language": "es"
+    },
+    "فكرة-لموعد-غير-عادي-سيكون-مفاجأة-حقا": {
+      "translationId": "15e8cba2-59fd-4f67-b36c-f89d7e1f5927",
+      "language": "ar"
+    },
+    "an-idea-for-an-unusual-date-that-will-really-surprise": {
+      "translationId": "15e8cba2-59fd-4f67-b36c-f89d7e1f5927",
+      "language": "en"
+    },
+    "идея-для-необычного-свидания-которая-действительно-удивит": {
+      "translationId": "15e8cba2-59fd-4f67-b36c-f89d7e1f5927",
+      "language": "ru"
+    },
+    "une-idée-de-rendez-vous-insolite-qui-va-vraiment-surprendre": {
+      "translationId": "15e8cba2-59fd-4f67-b36c-f89d7e1f5927",
+      "language": "fr"
+    },
+    "роскошный-аттракцион-для-пар-который-вы-никогда-не-забудете": {
+      "translationId": "0666a13f-951d-4adc-9114-e3ec65ee4413",
+      "language": "ru"
+    },
+    "אטרקציה-זוגית-יוקרתית-שלא-שוכחים": {
+      "translationId": "0666a13f-951d-4adc-9114-e3ec65ee4413",
+      "language": "he"
+    },
+    "a-luxurious-couple-attraction-that-you-never-forget": {
+      "translationId": "0666a13f-951d-4adc-9114-e3ec65ee4413",
+      "language": "en"
+    },
+    "une-attraction-de-couple-luxueuse-que-vous-noublierez-jamais": {
+      "translationId": "0666a13f-951d-4adc-9114-e3ec65ee4413",
+      "language": "fr"
+    },
+    "جاذبية-زوجية-فاخرة-لن-تنساها-أبدا": {
+      "translationId": "0666a13f-951d-4adc-9114-e3ec65ee4413",
+      "language": "ar"
+    },
+    "una-atracción-de-lujo-para-parejas-que-nunca-olvidarás": {
+      "translationId": "0666a13f-951d-4adc-9114-e3ec65ee4413",
+      "language": "es"
+    },
+    "главные-авиационные-достопримечательности-израиля": {
+      "translationId": "fac02d60-8c44-4fa2-aebf-c887605690fb",
+      "language": "ru"
+    },
+    "the-leading-aviation-attractions-in-israel": {
+      "translationId": "fac02d60-8c44-4fa2-aebf-c887605690fb",
+      "language": "en"
+    },
+    "las-principales-atracciones-de-la-aviación-en-israel": {
+      "translationId": "fac02d60-8c44-4fa2-aebf-c887605690fb",
+      "language": "es"
+    },
+    "האטרקציות-התעופה-המובילות-בישראל": {
+      "translationId": "fac02d60-8c44-4fa2-aebf-c887605690fb",
+      "language": "he"
+    },
+    "مناطق-الجذب-الطيران-الرائدة-في-إسرائيل": {
+      "translationId": "fac02d60-8c44-4fa2-aebf-c887605690fb",
+      "language": "ar"
+    },
+    "les-principales-attractions-aéronautiques-en-israël": {
+      "translationId": "fac02d60-8c44-4fa2-aebf-c887605690fb",
+      "language": "fr"
+    },
+    "особое-семейное-занятие-которое-вы-не-забудете": {
+      "translationId": "b226e414-b95e-4e87-95fd-29c128048b81",
+      "language": "ru"
+    },
+    "פעילות-משפחתית-מיוחדת-שלא-שוכחים": {
+      "translationId": "b226e414-b95e-4e87-95fd-29c128048b81",
+      "language": "he"
+    },
+    "نشاط-عائلي-مميز-لن-تنساه": {
+      "translationId": "b226e414-b95e-4e87-95fd-29c128048b81",
+      "language": "ar"
+    },
+    "une-activité-familiale-spéciale-que-vous-noublierez-pas": {
+      "translationId": "b226e414-b95e-4e87-95fd-29c128048b81",
+      "language": "fr"
+    },
+    "una-actividad-familiar-especial-que-no-olvidarás-": {
+      "translationId": "b226e414-b95e-4e87-95fd-29c128048b81",
+      "language": "es"
+    },
+    "a-special-family-activity-you-wont-forget": {
+      "translationId": "b226e414-b95e-4e87-95fd-29c128048b81",
+      "language": "en"
+    },
+    "comment-commander-un-bon-de-vol-cadeau-sans-rien-rater": {
+      "translationId": "7adfc050-c94a-4fa3-8708-f55a9189a5ab",
+      "language": "fr"
+    },
+    "איך-להזמין-שובר-טיסה-מתנה-בלי-לפספס": {
+      "translationId": "7adfc050-c94a-4fa3-8708-f55a9189a5ab",
+      "language": "he"
+    },
+    "cómo-pedir-un-bono-de-vuelo-regalo-sin-perdérselo": {
+      "translationId": "7adfc050-c94a-4fa3-8708-f55a9189a5ab",
+      "language": "es"
+    },
+    "كيفية-طلب-قسيمة-طيران-هدية-دون-أن-تفوتك": {
+      "translationId": "7adfc050-c94a-4fa3-8708-f55a9189a5ab",
+      "language": "ar"
+    },
+    "как-заказать-подарочный-ваучер-на-полет-и-не-упустить-выгоду": {
+      "translationId": "7adfc050-c94a-4fa3-8708-f55a9189a5ab",
+      "language": "ru"
+    },
+    "how-to-order-a-gift-flight-voucher-without-missing-out": {
+      "translationId": "7adfc050-c94a-4fa3-8708-f55a9189a5ab",
+      "language": "en"
+    },
+    "qué-incluye-un-cheque-regalo-digital-para-simulador-de-vuelo": {
+      "translationId": "a49dd7a0-d32f-4f8f-842b-e48127243145",
+      "language": "es"
+    },
+    "מה-כולל-שובר-מתנה-דיגיטלי-לטיסת-סימולטור": {
+      "translationId": "a49dd7a0-d32f-4f8f-842b-e48127243145",
+      "language": "he"
+    },
+    "what-does-a-digital-gift-voucher-for-flight-simulator-include": {
+      "translationId": "a49dd7a0-d32f-4f8f-842b-e48127243145",
+      "language": "en"
+    },
+    "que-comprend-un-chèque-cadeau-numérique-pour-simulateur-de-vol": {
+      "translationId": "a49dd7a0-d32f-4f8f-842b-e48127243145",
+      "language": "fr"
+    },
+    "что-включает-в-себя-цифровой-подарочный-сертификат-на-авиасимулятор": {
+      "translationId": "a49dd7a0-d32f-4f8f-842b-e48127243145",
+      "language": "ru"
+    },
+    "ماذا-تتضمن-قسيمة-الهدية-الرقمية-لجهاز-محاكاة-الطيران": {
+      "translationId": "a49dd7a0-d32f-4f8f-842b-e48127243145",
+      "language": "ar"
+    },
+    "cómo-elegir-la-experiencia-boeing-737-que-más-te-convenga": {
+      "translationId": "2d627bd5-4b25-4c4a-819a-6007a76eb28e",
+      "language": "es"
+    },
+    "كيف-تختار-تجربة-طائرة-بوينغ-737-التي-تناسبك": {
+      "translationId": "2d627bd5-4b25-4c4a-819a-6007a76eb28e",
+      "language": "ar"
+    },
+    "как-выбрать-полет-на-боинге-737-который-подойдет-именно-вам": {
+      "translationId": "2d627bd5-4b25-4c4a-819a-6007a76eb28e",
+      "language": "ru"
+    },
+    "how-to-choose-a-boeing-737-experience-that-suits-you": {
+      "translationId": "2d627bd5-4b25-4c4a-819a-6007a76eb28e",
+      "language": "en"
+    },
+    "איך-לבחור-חוויית-בואינג-737-שמתאימה-לכם": {
+      "translationId": "2d627bd5-4b25-4c4a-819a-6007a76eb28e",
+      "language": "he"
+    },
+    "comment-choisir-une-expérience-boeing-737-qui-vous-convient": {
+      "translationId": "2d627bd5-4b25-4c4a-819a-6007a76eb28e",
+      "language": "fr"
+    },
+    "un-cadeau-danniversaire-pour-un-homme-qui-bouge-vraiment": {
+      "translationId": "42b0080d-d243-4804-a4ba-144ab3361890",
+      "language": "fr"
+    },
+    "هدية-عيد-ميلاد-لرجل-يتحرك-حقا": {
+      "translationId": "42b0080d-d243-4804-a4ba-144ab3361890",
+      "language": "ar"
+    },
+    "a-birthday-gift-for-a-man-that-really-moves": {
+      "translationId": "42b0080d-d243-4804-a4ba-144ab3361890",
+      "language": "en"
+    },
+    "מתנת-יום-הולדת-לגבר-שבאמת-מרגשת": {
+      "translationId": "42b0080d-d243-4804-a4ba-144ab3361890",
+      "language": "he"
+    },
+    "un-regalo-de-cumpleaños-para-un-hombre-que-realmente-conmueve-": {
+      "translationId": "42b0080d-d243-4804-a4ba-144ab3361890",
+      "language": "es"
+    },
+    "подарок-на-день-рождения-мужчине-который-по-настоящему-трогателен-": {
+      "translationId": "42b0080d-d243-4804-a4ba-144ab3361890",
+      "language": "ru"
+    },
+    "التحضير-لمقابلة-طيران-دون-فقدان-الارتفاع": {
+      "translationId": "41e6bd14-60bc-4c65-801c-b3ed27e3095a",
+      "language": "ar"
+    },
+    "se-préparer-à-un-entretien-avec-une-compagnie-aérienne-sans-perdre-daltitude": {
+      "translationId": "41e6bd14-60bc-4c65-801c-b3ed27e3095a",
+      "language": "fr"
+    },
+    "preparándose-para-una-entrevista-de-aerolínea-sin-perder-altitud": {
+      "translationId": "41e6bd14-60bc-4c65-801c-b3ed27e3095a",
+      "language": "es"
+    },
+    "preparing-for-an-airline-interview-without-losing-altitude": {
+      "translationId": "41e6bd14-60bc-4c65-801c-b3ed27e3095a",
+      "language": "en"
+    },
+    "подготовка-к-собеседованию-в-авиакомпании-без-потери-высоты": {
+      "translationId": "41e6bd14-60bc-4c65-801c-b3ed27e3095a",
+      "language": "ru"
+    },
+    "הכנה-לראיון-חברת-תעופה-בלי-לאבד-גובה": {
+      "translationId": "41e6bd14-60bc-4c65-801c-b3ed27e3095a",
+      "language": "he"
+    },
+    "שיטות-להפגת-פחד-טיסה": {
+      "translationId": "a19bfb22-d1cd-4573-b2bb-652d6344051d",
+      "language": "he"
+    },
+    "методы-облегчения-страха-перед-полетом": {
+      "translationId": "a19bfb22-d1cd-4573-b2bb-652d6344051d",
+      "language": "ru"
+    },
+    "methods-to-alleviate-fear-of-flying": {
+      "translationId": "a19bfb22-d1cd-4573-b2bb-652d6344051d",
+      "language": "en"
+    },
+    "méthodes-pour-atténuer-la-peur-de-voler": {
+      "translationId": "a19bfb22-d1cd-4573-b2bb-652d6344051d",
+      "language": "fr"
+    },
+    "طرق-التخلص-من-الخوف-من-الطيران": {
+      "translationId": "a19bfb22-d1cd-4573-b2bb-652d6344051d",
+      "language": "ar"
+    },
+    "métodos-para-aliviar-el-miedo-a-volar": {
+      "translationId": "a19bfb22-d1cd-4573-b2bb-652d6344051d",
+      "language": "es"
+    },
+    "توصيات-لجهاز-محاكاة-الطيران-تجارب-لا-تنسى": {
+      "translationId": "56e1d93e-0260-499e-b5c7-9c8101e0660f",
+      "language": "ar"
+    },
+    "recommandations-pour-un-simulateur-de-vol--des-expériences-inoubliables": {
+      "translationId": "56e1d93e-0260-499e-b5c7-9c8101e0660f",
+      "language": "fr"
+    },
+    "recommendations-for-a-flight-simulator-unforgettable-experiences": {
+      "translationId": "56e1d93e-0260-499e-b5c7-9c8101e0660f",
+      "language": "en"
+    },
+    "recomendaciones-para-un-simulador-de-vuelo-experiencias-inolvidables": {
+      "translationId": "56e1d93e-0260-499e-b5c7-9c8101e0660f",
+      "language": "es"
+    },
+    "рекомендации-по-авиасимулятору-незабываемые-впечатления": {
+      "translationId": "56e1d93e-0260-499e-b5c7-9c8101e0660f",
+      "language": "ru"
+    },
+    "המלצות-לסימולטור-טיסה-חוויות-בלתי-נשכחות": {
+      "translationId": "56e1d93e-0260-499e-b5c7-9c8101e0660f",
+      "language": "he"
+    },
+    "טיסה-וירטואלית-ליעדים-בעולם---כך-זה-מרגיש": {
+      "translationId": "208f8a50-ccbd-446c-b4c6-a59e2d184a24",
+      "language": "he"
+    },
+    "виртуальный-полет-по-направлениям-мира--вот-как-это-ощущается": {
+      "translationId": "208f8a50-ccbd-446c-b4c6-a59e2d184a24",
+      "language": "ru"
+    },
+    "un-vol-virtuel-vers-des-destinations-dans-le-monde-entier---cest-ce-que-lon-ressent": {
+      "translationId": "208f8a50-ccbd-446c-b4c6-a59e2d184a24",
+      "language": "fr"
+    },
+    "vuelo-virtual-a-destinos-de-todo-el-mundo-así-se-siente-en-cabina": {
+      "translationId": "208f8a50-ccbd-446c-b4c6-a59e2d184a24",
+      "language": "es"
+    },
+    "رحلة-طيران-افتراضية-إلى-وجهات-عالمية-هكذا-يبدو-الشعور-في-قمرة-القيادة": {
+      "translationId": "208f8a50-ccbd-446c-b4c6-a59e2d184a24",
+      "language": "ar"
+    },
+    "a-virtual-flight-to-destinations-in-the-world---thats-how-it-feels": {
+      "translationId": "208f8a50-ccbd-446c-b4c6-a59e2d184a24",
+      "language": "en"
+    },
+    "טיסה-וירטואלית-ליעדים-בעולם-כך-זה-מרגיש": {
+      "translationId": "208f8a50-ccbd-446c-b4c6-a59e2d184a24",
+      "language": "he"
+    },
+    "guía-de-práctica-de-despegue-y-aterrizaje-pilotaje-preciso-sin-dudas": {
+      "translationId": "c1b4ad21-887e-49cf-a641-581279ad3c64",
+      "language": "es"
+    },
+    "guide-dentraînement-au-décollage-et-à-latterrissage--piloter-avec-précision-sans-hésiter": {
+      "translationId": "c1b4ad21-887e-49cf-a641-581279ad3c64",
+      "language": "fr"
+    },
+    "מדריך-לתרגול-המראה-ונחיתה-בלי-לנחש": {
+      "translationId": "c1b4ad21-887e-49cf-a641-581279ad3c64",
+      "language": "he"
+    },
+    "a-guide-to-takeoff-and-landing-practice-without-guesswork": {
+      "translationId": "c1b4ad21-887e-49cf-a641-581279ad3c64",
+      "language": "en"
+    },
+    "دليل-التدرب-على-الإقلاع-والهبوط-تحكم-دقيق-واحترافي-دون-تخمين": {
+      "translationId": "c1b4ad21-887e-49cf-a641-581279ad3c64",
+      "language": "ar"
+    },
+    "руководство-по-отработке-взлета-и-посадки-точное-пилотирование-без-догадок": {
+      "translationId": "c1b4ad21-887e-49cf-a641-581279ad3c64",
+      "language": "ru"
+    },
+    "هل-يمكن-تجربة-محاكي-الطيران-بدون-أي-خبرة-سابقة": {
+      "translationId": "209fcf16-ee37-4083-80cb-d523a2cccfdf",
+      "language": "ar"
+    },
+    "se-puede-pilotar-un-simulador-de-vuelo-sin-experiencia-previa": {
+      "translationId": "209fcf16-ee37-4083-80cb-d523a2cccfdf",
+      "language": "es"
+    },
+    "peut-on-piloter-un-simulateur-de-vol-sans-aucune-expérience-préalable-": {
+      "translationId": "209fcf16-ee37-4083-80cb-d523a2cccfdf",
+      "language": "fr"
+    },
+    "האם-אפשר-להגיע-בלי-ידע-קודם-להטיס-סימולטור": {
+      "translationId": "209fcf16-ee37-4083-80cb-d523a2cccfdf",
+      "language": "he"
+    },
+    "can-you-fly-a-flight-simulator-with-zero-prior-experience": {
+      "translationId": "209fcf16-ee37-4083-80cb-d523a2cccfdf",
+      "language": "en"
+    },
+    "можно-ли-летать-на-авиасимуляторе-без-опыта-пилотирования": {
+      "translationId": "209fcf16-ee37-4083-80cb-d523a2cccfdf",
+      "language": "ru"
+    },
+    "האם-אפשר-להגיע-בלי-ידע-קודם-לטייס-סימולטור": {
+      "translationId": "209fcf16-ee37-4083-80cb-d523a2cccfdf",
+      "language": "he"
+    },
+    "בואינג-737-לעומת-איירבוס---מה-באמת-שונה": {
+      "translationId": "fb83890d-b9e7-408a-bbc6-e8dfbaf27f1b",
+      "language": "he"
+    },
+    "boeing-737-против-airbus-в-чём-настоящая-разница": {
+      "translationId": "fb83890d-b9e7-408a-bbc6-e8dfbaf27f1b",
+      "language": "ru"
+    },
+    "boeing-737-vs-airbus--quelles-sont-les-vraies-différences-": {
+      "translationId": "fb83890d-b9e7-408a-bbc6-e8dfbaf27f1b",
+      "language": "fr"
+    },
+    "boeing-737-vs-airbus-cuál-es-la-verdadera-diferencia": {
+      "translationId": "fb83890d-b9e7-408a-bbc6-e8dfbaf27f1b",
+      "language": "es"
+    },
+    "بوينغ-737-مقابل-إيرباص-ما-هو-الفرق-الحقيقي": {
+      "translationId": "fb83890d-b9e7-408a-bbc6-e8dfbaf27f1b",
+      "language": "ar"
+    },
+    "boeing-737-vs-airbus-what-is-the-real-difference": {
+      "translationId": "fb83890d-b9e7-408a-bbc6-e8dfbaf27f1b",
+      "language": "en"
+    },
+    "בואינג-737-לעומת-איירבוס-מה-באמת-שונה": {
+      "translationId": "fb83890d-b9e7-408a-bbc6-e8dfbaf27f1b",
+      "language": "he"
+    },
+    "sorpresas-originales-para-tu-pareja-que-dejan-una-huella-imborrable": {
+      "translationId": "deac8f01-5cbb-4319-ae1f-f9401fd344dc",
+      "language": "es"
+    },
+    "הפתעות-מקוריות-לבן-זוג-שבאמת-זוכרים": {
+      "translationId": "deac8f01-5cbb-4319-ae1f-f9401fd344dc",
+      "language": "he"
+    },
+    "مفاجآت-أصلية-ومميزة-للزوج-تبقى-محفورة-في-الذاكرة-طويلا": {
+      "translationId": "deac8f01-5cbb-4319-ae1f-f9401fd344dc",
+      "language": "ar"
+    },
+    "surprises-originales-pour-son-conjoint-qui-marquent-vraiment-les-esprits": {
+      "translationId": "deac8f01-5cbb-4319-ae1f-f9401fd344dc",
+      "language": "fr"
+    },
+    "оригинальные-сюрпризы-для-любимого-мужчины-подарки-которые-запоминаются": {
+      "translationId": "deac8f01-5cbb-4319-ae1f-f9401fd344dc",
+      "language": "ru"
+    },
+    "truly-memorable-surprises-for-your-partner-beyond-the-clichés": {
+      "translationId": "deac8f01-5cbb-4319-ae1f-f9401fd344dc",
+      "language": "en"
+    },
+    "сколько-длится-полет-на-авиасимуляторе": {
+      "translationId": "ef8094b9-6a53-429d-ac9f-11b871ec99e2",
+      "language": "ru"
+    },
+    "how-long-does-a-flight-simulator-experience-last": {
+      "translationId": "ef8094b9-6a53-429d-ac9f-11b871ec99e2",
+      "language": "en"
+    },
+    "כמה-זמן-נמשכת-חוויית-טיסה-בסימולטור": {
+      "translationId": "ef8094b9-6a53-429d-ac9f-11b871ec99e2",
+      "language": "he"
+    },
+    "cuánto-dura-una-experiencia-en-simulador-de-vuelo": {
+      "translationId": "ef8094b9-6a53-429d-ac9f-11b871ec99e2",
+      "language": "es"
+    },
+    "combien-de-temps-dure-une-expérience-sur-simulateur-de-vol-": {
+      "translationId": "ef8094b9-6a53-429d-ac9f-11b871ec99e2",
+      "language": "fr"
+    },
+    "كم-تستغرق-تجربة-جهاز-محاكاة-الطيران": {
+      "translationId": "ef8094b9-6a53-429d-ac9f-11b871ec99e2",
+      "language": "ar"
+    },
+    "محاكي-الطيران-المنزلي-مقابل-الاحترافي-ما-هو-الفارق-الحقيقي-الذي-تشعر-به": {
+      "translationId": "009d5751-cd9b-4fcf-a53d-fb6c9e5b7884",
+      "language": "ar"
+    },
+    "домашний-авиасимулятор-против-профессионального-в-чем-реальная-разница": {
+      "translationId": "009d5751-cd9b-4fcf-a53d-fb6c9e5b7884",
+      "language": "ru"
+    },
+    "simulateur-de-vol-domestique-vs-professionnel--quelles-sont-les-vraies-différences-": {
+      "translationId": "009d5751-cd9b-4fcf-a53d-fb6c9e5b7884",
+      "language": "fr"
+    },
+    "סימולטור-ביתי-מול-מקצועי---מה-באמת-מרגישים": {
+      "translationId": "009d5751-cd9b-4fcf-a53d-fb6c9e5b7884",
+      "language": "he"
+    },
+    "simulador-de-vuelo-doméstico-vs--profesional-cuál-es-la-diferencia-real": {
+      "translationId": "009d5751-cd9b-4fcf-a53d-fb6c9e5b7884",
+      "language": "es"
+    },
+    "home-vs--professional-flight-simulators-what-do-you-actually-feel": {
+      "translationId": "009d5751-cd9b-4fcf-a53d-fb6c9e5b7884",
+      "language": "en"
+    },
+    "סימולטור-ביתי-מול-מקצועי-מה-באמת-מרגישים": {
+      "translationId": "009d5751-cd9b-4fcf-a53d-fb6c9e5b7884",
+      "language": "he"
+    },
+    "тренды-корпоративных-мероприятий-выход-команды-из-привычной-рутины": {
+      "translationId": "7f6c49a0-4ff7-4af0-8aa9-e17825ea58ab",
+      "language": "ru"
+    },
+    "tendencias-en-eventos-de-empresa-que-sacan-al-equipo-de-la-rutina": {
+      "translationId": "7f6c49a0-4ff7-4af0-8aa9-e17825ea58ab",
+      "language": "es"
+    },
+    "טרנדים-באירועי-חברה-שמוציאים-את-הצוות-מהשגרה": {
+      "translationId": "7f6c49a0-4ff7-4af0-8aa9-e17825ea58ab",
+      "language": "he"
+    },
+    "corporate-event-trends-that-break-the-team-routine": {
+      "translationId": "7f6c49a0-4ff7-4af0-8aa9-e17825ea58ab",
+      "language": "en"
+    },
+    "tendances-des-événements-dentreprise--sortir-les-équipes-de-la-routine": {
+      "translationId": "7f6c49a0-4ff7-4af0-8aa9-e17825ea58ab",
+      "language": "fr"
+    },
+    "اتجاهات-فعاليات-الشركات-كسر-الروتين-الوظيفي-والانطلاق-بروح-الفريق": {
+      "translationId": "7f6c49a0-4ff7-4af0-8aa9-e17825ea58ab",
+      "language": "ar"
+    },
+    "טרנדים-באירועי-חברה-שמוציאים-את-הצוות-מהשגרה-simdream": {
+      "translationId": "7f6c49a0-4ff7-4af0-8aa9-e17825ea58ab",
+      "language": "he"
+    },
+    "top-aviation-attractions-in-israel-local-flight-experiences": {
+      "translationId": "b0b42345-3384-43bd-9c8f-c9e941b232ed",
+      "language": "en"
+    },
+    "главные-авиационные-аттракционы-израиля-лучшие-полеты-и-симуляторы": {
+      "translationId": "b0b42345-3384-43bd-9c8f-c9e941b232ed",
+      "language": "ru"
+    },
+    "האטרקציות-התעופתיות-המובילות-בישראל--אטרקציות-תעופה-מקומיות": {
+      "translationId": "b0b42345-3384-43bd-9c8f-c9e941b232ed",
+      "language": "he"
+    },
+    "أبرز-معالم-وتجارب-الطيران-في-إسرائيل-أنشطة-ومحاكيات-الطيران-المحلية": {
+      "translationId": "b0b42345-3384-43bd-9c8f-c9e941b232ed",
+      "language": "ar"
+    },
+    "las-mejores-atracciones-aeronáuticas-en-israel-experiencias-de-vuelo-locales": {
+      "translationId": "b0b42345-3384-43bd-9c8f-c9e941b232ed",
+      "language": "es"
+    },
+    "les-meilleures-attractions-aéronautiques-en-israël--expériences-de-vol-locales": {
+      "translationId": "b0b42345-3384-43bd-9c8f-c9e941b232ed",
+      "language": "fr"
+    },
+    "האטרקציות-התעופתיות-המובילות-בישראל-אטרקציות-תעופה-מקומיות": {
+      "translationId": "b0b42345-3384-43bd-9c8f-c9e941b232ed",
+      "language": "he"
+    },
+    "how-to-practice-crosswind-landings-in-a-boeing-737-simulator": {
+      "translationId": "b8dd6018-a4fe-4690-bcc6-56831f4077cd",
+      "language": "en"
+    },
+    "كيفية-التدرب-على-الهبوط-في-الرياح-المتقاطعة-في-محاكي-بوينغ-737": {
+      "translationId": "b8dd6018-a4fe-4690-bcc6-56831f4077cd",
+      "language": "ar"
+    },
+    "cómo-practicar-aterrizajes-con-viento-cruzado-en-un-simulador-boeing-737": {
+      "translationId": "b8dd6018-a4fe-4690-bcc6-56831f4077cd",
+      "language": "es"
+    },
+    "איך-מתרגלים-נחיתת-רוח-צד-בסימולטור-בואינג-737": {
+      "translationId": "b8dd6018-a4fe-4690-bcc6-56831f4077cd",
+      "language": "he"
+    },
+    "comment-sentraîner-à-latterrissage-par-vent-de-travers-sur-simulateur-boeing-737": {
+      "translationId": "b8dd6018-a4fe-4690-bcc6-56831f4077cd",
+      "language": "fr"
+    },
+    "как-отрабатывать-посадку-при-боковом-ветре-на-авиатренажере-boeing-737": {
+      "translationId": "b8dd6018-a4fe-4690-bcc6-56831f4077cd",
+      "language": "ru"
+    },
+    "איך-מתרגלים-נחיתת-רוח-צד-בסימולטור-בואינג-737-simdream": {
+      "translationId": "b8dd6018-a4fe-4690-bcc6-56831f4077cd",
+      "language": "he"
+    },
+    "هل-يهبط-الطيار-الآلي-بالطائرة-بمفرده-إجابة-من-قمرة-القيادة": {
+      "translationId": "1d47b886-a23f-43d9-86cc-54bf8ab2513a",
+      "language": "ar"
+    },
+    "le-pilote-automatique-atterrit-il-seul--la-réponse-depuis-le-cockpit": {
+      "translationId": "1d47b886-a23f-43d9-86cc-54bf8ab2513a",
+      "language": "fr"
+    },
+    "садится-ли-автопилот-сам-ответ-из-кабины-пилотов": {
+      "translationId": "1d47b886-a23f-43d9-86cc-54bf8ab2513a",
+      "language": "ru"
+    },
+    "aterriza-el-piloto-automático-solo-la-respuesta-desde-la-cabina": {
+      "translationId": "1d47b886-a23f-43d9-86cc-54bf8ab2513a",
+      "language": "es"
+    },
+    "האם-טייס-אוטומטי-נוחת-לבד-תשובה-מהקוקפיט": {
+      "translationId": "1d47b886-a23f-43d9-86cc-54bf8ab2513a",
+      "language": "he"
+    },
+    "does-autopilot-land-by-itself-an-answer-from-the-cockpit": {
+      "translationId": "1d47b886-a23f-43d9-86cc-54bf8ab2513a",
+      "language": "en"
+    },
+    "האם-טייס-אוטומטי-נוחת-לבד-תשובה-מהקוקפיט-simdream": {
+      "translationId": "1d47b886-a23f-43d9-86cc-54bf8ab2513a",
+      "language": "he"
+    },
+    "aterrizaje-en-kai-tak-en-simulador-el-viraje-inolvidable": {
+      "translationId": "0583330c-0ff1-4b88-82af-50a02043cd90",
+      "language": "es"
+    },
+    "هبوط-كاي-تاك-على-جهاز-المحاكاة-المنعطف-الذي-لا-ينسى": {
+      "translationId": "0583330c-0ff1-4b88-82af-50a02043cd90",
+      "language": "ar"
+    },
+    "נחיתת-קאי-טאק-בסימולטור-הפנייה-שלא-שוכחים": {
+      "translationId": "0583330c-0ff1-4b88-82af-50a02043cd90",
+      "language": "he"
+    },
+    "посадка-в-кайтак-на-авиасимуляторе-поворот-который-не-забыть": {
+      "translationId": "0583330c-0ff1-4b88-82af-50a02043cd90",
+      "language": "ru"
+    },
+    "kai-tak-landing-in-the-simulator-the-unforgettable-turn": {
+      "translationId": "0583330c-0ff1-4b88-82af-50a02043cd90",
+      "language": "en"
+    },
+    "atterrissage-à-kai-tak-sur-simulateur--le-virage-inoubliable": {
+      "translationId": "0583330c-0ff1-4b88-82af-50a02043cd90",
+      "language": "fr"
+    },
+    "נחיתת-קאי-טאק-בסימולטור-הפנייה-שלא-שוכחים-simdream": {
+      "translationId": "0583330c-0ff1-4b88-82af-50a02043cd90",
+      "language": "he"
+    },
+    "איך-נוחתים-בפרו-בהוטן-כמו-צוות-אמיתי": {
+      "translationId": "27020990-0423-4b90-bbb3-416f1b5a8d50",
+      "language": "he"
+    },
+    "كيف-تهبط-في-مطار-بارو-في-بوتان-كطاقم-طيران-حقيقي": {
+      "translationId": "27020990-0423-4b90-bbb3-416f1b5a8d50",
+      "language": "ar"
+    },
+    "comment-atterrir-à-paro-au-bhoutan-comme-un-véritable-équipage": {
+      "translationId": "27020990-0423-4b90-bbb3-416f1b5a8d50",
+      "language": "fr"
+    },
+    "how-to-land-at-paro-bhutan-like-a-real-airline-crew": {
+      "translationId": "27020990-0423-4b90-bbb3-416f1b5a8d50",
+      "language": "en"
+    },
+    "cómo-aterrizar-en-paro-bután-como-una-auténtica-tripulación-de-aerolínea": {
+      "translationId": "27020990-0423-4b90-bbb3-416f1b5a8d50",
+      "language": "es"
+    },
+    "как-посадить-самолет-в-паро-бутан-как-настоящий-экипаж": {
+      "translationId": "27020990-0423-4b90-bbb3-416f1b5a8d50",
+      "language": "ru"
+    },
+    "aproximación-y-aterrizaje-en-los-aeropuertos-más-desafiantes-del-mundo": {
+      "translationId": "8797d36c-1388-423f-a895-e88449ae4481",
+      "language": "es"
+    },
+    "approach-and-landing-at-the-worlds-most-challenging-airports": {
+      "translationId": "8797d36c-1388-423f-a895-e88449ae4481",
+      "language": "en"
+    },
+    "approche-et-atterrissage-sur-les-aéroports-les-plus-difficiles-au-monde": {
+      "translationId": "8797d36c-1388-423f-a895-e88449ae4481",
+      "language": "fr"
+    },
+    "الاقتراب-والهبوط-في-أكثر-مطارات-العالم-صعوبة-وتحديا": {
+      "translationId": "8797d36c-1388-423f-a895-e88449ae4481",
+      "language": "ar"
+    },
+    "заход-на-посадку-и-приземление-в-сложнейших-аэропортах-мира": {
+      "translationId": "8797d36c-1388-423f-a895-e88449ae4481",
+      "language": "ru"
+    },
+    "גישה-ונחיתה-בשדות-הכי-מאתגרים-בעולם": {
+      "translationId": "8797d36c-1388-423f-a895-e88449ae4481",
+      "language": "he"
+    },
+    "גישה-ונחיתה-בשדות-הכי-מאתגרים-בעולם-simdream": {
+      "translationId": "8797d36c-1388-423f-a895-e88449ae4481",
+      "language": "he"
+    },
+    "هل-يمكن-اختيار-مطار-الرحلة-في-محاكي-الطيران-دليل-اختيار-المطارات-الشامل": {
+      "translationId": "deb39b6a-8318-4028-a745-258c30c965c8",
+      "language": "ar"
+    },
+    "можно-ли-выбрать-аэропорт-в-авиасимуляторе-полный-гид-по-выбору-маршрута": {
+      "translationId": "deb39b6a-8318-4028-a745-258c30c965c8",
+      "language": "ru"
+    },
+    "האם-ניתן-לבחור-שדה-תעופה-לטיסה-בסימולטור---מדריך-מלא-לבחירת-שדה-תעופה-בסימולטור-טיסה-בסימדרים-ישרא": {
+      "translationId": "deb39b6a-8318-4028-a745-258c30c965c8",
+      "language": "he"
+    },
+    "se-puede-elegir-aeropuerto-en-un-simulador-de-vuelo-guía-completa": {
+      "translationId": "deb39b6a-8318-4028-a745-258c30c965c8",
+      "language": "es"
+    },
+    "can-you-choose-your-airport-in-a-flight-simulator-complete-selection-guide": {
+      "translationId": "deb39b6a-8318-4028-a745-258c30c965c8",
+      "language": "en"
+    },
+    "peut-on-choisir-son-aéroport-dans-un-simulateur-de-vol--guide-complet": {
+      "translationId": "deb39b6a-8318-4028-a745-258c30c965c8",
+      "language": "fr"
+    },
+    "האם-ניתן-לבחור-שדה-תעופה-לטיסה-בסימולטור-simdream": {
+      "translationId": "deb39b6a-8318-4028-a745-258c30c965c8",
+      "language": "he"
+    },
+    "simulateurs-de-vol-immersifs--découvrez-lunivers-du-pilotage-de-ligne": {
+      "translationId": "6da2737a-67b3-4ac1-9496-4915f176966b",
+      "language": "fr"
+    },
+    "أجهزة-محاكاة-الطيران-التفاعلية-اكتشف-عالم-محاكاة-الطيران-الاحترافي": {
+      "translationId": "6da2737a-67b3-4ac1-9496-4915f176966b",
+      "language": "ar"
+    },
+    "simuladores-de-vuelo-inmersivos-descubre-el-fascinante-mundo-de-la-aviación": {
+      "translationId": "6da2737a-67b3-4ac1-9496-4915f176966b",
+      "language": "es"
+    },
+    "авиасимуляторы-впечатлений-откройте-для-себя-мир-профессиональных-полетов": {
+      "translationId": "6da2737a-67b3-4ac1-9496-4915f176966b",
+      "language": "ru"
+    },
+    "סימולטורים-חווייתיים-לתעופה---גלה-את-עולם-הסימולטורים-לטיסה": {
+      "translationId": "6da2737a-67b3-4ac1-9496-4915f176966b",
+      "language": "he"
+    },
+    "experiential-flight-simulators-discover-the-world-of-flight-simulation": {
+      "translationId": "6da2737a-67b3-4ac1-9496-4915f176966b",
+      "language": "en"
+    },
+    "סימולטורים-חווייתיים-לתעופה-גלה-את-עולם-הסימולטורים-לטיסה": {
+      "translationId": "6da2737a-67b3-4ac1-9496-4915f176966b",
+      "language": "he"
+    },
+    "guide-des-approches-historiques-légendaires-dans-laviation-commerciale": {
+      "translationId": "6335c2b3-bfa4-4741-929c-5858819254c1",
+      "language": "fr"
+    },
+    "מדריך-לגישות-היסטוריות-מפורסמות-בטיסת-נוסעים": {
+      "translationId": "6335c2b3-bfa4-4741-929c-5858819254c1",
+      "language": "he"
+    },
+    "دليل-الاقترابات-التاريخية-الشهيرة-في-الطيران-التجاري": {
+      "translationId": "6335c2b3-bfa4-4741-929c-5858819254c1",
+      "language": "ar"
+    },
+    "руководство-по-знаменитым-историческим-заходам-на-посадку-в-гражданской-авиации": {
+      "translationId": "6335c2b3-bfa4-4741-929c-5858819254c1",
+      "language": "ru"
+    },
+    "a-field-guide-to-historic-commercial-airline-approaches": {
+      "translationId": "6335c2b3-bfa4-4741-929c-5858819254c1",
+      "language": "en"
+    },
+    "guía-de-aproximaciones-históricas-legendarias-en-la-aviación-comercial": {
+      "translationId": "6335c2b3-bfa4-4741-929c-5858819254c1",
+      "language": "es"
+    },
+    "מדריך-לגישות-היסטוריות-מפורסמות-בטיסת-נוסעים-simdream": {
+      "translationId": "6335c2b3-bfa4-4741-929c-5858819254c1",
+      "language": "he"
+    },
+    "نشاط-تفاعلي-مميز-للأزواج-لا-يشبه-أي-موعد-تقليدي": {
+      "translationId": "6d995604-797e-4f8c-95dd-ff754e62a916",
+      "language": "ar"
+    },
+    "необычное-свидание-для-пары-опыт-в-кабине-авиасимулятора": {
+      "translationId": "6d995604-797e-4f8c-95dd-ff754e62a916",
+      "language": "ru"
+    },
+    "a-couples-bonding-experience-that-doesnt-feel-like-just-another-date": {
+      "translationId": "6d995604-797e-4f8c-95dd-ff754e62a916",
+      "language": "en"
+    },
+    "פעילות-גיבוש-לזוג-שלא-מרגישה-כמו-עוד-דייט": {
+      "translationId": "6d995604-797e-4f8c-95dd-ff754e62a916",
+      "language": "he"
+    },
+    "una-actividad-en-pareja-que-no-se-siente-como-una-cita-más": {
+      "translationId": "6d995604-797e-4f8c-95dd-ff754e62a916",
+      "language": "es"
+    },
+    "une-activité-de-couple-originale-qui-ne-ressemble-à-aucun-autre-rendez-vous": {
+      "translationId": "6d995604-797e-4f8c-95dd-ff754e62a916",
+      "language": "fr"
+    },
+    "flight-simulator-experience-in-tel-aviv-the-power-and-benefits-of-true-cockpit-immersion": {
+      "translationId": "f44fd599-5361-4d93-8af8-d812caa97482",
+      "language": "en"
+    },
+    "полет-на-авиатренажере-в-тель-авиве-преимущества-и-мощь-кабины-boeing-737": {
+      "translationId": "f44fd599-5361-4d93-8af8-d812caa97482",
+      "language": "ru"
+    },
+    "expérience-en-simulateur-de-vol-à-tel-aviv--les-atouts-dun-poste-de-pilotage-boeing-737": {
+      "translationId": "f44fd599-5361-4d93-8af8-d812caa97482",
+      "language": "fr"
+    },
+    "تجربة-محاكي-الطيران-في-تل-أبيب-مزايا-وقوة-قمرة-قيادة-بوينغ-737": {
+      "translationId": "f44fd599-5361-4d93-8af8-d812caa97482",
+      "language": "ar"
+    },
+    "experiencia-en-simulador-de-vuelo-en-tel-aviv-ventajas-y-potencia-de-una-cabina-boeing-737": {
+      "translationId": "f44fd599-5361-4d93-8af8-d812caa97482",
+      "language": "es"
+    },
+    "חוויה-בתל-אביב-בסימולטור-טיסה-היתרונות-של-סימולטור-טיסה-בתל-אביב": {
+      "translationId": "f44fd599-5361-4d93-8af8-d812caa97482",
+      "language": "he"
+    },
+    "guía-de-aproximación-de-kai-tak-aterrizaje-del-boeing-737-en-la-pista-13": {
+      "translationId": "5a956667-426a-468f-80cd-cd82e0664300",
+      "language": "es"
+    },
+    "guide-dapproche-de-kai-tak--atterrissage-du-boeing-737-sur-la-piste-13": {
+      "translationId": "5a956667-426a-468f-80cd-cd82e0664300",
+      "language": "fr"
+    },
+    "kai-tak-approach-guide-flying-the-boeing-737-landing-on-runway-13": {
+      "translationId": "5a956667-426a-468f-80cd-cd82e0664300",
+      "language": "en"
+    },
+    "دليل-اقتراب-كاي-تاك-هبوط-طائرة-boeing-737-على-المدرج-13": {
+      "translationId": "5a956667-426a-468f-80cd-cd82e0664300",
+      "language": "ar"
+    },
+    "מדריך-גישת-קאי-טאק-נחיתת-737-על-מסלול-13": {
+      "translationId": "5a956667-426a-468f-80cd-cd82e0664300",
+      "language": "he"
+    },
+    "руководство-по-заходу-на-посадку-в-кай-так-посадка-boeing-737-на-впп-13": {
+      "translationId": "5a956667-426a-468f-80cd-cd82e0664300",
+      "language": "ru"
+    },
+    "מדריך-גישת-קאי-טאק-נחיתת-737-על-מסלול-13-simdream": {
+      "translationId": "5a956667-426a-468f-80cd-cd82e0664300",
+      "language": "he"
+    },
+    "cómo-volar-la-aproximación-por-el-valle-de-innsbruck-en-un-boeing-737": {
+      "translationId": "3a3f8dc8-829b-41d8-abf4-8f9a4e879546",
+      "language": "es"
+    },
+    "как-выполнить-заход-в-долине-инсбрука-на-boeing-737": {
+      "translationId": "3a3f8dc8-829b-41d8-abf4-8f9a4e879546",
+      "language": "ru"
+    },
+    "comment-réussir-lapproche-de-la-vallée-dinnsbruck-en-boeing-737": {
+      "translationId": "3a3f8dc8-829b-41d8-abf4-8f9a4e879546",
+      "language": "fr"
+    },
+    "איך-לבצע-גישת-אינסברוק-בעמק-בבואינג": {
+      "translationId": "3a3f8dc8-829b-41d8-abf4-8f9a4e879546",
+      "language": "he"
+    },
+    "how-to-fly-the-innsbruck-valley-approach-in-a-boeing-737": {
+      "translationId": "3a3f8dc8-829b-41d8-abf4-8f9a4e879546",
+      "language": "en"
+    },
+    "كيفية-تنفيذ-اقتراب-إنسبروك-في-الوادي-بطائرة-بوينغ-737": {
+      "translationId": "3a3f8dc8-829b-41d8-abf4-8f9a4e879546",
+      "language": "ar"
+    },
+    "איך-לבצע-גישת-אינסברוק-בעמק-בבואינג-simdream": {
+      "translationId": "3a3f8dc8-829b-41d8-abf4-8f9a4e879546",
+      "language": "he"
+    },
+    "руководство-по-системам-самолета-освоение-кабины-без-перегрузки": {
+      "translationId": "67660d2d-af7a-402d-b9db-408e73d5c114",
+      "language": "ru"
+    },
+    "aircraft-systems-guide-mastering-the-cockpit-without-getting-lost": {
+      "translationId": "67660d2d-af7a-402d-b9db-408e73d5c114",
+      "language": "en"
+    },
+    "מדריך-ללימוד-מערכות-מטוס-בלי-ללכת-לאיבוד": {
+      "translationId": "67660d2d-af7a-402d-b9db-408e73d5c114",
+      "language": "he"
+    },
+    "guía-para-aprender-los-sistemas-del-avión-sin-perderse": {
+      "translationId": "67660d2d-af7a-402d-b9db-408e73d5c114",
+      "language": "es"
+    },
+    "guide-dapprentissage-des-systèmes-avion-sans-se-perdre": {
+      "translationId": "67660d2d-af7a-402d-b9db-408e73d5c114",
+      "language": "fr"
+    },
+    "دليل-تعلم-أنظمة-الطائرة-دون-تشتت": {
+      "translationId": "67660d2d-af7a-402d-b9db-408e73d5c114",
+      "language": "ar"
+    },
+    "كيف-تستعد-بذكاء-لمقابلة-طياري-الخطوط-الجوية": {
+      "translationId": "5c30eac5-7f62-465a-bf33-17c64484f4bc",
+      "language": "ar"
+    },
+    "как-грамотно-подготовиться-к-собеседованию-пилота-авиакомпании": {
+      "translationId": "5c30eac5-7f62-465a-bf33-17c64484f4bc",
+      "language": "ru"
+    },
+    "how-to-prepare-smartly-for-an-airline-pilot-interview": {
+      "translationId": "5c30eac5-7f62-465a-bf33-17c64484f4bc",
+      "language": "en"
+    },
+    "איך-מתכוננים-לראיון-טייס-בצורה-חכמה": {
+      "translationId": "5c30eac5-7f62-465a-bf33-17c64484f4bc",
+      "language": "he"
+    },
+    "cómo-prepararse-inteligentemente-para-una-entrevista-de-piloto-de-aerolínea": {
+      "translationId": "5c30eac5-7f62-465a-bf33-17c64484f4bc",
+      "language": "es"
+    },
+    "comment-préparer-efficacement-un-entretien-de-sélection-pilote-de-ligne": {
+      "translationId": "5c30eac5-7f62-465a-bf33-17c64484f4bc",
+      "language": "fr"
+    },
+    "panne-moteur-au-décollage--maîtriser-la-réaction-en-cockpit-de-boeing-737": {
+      "translationId": "67b991c2-7129-4508-b1ae-9aa1f04bdedd",
+      "language": "fr"
+    },
+    "engine-failure-on-takeoff-mastering-the-cockpit-response-in-the-737": {
+      "translationId": "67b991c2-7129-4508-b1ae-9aa1f04bdedd",
+      "language": "en"
+    },
+    "отказ-двигателя-на-взлете-правильные-действия-в-кабине-boeing-737": {
+      "translationId": "67b991c2-7129-4508-b1ae-9aa1f04bdedd",
+      "language": "ru"
+    },
+    "عطل-المحرك-أثناء-الإقلاع-كيفية-الاستجابة-الصحيحة-في-قمرة-قيادة-بوينغ-737": {
+      "translationId": "67b991c2-7129-4508-b1ae-9aa1f04bdedd",
+      "language": "ar"
+    },
+    "כשל-מנוע-בהמראה-ואיך-מגיבים-נכון-בקוקפיט-737": {
+      "translationId": "67b991c2-7129-4508-b1ae-9aa1f04bdedd",
+      "language": "he"
+    },
+    "fallo-de-motor-en-despegue-cómo-reaccionar-en-la-cabina-del-boeing-737": {
+      "translationId": "67b991c2-7129-4508-b1ae-9aa1f04bdedd",
+      "language": "es"
+    },
+    "כשל-מנוע-בהמראה-ואיך-מגיבים-נכון-בקוקפיט-737-simdream": {
+      "translationId": "67b991c2-7129-4508-b1ae-9aa1f04bdedd",
+      "language": "he"
+    },
+    "لماذا-يجب-قراءة-مقالات-محاكيات-الطيران-تجربة-قمرة-القيادة-في-أوجها": {
+      "translationId": "f5c4aeea-df4f-4c5c-b078-7aa64196daa0",
+      "language": "ar"
+    },
+    "зачем-читать-блоги-об-авиасимуляторах-максимум-от-полета-в-кабине-лайнера": {
+      "translationId": "f5c4aeea-df4f-4c5c-b078-7aa64196daa0",
+      "language": "ru"
+    },
+    "why-read-flight-simulator-blogs-the-pinnacle-of-the-flight-deck-experience": {
+      "translationId": "f5c4aeea-df4f-4c5c-b078-7aa64196daa0",
+      "language": "en"
+    },
+    "למה-כדאי-לקרוא-בלוגים-על-סימולטורים--חווית-טיסה-במיטבה": {
+      "translationId": "f5c4aeea-df4f-4c5c-b078-7aa64196daa0",
+      "language": "he"
+    },
+    "por-qué-leer-blogs-sobre-simuladores-de-vuelo-la-máxima-experiencia-en-cabina": {
+      "translationId": "f5c4aeea-df4f-4c5c-b078-7aa64196daa0",
+      "language": "es"
+    },
+    "pourquoi-lire-des-blogs-sur-les-simulateurs-de-vol--lexpérience-cockpit-par-excellence": {
+      "translationId": "f5c4aeea-df4f-4c5c-b078-7aa64196daa0",
+      "language": "fr"
+    },
+    "למה-כדאי-לקרוא-בלוגים-על-סימולטורים-חווית-טיסה-במיטבה": {
+      "translationId": "f5c4aeea-df4f-4c5c-b078-7aa64196daa0",
+      "language": "he"
+    },
+    "как-запрограммировать-маршрут-в-fmc-на-авиатренажере-boeing-737": {
+      "translationId": "c20f3981-50b7-43ec-8d91-d8659c99c9f9",
+      "language": "ru"
+    },
+    "how-to-program-an-fmc-flight-route-in-a-boeing-737-simulator": {
+      "translationId": "c20f3981-50b7-43ec-8d91-d8659c99c9f9",
+      "language": "en"
+    },
+    "איך-מתכנתים-נתיב-בfmc-בסימולטור-בואינג-737": {
+      "translationId": "c20f3981-50b7-43ec-8d91-d8659c99c9f9",
+      "language": "he"
+    },
+    "cómo-programar-una-ruta-en-el-fmc-de-un-simulador-boeing-737": {
+      "translationId": "c20f3981-50b7-43ec-8d91-d8659c99c9f9",
+      "language": "es"
+    },
+    "comment-programmer-une-route-dans-le-fmc-dun-simulateur-boeing-737": {
+      "translationId": "c20f3981-50b7-43ec-8d91-d8659c99c9f9",
+      "language": "fr"
+    },
+    "كيفية-برمجة-مسار-الرحلة-في-نظام-fmc-بمحاكي-بوينغ-737": {
+      "translationId": "c20f3981-50b7-43ec-8d91-d8659c99c9f9",
+      "language": "ar"
+    },
+    "איך-מתכנתים-נתיב-בfmc-בסימולטור-בואינג-737-simdream": {
+      "translationId": "c20f3981-50b7-43ec-8d91-d8659c99c9f9",
+      "language": "he"
+    },
+    "avis-sur-lexpérience-pilote-en-place-commandant--immersion-totale-en-cockpit": {
+      "translationId": "78a4cb75-66ac-403a-b579-ef55b5eb3ff1",
+      "language": "fr"
+    },
+    "opinión-sobre-la-experiencia-de-piloto-en-el-asiento-del-capitán-reseña-en-cabina": {
+      "translationId": "78a4cb75-66ac-403a-b579-ef55b5eb3ff1",
+      "language": "es"
+    },
+    "חוות-דעת-על-חוויית-טייס-במושב-קפטן-אמיתי": {
+      "translationId": "78a4cb75-66ac-403a-b579-ef55b5eb3ff1",
+      "language": "he"
+    },
+    "تقييم-تجربة-الطيار-في-مقعد-الكابتن-الحقيقي-مراجعة-شاملة-من-داخل-قمرة-القيادة": {
+      "translationId": "78a4cb75-66ac-403a-b579-ef55b5eb3ff1",
+      "language": "ar"
+    },
+    "real-pilot-experience-in-the-captains-seat-in-depth-cockpit-review": {
+      "translationId": "78a4cb75-66ac-403a-b579-ef55b5eb3ff1",
+      "language": "en"
+    },
+    "отзыв-о-полете-в-кресле-командира-boeing-737-взгляд-из-кабины": {
+      "translationId": "78a4cb75-66ac-403a-b579-ef55b5eb3ff1",
+      "language": "ru"
+    },
+    "חוות-דעת-על-חוויית-טייס-במושב-קפטן-אמיתי-simdream": {
+      "translationId": "78a4cb75-66ac-403a-b579-ef55b5eb3ff1",
+      "language": "he"
+    }
+  },
+  "byTranslationId": {
+    "a9bb1a95-fec0-46fd-9856-02634e071efa": {
+      "localSlug": "סימולטור-בואינג-למתחילים-איך-מתחילים-נכון",
+      "category": "aviation_knowledge",
+      "coverImage": "https://static.wixstatic.com/media/49097a_62c4ed711b2e4a83b385661316d7942a~mv2.webp",
+      "ctaTarget": "general_booking",
+      "ru": "симулятор-боинга-для-новичков--как-начать-правильно",
+      "en": "boeing-simulator-for-beginners---how-to-start-right",
+      "fr": "simulateur-boeing-pour-débutants---comment-bien-commencer",
+      "ar": "محاكاة-بوينغ-للمبتدئين---كيف-تبدأ-بشكل-صحيح",
+      "es": "simulador-de-boeing-para-principiantes-cómo-empezar-bien",
+      "he": "סימולטור-בואינג-למתחילים---איך-מתחילים-נכון"
+    },
+    "15e8cba2-59fd-4f67-b36c-f89d7e1f5927": {
+      "localSlug": "רעיון-לדייט-לא-שגרתי-שבאמת-יפתיע",
+      "category": "gifts_and_events",
+      "coverImage": "https://static.wixstatic.com/media/49097a_55eec0f900f84b05a5eca140eac8544a~mv2.webp",
+      "ctaTarget": "vouchers",
+      "he": "רעיון-לדייט-לא-שגרתי-שבאמת-יפתיע",
+      "es": "una-idea-para-una-cita-inusual-que-realmente-sorprenderá",
+      "ar": "فكرة-لموعد-غير-عادي-سيكون-مفاجأة-حقا",
+      "en": "an-idea-for-an-unusual-date-that-will-really-surprise",
+      "ru": "идея-для-необычного-свидания-которая-действительно-удивит",
+      "fr": "une-idée-de-rendez-vous-insolite-qui-va-vraiment-surprendre"
+    },
+    "0666a13f-951d-4adc-9114-e3ec65ee4413": {
+      "localSlug": "אטרקציה-זוגית-יוקרתית-שלא-שוכחים",
+      "category": "gifts_and_events",
+      "coverImage": "https://static.wixstatic.com/media/49097a_4c7469c1b53a4323aab209cd0f83e8a8~mv2.webp",
+      "ctaTarget": "vouchers",
+      "ru": "роскошный-аттракцион-для-пар-который-вы-никогда-не-забудете",
+      "he": "אטרקציה-זוגית-יוקרתית-שלא-שוכחים",
+      "en": "a-luxurious-couple-attraction-that-you-never-forget",
+      "fr": "une-attraction-de-couple-luxueuse-que-vous-noublierez-jamais",
+      "ar": "جاذبية-زوجية-فاخرة-لن-تنساها-أبدا",
+      "es": "una-atracción-de-lujo-para-parejas-que-nunca-olvidarás"
+    },
+    "fac02d60-8c44-4fa2-aebf-c887605690fb": {
+      "localSlug": "האטרקציות-התעופה-המובילות-בישראל",
+      "category": "aviation_knowledge",
+      "coverImage": "https://static.wixstatic.com/media/35f77f_c07dc27ba9f74301897c60718abed6fa~mv2.png",
+      "ctaTarget": "general_booking",
+      "ru": "главные-авиационные-достопримечательности-израиля",
+      "en": "the-leading-aviation-attractions-in-israel",
+      "es": "las-principales-atracciones-de-la-aviación-en-israel",
+      "he": "האטרקציות-התעופה-המובילות-בישראל",
+      "ar": "مناطق-الجذب-الطيران-الرائدة-في-إسرائيل",
+      "fr": "les-principales-attractions-aéronautiques-en-israël"
+    },
+    "b226e414-b95e-4e87-95fd-29c128048b81": {
+      "localSlug": "פעילות-משפחתית-מיוחדת-שלא-שוכחים",
+      "category": "aviation_knowledge",
+      "coverImage": "https://static.wixstatic.com/media/49097a_a4a7564698b84aedbb8d922a2de61b55~mv2.webp",
+      "ctaTarget": "general_booking",
+      "ru": "особое-семейное-занятие-которое-вы-не-забудете",
+      "he": "פעילות-משפחתית-מיוחדת-שלא-שוכחים",
+      "ar": "نشاط-عائلي-مميز-لن-تنساه",
+      "fr": "une-activité-familiale-spéciale-que-vous-noublierez-pas",
+      "es": "una-actividad-familiar-especial-que-no-olvidarás-",
+      "en": "a-special-family-activity-you-wont-forget"
+    },
+    "7adfc050-c94a-4fa3-8708-f55a9189a5ab": {
+      "localSlug": "איך-להזמין-שובר-טיסה-מתנה-בלי-לפספס",
+      "category": "gifts_and_events",
+      "coverImage": "https://static.wixstatic.com/media/49097a_e4a0393961d94526ae4368e75e022838~mv2.webp",
+      "ctaTarget": "vouchers",
+      "fr": "comment-commander-un-bon-de-vol-cadeau-sans-rien-rater",
+      "he": "איך-להזמין-שובר-טיסה-מתנה-בלי-לפספס",
+      "es": "cómo-pedir-un-bono-de-vuelo-regalo-sin-perdérselo",
+      "ar": "كيفية-طلب-قسيمة-طيران-هدية-دون-أن-تفوتك",
+      "ru": "как-заказать-подарочный-ваучер-на-полет-и-не-упустить-выгоду",
+      "en": "how-to-order-a-gift-flight-voucher-without-missing-out"
+    },
+    "a49dd7a0-d32f-4f8f-842b-e48127243145": {
+      "localSlug": "מה-כולל-שובר-מתנה-דיגיטלי-לטיסת-סימולטור",
+      "category": "gifts_and_events",
+      "coverImage": "https://static.wixstatic.com/media/49097a_c7dde4488bba4c78ac5655d1cfb8389f~mv2.webp",
+      "ctaTarget": "vouchers",
+      "es": "qué-incluye-un-cheque-regalo-digital-para-simulador-de-vuelo",
+      "he": "מה-כולל-שובר-מתנה-דיגיטלי-לטיסת-סימולטור",
+      "en": "what-does-a-digital-gift-voucher-for-flight-simulator-include",
+      "fr": "que-comprend-un-chèque-cadeau-numérique-pour-simulateur-de-vol",
+      "ru": "что-включает-в-себя-цифровой-подарочный-сертификат-на-авиасимулятор",
+      "ar": "ماذا-تتضمن-قسيمة-الهدية-الرقمية-لجهاز-محاكاة-الطيران"
+    },
+    "2d627bd5-4b25-4c4a-819a-6007a76eb28e": {
+      "localSlug": "איך-לבחור-חוויית-בואינג-737-שמתאימה-לכם",
+      "category": "aviation_knowledge",
+      "coverImage": "https://static.wixstatic.com/media/49097a_67633279f89c40e088dd37d4a0497ce8~mv2.webp",
+      "ctaTarget": "general_booking",
+      "es": "cómo-elegir-la-experiencia-boeing-737-que-más-te-convenga",
+      "ar": "كيف-تختار-تجربة-طائرة-بوينغ-737-التي-تناسبك",
+      "ru": "как-выбрать-полет-на-боинге-737-который-подойдет-именно-вам",
+      "en": "how-to-choose-a-boeing-737-experience-that-suits-you",
+      "he": "איך-לבחור-חוויית-בואינג-737-שמתאימה-לכם",
+      "fr": "comment-choisir-une-expérience-boeing-737-qui-vous-convient"
+    },
+    "42b0080d-d243-4804-a4ba-144ab3361890": {
+      "localSlug": "מתנת-יום-הולדת-לגבר-שבאמת-מרגשת",
+      "category": "gifts_and_events",
+      "coverImage": "https://static.wixstatic.com/media/49097a_8c1ebe200ec54b9e8edf2c6d4db11cd9~mv2.webp",
+      "ctaTarget": "vouchers",
+      "fr": "un-cadeau-danniversaire-pour-un-homme-qui-bouge-vraiment",
+      "ar": "هدية-عيد-ميلاد-لرجل-يتحرك-حقا",
+      "en": "a-birthday-gift-for-a-man-that-really-moves",
+      "he": "מתנת-יום-הולדת-לגבר-שבאמת-מרגשת",
+      "es": "un-regalo-de-cumpleaños-para-un-hombre-que-realmente-conmueve-",
+      "ru": "подарок-на-день-рождения-мужчине-который-по-настоящему-трогателен-"
+    },
+    "41e6bd14-60bc-4c65-801c-b3ed27e3095a": {
+      "localSlug": "הכנה-לראיון-חברת-תעופה-בלי-לאבד-גובה",
+      "category": "airline_prep",
+      "coverImage": "https://static.wixstatic.com/media/49097a_a80b8714e9e84569b9601f16b31c045d~mv2.webp",
+      "ctaTarget": "pro",
+      "ar": "التحضير-لمقابلة-طيران-دون-فقدان-الارتفاع",
+      "fr": "se-préparer-à-un-entretien-avec-une-compagnie-aérienne-sans-perdre-daltitude",
+      "es": "preparándose-para-una-entrevista-de-aerolínea-sin-perder-altitud",
+      "en": "preparing-for-an-airline-interview-without-losing-altitude",
+      "ru": "подготовка-к-собеседованию-в-авиакомпании-без-потери-высоты",
+      "he": "הכנה-לראיון-חברת-תעופה-בלי-לאבד-גובה"
+    },
+    "a19bfb22-d1cd-4573-b2bb-652d6344051d": {
+      "localSlug": "שיטות-להפגת-פחד-טיסה",
+      "category": "fear_of_flying",
+      "coverImage": "https://static.wixstatic.com/media/35f77f_d89df14b88f345679540fb0852c563dd~mv2.png",
+      "ctaTarget": "fear_of_flying",
+      "he": "שיטות-להפגת-פחד-טיסה",
+      "ru": "методы-облегчения-страха-перед-полетом",
+      "en": "methods-to-alleviate-fear-of-flying",
+      "fr": "méthodes-pour-atténuer-la-peur-de-voler",
+      "ar": "طرق-التخلص-من-الخوف-من-الطيران",
+      "es": "métodos-para-aliviar-el-miedo-a-volar"
+    },
+    "56e1d93e-0260-499e-b5c7-9c8101e0660f": {
+      "localSlug": "המלצות-לסימולטור-טיסה-חוויות-בלתי-נשכחות",
+      "category": "aviation_knowledge",
+      "coverImage": "https://static.wixstatic.com/media/35f77f_529d881309f246e38ef3b6a7dc8c8cd9~mv2.png",
+      "ctaTarget": "general_booking",
+      "ar": "توصيات-لجهاز-محاكاة-الطيران-تجارب-لا-تنسى",
+      "fr": "recommandations-pour-un-simulateur-de-vol--des-expériences-inoubliables",
+      "en": "recommendations-for-a-flight-simulator-unforgettable-experiences",
+      "es": "recomendaciones-para-un-simulador-de-vuelo-experiencias-inolvidables",
+      "ru": "рекомендации-по-авиасимулятору-незабываемые-впечатления",
+      "he": "המלצות-לסימולטור-טיסה-חוויות-בלתי-נשכחות"
+    },
+    "208f8a50-ccbd-446c-b4c6-a59e2d184a24": {
+      "localSlug": "טיסה-וירטואלית-ליעדים-בעולם-כך-זה-מרגיש",
+      "category": "aviation_knowledge",
+      "coverImage": "https://static.wixstatic.com/media/49097a_8d1ffeb15d4140d38d11df4c5e1fcc0b~mv2.webp",
+      "ctaTarget": "general_booking",
+      "he": "טיסה-וירטואלית-ליעדים-בעולם---כך-זה-מרגיש",
+      "ru": "виртуальный-полет-по-направлениям-мира--вот-как-это-ощущается",
+      "fr": "un-vol-virtuel-vers-des-destinations-dans-le-monde-entier---cest-ce-que-lon-ressent",
+      "es": "vuelo-virtual-a-destinos-de-todo-el-mundo-así-se-siente-en-cabina",
+      "ar": "رحلة-طيران-افتراضية-إلى-وجهات-عالمية-هكذا-يبدو-الشعور-في-قمرة-القيادة",
+      "en": "a-virtual-flight-to-destinations-in-the-world---thats-how-it-feels"
+    },
+    "c1b4ad21-887e-49cf-a641-581279ad3c64": {
+      "localSlug": "מדריך-לתרגול-המראה-ונחיתה-בלי-לנחש",
+      "category": "cockpit_skills",
+      "coverImage": "https://static.wixstatic.com/media/49097a_0020ac4bdf154172ae05c2a6d8a201ca~mv2.webp",
+      "ctaTarget": "experiences",
+      "es": "guía-de-práctica-de-despegue-y-aterrizaje-pilotaje-preciso-sin-dudas",
+      "fr": "guide-dentraînement-au-décollage-et-à-latterrissage--piloter-avec-précision-sans-hésiter",
+      "he": "מדריך-לתרגול-המראה-ונחיתה-בלי-לנחש",
+      "en": "a-guide-to-takeoff-and-landing-practice-without-guesswork",
+      "ar": "دليل-التدرب-على-الإقلاع-والهبوط-تحكم-دقيق-واحترافي-دون-تخمين",
+      "ru": "руководство-по-отработке-взлета-и-посадки-точное-пилотирование-без-догадок"
+    },
+    "209fcf16-ee37-4083-80cb-d523a2cccfdf": {
+      "localSlug": "האם-אפשר-להגיע-בלי-ידע-קודם-לטייס-סימולטור",
+      "category": "aviation_knowledge",
+      "coverImage": "https://static.wixstatic.com/media/49097a_8781d7af8c4843899c11b92a86c00e94~mv2.webp",
+      "ctaTarget": "general_booking",
+      "ar": "هل-يمكن-تجربة-محاكي-الطيران-بدون-أي-خبرة-سابقة",
+      "es": "se-puede-pilotar-un-simulador-de-vuelo-sin-experiencia-previa",
+      "fr": "peut-on-piloter-un-simulateur-de-vol-sans-aucune-expérience-préalable-",
+      "he": "האם-אפשר-להגיע-בלי-ידע-קודם-להטיס-סימולטור",
+      "en": "can-you-fly-a-flight-simulator-with-zero-prior-experience",
+      "ru": "можно-ли-летать-на-авиасимуляторе-без-опыта-пилотирования"
+    },
+    "fb83890d-b9e7-408a-bbc6-e8dfbaf27f1b": {
+      "localSlug": "בואינג-737-לעומת-איירבוס-מה-באמת-שונה",
+      "category": "aviation_knowledge",
+      "coverImage": "https://static.wixstatic.com/media/49097a_41d0f21cebfa44c0a1a2e910e656fa33~mv2.webp",
+      "ctaTarget": "general_booking",
+      "he": "בואינג-737-לעומת-איירבוס---מה-באמת-שונה",
+      "ru": "boeing-737-против-airbus-в-чём-настоящая-разница",
+      "fr": "boeing-737-vs-airbus--quelles-sont-les-vraies-différences-",
+      "es": "boeing-737-vs-airbus-cuál-es-la-verdadera-diferencia",
+      "ar": "بوينغ-737-مقابل-إيرباص-ما-هو-الفرق-الحقيقي",
+      "en": "boeing-737-vs-airbus-what-is-the-real-difference"
+    },
+    "deac8f01-5cbb-4319-ae1f-f9401fd344dc": {
+      "localSlug": "הפתעות-מקוריות-לבן-זוג-שבאמת-זוכרים",
+      "category": "gifts_and_events",
+      "coverImage": "https://static.wixstatic.com/media/49097a_f4cc67b89f3a41d197b3207b97cd7eac~mv2.webp",
+      "ctaTarget": "vouchers",
+      "es": "sorpresas-originales-para-tu-pareja-que-dejan-una-huella-imborrable",
+      "he": "הפתעות-מקוריות-לבן-זוג-שבאמת-זוכרים",
+      "ar": "مفاجآت-أصلية-ومميزة-للزوج-تبقى-محفورة-في-الذاكرة-طويلا",
+      "fr": "surprises-originales-pour-son-conjoint-qui-marquent-vraiment-les-esprits",
+      "ru": "оригинальные-сюрпризы-для-любимого-мужчины-подарки-которые-запоминаются",
+      "en": "truly-memorable-surprises-for-your-partner-beyond-the-clichés"
+    },
+    "ef8094b9-6a53-429d-ac9f-11b871ec99e2": {
+      "localSlug": "כמה-זמן-נמשכת-חוויית-טיסה-בסימולטור",
+      "category": "aviation_knowledge",
+      "coverImage": "https://static.wixstatic.com/media/49097a_98385f91ec8f4698afbc80d10a0f4522~mv2.webp",
+      "ctaTarget": "general_booking",
+      "ru": "сколько-длится-полет-на-авиасимуляторе",
+      "en": "how-long-does-a-flight-simulator-experience-last",
+      "he": "כמה-זמן-נמשכת-חוויית-טיסה-בסימולטור",
+      "es": "cuánto-dura-una-experiencia-en-simulador-de-vuelo",
+      "fr": "combien-de-temps-dure-une-expérience-sur-simulateur-de-vol-",
+      "ar": "كم-تستغرق-تجربة-جهاز-محاكاة-الطيران"
+    },
+    "009d5751-cd9b-4fcf-a53d-fb6c9e5b7884": {
+      "localSlug": "סימולטור-ביתי-מול-מקצועי-מה-באמת-מרגישים",
+      "category": "aviation_knowledge",
+      "coverImage": "https://static.wixstatic.com/media/49097a_8a1fbbbbfad44965a2a01d182c518a73~mv2.webp",
+      "ctaTarget": "general_booking",
+      "ar": "محاكي-الطيران-المنزلي-مقابل-الاحترافي-ما-هو-الفارق-الحقيقي-الذي-تشعر-به",
+      "ru": "домашний-авиасимулятор-против-профессионального-в-чем-реальная-разница",
+      "fr": "simulateur-de-vol-domestique-vs-professionnel--quelles-sont-les-vraies-différences-",
+      "he": "סימולטור-ביתי-מול-מקצועי---מה-באמת-מרגישים",
+      "es": "simulador-de-vuelo-doméstico-vs--profesional-cuál-es-la-diferencia-real",
+      "en": "home-vs--professional-flight-simulators-what-do-you-actually-feel"
+    },
+    "7f6c49a0-4ff7-4af0-8aa9-e17825ea58ab": {
+      "localSlug": "טרנדים-באירועי-חברה-שמוציאים-את-הצוות-מהשגרה-simdream",
+      "category": "gifts_and_events",
+      "coverImage": "https://static.wixstatic.com/media/49097a_41d7c09caa0a46d0ac7a1a5c44b5bb20~mv2.webp",
+      "ctaTarget": "vouchers",
+      "ru": "тренды-корпоративных-мероприятий-выход-команды-из-привычной-рутины",
+      "es": "tendencias-en-eventos-de-empresa-que-sacan-al-equipo-de-la-rutina",
+      "he": "טרנדים-באירועי-חברה-שמוציאים-את-הצוות-מהשגרה",
+      "en": "corporate-event-trends-that-break-the-team-routine",
+      "fr": "tendances-des-événements-dentreprise--sortir-les-équipes-de-la-routine",
+      "ar": "اتجاهات-فعاليات-الشركات-كسر-الروتين-الوظيفي-والانطلاق-بروح-الفريق"
+    },
+    "b0b42345-3384-43bd-9c8f-c9e941b232ed": {
+      "localSlug": "האטרקציות-התעופתיות-המובילות-בישראל-אטרקציות-תעופה-מקומיות",
+      "category": "aviation_knowledge",
+      "coverImage": "https://static.wixstatic.com/media/35f77f_901d6b3f69ee44ebaceb00d4e2685b14~mv2.png",
+      "ctaTarget": "general_booking",
+      "en": "top-aviation-attractions-in-israel-local-flight-experiences",
+      "ru": "главные-авиационные-аттракционы-израиля-лучшие-полеты-и-симуляторы",
+      "he": "האטרקציות-התעופתיות-המובילות-בישראל--אטרקציות-תעופה-מקומיות",
+      "ar": "أبرز-معالم-وتجارب-الطيران-في-إسرائيل-أنشطة-ومحاكيات-الطيران-المحلية",
+      "es": "las-mejores-atracciones-aeronáuticas-en-israel-experiencias-de-vuelo-locales",
+      "fr": "les-meilleures-attractions-aéronautiques-en-israël--expériences-de-vol-locales"
+    },
+    "b8dd6018-a4fe-4690-bcc6-56831f4077cd": {
+      "localSlug": "איך-מתרגלים-נחיתת-רוח-צד-בסימולטור-בואינג-737-simdream",
+      "category": "cockpit_skills",
+      "coverImage": "https://static.wixstatic.com/media/49097a_9db77324ea6d4d1dba77adeb1cacbe2e~mv2.webp",
+      "ctaTarget": "experiences",
+      "en": "how-to-practice-crosswind-landings-in-a-boeing-737-simulator",
+      "ar": "كيفية-التدرب-على-الهبوط-في-الرياح-المتقاطعة-في-محاكي-بوينغ-737",
+      "es": "cómo-practicar-aterrizajes-con-viento-cruzado-en-un-simulador-boeing-737",
+      "he": "איך-מתרגלים-נחיתת-רוח-צד-בסימולטור-בואינג-737",
+      "fr": "comment-sentraîner-à-latterrissage-par-vent-de-travers-sur-simulateur-boeing-737",
+      "ru": "как-отрабатывать-посадку-при-боковом-ветре-на-авиатренажере-boeing-737"
+    },
+    "1d47b886-a23f-43d9-86cc-54bf8ab2513a": {
+      "localSlug": "האם-טייס-אוטומטי-נוחת-לבד-תשובה-מהקוקפיט-simdream",
+      "category": "cockpit_skills",
+      "coverImage": "https://static.wixstatic.com/media/49097a_e88e8006233746c89766cbfb2e0b3888~mv2.webp",
+      "ctaTarget": "experiences",
+      "ar": "هل-يهبط-الطيار-الآلي-بالطائرة-بمفرده-إجابة-من-قمرة-القيادة",
+      "fr": "le-pilote-automatique-atterrit-il-seul--la-réponse-depuis-le-cockpit",
+      "ru": "садится-ли-автопилот-сам-ответ-из-кабины-пилотов",
+      "es": "aterriza-el-piloto-automático-solo-la-respuesta-desde-la-cabina",
+      "he": "האם-טייס-אוטומטי-נוחת-לבד-תשובה-מהקוקפיט",
+      "en": "does-autopilot-land-by-itself-an-answer-from-the-cockpit"
+    },
+    "0583330c-0ff1-4b88-82af-50a02043cd90": {
+      "localSlug": "נחיתת-קאי-טאק-בסימולטור-הפנייה-שלא-שוכחים-simdream",
+      "category": "cockpit_skills",
+      "coverImage": "https://static.wixstatic.com/media/49097a_045f8bb9f0b8433282a945b71fb9df6a~mv2.webp",
+      "ctaTarget": "experiences",
+      "es": "aterrizaje-en-kai-tak-en-simulador-el-viraje-inolvidable",
+      "ar": "هبوط-كاي-تاك-على-جهاز-المحاكاة-المنعطف-الذي-لا-ينسى",
+      "he": "נחיתת-קאי-טאק-בסימולטור-הפנייה-שלא-שוכחים",
+      "ru": "посадка-в-кайтак-на-авиасимуляторе-поворот-который-не-забыть",
+      "en": "kai-tak-landing-in-the-simulator-the-unforgettable-turn",
+      "fr": "atterrissage-à-kai-tak-sur-simulateur--le-virage-inoubliable"
+    },
+    "27020990-0423-4b90-bbb3-416f1b5a8d50": {
+      "localSlug": "איך-נוחתים-בפרו-בהוטן-כמו-צוות-אמיתי",
+      "category": "aviation_knowledge",
+      "coverImage": "https://static.wixstatic.com/media/49097a_feb9e770f0c1468989acde34649f95e7~mv2.webp",
+      "ctaTarget": "general_booking",
+      "he": "איך-נוחתים-בפרו-בהוטן-כמו-צוות-אמיתי",
+      "ar": "كيف-تهبط-في-مطار-بارو-في-بوتان-كطاقم-طيران-حقيقي",
+      "fr": "comment-atterrir-à-paro-au-bhoutan-comme-un-véritable-équipage",
+      "en": "how-to-land-at-paro-bhutan-like-a-real-airline-crew",
+      "es": "cómo-aterrizar-en-paro-bután-como-una-auténtica-tripulación-de-aerolínea",
+      "ru": "как-посадить-самолет-в-паро-бутан-как-настоящий-экипаж"
+    },
+    "8797d36c-1388-423f-a895-e88449ae4481": {
+      "localSlug": "גישה-ונחיתה-בשדות-הכי-מאתגרים-בעולם-simdream",
+      "category": "cockpit_skills",
+      "coverImage": "https://static.wixstatic.com/media/49097a_5654792b0b7d4701acef68df5cf5f62b~mv2.webp",
+      "ctaTarget": "experiences",
+      "es": "aproximación-y-aterrizaje-en-los-aeropuertos-más-desafiantes-del-mundo",
+      "en": "approach-and-landing-at-the-worlds-most-challenging-airports",
+      "fr": "approche-et-atterrissage-sur-les-aéroports-les-plus-difficiles-au-monde",
+      "ar": "الاقتراب-والهبوط-في-أكثر-مطارات-العالم-صعوبة-وتحديا",
+      "ru": "заход-на-посадку-и-приземление-в-сложнейших-аэропортах-мира",
+      "he": "גישה-ונחיתה-בשדות-הכי-מאתגרים-בעולם"
+    },
+    "deb39b6a-8318-4028-a745-258c30c965c8": {
+      "localSlug": "האם-ניתן-לבחור-שדה-תעופה-לטיסה-בסימולטור-simdream",
+      "category": "aviation_knowledge",
+      "coverImage": "https://static.wixstatic.com/media/49097a_c2520ff60a064cec8e80c3d78a0ab70a~mv2.webp",
+      "ctaTarget": "general_booking",
+      "ar": "هل-يمكن-اختيار-مطار-الرحلة-في-محاكي-الطيران-دليل-اختيار-المطارات-الشامل",
+      "ru": "можно-ли-выбрать-аэропорт-в-авиасимуляторе-полный-гид-по-выбору-маршрута",
+      "he": "האם-ניתן-לבחור-שדה-תעופה-לטיסה-בסימולטור---מדריך-מלא-לבחירת-שדה-תעופה-בסימולטור-טיסה-בסימדרים-ישרא",
+      "es": "se-puede-elegir-aeropuerto-en-un-simulador-de-vuelo-guía-completa",
+      "en": "can-you-choose-your-airport-in-a-flight-simulator-complete-selection-guide",
+      "fr": "peut-on-choisir-son-aéroport-dans-un-simulateur-de-vol--guide-complet"
+    },
+    "6da2737a-67b3-4ac1-9496-4915f176966b": {
+      "localSlug": "סימולטורים-חווייתיים-לתעופה-גלה-את-עולם-הסימולטורים-לטיסה",
+      "category": "aviation_knowledge",
+      "coverImage": "https://static.wixstatic.com/media/35f77f_997770e356234a12af1b7065302081b9~mv2.png",
+      "ctaTarget": "general_booking",
+      "fr": "simulateurs-de-vol-immersifs--découvrez-lunivers-du-pilotage-de-ligne",
+      "ar": "أجهزة-محاكاة-الطيران-التفاعلية-اكتشف-عالم-محاكاة-الطيران-الاحترافي",
+      "es": "simuladores-de-vuelo-inmersivos-descubre-el-fascinante-mundo-de-la-aviación",
+      "ru": "авиасимуляторы-впечатлений-откройте-для-себя-мир-профессиональных-полетов",
+      "he": "סימולטורים-חווייתיים-לתעופה---גלה-את-עולם-הסימולטורים-לטיסה",
+      "en": "experiential-flight-simulators-discover-the-world-of-flight-simulation"
+    },
+    "6335c2b3-bfa4-4741-929c-5858819254c1": {
+      "localSlug": "מדריך-לגישות-היסטוריות-מפורסמות-בטיסת-נוסעים-simdream",
+      "category": "aviation_knowledge",
+      "coverImage": "https://static.wixstatic.com/media/49097a_1bf1203609f64f159df560d5bdde29c3~mv2.webp",
+      "ctaTarget": "general_booking",
+      "fr": "guide-des-approches-historiques-légendaires-dans-laviation-commerciale",
+      "he": "מדריך-לגישות-היסטוריות-מפורסמות-בטיסת-נוסעים",
+      "ar": "دليل-الاقترابات-التاريخية-الشهيرة-في-الطيران-التجاري",
+      "ru": "руководство-по-знаменитым-историческим-заходам-на-посадку-в-гражданской-авиации",
+      "en": "a-field-guide-to-historic-commercial-airline-approaches",
+      "es": "guía-de-aproximaciones-históricas-legendarias-en-la-aviación-comercial"
+    },
+    "6d995604-797e-4f8c-95dd-ff754e62a916": {
+      "localSlug": "פעילות-גיבוש-לזוג-שלא-מרגישה-כמו-עוד-דייט",
+      "category": "gifts_and_events",
+      "coverImage": "https://static.wixstatic.com/media/49097a_577fad3955694bc99dd7b5ebd0fc0637~mv2.webp",
+      "ctaTarget": "vouchers",
+      "ar": "نشاط-تفاعلي-مميز-للأزواج-لا-يشبه-أي-موعد-تقليدي",
+      "ru": "необычное-свидание-для-пары-опыт-в-кабине-авиасимулятора",
+      "en": "a-couples-bonding-experience-that-doesnt-feel-like-just-another-date",
+      "he": "פעילות-גיבוש-לזוג-שלא-מרגישה-כמו-עוד-דייט",
+      "es": "una-actividad-en-pareja-que-no-se-siente-como-una-cita-más",
+      "fr": "une-activité-de-couple-originale-qui-ne-ressemble-à-aucun-autre-rendez-vous"
+    },
+    "f44fd599-5361-4d93-8af8-d812caa97482": {
+      "localSlug": "חוויה-בתל-אביב-בסימולטור-טיסה-היתרונות-של-סימולטור-טיסה-בתל-אביב",
+      "category": "aviation_knowledge",
+      "coverImage": "https://static.wixstatic.com/media/35f77f_470a7abc1d234a9cba3e8d34c756a652~mv2.png",
+      "ctaTarget": "general_booking",
+      "en": "flight-simulator-experience-in-tel-aviv-the-power-and-benefits-of-true-cockpit-immersion",
+      "ru": "полет-на-авиатренажере-в-тель-авиве-преимущества-и-мощь-кабины-boeing-737",
+      "fr": "expérience-en-simulateur-de-vol-à-tel-aviv--les-atouts-dun-poste-de-pilotage-boeing-737",
+      "ar": "تجربة-محاكي-الطيران-في-تل-أبيب-مزايا-وقوة-قمرة-قيادة-بوينغ-737",
+      "es": "experiencia-en-simulador-de-vuelo-en-tel-aviv-ventajas-y-potencia-de-una-cabina-boeing-737",
+      "he": "חוויה-בתל-אביב-בסימולטור-טיסה-היתרונות-של-סימולטור-טיסה-בתל-אביב"
+    },
+    "5a956667-426a-468f-80cd-cd82e0664300": {
+      "localSlug": "מדריך-גישת-קאי-טאק-נחיתת-737-על-מסלול-13-simdream",
+      "category": "cockpit_skills",
+      "coverImage": "https://static.wixstatic.com/media/49097a_05a4f2af3fc846b4abf90e214f6c22e5~mv2.webp",
+      "ctaTarget": "experiences",
+      "es": "guía-de-aproximación-de-kai-tak-aterrizaje-del-boeing-737-en-la-pista-13",
+      "fr": "guide-dapproche-de-kai-tak--atterrissage-du-boeing-737-sur-la-piste-13",
+      "en": "kai-tak-approach-guide-flying-the-boeing-737-landing-on-runway-13",
+      "ar": "دليل-اقتراب-كاي-تاك-هبوط-طائرة-boeing-737-على-المدرج-13",
+      "he": "מדריך-גישת-קאי-טאק-נחיתת-737-על-מסלול-13",
+      "ru": "руководство-по-заходу-на-посадку-в-кай-так-посадка-boeing-737-на-впп-13"
+    },
+    "3a3f8dc8-829b-41d8-abf4-8f9a4e879546": {
+      "localSlug": "איך-לבצע-גישת-אינסברוק-בעמק-בבואינג-simdream",
+      "category": "cockpit_skills",
+      "coverImage": "https://static.wixstatic.com/media/49097a_d2262ee688ff47a09611ce7051f62393~mv2.webp",
+      "ctaTarget": "experiences",
+      "es": "cómo-volar-la-aproximación-por-el-valle-de-innsbruck-en-un-boeing-737",
+      "ru": "как-выполнить-заход-в-долине-инсбрука-на-boeing-737",
+      "fr": "comment-réussir-lapproche-de-la-vallée-dinnsbruck-en-boeing-737",
+      "he": "איך-לבצע-גישת-אינסברוק-בעמק-בבואינג",
+      "en": "how-to-fly-the-innsbruck-valley-approach-in-a-boeing-737",
+      "ar": "كيفية-تنفيذ-اقتراب-إنسبروك-في-الوادي-بطائرة-بوينغ-737"
+    },
+    "67660d2d-af7a-402d-b9db-408e73d5c114": {
+      "localSlug": "מדריך-ללימוד-מערכות-מטוס-בלי-ללכת-לאיבוד",
+      "category": "airline_prep",
+      "coverImage": "https://static.wixstatic.com/media/49097a_89df782bcec442a4921ae970d077c0f1~mv2.webp",
+      "ctaTarget": "pro",
+      "ru": "руководство-по-системам-самолета-освоение-кабины-без-перегрузки",
+      "en": "aircraft-systems-guide-mastering-the-cockpit-without-getting-lost",
+      "he": "מדריך-ללימוד-מערכות-מטוס-בלי-ללכת-לאיבוד",
+      "es": "guía-para-aprender-los-sistemas-del-avión-sin-perderse",
+      "fr": "guide-dapprentissage-des-systèmes-avion-sans-se-perdre",
+      "ar": "دليل-تعلم-أنظمة-الطائرة-دون-تشتت"
+    },
+    "5c30eac5-7f62-465a-bf33-17c64484f4bc": {
+      "localSlug": "איך-מתכוננים-לראיון-טייס-בצורה-חכמה",
+      "category": "airline_prep",
+      "coverImage": "https://static.wixstatic.com/media/49097a_b41f2456befa4812bcdaf9433a5302d9~mv2.webp",
+      "ctaTarget": "pro",
+      "ar": "كيف-تستعد-بذكاء-لمقابلة-طياري-الخطوط-الجوية",
+      "ru": "как-грамотно-подготовиться-к-собеседованию-пилота-авиакомпании",
+      "en": "how-to-prepare-smartly-for-an-airline-pilot-interview",
+      "he": "איך-מתכוננים-לראיון-טייס-בצורה-חכמה",
+      "es": "cómo-prepararse-inteligentemente-para-una-entrevista-de-piloto-de-aerolínea",
+      "fr": "comment-préparer-efficacement-un-entretien-de-sélection-pilote-de-ligne"
+    },
+    "67b991c2-7129-4508-b1ae-9aa1f04bdedd": {
+      "localSlug": "כשל-מנוע-בהמראה-ואיך-מגיבים-נכון-בקוקפיט-737-simdream",
+      "category": "aviation_knowledge",
+      "coverImage": "https://static.wixstatic.com/media/49097a_d40da3a53b4b41d99717f5172bfe1bf8~mv2.webp",
+      "ctaTarget": "general_booking",
+      "fr": "panne-moteur-au-décollage--maîtriser-la-réaction-en-cockpit-de-boeing-737",
+      "en": "engine-failure-on-takeoff-mastering-the-cockpit-response-in-the-737",
+      "ru": "отказ-двигателя-на-взлете-правильные-действия-в-кабине-boeing-737",
+      "ar": "عطل-المحرك-أثناء-الإقلاع-كيفية-الاستجابة-الصحيحة-في-قمرة-قيادة-بوينغ-737",
+      "he": "כשל-מנוע-בהמראה-ואיך-מגיבים-נכון-בקוקפיט-737",
+      "es": "fallo-de-motor-en-despegue-cómo-reaccionar-en-la-cabina-del-boeing-737"
+    },
+    "f5c4aeea-df4f-4c5c-b078-7aa64196daa0": {
+      "localSlug": "למה-כדאי-לקרוא-בלוגים-על-סימולטורים-חווית-טיסה-במיטבה",
+      "category": "aviation_knowledge",
+      "coverImage": "https://static.wixstatic.com/media/35f77f_490a794b32f14da9a2617352ada65e13~mv2.png",
+      "ctaTarget": "general_booking",
+      "ar": "لماذا-يجب-قراءة-مقالات-محاكيات-الطيران-تجربة-قمرة-القيادة-في-أوجها",
+      "ru": "зачем-читать-блоги-об-авиасимуляторах-максимум-от-полета-в-кабине-лайнера",
+      "en": "why-read-flight-simulator-blogs-the-pinnacle-of-the-flight-deck-experience",
+      "he": "למה-כדאי-לקרוא-בלוגים-על-סימולטורים--חווית-טיסה-במיטבה",
+      "es": "por-qué-leer-blogs-sobre-simuladores-de-vuelo-la-máxima-experiencia-en-cabina",
+      "fr": "pourquoi-lire-des-blogs-sur-les-simulateurs-de-vol--lexpérience-cockpit-par-excellence"
+    },
+    "c20f3981-50b7-43ec-8d91-d8659c99c9f9": {
+      "localSlug": "איך-מתכנתים-נתיב-בfmc-בסימולטור-בואינג-737-simdream",
+      "category": "airline_prep",
+      "coverImage": "https://static.wixstatic.com/media/49097a_9d0ddc3ba6d44b8ba70ba39d2dbf0c7e~mv2.webp",
+      "ctaTarget": "pro",
+      "ru": "как-запрограммировать-маршрут-в-fmc-на-авиатренажере-boeing-737",
+      "en": "how-to-program-an-fmc-flight-route-in-a-boeing-737-simulator",
+      "he": "איך-מתכנתים-נתיב-בfmc-בסימולטור-בואינג-737",
+      "es": "cómo-programar-una-ruta-en-el-fmc-de-un-simulador-boeing-737",
+      "fr": "comment-programmer-une-route-dans-le-fmc-dun-simulateur-boeing-737",
+      "ar": "كيفية-برمجة-مسار-الرحلة-في-نظام-fmc-بمحاكي-بوينغ-737"
+    },
+    "78a4cb75-66ac-403a-b579-ef55b5eb3ff1": {
+      "localSlug": "חוות-דעת-על-חוויית-טייס-במושב-קפטן-אמיתי-simdream",
+      "category": "aviation_knowledge",
+      "coverImage": "https://static.wixstatic.com/media/49097a_f05f19b5f5e247fc89b31a1136430e3b~mv2.webp",
+      "ctaTarget": "general_booking",
+      "fr": "avis-sur-lexpérience-pilote-en-place-commandant--immersion-totale-en-cockpit",
+      "es": "opinión-sobre-la-experiencia-de-piloto-en-el-asiento-del-capitán-reseña-en-cabina",
+      "he": "חוות-דעת-על-חוויית-טייס-במושב-קפטן-אמיתי",
+      "ar": "تقييم-تجربة-الطيار-في-مقعد-الكابتن-الحقيقي-مراجعة-شاملة-من-داخل-قمرة-القيادة",
+      "en": "real-pilot-experience-in-the-captains-seat-in-depth-cockpit-review",
+      "ru": "отзыв-о-полете-в-кресле-командира-boeing-737-взгляд-из-кабины"
+    }
+  }
+}

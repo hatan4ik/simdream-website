@@ -3,13 +3,14 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Calendar, Clock, ArrowRight, UserCheck } from 'lucide-react';
+import { Calendar, Clock, ArrowRight, ArrowLeft, UserCheck } from 'lucide-react';
 import {
   getAllBlogPosts,
-  getBlogPostBySlug,
   getRelatedBlogPosts,
   BLOG_CATEGORIES,
+  getBlogCategoryLabel,
 } from '@/lib/data/blog-posts';
+import blogSlugMapData from '@/lib/data/blog-slug-map.json';
 import { getBlogAuthor } from '@/lib/data/blog-authors';
 import {
   BLOG_BREADCRUMB_LABELS_HE,
@@ -17,15 +18,64 @@ import {
   buildBlogBreadcrumbJsonLd,
   buildBlogPostingJsonLd,
 } from '@/lib/seo/blog-structured-data';
+import { resolveBlogPost } from '@/lib/wix/blog';
 import { BlogContentRenderer } from '@/components/blog/BlogContentRenderer';
 import { BlogConversionCta } from '@/components/blog/BlogConversionCta';
 import { BlogCard } from '@/components/blog/BlogCard';
+import { BlogPostLanguageSync } from '@/components/blog/BlogPostLanguageSync';
 
 interface PostPageProps {
   params: Promise<{ slug: string }>;
 }
 
+const READ_TIME_LABELS: Record<string, string> = {
+  he: 'דקות קריאה',
+  en: 'min read',
+  ru: 'мин чтения',
+  fr: 'min de lecture',
+  es: 'min de lectura',
+  ar: 'دقائق قراءة',
+};
+
+const BACK_TO_BLOG_LABELS: Record<string, string> = {
+  he: 'חזרה לכל המאמרים ביומן הטיסה',
+  en: 'Back to all articles in Flight Deck Journal',
+  ru: 'Назад ко всем статьям в Бортовом журнале',
+  fr: 'Retour à tous les articles du Journal de bord',
+  es: 'Volver a todos los artículos del Diario de cabina',
+  ar: 'العودة إلى جميع مقالات يومية قمرة القيادة',
+};
+
+const RELATED_POSTS_TITLES: Record<string, string> = {
+  he: 'מאמרים נוספים שיעניינו אותך',
+  en: 'More articles you might like',
+  ru: 'Другие статьи, которые могут вас заинтересовать',
+  fr: 'Autres articles qui pourraient vous intéresser',
+  es: 'Otros artículos que podrían interesarte',
+  ar: 'مقالات أخرى قد تهمك',
+};
+
+const LOCALE_BY_LANG: Record<string, string> = {
+  he: 'he-IL',
+  en: 'en-US',
+  ru: 'ru-RU',
+  fr: 'fr-FR',
+  es: 'es-ES',
+  ar: 'ar-EG',
+};
+
+interface BlogSlugMapFile {
+  bySlug: Record<string, { translationId: string; language: string }>;
+}
+
 export async function generateStaticParams() {
+  const bySlug = (blogSlugMapData as unknown as BlogSlugMapFile).bySlug || {};
+  const slugs = Object.keys(bySlug);
+  if (slugs.length > 0) {
+    return slugs.map((slug) => ({
+      slug: encodeURIComponent(slug),
+    }));
+  }
   const posts = getAllBlogPosts();
   return posts.map((post) => ({
     slug: encodeURIComponent(post.slug),
@@ -34,18 +84,26 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: PostPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const post = getBlogPostBySlug(slug);
+  const post = await resolveBlogPost(slug);
   if (!post) return { title: 'מאמר לא נמצא | SimDream' };
 
   const canonicalUrl = blogPostCanonicalUrl(post);
   const author = getBlogAuthor(post.authorId);
 
+  const languageAlternates: Record<string, string> = {};
+  if (post.siblingSlugs) {
+    for (const [lang, s] of Object.entries(post.siblingSlugs)) {
+      languageAlternates[lang] = `https://www.simdream.co.il/post/${encodeURIComponent(s)}`;
+    }
+  }
+
   return {
-    title: `${post.title} | בלוג סימולטור טיסה SimDream`,
+    title: `${post.title} | SimDream`,
     description: post.excerpt,
     authors: [{ name: author.nameHe, url: author.url }],
     alternates: {
       canonical: canonicalUrl,
+      ...(Object.keys(languageAlternates).length > 0 ? { languages: languageAlternates } : {}),
     },
     openGraph: {
       title: post.title,
@@ -53,7 +111,6 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
       url: canonicalUrl,
       type: 'article',
       publishedTime: post.datePublished,
-      // Only a recorded modification date is published; never mirror datePublished.
       ...(post.dateModified ? { modifiedTime: post.dateModified } : {}),
       authors: [author.url],
       images: [
@@ -76,16 +133,20 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
 
 export default async function SinglePostPage({ params }: PostPageProps) {
   const { slug } = await params;
-  const post = getBlogPostBySlug(slug);
+  const post = await resolveBlogPost(slug);
 
   if (!post) {
     notFound();
   }
 
+  const lang = post.language || 'he';
+  const isRTL = lang === 'he' || lang === 'ar';
   const categoryMeta =
     BLOG_CATEGORIES.find((c) => c.id === post.category) ?? BLOG_CATEGORIES[0]!;
+  const categoryLabel = getBlogCategoryLabel(post.category, lang);
 
-  const formattedDate = new Intl.DateTimeFormat('he-IL', {
+  const locale = LOCALE_BY_LANG[lang] || 'he-IL';
+  const formattedDate = new Intl.DateTimeFormat(locale, {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
@@ -99,6 +160,11 @@ export default async function SinglePostPage({ params }: PostPageProps) {
   const blogPostingJsonLd = buildBlogPostingJsonLd(post);
   const breadcrumbJsonLd = buildBlogBreadcrumbJsonLd(post);
 
+  const readTimeSuffix = READ_TIME_LABELS[lang] || READ_TIME_LABELS.he!;
+  const backToBlogText = BACK_TO_BLOG_LABELS[lang] || BACK_TO_BLOG_LABELS.he!;
+  const relatedTitle = RELATED_POSTS_TITLES[lang] || RELATED_POSTS_TITLES.he!;
+  const BackArrow = isRTL ? ArrowRight : ArrowLeft;
+
   return (
     <>
       <script
@@ -110,11 +176,14 @@ export default async function SinglePostPage({ params }: PostPageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
 
-      <article className="min-h-screen bg-slate-950 pt-8 pb-24">
+      {/* Synchronizes the language dropdown state and navigates to siblings upon toggle */}
+      <BlogPostLanguageSync siblingSlugs={post.siblingSlugs} currentLang={lang} />
+
+      <article dir={isRTL ? 'rtl' : 'ltr'} className="min-h-screen bg-slate-950 pt-8 pb-24">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Breadcrumb Navigation */}
           <nav
-            aria-label="נתיב ניווט"
+            aria-label="Breadcrumb navigation"
             className="flex items-center gap-2 text-xs text-slate-400 mb-8"
           >
             <Link href="/" className="hover:text-white transition-colors">
@@ -126,7 +195,7 @@ export default async function SinglePostPage({ params }: PostPageProps) {
             </Link>
             <span>/</span>
             <span className="text-slate-300 font-medium truncate max-w-[200px] sm:max-w-none">
-              {categoryMeta.labelHe}
+              {categoryLabel || categoryMeta.labelHe}
             </span>
           </nav>
 
@@ -136,11 +205,13 @@ export default async function SinglePostPage({ params }: PostPageProps) {
               <span
                 className={`px-3 py-1 rounded-full text-xs font-mono font-bold uppercase tracking-wider border ${categoryMeta.badgeColor}`}
               >
-                {categoryMeta.labelHe}
+                {categoryLabel || categoryMeta.labelHe}
               </span>
               <span className="flex items-center gap-1.5 text-xs text-slate-400">
                 <Clock className="w-3.5 h-3.5" />
-                <span>{post.readingTimeMinutes} דקות קריאה</span>
+                <span>
+                  {post.readingTimeMinutes} {readTimeSuffix}
+                </span>
               </span>
               <span className="text-slate-600">•</span>
               <span className="flex items-center gap-1.5 text-xs text-slate-400">
@@ -195,16 +266,16 @@ export default async function SinglePostPage({ params }: PostPageProps) {
               href="/blog"
               className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-slate-900 hover:bg-slate-800 border border-slate-700 text-sm font-bold text-white transition-colors"
             >
-              <ArrowRight className="w-4 h-4" />
-              <span>חזרה לכל המאמרים ביומן הטיסה</span>
+              <BackArrow className="w-4 h-4" />
+              <span>{backToBlogText}</span>
             </Link>
           </div>
 
           {/* Related Articles Section */}
           {relatedPosts.length > 0 && (
-            <aside aria-label="מאמרים נוספים שיעניינו אותך" className="mt-16 pt-12 border-t border-slate-800">
+            <aside aria-label={relatedTitle} className="mt-16 pt-12 border-t border-slate-800">
               <h2 className="text-2xl font-extrabold text-white mb-8">
-                מאמרים נוספים שיעניינו אותך
+                {relatedTitle}
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {relatedPosts.map((related) => (
@@ -218,4 +289,3 @@ export default async function SinglePostPage({ params }: PostPageProps) {
     </>
   );
 }
-
