@@ -23,6 +23,8 @@ import { BlogContentRenderer } from '@/components/blog/BlogContentRenderer';
 import { BlogConversionCta } from '@/components/blog/BlogConversionCta';
 import { BlogCard } from '@/components/blog/BlogCard';
 import { BlogPostLanguageSync } from '@/components/blog/BlogPostLanguageSync';
+import type { SupportedLanguage } from '@/lib/i18n/translations';
+import { isSupportedLanguage } from '@/lib/i18n/language-preference';
 
 interface PostPageProps {
   params: Promise<{ slug: string }>;
@@ -131,6 +133,15 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
   };
 }
 
+const BREADCRUMB_NAV_LABELS: Record<SupportedLanguage, string> = {
+  he: 'נתיב ניווט',
+  en: 'Breadcrumb navigation',
+  ru: 'Навигационная цепочка',
+  fr: "Fil d'Ariane",
+  es: 'Ruta de navegación',
+  ar: 'مسار التنقل',
+};
+
 export default async function SinglePostPage({ params }: PostPageProps) {
   const { slug } = await params;
   const post = await resolveBlogPost(slug);
@@ -139,7 +150,8 @@ export default async function SinglePostPage({ params }: PostPageProps) {
     notFound();
   }
 
-  const lang = post.language || 'he';
+  const lang: SupportedLanguage =
+    post.language && isSupportedLanguage(post.language) ? post.language : 'he';
   const isRTL = lang === 'he' || lang === 'ar';
   const categoryMeta =
     BLOG_CATEGORIES.find((c) => c.id === post.category) ?? BLOG_CATEGORIES[0]!;
@@ -183,7 +195,7 @@ export default async function SinglePostPage({ params }: PostPageProps) {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Breadcrumb Navigation */}
           <nav
-            aria-label="Breadcrumb navigation"
+            aria-label={BREADCRUMB_NAV_LABELS[lang] || 'נתיב ניווט'}
             className="flex items-center gap-2 text-xs text-slate-400 mb-8"
           >
             <Link href="/" className="hover:text-white transition-colors">
