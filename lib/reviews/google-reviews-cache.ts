@@ -3,6 +3,7 @@ import 'server-only';
 import { FACILITY_INFO } from '@/lib/config/facility-info';
 import {
   configuredPlacesKey,
+  configuredTranslationKey,
   fetchNewestGoogleReviews,
   type GoogleReview,
   type StoredReviewsSnapshot,
@@ -93,7 +94,7 @@ async function liveWindowSnapshot(now: number): Promise<StoredReviewsSnapshot | 
   const windowId = snapshotWindowId(new Date(now));
   if (liveWindow?.windowId === windowId) return liveWindow.snapshot;
   if (liveInFlight) return liveInFlight;
-  liveInFlight = fetchNewestGoogleReviews({ key, now: new Date(now) })
+  liveInFlight = fetchNewestGoogleReviews({ key, translationKey: configuredTranslationKey(), now: new Date(now) })
     .then((snapshot) => {
       liveWindow = {
         windowId,
@@ -145,7 +146,7 @@ export async function getCachedGoogleReviews(language: ReviewLanguage = 'en'): P
 export async function refreshGoogleReviewsSnapshot(now = new Date()): Promise<StoredReviewsSnapshot> {
   const key = configuredPlacesKey();
   if (!key) throw new ReviewsNotConfiguredError();
-  const snapshot = await fetchNewestGoogleReviews({ key, now });
+  const snapshot = await fetchNewestGoogleReviews({ key, translationKey: configuredTranslationKey(), now });
   await saveReviewsSnapshot(snapshot);
   memo = { readAt: now.getTime(), snapshot };
   liveWindow = null;

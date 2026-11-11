@@ -21,8 +21,16 @@ const LEGACY_PAYLOAD = {
   },
 };
 
+/** Google: the legacy Place Details originals (all written in English) and Cloud Translation echoing `[<target>] <text>`. */
 function stubGoogle() {
-  const fetchSpy = vi.fn().mockImplementation(() => Promise.resolve(new Response(JSON.stringify(LEGACY_PAYLOAD), { status: 200 })));
+  const fetchSpy = vi.fn().mockImplementation((input: string | URL, init?: RequestInit) => {
+    if (new URL(String(input)).hostname === 'translation.googleapis.com') {
+      const body = JSON.parse(String(init?.body)) as { q: string[]; target: string };
+      const translations = body.q.map((text) => ({ translatedText: `[${body.target}] ${text}`, detectedSourceLanguage: 'en' }));
+      return Promise.resolve(new Response(JSON.stringify({ data: { translations } }), { status: 200 }));
+    }
+    return Promise.resolve(new Response(JSON.stringify(LEGACY_PAYLOAD), { status: 200 }));
+  });
   vi.stubGlobal('fetch', fetchSpy);
   return fetchSpy;
 }
@@ -102,12 +110,12 @@ describe('POST /api/reviews/refresh', () => {
       reviewCount: Object.fromEntries(REVIEW_LANGUAGES.map((language) => [language, 3])),
       newestPublishedAt: '2026-10-31T10:00:00.000Z',
     });
-    // One untranslated read plus one per page language, all through the legacy newest-first endpoint.
-    expect(fetchSpy).toHaveBeenCalledTimes(1 + REVIEW_LANGUAGES.length);
-    for (const [url] of fetchSpy.mock.calls) {
-      expect(String(url)).toMatch(/^https:\/\/maps\.googleapis\.com\/maps\/api\/place\/details\/json\?/);
-      expect(new URL(String(url)).searchParams.get('reviews_sort')).toBe('newest');
-    }
+    // One untranslated newest-first read, then one Cloud Translation request per page language the reviews were not written in.
+    expect(fetchSpy).toHaveBeenCalledTimes(1 + (REVIEW_LANGUAGES.length - 1));
+    const [placesCall, ...translationCalls] = fetchSpy.mock.calls;
+    expect(String(placesCall[0])).toMatch(/^https:\/\/maps\.googleapis\.com\/maps\/api\/place\/details\/json\?/);
+    expect(new URL(String(placesCall[0])).searchParams.get('reviews_sort')).toBe('newest');
+    expect(translationCalls.map(([url]) => new URL(String(url)).hostname)).toEqual(Array(REVIEW_LANGUAGES.length - 1).fill('translation.googleapis.com'));
 
     fetchSpy.mockClear();
     for (const language of REVIEW_LANGUAGES) {
@@ -120,6 +128,12 @@ describe('POST /api/reviews/refresh', () => {
         '2026-10-01T10:00:00.000Z',
         '2026-09-01T10:00:00.000Z',
       ]);
+      // Written in English: served as written on the English page, translated with the original kept elsewhere.
+      expect(snapshot.reviews[0]).toMatchObject(
+        language === 'en'
+          ? { quote: 'Newest feedback.', language: 'en', original: null }
+          : { quote: `[${language}] Newest feedback.`, language, original: { text: 'Newest feedback.', language: 'en' } }
+      );
     }
     expect(fetchSpy, 'a page view must never reach Google').not.toHaveBeenCalled();
   });
