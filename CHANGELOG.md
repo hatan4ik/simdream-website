@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.16.1](https://github.com/hatan4ik/simdream-website/compare/v1.16.0...v1.16.1) (2026-11-11)
+
+
+### Bug Fixes
+
+* **reviews:** send the page language as `language`, not Wix's reserved `lang` ([#99](https://github.com/hatan4ik/simdream-website/issues/99)) ([6cffcdf](https://github.com/hatan4ik/simdream-website/commit/6cffcdfcec6010ba484e74823f0813732d09c4bc))
+
 ## [1.16.0](https://github.com/hatan4ik/simdream-website/compare/v1.15.0...v1.16.0) (2026-11-10)
 
 
