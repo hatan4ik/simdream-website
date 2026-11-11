@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.17.0](https://github.com/hatan4ik/simdream-website/compare/v1.16.1...v1.17.0) (2026-11-11)
+
+
+### Features
+
+* **reviews:** translate the newest Google reviews with Cloud Translation ([#101](https://github.com/hatan4ik/simdream-website/issues/101)) ([c531e55](https://github.com/hatan4ik/simdream-website/commit/c531e55fe35cb5bc8059c5c7c365f91bc76e2a8c))
+
+## [1.16.1](https://github.com/hatan4ik/simdream-website/compare/v1.16.0...v1.16.1) (2026-11-11)
+
+
+### Bug Fixes
+
+* **reviews:** send the page language as `language`, not Wix's reserved `lang` ([#99](https://github.com/hatan4ik/simdream-website/issues/99)) ([6cffcdf](https://github.com/hatan4ik/simdream-website/commit/6cffcdfcec6010ba484e74823f0813732d09c4bc))
+
+## [1.16.0](https://github.com/hatan4ik/simdream-website/compare/v1.15.0...v1.16.0) (2026-11-10)
+
+
+### Features
+
+* **blog:** wire multilingual blog mapping, routing and language synchronization ([#97](https://github.com/hatan4ik/simdream-website/issues/97)) ([5a36f55](https://github.com/hatan4ik/simdream-website/commit/5a36f559ccee28b62dba1d1c524b8e4c871e66e6))
+
 ## [1.15.0](https://github.com/hatan4ik/simdream-website/compare/v1.14.1...v1.15.0) (2026-11-10)
 
 
