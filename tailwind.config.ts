@@ -11,7 +11,7 @@ const config: Config = {
     extend: {
       colors: {
         aviation: {
-          darkest: "#050811",
+          darkest: "#070b14",
           dark: "#0B1120",
           card: "#0F172A",
           cardBorder: "#1E293B",

@@ -1,33 +1,17 @@
-// Applies the saved interface theme before first paint (no flicker). Served as a
-// same-origin file rather than inline so the Content-Security-Policy needs no
-// 'unsafe-inline' or per-script hash for it.
-// Mirrors applyThemeToDocument in lib/theme/ui-theme-context.tsx: "studio" (Clean Studio) is the
-// daylight palette plus a data-look restyle, so it carries data-ui="brand" as well.
+// Pre-paint UI theme bootstrap: reads the visitor's choice from localStorage and
+// sets data-ui / data-look / data-cockpit-tone on <html> before React hydrates
+// to avoid a flash of the wrong palette or unstyled text. Loaded as a static
+// external script so it does not require 'unsafe-inline' under strict CSP.
 try {
   var theme = localStorage.getItem('simdream_ui_theme');
+  var tone = localStorage.getItem('simdream_cockpit_tone');
   var root = document.documentElement;
   root.setAttribute('data-ui', theme === 'cockpit' ? 'cockpit' : 'brand');
   if (theme === 'studio') root.setAttribute('data-look', 'studio');
-} catch (e) {}
-
-// Progressive-enhancement guard for mobile browsers (iOS Safari, Android Chrome /
-// Samsung Internet): `<Link href="..."><Button>` renders `<a href="..."><button>`.
-// In WebKit/Blink, a nested `<button>` consumes taps without triggering native `<a>`
-// navigation until React attaches `<Link>`'s synthetic click handler. If a user taps
-// before hydration completes, follow the enclosing link immediately.
-try {
-  document.addEventListener('click', function (e) {
-    if (e.defaultPrevented) return;
-    var el = e.target && e.target.closest ? e.target.closest('a[href] button:not([disabled])') : null;
-    if (!el) return;
-    var hydrated = Object.keys(el).some(function (k) {
-      return k.indexOf('__reactFiber') === 0 || k.indexOf('__reactProps') === 0;
-    });
-    if (!hydrated) {
-      var anchor = el.closest('a[href]');
-      if (anchor && anchor.href) {
-        window.location.assign(anchor.href);
-      }
-    }
-  });
+  if (theme === 'cockpit') {
+    root.setAttribute(
+      'data-cockpit-tone',
+      tone === 'cobalt' || tone === 'squadron' ? tone : 'classic'
+    );
+  }
 } catch (e) {}
