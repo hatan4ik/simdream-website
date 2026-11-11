@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.18.0](https://github.com/hatan4ik/simdream-website/compare/v1.17.2...v1.18.0) (2026-11-11)
+
+
+### Features
+
+* **tracks:** consumer-only flight tracks, PRO tracks on /pro, PRO tier prices ([#108](https://github.com/hatan4ik/simdream-website/issues/108)) ([0ad929c](https://github.com/hatan4ik/simdream-website/commit/0ad929cfec42b87cfc1e4a520ff387a9cadae31b))
+
 ## [1.17.2](https://github.com/hatan4ik/simdream-website/compare/v1.17.1...v1.17.2) (2026-11-11)
 
 
