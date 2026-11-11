@@ -64,7 +64,7 @@ export interface WixPricingPlanBlueprintSpec {
   name: string;
   summary: string;
   priceIls: number;
-  sessions: 5 | 10;
+  sessions: 3 | 5 | 10;
   sessionMinutes: 60 | 90;
   validityMonths: 12;
   eligiblePackageId: string;

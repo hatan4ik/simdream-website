@@ -49,8 +49,8 @@ Prices and durations below are the live registry values the booking engine charg
 - **Fear of Flying Overcoming Course** (60 min): ₪690. A gentle, empowering 60-minute session with an experienced captain to demystify sounds, turbulence, and flight safety.
 
 ### Professional Training (airline interview and assessment preparation)
-- **Airline Interview Prep 60 PRO** (60 min): ₪890. Focused 60-minute PRO visual & IFR instrument flight training and airline simulator screening preparation.
-- **Airline Interview Prep 90 PRO** (90 min): ₪1,250. Extended 90-minute PRO airline assessment checkride prep covering Raw Data, SID/STAR programming, and V1 Engine-Out profiles.
+- **Airline Interview Prep 60 PRO** (60 min): ₪950. Focused 60-minute PRO visual & IFR instrument flight training and airline simulator screening preparation.
+- **Airline Interview Prep 90 PRO** (90 min): ₪1,285. Extended 90-minute PRO airline assessment checkride prep covering Raw Data, SID/STAR programming, and V1 Engine-Out profiles.
 - **Airline Interview Prep 120 PRO** (120 min): ₪1,590. Comprehensive 120-minute (2-Hour) masterclass for commercial pilots, cadets, and two-crew MCC/airline assessment candidates.
 
 ### Corporate Workshops

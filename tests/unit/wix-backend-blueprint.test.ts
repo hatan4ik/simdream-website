@@ -88,12 +88,12 @@ function makeAlignedLiveState(): {
 }
 
 describe('Wix-as-Code Backend Blueprint & Multi-Lock Provisioning Protection', () => {
-  it('codifies all 9 Bookings services, 4 Pricing Plans, and 17 Gift Card preset variants', () => {
+  it('codifies all 9 Bookings services, 6 Pricing Plans, and 17 Gift Card preset variants', () => {
     expect(WIX_BACKEND_BLUEPRINT.site.canonicalStagingSiteId).toBe(
       CANONICAL_STAGING_WIX_SITE_ID
     );
     expect(WIX_BACKEND_BLUEPRINT.bookingsServices).toHaveLength(9);
-    expect(WIX_BACKEND_BLUEPRINT.pricingPlans).toHaveLength(4);
+    expect(WIX_BACKEND_BLUEPRINT.pricingPlans).toHaveLength(6);
     expect(WIX_BACKEND_BLUEPRINT.giftCardProduct.signatureVariants).toHaveLength(7);
     expect(WIX_BACKEND_BLUEPRINT.giftCardProduct.allPresetVariants).toHaveLength(17);
 
@@ -104,7 +104,7 @@ describe('Wix-as-Code Backend Blueprint & Multi-Lock Provisioning Protection', (
       durationMinutes: 60,
       reservedMinutes: 75,
       turnaroundBufferMinutes: 15,
-      priceIls: 890,
+      priceIls: 950,
     });
   });
 
@@ -115,7 +115,7 @@ describe('Wix-as-Code Backend Blueprint & Multi-Lock Provisioning Protection', (
     expect(plan.alreadyFullyProvisioned).toBe(true);
     expect(plan.sharedCapacityResourceAligned).toBe(true);
     expect(plan.summary).toEqual({
-      inSyncCount: 20,
+      inSyncCount: 22,
       createCount: 0,
       updateCount: 0,
     });
@@ -133,7 +133,7 @@ describe('Wix-as-Code Backend Blueprint & Multi-Lock Provisioning Protection', (
     expect(plan.sharedCapacityResourceAligned).toBe(false);
     expect(plan.summary).toEqual({
       inSyncCount: 0,
-      createCount: 20,
+      createCount: 22,
       updateCount: 0,
     });
   });

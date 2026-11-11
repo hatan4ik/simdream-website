@@ -15,9 +15,9 @@ import {
 import * as clientModule from '@/lib/wix/client';
 
 describe('Wix Pricing Plans catalog mapping', () => {
-  it('covers all 4 subscription passes in the type-safe dictionary', () => {
+  it('covers all 6 flight tracks (4 consumer + 2 PRO) in the type-safe dictionary', () => {
     const keys = Object.keys(WIX_PLAN_IDS);
-    expect(keys).toHaveLength(4);
+    expect(keys).toHaveLength(6);
     for (const pass of SUBSCRIPTION_PASSES) {
       expect(keys).toContain(pass.id);
     }
@@ -26,7 +26,7 @@ describe('Wix Pricing Plans catalog mapping', () => {
   it('resolves static IDs or returns null when unset', () => {
     expect(wixPlanIdFor('flight-foundations-5x60')).toBeNull();
     expect(subscriptionPassIdForWixPlan('non-existent-guid')).toBeNull();
-    expect(unmappedSubscriptionPassIds()).toHaveLength(4);
+    expect(unmappedSubscriptionPassIds()).toHaveLength(6);
   });
 });
 

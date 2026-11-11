@@ -57,10 +57,12 @@ The visual identity is the official **simdream.co.il** logo: an **orange airplan
 - **Content on `/pro`**:
   - Highlights airline interview preparation (El Al, Arkia, Israir, Wizz Air, Ryanair).
   - Features the 3 official commercial tiers:
-    - **Airline Interview Prep 60 PRO** (₪890) — [Official Service Page](https://www.simdream.co.il/service-page/airline-interview-prep-60-pro?referral=service_list_widget)
-    - **Airline Interview Prep 90 PRO** (₪1,250) — [Official Service Page](https://www.simdream.co.il/service-page/airline-interview-prep-90-pro?referral=service_list_widget)
+    - **Airline Interview Prep 60 PRO** (₪950) — [Official Service Page](https://www.simdream.co.il/service-page/airline-interview-prep-60-pro?referral=service_list_widget)
+    - **Airline Interview Prep 90 PRO** (₪1,285) — [Official Service Page](https://www.simdream.co.il/service-page/airline-interview-prep-90-pro?referral=service_list_widget)
     - **Airline Interview Prep 120 PRO** (₪1,590) — [Official Service Page](https://www.simdream.co.il/service-page/airline-interview-prep-120-pro?referral=service_list_widget)
   - Technical simulator hardware specifications (CPflight avionics, Sismo CDU/FMC, motorized dual autothrottles) must remain inside a clean disclosure/specs drawer so as not to distract commercial pilot candidates.
+  - **PRO tracks (multi-session Airline Interview Prep) are sold on `/pro` only** (`PRO_SUBSCRIPTION_PASSES` in [`lib/data/subscription-passes.ts`](lib/data/subscription-passes.ts), `audience: 'pro'`): `pro-interview-3x90` (3 × 90 PRO, ₪2,565) and `pro-interview-5x60` (5 × 60 PRO, ₪4,165). Their standard value and savings (₪ and %) are derived from the PRO tier prices with `getSubscriptionPassFinancials()`, never retyped; they carry no add-on themes and check out through the same `POST /api/subscriptions/checkout`, returning to `/pro#pro-tracks`.
+- **Consumer flight tracks (`/subscriptions`, `/experiences` Flight Tracks tab) are for non-professional customers**: `CONSUMER_SUBSCRIPTION_PASSES` only (Flight Foundations 5 × 60, Advanced Captain 5 × 90, Flight Deck Mastery & Systems 10 × 60, Captains' Course / קורס הקברניטים 10 × 90). Their copy never mentions airline interviews, assessments or screening and never uses SOP, QRH, V1, raw data or ATPL; "airline captain" as the mentor stays. `/pro` never links pilots to `/subscriptions`. `tests/unit/subscription-passes.test.ts` enforces the split.
 
 ---
 

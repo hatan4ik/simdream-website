@@ -3,6 +3,9 @@ import type { BookingPage } from './pages/booking-page';
 import { ilsPattern } from './pages/format';
 import type { ScheduleApi } from './pages/schedule-api';
 import { follow } from './pages/hydration';
+import { SIMULATOR_PACKAGES } from '@/lib/db/seed-data';
+
+const PRO_60_PRICE_ILS = SIMULATOR_PACKAGES.find((pkg) => pkg.id === 'pkg-pro-60')!.priceIls;
 
 const ADDON_SECTIONS = [
   'Frequently Flown Together — Curated Mission Combos',
@@ -105,7 +108,7 @@ test.describe('professional training booking', () => {
     await expect(booking.storefront.experience('Licensed Pilot')).toBeChecked();
   });
 
-  test('dynamically switches checkout to Airline Interview Prep 60 PRO (₪890) when ATPL / Screening Prep is selected', async ({
+  test('dynamically switches checkout to Airline Interview Prep 60 PRO (registry price) when ATPL / Screening Prep is selected', async ({
     page,
     booking,
     schedule,
@@ -126,7 +129,7 @@ test.describe('professional training booking', () => {
     await wizard.experienceLevel().selectOption('atpl');
 
     await expect(page.getByRole('heading', { level: 3, name: 'Airline Interview Prep 60 PRO' })).toBeVisible();
-    await expect(wizard.submit()).toHaveText(ilsPattern(890));
+    await expect(wizard.submit()).toHaveText(ilsPattern(PRO_60_PRICE_ILS));
     await expect(wizard.progressSteps()).toHaveText(['2. DATE & SLOT', '4. PILOT & PAY']);
 
     await wizard.fillPilot({

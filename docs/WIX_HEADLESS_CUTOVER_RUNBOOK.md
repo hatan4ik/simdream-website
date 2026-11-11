@@ -68,18 +68,20 @@ Complete these steps in a **staging Headless site** first. Do not test against p
 
 ### Pricing Plans subscriptions
 
-The four public, purchasable **single-payment, 12-month** plans below are already configured in staging and linked to their eligible native Bookings service. Do not describe a plan as recurring unless its renewal, price, cancellation policy, and PayPlus recurring-payment support have separately been approved.
+The six public, purchasable **single-payment, 12-month** plans below are configured in staging (the four consumer tracks already; the two PRO tracks once created) and linked to their eligible native Bookings service. Do not describe a plan as recurring unless its renewal, price, cancellation policy, and PayPlus recurring-payment support have separately been approved.
 
 | Local ID | Customer-facing plan | Sessions | Price (ILS) | Base package |
 | --- | --- | ---:| ---:| --- |
 | `flight-foundations-5x60` | Flight Foundations Subscription | 5 × 60 min | 2,750 | Captain's Command 60 |
 | `advanced-captain-5x90` | Advanced Captain Subscription | 5 × 90 min | 3,390 | Ultimate 90 |
-| `atpl-concepts-10x60` | ATPL Concepts Subscription | 10 × 60 min | 4,850 | Captain's Command 60 |
-| `airline-readiness-10x90` | Airline Readiness Subscription | 10 × 90 min | 5,950 | Ultimate 90 |
+| `atpl-concepts-10x60` | Flight Deck Mastery & Systems | 10 × 60 min | 4,850 | Captain's Command 60 |
+| `airline-readiness-10x90` | Captains' Course | 10 × 90 min | 5,950 | Ultimate 90 |
+| `pro-interview-3x90` | Airline Interview Prep · 3 × 90 PRO (sold on `/pro` only; not yet created in staging) | 3 × 90 min | 2,565 | Airline Interview Prep 90 PRO |
+| `pro-interview-5x60` | Airline Interview Prep · 5 × 60 PRO (sold on `/pro` only; not yet created in staging) | 5 × 60 min | 4,165 | Airline Interview Prep 60 PRO |
 
 For every plan, publish the six-language customer terms and make these limitations explicit: simulator education is not logged flight time, a licence, type rating, airline assessment credit, or employment guarantee. Training topics may include Cold & Dark, Crosswind/IFR, and Extreme Airports only as instructor-led themes until an entitlement decision states whether they consume time or price separately.
 
-`npm run wix:readiness` currently resolves all four plans. Before production, set the four immutable plan IDs in the trusted server environment rather than relying on dynamic title/price lookup, then re-run the readiness gate.
+`npm run wix:readiness` resolves the four consumer plans; the two PRO plans resolve once they are created in staging (`WIX_PLAN_ID_PRO_3X90`, `WIX_PLAN_ID_PRO_5X60`) and fall back to Dispatch until then. Before production, set the six immutable plan IDs in the trusted server environment rather than relying on dynamic title/price lookup, then re-run the readiness gate.
 
 ### Headless redirect and payment settings
 
