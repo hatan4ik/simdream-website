@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.19.0](https://github.com/hatan4ik/simdream-website/compare/v1.18.0...v1.19.0) (2026-11-11)
+
+
+### Features
+
+* **theme,brand:** add navy Cockpit Night palettes and update horizontal brand logo ([#109](https://github.com/hatan4ik/simdream-website/issues/109)) ([5fe4e27](https://github.com/hatan4ik/simdream-website/commit/5fe4e27949bf0f2d45cf555d56e565999ecbf5b7))
+
 ## [1.18.0](https://github.com/hatan4ik/simdream-website/compare/v1.17.2...v1.18.0) (2026-11-11)
 
 
