@@ -92,7 +92,8 @@ export async function loadGoogleReviews(force = false, language: ReviewLanguage 
   const inFlight = snapshotRequests.get(language);
   if (inFlight) return inFlight;
 
-  const request = fetch(`/api/reviews?lang=${language}`, {
+  // `language`, not `lang`: Wix Multilingual reserves `?lang=` on the Wix-hosted site and strips `?lang=he`.
+  const request = fetch(`/api/reviews?language=${language}`, {
     headers: { Accept: 'application/json' },
     cache: 'no-store',
   })

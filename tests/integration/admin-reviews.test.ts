@@ -123,11 +123,14 @@ describe('GET /api/reviews', () => {
     const app = await loadApp();
     const { GET } = await app.routes.reviews();
 
-    const hebrew = await readJson(await GET(apiRequest('/api/reviews?lang=he')));
-    const unsupported = await readJson(await GET(apiRequest('/api/reviews?lang=xx')));
+    const hebrew = await readJson(await GET(apiRequest('/api/reviews?language=he')));
+    const legacyAlias = await readJson(await GET(apiRequest('/api/reviews?lang=he')));
+    const unsupported = await readJson(await GET(apiRequest('/api/reviews?language=xx')));
 
     expect(hebrew.status).toBe(200);
     expect(expectContract(reviewsSnapshot, hebrew.body).language).toBe('he');
+    // `lang` stays readable as a legacy alias; the client sends `language` because Wix strips `?lang=he`.
+    expect(expectContract(reviewsSnapshot, legacyAlias.body).language).toBe('he');
     expect(unsupported.status).toBe(200);
     expect(expectContract(reviewsSnapshot, unsupported.body).language).toBe('en');
   });

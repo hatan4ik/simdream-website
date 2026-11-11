@@ -54,7 +54,7 @@ describe('POST /api/reviews/refresh', () => {
     expect(body.reviews.length).toBeGreaterThan(0);
     expect(body.source).toMatch(/no snapshot store/);
     const callsAfterWindowRead = fetchSpy.mock.calls.length;
-    await (await app.routes.reviews()).GET(apiRequest('/api/reviews?lang=he'));
+    await (await app.routes.reviews()).GET(apiRequest('/api/reviews?language=he'));
     expect(fetchSpy, 'one Google read per window, shared across page views').toHaveBeenCalledTimes(callsAfterWindowRead);
   });
 
@@ -111,7 +111,7 @@ describe('POST /api/reviews/refresh', () => {
 
     fetchSpy.mockClear();
     for (const language of REVIEW_LANGUAGES) {
-      const response = await readJson(await GET(apiRequest(`/api/reviews?lang=${language}`)));
+      const response = await readJson(await GET(apiRequest(`/api/reviews?language=${language}`)));
       expect(response.status).toBe(200);
       const snapshot = expectContract(reviewsSnapshot, response.body);
       expect(snapshot).toMatchObject({ language, overallRating: 4.9, totalReviewsCount: 127, lastUpdated: refresh.body.fetchedAt });

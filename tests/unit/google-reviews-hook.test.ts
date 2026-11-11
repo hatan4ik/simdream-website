@@ -50,7 +50,7 @@ describe('Google reviews browser data', () => {
     expect(loaded).toMatchObject({ overallRating: 4.8, totalReviewsCount: 250, live: true });
     expect(loaded?.reviews).toHaveLength(1);
     expect(displaySnapshot()).toBe(loaded);
-    expect(fetchSpy).toHaveBeenCalledWith('/api/reviews?lang=en', expect.objectContaining({ cache: 'no-store' }));
+    expect(fetchSpy).toHaveBeenCalledWith('/api/reviews?language=en', expect.objectContaining({ cache: 'no-store' }));
   });
 
   it('accepts a live rating and count that come without any review text', async () => {
