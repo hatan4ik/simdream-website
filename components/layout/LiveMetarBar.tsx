@@ -399,7 +399,7 @@ export function LiveMetarBar() {
             </a>
           ))}
           <span className="contents min-[360px]:hidden md:contents">
-            <WhatsAppAction />
+            <WhatsAppAction placement="utility" />
           </span>
           <LanguageSelector />
         </div>
