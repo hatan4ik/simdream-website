@@ -5,7 +5,8 @@ import { DEFAULT_LANGUAGE, isSupportedLanguage } from '@/lib/i18n/language-prefe
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const requestedLang = searchParams.get('lang');
+    // `language` first; `lang` stays as a legacy alias (Wix Multilingual strips `?lang=he` at the edge).
+    const requestedLang = searchParams.get('language') ?? searchParams.get('lang');
     const lang = isSupportedLanguage(requestedLang) ? requestedLang : DEFAULT_LANGUAGE;
 
     const posts = await listWixBlogPosts({ language: lang });

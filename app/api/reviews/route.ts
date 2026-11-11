@@ -8,14 +8,18 @@ import { isReviewLanguage } from '@/lib/reviews/review-language';
 export const revalidate = 60; // Shared freshness: the data changes twice a day (06:00 and 17:00 Israel time).
 
 /**
- * `?lang=` selects the language Google translated the review texts into (one of the site's six);
- * it is part of the URL, not a header, so the shared cache keeps one entry per language. The data
+ * `?language=` selects the language Google translated the review texts into (one of the site's
+ * six); it is part of the URL, not a header, so the shared cache keeps one entry per language.
+ * The parameter is deliberately not `lang`: Wix Multilingual owns `?lang=` at the edge of the
+ * Wix-hosted site and 301-strips the primary language (`?lang=he` → no query), which would hand
+ * Hebrew visitors the English default. `lang` is still read as a legacy alias. The data
  * is the snapshot `POST /api/reviews/refresh` stored or, without a snapshot store, this server's
  * own once-per-window Google read (see `getCachedGoogleReviews`); a page view never triggers more
  * than one Google read per process per 06:00/17:00 Israel window.
  */
 export async function GET(request: Request) {
-  const requested = new URL(request.url).searchParams.get('lang');
+  const { searchParams } = new URL(request.url);
+  const requested = searchParams.get('language') ?? searchParams.get('lang');
   const language = isReviewLanguage(requested) ? requested : 'en';
   // getCachedGoogleReviews never throws: an unavailable store answers zeros, so the bar always paints.
   const data = await getCachedGoogleReviews(language);

@@ -94,7 +94,7 @@ export function BlogIndexView({ initialPosts }: BlogIndexViewProps) {
     let cancelled = false;
     setIsLoadingLanguage(true);
 
-    fetch(`/api/blog?lang=${encodeURIComponent(lang)}`)
+    fetch(`/api/blog?language=${encodeURIComponent(lang)}`)
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
