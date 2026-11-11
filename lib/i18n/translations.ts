@@ -246,7 +246,7 @@ const baseTranslations = {
       },
       'pkg-pro-60': {
         title: 'Airline Interview Prep 60 PRO',
-        badge: 'PRO 60m • ₪890',
+        badge: 'PRO 60m • ₪950',
         shortDesc: 'Professional 60-minute visual & IFR instrument flight training and airline simulator screening prep.',
         description: 'Tailored for licensed pilots (PPL/CPL/ATPL), cadets, and airline applicants. Covers Raw Data manual flying (Flight Director OFF), precision ILS & RNAV approaches, holding patterns, and SOP flows. Instructor can act as PM or cede seat to your crew partner.',
         features: [
@@ -1087,7 +1087,7 @@ const baseTranslations = {
       },
       'pkg-pro-60': {
         title: 'Airline Interview Prep 60 PRO',
-        badge: 'PRO 60m • ₪890',
+        badge: 'PRO 60m • ₪950',
         shortDesc: 'אימון מקצועי של 60 דקות (ראייה ומכשירים IFR/ILS) והכנה למבדקי סימולטור בחברות תעופה.',
         description: 'מיועד לטייסים בעלי רישיון (PPL/CPL/ATPL), חניכי קורס טיס ומועמדים לחברות תעופה. התמקדות בהטסת Raw Data (ללא Flight Director), גישות ILS ו-RNAV, מעגלי המתנה ונהלי SOP. המדריך יכול לשמש כ-PM או לפנות מושב לטייס שני/מדריך אישי.',
         features: [
@@ -1923,7 +1923,7 @@ const baseTranslations = {
       },
       'pkg-pro-60': {
         title: 'Airline Interview Prep 60 PRO',
-        badge: 'PRO 60м • ₪890',
+        badge: 'PRO 60м • ₪950',
         shortDesc: 'Профессиональная 60-минутная тренировка по приборам IFR и подготовка к отбору в авиакомпании.',
         description: 'Для коммерческих пилотов (CPL/ATPL) и курсантов. Пилотирование по Raw Data (без Flight Director), точные заходы ILS и схемы вылета/прилета SID/STAR. Инструктор в роли PM или второй пилот из вашего экипажа.',
         features: [
@@ -2765,7 +2765,7 @@ const baseTranslations = {
       },
       'pkg-pro-60': {
         title: 'Airline Interview Prep 60 PRO',
-        badge: 'PRO 60m • ₪890',
+        badge: 'PRO 60m • ₪950',
         shortDesc: 'Entraînement professionnel de 60 minutes aux instruments IFR et préparation aux sélections de compagnies aériennes.',
         description: 'Conçu pour les pilotes professionnels (CPL/ATPL) et les élèves en formation. Travail en pilotage manuel Raw Data (Flight Director coupé), approches de précision ILS/RNAV et gestion des procédures standards. L’instructeur peut agir comme PM ou laisser la place à votre binôme.',
         features: [
@@ -3613,7 +3613,7 @@ const baseTranslations = {
       },
       'pkg-pro-60': {
         title: 'Airline Interview Prep 60 PRO',
-        badge: 'PRO 60 دقيقة • 890 ₪',
+        badge: 'PRO 60 دقيقة • 950 ₪',
         shortDesc: 'تدريب احترافي متقدم لمدة 60 دقيقة على الطيران الآلي IFR والتحضير لاختبارات الخطوط الجوية.',
         description: 'مخصص للطيارين المرخصين (CPL/ATPL) وطلاب الطيران المتقدمين. يشمل الطيران اليدوي بدون موجه (Raw Data / Flight Director OFF)، اقترابات ILS الدقيقة وإجراءات المغادرة والوصول. يمكن للمدرب العمل كضابط أول (PM) أو إتاحة المقعد لزميلك في الطاقم.',
         features: [

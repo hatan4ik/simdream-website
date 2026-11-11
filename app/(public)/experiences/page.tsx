@@ -19,8 +19,8 @@ import { formatCurrency } from '@/lib/utils';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { WorldRoutesSection } from '@/components/experiences/WorldRoutesSection';
 import {
+  CONSUMER_SUBSCRIPTION_PASSES,
   getSubscriptionPassFinancials,
-  SUBSCRIPTION_PASSES,
   SUBSCRIPTION_SECTION_COPY,
 } from '@/lib/data/subscription-passes';
 
@@ -81,7 +81,7 @@ export default function ExperiencesPage() {
   const showSubscriptions = selectedCategory === 'all' || selectedCategory === 'subscriptions';
   const subscriptionCopy = SUBSCRIPTION_SECTION_COPY[language] ?? SUBSCRIPTION_SECTION_COPY.en;
   const localizedAddons = getLocalizedAddons(language);
-  const subscriptionPasses = SUBSCRIPTION_PASSES.map((pass) => ({
+  const subscriptionPasses = CONSUMER_SUBSCRIPTION_PASSES.map((pass) => ({
     ...pass,
     copy: pass.copy[language] ?? pass.copy.en,
     financials: getSubscriptionPassFinancials(pass),

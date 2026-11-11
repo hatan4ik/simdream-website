@@ -14,6 +14,9 @@ import {
   Sparkles,
   ExternalLink,
   ChevronDown,
+  Loader2,
+  TrendingUp,
+  CheckCircle2,
 } from 'lucide-react';
 import { type Language, type LocalizedRecord } from '@/lib/i18n/translations';
 import { Button } from '@/components/ui/Button';
@@ -22,6 +25,9 @@ import { Card } from '@/components/ui/Card';
 import { formatCurrency } from '@/lib/utils';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { FACILITY_INFO } from '@/lib/config/facility-info';
+import { SIMULATOR_PACKAGES } from '@/lib/db/seed-data';
+import { getSubscriptionPassFinancials, PRO_SUBSCRIPTION_PASSES } from '@/lib/data/subscription-passes';
+import { useSubscriptionCheckout } from '@/components/subscriptions/useSubscriptionCheckout';
 
 const SIMDREAM_SERVICE_URLS: Record<string, string> = {
   'airline-prep-60-pro':
@@ -59,9 +65,10 @@ interface ProCopy {
   }>;
   bookDirectTitle: string;
   bookDirectSubtitle: string;
-  bookDirectCta: string;
-  bookDirect60: string;
-  bookDirect120: string;
+  /** Direct-booking labels take the registry price (AGENTS.md §8: never retype a price). */
+  bookDirectCta: (price: string) => string;
+  bookDirect60: (price: string) => string;
+  bookDirect120: (price: string) => string;
   recreationalLink: string;
   perSession: string;
   iosReset: string;
@@ -76,7 +83,6 @@ interface ProCopy {
     duration: string;
     title: string;
     slug: string;
-    priceIls: number;
     bestFor: string;
     flow: string;
   }>;
@@ -92,10 +98,18 @@ interface ProCopy {
   b2cBridgeTitle: string;
   b2cBtn: string;
   b2bBtn: string;
-  multiSessionBadge: string;
-  multiSessionTitle: string;
-  multiSessionDesc: string;
-  multiSessionBtn: string;
+  proTracksBadge: string;
+  proTracksTitle: string;
+  proTracksDesc: string;
+  proTracksSessionsLabel: string;
+  proTracksStandardValueLabel: string;
+  proTracksSavingsLabel: string;
+  proTracksPerSessionLabel: string;
+  proTracksFlexibility: string;
+  proTracksCta: string;
+  proTracksRedirecting: string;
+  proTracksDispatch: string;
+  proTracksDisclosure: string;
 }
 
 const PRO_COPY: LocalizedRecord<ProCopy> = {
@@ -138,9 +152,9 @@ const PRO_COPY: LocalizedRecord<ProCopy> = {
     bookDirectTitle: 'Ready to Secure Your Airline Assessment Slot?',
     bookDirectSubtitle:
       'Choose your preparation duration below to enter the streamlined 2-step airline booking flow with zero add-on distractions.',
-    bookDirectCta: 'Book Recommended 90-Minute Rehearsal (₪1,250)',
-    bookDirect60: '60m Focus · ₪890',
-    bookDirect120: '120m Extended · ₪1,590',
+    bookDirectCta: (price) => `Book Recommended 90-Minute Rehearsal (${price})`,
+    bookDirect60: (price) => `60m Focus · ${price}`,
+    bookDirect120: (price) => `120m Extended · ${price}`,
     recreationalLink: 'Looking for Recreational & Gift Flight Packages? View Standard Packages →',
     perSession: '/ session',
     iosReset: 'Instant IOS Approach Resets',
@@ -157,7 +171,6 @@ const PRO_COPY: LocalizedRecord<ProCopy> = {
         duration: '60 minutes',
         title: 'Airline Interview Prep 60 PRO',
         slug: 'airline-prep-60-pro',
-        priceIls: 890,
         bestFor:
           'Targeting one or two priorities before an interview or simulator assessment (Raw data, steep turns, specific profile).',
         flow: 'Short brief → focused raw-data or instrument profile → debrief with next steps.',
@@ -166,7 +179,6 @@ const PRO_COPY: LocalizedRecord<ProCopy> = {
         duration: '90 minutes',
         title: 'Airline Interview Prep 90 PRO',
         slug: 'airline-prep-90-pro',
-        priceIls: 1250,
         bestFor:
           'Candidates who want a balanced, end-to-end rehearsal before their evaluation (Recommended standard for airline screenings).',
         flow: 'FMS setup → departure and raw data → engine or approach scenario → structured debrief.',
@@ -175,7 +187,6 @@ const PRO_COPY: LocalizedRecord<ProCopy> = {
         duration: '120 minutes',
         title: 'Airline Interview Prep 120 PRO',
         slug: 'airline-assessment-prep',
-        priceIls: 1590,
         bestFor:
           'Deep preparation, PF/PM crew practice, full emergency scenarios, and time to repeat improvement areas.',
         flow: 'Multiple practice profiles → two-pilot workflow → repeat key exercises → detailed debrief.',
@@ -197,11 +208,20 @@ const PRO_COPY: LocalizedRecord<ProCopy> = {
     b2cBridgeTitle: 'Discover Recreational Flight Packages or Book Corporate CRM Workshops',
     b2cBtn: 'Flight Experiences (B2C)',
     b2bBtn: 'Corporate CRM Workshops (B2B)',
-    multiSessionBadge: 'STRUCTURED ASSESSMENT SYLLABUS',
-    multiSessionTitle: 'Need Comprehensive Preparation Across 5 to 10 Sessions?',
-    multiSessionDesc:
-      'For cadets and commercial pilots preparing for airline assessments (El Al, Arkia, Israir, Wizz Air, Ryanair), train with our structured 5- or 10-session flight tracks covering raw-data flying, FMS setup, QRH engine emergencies, crosswinds, and MCC with up to 30% savings.',
-    multiSessionBtn: 'View Multi-Session Flight Tracks',
+    proTracksBadge: 'MULTI-SESSION AIRLINE INTERVIEW PREP',
+    proTracksTitle: 'Rehearse More Than Once Before the Real Assessment',
+    proTracksDesc:
+      'One assessment rehearsal shows you where you stand. Three or five PRO sessions, paid once and booked when it suits you, let an active airline captain fix the weak points before the examiner finds them. The same noise-free PRO sessions, at a lower price per session.',
+    proTracksSessionsLabel: 'PRO sessions',
+    proTracksStandardValueLabel: 'single-session value',
+    proTracksSavingsLabel: 'you save',
+    proTracksPerSessionLabel: 'per session',
+    proTracksFlexibility: 'one payment · book each session whenever it suits you · no add-ons',
+    proTracksCta: 'Start this PRO track',
+    proTracksRedirecting: 'Redirecting to payment...',
+    proTracksDispatch: 'Questions? Consult Dispatch',
+    proTracksDisclosure:
+      'PRO track coaching is practical simulator preparation. It does not grant logged flight hours, a licence, a type rating or assessment credit.',
   },
   he: {
     heroBadge: 'הדרכה מקצועית לטייסים • הכנה למבדקי חברות תעופה (60 / 90 / 120 דקות)',
@@ -242,9 +262,9 @@ const PRO_COPY: LocalizedRecord<ProCopy> = {
     bookDirectTitle: 'מוכנים לשריין מועד לאימון הכנה למבדק?',
     bookDirectSubtitle:
       'בחרו את משך האימון הרצוי למעבר ישיר למערכת ההזמנות המקצועית והשקטה ללא הסחות דעת.',
-    bookDirectCta: 'הזמנת אימון מבדק מומלץ (90 דק׳ — ₪1,250)',
-    bookDirect60: 'מיקוד 60 דק׳ · ₪890',
-    bookDirect120: 'אימון מקיף 120 דק׳ · ₪1,590',
+    bookDirectCta: (price) => `הזמנת אימון מבדק מומלץ (90 דק׳ — ${price})`,
+    bookDirect60: (price) => `מיקוד 60 דק׳ · ${price}`,
+    bookDirect120: (price) => `אימון מקיף 120 דק׳ · ${price}`,
     recreationalLink: 'מחפשים חבילות חוויה או מתנה לקהל הרחב? לחצו כאן ←',
     perSession: '/ סשן מקצועי',
     iosReset: 'עמדת IOS לאיפוס גישות מיידי',
@@ -261,7 +281,6 @@ const PRO_COPY: LocalizedRecord<ProCopy> = {
         duration: '60 דקות',
         title: 'Airline Interview Prep 60 PRO',
         slug: 'airline-prep-60-pro',
-        priceIls: 890,
         bestFor:
           'למיקוד בנושא או שניים לפני ראיון או מבדק סימולטור (Raw Data, פניות חדות, גישה ספציפית).',
         flow: 'תדריך קצר → Raw Data / גישת מכשירים ממוקדת → דיבריף עם נקודות עבודה.',
@@ -270,7 +289,6 @@ const PRO_COPY: LocalizedRecord<ProCopy> = {
         duration: '90 דקות',
         title: 'Airline Interview Prep 90 PRO',
         slug: 'airline-prep-90-pro',
-        priceIls: 1250,
         bestFor:
           'למועמדים שרוצים חזרה מלאה ומאוזנת לפני מבדק (הסטנדרט המומלץ ביותר למיונים).',
         flow: 'הגדרת FMS → יציאה ו-Raw Data → תרחיש מנוע / גישה → דיבריף מובנה.',
@@ -279,7 +297,6 @@ const PRO_COPY: LocalizedRecord<ProCopy> = {
         duration: '120 דקות',
         title: 'Airline Interview Prep 120 PRO',
         slug: 'airline-assessment-prep',
-        priceIls: 1590,
         bestFor:
           'לתרגול מעמיק, עבודה בצוות PF/PM, חזרה על תקלות וזמן לעיבוד נקודות לשיפור.',
         flow: 'כמה פרופילי תרגול → תפעול שני טייסים → חזרה על תרגילים → דיבריף מפורט.',
@@ -301,11 +318,20 @@ const PRO_COPY: LocalizedRecord<ProCopy> = {
     b2cBridgeTitle: 'גלו את חבילות הטיסה לקהל הרחב או הזמינו סדנת CRM לצוותי הנהלה',
     b2cBtn: 'חבילות טיסה ומתנה (B2C)',
     b2bBtn: 'סדנאות CRM לחברות (B2B)',
-    multiSessionBadge: 'סילבוס הכנה מקיף למיונים',
-    multiSessionTitle: 'זקוקים להכנה מעמיקה של 5 עד 10 מפגשים?',
-    multiSessionDesc:
-      'לטייסים מסחריים ולקדטים המתכוננים למיוני קבלה בחברות תעופה (אל על, ישראייר, ארקיע, Wizz Air, Ryanair) — תרגלו תוכנית הכנה מובנית של 5 או 10 טיסות הכוללת Raw Data, הזנת FMS, תקלות מנוע ו-QRH, רוחות צד ותיאום צוות עם חיסכון של עד 30%.',
-    multiSessionBtn: 'לצפייה במסלולי ההכנה המקיפים (5–10 טיסות)',
+    proTracksBadge: 'הכנה למיוני חברות תעופה · מסלולי PRO',
+    proTracksTitle: 'מתאמנים יותר מפעם אחת לפני המבדק האמיתי',
+    proTracksDesc:
+      'אימון מבדק אחד מראה לכם איפה אתם עומדים. שלושה או חמישה אימוני PRO, בתשלום אחד ובתיאום כשמתאים לכם, נותנים לקברניט פעיל בחברת תעופה לתקן את נקודות התורפה לפני שהבוחן מוצא אותן. אותם אימוני PRO נקיים מרעש, במחיר נמוך יותר לאימון.',
+    proTracksSessionsLabel: 'אימוני PRO',
+    proTracksStandardValueLabel: 'שווי באימונים בודדים',
+    proTracksSavingsLabel: 'אתם חוסכים',
+    proTracksPerSessionLabel: 'לאימון',
+    proTracksFlexibility: 'תשלום אחד · מתאמים כל אימון כשמתאים לכם · ללא תוספות',
+    proTracksCta: 'להתחיל מסלול PRO זה',
+    proTracksRedirecting: 'מעביר לתשלום...',
+    proTracksDispatch: 'שאלות? פנו למבצעים',
+    proTracksDisclosure:
+      'אימוני מסלולי PRO הם הכנה מעשית בסימולטור. הם אינם מקנים שעות טיסה רשמיות, רישיון, הגדר סוג או זיכוי למבדק.',
   },
   ru: {
     heroBadge: 'ПРОФЕССИОНАЛЬНАЯ ПОДГОТОВКА • СКРИНИНГ В АВИАКОМПАНИИ (60 / 90 / 120 МИН)',
@@ -346,9 +372,9 @@ const PRO_COPY: LocalizedRecord<ProCopy> = {
     bookDirectTitle: 'Готовы забронировать тренировочный слот?',
     bookDirectSubtitle:
       'Выберите продолжительность сессии для перехода к прямой профессиональной записи без лишних опций.',
-    bookDirectCta: 'Забронировать рекомендуемую репетицию (90 мин — ₪1,250)',
-    bookDirect60: '60 мин фокус · ₪890',
-    bookDirect120: '120 мин полный курс · ₪1,590',
+    bookDirectCta: (price) => `Забронировать рекомендуемую репетицию (90 мин — ${price})`,
+    bookDirect60: (price) => `60 мин фокус · ${price}`,
+    bookDirect120: (price) => `120 мин полный курс · ${price}`,
     recreationalLink: 'Ищете ознакомительные или подарочные полеты? Стандартные пакеты →',
     perSession: '/ сессия',
     iosReset: 'Мгновенный сброс заходов через пульт IOS',
@@ -365,7 +391,6 @@ const PRO_COPY: LocalizedRecord<ProCopy> = {
         duration: '60 минут',
         title: 'Airline Interview Prep 60 PRO',
         slug: 'airline-prep-60-pro',
-        priceIls: 890,
         bestFor:
           'Целевая отработка одного-двух ключевых навыков перед скринингом (Raw Data, виражи, конкретный заход).',
         flow: 'Краткий брифинг → профиль Raw Data / инструментальный заход → дебрифинг с рекомендациями.',
@@ -374,7 +399,6 @@ const PRO_COPY: LocalizedRecord<ProCopy> = {
         duration: '90 минут',
         title: 'Airline Interview Prep 90 PRO',
         slug: 'airline-prep-90-pro',
-        priceIls: 1250,
         bestFor:
           'Полная сбалансированная репетиция контрольного полета перед отбором (Рекомендуемый стандарт).',
         flow: 'Инициализация FMS → взлет и Raw Data → отказ двигателя / заход → структурированный разбор.',
@@ -383,7 +407,6 @@ const PRO_COPY: LocalizedRecord<ProCopy> = {
         duration: '120 минут',
         title: 'Airline Interview Prep 120 PRO',
         slug: 'airline-assessment-prep',
-        priceIls: 1590,
         bestFor:
           'Глубокая проработка, командное взаимодействие PF/PM, отработка отказов и повтор упражнений.',
         flow: 'Несколько профилей полета → работа в два пилота → отработка ошибок → детальный дебрифинг.',
@@ -405,11 +428,20 @@ const PRO_COPY: LocalizedRecord<ProCopy> = {
     b2cBridgeTitle: 'Ознакомьтесь с программами для всех желающих или закажите корпоративный CRM-семинар',
     b2cBtn: 'Полеты для всех (B2C)',
     b2bBtn: 'Корпоративный CRM (B2B)',
-    multiSessionBadge: 'КОМПЛЕКСНЫЙ КУРС ПОДГОТОВКИ К ОТБОРУ',
-    multiSessionTitle: 'Нужна углублённая подготовка из 5–10 сессий?',
-    multiSessionDesc:
-      'Для курсантов и коммерческих пилотов, готовящихся к отбору в авиакомпании (El Al, Arkia, Israir, Wizz Air, Ryanair): пройдите структурированные программы на 5 или 10 полётов — сырые данные, FMS, отказ двигателя по QRH, боковой ветер и взаимодействие экипажа со скидкой до 30%.',
-    multiSessionBtn: 'Смотреть программы подготовки (5–10 сессий)',
+    proTracksBadge: 'ПОДГОТОВКА К ОТБОРУ · ПРОГРАММЫ PRO',
+    proTracksTitle: 'Репетируйте не один раз перед настоящей оценкой',
+    proTracksDesc:
+      'Одна репетиция показывает, где вы находитесь. Три или пять сессий PRO, оплаченных один раз и назначенных, когда вам удобно, позволяют действующему капитану авиакомпании исправить слабые места до того, как их найдёт экзаменатор. Те же сессии PRO без лишнего шума — по меньшей цене за сессию.',
+    proTracksSessionsLabel: 'сессий PRO',
+    proTracksStandardValueLabel: 'стоимость разовых сессий',
+    proTracksSavingsLabel: 'ваша экономия',
+    proTracksPerSessionLabel: 'за сессию',
+    proTracksFlexibility: 'одна оплата · каждая сессия — когда удобно · без дополнений',
+    proTracksCta: 'Начать эту программу PRO',
+    proTracksRedirecting: 'Переход к оплате...',
+    proTracksDispatch: 'Вопросы? Напишите диспетчеру',
+    proTracksDisclosure:
+      'Программы PRO — практическая подготовка на симуляторе. Они не дают официальные лётные часы, лицензию, type rating или зачёт отбора.',
   },
   fr: {
     heroBadge: 'FORMATION PROFESSIONNELLE • PRÉPARATION AUX SÉLECTIONS (60 / 90 / 120 MIN)',
@@ -450,9 +482,9 @@ const PRO_COPY: LocalizedRecord<ProCopy> = {
     bookDirectTitle: 'Prêt à réserver votre créneau de préparation ?',
     bookDirectSubtitle:
       'Sélectionnez la durée de votre session pour accéder directement au parcours de réservation professionnel sans options superflues.',
-    bookDirectCta: 'Réserver la répétition recommandée (90 min — ₪1,250)',
-    bookDirect60: 'Session ciblée 60 min · ₪890',
-    bookDirect120: 'Session complète 120 min · ₪1,590',
+    bookDirectCta: (price) => `Réserver la répétition recommandée (90 min — ${price})`,
+    bookDirect60: (price) => `Session ciblée 60 min · ${price}`,
+    bookDirect120: (price) => `Session complète 120 min · ${price}`,
     recreationalLink: 'Vous cherchez des vols découverte ou cadeaux ? Formules grand public →',
     perSession: '/ session',
     iosReset: 'Repositionnements instantanés via console instructeur IOS',
@@ -469,7 +501,6 @@ const PRO_COPY: LocalizedRecord<ProCopy> = {
         duration: '60 minutes',
         title: 'Airline Interview Prep 60 PRO',
         slug: 'airline-prep-60-pro',
-        priceIls: 890,
         bestFor:
           'Ciblage d’une ou deux priorités avant un entretien ou une évaluation sur simulateur (Raw data, virages serrés, approche spécifique).',
         flow: 'Briefing court → profil Raw Data ou instruments ciblé → débriefing structuré.',
@@ -478,7 +509,6 @@ const PRO_COPY: LocalizedRecord<ProCopy> = {
         duration: '90 minutes',
         title: 'Airline Interview Prep 90 PRO',
         slug: 'airline-prep-90-pro',
-        priceIls: 1250,
         bestFor:
           'Répétition complète et équilibrée d’une évaluation en compagnie aérienne (Standard recommandé pour les sélections).',
         flow: 'Initialisation FMS → départ et Raw Data → panne moteur / approche → débriefing complet.',
@@ -487,7 +517,6 @@ const PRO_COPY: LocalizedRecord<ProCopy> = {
         duration: '120 minutes',
         title: 'Airline Interview Prep 120 PRO',
         slug: 'airline-assessment-prep',
-        priceIls: 1590,
         bestFor:
           'Préparation approfondie, coordination PF/PM, gestion des pannes et répétition des exercices clés.',
         flow: 'Profils multiples → travail en équipage deux pilotes → répétition des points clés → débriefing détaillé.',
@@ -509,11 +538,20 @@ const PRO_COPY: LocalizedRecord<ProCopy> = {
     b2cBridgeTitle: 'Découvrez les packs de vol pour tous ou réservez un atelier CRM pour votre équipe',
     b2cBtn: 'Expériences de vol (B2C)',
     b2bBtn: 'Workshops CRM Entreprise (B2B)',
-    multiSessionBadge: 'SYLLABUS DE PRÉPARATION AUX SÉLECTIONS',
-    multiSessionTitle: 'Besoin d’une préparation complète sur 5 à 10 séances ?',
-    multiSessionDesc:
-      'Pour les cadets et pilotes se préparant aux sélections en compagnie aérienne (El Al, Arkia, Israir, Wizz Air, Ryanair) : entraînez-vous sur nos parcours structurés de 5 ou 10 vols — pilotage raw data, FMS, pannes moteur QRH, vent de travers et MCC avec jusqu’à 30% d’économie.',
-    multiSessionBtn: 'Voir les parcours de vol (5–10 séances)',
+    proTracksBadge: 'PRÉPARATION SÉLECTION · PARCOURS PRO',
+    proTracksTitle: 'Répétez plus d’une fois avant la vraie évaluation',
+    proTracksDesc:
+      'Une répétition d’évaluation vous montre où vous en êtes. Trois ou cinq séances PRO, réglées en une fois et réservées quand cela vous convient, laissent un commandant de compagnie en activité corriger les points faibles avant que l’examinateur ne les trouve. Les mêmes séances PRO sans distraction, à un prix inférieur par séance.',
+    proTracksSessionsLabel: 'séances PRO',
+    proTracksStandardValueLabel: 'valeur des séances à l’unité',
+    proTracksSavingsLabel: 'vous économisez',
+    proTracksPerSessionLabel: 'par séance',
+    proTracksFlexibility: 'un seul paiement · chaque séance quand cela vous convient · sans options',
+    proTracksCta: 'Commencer ce parcours PRO',
+    proTracksRedirecting: 'Redirection vers le paiement...',
+    proTracksDispatch: 'Une question ? Consulter le Dispatch',
+    proTracksDisclosure:
+      'Les parcours PRO sont une préparation pratique sur simulateur. Ils ne délivrent ni heures de vol officielles, ni licence, ni qualification de type, ni crédit de sélection.',
   },
   ar: {
     heroBadge: 'تدريب احترافي للطيارين • التحضير لاختبارات شركات الطيران (60 / 90 / 120 دقيقة)',
@@ -554,9 +592,9 @@ const PRO_COPY: LocalizedRecord<ProCopy> = {
     bookDirectTitle: 'هل أنت مستعد لتأكيد موعد تدريب التقييم؟',
     bookDirectSubtitle:
       'اختر مدة الجلسة المطلوبة للانتقال المباشر إلى نظام الحجز الاحترافي دون أي خيارات غير ضرورية.',
-    bookDirectCta: 'حجز جلسة التقييم الموصى بها (90 دقيقة — ₪1,250)',
-    bookDirect60: 'جلسة مركزة 60 دقيقة · ₪890',
-    bookDirect120: 'جلسة شاملة 120 دقيقة · ₪1,590',
+    bookDirectCta: (price) => `حجز جلسة التقييم الموصى بها (90 دقيقة — ${price})`,
+    bookDirect60: (price) => `جلسة مركزة 60 دقيقة · ${price}`,
+    bookDirect120: (price) => `جلسة شاملة 120 دقيقة · ${price}`,
     recreationalLink: 'هل تبحث عن باقات الطيران الترفيهية أو الهدايا؟ شاهد الباقات العامة ←',
     perSession: '/ جلسة',
     iosReset: 'إعادة ضبط فورية لمسارات الاقتراب عبر محطة المدرب IOS',
@@ -573,7 +611,6 @@ const PRO_COPY: LocalizedRecord<ProCopy> = {
         duration: '60 دقيقة',
         title: 'Airline Interview Prep 60 PRO',
         slug: 'airline-prep-60-pro',
-        priceIls: 890,
         bestFor:
           'للتركيز على موضوع أو موضوعين محددين قبل مقابلة التقييم (Raw Data، الالتفاف الحاد، اقتراب محدد).',
         flow: 'موجز قصير → تدريب مركز على Raw Data أو الأجهزة → تحليل الأداء ونقاط التطوير.',
@@ -582,7 +619,6 @@ const PRO_COPY: LocalizedRecord<ProCopy> = {
         duration: '90 دقيقة',
         title: 'Airline Interview Prep 90 PRO',
         slug: 'airline-prep-90-pro',
-        priceIls: 1250,
         bestFor:
           'محاكاة شاملة ومتوازنة لاختبار التقييم الكامل قبل موعد الفحص (المعيار الموصى به).',
         flow: 'برمجة FMS → الإقلاع والطيران اليدوي → سيناريو عطل محرك / اقتراب → تقييم منهجي.',
@@ -591,7 +627,6 @@ const PRO_COPY: LocalizedRecord<ProCopy> = {
         duration: '120 دقيقة',
         title: 'Airline Interview Prep 120 PRO',
         slug: 'airline-assessment-prep',
-        priceIls: 1590,
         bestFor:
           'تدريب معمق، وممارسة العمل الثنائي PF/PM، وإعادة تكرار حالات الطوارئ والنقاط الحرجة.',
         flow: 'عدة مسارات تدريبية → توزيع المهام كطاقم طيارين → تكرار التمارين → تقرير تفصيلي.',
@@ -613,19 +648,41 @@ const PRO_COPY: LocalizedRecord<ProCopy> = {
     b2cBridgeTitle: 'اكتشف باقات الطيران العامة أو احجز ورشة عمل CRM لفرق القيادة',
     b2cBtn: 'تجارب الطيران والهدايا (B2C)',
     b2bBtn: 'ورش عمل CRM للشركات (B2B)',
-    multiSessionBadge: 'منهاج تدريب شامل لاختبارات القبول',
-    multiSessionTitle: 'هل تحتاجون إلى إعداد متكامل عبر 5 إلى 10 جلسات؟',
-    multiSessionDesc:
-      'للطيارين التجاريين والمتدربين المتقدمين لاختبارات شركات الطيران (إل عال، أركيا، يسرائير، ويز إير، رايان إير): تدربوا على مساراتنا المعتمدة من 5 أو 10 رحلات تشمل Raw Data، برمجة FMS، طوارئ QRH، الرياح الجانبية وMCC بتوفير يصل إلى 30%.',
-    multiSessionBtn: 'عرض مسارات التدريب المعتمدة (5–10 رحلات)',
+    proTracksBadge: 'الإعداد لمقابلات شركات الطيران · مسارات PRO',
+    proTracksTitle: 'تدرّبوا أكثر من مرة قبل التقييم الحقيقي',
+    proTracksDesc:
+      'تجربة تقييم واحدة تُظهر لكم أين تقفون. ثلاث أو خمس جلسات PRO، بدفعة واحدة وبحجز في الوقت الذي يناسبكم، تتيح لكابتن عامل في شركة طيران إصلاح نقاط الضعف قبل أن يجدها الممتحن. جلسات PRO نفسها دون تشويش، وبسعر أقل للجلسة.',
+    proTracksSessionsLabel: 'جلسات PRO',
+    proTracksStandardValueLabel: 'قيمة الجلسات الفردية',
+    proTracksSavingsLabel: 'توفرون',
+    proTracksPerSessionLabel: 'للجلسة',
+    proTracksFlexibility: 'دفعة واحدة · كل جلسة في الوقت الذي يناسبكم · بدون إضافات',
+    proTracksCta: 'ابدؤوا مسار PRO هذا',
+    proTracksRedirecting: 'جارٍ التحويل للدفع...',
+    proTracksDispatch: 'أسئلة؟ تواصلوا مع العمليات',
+    proTracksDisclosure:
+      'مسارات PRO هي إعداد عملي على جهاز المحاكاة. لا تمنح ساعات طيران مسجلة أو رخصة أو تأهيلاً على طراز أو رصيداً لاختبار.',
   },
 };
 
 export function ProSessionsView() {
   const { language, isRTL } = useLanguage();
   const copy = PRO_COPY[language] || PRO_COPY.en;
+  const { pendingPassId, buySubscription } = useSubscriptionCheckout();
 
   const pillarIcons = [Gauge, ShieldCheck, Compass, Users];
+
+  /** PRO prices come from the package registry, never from the copy (AGENTS.md §6.3, §8). */
+  const priceForSlug = (slug: string): string => {
+    const pkg = SIMULATOR_PACKAGES.find((entry) => entry.slug === slug);
+    if (!pkg) throw new Error(`Unknown PRO package slug ${slug}`);
+    return formatCurrency(pkg.priceIls);
+  };
+  const proTracks = PRO_SUBSCRIPTION_PASSES.map((pass) => ({
+    ...pass,
+    copy: pass.copy[language] || pass.copy.en,
+    financials: getSubscriptionPassFinancials(pass),
+  }));
 
   return (
     <div className="flex-1 w-full min-w-0 py-10 sm:py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-16 sm:space-y-20">
@@ -755,7 +812,7 @@ export function ProSessionsView() {
                 size="lg"
                 className="w-full sm:w-auto bg-amber-400 hover:bg-amber-300 text-slate-950 border-amber-300"
               >
-                <span>{copy.bookDirectCta}</span>
+                <span>{copy.bookDirectCta(priceForSlug('airline-prep-90-pro'))}</span>
                 <ArrowRight className={`w-5 h-5 ${isRTL ? 'rotate-180' : ''}`} />
               </Button>
             </Link>
@@ -764,12 +821,12 @@ export function ProSessionsView() {
           <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
             <Link href="/book?package=airline-prep-60-pro">
               <Button variant="secondary" size="sm" className="font-mono text-xs">
-                <span>{copy.bookDirect60}</span>
+                <span>{copy.bookDirect60(priceForSlug('airline-prep-60-pro'))}</span>
               </Button>
             </Link>
             <Link href="/book?package=airline-assessment-prep">
               <Button variant="secondary" size="sm" className="font-mono text-xs">
-                <span>{copy.bookDirect120}</span>
+                <span>{copy.bookDirect120(priceForSlug('airline-assessment-prep'))}</span>
               </Button>
             </Link>
           </div>
@@ -800,6 +857,7 @@ export function ProSessionsView() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {copy.interviewPackages.map((pkg) => {
             const isRecommended = pkg.slug === 'airline-prep-90-pro';
+            const price = priceForSlug(pkg.slug);
             return (
               <div
                 key={pkg.slug}
@@ -826,7 +884,7 @@ export function ProSessionsView() {
                     <h3 className="text-xl font-bold text-white">{pkg.title}</h3>
                     <div className="flex items-baseline gap-2 mt-2">
                       <span className="text-2xl sm:text-3xl font-black font-mono text-white">
-                        {formatCurrency(pkg.priceIls)}
+                        {price}
                       </span>
                       <span className="text-xs text-slate-400 font-mono">
                         {copy.perSession}
@@ -857,7 +915,7 @@ export function ProSessionsView() {
                       }`}
                     >
                       <span>
-                        {copy.bookBtn(pkg.title, formatCurrency(pkg.priceIls))}
+                        {copy.bookBtn(pkg.title, price)}
                       </span>
                       <ArrowRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
                     </Button>
@@ -921,23 +979,96 @@ export function ProSessionsView() {
         </details>
       </section>
 
-      {/* 4b. MULTI-SESSION AIRLINE ASSESSMENT TRACKS BRIDGE */}
-      <section className="rounded-2xl border border-sky-500/30 bg-gradient-to-r from-sky-950/40 via-slate-900 to-sky-950/40 p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
-        <div className="space-y-2 text-center md:text-left rtl:md:text-right">
-          <Badge variant="sky">{copy.multiSessionBadge}</Badge>
-          <h3 className="text-xl sm:text-2xl font-bold text-white">
-            {copy.multiSessionTitle}
-          </h3>
-          <p className="text-slate-300 text-xs sm:text-sm max-w-2xl leading-relaxed">
-            {copy.multiSessionDesc}
-          </p>
+      {/* 4b. PRO TRACKS: MULTI-SESSION AIRLINE INTERVIEW PREP (sold only here, never on /subscriptions) */}
+      <section id="pro-tracks" className="space-y-8 scroll-mt-24" data-pro-tracks>
+        <div className="max-w-3xl space-y-3">
+          <Badge variant="amber">{copy.proTracksBadge}</Badge>
+          <h2 className="text-2xl sm:text-4xl font-black text-white">{copy.proTracksTitle}</h2>
+          <p className="text-sm sm:text-base text-slate-300 leading-relaxed">{copy.proTracksDesc}</p>
         </div>
-        <Link href="/subscriptions" className="shrink-0">
-          <Button size="lg" variant="primary" className="min-h-[44px]">
-            <span>{copy.multiSessionBtn}</span>
-            <ArrowRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
-          </Button>
-        </Link>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {proTracks.map((track) => (
+            <Card
+              key={track.id}
+              borderAccent="amber"
+              className="flex flex-col gap-6 bg-slate-950"
+              data-subscription-pass={track.id}
+            >
+              <div className="space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <Badge variant="amber">
+                    <span dir="ltr">{track.sessions} × {track.sessionMinutes}</span> PRO
+                  </Badge>
+                </div>
+                <h3 className="text-xl sm:text-2xl font-bold text-white">{track.copy.title}</h3>
+                <p className="text-sm leading-relaxed text-slate-300">{track.copy.summary}</p>
+              </div>
+
+              {/* Price box: registry-derived standard value and savings in ₪ and % */}
+              <div className="rounded-2xl border border-amber-500/30 bg-slate-900/70 p-5 space-y-3">
+                <div className="flex items-baseline justify-between gap-3 flex-wrap">
+                  <span className="text-3xl sm:text-4xl font-black text-white tracking-tight">
+                    {formatCurrency(track.priceIls)}
+                  </span>
+                  <span className="text-xs font-medium text-amber-300 bg-amber-500/10 border border-amber-500/30 px-2.5 py-1 rounded-full">
+                    {formatCurrency(Math.round(track.priceIls / track.sessions))} / {copy.proTracksPerSessionLabel}
+                  </span>
+                </div>
+                <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-800/80 text-xs text-slate-400">
+                  <span>
+                    {copy.proTracksStandardValueLabel}: <s>{formatCurrency(track.financials.standardValueIls)}</s>
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 text-emerald-400 font-semibold" data-pro-track-savings>
+                    <TrendingUp className="w-3.5 h-3.5" />
+                    {copy.proTracksSavingsLabel}: {formatCurrency(track.financials.savingsIls)} ({track.financials.savingsPercent}%)
+                  </span>
+                </div>
+                <div className="text-xs text-slate-400">
+                  <span dir="ltr">{track.sessions}</span> {copy.proTracksSessionsLabel} • {copy.proTracksFlexibility}
+                </div>
+              </div>
+
+              <ul className="space-y-2.5 text-xs sm:text-sm text-slate-200">
+                {track.copy.curriculum.map((item, i) => (
+                  <li key={i} className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                    <span className="leading-snug">{item}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <div className="mt-auto pt-2 space-y-3">
+                <p className="text-[11px] leading-relaxed text-slate-400">{copy.proTracksDisclosure}</p>
+                <Button
+                  variant="primary"
+                  className="w-full bg-amber-400 hover:bg-amber-300 text-slate-950 border-amber-300"
+                  onClick={() => buySubscription(track)}
+                  disabled={pendingPassId === track.id}
+                  data-action="buy-subscription"
+                >
+                  {pendingPassId === track.id ? (
+                    <span className="inline-flex items-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>{copy.proTracksRedirecting}</span>
+                    </span>
+                  ) : (
+                    <>
+                      <span>{copy.proTracksCta}</span>
+                      <ArrowRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
+                    </>
+                  )}
+                </Button>
+                <Link
+                  href={`/contact?subject=subscription&plan=${track.id}`}
+                  className="text-[11px] text-slate-400 hover:text-amber-300 text-center block pt-1 underline"
+                >
+                  <span>{copy.proTracksDispatch}</span>
+                </Link>
+              </div>
+            </Card>
+          ))}
+        </div>
       </section>
 
       {/* 5. BOTTOM BRIDGE TO RECREATIONAL PACKAGES & B2B WORKSHOPS */}

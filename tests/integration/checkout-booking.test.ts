@@ -697,7 +697,7 @@ describe('POST /api/checkout: catalogue and schedule rules', () => {
 
     expect(response.status).toBe(201);
     // The PRO catalog price (AGENTS.md section 2), not the consumer 60-minute tariff (UNIT-1).
-    expect(app.checkoutSessions[0].amountIls).toBe(890);
+    expect(app.checkoutSessions[0].amountIls).toBe(950);
   });
 
   for (const packageId of ['pkg-pro-60', 'pkg-fear-of-flying-90']) {

@@ -6,6 +6,8 @@ const PASS_IDS = [
   'advanced-captain-5x90',
   'atpl-concepts-10x60',
   'airline-readiness-10x90',
+  'pro-interview-3x90',
+  'pro-interview-5x60',
 ] as const;
 
 describe('Wix Headless cutover readiness', () => {
@@ -66,6 +68,8 @@ describe('Wix Headless cutover readiness', () => {
       'advanced-captain-5x90',
       'atpl-concepts-10x60',
       'airline-readiness-10x90',
+      'pro-interview-3x90',
+      'pro-interview-5x60',
     ]);
     expect(report.canRunShadowReads).toBe(false);
     expect(report.canPilotWixBookings).toBe(false);

@@ -1,13 +1,17 @@
 import type { SubscriptionPassId } from '@/lib/data/subscription-passes';
 import { subscriptionPassIdForWixPlan } from './catalog';
 
-export type WixSubscriptionBookingPackageId = 'pkg-captain-60' | 'pkg-ultimate-90';
+export type WixSubscriptionBookingPackageId = 'pkg-captain-60' | 'pkg-ultimate-90' | 'pkg-pro-60' | 'pkg-pro-90';
+
+const BOOKING_PACKAGE_IDS: readonly WixSubscriptionBookingPackageId[] = ['pkg-captain-60', 'pkg-ultimate-90', 'pkg-pro-60', 'pkg-pro-90'];
 
 const BOOKING_PACKAGE_BY_PASS: Readonly<Record<SubscriptionPassId, WixSubscriptionBookingPackageId>> = {
   'flight-foundations-5x60': 'pkg-captain-60',
   'advanced-captain-5x90': 'pkg-ultimate-90',
   'atpl-concepts-10x60': 'pkg-captain-60',
   'airline-readiness-10x90': 'pkg-ultimate-90',
+  'pro-interview-3x90': 'pkg-pro-90',
+  'pro-interview-5x60': 'pkg-pro-60',
 };
 
 /**
@@ -28,5 +32,5 @@ export function wixSubscriptionBookingPackageForPlan(planId: string): WixSubscri
 }
 
 export function isWixSubscriptionBookingPackageId(packageId: string): packageId is WixSubscriptionBookingPackageId {
-  return packageId === 'pkg-captain-60' || packageId === 'pkg-ultimate-90';
+  return (BOOKING_PACKAGE_IDS as readonly string[]).includes(packageId);
 }

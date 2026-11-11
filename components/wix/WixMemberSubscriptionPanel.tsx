@@ -8,6 +8,12 @@ import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/lib/auth/auth-context';
 import { getWixMemberClient, isWixBrowserClientConfigured } from '@/lib/wix/member-client';
 import { wixSubscriptionBookingPackageForPlan, type WixSubscriptionBookingPackageId } from '@/lib/wix/subscription-redemption';
+import { SIMULATOR_PACKAGES } from '@/lib/db/seed-data';
+
+/** The `/book?package=` slug of the package a Wix plan redeems against (consumer or PRO). */
+function bookingSlugFor(packageId: WixSubscriptionBookingPackageId): string {
+  return SIMULATOR_PACKAGES.find((pkg) => pkg.id === packageId)?.slug ?? 'captains-command-60';
+}
 
 interface MemberCopy {
   eyebrow: string;
@@ -204,7 +210,7 @@ export function WixMemberSubscriptionPanel({ language }: WixMemberSubscriptionPa
                   <span className="text-xs text-emerald-300">{copy.active}</span>
                   {order.bookingPackageId && (
                     <Link
-                      href={`/book?package=${order.bookingPackageId === 'pkg-captain-60' ? 'captains-command-60' : 'ultimate-aviator-90'}&subscription=wix`}
+                      href={`/book?package=${bookingSlugFor(order.bookingPackageId)}&subscription=wix`}
                       className="shrink-0 text-xs font-semibold text-sky-300 hover:text-sky-200 hover:underline"
                     >
                       {copy.redeem}

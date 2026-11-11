@@ -45,6 +45,8 @@ export const WIX_PLAN_IDS: Readonly<Record<SubscriptionPassId, string | null>> =
   'advanced-captain-5x90': process.env.WIX_PLAN_ID_ADVANCED_5X90 ?? null,
   'atpl-concepts-10x60': process.env.WIX_PLAN_ID_ATPL_10X60 ?? null,
   'airline-readiness-10x90': process.env.WIX_PLAN_ID_AIRLINE_10X90 ?? null,
+  'pro-interview-3x90': process.env.WIX_PLAN_ID_PRO_3X90 ?? null,
+  'pro-interview-5x60': process.env.WIX_PLAN_ID_PRO_5X60 ?? null,
 };
 
 export function wixPlanIdFor(passId: SubscriptionPassId): string | null {

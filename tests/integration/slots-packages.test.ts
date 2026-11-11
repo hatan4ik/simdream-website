@@ -419,8 +419,8 @@ describe('GET /api/packages', () => {
     const packages = expectContract(packageList, response.body);
 
     expect(packages.map((pkg) => [pkg.durationMinutes, pkg.priceIls])).toEqual([
-      [60, 890],
-      [90, 1250],
+      [60, 950],
+      [90, 1285],
       [120, 1590],
     ]);
   });

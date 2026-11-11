@@ -2,6 +2,7 @@ import { z } from 'zod';
 import {
   findSubscriptionPass,
   SUBSCRIPTION_PASSES,
+  subscriptionPassReturnPath,
   type SubscriptionPassId,
 } from '@/lib/data/subscription-passes';
 import { getWixClient, wixPost } from './client';
@@ -118,8 +119,9 @@ export interface PlanCheckoutOptions {
 export async function createPlanCheckoutUrl(options: PlanCheckoutOptions): Promise<string> {
   const client = getWixClient();
   const thankYouUrl = `${options.baseUrl}/subscriptions/thank-you`;
-  const postFlowUrl = options.passId
-    ? `${options.baseUrl}/subscriptions#${options.passId}`
+  const pass = findSubscriptionPass(options.passId);
+  const postFlowUrl = pass
+    ? `${options.baseUrl}${subscriptionPassReturnPath(pass)}`
     : `${options.baseUrl}/subscriptions`;
 
   const session = await client.redirects.createRedirectSession({

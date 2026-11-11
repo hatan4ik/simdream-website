@@ -126,9 +126,9 @@ export const SUBSCRIPTION_PAGE_COPY: LocalizedRecord<SubscriptionPageCopy> = {
           'Ninety-minute flights give you time to plan the route, fly it, recover from a windshear or a go-around and debrief it properly. Advanced Captain, 5 × 90, is built for exactly that.',
       },
       {
-        title: 'I am preparing for an airline assessment.',
+        title: 'I want to fly it the way real crews do.',
         description:
-          'Ten flights of deliberate practice: SOP discipline, raw-data flying, FMC briefings, QRH thinking and two-pilot communication, explained the way airlines expect. Flight Deck Mastery 10 × 60 or Airline Readiness 10 × 90.',
+          'Ten flights that build the whole picture: how the systems work, how the crew shares the cockpit, how a route is planned and flown by hand on instruments, and what to do when something breaks. Flight Deck Mastery 10 × 60 or the Captains’ Course 10 × 90.',
       },
       {
         title: 'I am afraid of flying and want to understand it.',
@@ -138,7 +138,7 @@ export const SUBSCRIPTION_PAGE_COPY: LocalizedRecord<SubscriptionPageCopy> = {
     ],
     filterAll: 'All Tracks',
     filter5: '5-Flight Tracks (Mastery)',
-    filter10: '10-Flight Tracks (Airline Syllabus)',
+    filter10: '10-Flight Tracks (Captain’s Syllabus)',
     recommendedBadge: 'CAPTAIN RECOMMENDED',
     perSessionLabel: 'effective per flight',
     minutesLabel: 'min',
@@ -169,7 +169,7 @@ export const SUBSCRIPTION_PAGE_COPY: LocalizedRecord<SubscriptionPageCopy> = {
         stage: 'Stage 04',
         title: 'System Failures & Emergency Scenarios',
         description:
-          'Handle V1 engine cuts, single-engine go-arounds, rapid depressurization, and Quick Reference Handbook (QRH) checklists.',
+          'Emergencies, calmly: an engine failure after take-off, a single-engine go-around and a depressurisation, with the checklist in hand and a captain beside you.',
       },
       {
         stage: 'Stage 05',
@@ -204,13 +204,13 @@ export const SUBSCRIPTION_PAGE_COPY: LocalizedRecord<SubscriptionPageCopy> = {
         feature: 'What You Fly Yourself by the End',
         single: 'Take-off and a guided landing',
         sub5: 'FMC set-up, hand-flown pattern, crosswind landing',
-        sub10: 'Full airline-style flights, abnormals and a line mission',
+        sub10: 'Full missions, emergencies and a graduation flight',
       },
       {
         feature: 'Training Syllabus',
         single: 'Introductory flight',
         sub5: '5-stage progressive syllabus',
-        sub10: 'Comprehensive airline syllabus',
+        sub10: 'Comprehensive captain’s syllabus',
       },
       {
         feature: 'Booking',
@@ -287,9 +287,9 @@ export const SUBSCRIPTION_PAGE_COPY: LocalizedRecord<SubscriptionPageCopy> = {
           'טיסות של 90 דקות נותנות זמן לתכנן את הנתיב, להטיס אותו, להתאושש מגזירת רוח או מהליכה סביב ולתחקר כמו שצריך. מסלול קברניט מתקדם, 5 × 90, נבנה בדיוק לזה.',
       },
       {
-        title: 'אני מתכונן למיון בחברת תעופה.',
+        title: 'אני רוצה להטיס אותו כמו צוות אמיתי.',
         description:
-          'עשר טיסות של תרגול מכוון: משמעת SOP, טיסה ללא נתונים מעובדים, תדריכי FMC, חשיבת QRH ותקשורת של שני טייסים, מוסברים כפי שחברות התעופה מצפות. שליטה במערכות 10 × 60 או מוכנות לחברת תעופה 10 × 90.',
+          'עשר טיסות שבונות את התמונה המלאה: איך המערכות עובדות, איך הצוות מתחלק בתא הטייס, איך מתכננים נתיב ומטיסים אותו ביד לפי מכשירים, ומה עושים כשמשהו מתקלקל. שליטה במערכות 10 × 60 או קורס הקברניטים 10 × 90.',
       },
       {
         title: 'אני חושש מטיסות ורוצה להבין מה קורה.',
@@ -299,7 +299,7 @@ export const SUBSCRIPTION_PAGE_COPY: LocalizedRecord<SubscriptionPageCopy> = {
     ],
     filterAll: 'כל המסלולים',
     filter5: 'מסלולי 5 טיסות (בניית שליטה)',
-    filter10: 'מסלולי 10 טיסות (סילבוס חברת תעופה)',
+    filter10: 'מסלולי 10 טיסות (סילבוס הקברניט)',
     recommendedBadge: 'הבחירה המומלצת',
     perSessionLabel: 'מחיר אפקטיבי לטיסה',
     minutesLabel: 'דקות',
@@ -330,7 +330,7 @@ export const SUBSCRIPTION_PAGE_COPY: LocalizedRecord<SubscriptionPageCopy> = {
         stage: 'שלב 04',
         title: 'תקלות מערכות ותרחישי חירום',
         description:
-          'התמודדות עם אובדן מנוע בהמראה (V1 Cut), הליכה סביב במנוע בודד, ירידת לחץ מהירה ועבודה מול ספר נהלי החירום (QRH).',
+          'מצבי חירום, ברוגע: כשל מנוע אחרי ההמראה, הליכה סביב במנוע אחד וירידת לחץ, עם רשימת הבדיקה ביד וקברניט לצידכם.',
       },
       {
         stage: 'שלב 05',
@@ -364,13 +364,13 @@ export const SUBSCRIPTION_PAGE_COPY: LocalizedRecord<SubscriptionPageCopy> = {
         feature: 'מה תטיסו בעצמכם בסוף',
         single: 'המראה ונחיתה מודרכת',
         sub5: 'הגדרת FMC, הקפה ביד ונחיתה ברוח צד',
-        sub10: 'טיסות מלאות בסגנון חברת תעופה, תקלות ומשימת קו',
+        sub10: 'משימות מלאות, מצבי חירום וטיסת סיום',
       },
       {
         feature: 'סילבוס הדרכה מובנה',
         single: 'טיסת היכרות',
         sub5: 'סילבוס מדורג ב-5 שלבים',
-        sub10: 'סילבוס קו תעופה מקיף',
+        sub10: 'סילבוס קברניט מקיף',
       },
       {
         feature: 'תיאום',
@@ -447,9 +447,9 @@ export const SUBSCRIPTION_PAGE_COPY: LocalizedRecord<SubscriptionPageCopy> = {
           'Девяностоминутные полёты дают время спланировать маршрут, пролететь его, справиться со сдвигом ветра или уходом на второй круг и спокойно всё разобрать. Программа «Продвинутый капитан», 5 × 90, создана именно для этого.',
       },
       {
-        title: 'Я готовлюсь к отбору в авиакомпанию.',
+        title: 'Я хочу летать так, как летает настоящий экипаж.',
         description:
-          'Десять полётов осознанной практики: дисциплина SOP, полёт по сырым данным, брифинги FMC, мышление QRH и взаимодействие двух пилотов — так, как ожидают авиакомпании. «Мастерство систем» 10 × 60 или «Готовность к авиакомпании» 10 × 90.',
+          'Десять полётов, собирающих полную картину: как работают системы, как экипаж делит кабину, как планируют маршрут и летят по нему вручную по приборам и что делать, когда что-то ломается. «Мастерство систем» 10 × 60 или «Курс капитанов» 10 × 90.',
       },
       {
         title: 'Я боюсь летать и хочу понять, что происходит.',
@@ -459,7 +459,7 @@ export const SUBSCRIPTION_PAGE_COPY: LocalizedRecord<SubscriptionPageCopy> = {
     ],
     filterAll: 'Все программы',
     filter5: 'Программы из 5 полётов (мастерство)',
-    filter10: 'Программы из 10 полётов (курс авиакомпании)',
+    filter10: 'Программы из 10 полётов (курс капитана)',
     recommendedBadge: 'ВЫБОР КАПИТАНА',
     perSessionLabel: 'за каждый полёт',
     minutesLabel: 'мин',
@@ -490,7 +490,7 @@ export const SUBSCRIPTION_PAGE_COPY: LocalizedRecord<SubscriptionPageCopy> = {
         stage: 'Этап 04',
         title: 'Отказы систем и нештатные ситуации',
         description:
-          'Отказ двигателя на скорости V1, уход на второй круг на одном моторе, разгерметизация и чеклисты QRH.',
+          'Нештатные ситуации — спокойно: отказ двигателя после взлёта, уход на второй круг на одном двигателе, разгерметизация — с чеклистом в руках и капитаном рядом.',
       },
       {
         stage: 'Этап 05',
@@ -524,13 +524,13 @@ export const SUBSCRIPTION_PAGE_COPY: LocalizedRecord<SubscriptionPageCopy> = {
         feature: 'Что вы летите сами к концу',
         single: 'Взлёт и посадка с подсказками',
         sub5: 'Настройка FMC, круг вручную, посадка при боковом ветре',
-        sub10: 'Полные полёты в стиле авиакомпании, нештатные ситуации и линейная миссия',
+        sub10: 'Полные миссии, нештатные ситуации и выпускной полёт',
       },
       {
         feature: 'Программа обучения',
         single: 'Вводный полёт',
         sub5: '5 последовательных этапов',
-        sub10: 'Полный линейный курс',
+        sub10: 'Полный курс капитана',
       },
       {
         feature: 'Бронирование',
@@ -607,9 +607,9 @@ export const SUBSCRIPTION_PAGE_COPY: LocalizedRecord<SubscriptionPageCopy> = {
           'Des vols de quatre-vingt-dix minutes laissent le temps de préparer la route, de la voler, de gérer un cisaillement de vent ou une remise de gaz et de débriefer correctement. Commandant avancé, 5 × 90, est conçu pour cela.',
       },
       {
-        title: 'Je prépare une sélection en compagnie aérienne.',
+        title: 'Je veux le piloter comme un vrai équipage.',
         description:
-          'Dix vols de pratique délibérée : discipline SOP, pilotage raw data, briefings FMC, raisonnement QRH et communication à deux pilotes, expliqués comme les compagnies l’attendent. Maîtrise des Systèmes 10 × 60 ou Préparation compagnie 10 × 90.',
+          'Dix vols qui construisent la vue d’ensemble : comment fonctionnent les systèmes, comment l’équipage se partage le poste, comment une route se prépare et se vole à la main aux instruments, et que faire quand quelque chose casse. Maîtrise des Systèmes 10 × 60 ou Cours des commandants 10 × 90.',
       },
       {
         title: 'J’ai peur de l’avion et je veux comprendre.',
@@ -619,7 +619,7 @@ export const SUBSCRIPTION_PAGE_COPY: LocalizedRecord<SubscriptionPageCopy> = {
     ],
     filterAll: 'Tous les parcours',
     filter5: 'Parcours 5 vols (Maîtrise)',
-    filter10: 'Parcours 10 vols (Syllabus compagnie)',
+    filter10: 'Parcours 10 vols (Syllabus du commandant)',
     recommendedBadge: 'RECOMMANDÉ PAR LE CAPITAINE',
     perSessionLabel: 'coût effectif par vol',
     minutesLabel: 'min',
@@ -650,7 +650,7 @@ export const SUBSCRIPTION_PAGE_COPY: LocalizedRecord<SubscriptionPageCopy> = {
         stage: 'Étape 04',
         title: 'Pannes de systèmes et procédures d’urgence',
         description:
-          'Panne moteur à V1, remise de gaz sur un seul réacteur, dépressurisation et utilisation des check-lists QRH.',
+          'Les urgences, calmement : panne moteur après le décollage, remise de gaz sur un seul réacteur, dépressurisation, check-list en main et un commandant à vos côtés.',
       },
       {
         stage: 'Étape 05',
@@ -684,13 +684,13 @@ export const SUBSCRIPTION_PAGE_COPY: LocalizedRecord<SubscriptionPageCopy> = {
         feature: 'Ce que vous volez vous-même à la fin',
         single: 'Décollage et atterrissage guidé',
         sub5: 'Préparation FMC, tour de piste à la main, atterrissage par vent de travers',
-        sub10: 'Vols complets de style compagnie, pannes et mission de ligne',
+        sub10: 'Missions complètes, urgences et vol de fin de cours',
       },
       {
         feature: 'Syllabus de formation',
         single: 'Vol découverte',
         sub5: 'Syllabus progressif 5 étapes',
-        sub10: 'Syllabus complet compagnie',
+        sub10: 'Syllabus complet du commandant',
       },
       {
         feature: 'Réservation',
@@ -767,9 +767,9 @@ export const SUBSCRIPTION_PAGE_COPY: LocalizedRecord<SubscriptionPageCopy> = {
           'رحلات التسعين دقيقة تمنحكم الوقت لتخطيط المسار والطيران به والتعافي من قص الرياح أو الذهاب حول واستخلاص الدروس كما ينبغي. الكابتن المتقدم، 5 × 90، مبني لهذا تماماً.',
       },
       {
-        title: 'أستعد لاختبار قبول في شركة طيران.',
+        title: 'أريد أن أطير به كما يطير طاقم حقيقي.',
         description:
-          'عشر رحلات من التدريب المتعمد: انضباط SOP، والطيران بالبيانات الخام، وإحاطات FMC، وتفكير QRH، وتواصل طاقم من طيارين، مشروحة كما تتوقعه شركات الطيران. إتقان الأنظمة 10 × 60 أو الجاهزية لشركات الطيران 10 × 90.',
+          'عشر رحلات تبني الصورة الكاملة: كيف تعمل الأنظمة، وكيف يتقاسم الطاقم قمرة القيادة، وكيف يُخطط المسار ويُطار يدوياً بالأجهزة، وماذا نفعل عندما يتعطل شيء. إتقان الأنظمة 10 × 60 أو دورة الكباتن 10 × 90.',
       },
       {
         title: 'أخاف من الطيران وأريد أن أفهم ما يحدث.',
@@ -779,7 +779,7 @@ export const SUBSCRIPTION_PAGE_COPY: LocalizedRecord<SubscriptionPageCopy> = {
     ],
     filterAll: 'جميع المسارات',
     filter5: 'مسارات 5 رحلات (بناء الإتقان)',
-    filter10: 'مسارات 10 رحلات (منهج شركات الطيران)',
+    filter10: 'مسارات 10 رحلات (منهج الكابتن)',
     recommendedBadge: 'الخيار المفضل للكابتن',
     perSessionLabel: 'التكلفة الفعلية للرحلة',
     minutesLabel: 'دقيقة',
@@ -810,7 +810,7 @@ export const SUBSCRIPTION_PAGE_COPY: LocalizedRecord<SubscriptionPageCopy> = {
         stage: 'المرحلة 04',
         title: 'أعطال الأنظمة وسيناريوهات الطوارئ',
         description:
-          'التعامل مع تعطل المحرك عند سرعة V1، والتحليق بمحرك واحد، وفقدان الضغط، واستخدام دليل الطوارئ QRH.',
+          'حالات الطوارئ بهدوء: فشل محرك بعد الإقلاع، والذهاب حول بمحرك واحد، وفقدان الضغط، مع قائمة الفحص في اليد وكابتن بجانبكم.',
       },
       {
         stage: 'المرحلة 05',
@@ -844,13 +844,13 @@ export const SUBSCRIPTION_PAGE_COPY: LocalizedRecord<SubscriptionPageCopy> = {
         feature: 'ما تطيرونه بأنفسكم في النهاية',
         single: 'إقلاع وهبوط بإرشاد',
         sub5: 'إعداد FMC ودائرة يدوية وهبوط في رياح جانبية',
-        sub10: 'رحلات كاملة بأسلوب شركات الطيران وحالات غير عادية ومهمة خطية',
+        sub10: 'مهام كاملة وحالات طوارئ ورحلة تخرج',
       },
       {
         feature: 'المنهج التدريبي',
         single: 'رحلة تمهيدية',
         sub5: 'منهج متدرج من 5 مراحل',
-        sub10: 'منهج تدريب خطوط متكامل',
+        sub10: 'منهج كابتن متكامل',
       },
       {
         feature: 'الحجز',

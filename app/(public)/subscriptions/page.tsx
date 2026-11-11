@@ -29,63 +29,21 @@ import { useLanguage } from '@/lib/i18n/language-context';
 import { FACILITY_INFO } from '@/lib/config/facility-info';
 import { getLocalizedAddons } from '@/lib/i18n/translations';
 import {
+  CONSUMER_SUBSCRIPTION_PASSES,
   getSubscriptionPassFinancials,
-  SUBSCRIPTION_PASSES,
   SUBSCRIPTION_SECTION_COPY,
 } from '@/lib/data/subscription-passes';
 import { SUBSCRIPTION_PAGE_COPY } from '@/lib/data/subscription-page-copy';
 import { FaqPageJsonLd } from '@/components/seo/FaqPageJsonLd';
 import { PAGE_SEO_DEFINITIONS } from '@/lib/seo/seo-config';
 import { WixMemberSubscriptionPanel } from '@/components/wix/WixMemberSubscriptionPanel';
-import { useAuth } from '@/lib/auth/auth-context';
-import { getWixMemberClient } from '@/lib/wix/member-client';
+import { useSubscriptionCheckout } from '@/components/subscriptions/useSubscriptionCheckout';
 
 export default function SubscriptionsPage() {
   const { language, isRTL } = useLanguage();
-  const { startWixMemberSignIn } = useAuth();
   const [selectedFilter, setSelectedFilter] = useState<'all' | '5' | '10'>('all');
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
-  const [pendingPassId, setPendingPassId] = useState<string | null>(null);
-
-  const handleBuySubscription = async (passId: string) => {
-    setPendingPassId(passId);
-    try {
-      const wixClient = getWixMemberClient();
-      const isMember = wixClient.auth.loggedIn();
-
-      const res = await fetch('/api/subscriptions/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ planId: passId, wixMemberCheckout: isMember }),
-      });
-      if (!res.ok) throw new Error('Checkout API failed');
-      const data = await res.json();
-
-      if (isMember && data.wixMemberCheckout && data.wixPlanId) {
-        const redirectSession = await wixClient.redirects.createRedirectSession({
-          paidPlansCheckout: { planId: data.wixPlanId },
-          callbacks: {
-            postFlowUrl: `${window.location.origin}/subscriptions#${passId}`,
-            thankYouPageUrl: `${window.location.origin}/subscriptions/thank-you`,
-          },
-        });
-        const memberCheckoutUrl = redirectSession.redirectSession?.fullUrl;
-        if (memberCheckoutUrl) {
-          window.location.assign(memberCheckoutUrl);
-          return;
-        }
-      }
-
-      if (data.checkoutUrl) {
-        window.location.href = data.checkoutUrl;
-        return;
-      }
-      throw new Error('No checkout URL');
-    } catch (err) {
-      console.warn('Subscription checkout redirect failed, falling back to dispatch:', err);
-      window.location.href = `/contact?subject=subscription&plan=${passId}`;
-    }
-  };
+  const { pendingPassId, buySubscription } = useSubscriptionCheckout();
 
   const pageCopy = SUBSCRIPTION_PAGE_COPY[language] || SUBSCRIPTION_PAGE_COPY.en;
   // The FAQ markup must name the language of the strings actually shown (English fallback included).
@@ -93,7 +51,7 @@ export default function SubscriptionsPage() {
   const sectionCopy = SUBSCRIPTION_SECTION_COPY[language] || SUBSCRIPTION_SECTION_COPY.en;
   const localizedAddons = getLocalizedAddons(language);
 
-  const passes = SUBSCRIPTION_PASSES.map((pass) => ({
+  const passes = CONSUMER_SUBSCRIPTION_PASSES.map((pass) => ({
     ...pass,
     copy: pass.copy[language] || pass.copy.en,
     financials: getSubscriptionPassFinancials(pass),
@@ -349,7 +307,7 @@ export default function SubscriptionsPage() {
                   <Button
                     variant={isRecommended || pass.sessions === 10 ? 'primary' : 'outline'}
                     className="w-full"
-                    onClick={() => handleBuySubscription(pass.id)}
+                    onClick={() => buySubscription(pass)}
                     disabled={pendingPassId === pass.id}
                     data-action="buy-subscription"
                   >

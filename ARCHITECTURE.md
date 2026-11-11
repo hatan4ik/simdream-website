@@ -96,7 +96,7 @@ The observer is strictly optional and non-blocking: disabled is the default; Wix
 
 ### Wix Pricing Plans & flight subscriptions checkout boundary
 
-Annual flight subscriptions are single-payment, 12-month commercial packages (`flight-foundations-5x60`, `advanced-captain-5x90`, `atpl-concepts-10x60`, `airline-readiness-10x90`). Checkout does not run through the one-off simulator slot booking engine:
+Flight tracks are single-payment, 12-month commercial packages: four consumer tracks (`flight-foundations-5x60`, `advanced-captain-5x90`, `atpl-concepts-10x60`, `airline-readiness-10x90`, sold on `/subscriptions`) and two PRO tracks (`pro-interview-3x90`, `pro-interview-5x60`, sold on `/pro#pro-tracks` only). Checkout does not run through the one-off simulator slot booking engine:
 1. `POST /api/subscriptions/checkout` receives the validated subscription pass ID.
 2. `lib/wix/plans.ts` resolves the matching Wix Pricing Plan (checking `WIX_PLAN_IDS` environment overrides first, followed by dynamic scanning of live public plans by price and title pattern).
 3. `createPlanCheckoutUrl()` calls `@wix/redirects` `client.redirects.createRedirectSession({ paidPlansCheckout: { planId } })` with `thankYouPageUrl: /subscriptions/thank-you` and `postFlowUrl: /subscriptions`.

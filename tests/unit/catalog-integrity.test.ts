@@ -77,13 +77,13 @@ describe('package catalog', () => {
     expect(SIMULATOR_PACKAGES.filter((pkg) => !ALLOWED_DURATIONS.includes(pkg.durationMinutes)).map((pkg) => pkg.id)).toEqual([]);
   });
 
-  it('lists exactly the three official PRO tiers at ₪890, ₪1,250 and ₪1,590', () => {
+  it('lists exactly the three official PRO tiers at ₪950, ₪1,285 and ₪1,590', () => {
     const training = SIMULATOR_PACKAGES.filter((pkg) => pkg.category === 'training').map(
       ({ title, durationMinutes, priceIls }) => ({ title, durationMinutes, priceIls })
     );
     expect(training).toEqual([
-      { title: 'Airline Interview Prep 60 PRO', durationMinutes: 60, priceIls: 890 },
-      { title: 'Airline Interview Prep 90 PRO', durationMinutes: 90, priceIls: 1250 },
+      { title: 'Airline Interview Prep 60 PRO', durationMinutes: 60, priceIls: 950 },
+      { title: 'Airline Interview Prep 90 PRO', durationMinutes: 90, priceIls: 1285 },
       { title: 'Airline Interview Prep 120 PRO', durationMinutes: 120, priceIls: 1590 },
     ]);
   });
