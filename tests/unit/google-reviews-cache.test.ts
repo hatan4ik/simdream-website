@@ -57,7 +57,7 @@ const LEGACY_RELEVANCE_ORDER = {
         author_url: 'javascript:alert(1)',
         rating: 5,
         relative_time_description: 'a week ago',
-        text: 'Newer five-star feedback.',
+        text: 'Comentario de cinco estrellas más reciente.',
         time: seconds('2026-10-01T10:00:00Z'),
         language: 'es',
         original_language: 'es',
@@ -79,12 +79,34 @@ const LEGACY_ORIGINALS = {
   },
 };
 
-/** Answers like Google: originals for the untranslated request, the localized payload otherwise. */
-function googleFetch(localized: unknown = LEGACY_RELEVANCE_ORDER, originals: unknown = LEGACY_ORIGINALS) {
-  return vi.fn().mockImplementation((input: string | URL) => {
+const HEBREW = /[\u0590-\u05FF]/;
+const CYRILLIC = /[\u0400-\u04FF]/;
+
+/** What Google would detect for a text: Hebrew as its legacy tag `iw`, Cyrillic as `ru`, else `en`. */
+function detectedTag(text: string): string {
+  return HEBREW.test(text) ? 'iw' : CYRILLIC.test(text) ? 'ru' : /[áéíóúñ]/.test(text) ? 'es' : 'en';
+}
+
+/**
+ * Answers like Google: the legacy Place Details originals for the one Places read, and a Cloud
+ * Translation payload (`[<target>] <text>` per segment, with the detected source tag) for every
+ * translation request. `translate` can replace the translation answer, e.g. with a 403.
+ */
+function googleFetch(originals: unknown = LEGACY_ORIGINALS, translate?: (body: { q: string[]; target: string }) => Response) {
+  return vi.fn().mockImplementation((input: string | URL, init?: RequestInit) => {
     const url = new URL(String(input));
-    const body = url.searchParams.get('reviews_no_translations') === 'true' ? originals : localized;
-    return Promise.resolve(new Response(JSON.stringify(body), { status: 200 }));
+    if (url.hostname === 'translation.googleapis.com') {
+      const body = JSON.parse(String(init?.body)) as { q: string[]; target: string };
+      if (translate) return Promise.resolve(translate(body));
+      // Like Google: a text already in the target language comes back unchanged.
+      const translations = body.q.map((text) => {
+        const detected = detectedTag(text);
+        const same = (detected === 'iw' ? 'he' : detected) === body.target;
+        return { translatedText: same ? text : `[${body.target}] ${text}`, detectedSourceLanguage: detected };
+      });
+      return Promise.resolve(new Response(JSON.stringify({ data: { translations } }), { status: 200 }));
+    }
+    return Promise.resolve(new Response(JSON.stringify(originals), { status: 200 }));
   });
 }
 
@@ -93,7 +115,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe('Google reviews source (legacy Place Details, reviews_sort=newest)', () => {
+describe('Google reviews source (legacy Place Details newest first + Cloud Translation)', () => {
   it('re-orders a relevance-ordered answer newest first, by publish time alone', async () => {
     const { sortNewestFirst } = await loadSource();
     const relevanceOrdered = [
@@ -109,28 +131,40 @@ describe('Google reviews source (legacy Place Details, reviews_sort=newest)', ()
     expect(relevanceOrdered.map((review) => review.id)[0]).toBe('older-five-star'); // the input is not mutated
   });
 
-  it('asks the legacy Place Details service for the newest reviews once per page language plus once untranslated', async () => {
+  it('reads the newest reviews once, untranslated, and asks Cloud Translation once per page language', async () => {
     const { fetchNewestGoogleReviews } = await loadSource();
     const fetchImpl = googleFetch();
 
     const snapshot = await fetchNewestGoogleReviews({ key: 'test-key', fetchImpl, now: new Date('2026-11-09T04:00:00Z') });
 
+    // Every page language has at least one review written in another language, so six translation requests.
     expect(fetchImpl).toHaveBeenCalledTimes(1 + REVIEW_LANGUAGES.length);
-    const urls = fetchImpl.mock.calls.map(([url]) => new URL(String(url)));
-    for (const url of urls) {
-      expect(url.origin + url.pathname).toBe('https://maps.googleapis.com/maps/api/place/details/json');
-      expect(url.searchParams.get('place_id')).toBe(FACILITY_INFO.placeId);
-      expect(url.searchParams.get('fields')).toBe('reviews,rating,user_ratings_total');
-      expect(url.searchParams.get('reviews_sort')).toBe('newest');
-      expect(url.searchParams.get('key')).toBe('test-key');
-    }
-    expect(urls[0].searchParams.get('reviews_no_translations')).toBe('true');
-    expect(urls.slice(1).map((url) => url.searchParams.get('language'))).toEqual([...REVIEW_LANGUAGES]);
+    const [places, ...translations] = fetchImpl.mock.calls;
+    const placesUrl = new URL(String(places[0]));
+    expect(placesUrl.origin + placesUrl.pathname).toBe('https://maps.googleapis.com/maps/api/place/details/json');
+    expect(placesUrl.searchParams.get('place_id')).toBe(FACILITY_INFO.placeId);
+    expect(placesUrl.searchParams.get('fields')).toBe('reviews,rating,user_ratings_total');
+    expect(placesUrl.searchParams.get('reviews_sort')).toBe('newest');
+    expect(placesUrl.searchParams.get('reviews_no_translations')).toBe('true');
+    expect(placesUrl.searchParams.get('key')).toBe('test-key');
+    expect(placesUrl.searchParams.get('language')).toBeNull();
+    const targets = translations.map(([url, init]) => {
+      const parsed = new URL(String(url));
+      expect(parsed.origin + parsed.pathname).toBe('https://translation.googleapis.com/language/translate/v2');
+      expect(parsed.searchParams.get('key')).toBe('test-key');
+      expect(init?.method).toBe('POST');
+      const body = JSON.parse(String(init?.body)) as { q: string[]; target: string; format: string };
+      expect(body.format).toBe('text');
+      expect(body.q.length).toBeGreaterThan(0);
+      return body.target;
+    });
+    expect(targets).toEqual([...REVIEW_LANGUAGES]);
     expect(snapshot).toMatchObject({ fetchedAt: '2026-11-09T04:00:00.000Z', overallRating: 4.9, totalReviewsCount: 127 });
     expect(snapshot.source).toMatch(/reviews_sort=newest/);
+    expect(snapshot.source).toMatch(/Cloud Translation/);
   });
 
-  it('stores every language newest first, drops star-only reviews and keeps only Google-supplied, safe fields', async () => {
+  it('stores every language newest first with the translation and the text as written, dropping star-only reviews', async () => {
     const { fetchNewestGoogleReviews } = await loadSource();
 
     const { reviewsByLanguage } = await fetchNewestGoogleReviews({ key: 'test-key', fetchImpl: googleFetch() });
@@ -142,58 +176,90 @@ describe('Google reviews source (legacy Place Details, reviews_sort=newest)', ()
         '2026-09-01T10:00:00.000Z',
       ]);
     }
-    const [translated, newer, older] = reviewsByLanguage.en;
-    expect(translated).toMatchObject({
+    const [noam, maya, ari] = reviewsByLanguage.en;
+    expect(noam).toMatchObject({
       author: 'Noam',
-      quote: 'Four-star feedback, translated.',
+      quote: '[en] משוב של ארבעה כוכבים.',
       language: 'en',
-      original: { text: 'משוב של ארבעה כוכבים.', language: 'he' },
+      original: { text: 'משוב של ארבעה כוכבים.', language: 'he' }, // Google's `iw` tag reads as Hebrew
       authorUrl: null,
       authorPhotoUrl: null, // http, not https
       relativeTime: 'a day ago',
-      characterCount: 'Four-star feedback, translated.'.length,
+      characterCount: '[en] משוב של ארבעה כוכבים.'.length,
     });
-    expect(older).toMatchObject({
-      original: null, // identical text: nothing to switch to
+    expect(ari).toMatchObject({
+      quote: 'Older five-star feedback.',
+      language: 'en',
+      original: null, // written in English: nothing to switch to
       authorUrl: 'https://www.google.com/maps/contrib/1',
       authorPhotoUrl: 'https://lh3.googleusercontent.com/a/ari=s128',
     });
-    expect(newer).toMatchObject({ language: 'es', original: null, authorUrl: null, authorPhotoUrl: null });
+    expect(maya).toMatchObject({ quote: '[en] Comentario de cinco estrellas más reciente.', language: 'en', original: { text: 'Comentario de cinco estrellas más reciente.', language: 'es' } });
+    expect(reviewsByLanguage.es[1]).toMatchObject({ author: 'Maya', quote: 'Comentario de cinco estrellas más reciente.', language: 'es', original: null });
+    // In Hebrew, Noam's review is the original and the others are translated.
+    expect(reviewsByLanguage.he[0]).toMatchObject({ author: 'Noam', quote: 'משוב של ארבעה כוכבים.', language: 'he', original: null });
+    expect(reviewsByLanguage.he[2]).toMatchObject({ author: 'Ari', quote: '[he] Older five-star feedback.', language: 'he', original: { text: 'Older five-star feedback.', language: 'en' } });
     // The same review has the same id in every language, so the "Show original" state follows it.
     expect(reviewsByLanguage.he.map((review) => review.id)).toEqual(reviewsByLanguage.en.map((review) => review.id));
-    expect(translated.id).toMatch(/^google-\d+-[0-9a-z]+$/);
+    expect(noam.id).toMatch(/^google-\d+-[0-9a-z]+$/);
   });
 
-  it('copes with sparse legacy reviews: no time, no links, no relative text, no language tags', async () => {
+  it('serves the originals, untranslated, when Cloud Translation refuses, and says so in the source', async () => {
     const { fetchNewestGoogleReviews } = await loadSource();
-    const sparse = {
+    vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const fetchImpl = googleFetch(LEGACY_ORIGINALS, () =>
+      new Response(JSON.stringify({ error: { code: 403, status: 'PERMISSION_DENIED', message: 'Cloud Translation API has not been used' } }), { status: 403 })
+    );
+
+    const snapshot = await fetchNewestGoogleReviews({ key: 'test-key', fetchImpl });
+
+    expect(fetchImpl).toHaveBeenCalledTimes(2); // one Places read, one refused translation, then no more attempts
+    for (const language of REVIEW_LANGUAGES) {
+      expect(snapshot.reviewsByLanguage[language].map((review) => [review.quote, review.language, review.original])).toEqual([
+        ['משוב של ארבעה כוכבים.', 'he', null],
+        ['Comentario de cinco estrellas más reciente.', 'es', null],
+        ['Older five-star feedback.', 'en', null],
+      ]);
+    }
+    expect(snapshot.source).toMatch(/originals only, Cloud Translation unavailable/);
+    expect(console.warn).toHaveBeenCalledWith(expect.stringMatching(/translation unavailable/i), expect.stringMatching(/403 PERMISSION_DENIED/));
+  });
+
+  it('serves the originals and makes a single request when no translation key is configured', async () => {
+    const { fetchNewestGoogleReviews } = await loadSource();
+    const fetchImpl = googleFetch();
+
+    const snapshot = await fetchNewestGoogleReviews({ key: 'test-key', translationKey: null, fetchImpl });
+
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+    expect(snapshot.reviewsByLanguage.fr.map((review) => review.original)).toEqual([null, null, null]);
+  });
+
+  it("maps Google's iw and yi tags to Hebrew and lets Google detect the language of an untagged review", async () => {
+    const { fetchNewestGoogleReviews } = await loadSource();
+    const originals = {
       status: 'OK',
       result: {
         reviews: [
-          { author_name: 'Dana', text: 'Sparse but real.' },
+          { author_name: 'Noam', rating: 5, text: 'ביקורת בעברית.', time: seconds('2026-11-03T10:00:00Z'), language: 'yi' }, // Google mislabels Hebrew as Yiddish
+          { author_name: 'Eli', rating: 5, text: 'עוד ביקורת בעברית.', time: seconds('2026-11-02T10:00:00Z') }, // no language tag at all
+          { author_name: 'Dana', text: 'Sparse but real.' }, // no time, no rating, no links
           { author_name: '  ', text: 'No author, dropped.', time: 1 },
-          { author_name: 'Eli', text: 'Translated without tags.', time: seconds('2026-11-02T10:00:00Z'), rating: '5' },
         ],
       },
     };
-    const originals = {
-      ...sparse,
-      result: { reviews: [{ author_name: 'Eli', text: 'מתורגם ללא תגיות.', time: seconds('2026-11-02T10:00:00Z') }] },
-    };
 
-    const snapshot = await fetchNewestGoogleReviews({ key: 'test-key', fetchImpl: googleFetch(sparse, originals) });
+    const snapshot = await fetchNewestGoogleReviews({ key: 'test-key', fetchImpl: googleFetch(originals) });
 
     expect(snapshot).toMatchObject({ overallRating: 0, totalReviewsCount: 0 });
-    const [eli, dana] = snapshot.reviewsByLanguage.fr;
-    expect(eli).toMatchObject({
-      author: 'Eli',
-      rating: 0, // a non-numeric rating is not trusted
-      publishedAt: '2026-11-02T10:00:00.000Z',
-      language: 'fr', // untagged: the requested language
-      original: { text: 'מתורגם ללא תגיות.', language: 'fr' }, // untagged original falls back to the quote language
-    });
-    expect(dana).toMatchObject({ publishedAt: '', relativeTime: '', authorUrl: null, authorPhotoUrl: null, original: null });
-    expect(snapshot.reviewsByLanguage.fr).toHaveLength(2);
+    const [noam, eli, dana] = snapshot.reviewsByLanguage.en;
+    expect(noam).toMatchObject({ quote: '[en] ביקורת בעברית.', language: 'en', original: { text: 'ביקורת בעברית.', language: 'he' } });
+    expect(eli).toMatchObject({ quote: '[en] עוד ביקורת בעברית.', language: 'en', original: { text: 'עוד ביקורת בעברית.', language: 'he' } }); // detected
+    expect(dana).toMatchObject({ quote: 'Sparse but real.', language: 'en', original: null, publishedAt: '', relativeTime: '', rating: 0, authorUrl: null, authorPhotoUrl: null });
+    // Hebrew page: Noam is served as written; untagged Eli is sent to Google, comes back unchanged and counts as Hebrew.
+    expect(snapshot.reviewsByLanguage.he[0]).toMatchObject({ author: 'Noam', quote: 'ביקורת בעברית.', language: 'he', original: null });
+    expect(snapshot.reviewsByLanguage.he[1]).toMatchObject({ author: 'Eli', quote: 'עוד ביקורת בעברית.', language: 'he', original: null });
+    expect(snapshot.reviewsByLanguage.en).toHaveLength(3);
   });
 
   it('refuses an answer without a result or status', async () => {

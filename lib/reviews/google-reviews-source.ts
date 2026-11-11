@@ -1,7 +1,8 @@
 import 'server-only';
 
 import { FACILITY_INFO } from '@/lib/config/facility-info';
-import { isReviewLanguage, REVIEW_LANGUAGES, type ReviewLanguage } from './review-language';
+import { REVIEW_LANGUAGES, type ReviewLanguage } from './review-language';
+import { reviewLanguageFromGoogle, ReviewTranslationError, translateTexts } from './review-translation';
 
 /**
  * Google is the only source of review texts, and it is read here alone. Place Details in
@@ -13,6 +14,11 @@ import { isReviewLanguage, REVIEW_LANGUAGES, type ReviewLanguage } from './revie
  * "Places API" (legacy, `places-backend.googleapis.com`) enabled on the Cloud project and in the
  * key's API restriction. Each call asks for the Atmosphere fields only (`reviews,rating,
  * user_ratings_total`). Nothing is scraped from google.com/maps.
+ *
+ * Google never translates reviews (see `review-translation.ts`): the one newest-first read is made
+ * untranslated, and Google Cloud Translation renders each review into the page languages it was
+ * not written in. When translation is unavailable (API not enabled, quota, outage) the originals
+ * are served as they are, so the bar never goes empty for a translation problem.
  */
 const LEGACY_PLACE_DETAILS_URL = 'https://maps.googleapis.com/maps/api/place/details/json';
 const PLACEHOLDER_VALUES = ['your_', 'your-', 'example', 'placeholder', '...'];
@@ -73,6 +79,8 @@ export type FetchLike = (url: string, init?: RequestInit) => Promise<Response>;
 
 export interface FetchGoogleReviewsOptions {
   key: string;
+  /** Key for Cloud Translation; defaults to the Places key (one key, two APIs allowed on it). */
+  translationKey?: string | null;
   fetchImpl?: FetchLike;
   now?: Date;
 }
@@ -89,13 +97,10 @@ export function configuredPlacesKey(): string | null {
   return key && !PLACEHOLDER_VALUES.some((placeholder) => key.includes(placeholder)) ? key : null;
 }
 
-// Google still tags Hebrew with the legacy BCP-47 code "iw" (seen on the live listing); the page uses "he".
-const LEGACY_LANGUAGE_CODES: Record<string, ReviewLanguage> = { iw: 'he' };
-
-function reviewLanguage(value: string | undefined, fallback: ReviewLanguage): ReviewLanguage {
-  const language = value?.toLowerCase().slice(0, 2) ?? '';
-  const normalized = LEGACY_LANGUAGE_CODES[language] ?? language;
-  return isReviewLanguage(normalized) ? normalized : fallback;
+/** `GOOGLE_TRANSLATE_API_KEY` when set, else the Places key (the same key may allow both APIs). */
+export function configuredTranslationKey(): string | null {
+  const key = process.env.GOOGLE_TRANSLATE_API_KEY?.trim();
+  return key && !PLACEHOLDER_VALUES.some((placeholder) => key.includes(placeholder)) ? key : configuredPlacesKey();
 }
 
 function safeHttpsUrl(value: string | undefined, allowedHosts?: readonly string[]): string | null {
@@ -155,58 +160,71 @@ async function readPlaceDetails(fetchImpl: FetchLike, url: string): Promise<NonN
 }
 
 /**
- * Reads the newest reviews from Google once for each of the six page languages (Google translates
- * `text` into `language` and marks `translated`) plus once untranslated, so every review keeps the
- * text as written for the "Show original" switch. Star-only reviews (no text) are not quotable and
- * are dropped. Seven Atmosphere requests per call; the snapshot workflow makes two calls a day.
+ * Reads the newest reviews from Google once, untranslated, then asks Cloud Translation for each
+ * page language once with every review not written in it. Star-only reviews (no text) are not
+ * quotable and are dropped. A review keeps the same id in every language so the "Show original"
+ * state follows it. One Atmosphere request plus at most six translation requests per call; the
+ * snapshot workflow makes two calls a day.
  */
-export async function fetchNewestGoogleReviews({ key, fetchImpl = fetch, now = new Date() }: FetchGoogleReviewsOptions): Promise<StoredReviewsSnapshot> {
+export async function fetchNewestGoogleReviews({ key, translationKey = key, fetchImpl = fetch, now = new Date() }: FetchGoogleReviewsOptions): Promise<StoredReviewsSnapshot> {
   const originals = await readPlaceDetails(fetchImpl, placeDetailsUrl(key, { reviews_no_translations: 'true' }));
-  const originalById = new Map<string, { text: string; language: ReviewLanguage | undefined }>();
-  for (const review of originals.reviews ?? []) {
-    const text = review.text?.trim();
-    if (!text) continue;
-    const written = review.original_language ?? review.language;
-    originalById.set(reviewId(review), { text, language: written ? reviewLanguage(written, 'en') : undefined });
-  }
 
+  const written = (originals.reviews ?? [])
+    .map((review) => {
+      const text = review.text?.trim();
+      const author = review.author_name?.trim();
+      if (!text || !author) return null;
+      const publishedMs = publishedAtMs(review);
+      return {
+        id: reviewId(review),
+        author,
+        authorUrl: safeHttpsUrl(review.author_url),
+        authorPhotoUrl: safeHttpsUrl(review.profile_photo_url, GOOGLE_AUTHOR_PHOTO_HOSTS),
+        rating: typeof review.rating === 'number' ? review.rating : 0,
+        relativeTime: review.relative_time_description || '',
+        publishedAt: publishedMs ? new Date(publishedMs).toISOString() : '',
+        text,
+        language: reviewLanguageFromGoogle(review.original_language ?? review.language),
+      };
+    })
+    .filter((review): review is NonNullable<typeof review> => review !== null);
+
+  let translationFailure: string | null = null;
   const reviewsByLanguage = {} as Record<ReviewLanguage, GoogleReview[]>;
   for (const language of REVIEW_LANGUAGES) {
-    const localized = await readPlaceDetails(fetchImpl, placeDetailsUrl(key, { language }));
-    const reviews = (localized.reviews ?? [])
-      .map((review): GoogleReview | null => {
-        const quote = review.text?.trim();
-        const author = review.author_name?.trim();
-        if (!quote || !author) return null;
-        const id = reviewId(review);
-        const quoteLanguage = reviewLanguage(review.language, language);
-        const written = originalById.get(id);
-        const original =
-          written && written.text !== quote
-            ? { text: written.text, language: written.language ?? reviewLanguage(review.original_language, quoteLanguage) }
-            : null;
-        const publishedMs = publishedAtMs(review);
+    const foreign = written.filter((review) => review.language !== language);
+    const translated = new Map<string, { text: string; detectedLanguage: ReviewLanguage | null }>();
+    if (foreign.length > 0 && translationKey && translationFailure === null) {
+      try {
+        const results = await translateTexts({ key: translationKey, texts: foreign.map((review) => review.text), target: language, fetchImpl });
+        foreign.forEach((review, index) => translated.set(review.id, results[index]));
+      } catch (error) {
+        // One warning per refresh; every language then serves the originals until the next refresh.
+        translationFailure = error instanceof ReviewTranslationError ? error.message : 'Cloud Translation request failed.';
+        console.warn('Google reviews translation unavailable; serving originals', translationFailure);
+      }
+    }
+    reviewsByLanguage[language] = sortNewestFirst(
+      written.map(({ text, language: writtenLanguage, ...core }): GoogleReview => {
+        const translation = translated.get(core.id);
+        const originalLanguage = writtenLanguage ?? translation?.detectedLanguage ?? language;
+        if (!translation || translation.text === text) {
+          return { ...core, quote: text, language: originalLanguage, original: null, characterCount: text.length };
+        }
         return {
-          id,
-          author,
-          authorUrl: safeHttpsUrl(review.author_url),
-          authorPhotoUrl: safeHttpsUrl(review.profile_photo_url, GOOGLE_AUTHOR_PHOTO_HOSTS),
-          rating: typeof review.rating === 'number' ? review.rating : 0,
-          quote,
-          relativeTime: review.relative_time_description || '',
-          publishedAt: publishedMs ? new Date(publishedMs).toISOString() : '',
-          language: quoteLanguage,
-          original,
-          characterCount: quote.length,
+          ...core,
+          quote: translation.text,
+          language,
+          original: { text, language: originalLanguage },
+          characterCount: translation.text.length,
         };
       })
-      .filter((review): review is GoogleReview => review !== null);
-    reviewsByLanguage[language] = sortNewestFirst(reviews);
+    );
   }
 
   return {
     fetchedAt: now.toISOString(),
-    source: `Google Places API, legacy Place Details with reviews_sort=newest (Place ID: ${FACILITY_INFO.placeId})`,
+    source: `Google Places API, legacy Place Details with reviews_sort=newest (Place ID: ${FACILITY_INFO.placeId})${translationFailure ? '; originals only, Cloud Translation unavailable' : '; translations by Google Cloud Translation'}`,
     overallRating: typeof originals.rating === 'number' ? originals.rating : 0,
     totalReviewsCount: typeof originals.user_ratings_total === 'number' ? originals.user_ratings_total : 0,
     reviewsByLanguage,
