@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.17.0](https://github.com/hatan4ik/simdream-website/compare/v1.16.1...v1.17.0) (2026-11-11)
+
+
+### Features
+
+* **reviews:** translate the newest Google reviews with Cloud Translation ([#101](https://github.com/hatan4ik/simdream-website/issues/101)) ([c531e55](https://github.com/hatan4ik/simdream-website/commit/c531e55fe35cb5bc8059c5c7c365f91bc76e2a8c))
+
 ## [1.16.1](https://github.com/hatan4ik/simdream-website/compare/v1.16.0...v1.16.1) (2026-11-11)
 
 
