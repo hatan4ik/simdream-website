@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.17.1](https://github.com/hatan4ik/simdream-website/compare/v1.17.0...v1.17.1) (2026-11-11)
+
+
+### Bug Fixes
+
+* **header:** restore mobile navigation and compact WhatsApp ([#103](https://github.com/hatan4ik/simdream-website/issues/103)) ([f516fbb](https://github.com/hatan4ik/simdream-website/commit/f516fbbc1ae56251280feb9f4636336c5860e2c9))
+* **i18n:** name the Russian flight-tracks menu item «Абонемент» ([#104](https://github.com/hatan4ik/simdream-website/issues/104)) ([4452565](https://github.com/hatan4ik/simdream-website/commit/4452565e8c76684cf7ab445ddef253f60186ec79))
+
 ## [1.17.0](https://github.com/hatan4ik/simdream-website/compare/v1.16.1...v1.17.0) (2026-11-11)
 
 
