@@ -1713,7 +1713,7 @@ const baseTranslations = {
       simulator: 'Профессиональная подготовка',
       workshops: 'Корпоративный CRM (B2B)',
       vouchers: 'Подарочные сертификаты',
-      subscriptions: 'Лётные программы',
+      subscriptions: 'Абонемент',
       about: 'О центре',
       contact: 'Контакты и локация',
       fearOfFlying: 'Аэрофобия',
