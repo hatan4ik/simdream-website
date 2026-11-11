@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.17.2](https://github.com/hatan4ik/simdream-website/compare/v1.17.1...v1.17.2) (2026-11-11)
+
+
+### Bug Fixes
+
+* **ux:** streamline subscription purchase, clarify world trios, and bridge pro airline prep ([#106](https://github.com/hatan4ik/simdream-website/issues/106)) ([0826822](https://github.com/hatan4ik/simdream-website/commit/08268229d9d7da3bffa33860cc4bf72034c04f6c))
+
 ## [1.17.1](https://github.com/hatan4ik/simdream-website/compare/v1.17.0...v1.17.1) (2026-11-11)
 
 
