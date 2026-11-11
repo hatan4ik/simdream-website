@@ -53,6 +53,7 @@ export function Navbar() {
   const { t, isRTL } = useLanguage();
   const memberName = user?.fullName || user?.email || t.member.dashboard.defaultPilotName;
   const navbarRef = useRef<HTMLElement>(null);
+  const mobileMenuTriggerRef = useRef<HTMLButtonElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const userTriggerRef = useRef<HTMLButtonElement>(null);
   const desktopTriggerRefs = useRef<Record<NavigationGroupId, HTMLButtonElement | null>>({
@@ -145,6 +146,11 @@ export function Navbar() {
     if (restoreFocus) requestAnimationFrame(() => trigger?.focus());
   };
 
+  const closeMobileMenu = (restoreFocus = false) => {
+    setMobileMenuOpen(false);
+    if (restoreFocus) requestAnimationFrame(() => mobileMenuTriggerRef.current?.focus());
+  };
+
   const toggleDesktopMenuFromClick = (id: NavigationGroupId, isOpen: boolean) => {
     if (isOpen && hoverOpenedMenuRef.current === id) {
       hoverOpenedMenuRef.current = null; // the click confirms the hover-opened menu; the next click closes it
@@ -183,13 +189,17 @@ export function Navbar() {
   useEffect(() => {
     const onPointerDown = (event: PointerEvent) => {
       if (!navbarRef.current?.contains(event.target as Node)) {
+        setMobileMenuOpen(false);
         setActiveDesktopMenu(null);
         setUserDropdownOpen(false);
       }
     };
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return;
-      if (userDropdownOpen) {
+      if (mobileMenuOpen) {
+        event.preventDefault();
+        closeMobileMenu(true);
+      } else if (userDropdownOpen) {
         event.preventDefault();
         closeUserMenu(true);
       } else if (activeDesktopMenu) {
@@ -203,7 +213,7 @@ export function Navbar() {
       document.removeEventListener('pointerdown', onPointerDown);
       document.removeEventListener('keydown', onKeyDown);
     };
-  }, [activeDesktopMenu, userDropdownOpen]);
+  }, [activeDesktopMenu, mobileMenuOpen, userDropdownOpen]);
 
   const handleDesktopTriggerKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>, id: NavigationGroupId) => {
     const position = NAVIGATION_GROUP_IDS.indexOf(id);
@@ -447,7 +457,7 @@ export function Navbar() {
                   top bar for the reviews, the social icons and the language selector. On narrower
                   screens (no room beside Book) and from md up it stays in the top bar. */}
               <span className="hidden min-[360px]:contents">
-                <WhatsAppAction />
+                <WhatsAppAction placement="navbar" />
               </span>
               <Link
                 href="/book"
@@ -459,12 +469,18 @@ export function Navbar() {
               </Link>
             </div>
             <button
+              ref={mobileMenuTriggerRef}
               type="button"
               onClick={() => setMobileMenuOpen((open) => !open)}
               aria-label={mobileMenuOpen ? t.nav.closeMenu : t.nav.openMenu}
               aria-expanded={mobileMenuOpen}
               aria-controls="mobile-navigation"
-              className="min-w-12 min-h-12 inline-flex items-center justify-center rounded-full text-slate-400 hover:text-white hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 touch-manipulation cursor-pointer"
+              data-mobile-menu-trigger
+              className={`min-w-12 min-h-12 inline-flex items-center justify-center rounded-full border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 touch-manipulation cursor-pointer ${
+                mobileMenuOpen
+                  ? 'border-sky-400 bg-sky-500/20 text-white'
+                  : 'border-slate-700 bg-slate-900/80 text-slate-100 hover:border-slate-500 hover:bg-slate-800 hover:text-white'
+              }`}
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
@@ -542,10 +558,15 @@ export function Navbar() {
       )}
 
       {mobileMenuOpen && (
-        <div id="mobile-navigation" className="xl:hidden border-t border-slate-800 bg-slate-950 px-4 pt-3 pb-6 space-y-3">
+        <div
+          id="mobile-navigation"
+          data-mobile-navigation
+          aria-label={t.nav.openMenu}
+          className="xl:hidden absolute inset-x-0 top-full z-[70] max-h-[calc(100svh-8rem)] overflow-y-auto overscroll-contain border-t border-slate-700 bg-slate-950/98 px-4 pt-3 pb-safe-area-4 space-y-3 shadow-2xl backdrop-blur-xl"
+        >
           <Link
             href={user ? '/dashboard' : '/login'}
-            onClick={() => setMobileMenuOpen(false)}
+            onClick={() => closeMobileMenu()}
             className="flex min-h-14 items-center gap-3 rounded-xl border border-sky-500/20 bg-sky-500/5 px-3 py-2 text-slate-100 hover:bg-sky-500/10"
           >
             <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${user ? (isAdmin ? 'bg-amber-400' : 'bg-sky-400') : 'bg-slate-500'}`} aria-hidden="true" />
@@ -560,7 +581,7 @@ export function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={() => closeMobileMenu()}
                 className={`block min-h-12 px-3 py-3 rounded-xl text-base font-medium ${
                   isActive(link.href) ? 'text-sky-400 bg-sky-500/10' : 'text-slate-300 hover:bg-slate-900'
                 }`}
@@ -570,7 +591,7 @@ export function Navbar() {
             ))}
             <Link
               href={user ? '/dashboard' : '/login'}
-              onClick={() => setMobileMenuOpen(false)}
+              onClick={() => closeMobileMenu()}
               className="block min-h-12 px-3 py-3 rounded-xl text-base font-medium text-slate-300 hover:bg-slate-900"
             >
               {user ? t.nav.logbook : t.nav.pilotLogin}
@@ -578,7 +599,7 @@ export function Navbar() {
             {isAdmin && (
               <Link
                 href="/admin"
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={() => closeMobileMenu()}
                 className="block min-h-12 px-3 py-3 rounded-xl text-base font-medium text-amber-400 hover:bg-slate-900"
               >
                 {t.nav.adminBoard}
@@ -601,7 +622,7 @@ export function Navbar() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  onClick={() => setMobileMenuOpen(false)}
+                  onClick={() => closeMobileMenu()}
                   className="flex min-h-11 items-center rounded-lg px-3 py-2 text-sm text-slate-300 hover:bg-slate-900 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
                 >
                   {link.name}

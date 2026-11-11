@@ -147,6 +147,11 @@ test('sits in one centred column on a wide Mac screen', async ({ page }) => {
   // From the tablet width up WhatsApp stays in the top bar, not in the navbar.
   await expect(page.locator('[data-site-utility-bar] [data-whatsapp-action]')).toBeVisible();
   await expect(page.locator('[data-site-navbar] [data-whatsapp-action]')).toBeHidden();
+  const desktopWhatsapp = page.locator('[data-site-utility-bar] [data-whatsapp-action]');
+  await expect(desktopWhatsapp).toHaveAttribute('data-whatsapp-placement', 'utility');
+  await expect(desktopWhatsapp.locator('[data-whatsapp-native-icon]')).toBeVisible();
+  const desktopWhatsappBox = await box(desktopWhatsapp);
+  expect(desktopWhatsappBox.width, 'desktop WhatsApp stays a compact icon action').toBeLessThanOrEqual(40);
 
   // The logo sits well inside the screen, not against the left edge.
   const logo = await box(page.locator('[data-site-navbar] a[href="/"]').first());

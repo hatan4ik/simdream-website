@@ -14,6 +14,10 @@ test.describe('mobile affordances', () => {
     await expect(vouchersLink).toBeHidden();
 
     await chrome.openMenu('tap');
+    const drawer = chrome.navbar.locator('[data-mobile-navigation]');
+    await expect(drawer).toBeVisible();
+    await expect(drawer).toBeInViewport();
+    await expect(drawer).toHaveCSS('overflow-y', 'auto');
     await expect(vouchersLink).toBeVisible();
     // An anonymous visitor is offered the member handoff. The logbook label is
     // deliberately shown only after a successful sign-in.
@@ -26,6 +30,25 @@ test.describe('mobile affordances', () => {
     await expect(page).toHaveURL('/vouchers');
     await expect(page.getByRole('heading', { level: 1, name: 'Give the Ultimate Flight Experience' })).toBeVisible();
     await expect(vouchersLink).toBeHidden();
+  });
+
+  test('keeps the navigation sheet reachable and dismissible on a narrow phone', async ({ page, chrome }) => {
+    await page.setViewportSize({ width: 320, height: 568 });
+    await page.goto('/');
+
+    const toggle = chrome.menuToggle();
+    await expect(toggle).toBeVisible();
+    await expect(toggle).toBeInViewport();
+    await toggle.tap();
+
+    const drawer = chrome.navbar.locator('[data-mobile-navigation]');
+    await expect(drawer).toBeVisible();
+    await expect(drawer).toHaveCSS('position', 'absolute');
+    await expect(drawer.getByRole('link', { name: 'Gift Vouchers', exact: true })).toBeVisible();
+
+    await page.keyboard.press('Escape');
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await expect(drawer).toBeHidden();
   });
 
   test('gives the menu toggle an accessible name (E2E-9)', async ({ page, chrome }) => {
@@ -71,6 +94,8 @@ test.describe('mobile affordances', () => {
     const whatsapp = chrome.navbar.getByRole('link', { name: 'Contact Sim Dream on WhatsApp: +972 55 507 1307' });
     await expect(whatsapp).toBeVisible();
     await expect(whatsapp).toHaveAttribute('href', 'https://wa.me/972555071307');
+    await expect(whatsapp.locator('[data-whatsapp-native-icon]')).toBeVisible();
+    await expect(whatsapp).toHaveAttribute('data-whatsapp-placement', 'navbar');
     await expect(utility.getByRole('link', { name: /WhatsApp/ })).toHaveCount(0);
     await expect(chrome.languageButton()).toBeVisible();
 
