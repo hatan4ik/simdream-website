@@ -82,7 +82,7 @@ export const SUBSCRIPTION_SECTION_COPY: LocalizedRecord<SubscriptionSectionCopy>
     requestEnrollment: 'Start this track',
     redirectingToPayment: 'Redirecting to payment...',
     educationalDisclosure:
-      'ATPL-level explanations are educational simulator coaching only. They do not grant flight hours, a licence, a type rating, assessment credit, or an airline-employment guarantee.',
+      'Flight track coaching is educational simulator experience only. It does not grant logged flight hours, a pilot licence, a type rating, assessment credit, or an airline-employment guarantee.',
     consultDispatch: 'Have questions? Consult Dispatch',
   },
   he: {
@@ -102,7 +102,7 @@ export const SUBSCRIPTION_SECTION_COPY: LocalizedRecord<SubscriptionSectionCopy>
     requestEnrollment: 'להתחיל את המסלול הזה',
     redirectingToPayment: 'מעביר לתשלום...',
     educationalDisclosure:
-      'הסברי ATPL הם הדרכת סימולטור לימודית בלבד. הם אינם מקנים שעות טיסה, רישיון, הגדר סוג, זיכוי למבדק או הבטחת העסקה בחברת תעופה.',
+      'הדרכות הסימולטור במסלולי הטיסה הן לימודיות וחווייתיות בלבד. הן אינן מקנות שעות טיסה רשמיות, רישיון, הגדר סוג, זיכוי למבדק או הבטחת העסקה בחברת תעופה.',
     consultDispatch: 'לשאלות והתאמה אישית: פנו למבצעים',
   },
   ru: {
@@ -122,7 +122,7 @@ export const SUBSCRIPTION_SECTION_COPY: LocalizedRecord<SubscriptionSectionCopy>
     requestEnrollment: 'Начать эту программу',
     redirectingToPayment: 'Переход к оплате...',
     educationalDisclosure:
-      'Объяснения уровня ATPL — это только учебный коучинг в симуляторе. Они не дают лётные часы, лицензию, type rating, зачёт отбора или гарантию трудоустройства в авиакомпании.',
+      'Занятия в лётных программах являются учебным коучингом на симуляторе. Они не дают официальные лётные часы, лицензию, type rating, зачёт отбора или гарантию трудоустройства в авиакомпании.',
     consultDispatch: 'Есть вопросы? Напишите диспетчеру',
   },
   fr: {
@@ -142,7 +142,7 @@ export const SUBSCRIPTION_SECTION_COPY: LocalizedRecord<SubscriptionSectionCopy>
     requestEnrollment: 'Commencer ce parcours',
     redirectingToPayment: 'Redirection vers le paiement...',
     educationalDisclosure:
-      'Les explications de niveau ATPL constituent uniquement un accompagnement pédagogique sur simulateur. Elles ne donnent ni heures de vol, ni licence, ni qualification de type, ni crédit de sélection, ni garantie d’emploi en compagnie aérienne.',
+      'L’accompagnement en simulateur constitue une expérience pédagogique uniquement. Il ne délivre ni heures de vol officielles, ni licence, ni qualification de type, ni crédit de sélection, ni garantie d’emploi en compagnie aérienne.',
     consultDispatch: 'Une question ? Consulter le Dispatch',
   },
   ar: {
@@ -162,7 +162,7 @@ export const SUBSCRIPTION_SECTION_COPY: LocalizedRecord<SubscriptionSectionCopy>
     requestEnrollment: 'ابدؤوا هذا المسار',
     redirectingToPayment: 'جارٍ التحويل للدفع...',
     educationalDisclosure:
-      'شروحات مستوى ATPL هي تدريب تعليمي على جهاز المحاكاة فقط. لا تمنح ساعات طيران أو رخصة أو تأهيلاً على طراز أو رصيداً لاختبار أو ضمان عمل لدى شركة طيران.',
+      'تدريب مسارات الطيران هو تجربة محاكاة تعليمية وتطبيقية فقط. لا يمنح ساعات طيران مسجلة أو رخصة أو تأهيلاً على طراز أو رصيداً لاختبار أو ضمان عمل لدى شركة طيران.',
     consultDispatch: 'هل لديكم استفسار؟ تواصلوا مع العمليات',
   },
 };
@@ -310,8 +310,8 @@ export const SUBSCRIPTION_PASSES: readonly SubscriptionPass[] = [
     trainingAddonIds: ['addon-xwind-ifr', 'addon-cold-dark'],
     copy: {
       en: {
-        title: 'ATPL Concepts · 10 × 60 min',
-        summary: 'Ten concise flights pairing hands-on practice with clear airline-style explanations of why crews use each procedure.',
+        title: 'Flight Deck Mastery & Systems · 10 × 60 min',
+        summary: 'Ten focused missions pairing hands-on cockpit command with clear airline-style explanations of aircraft systems, navigation, and crew procedures.',
         curriculum: [
           'Aircraft systems story: power, air, hydraulics and redundancy',
           'Flight planning: weather, fuel, alternates and operational margins',
@@ -321,8 +321,8 @@ export const SUBSCRIPTION_PASSES: readonly SubscriptionPass[] = [
         ],
       },
       he: {
-        title: 'מושגי ATPL · 10 × 60 דקות',
-        summary: 'עשר טיסות ממוקדות שמשלבות תרגול מעשי והסברים ברורים בסגנון חברות תעופה על הסיבה לכל נוהל.',
+        title: 'שליטה במערכות תא הטייס וניווט · 10 × 60 דקות',
+        summary: 'עשר טיסות ממוקדות שמשלבות תרגול מעשי והסברים ברורים בסגנון חברות תעופה על מערכות המטוס, ניווט ונהלי צוות.',
         curriculum: [
           'סיפור מערכות המטוס: חשמל, אוויר, הידראוליקה ויתירות',
           'תכנון טיסה: מזג אוויר, דלק, חלופות ומרווחים תפעוליים',
@@ -332,8 +332,8 @@ export const SUBSCRIPTION_PASSES: readonly SubscriptionPass[] = [
         ],
       },
       ru: {
-        title: '«Концепции ATPL» · 10 × 60 мин',
-        summary: 'Десять сфокусированных полётов, сочетающих практику с понятными объяснениями в стиле авиалиний: зачем экипаж применяет каждую процедуру.',
+        title: '«Мастерство систем кабины и навигации» · 10 × 60 мин',
+        summary: 'Десять сфокусированных полётов, сочетающих практику с понятными объяснениями в стиле авиалиний: устройство систем самолёта, навигация и процедуры экипажа.',
         curriculum: [
           'История систем самолёта: электропитание, воздух, гидравлика и резервирование',
           'Планирование полёта: погода, топливо, запасные аэродромы и эксплуатационные запасы',
@@ -343,8 +343,8 @@ export const SUBSCRIPTION_PASSES: readonly SubscriptionPass[] = [
         ],
       },
       fr: {
-        title: 'Concepts ATPL · 10 × 60 min',
-        summary: 'Dix vols ciblés mêlant pratique et explications claires de style compagnie aérienne sur la raison de chaque procédure.',
+        title: 'Maîtrise des Systèmes & Navigation · 10 × 60 min',
+        summary: 'Dix vols ciblés mêlant pratique et explications claires de style compagnie aérienne sur les systèmes avion, la navigation et les procédures d’équipage.',
         curriculum: [
           'Histoire des systèmes : électrique, air, hydraulique et redondance',
           'Préparation du vol : météo, carburant, dégagements et marges opérationnelles',
@@ -354,8 +354,8 @@ export const SUBSCRIPTION_PASSES: readonly SubscriptionPass[] = [
         ],
       },
       ar: {
-        title: 'مفاهيم ATPL · 10 × 60 دقيقة',
-        summary: 'عشر رحلات مركزة تجمع بين التدريب العملي وشروحات واضحة بأسلوب شركات الطيران عن سبب استخدام الطواقم لكل إجراء.',
+        title: 'إتقان أنظمة قمرة القيادة والملاحة · 10 × 60 دقيقة',
+        summary: 'عشر رحلات مركزة تجمع بين التدريب العملي وشروحات واضحة بأسلوب شركات الطيران حول أنظمة الطائرة والملاحة وإجراءات الطاقم.',
         curriculum: [
           'قصة أنظمة الطائرة: الكهرباء والهواء والهيدروليك والازدواجية',
           'تخطيط الرحلة: الطقس والوقود والمطارات البديلة والهوامش التشغيلية',

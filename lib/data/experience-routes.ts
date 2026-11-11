@@ -1520,6 +1520,12 @@ export interface ExperienceRoutesCopy {
   askCaptainCta: string;
   bookableHint: string;
   onRequestHint: string;
+  howItWorksTitle: string;
+  howItWorksSubtitle: string;
+  includedPillarTitle: string;
+  includedPillarDesc: string;
+  extendedPillarTitle: string;
+  extendedPillarDesc: string;
 }
 
 export const EXPERIENCE_ROUTES_COPY: LocalizedRecord<ExperienceRoutesCopy> = {
@@ -1542,8 +1548,8 @@ export const EXPERIENCE_ROUTES_COPY: LocalizedRecord<ExperienceRoutesCopy> = {
       africa_middle_east: 'Africa & Middle East',
       extreme: 'Extreme approaches',
     },
-    bookableBadge: 'Bookable add-on',
-    onRequestBadge: 'On request',
+    bookableBadge: 'Extended Mission (+40m)',
+    onRequestBadge: 'Included in 60m Flight',
     extraMinutes: (minutes) => `+${minutes} min cockpit time`,
     difficultyLabel: 'Captain’s handling rating',
     difficultyLevels: {
@@ -1555,8 +1561,8 @@ export const EXPERIENCE_ROUTES_COPY: LocalizedRecord<ExperienceRoutesCopy> = {
     },
     pilotNoteLabel: 'Captain’s note',
     bestForLabel: 'Best for',
-    bookTrioCta: 'Book a flight with this trio',
-    requestRouteCta: 'Request this route',
+    bookTrioCta: 'Book extended flight (100 min)',
+    requestRouteCta: 'Fly this route in 60m flight',
     bookingIntentEyebrow: 'WORLD TRIO ADDED TO YOUR FLIGHT',
     bookingIntentDescription:
       'This route is already selected. Choose a departure time that fits the complete flight, then confirm its minutes and price in your checkout manifest.',
@@ -1575,6 +1581,12 @@ export const EXPERIENCE_ROUTES_COPY: LocalizedRecord<ExperienceRoutesCopy> = {
     askCaptainCta: 'Ask your captain',
     bookableHint: 'Bookable trios open a 60-minute Captain’s Command flight with the chosen trio already selected; review the full manifest before checkout.',
     onRequestHint: 'Route requests open the booking calendar with a 60-minute session selected. We save your request with the booking and your captain confirms the mission plan.',
+    howItWorksTitle: 'How to Choose Your Flight Route',
+    howItWorksSubtitle: 'Fly iconic real-world routes. Choose an included destination in your standard flight, or expand to an extended multi-leg mission.',
+    includedPillarTitle: 'Included in 60m Flight (₪0 extra)',
+    includedPillarDesc: 'Choose any of our 14 curated routes worldwide. Your captain programs the flight computer (FMC) for your chosen destination at no additional cost.',
+    extendedPillarTitle: 'Extended Mission (100 min · +₪290)',
+    extendedPillarDesc: 'Want to land at 3 distinct airports in one session? Adds +40 minutes of cockpit time (100 minutes total) to fly 3 full consecutive approaches.',
   },
   he: {
     badge: 'טיסות חוויה • מיומן הטיסה של הקברניט',
@@ -1595,8 +1607,8 @@ export const EXPERIENCE_ROUTES_COPY: LocalizedRecord<ExperienceRoutesCopy> = {
       africa_middle_east: 'אפריקה והמזרח התיכון',
       extreme: 'גישות אקסטרימיות',
     },
-    bookableBadge: 'תוספת להזמנה מקוונת',
-    onRequestBadge: 'לפי בקשה',
+    bookableBadge: 'טיסה מורחבת (תוספת 40 דק׳)',
+    onRequestBadge: 'כלול בטיסת 60 דק׳',
     extraMinutes: (minutes) => `+${minutes} דקות זמן קוקפיט`,
     difficultyLabel: 'דירוג הקושי של הקברניט',
     difficultyLevels: {
@@ -1608,8 +1620,8 @@ export const EXPERIENCE_ROUTES_COPY: LocalizedRecord<ExperienceRoutesCopy> = {
     },
     pilotNoteLabel: 'הערת הקברניט',
     bestForLabel: 'מתאים במיוחד ל',
-    bookTrioCta: 'להזמנת טיסה עם השלישייה הזו',
-    requestRouteCta: 'לבקשת המסלול הזה',
+    bookTrioCta: 'הזמנת טיסה מורחבת (100 דק׳)',
+    requestRouteCta: 'בחירת מסלול זה (60 דק׳)',
     bookingIntentEyebrow: 'השלישייה העולמית נוספה לטיסה שלכם',
     bookingIntentDescription:
       'המסלול כבר נבחר. בחרו שעת המראה שמתאימה לטיסה המלאה, ואשרו את הדקות והמחיר בפירוט ההזמנה לפני התשלום.',
@@ -1628,6 +1640,12 @@ export const EXPERIENCE_ROUTES_COPY: LocalizedRecord<ExperienceRoutesCopy> = {
     askCaptainCta: 'לשאול את הקברניט',
     bookableHint: 'שלישיות הזמינות אונליין פותחות טיסת Captain’s Command של 60 דקות עם השלישייה שכבר נבחרה; בדקו את הפירוט המלא לפני התשלום.',
     onRequestHint: 'בקשת מסלול פותחת את יומן ההזמנות עם מפגש של 60 דקות. הבקשה נשמרת עם ההזמנה והקברניט מאשר את תוכנית המשימה.',
+    howItWorksTitle: 'איך בוחרים מסלול לטיסה שלכם?',
+    howItWorksSubtitle: 'טסים ליעדים אמיתיים בעולם. בחרו מסלול הכלול בטיסה הרגילה, או שדרגו למשימה רב-יעדית מורחבת.',
+    includedPillarTitle: 'כלול בטיסת 60 דק׳ (ללא עלות)',
+    includedPillarDesc: 'בחרו מתוך 14 מסלולים עולמיים ללא תוספת תשלום (₪0). הקברניט מתכנת עבורכם את מחשב הטיסה (FMC) ליעד שבחרתם.',
+    extendedPillarTitle: 'טיסה מורחבת (100 דק׳ · תוספת ₪290)',
+    extendedPillarDesc: 'רוצים לנחות ב-3 שדות תעופה שונים באותה טיסה? תוספת של 40 דקות זמן קוקפיט (סך הכל 100 דקות טיסה) ל-3 גישות מלאות ומאתגרות.',
   },
   ru: {
     badge: 'ПОЛЁТЫ-ВПЕЧАТЛЕНИЯ • ИЗ ЛЁТНОЙ КНИЖКИ КОМАНДИРА',
@@ -1648,8 +1666,8 @@ export const EXPERIENCE_ROUTES_COPY: LocalizedRecord<ExperienceRoutesCopy> = {
       africa_middle_east: 'Африка и Ближний Восток',
       extreme: 'Экстремальные заходы',
     },
-    bookableBadge: 'Доступно при онлайн-бронировании',
-    onRequestBadge: 'По запросу',
+    bookableBadge: 'Расширенная миссия (+40 мин)',
+    onRequestBadge: 'Включено в 60 мин полёт',
     extraMinutes: (minutes) => `+${minutes} мин в кабине`,
     difficultyLabel: 'Оценка сложности от командира',
     difficultyLevels: {
@@ -1661,8 +1679,8 @@ export const EXPERIENCE_ROUTES_COPY: LocalizedRecord<ExperienceRoutesCopy> = {
     },
     pilotNoteLabel: 'Заметка командира',
     bestForLabel: 'Лучше всего для',
-    bookTrioCta: 'Забронировать полёт с этим трио',
-    requestRouteCta: 'Запросить этот маршрут',
+    bookTrioCta: 'Забронировать расширенный полёт (100 мин)',
+    requestRouteCta: 'Выбрать этот маршрут (60 мин)',
     bookingIntentEyebrow: 'МИРОВОЕ ТРИО ДОБАВЛЕНО К ВАШЕМУ ПОЛЁТУ',
     bookingIntentDescription:
       'Этот маршрут уже выбран. Выберите время вылета, подходящее для полного полёта, затем проверьте минуты и цену в составе заказа перед оплатой.',
@@ -1681,6 +1699,12 @@ export const EXPERIENCE_ROUTES_COPY: LocalizedRecord<ExperienceRoutesCopy> = {
     askCaptainCta: 'Спросить командира',
     bookableHint: 'Доступные для бронирования трио открывают 60-минутный полёт Captain’s Command с уже выбранным трио; проверьте полный состав заказа перед оплатой.',
     onRequestHint: 'Запрос маршрута открывает календарь бронирования с выбранным сеансом 60 минут. Мы сохраняем запрос с бронированием, а командир подтверждает план полёта.',
+    howItWorksTitle: 'Как выбрать маршрут для вашего полёта',
+    howItWorksSubtitle: 'Летайте по культовым реальным маршрутам. Выберите направление, включённое в стандартный полёт, или расширенную миссию.',
+    includedPillarTitle: 'Включено в 60 мин полёт (без доплаты)',
+    includedPillarDesc: 'Выберите любой из 14 мировых маршрутов без доплаты (₪0). Командир запрограммирует бортовой компьютер (FMC) под выбранную вами полосу.',
+    extendedPillarTitle: 'Расширенная миссия (100 мин · +₪290)',
+    extendedPillarDesc: 'Хотите приземлиться в 3 разных аэропортах за один полёт? Добавляет +40 минут времени в кабине (всего 100 мин) для трёх полных заходов подряд.',
   },
   fr: {
     badge: 'VOLS D’EXPÉRIENCE • CHOIX DU COMMANDANT',
@@ -1701,8 +1725,8 @@ export const EXPERIENCE_ROUTES_COPY: LocalizedRecord<ExperienceRoutesCopy> = {
       africa_middle_east: 'Afrique et Moyen-Orient',
       extreme: 'Approches extrêmes',
     },
-    bookableBadge: 'Option réservable en ligne',
-    onRequestBadge: 'Sur demande',
+    bookableBadge: 'Mission prolongée (+40 min)',
+    onRequestBadge: 'Inclus dans le vol de 60 min',
     extraMinutes: (minutes) => `+${minutes} min de cockpit`,
     difficultyLabel: 'Niveau de pilotage selon le commandant',
     difficultyLevels: {
@@ -1714,8 +1738,8 @@ export const EXPERIENCE_ROUTES_COPY: LocalizedRecord<ExperienceRoutesCopy> = {
     },
     pilotNoteLabel: 'Note du commandant',
     bestForLabel: 'Idéal pour',
-    bookTrioCta: 'Réserver un vol avec ce trio',
-    requestRouteCta: 'Demander cette route',
+    bookTrioCta: 'Réserver le vol prolongé (100 min)',
+    requestRouteCta: 'Choisir cet itinéraire (60 min)',
     bookingIntentEyebrow: 'TRIO MONDIAL AJOUTÉ À VOTRE VOL',
     bookingIntentDescription:
       'Cet itinéraire est déjà sélectionné. Choisissez une heure de départ adaptée au vol complet, puis vérifiez ses minutes et son prix dans le manifeste avant le paiement.',
@@ -1734,6 +1758,12 @@ export const EXPERIENCE_ROUTES_COPY: LocalizedRecord<ExperienceRoutesCopy> = {
     askCaptainCta: 'Demander au commandant',
     bookableHint: 'Les trios réservables ouvrent un vol Captain’s Command de 60 minutes avec le trio déjà sélectionné ; vérifiez le manifeste complet avant le paiement.',
     onRequestHint: 'Les demandes d’itinéraire ouvrent le calendrier avec une séance de 60 minutes sélectionnée. Nous enregistrons la demande avec la réservation et le commandant confirme le plan de mission.',
+    howItWorksTitle: 'Comment choisir votre itinéraire de vol',
+    howItWorksSubtitle: 'Volez sur des routes réelles emblématiques. Choisissez une destination incluse dans votre vol standard, ou une mission prolongée.',
+    includedPillarTitle: 'Inclus dans le vol 60 min (sans supplément)',
+    includedPillarDesc: 'Choisissez parmi nos 14 itinéraires mondiaux sans supplément (0 ₪). Votre commandant programme le calculateur (FMC) vers votre destination.',
+    extendedPillarTitle: 'Mission prolongée (100 min · +290 ₪)',
+    extendedPillarDesc: 'Envie de poser l’avion sur 3 aéroports différents en une seule séance ? Ajoute +40 minutes de cockpit (100 min au total) pour 3 approches complètes.',
   },
   ar: {
     badge: 'رحلات التجربة • من سجل القبطان',
@@ -1754,8 +1784,8 @@ export const EXPERIENCE_ROUTES_COPY: LocalizedRecord<ExperienceRoutesCopy> = {
       africa_middle_east: 'أفريقيا والشرق الأوسط',
       extreme: 'مقاربات متطرفة',
     },
-    bookableBadge: 'إضافة قابلة للحجز إلكترونياً',
-    onRequestBadge: 'عند الطلب',
+    bookableBadge: 'مهمة موسّعة (+40 دقيقة)',
+    onRequestBadge: 'مشمول في رحلة 60 دقيقة',
     extraMinutes: (minutes) => `+${minutes} دقيقة في المقصورة`,
     difficultyLabel: 'تقييم القبطان لصعوبة القيادة',
     difficultyLevels: {
@@ -1767,8 +1797,8 @@ export const EXPERIENCE_ROUTES_COPY: LocalizedRecord<ExperienceRoutesCopy> = {
     },
     pilotNoteLabel: 'ملاحظة القبطان',
     bestForLabel: 'الأنسب لـ',
-    bookTrioCta: 'احجز رحلة مع هذه الثلاثية',
-    requestRouteCta: 'اطلب هذا المسار',
+    bookTrioCta: 'حجز رحلة موسّعة (100 دقيقة)',
+    requestRouteCta: 'اختيار هذا المسار (60 دقيقة)',
     bookingIntentEyebrow: 'تمت إضافة الثلاثية العالمية إلى رحلتك',
     bookingIntentDescription:
       'هذا المسار محدد بالفعل. اختر وقت إقلاع يناسب الرحلة الكاملة، ثم راجع الدقائق والسعر في ملخص طلبك قبل الدفع.',
@@ -1787,6 +1817,12 @@ export const EXPERIENCE_ROUTES_COPY: LocalizedRecord<ExperienceRoutesCopy> = {
     askCaptainCta: 'اسأل قبطانك',
     bookableHint: 'الثلاثيات القابلة للحجز تفتح رحلة Captain’s Command لمدة 60 دقيقة مع تحديد الثلاثية مسبقاً؛ راجع ملخص الطلب الكامل قبل الدفع.',
     onRequestHint: 'يفتح طلب المسار تقويم الحجز مع تحديد جلسة 60 دقيقة. نحفظ الطلب مع الحجز ويؤكد القبطان خطة المهمة.',
+    howItWorksTitle: 'كيف تختارون مسار رحلتكم؟',
+    howItWorksSubtitle: 'طيران إلى وجهات حقيقية شهيرة. اختاروا وجهة مشمولة في رحلتكم القياسية، أو قوموا بالترقية إلى مهمة موسّعة متعددة المطارات.',
+    includedPillarTitle: 'مشمول في رحلة 60 دقيقة (دون تكلفة إضافية)',
+    includedPillarDesc: 'اختاروا من بين 14 مساراً عالمياً دون أي رسوم إضافية (0 ش.ج). يبرمج القبطان كمبيوتر الطيران (FMC) نحو وجهتكم المختارة.',
+    extendedPillarTitle: 'مهمة موسّعة (100 دقيقة · +290 ش.ج)',
+    extendedPillarDesc: 'هل ترغبون في الهبوط في 3 مطارات مختلفة في جلسة واحدة؟ تضيف +40 دقيقة في المقصورة (إجمالي 100 دقيقة) لثلاث مقاربات متتالية كاملة.',
   },
 };
 

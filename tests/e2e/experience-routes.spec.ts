@@ -36,7 +36,7 @@ test.describe('experience flights route catalog', () => {
     const card = page.locator('[data-world-route="route-classical-eu"]');
 
     await follow(
-      card.getByRole('link', { name: 'Book a flight with this trio' }),
+      card.getByRole('link', { name: /Book (extended flight|a flight with this trio)/ }),
       /\/book\?package=captains-command-60&addons=addon-classical-eu&route=route-classical-eu$/
     );
 

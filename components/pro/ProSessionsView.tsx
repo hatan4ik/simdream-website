@@ -92,6 +92,10 @@ interface ProCopy {
   b2cBridgeTitle: string;
   b2cBtn: string;
   b2bBtn: string;
+  multiSessionBadge: string;
+  multiSessionTitle: string;
+  multiSessionDesc: string;
+  multiSessionBtn: string;
 }
 
 const PRO_COPY: LocalizedRecord<ProCopy> = {
@@ -193,6 +197,11 @@ const PRO_COPY: LocalizedRecord<ProCopy> = {
     b2cBridgeTitle: 'Discover Recreational Flight Packages or Book Corporate CRM Workshops',
     b2cBtn: 'Flight Experiences (B2C)',
     b2bBtn: 'Corporate CRM Workshops (B2B)',
+    multiSessionBadge: 'STRUCTURED ASSESSMENT SYLLABUS',
+    multiSessionTitle: 'Need Comprehensive Preparation Across 5 to 10 Sessions?',
+    multiSessionDesc:
+      'For cadets and commercial pilots preparing for airline assessments (El Al, Arkia, Israir, Wizz Air, Ryanair), train with our structured 5- or 10-session flight tracks covering raw-data flying, FMS setup, QRH engine emergencies, crosswinds, and MCC with up to 30% savings.',
+    multiSessionBtn: 'View Multi-Session Flight Tracks',
   },
   he: {
     heroBadge: 'הדרכה מקצועית לטייסים • הכנה למבדקי חברות תעופה (60 / 90 / 120 דקות)',
@@ -292,6 +301,11 @@ const PRO_COPY: LocalizedRecord<ProCopy> = {
     b2cBridgeTitle: 'גלו את חבילות הטיסה לקהל הרחב או הזמינו סדנת CRM לצוותי הנהלה',
     b2cBtn: 'חבילות טיסה ומתנה (B2C)',
     b2bBtn: 'סדנאות CRM לחברות (B2B)',
+    multiSessionBadge: 'סילבוס הכנה מקיף למיונים',
+    multiSessionTitle: 'זקוקים להכנה מעמיקה של 5 עד 10 מפגשים?',
+    multiSessionDesc:
+      'לטייסים מסחריים ולקדטים המתכוננים למיוני קבלה בחברות תעופה (אל על, ישראייר, ארקיע, Wizz Air, Ryanair) — תרגלו תוכנית הכנה מובנית של 5 או 10 טיסות הכוללת Raw Data, הזנת FMS, תקלות מנוע ו-QRH, רוחות צד ותיאום צוות עם חיסכון של עד 30%.',
+    multiSessionBtn: 'לצפייה במסלולי ההכנה המקיפים (5–10 טיסות)',
   },
   ru: {
     heroBadge: 'ПРОФЕССИОНАЛЬНАЯ ПОДГОТОВКА • СКРИНИНГ В АВИАКОМПАНИИ (60 / 90 / 120 МИН)',
@@ -391,6 +405,11 @@ const PRO_COPY: LocalizedRecord<ProCopy> = {
     b2cBridgeTitle: 'Ознакомьтесь с программами для всех желающих или закажите корпоративный CRM-семинар',
     b2cBtn: 'Полеты для всех (B2C)',
     b2bBtn: 'Корпоративный CRM (B2B)',
+    multiSessionBadge: 'КОМПЛЕКСНЫЙ КУРС ПОДГОТОВКИ К ОТБОРУ',
+    multiSessionTitle: 'Нужна углублённая подготовка из 5–10 сессий?',
+    multiSessionDesc:
+      'Для курсантов и коммерческих пилотов, готовящихся к отбору в авиакомпании (El Al, Arkia, Israir, Wizz Air, Ryanair): пройдите структурированные программы на 5 или 10 полётов — сырые данные, FMS, отказ двигателя по QRH, боковой ветер и взаимодействие экипажа со скидкой до 30%.',
+    multiSessionBtn: 'Смотреть программы подготовки (5–10 сессий)',
   },
   fr: {
     heroBadge: 'FORMATION PROFESSIONNELLE • PRÉPARATION AUX SÉLECTIONS (60 / 90 / 120 MIN)',
@@ -490,6 +509,11 @@ const PRO_COPY: LocalizedRecord<ProCopy> = {
     b2cBridgeTitle: 'Découvrez les packs de vol pour tous ou réservez un atelier CRM pour votre équipe',
     b2cBtn: 'Expériences de vol (B2C)',
     b2bBtn: 'Workshops CRM Entreprise (B2B)',
+    multiSessionBadge: 'SYLLABUS DE PRÉPARATION AUX SÉLECTIONS',
+    multiSessionTitle: 'Besoin d’une préparation complète sur 5 à 10 séances ?',
+    multiSessionDesc:
+      'Pour les cadets et pilotes se préparant aux sélections en compagnie aérienne (El Al, Arkia, Israir, Wizz Air, Ryanair) : entraînez-vous sur nos parcours structurés de 5 ou 10 vols — pilotage raw data, FMS, pannes moteur QRH, vent de travers et MCC avec jusqu’à 30% d’économie.',
+    multiSessionBtn: 'Voir les parcours de vol (5–10 séances)',
   },
   ar: {
     heroBadge: 'تدريب احترافي للطيارين • التحضير لاختبارات شركات الطيران (60 / 90 / 120 دقيقة)',
@@ -589,6 +613,11 @@ const PRO_COPY: LocalizedRecord<ProCopy> = {
     b2cBridgeTitle: 'اكتشف باقات الطيران العامة أو احجز ورشة عمل CRM لفرق القيادة',
     b2cBtn: 'تجارب الطيران والهدايا (B2C)',
     b2bBtn: 'ورش عمل CRM للشركات (B2B)',
+    multiSessionBadge: 'منهاج تدريب شامل لاختبارات القبول',
+    multiSessionTitle: 'هل تحتاجون إلى إعداد متكامل عبر 5 إلى 10 جلسات؟',
+    multiSessionDesc:
+      'للطيارين التجاريين والمتدربين المتقدمين لاختبارات شركات الطيران (إل عال، أركيا، يسرائير، ويز إير، رايان إير): تدربوا على مساراتنا المعتمدة من 5 أو 10 رحلات تشمل Raw Data، برمجة FMS، طوارئ QRH، الرياح الجانبية وMCC بتوفير يصل إلى 30%.',
+    multiSessionBtn: 'عرض مسارات التدريب المعتمدة (5–10 رحلات)',
   },
 };
 
@@ -890,6 +919,25 @@ export function ProSessionsView() {
             </div>
           </div>
         </details>
+      </section>
+
+      {/* 4b. MULTI-SESSION AIRLINE ASSESSMENT TRACKS BRIDGE */}
+      <section className="rounded-2xl border border-sky-500/30 bg-gradient-to-r from-sky-950/40 via-slate-900 to-sky-950/40 p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
+        <div className="space-y-2 text-center md:text-left rtl:md:text-right">
+          <Badge variant="sky">{copy.multiSessionBadge}</Badge>
+          <h3 className="text-xl sm:text-2xl font-bold text-white">
+            {copy.multiSessionTitle}
+          </h3>
+          <p className="text-slate-300 text-xs sm:text-sm max-w-2xl leading-relaxed">
+            {copy.multiSessionDesc}
+          </p>
+        </div>
+        <Link href="/subscriptions" className="shrink-0">
+          <Button size="lg" variant="primary" className="min-h-[44px]">
+            <span>{copy.multiSessionBtn}</span>
+            <ArrowRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
+          </Button>
+        </Link>
       </section>
 
       {/* 5. BOTTOM BRIDGE TO RECREATIONAL PACKAGES & B2B WORKSHOPS */}
