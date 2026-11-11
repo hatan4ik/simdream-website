@@ -11,8 +11,8 @@ export function BrandLogo({ className = 'h-8 w-auto', priority = false }: { clas
     <Image
       src="/brand/simdream-logo.png"
       alt="SIM DREAM"
-      width={1130}
-      height={153}
+      width={1024}
+      height={139}
       priority={priority}
       className={className}
     />
