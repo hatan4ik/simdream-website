@@ -128,7 +128,7 @@ export const SUBSCRIPTION_PAGE_COPY: LocalizedRecord<SubscriptionPageCopy> = {
       {
         title: 'I am preparing for an airline assessment.',
         description:
-          'Ten flights of deliberate practice: SOP discipline, raw-data flying, FMC briefings, QRH thinking and two-pilot communication, explained the way airlines expect. ATPL Concepts 10 × 60 or Airline Readiness 10 × 90.',
+          'Ten flights of deliberate practice: SOP discipline, raw-data flying, FMC briefings, QRH thinking and two-pilot communication, explained the way airlines expect. Flight Deck Mastery 10 × 60 or Airline Readiness 10 × 90.',
       },
       {
         title: 'I am afraid of flying and want to understand it.',
@@ -289,7 +289,7 @@ export const SUBSCRIPTION_PAGE_COPY: LocalizedRecord<SubscriptionPageCopy> = {
       {
         title: 'אני מתכונן למיון בחברת תעופה.',
         description:
-          'עשר טיסות של תרגול מכוון: משמעת SOP, טיסה ללא נתונים מעובדים, תדריכי FMC, חשיבת QRH ותקשורת של שני טייסים, מוסברים כפי שחברות התעופה מצפות. מושגי ATPL 10 × 60 או מוכנות לחברת תעופה 10 × 90.',
+          'עשר טיסות של תרגול מכוון: משמעת SOP, טיסה ללא נתונים מעובדים, תדריכי FMC, חשיבת QRH ותקשורת של שני טייסים, מוסברים כפי שחברות התעופה מצפות. שליטה במערכות 10 × 60 או מוכנות לחברת תעופה 10 × 90.',
       },
       {
         title: 'אני חושש מטיסות ורוצה להבין מה קורה.',
@@ -449,7 +449,7 @@ export const SUBSCRIPTION_PAGE_COPY: LocalizedRecord<SubscriptionPageCopy> = {
       {
         title: 'Я готовлюсь к отбору в авиакомпанию.',
         description:
-          'Десять полётов осознанной практики: дисциплина SOP, полёт по сырым данным, брифинги FMC, мышление QRH и взаимодействие двух пилотов — так, как ожидают авиакомпании. «Концепции ATPL» 10 × 60 или «Готовность к авиакомпании» 10 × 90.',
+          'Десять полётов осознанной практики: дисциплина SOP, полёт по сырым данным, брифинги FMC, мышление QRH и взаимодействие двух пилотов — так, как ожидают авиакомпании. «Мастерство систем» 10 × 60 или «Готовность к авиакомпании» 10 × 90.',
       },
       {
         title: 'Я боюсь летать и хочу понять, что происходит.',
@@ -609,7 +609,7 @@ export const SUBSCRIPTION_PAGE_COPY: LocalizedRecord<SubscriptionPageCopy> = {
       {
         title: 'Je prépare une sélection en compagnie aérienne.',
         description:
-          'Dix vols de pratique délibérée : discipline SOP, pilotage raw data, briefings FMC, raisonnement QRH et communication à deux pilotes, expliqués comme les compagnies l’attendent. Concepts ATPL 10 × 60 ou Préparation compagnie 10 × 90.',
+          'Dix vols de pratique délibérée : discipline SOP, pilotage raw data, briefings FMC, raisonnement QRH et communication à deux pilotes, expliqués comme les compagnies l’attendent. Maîtrise des Systèmes 10 × 60 ou Préparation compagnie 10 × 90.',
       },
       {
         title: 'J’ai peur de l’avion et je veux comprendre.',
@@ -769,7 +769,7 @@ export const SUBSCRIPTION_PAGE_COPY: LocalizedRecord<SubscriptionPageCopy> = {
       {
         title: 'أستعد لاختبار قبول في شركة طيران.',
         description:
-          'عشر رحلات من التدريب المتعمد: انضباط SOP، والطيران بالبيانات الخام، وإحاطات FMC، وتفكير QRH، وتواصل طاقم من طيارين، مشروحة كما تتوقعه شركات الطيران. مفاهيم ATPL 10 × 60 أو الجاهزية لشركات الطيران 10 × 90.',
+          'عشر رحلات من التدريب المتعمد: انضباط SOP، والطيران بالبيانات الخام، وإحاطات FMC، وتفكير QRH، وتواصل طاقم من طيارين، مشروحة كما تتوقعه شركات الطيران. إتقان الأنظمة 10 × 60 أو الجاهزية لشركات الطيران 10 × 90.',
       },
       {
         title: 'أخاف من الطيران وأريد أن أفهم ما يحدث.',

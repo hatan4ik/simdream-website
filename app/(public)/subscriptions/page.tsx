@@ -51,19 +51,17 @@ export default function SubscriptionsPage() {
     setPendingPassId(passId);
     try {
       const wixClient = getWixMemberClient();
-      if (!wixClient.auth.loggedIn()) {
-        await startWixMemberSignIn(`${window.location.pathname}${window.location.search}${window.location.hash}`);
-        return;
-      }
+      const isMember = wixClient.auth.loggedIn();
 
       const res = await fetch('/api/subscriptions/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ planId: passId, wixMemberCheckout: true }),
+        body: JSON.stringify({ planId: passId, wixMemberCheckout: isMember }),
       });
       if (!res.ok) throw new Error('Checkout API failed');
       const data = await res.json();
-      if (data.wixMemberCheckout && data.wixPlanId) {
+
+      if (isMember && data.wixMemberCheckout && data.wixPlanId) {
         const redirectSession = await wixClient.redirects.createRedirectSession({
           paidPlansCheckout: { planId: data.wixPlanId },
           callbacks: {
@@ -72,10 +70,12 @@ export default function SubscriptionsPage() {
           },
         });
         const memberCheckoutUrl = redirectSession.redirectSession?.fullUrl;
-        if (!memberCheckoutUrl) throw new Error('No Wix member checkout URL');
-        window.location.assign(memberCheckoutUrl);
-        return;
+        if (memberCheckoutUrl) {
+          window.location.assign(memberCheckoutUrl);
+          return;
+        }
       }
+
       if (data.checkoutUrl) {
         window.location.href = data.checkoutUrl;
         return;

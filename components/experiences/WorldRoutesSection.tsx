@@ -151,6 +151,45 @@ export function WorldRoutesSection() {
         })}
       </div>
 
+      {/* Visual Explainer: Included Routes vs. Extended Missions */}
+      <div className="max-w-4xl mx-auto rounded-2xl border border-sky-500/20 bg-gradient-to-b from-sky-950/20 via-slate-900/60 to-slate-950/80 p-5 sm:p-6 space-y-4">
+        <div className="text-center space-y-1">
+          <h3 className="text-base sm:text-lg font-bold text-white flex items-center justify-center gap-2">
+            <Compass className="w-4 h-4 text-sky-400" />
+            <span>{copy.howItWorksTitle}</span>
+          </h3>
+          <p className="text-xs sm:text-sm text-slate-400 max-w-xl mx-auto">
+            {copy.howItWorksSubtitle}
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+          <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-4 space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-sky-500/10 border border-sky-500/30 text-sky-400 text-xs font-bold">
+                ✓
+              </span>
+              <h4 className="text-sm font-bold text-white">{copy.includedPillarTitle}</h4>
+            </div>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              {copy.includedPillarDesc}
+            </p>
+          </div>
+
+          <div className="rounded-xl border border-emerald-500/30 bg-emerald-950/10 p-4 space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 text-xs font-bold">
+                +
+              </span>
+              <h4 className="text-sm font-bold text-white">{copy.extendedPillarTitle}</h4>
+            </div>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              {copy.extendedPillarDesc}
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Trio cards */}
       <ul className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 list-none p-0 m-0" data-world-routes>
         {visibleRoutes.map((route) => {
