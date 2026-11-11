@@ -8,6 +8,7 @@ import { useAuth } from '@/lib/auth/auth-context';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { LanguageSelector } from './LanguageSelector';
 import { UiThemeSwitcher } from './UiThemeSwitcher';
+import { CockpitToneSwitcher } from './CockpitToneSwitcher';
 import { FACILITY_INFO } from '@/lib/config/facility-info';
 import { useLiveFacilityStatus } from '@/lib/config/use-live-facility-status';
 import { useClientValue } from '@/lib/ui/use-client-value';
@@ -81,6 +82,7 @@ export function Footer() {
 
             <div className="pt-2 flex items-center gap-2 flex-wrap">
               <UiThemeSwitcher variant="compact" />
+              <CockpitToneSwitcher variant="compact" />
               <LanguageSelector />
             </div>
           </div>

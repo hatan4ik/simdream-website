@@ -20,6 +20,7 @@ import { buttonClassName } from '@/components/ui/Button';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { UiThemeSwitcher } from './UiThemeSwitcher';
+import { CockpitToneSwitcher } from './CockpitToneSwitcher';
 import { WhatsAppAction } from './WhatsAppAction';
 import { SOCIAL_CHANNELS } from './social-channels';
 
@@ -323,6 +324,7 @@ export function Navbar() {
             onPointerDown={() => setActiveDesktopMenu(null)}
           >
             <UiThemeSwitcher variant="compact" />
+            <CockpitToneSwitcher variant="compact" />
             <div className="relative">
               <button
                 ref={userTriggerRef}
@@ -452,6 +454,7 @@ export function Navbar() {
             <div className="flex items-center gap-1.5 md:hidden">
               <div className="hidden sm:flex items-center gap-1.5">
                 <UiThemeSwitcher variant="compact" />
+                <CockpitToneSwitcher variant="compact" />
               </div>
               {/* From 360px WhatsApp lives beside Book, between the logo and the menu, which frees the
                   top bar for the reviews, the social icons and the language selector. On narrower
@@ -631,8 +634,9 @@ export function Navbar() {
             </div>
           </details>
 
-          <div className="pt-2 border-t border-slate-800 space-y-2">
+          <div className="pt-2 border-t border-slate-800 space-y-2.5">
             <UiThemeSwitcher variant="full" />
+            <CockpitToneSwitcher variant="full" />
           </div>
 
           {demoModeEnabled && (
