@@ -1,6 +1,7 @@
 import type { Page, Request, Route } from '@playwright/test';
 import type { FlightSlot } from '../../types';
 import { evaluateDailyEfficiency, generateKantorovichSlots } from '../../lib/scheduler/kantorovich-engine';
+import { completeBookingExtras } from '../support/booking-extras';
 import { blockThirdPartyRequests, expect, preferLanguage } from '../support/e2e';
 
 export const PAYMENTS_DISABLED_MESSAGE = 'Online payments are temporarily unavailable. Please contact us to book.';
@@ -111,6 +112,7 @@ export async function fillPilotDetails(page: Page): Promise<void> {
   await page.getByLabel(/Pilot Full Name/).fill('Resilience Pilot');
   await page.getByLabel(/Pilot Email/).fill('resilience.pilot@example.test');
   await page.getByLabel(/Phone Number/).fill('+972501234567');
+  await completeBookingExtras(page);
 }
 
 /** Lets the page finish pending JS work (promise callbacks and a React commit) before a negative assertion. */

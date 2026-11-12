@@ -1,6 +1,7 @@
 import { existsSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { defineConfig, devices } from '@playwright/test';
+import { seededConsentStorageState } from './tests/support/consent';
 import { SERVER_SANDBOX_ENV, TEST_DIST_DIR } from './tests/support/test-env';
 
 // Tests run against the sandboxed production build (`npm run test:build`), as the Next.js
@@ -68,6 +69,9 @@ export default defineConfig({
   ],
   use: {
     baseURL,
+    // Every context starts as a visitor who already answered the cookie banner, so the banner does
+    // not appear in any journey, accessibility scan or visual baseline (tests/support/consent.ts).
+    storageState: seededConsentStorageState(baseURL),
     locale: 'en-US',
     timezoneId: 'Asia/Jerusalem',
     trace: 'on-first-retry',

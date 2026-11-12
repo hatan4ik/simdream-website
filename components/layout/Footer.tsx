@@ -13,6 +13,8 @@ import { FACILITY_INFO } from '@/lib/config/facility-info';
 import { useLiveFacilityStatus } from '@/lib/config/use-live-facility-status';
 import { useClientValue } from '@/lib/ui/use-client-value';
 import { SOCIAL_CHANNELS } from './social-channels';
+import { getOffersNavLabel } from '@/lib/offers/nav-label';
+import { ConsentSettingsLink } from '@/components/consent';
 
 export function Footer() {
   const { t, language } = useLanguage();
@@ -121,6 +123,11 @@ export function Footer() {
               <li>
                 <Link href="/fear-of-flying" className="hover:text-sky-400 transition-colors">
                   {t.nav.fearOfFlying}
+                </Link>
+              </li>
+              <li>
+                <Link href="/offers" className="hover:text-sky-400 transition-colors">
+                  {getOffersNavLabel(language)}
                 </Link>
               </li>
               <li>
@@ -299,7 +306,7 @@ export function Footer() {
 
         {/* Bottom Bar & Disclaimer */}
         <div className="border-t border-slate-900 mt-6 pt-6 flex flex-col md:flex-row items-center justify-between gap-4 text-[11px] text-slate-400">
-          <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-4 gap-y-1">
+          <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-4 gap-y-2">
             <p>
               &copy; {year} {FACILITY_INFO.legalNameEn} (ח.פ. / Reg.{' '}
               {FACILITY_INFO.companyRegistrationNumber}). {t.footer.rightsReserved}
@@ -310,6 +317,7 @@ export function Footer() {
             <Link href="/privacy-policy" className="text-slate-400 hover:text-sky-400 underline underline-offset-2">
               {t.footer.privacyPolicy}
             </Link>
+            <ConsentSettingsLink className="text-slate-400 hover:text-sky-400 underline underline-offset-2" />
             <Link href="/pro" className="text-slate-400 hover:text-sky-400 underline underline-offset-2">
               {t.footer.proTraining}
             </Link>

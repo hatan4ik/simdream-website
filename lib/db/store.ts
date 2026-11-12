@@ -106,10 +106,12 @@ function asStringList(input: unknown): string[] {
 }
 
 function toBooking(row: DatabaseRow): Booking {
+  const consent = getValue(row, 'consent_record');
+  const optionalCount = (key: string) => (getValue(row, key) == null ? undefined : asNumber(getValue(row, key)));
   return {
     id: requiredString(row, 'id'),
     bookingReference: requiredString(row, 'booking_reference'),
-    userId: typeof getValue(row, 'user_id') === 'string' ? String(getValue(row, 'user_id')) : undefined,
+    userId: optionalString(row, 'user_id'),
     packageId: requiredString(row, 'package_id'),
     packageTitle: requiredString(row, 'package_title'),
     durationMinutes: asNumber(getValue(row, 'duration_minutes')),
@@ -121,22 +123,20 @@ function toBooking(row: DatabaseRow): Booking {
     pilotPhone: requiredString(row, 'pilot_phone'),
     experienceLevel: requiredString(row, 'experience_level') as Booking['experienceLevel'],
     addons: asStringList(getValue(row, 'addons')),
-    requestedRouteId:
-      typeof getValue(row, 'requested_route_id') === 'string'
-        ? String(getValue(row, 'requested_route_id'))
-        : undefined,
+    requestedRouteId: optionalString(row, 'requested_route_id'),
     subtotalIls: asNumber(getValue(row, 'subtotal_ils')),
     discountIls: asNumber(getValue(row, 'discount_ils')),
     totalIls: asNumber(getValue(row, 'total_ils')),
-    voucherCode: typeof getValue(row, 'voucher_code') === 'string' ? String(getValue(row, 'voucher_code')) : undefined,
+    voucherCode: optionalString(row, 'voucher_code'),
+    pilotBirthdayMonth: optionalCount('pilot_birthday_month'),
+    pilotBirthdayDay: optionalCount('pilot_birthday_day'),
+    birthdayDiscountIls: asNumber(getValue(row, 'birthday_discount_ils')),
+    consentRecord: consent && typeof consent === 'object' ? (consent as Booking['consentRecord']) : undefined,
     status: requiredString(row, 'status') as Booking['status'],
     paymentStatus: requiredString(row, 'payment_status') as Booking['paymentStatus'],
     paymentMethod: requiredString(row, 'payment_method') as Booking['paymentMethod'],
-    stripePaymentIntentId:
-      typeof getValue(row, 'stripe_payment_intent') === 'string'
-        ? String(getValue(row, 'stripe_payment_intent'))
-        : undefined,
-    notes: typeof getValue(row, 'notes') === 'string' ? String(getValue(row, 'notes')) : undefined,
+    stripePaymentIntentId: optionalString(row, 'stripe_payment_intent'),
+    notes: optionalString(row, 'notes'),
     createdAt: requiredString(row, 'created_at'),
     confirmationClaimedAt: optionalString(row, 'confirmation_claimed_at'),
     confirmationSentAt: optionalString(row, 'confirmation_sent_at'),
@@ -163,6 +163,10 @@ function bookingInsertRow(booking: Booking): DatabaseRow {
     discount_ils: booking.discountIls,
     total_ils: booking.totalIls,
     voucher_code: booking.voucherCode || null,
+    pilot_birthday_month: booking.pilotBirthdayMonth ?? null,
+    pilot_birthday_day: booking.pilotBirthdayDay ?? null,
+    birthday_discount_ils: booking.birthdayDiscountIls ?? 0,
+    consent_record: booking.consentRecord ?? null,
     status: booking.status,
     payment_status: booking.paymentStatus,
     payment_method: booking.paymentMethod,
@@ -182,22 +186,16 @@ function toVoucher(row: DatabaseRow): GiftVoucher {
     senderName: requiredString(row, 'sender_name'),
     senderEmail: requiredString(row, 'sender_email'),
     personalMessage: typeof getValue(row, 'personal_message') === 'string' ? String(getValue(row, 'personal_message')) : '',
-    packageId: typeof getValue(row, 'package_id') === 'string' ? String(getValue(row, 'package_id')) : undefined,
-    packageTitle: typeof getValue(row, 'package_title') === 'string' ? String(getValue(row, 'package_title')) : undefined,
-    giftCardDesignId:
-      typeof getValue(row, 'gift_card_design_id') === 'string'
-        ? (String(getValue(row, 'gift_card_design_id')) as GiftVoucher['giftCardDesignId'])
-        : undefined,
+    packageId: optionalString(row, 'package_id'),
+    packageTitle: optionalString(row, 'package_title'),
+    giftCardDesignId: optionalString(row, 'gift_card_design_id') as GiftVoucher['giftCardDesignId'],
     expiryDate: requiredString(row, 'expiry_date'),
     isRedeemed: Boolean(getValue(row, 'is_redeemed')),
     paymentStatus: (typeof getValue(row, 'payment_status') === 'string'
       ? getValue(row, 'payment_status')
       : 'paid') as GiftVoucher['paymentStatus'],
-    stripeCheckoutSessionId:
-      typeof getValue(row, 'stripe_checkout_session_id') === 'string'
-        ? String(getValue(row, 'stripe_checkout_session_id'))
-        : undefined,
-    activatedAt: typeof getValue(row, 'activated_at') === 'string' ? String(getValue(row, 'activated_at')) : undefined,
+    stripeCheckoutSessionId: optionalString(row, 'stripe_checkout_session_id'),
+    activatedAt: optionalString(row, 'activated_at'),
     createdAt: requiredString(row, 'created_at'),
     confirmationClaimedAt: optionalString(row, 'confirmation_claimed_at'),
     confirmationSentAt: optionalString(row, 'confirmation_sent_at'),

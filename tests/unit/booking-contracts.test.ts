@@ -43,6 +43,8 @@ test('checkout accepts only the server-priced booking command shape', () => {
     pilotPhone: '+972555071307',
     experienceLevel: 'beginner',
     addons: [],
+    pilotBirthDate: '1990-06-15',
+    consent: { rulesRefundsAndPrivacy: true, mediaReleaseAndWaiver: true, language: 'en' },
     totalIls: 1,
     discountIls: 9999,
   });

@@ -24,6 +24,7 @@ export const PUBLIC_SITE_ROUTES: readonly PublicSiteRoute[] = [
   { path: '/book', changeFrequency: 'daily', priority: 0.95, labelEn: 'Express Online Booking (calendar, packages and add-ons)' },
   { path: '/experiences', changeFrequency: 'weekly', priority: 0.9, labelEn: 'Experience Flights, Flight Packages and World Route Catalog' },
   { path: '/subscriptions', changeFrequency: 'weekly', priority: 0.9, labelEn: 'Flight Tracks (multi-flight subscription passes)' },
+  { path: '/offers', changeFrequency: 'weekly', priority: 0.8, labelEn: 'Offers & Benefits (birthday discount, flight tracks, gift vouchers)' },
   { path: '/blog', changeFrequency: 'weekly', priority: 0.85, labelEn: 'Flight Deck Journal (aviation blog, Hebrew)' },
   { path: '/about', changeFrequency: 'monthly', priority: 0.8, labelEn: 'About Sim Dream and the Customer Flight Experience' },
   { path: '/pro', changeFrequency: 'weekly', priority: 0.9, labelEn: 'Professional Training and Airline Assessment Prep (PRO tiers)' },

@@ -1,3 +1,4 @@
+import { noDiscountBirthDate } from '../support/booking-extras';
 import { validityOf } from './pages/forms';
 import { PAYMENTS_UNAVAILABLE, type PilotDetails } from './pages/booking-page';
 import { addMinutes, displayDatePattern, ilsPattern } from './pages/format';
@@ -22,6 +23,8 @@ const BOOKING_REQUEST_FIELDS: readonly string[] = [
   'requestedRouteId',
   'voucherCode',
   'notes',
+  'pilotBirthDate',
+  'consent',
 ];
 
 const PILOT: PilotDetails = {
@@ -114,6 +117,9 @@ test.describe('recreational booking, guided 3-step wizard', () => {
       pilotName: PILOT.name,
       pilotEmail: PILOT.email,
       pilotPhone: PILOT.phone,
+      pilotBirthDate: noDiscountBirthDate(),
+      // Only the two confirmations and the page language: the server adds the time and the versions.
+      consent: { rulesRefundsAndPrivacy: true, mediaReleaseAndWaiver: true, language: 'en' },
     });
   });
 

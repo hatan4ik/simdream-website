@@ -75,6 +75,7 @@ Add-ons extend a consumer Experience Flight. Professional and Fear of Flying ses
 - [Express Online Booking (calendar, packages and add-ons)](https://www.simdream.co.il/book)
 - [Experience Flights, Flight Packages and World Route Catalog](https://www.simdream.co.il/experiences)
 - [Flight Tracks (multi-flight subscription passes)](https://www.simdream.co.il/subscriptions)
+- [Offers & Benefits (birthday discount, flight tracks, gift vouchers)](https://www.simdream.co.il/offers)
 - [Flight Deck Journal (aviation blog, Hebrew)](https://www.simdream.co.il/blog)
 - [About Sim Dream and the Customer Flight Experience](https://www.simdream.co.il/about)
 - [Professional Training and Airline Assessment Prep (PRO tiers)](https://www.simdream.co.il/pro)

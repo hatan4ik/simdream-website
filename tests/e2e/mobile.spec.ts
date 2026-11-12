@@ -1,3 +1,4 @@
+import { completeBookingExtras } from '../support/booking-extras';
 import { PAYMENTS_UNAVAILABLE } from './pages/booking-page';
 import { addMinutes, israelDate } from './pages/format';
 import { expect, test } from './fixtures';
@@ -175,6 +176,7 @@ test.describe('mobile affordances', () => {
     await wizard.pilotEmail().fill('touch.pilot@example.com');
     await wizard.pilotPhone().tap();
     await wizard.pilotPhone().fill('+972-52-000-0000');
+    await completeBookingExtras(page);
     await wizard.submit().tap();
 
     await expect(booking.alert(PAYMENTS_UNAVAILABLE)).toBeVisible();

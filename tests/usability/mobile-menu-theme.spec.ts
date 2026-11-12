@@ -10,7 +10,11 @@ import { expectLanguageRendered, freezeCssMotion, gotoSettled, isolateFromThirdP
 // background class (`bg-slate-950/98`) had no daylight override while its text had, so the links were
 // dark ink on a black panel (1.9:1). axe never saw it: it reports a translucent panel over page content as
 // "incomplete", not as a violation. These tests measure what is painted, then add axe for the rest.
-test.use({ reducedMotion: 'reduce', video: 'off', viewport: { width: 390, height: 844 } });
+// Phone width, but tall: the panel is capped at `100svh - 8rem` and scrolls inside itself, and axe cannot
+// judge a node that its own scroll container clips ("incomplete"). A tall viewport keeps every link, the
+// About disclosure and the theme controls in view, so this spec stays about colours and does not break each
+// time a destination is added to the menu (Offers, Ground School).
+test.use({ reducedMotion: 'reduce', video: 'off', viewport: { width: 390, height: 1600 } });
 
 const WCAG_AA_NORMAL_TEXT = 4.5;
 // White is 1 and the darkest slate fill is ~0.002: anything between these bounds is a mid-grey that
@@ -49,7 +53,7 @@ async function openMobileMenu(page: Page): Promise<void> {
 }
 
 for (const { name, theme, tone, panel, languages } of CASES) {
-  test.describe(`mobile menu panel, ${name}, 390x844`, () => {
+  test.describe(`mobile menu panel, ${name}, 390px wide`, () => {
     for (const language of languages) {
       test(`is a ${panel} surface with readable text and no axe color-contrast failures (${language})`, async ({ page, baseURL }) => {
         await isolateFromThirdParties(page, baseURL);

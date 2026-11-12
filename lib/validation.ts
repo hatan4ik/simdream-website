@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { GIFT_CARD_DESIGNS, MIN_GIFT_VOUCHER_AMOUNT_ILS, type GiftCardDesignId } from '@/lib/catalog/gift-card-designs';
+import type { SupportedLanguage } from '@/lib/i18n/translations';
 
 /** The only balances a flexible Gift Card is sold at: one per card design. There is no custom amount. */
 const GIFT_CARD_AMOUNTS_ILS = new Set<number>(GIFT_CARD_DESIGNS.map((design) => design.amountIls));
@@ -24,6 +25,20 @@ const giftCardDesignIds = GIFT_CARD_DESIGNS.map((design) => design.id) as unknow
   ...GiftCardDesignId[],
 ];
 
+/** The six page languages a consent can be given in (`tests/unit/validation.test.ts` pins this to `LANGUAGES`). */
+export const CHECKOUT_CONSENT_LANGUAGES = ['he', 'en', 'ru', 'fr', 'ar', 'es'] as const satisfies readonly SupportedLanguage[];
+
+/**
+ * The two separate confirmations of the checkout (rules clause 15). The browser sends only the two
+ * booleans and the page language it displayed; the server stamps the time and the versions itself
+ * (`buildConsentRecord`), so any version or timestamp a client adds is ignored.
+ */
+const consentSchema = z.object({
+  rulesRefundsAndPrivacy: z.literal(true, 'Accept the rules, the refund rule and the privacy policy to continue.'),
+  mediaReleaseAndWaiver: z.literal(true, 'Agree to the media release and waiver of claims to continue.'),
+  language: z.enum(CHECKOUT_CONSENT_LANGUAGES),
+});
+
 export const bookingCheckoutSchema = z.object({
   kind: z.literal('booking'),
   packageId: z.string().trim().min(1).max(80),
@@ -37,6 +52,9 @@ export const bookingCheckoutSchema = z.object({
   requestedRouteId: z.string().trim().regex(/^route-[a-z0-9-]{1,80}$/).optional(),
   voucherCode: z.string().trim().toUpperCase().max(64).optional(),
   notes: z.string().trim().max(2_000).optional(),
+  /** The Pilot in Command's date of birth (mandatory). Validated against the flight date and the age bounds by the service; only month and day are ever stored. */
+  pilotBirthDate: isoDate,
+  consent: consentSchema,
 });
 
 export const voucherCheckoutSchema = z.object({

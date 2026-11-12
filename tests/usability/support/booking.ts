@@ -1,7 +1,8 @@
 import type { APIRequestContext, Locator, Page } from '@playwright/test';
 import { translations } from '@/lib/i18n/translations';
 import { expect, nextIsraelWeekday, type Language } from '../../support/e2e';
-import { gotoSettled, storefrontSlotButtons, zeroSlotHeading } from './page';
+import { completeBookingExtras, noDiscountBirthDate } from '../../support/booking-extras';
+import { gotoSettled, storefrontSlotButtons, tabTo, zeroSlotHeading } from './page';
 
 /** Error the production checkout returns while card payments are disabled. */
 export const PAYMENTS_UNAVAILABLE_MESSAGE = 'Online payments are temporarily unavailable. Please contact us to book.';
@@ -154,13 +155,32 @@ export function storefrontVoucher(page: Page): { input: Locator; apply: Locator 
   };
 }
 
-/** Fills the storefront captain manifest with valid contact details. */
+/** Fills the storefront captain manifest with valid contact details, the birth date and both confirmations. */
 export async function fillStorefrontManifest(page: Page): Promise<void> {
   await page.getByLabel('Pilot Full Name *').fill('Dana Keyboard');
   await page.getByLabel('Pilot Email (Confirmation) *').fill('dana.keyboard@example.com');
   await page.getByLabel('Phone Number *').fill('054-555-0101');
+  await completeBookingExtras(page);
 }
 
 export function checkoutButton(page: Page): Locator {
   return page.getByRole('button', { name: /^Proceed to Secure Checkout/ });
+}
+
+/**
+ * Completes the mandatory birth date and both confirmations with the keyboard alone: Tab to the date
+ * control and type its segments (month, day, year in the en-US locale of the suites), then Tab to each
+ * confirmation and press Space.
+ */
+export async function completeExtrasByKeyboard(page: Page): Promise<void> {
+  await tabTo(page, page.locator('[data-birthday-field] input[type="date"]').filter({ visible: true }));
+  const [year, month, day] = noDiscountBirthDate().split('-');
+  await page.keyboard.type(`${month}${day}${year}`);
+  const boxes = page.locator('[data-consent-agreement] input[type="checkbox"]').filter({ visible: true });
+  for (let index = 0; index < 2; index += 1) {
+    const box = boxes.nth(index);
+    await tabTo(page, box);
+    await page.keyboard.press('Space');
+    await expect(box).toBeChecked();
+  }
 }

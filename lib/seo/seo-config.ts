@@ -1,12 +1,14 @@
 import type { Metadata } from 'next';
 import { FACILITY_INFO } from '@/lib/config/facility-info';
 import { SIMULATOR_PACKAGES } from '@/lib/db/seed-data';
+import { BIRTHDAY_DISCOUNT_PERCENT } from '@/lib/discounts/birthday/constants';
 
 export type SeoPageKey =
   | 'home'
   | 'book'
   | 'experiences'
   | 'subscriptions'
+  | 'offers'
   | 'about'
   | 'simulator'
   | 'pro'
@@ -128,6 +130,22 @@ export const PAGE_SEO_DEFINITIONS: Record<SeoPageKey, PageSeoDefinition> = {
       'מנויי טיסה סימולטור בואינג',
       'מנוי טיסות סימולטור',
       'captain flight training Tel Aviv',
+    ],
+  },
+  offers: {
+    path: '/offers',
+    title: 'Offers & Benefits | Birthday Discount, Flight Tracks & Gift Vouchers | Sim Dream Tel Aviv (הטבות ומבצעים)',
+    description:
+      `Sim Dream Tel Aviv offers in plain words: ${BIRTHDAY_DISCOUNT_PERCENT}% off a Boeing 737 flight in your birthday month, ` +
+      `the ${PROMO_45.durationMinutes}-minute Discounted Promotion flight (${ils(PROMO_45.priceIls)}), flight track savings and gift vouchers. ` +
+      'What applies, when, and what cannot be combined.',
+    keywords: [
+      ...COMMON_KEYWORDS,
+      'flight simulator offers Israel',
+      'birthday discount flight simulator Tel Aviv',
+      'הטבות סימולטור טיסה',
+      'הנחת יום הולדת סימולטור טיסה',
+      'מבצעים סימולטור טיסה',
     ],
   },
   about: {

@@ -42,7 +42,7 @@ export function WhatsAppAction({ placement = 'utility' }: WhatsAppActionProps) {
       aria-label="Contact Sim Dream on WhatsApp: +972 55 507 1307"
       title="WhatsApp Sim Dream"
       className={`inline-flex shrink-0 items-center justify-center rounded-full border border-[#25D366] bg-[#25D366] text-slate-950 transition-colors hover:bg-[#1DA851] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#25D366] focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 touch-manipulation ${
-        isNavbarAction ? 'min-h-11 min-w-11' : 'min-h-9 min-w-9 md:h-9 md:w-9'
+        isNavbarAction ? 'min-h-11 min-w-11' : 'min-h-9 min-w-9 pointer-coarse:min-w-11 md:h-9 md:w-9'
       }`}
     >
       <WhatsAppMark className={isNavbarAction ? 'h-5 w-5' : 'h-[18px] w-[18px]'} />
