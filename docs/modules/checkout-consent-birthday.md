@@ -48,7 +48,7 @@ tests/e2e/booking-consent-birthday.spec.ts, tests/a11y/booking-consent-states.sp
 
 Changed: `types/index.ts` (4 optional `Booking` fields), `lib/validation.ts`, `lib/booking/checkout-service.ts`,
 `lib/db/store.ts` (row mapping; the file got shorter), `lib/sendgrid.ts` (one conditional "Birthday Discount" row),
-`app/api/...` none, `app/(public)/book/page.tsx` (still 249 lines), `app/admin/bookings/page.tsx` (shows the
+no API route changed, `app/(public)/book/page.tsx` (still 249 lines), `app/admin/bookings/page.tsx` (shows the
 birthday day/month and the amount to staff), `components/booking/{BookingStorefrontView,PilotManifestForm,
 hooks/use-booking-checkout,hooks/use-booking-voucher,hooks/index,index}`, `components/scheduler/AmazonFlightStorefront.tsx`
 (three optional slot props; the voucher box moved out; 1,992 to 1,924 lines), `lib/booking/client/{index,wix-checkout-cart}.ts`,
