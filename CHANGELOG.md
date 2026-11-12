@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.20.0](https://github.com/hatan4ik/simdream-website/compare/v1.19.1...v1.20.0) (2026-11-12)
+
+
+### Features
+
+* **training:** add Ground School cohort requests ([#114](https://github.com/hatan4ik/simdream-website/issues/114)) ([5ee217a](https://github.com/hatan4ik/simdream-website/commit/5ee217ac704ab3ee1ef32bd909941d7d14122b93))
+
 ## [1.19.1](https://github.com/hatan4ik/simdream-website/compare/v1.19.0...v1.19.1) (2026-11-12)
 
 
