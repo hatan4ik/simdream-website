@@ -1,10 +1,16 @@
 import { expect, test } from './fixtures';
+import { NO_SEEDED_CONSENT } from '../support/consent';
 
 test.describe('contact page', () => {
   test.describe('without scripts', () => {
     // The server-rendered page must already carry the facility details. This
     // also keeps the check independent of hydration.
-    test.use({ javaScriptEnabled: false });
+    //
+    // The suite pre-seeds the cookie-consent record into every browser context. Restoring that state
+    // needs a script to run on the site origin, which a scripts-off context cannot do (Firefox then
+    // waits for the root page to load until the test times out). With scripts off there is no consent
+    // banner to hide anyway, so this one context starts without the seed.
+    test.use({ javaScriptEnabled: false, storageState: NO_SEEDED_CONSENT });
 
     test('shows the address, phone, email, WhatsApp and opening hours', async ({ page }) => {
       const response = await page.goto('/contact');

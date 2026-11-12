@@ -36,7 +36,7 @@ export const PUBLIC_ROUTES = [
  * a Next `_rsc` request and WebKit's exact cancellation wording are accepted.
  */
 function isCancelledLocalRscPrefetch(message: string): boolean {
-  return /^\/127\.0\.0\.1:\d+\/[^\s?]+\?_rsc=[^\s]+ due to access control checks\.$/.test(message);
+  return /^\/127\.0\.0\.1:\d+\/[^\s?]*\?_rsc=[^\s]+ due to access control checks\.$/.test(message);
 }
 
 /**
