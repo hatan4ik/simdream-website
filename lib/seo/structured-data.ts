@@ -1,6 +1,7 @@
 import { FACILITY_INFO, ROUTE_ORIGIN_PRESETS } from '@/lib/config/facility-info';
 import { SIMULATOR_PACKAGES } from '@/lib/db/seed-data';
-import { LANGUAGES, type Language } from '@/lib/i18n/translations';
+import { LANGUAGE_CODES } from '@/lib/i18n/language-preference';
+import type { Language } from '@/lib/i18n/translations';
 import type { SimulatorPackage } from '@/types';
 
 /**
@@ -8,7 +9,7 @@ import type { SimulatorPackage } from '@/types';
  *
  * Every fact a search engine or an AI assistant can quote from here is derived from an
  * authoritative registry: prices from `SIMULATOR_PACKAGES`, hours, address, contact and
- * social profiles from `FACILITY_INFO`, languages from `LANGUAGES`. Nothing in this file
+ * social profiles from `FACILITY_INFO`, languages from `LANGUAGE_CODES` (pinned to `LANGUAGES`; see `lib/i18n/language-preference.ts`). Nothing in this file
  * repeats a price, an hour or a rating by hand, and `tests/unit/seo-integrity.test.ts`
  * compares the emitted graph with those registries.
  */
@@ -45,7 +46,7 @@ export function schemaClosingTime(close: string): string {
 
 /** BCP-47 tags for the six interface languages as spoken in Israel (`he-IL`, `en-IL`, …). */
 export function siteLanguageTags(): string[] {
-  return LANGUAGES.map((language) => `${language.code}-IL`);
+  return LANGUAGE_CODES.map((code) => `${code}-IL`);
 }
 
 /** Maps, the alternate domain, WhatsApp and the three social profiles from the facility config. */

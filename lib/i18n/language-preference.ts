@@ -3,7 +3,15 @@ import type { Language } from './translations';
 /** Israel-first on a visitor's first arrival; an explicit saved choice wins later. */
 export const DEFAULT_LANGUAGE: Language = 'he';
 
-const supportedLanguageCodes = new Set<Language>(['he', 'en', 'ru', 'fr', 'ar', 'es']);
+/**
+ * The six interface languages in language-selector order, kept apart from `translations.ts` so a
+ * server module that only needs the codes (the JSON-LD graph in the root layout) does not pull the
+ * 380 KB translation tables into the Wix worker a second time. `tests/unit/language-codes.test.ts`
+ * pins this list to `LANGUAGES`.
+ */
+export const LANGUAGE_CODES: readonly Language[] = ['en', 'he', 'ru', 'fr', 'ar', 'es'];
+
+const supportedLanguageCodes = new Set<Language>(LANGUAGE_CODES);
 
 export function isSupportedLanguage(value: string | null | undefined): value is Language {
   return value !== null && value !== undefined && supportedLanguageCodes.has(value as Language);
