@@ -306,7 +306,7 @@ export function Footer() {
 
         {/* Bottom Bar & Disclaimer */}
         <div className="border-t border-slate-900 mt-6 pt-6 flex flex-col md:flex-row items-center justify-between gap-4 text-[11px] text-slate-400">
-          <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-4 gap-y-1">
+          <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-4 gap-y-2">
             <p>
               &copy; {year} {FACILITY_INFO.legalNameEn} (ח.פ. / Reg.{' '}
               {FACILITY_INFO.companyRegistrationNumber}). {t.footer.rightsReserved}
