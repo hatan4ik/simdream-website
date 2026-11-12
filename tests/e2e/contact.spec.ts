@@ -44,4 +44,54 @@ test.describe('contact page', () => {
 
     expect(errors).toEqual([]);
   });
+
+  test('submits a Dispatch inquiry only after the API accepts it', async ({ page }) => {
+    await page.route('**/api/contact', async (route) => {
+      expect(route.request().method()).toBe('POST');
+      await route.fulfill({
+        status: 202,
+        contentType: 'application/json',
+        body: JSON.stringify({ accepted: true }),
+      });
+    });
+
+    await page.goto('/contact');
+    await page.locator('#contact-name').fill('Dana Probe');
+    await page.locator('#contact-email').fill('dana@probe.test');
+    await page.locator('#contact-phone').fill('+972501112233');
+    await page.locator('#contact-message').fill('Please help us plan a 90-minute flight experience.');
+    const contactRequest = page.waitForRequest(
+      (request) => request.url().endsWith('/api/contact') && request.method() === 'POST'
+    );
+    await page.locator('form:has(#contact-name) button[type="submit"]').click();
+
+    await expect(page.locator('[role="status"]')).toBeVisible();
+    expect((await contactRequest).postDataJSON()).toMatchObject({
+      name: 'Dana Probe',
+      email: 'dana@probe.test',
+      phone: '+972501112233',
+      subject: 'General Question',
+      message: 'Please help us plan a 90-minute flight experience.',
+    });
+  });
+
+  test('keeps the inquiry form open when Dispatch cannot accept it', async ({ page }) => {
+    await page.route('**/api/contact', async (route) => {
+      await route.fulfill({
+        status: 503,
+        contentType: 'application/json',
+        body: JSON.stringify({ error: 'Unable to deliver your message right now. Please try again later.' }),
+      });
+    });
+
+    await page.goto('/contact');
+    await page.locator('#contact-name').fill('Dana Probe');
+    await page.locator('#contact-email').fill('dana@probe.test');
+    await page.locator('#contact-message').fill('Please help us plan a 90-minute flight experience.');
+    await page.locator('form:has(#contact-name) button[type="submit"]').click();
+
+    await expect(page.getByRole('alert')).toBeVisible();
+    await expect(page.locator('#contact-message')).toHaveValue('Please help us plan a 90-minute flight experience.');
+    await expect(page.locator('[role="status"]')).toHaveCount(0);
+  });
 });
