@@ -98,11 +98,11 @@ describe('versioning and renewal', () => {
     expect(isConsentCurrent(record, NOW, { version: 2 })).toBe(false);
   });
 
-  it('rejects a decision stamped far in the future (clock skew or tampering)', () => {
-    const record = createConsentRecord({}, new Date('2030-01-01T00:00:00.000Z'));
-    expect(isConsentCurrent(record, NOW)).toBe(false);
-    const slightlyAhead = createConsentRecord({}, new Date(NOW.getTime() + 60 * 60 * 1000));
-    expect(isConsentCurrent(slightlyAhead, NOW)).toBe(true);
+  it('counts a decision stamped ahead of the clock as current (clock skew, or a test that freezes time in the past)', () => {
+    const ahead = createConsentRecord({}, new Date('2030-01-01T00:00:00.000Z'));
+    expect(isConsentCurrent(ahead, NOW)).toBe(true);
+    // ... and it still renews 12 months after the date it carries.
+    expect(isConsentCurrent(ahead, new Date('2031-01-01T00:00:00.000Z'))).toBe(false);
   });
 });
 

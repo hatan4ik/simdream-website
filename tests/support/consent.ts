@@ -9,7 +9,9 @@ import { createConsentRecord, serializeConsentRecord } from '../../lib/consent/r
  * state to all projects: each browser context starts with a current "necessary only" decision in
  * localStorage, exactly what a visitor who already answered the banner has. It is built from the
  * real record functions, so a CONSENT_VERSION bump or the 12-month renewal can never silently
- * bring the banner back (the decision is stamped when the config is loaded).
+ * bring the banner back (the decision is stamped when the config is loaded). A test that freezes the
+ * clock in the past (tests/visual) still sees it as current: a decision stamped ahead of the clock
+ * counts (lib/consent/record.ts), so there is no date window to fall out of.
  *
  * Only localStorage is seeded; no cookie is added (tests/security-web asserts the app sets none).
  * tests/usability/cookie-consent.spec.ts opts out with `test.use({ storageState: NO_SEEDED_CONSENT })`

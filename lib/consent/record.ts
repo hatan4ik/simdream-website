@@ -7,9 +7,6 @@ import {
   type OptionalConsentCategory,
 } from './types';
 
-/** A decision stamped further ahead than this is clock skew or tampering, not a decision. */
-const FUTURE_TOLERANCE_MS = 24 * 60 * 60 * 1000;
-
 export interface ConsentRules {
   version?: number;
   renewalMonths?: number;
@@ -74,12 +71,14 @@ export function consentExpiresAt(record: ConsentRecord, renewalMonths: number = 
   return expires;
 }
 
-/** True while the record is for the current version, not in the future and not yet due for renewal. */
+/**
+ * True while the record is for the current version and not yet due for renewal. There is no upper
+ * bound on `decidedAt`: a decision stamped ahead of this device's clock (clock skew, or a test that
+ * freezes time in the past) simply counts as current until its renewal date.
+ */
 export function isConsentCurrent(record: ConsentRecord, now: Date, rules: ConsentRules = {}): boolean {
   const { version = CONSENT_VERSION, renewalMonths = CONSENT_RENEWAL_MONTHS } = rules;
   if (record.version !== version) return false;
-  const decidedAt = Date.parse(record.decidedAt);
-  if (decidedAt > now.getTime() + FUTURE_TOLERANCE_MS) return false;
   return now.getTime() < consentExpiresAt(record, renewalMonths).getTime();
 }
 

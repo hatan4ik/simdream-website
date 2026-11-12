@@ -130,8 +130,9 @@ describe('choice banner (an optional category in use)', () => {
   it('offers a toggle only for the category in use, none pre-checked, and lists the rest as not used', () => {
     const html = dialog('en', ['necessary', 'analytics']);
     expect(html.match(/role="switch"/g)).toHaveLength(1);
-    expect(html).not.toMatch(/role="switch"[^>]*checked/);
-    expect(html).not.toMatch(/checked=""[^>]*role="switch"/);
+    const switches = html.match(/<input[^>]*role="switch"[^>]*>/g) ?? [];
+    expect(switches).toHaveLength(1);
+    expect(switches.some((tag) => / checked=""/.test(tag))).toBe(false);
     expect(html.match(/Not used on this site/g)).toHaveLength(2);
     expect(buttonClass(html, 'Accept all')).toBe(buttonClass(html, 'Reject non-essential'));
   });
