@@ -9,6 +9,7 @@ import { LiveMetarBar } from '@/components/layout/LiveMetarBar';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { SkipLink } from '@/components/layout/SkipLink';
+import { ConsentManager } from '@/components/consent';
 import { buildPageMetadata } from '@/lib/seo/seo-config';
 import { StructuredDataJsonLd } from '@/components/seo/StructuredDataJsonLd';
 
@@ -74,6 +75,7 @@ export default async function RootLayout({
           <LanguageProvider initialLanguage={initialLanguage}>
             <AuthProvider>
               <SkipLink />
+              <ConsentManager />
               <header data-site-chrome className="sticky top-0 z-[60]">
                 <LiveMetarBar />
                 <Navbar />
