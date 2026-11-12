@@ -31,7 +31,7 @@ function OfferCard({ icon: Icon, title, badge, body, href, cta, id }: OfferCardP
         </div>
         <h3 className="text-lg font-bold text-white leading-snug">{title}</h3>
         {badge && (
-          <p className="inline-flex rounded-full border border-orange-500/40 bg-orange-500/10 px-2.5 py-0.5 text-xs font-semibold text-orange-400">
+          <p className="inline-flex rounded-full border border-sky-500/30 bg-sky-500/10 px-2.5 py-0.5 text-xs font-semibold text-sky-300">
             {badge}
           </p>
         )}

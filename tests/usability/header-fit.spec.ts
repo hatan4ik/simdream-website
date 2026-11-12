@@ -83,26 +83,34 @@ for (const width of [320, 360, 390, 430]) {
             if (box.width === 0 || box.height === 0) return null;
             return { left: box.left, right: box.right, top: box.top, bottom: box.bottom, width: box.width, height: box.height };
           };
-          const visible = (selector: string) =>
-            [...document.querySelectorAll(selector)].map(rectOf).find((box) => box !== null) ?? null;
-          const book = [...document.querySelectorAll('[data-site-navbar] a[href="/book"]')]
-            .map((node) => ({ box: rectOf(node), label: (node.textContent ?? '').trim() }))
-            .find((entry) => entry.box !== null);
+          const visible = (selector: string) => {
+            const node = [...document.querySelectorAll(selector)].find((candidate) => rectOf(candidate) !== null) ?? null;
+            return { box: rectOf(node), node };
+          };
+          const book = visible('[data-site-navbar] a[href="/book"]');
+          const whatsapp = visible('[data-whatsapp-action]');
+          const navbar = document.querySelector('[data-site-navbar]')!;
+          const utilityBar = document.querySelector('[data-site-utility-bar]')!;
           return {
             viewport: document.documentElement.clientWidth,
-            overflow: Math.max(
+            pageOverflow: Math.max(
               document.documentElement.scrollWidth - document.documentElement.clientWidth,
               document.body.scrollWidth - document.documentElement.clientWidth
             ),
-            book: book?.box ?? null,
-            bookLabel: book?.label ?? '',
-            whatsapp: visible('[data-whatsapp-action]'),
-            language: visible('[data-language-selector-trigger]'),
-            menu: visible('button[aria-controls="mobile-navigation"]'),
+            navbarOverflow: navbar.scrollWidth - navbar.clientWidth,
+            utilityBarOverflow: utilityBar.scrollWidth - utilityBar.clientWidth,
+            book: book.box,
+            bookLabel: (book.node?.textContent ?? '').trim(),
+            whatsapp: whatsapp.box,
+            whatsappPlacement: whatsapp.node?.getAttribute('data-whatsapp-placement') ?? '',
+            language: visible('[data-language-selector-trigger]').box,
+            menu: visible('button[aria-controls="mobile-navigation"]').box,
           };
         });
 
-        expect(header.overflow, 'header overflows horizontally').toBeLessThanOrEqual(0);
+        expect(header.navbarOverflow, 'navbar overflows horizontally').toBeLessThanOrEqual(0);
+        expect(header.utilityBarOverflow, 'utility bar overflows horizontally').toBeLessThanOrEqual(0);
+        expect(header.pageOverflow, 'page overflows horizontally').toBeLessThanOrEqual(0);
         const controls = { book: header.book, whatsapp: header.whatsapp, language: header.language, menu: header.menu };
         for (const [name, box] of Object.entries(controls)) {
           expect(box, `${name} is not visible`).not.toBeNull();
@@ -110,22 +118,27 @@ for (const width of [320, 360, 390, 430]) {
           expect(box!.right, `${name} ends right of the screen`).toBeLessThanOrEqual(header.viewport);
         }
 
-        // The controls that sit in the navbar row never overlap one another.
-        const row = [controls.book!, controls.menu!, ...(header.whatsapp!.top > 80 ? [] : [header.whatsapp!])];
-        for (let a = 0; a < row.length; a += 1) {
-          for (let b = a + 1; b < row.length; b += 1) {
-            const overlap = Math.min(row[a].right, row[b].right) - Math.max(row[a].left, row[b].left);
-            expect(overlap, `header controls ${a} and ${b} overlap`).toBeLessThanOrEqual(0);
+        // Controls that share a row never overlap: Book, menu and (from 360px) WhatsApp in the navbar;
+        // language and (below 360px) WhatsApp in the utility bar.
+        const overlaps = (a: { left: number; right: number }, b: { left: number; right: number }) =>
+          Math.min(a.right, b.right) - Math.max(a.left, b.left);
+        const navbarRow = [controls.book!, controls.menu!, ...(header.whatsappPlacement === 'navbar' ? [controls.whatsapp!] : [])];
+        const utilityRow = [controls.language!, ...(header.whatsappPlacement === 'navbar' ? [] : [controls.whatsapp!])];
+        for (const row of [navbarRow, utilityRow]) {
+          for (let a = 0; a < row.length; a += 1) {
+            for (let b = a + 1; b < row.length; b += 1) {
+              expect(overlaps(row[a], row[b]), `header controls ${a} and ${b} overlap`).toBeLessThanOrEqual(0);
+            }
           }
         }
 
-        for (const name of ['book', 'menu'] as const) {
-          expect(controls[name]!.height, `${name} tap target height`).toBeGreaterThanOrEqual(MIN_TAP_TARGET_PX);
+        for (const [name, box] of Object.entries(controls)) {
+          expect(box!.height, `${name} tap target height`).toBeGreaterThanOrEqual(MIN_TAP_TARGET_PX);
         }
-        expect(controls.whatsapp!.height, 'WhatsApp tap target height').toBeGreaterThanOrEqual(MIN_TAP_TARGET_PX);
         expect(controls.whatsapp!.width, 'WhatsApp tap target width').toBeGreaterThanOrEqual(MIN_TAP_TARGET_PX);
-        expect(controls.language!.height, 'language selector tap target height').toBeGreaterThanOrEqual(MIN_TAP_TARGET_PX);
         expect(controls.menu!.width, 'menu tap target width').toBeGreaterThanOrEqual(MIN_TAP_TARGET_PX);
+        // The compact label is the language's own short Book word.
+        expect(header.bookLabel.length, 'Book label').toBeGreaterThan(0);
       });
     }
   });

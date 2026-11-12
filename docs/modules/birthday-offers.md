@@ -190,17 +190,69 @@ Read with curl on 2026-11-11. It lists offers that the new site does not reflect
    advertised only on the local Stripe path.
 9. The SEO description of `/offers` quotes the 15 percent: revisit it if the Wix path stays the live checkout.
 
-## 9. The `nav.bookFlightShort` key (coordinator extra task)
+## 9. The `nav.bookFlightShort` key and the 360px header (coordinator extra task)
 
 The compact Book button of the phone and tablet header read `t.nav.bookFlight.split(' ')[0]`, which gave Russian
 "Забронировать". `lib/i18n/translations.ts` now has `nav.bookFlightShort` in all six languages: for every language
-except Russian it equals exactly what `split(' ')[0]` produced (`Book`, `הזמן`, `Réserver`, `احجز`, `Reservar`; see the
-unit test `tests/unit/nav-book-short.test.ts`, which pins that equality), and Russian is `Бронь`. Only the mobile
-`Link` in `Navbar.tsx` uses it; the desktop button still uses `t.nav.bookFlight`.
+except Russian it equals exactly what `split(' ')[0]` produced (`Book`, `הזמן`, `Réserver`, `احجز`, `Reservar`;
+`tests/unit/nav-book-short.test.ts` pins that equality), and Russian is `Бронь`. Only the mobile `Link` in
+`Navbar.tsx` uses it; the desktop button still uses `t.nav.bookFlight`. No language-specific code exists.
+
+Finding: "Бронь" alone was NOT enough at exactly 360 to 365 px. Measured on a touch emulation, the row (logo 177 px,
+WhatsApp 44, Book 65, menu 48 plus gaps) is 18 px wider than a 360 px screen, so the menu trigger sat 6 px off screen
+(French and Spanish, whose short words are longer, were 21 px off at 360 and overflowed up to 380 px: a defect that
+already existed). Two small language-neutral changes close it, neither of which moves a pixel while there is room:
+
+1. `Navbar.tsx`: the logo link is `min-w-0 shrink` (it was `shrink-0`) and the logo image is `object-contain`. When the
+   row is too tight the logo scales down proportionally (about 10 percent at 360 px in Russian); with room to spare
+   it is unchanged. It is the only element that yields.
+2. `WhatsAppAction.tsx`: the utility-bar placement (below 360 px) gets `pointer-coarse:min-w-11`, because it was 36 px
+   wide on a phone while the row needs 44 px targets.
+
+`tests/usability/header-fit.spec.ts` now also runs, for all six languages at 320, 360, 390 and 430 px on a touch
+emulation: Book, WhatsApp, language selector and menu trigger all visible inside the screen, no overflow of the
+page, the navbar or the utility bar, no overlap in their rows, 44 px tap targets.
 
 ## 10. Verification and impact
 
-VERIFICATION_PLACEHOLDER
+Run in this worktree (isolated `.next-test` build, Playwright on port 3187):
+
+| Check | Result |
+| :--- | :--- |
+| `npm run typecheck`, `npm run lint` (type hygiene) | pass |
+| `vitest --project unit` | 66 files, 1077 tests pass (new: `tests/unit/birthday/*` 140 tests, `tests/unit/nav-book-short.test.ts` 4) |
+| `vitest --project security --project integration` | 21 files, 678 tests pass |
+| `tests/usability/header-fit.spec.ts` + `header-brand.spec.ts` (usability, chromium) | 60 pass: 24 existing desktop-fit, 12 logo-only, 24 new phone tests (6 languages x 320, 360, 390, 430 px) |
+| `tests/e2e/offers.spec.ts` (chromium, mobile-chrome) | 18 pass on each: nav link in all six languages, RTL, 320 px, calculator edge cases, registry figures, capability notice |
+| axe on `/offers` (6 scans: 3 themes x en, he), baseline integrity, mobile scans | 0 violations (the studio scan caught a contrast failure on the promotion chip, fixed) |
+| PUBLIC_ROUTES specs that now include `/offers` (page-structure, responsive, layout-stability, hydration, i18n, security-web) | 18 pass |
+| `npm run docs:verify` | fails as expected until GENESIS.md lists the new items (section 11); not stamped |
+
+Not run: firefox, webkit, mobile-safari projects, the full e2e suite, Lighthouse, `npm run test:all`. The isolated
+build was run three times (the first was stopped when the extra header task arrived; the second exposed the studio
+contrast issue; the third is the verified one), not once.
+
+### Visual baselines (not regenerated)
+
+The closed desktop header does not change (the new item is inside the "Experiences" flyout, which no baseline opens),
+and the 390 px mobile baselines do not change (the footer is hidden there; the drawer is closed): both mobile
+snapshots pass. The only difference is the new footer link, one text row in the "Flight Experiences" column.
+Run against the existing darwin baselines of `tests/visual/visual.spec.ts`: 20 of 22 fail (5 pages `/`, `/about`,
+`/pro`, `/book`, `/vouchers` x cockpit and brand x en and he), each with 457 differing pixels in English and 321 to
+326 in Hebrew, all inside one 35 px-high box near the page bottom (measured on the diff image of `/` cockpit en:
+y 3502 to 3536, x 347 to 441 of a 1280 x 3872 capture). That is about 0.009 percent of the pixels: far inside the
+`maxDiffPixelRatio: 0.01` in `playwright.config.ts`, but above the `MAX_DIFF_PIXELS = 100` that `visual.spec.ts`
+sets for itself, so all 20 baselines need a deliberate refresh (`npm run test:visual:update`) after merge. Dropping the footer link
+would leave every baseline untouched; the header and drawer entries would remain.
+
+### Source bytes added (for the Wix 14 MiB budget)
+
+About 98 KB of TypeScript source (UTF-8, comments included): `lib/discounts/birthday` 31 KB (of which the
+checkout copy `copy.ts` is 11.6 KB), `lib/offers` 43 KB (of which the six page copies are 37 KB), `components/offers`
+23 KB, route and API 1.3 KB. The shared chrome (`Navbar`, `Footer`) imports only `lib/offers/nav-label.ts`
+(0.9 KB). `translations.ts` gains 244 bytes. Expect roughly 70 to 80 KB in the worker after minification; the
+coordinator should measure.
+
 
 ## 11. Lines for GENESIS.md and AGENTS.md
 
@@ -212,6 +264,9 @@ AGENTS.md, new subsection (for example 6.8, Birthday discount):
 
 > The birthday discount is the pure engine `lib/discounts/birthday/`: 15 percent of the booking subtotal (whole shekels, half up, agorot for Stripe) when the pilot's birthday falls in the FLIGHT date's calendar month or up to 14 days before it (`BIRTHDAY_*` constants; forward grace supported, off). The flight date decides, never the booking date. It never stacks (Terms 8.1): not on the Discounted Promotion, subscription redemptions or gift-voucher purchases. The server re-evaluates every claim, persists only month, day and the applied flag, and shows no banner or discount while `isBirthdayDiscountEnforceableOnActivePath()` is false (the Wix-authoritative checkout cannot enforce it with a visitor session: `docs/modules/birthday-offers.md`).
 
-GENESIS.md (route list and module map): add `/offers`, `components/offers/`, `lib/offers/`,
-`lib/discounts/birthday/`, `app/api/offers/capabilities/route.ts`, the six `tests/unit/birthday/` suites and
-`tests/e2e/offers.spec.ts`. Do not stamp the fingerprint from this branch; the coordinator stamps after merging.
+GENESIS.md: `npm run docs:verify` on this branch lists exactly what to add. Page route `/offers`; API route
+`/api/offers/capabilities (GET)`; library modules `lib/discounts/birthday/{civil-date,constants,eligibility,evaluate,
+minimise,money}.ts`, `lib/offers/{nav-label,offers-copy,offers-data}.ts`, `lib/offers/copy/es.ts`; components
+`BirthdayCalculator`, `BirthdayOfferLink`, `BirthdaySection`, `BirthdaySteps`, `FinePrintSection`, `MoreOffersSection`,
+`OffersHero`, `OffersPageContent`. Also the `nav.bookFlightShort` key and the logo-yields rule of the phone header
+(section 9). Do not stamp the fingerprint from this branch; the coordinator stamps after merging.

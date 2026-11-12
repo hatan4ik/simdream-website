@@ -285,8 +285,11 @@ export function Navbar() {
         <div data-site-navbar-row className="flex items-center justify-between gap-2 sm:gap-3 h-20">
           {/* The header shows the brand image alone, with no tagline beneath it in any language
               (AGENTS.md §1). The link's accessible name comes from the logo's alt text. */}
-          <Link href="/" className="flex items-center group shrink-0">
-            <BrandLogo className="h-6 sm:h-7 w-auto group-hover:opacity-90 transition-opacity" priority />
+          {/* The logo is the one element that yields when the row is too tight (a 360px phone with a
+              long short Book label): it scales down proportionally instead of pushing the menu
+              trigger off screen. With room to spare nothing changes, so no layout shifts by a pixel. */}
+          <Link href="/" className="flex items-center group min-w-0 shrink">
+            <BrandLogo className="h-6 sm:h-7 w-auto min-w-0 object-contain group-hover:opacity-90 transition-opacity" priority />
           </Link>
 
           {/* Large layouts retain quiet top-level choices; each exposes a deliberate full-width panel. */}

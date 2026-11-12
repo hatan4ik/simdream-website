@@ -53,7 +53,7 @@ test.describe('Offers & Benefits page', () => {
     await expect(section).toBeVisible();
     await expect(section.getByRole('heading', { level: 2 })).toContainText(`${BIRTHDAY_DISCOUNT_PERCENT}%`);
     await expect(section.locator('ol li')).toHaveCount(3);
-    await expect(page.getByRole('link', { name: OFFERS_COPY.en.ctaButton })).toHaveAttribute('href', '/book');
+    await expect(page.locator('[data-offers-cta]').getByRole('link', { name: OFFERS_COPY.en.ctaButton })).toHaveAttribute('href', '/book');
   });
 
   test('states the other offers from the registries, never retyped', async ({ page }) => {
