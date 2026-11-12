@@ -47,4 +47,6 @@ export {
   type RefundStaffFlag,
   type SubscriptionRefund,
 } from './refund-types';
+export { describeEvaluation, type PanelTone, type PanelView } from './refund-presenter';
+export { formatInstantInIsrael, formatSessionDate } from './refund-format';
 export { REFUND_COPY, fillCopy, refundCopyFor, type RefundCopy, type RefundEmailCopy } from './copy';

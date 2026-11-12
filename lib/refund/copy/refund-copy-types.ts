@@ -12,7 +12,7 @@ export interface RefundCopy {
   header: { eyebrow: string; title: string; intro: string };
   stepper: { label: string; stepOf: string; steps: [string, string, string] };
   actions: { back: string; continue: string; send: string; sending: string; checking: string };
-  labels: { required: string; optional: string };
+  labels: { required: string; optional: string; newTab: string };
   order: {
     title: string;
     intro: string;

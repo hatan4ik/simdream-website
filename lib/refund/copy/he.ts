@@ -9,7 +9,7 @@ export const HE: RefundCopy = {
   },
   stepper: { label: 'התקדמות', stepOf: 'שלב {current} מתוך {total}', steps: ['ההזמנה שלכם', 'מה קרה', 'סקירה ושליחה'] },
   actions: { back: 'חזרה', continue: 'המשך', send: 'שליחת הבקשה', sending: 'שולחים...', checking: 'בודקים את ההזמנה...' },
-  labels: { required: 'שדה חובה', optional: 'לא חובה' },
+  labels: { required: 'שדה חובה', optional: 'לא חובה', newTab: '(נפתח בלשונית חדשה)' },
   order: {
     title: 'על איזו הזמנה מדובר?',
     intro: 'השתמשו בפרטים מאישור ההזמנה שנשלח אליכם במייל.',

@@ -9,7 +9,7 @@ export const FR: RefundCopy = {
   },
   stepper: { label: 'Progression', stepOf: 'Étape {current} sur {total}', steps: ['Votre commande', 'Ce qui s’est passé', 'Vérification et envoi'] },
   actions: { back: 'Retour', continue: 'Continuer', send: 'Envoyer la demande', sending: 'Envoi en cours...', checking: 'Vérification de votre commande...' },
-  labels: { required: 'obligatoire', optional: 'facultatif' },
+  labels: { required: 'obligatoire', optional: 'facultatif', newTab: '(s’ouvre dans un nouvel onglet)' },
   order: {
     title: 'De quelle commande s’agit-il ?',
     intro: 'Utilisez les informations de votre e-mail de confirmation.',

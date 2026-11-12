@@ -9,7 +9,7 @@ export const AR: RefundCopy = {
   },
   stepper: { label: 'مراحل الطلب', stepOf: 'الخطوة {current} من {total}', steps: ['طلبكم', 'ماذا حدث', 'المراجعة والإرسال'] },
   actions: { back: 'رجوع', continue: 'متابعة', send: 'إرسال الطلب', sending: 'جارٍ الإرسال...', checking: 'جارٍ التحقق من الطلب...' },
-  labels: { required: 'مطلوب', optional: 'اختياري' },
+  labels: { required: 'مطلوب', optional: 'اختياري', newTab: '(يُفتح في علامة تبويب جديدة)' },
   order: {
     title: 'ما هو الطلب المقصود؟',
     intro: 'استخدموا التفاصيل الواردة في رسالة التأكيد.',

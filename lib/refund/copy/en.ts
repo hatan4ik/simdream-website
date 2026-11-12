@@ -9,7 +9,7 @@ export const EN: RefundCopy = {
   },
   stepper: { label: 'Progress', stepOf: 'Step {current} of {total}', steps: ['Your order', 'What happened', 'Review and send'] },
   actions: { back: 'Back', continue: 'Continue', send: 'Send request', sending: 'Sending...', checking: 'Checking your order...' },
-  labels: { required: 'required', optional: 'optional' },
+  labels: { required: 'required', optional: 'optional', newTab: '(opens in a new tab)' },
   order: {
     title: 'Which order is this about?',
     intro: 'Use the details from your confirmation email.',

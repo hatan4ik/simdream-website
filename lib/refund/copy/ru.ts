@@ -9,7 +9,7 @@ export const RU: RefundCopy = {
   },
   stepper: { label: 'Прогресс', stepOf: 'Шаг {current} из {total}', steps: ['Ваш заказ', 'Что произошло', 'Проверка и отправка'] },
   actions: { back: 'Назад', continue: 'Продолжить', send: 'Отправить запрос', sending: 'Отправляем...', checking: 'Проверяем заказ...' },
-  labels: { required: 'обязательно', optional: 'необязательно' },
+  labels: { required: 'обязательно', optional: 'необязательно', newTab: '(откроется в новой вкладке)' },
   order: {
     title: 'О каком заказе речь?',
     intro: 'Используйте данные из письма с подтверждением.',
