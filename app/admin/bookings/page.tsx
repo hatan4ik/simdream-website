@@ -146,6 +146,12 @@ export default function AdminBookingsPage() {
                     <p className="font-bold text-white">{b.pilotName}</p>
                     <p className="text-[10px] text-slate-400">{b.pilotEmail}</p>
                     <p className="text-[10px] text-slate-400">{b.pilotPhone}</p>
+                    {b.pilotBirthdayMonth && b.pilotBirthdayDay && (
+                      <p className="text-[10px] text-slate-400" dir="ltr">
+                        Birthday {String(b.pilotBirthdayDay).padStart(2, '0')}/{String(b.pilotBirthdayMonth).padStart(2, '0')}
+                        {b.birthdayDiscountIls ? ` · -${formatCurrency(b.birthdayDiscountIls)}` : ''}
+                      </p>
+                    )}
                   </td>
                   <td className="py-4 px-4">
                     <p className="font-semibold text-white">{b.packageTitle}</p>

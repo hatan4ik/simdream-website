@@ -38,7 +38,20 @@ export const REFUND_SCAN_STATES = [
   'unavailable',
 ] as const;
 
+/**
+ * The mandatory checkout extras (consent block and pilot birth date) of the pilot step: errors shown and the full
+ * media clause open in English, Hebrew and Russian (the wizard), the banner state, and the Express Shop buy box.
+ */
+export const CHECKOUT_EXTRAS_SCAN_STATES = [
+  'wizard pilot step with errors (en)',
+  'wizard pilot step with errors (he)',
+  'wizard pilot step with errors (ru)',
+  'wizard pilot step with birthday applied (en)',
+  'storefront buy box with errors (en)',
+] as const;
+
 export type BookingScanState = (typeof BOOKING_SCAN_STATES)[number];
+export type CheckoutExtrasScanState = (typeof CHECKOUT_EXTRAS_SCAN_STATES)[number];
 export type RefundScanState = (typeof REFUND_SCAN_STATES)[number];
 export type VoucherScanState = (typeof VOUCHER_SCAN_STATES)[number];
 export type SecondaryScanState = (typeof SECONDARY_SCAN_STATES)[number];
@@ -46,6 +59,7 @@ export type SecondaryScanState = (typeof SECONDARY_SCAN_STATES)[number];
 export const publicScanKey = (route: string, theme: UiTheme, language: Language) => `public ${route} [${theme}/${language}]`;
 export const bookingScanKey = (state: BookingScanState, theme: UiTheme) => `booking ${state} [${theme}]`;
 export const secondaryScanKey = (state: SecondaryScanState, theme: UiTheme) => `secondary ${state} [${theme}]`;
+export const checkoutExtrasScanKey = (state: CheckoutExtrasScanState, theme: UiTheme) => `checkout extras ${state} [${theme}]`;
 export const refundScanKey = (state: RefundScanState, theme: UiTheme) => `refund ${state} [${theme}]`;
 export const voucherScanKey = (state: VoucherScanState, theme: UiTheme) => `voucher ${state} [${theme}]`;
 export const mobileScanKey = (route: string) => `mobile ${route}`;
@@ -61,6 +75,7 @@ export function allScanKeys(): string[] {
     ...SCAN_THEMES.flatMap((theme) => SECONDARY_SCAN_STATES.map((state) => secondaryScanKey(state, theme))),
     ...SCAN_THEMES.flatMap((theme) => VOUCHER_SCAN_STATES.map((state) => voucherScanKey(state, theme))),
     ...SCAN_THEMES.flatMap((theme) => REFUND_SCAN_STATES.map((state) => refundScanKey(state, theme))),
+    ...SCAN_THEMES.flatMap((theme) => CHECKOUT_EXTRAS_SCAN_STATES.map((state) => checkoutExtrasScanKey(state, theme))),
     ...MOBILE_SCAN_ROUTES.map(mobileScanKey),
     ...ADMIN_SCAN_ROUTES.map(adminScanKey),
   ];

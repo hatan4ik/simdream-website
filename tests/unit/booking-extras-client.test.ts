@@ -7,6 +7,7 @@ import {
   buildCheckoutExtraPayload,
   buildWixConsentNote,
   evaluateBirthdayField,
+  findBookingBlocker,
   firstMissingConsent,
   resolveBirthdayPathMode,
   type BirthdayFieldInputs,
@@ -204,5 +205,19 @@ describe('CHECKOUT_EXTRAS_COPY', () => {
 
   it('never promises a price reduction in the Wix-hosted notice', () => {
     expect(CHECKOUT_EXTRAS_COPY.en.birthdayWixNotice).toMatch(/cannot be applied automatically/);
+  });
+});
+
+describe('the extras block every checkout path before anything is launched', () => {
+  const ready = { hasAvailableSlot: true, pilotName: 'A B', pilotEmail: 'a@b.co', pilotPhone: '+972501234567', requiresUnsupportedLocalCheckout: false };
+  const unmet = () => 'Please accept the rules.';
+
+  it.each([
+    ['the local Stripe checkout', { isWixSubscriptionRedemption: false }],
+    ['the Wix-hosted checkout', { isWixSubscriptionRedemption: false }],
+    ['a Wix subscription redemption (no pilot contact fields)', { isWixSubscriptionRedemption: true, pilotName: '', pilotEmail: '', pilotPhone: '' }],
+  ])('stops %s while a confirmation or the birth date is missing', (_label, overrides) => {
+    expect(findBookingBlocker({ ...ready, ...overrides, extraValidation: unmet })).toEqual({ kind: 'extra', message: unmet() });
+    expect(findBookingBlocker({ ...ready, ...overrides, extraValidation: () => null })).toBeNull();
   });
 });

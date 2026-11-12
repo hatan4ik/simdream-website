@@ -25,12 +25,12 @@ const DATA_FILES: Readonly<Record<string, string>> = {
 
 /** Current offenders and the line count they may not exceed. Lower an entry when the file shrinks; delete it at 400 or less. */
 const SIZE_ALLOWLIST: Readonly<Record<string, number>> = {
-  'components/scheduler/AmazonFlightStorefront.tsx': 1992,
+  'components/scheduler/AmazonFlightStorefront.tsx': 1924,
   'app/(public)/contact/page.tsx': 1126,
   'components/pro/ProSessionsView.tsx': 1100,
   'app/(public)/vouchers/page.tsx': 1078,
   'components/scheduler/KantorovichCalendarScheduler.tsx': 941,
-  'lib/db/store.ts': 929,
+  'lib/db/store.ts': 927,
   'lib/scheduler/kantorovich-engine.ts': 781,
   'lib/wix/backend-blueprint.ts': 732,
   'components/about/AboutExperienceView.tsx': 701,
