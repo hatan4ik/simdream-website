@@ -19,6 +19,7 @@ import { BrandLogo } from '@/components/brand/BrandLogo';
 import { buttonClassName } from '@/components/ui/Button';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useLanguage } from '@/lib/i18n/language-context';
+import { getOffersNavLabel } from '@/lib/offers/nav-label';
 import { UiThemeSwitcher } from './UiThemeSwitcher';
 import { CockpitToneSwitcher } from './CockpitToneSwitcher';
 import { WhatsAppAction } from './WhatsAppAction';
@@ -51,7 +52,8 @@ export function Navbar() {
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const pathname = usePathname();
   const { user, isAdmin, logout, setDemoUser } = useAuth();
-  const { t, isRTL } = useLanguage();
+  const { t, isRTL, language } = useLanguage();
+  const offersLabel = getOffersNavLabel(language);
   const memberName = user?.fullName || user?.email || t.member.dashboard.defaultPilotName;
   const navbarRef = useRef<HTMLElement>(null);
   const mobileMenuTriggerRef = useRef<HTMLButtonElement>(null);
@@ -67,6 +69,7 @@ export function Navbar() {
 
   const navLinks = [
     { name: t.nav.experiences, href: '/experiences' },
+    { name: offersLabel, href: '/offers' },
     { name: t.nav.subscriptions, href: '/subscriptions' },
     { name: t.nav.simulator, href: '/pro' },
     { name: t.nav.workshops, href: '/workshops' },
@@ -94,6 +97,7 @@ export function Navbar() {
       label: t.nav.experiences,
       items: [
         { name: t.nav.experiences, href: '/experiences' },
+        { name: offersLabel, href: '/offers' },
         { name: t.nav.subscriptions, href: '/subscriptions' },
         { name: t.nav.vouchers, href: '/vouchers' },
         { name: t.nav.fearOfFlying, href: '/fear-of-flying' },
@@ -281,8 +285,11 @@ export function Navbar() {
         <div data-site-navbar-row className="flex items-center justify-between gap-2 sm:gap-3 h-20">
           {/* The header shows the brand image alone, with no tagline beneath it in any language
               (AGENTS.md §1). The link's accessible name comes from the logo's alt text. */}
-          <Link href="/" className="flex items-center group shrink-0">
-            <BrandLogo className="h-6 sm:h-7 w-auto group-hover:opacity-90 transition-opacity" priority />
+          {/* The logo is the one element that yields when the row is too tight (a 360px phone with a
+              long short Book label): it scales down proportionally instead of pushing the menu
+              trigger off screen. With room to spare nothing changes, so no layout shifts by a pixel. */}
+          <Link href="/" className="flex items-center group min-w-0 shrink">
+            <BrandLogo className="h-6 sm:h-7 w-auto min-w-0 object-contain group-hover:opacity-90 transition-opacity" priority />
           </Link>
 
           {/* Large layouts retain quiet top-level choices; each exposes a deliberate full-width panel. */}
@@ -468,7 +475,7 @@ export function Navbar() {
                 data-button-variant="primary"
                 className={buttonClassName('primary', 'sm', 'min-h-11 px-3')}
               >
-                {t.nav.bookFlight.split(' ')[0]}
+                {t.nav.bookFlightShort}
               </Link>
             </div>
             <button

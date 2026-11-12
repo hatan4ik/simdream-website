@@ -17,6 +17,7 @@ export const PUBLIC_ROUTES = [
   '/fear-of-flying',
   '/experiences',
   '/subscriptions',
+  '/offers',
   '/book',
   '/vouchers',
   '/workshops',

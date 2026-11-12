@@ -13,6 +13,7 @@ import { FACILITY_INFO } from '@/lib/config/facility-info';
 import { useLiveFacilityStatus } from '@/lib/config/use-live-facility-status';
 import { useClientValue } from '@/lib/ui/use-client-value';
 import { SOCIAL_CHANNELS } from './social-channels';
+import { getOffersNavLabel } from '@/lib/offers/nav-label';
 
 export function Footer() {
   const { t, language } = useLanguage();
@@ -121,6 +122,11 @@ export function Footer() {
               <li>
                 <Link href="/fear-of-flying" className="hover:text-sky-400 transition-colors">
                   {t.nav.fearOfFlying}
+                </Link>
+              </li>
+              <li>
+                <Link href="/offers" className="hover:text-sky-400 transition-colors">
+                  {getOffersNavLabel(language)}
                 </Link>
               </li>
               <li>
