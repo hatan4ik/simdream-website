@@ -191,6 +191,38 @@ CREATE TABLE IF NOT EXISTS public.google_reviews_snapshot (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- Refund requests from the unlisted /refund form (migration 010): requests for a person to review, never refunds.
+CREATE TABLE IF NOT EXISTS public.refund_requests (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  reference TEXT NOT NULL CHECK (reference ~ '^RF-[A-HJ-NP-Z2-9]{6}$'),
+  client_request_id UUID NOT NULL,
+  status TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new', 'in_review', 'resolved', 'declined')),
+  product_kind TEXT NOT NULL CHECK (product_kind IN ('flight', 'voucher', 'subscription')),
+  reason TEXT NOT NULL CHECK (
+    reason IN ('change_of_plans', 'illness', 'centre_fault', 'duplicate_payment', 'gift_voucher', 'subscription', 'other')
+  ),
+  order_reference TEXT NOT NULL CHECK (length(order_reference) BETWEEN 3 AND 64),
+  contact_name TEXT NOT NULL CHECK (length(contact_name) BETWEEN 1 AND 120),
+  contact_email TEXT NOT NULL CHECK (length(contact_email) BETWEEN 3 AND 254),
+  contact_phone TEXT NOT NULL CHECK (length(contact_phone) BETWEEN 6 AND 32),
+  session_date DATE,
+  session_time TIME,
+  verification TEXT NOT NULL CHECK (verification IN ('verified', 'unverified')),
+  verified_order_id TEXT,
+  order_date DATE,
+  package_title TEXT CHECK (package_title IS NULL OR length(package_title) <= 200),
+  message TEXT CHECK (message IS NULL OR length(message) <= 1000),
+  language TEXT NOT NULL CHECK (language IN ('he', 'en', 'ru', 'fr', 'ar', 'es')),
+  priority TEXT NOT NULL CHECK (priority IN ('urgent', 'high', 'normal', 'low')),
+  evaluation JSONB NOT NULL,
+  submitted_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  staff_notified_at TIMESTAMPTZ,
+  customer_acknowledged_at TIMESTAMPTZ,
+  CONSTRAINT refund_requests_reference_key UNIQUE (reference),
+  CONSTRAINT refund_requests_client_request_id_key UNIQUE (client_request_id)
+);
+CREATE INDEX IF NOT EXISTS refund_requests_status_submitted_idx ON public.refund_requests (status, submitted_at DESC);
+
 CREATE OR REPLACE FUNCTION public.redeem_gift_voucher(p_code TEXT, p_amount NUMERIC)
 RETURNS SETOF public.gift_vouchers
 LANGUAGE plpgsql
@@ -224,6 +256,7 @@ ALTER TABLE public.gift_vouchers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.corporate_inquiries ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.flight_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.google_reviews_snapshot ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.refund_requests ENABLE ROW LEVEL SECURITY;
 
 -- Public browser access is deliberately limited to active package catalog data.
 DROP POLICY IF EXISTS "Packages are publicly readable" ON public.packages;
@@ -243,5 +276,5 @@ DROP POLICY IF EXISTS "Admins can view and manage inquiries" ON public.corporate
 DROP POLICY IF EXISTS "Users can view own flight logs" ON public.flight_logs;
 DROP POLICY IF EXISTS "Admins can manage flight logs" ON public.flight_logs;
 
-REVOKE ALL ON public.bookings, public.gift_vouchers, public.corporate_inquiries, public.flight_logs, public.google_reviews_snapshot FROM anon, authenticated;
+REVOKE ALL ON public.bookings, public.gift_vouchers, public.corporate_inquiries, public.flight_logs, public.google_reviews_snapshot, public.refund_requests FROM anon, authenticated;
 REVOKE EXECUTE ON FUNCTION public.redeem_gift_voucher(TEXT, NUMERIC) FROM PUBLIC, anon, authenticated;

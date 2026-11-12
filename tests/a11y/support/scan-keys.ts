@@ -27,13 +27,26 @@ export const SECONDARY_SCAN_STATES = [
   'not found page',
 ] as const;
 
+/** The unlisted /refund form: each step, its inline errors, the confirmation and the "nothing was sent" ending. */
+export const REFUND_SCAN_STATES = [
+  'order step',
+  'order step with errors',
+  'order step (he)',
+  'reason step',
+  'review step with errors',
+  'request received',
+  'unavailable',
+] as const;
+
 export type BookingScanState = (typeof BOOKING_SCAN_STATES)[number];
+export type RefundScanState = (typeof REFUND_SCAN_STATES)[number];
 export type VoucherScanState = (typeof VOUCHER_SCAN_STATES)[number];
 export type SecondaryScanState = (typeof SECONDARY_SCAN_STATES)[number];
 
 export const publicScanKey = (route: string, theme: UiTheme, language: Language) => `public ${route} [${theme}/${language}]`;
 export const bookingScanKey = (state: BookingScanState, theme: UiTheme) => `booking ${state} [${theme}]`;
 export const secondaryScanKey = (state: SecondaryScanState, theme: UiTheme) => `secondary ${state} [${theme}]`;
+export const refundScanKey = (state: RefundScanState, theme: UiTheme) => `refund ${state} [${theme}]`;
 export const voucherScanKey = (state: VoucherScanState, theme: UiTheme) => `voucher ${state} [${theme}]`;
 export const mobileScanKey = (route: string) => `mobile ${route}`;
 export const adminScanKey = (route: string) => `admin ${route}`;
@@ -47,6 +60,7 @@ export function allScanKeys(): string[] {
     ...SCAN_THEMES.flatMap((theme) => BOOKING_SCAN_STATES.map((state) => bookingScanKey(state, theme))),
     ...SCAN_THEMES.flatMap((theme) => SECONDARY_SCAN_STATES.map((state) => secondaryScanKey(state, theme))),
     ...SCAN_THEMES.flatMap((theme) => VOUCHER_SCAN_STATES.map((state) => voucherScanKey(state, theme))),
+    ...SCAN_THEMES.flatMap((theme) => REFUND_SCAN_STATES.map((state) => refundScanKey(state, theme))),
     ...MOBILE_SCAN_ROUTES.map(mobileScanKey),
     ...ADMIN_SCAN_ROUTES.map(adminScanKey),
   ];
