@@ -542,7 +542,8 @@ html[data-ui="brand"] .bg-slate-950\/60 {
 html[data-ui="brand"] .bg-slate-950\/70,
 html[data-ui="brand"] .bg-slate-950\/80,
 html[data-ui="brand"] .bg-slate-950\/85,
-html[data-ui="brand"] .bg-slate-950\/95 {
+html[data-ui="brand"] .bg-slate-950\/95,
+html[data-ui="brand"] .bg-slate-950\/98 {
   background-color: #ffffff !important;
 }
 
@@ -606,6 +607,7 @@ html[data-ui="brand"] .bg-slate-800\/50 {
 
 /* Hover surfaces (dark hover fills would sit under daylight text) */
 html[data-ui="brand"] .hover\:bg-slate-900:hover,
+html[data-ui="brand"] .hover\:bg-slate-900\/40:hover,
 html[data-ui="brand"] .hover\:bg-slate-900\/60:hover,
 html[data-ui="brand"] .hover\:bg-slate-800\/30:hover,
 html[data-ui="brand"] .hover\:bg-slate-800\/60:hover {
@@ -613,9 +615,16 @@ html[data-ui="brand"] .hover\:bg-slate-800\/60:hover {
 }
 
 html[data-ui="brand"] .hover\:bg-slate-800:hover,
+html[data-ui="brand"] .focus-visible\:bg-slate-800:focus-visible,
 html[data-ui="brand"] .hover\:bg-slate-700:hover,
 html[data-ui="brand"] .group:hover .group-hover\:bg-slate-700 {
   background-color: #e2e8f0 !important;
+}
+
+/* Unfilled indicator pips (the difficulty dots on /experiences): a dark pip beside the orange
+   ones would read as the filled state. Light slate is the daylight "empty" pip. */
+html[data-ui="brand"] .bg-slate-700 {
+  background-color: #cbd5e1 !important;
 }
 
 /* Gradient panels: dark stops become cloud white / light tints */
