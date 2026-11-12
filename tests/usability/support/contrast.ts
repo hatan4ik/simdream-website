@@ -33,7 +33,6 @@ export async function measureSurfaceContrast(page: Page, selector: string): Prom
     /** Any CSS colour as sRGB: the canvas does the conversion that getComputedStyle leaves to the author. */
     const parse = (css: string): Rgba => {
       context.clearRect(0, 0, 1, 1);
-      context.fillStyle = '#000';
       context.fillStyle = css;
       context.fillRect(0, 0, 1, 1);
       const data = context.getImageData(0, 0, 1, 1).data;
