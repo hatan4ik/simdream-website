@@ -287,6 +287,16 @@ seeded (no cookie; `tests/security-web` still passes `cookies() == []`). `cookie
 `@lhci/cli`, which cannot pre-seed `localStorage` without Puppeteer. A Lighthouse run therefore shows the banner exactly as a
 first-time visitor sees it (a real measurement; the banner is out of flow, accessible, and adds no script).
 
+### Visual baselines: what changed and what did not
+
+With the pre-seed, **no banner appears in any visual capture**: the two mobile baselines (the footer is hidden on phones) are
+byte-for-byte unchanged. The 20 desktop baselines (home, about, pro, book, vouchers x cockpit, brand x en, he) change **only**
+because of the footer "Cookie settings" link the task asks for: page heights are identical and every differing pixel lies in
+the footer bottom-bar line (1,141 to 1,156 pixels in English, about 3,340 in Hebrew, against a 100-pixel allowance). The 20
+darwin baselines are refreshed in their own commit (drop it if the coordinator regenerates baselines at the end). The 20 Linux
+baselines (`*-visual-linux.png` for the same pages) cannot be made locally and need the usual CI-artifact refresh
+(`results-web-quality-shard-*`, `*-actual.png`, after checking the diff shows only the footer line).
+
 ### Choice-mode tests
 
 The shipped build is in notice mode, so the choice tests in `cookie-consent.spec.ts` skip themselves (`data-consent-mode`).
@@ -330,3 +340,18 @@ category there, wiring it through `whenConsented()`/`loadScriptWhenConsented()`,
 
 Integration step for the privacy policy (A2): place `<ConsentSettingsLink className="…" />` (from `@/components/consent`) in
 the cookies section, and give phones an entry (Navbar "About" drawer list, `components/layout/Navbar.tsx`, not edited here).
+
+### Verification run (isolated build `.next-test`, chromium)
+
+* `npm run typecheck` and `npm run lint`: pass. `npx vitest run --project unit`: 61 files, 1013 tests, pass (80 are the
+  consent tests; the existing `i18n-audit` script-contamination scan and `seo-integrity` CSP checks pass with the new files).
+* `tests/usability/cookie-consent.spec.ts`: 21 pass; 2 choice-mode tests skip themselves in the shipped notice mode. The
+  choice-mode and dialog tests (5) pass against a dev server started with `NEXT_PUBLIC_CONSENT_CATEGORIES_IN_USE=analytics`.
+* Existing suites after the change: e2e `smoke`, `language-theme`, `mobile`; usability `apple-web-app`, `layout-stability`,
+  `hydration`, `header-fit`; a11y `keyboard`, `public-routes` (book routes), `baseline-integrity`; security-web
+  `information-disclosure` (including "the public site sets no cookies"): all pass. Visual: see above.
+* Not run: Lighthouse (`npx @lhci/cli` download; see the note above), the firefox, webkit and mobile Playwright projects, the
+  rest of `test:all`.
+* The module needed three isolated builds: the first showed the phone banner was too tall, the second revealed that a seed
+  stamped at config load was rejected by the visual suite's frozen past clock (the validity rule was then relaxed, see
+  Behaviour), the third is the build every result above comes from.
