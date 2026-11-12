@@ -1,4 +1,5 @@
 import { expect, test } from './fixtures';
+import { translations } from '@/lib/i18n/translations';
 import { NO_SEEDED_CONSENT } from '../support/consent';
 
 test.describe('contact page', () => {
@@ -90,7 +91,13 @@ test.describe('contact page', () => {
     await page.locator('#contact-message').fill('Please help us plan a 90-minute flight experience.');
     await page.locator('form:has(#contact-name) button[type="submit"]').click();
 
-    await expect(page.getByRole('alert')).toBeVisible();
+    // Match the form's own failure copy, never a bare getByRole('alert'): Next's route announcer is a
+    // permanent, empty role="alert" that is 1 x 1 px (visible to Playwright). Unfiltered, the assertion
+    // passes on the announcer alone when it polls before the error renders, and is a strict-mode
+    // violation once the error is there.
+    await expect(
+      page.getByRole('alert').filter({ hasText: translations.en.contact.formDeliveryError })
+    ).toBeVisible();
     await expect(page.locator('#contact-message')).toHaveValue('Please help us plan a 90-minute flight experience.');
     await expect(page.locator('[role="status"]')).toHaveCount(0);
   });
