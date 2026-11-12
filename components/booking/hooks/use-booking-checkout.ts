@@ -5,6 +5,7 @@ import type { FlightSlot, PilotExperienceLevel, SimulatorPackage } from '@/types
 import type { WorldRoute } from '@/lib/data/experience-routes';
 import type { translations } from '@/lib/i18n/translations';
 import { extractErrorMessage } from '@/lib/utils';
+import { useAuth } from '@/lib/auth/auth-context';
 import {
   buildLocalCheckoutBody,
   findBookingBlocker,
@@ -85,6 +86,7 @@ export function useBookingCheckout(args: UseBookingCheckoutArgs) {
     extraPayload,
     wixCartNote,
   } = args;
+  const { startWixMemberSignIn } = useAuth();
   const { pilotName, pilotEmail, pilotPhone, notes } = pilot;
 
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -129,6 +131,7 @@ export function useBookingCheckout(args: UseBookingCheckoutArgs) {
           bookingDate: selectedDate,
           startTime: selectedSlot.startTime,
           copy: wixSubscriptionCopy,
+          signIn: startWixMemberSignIn,
         });
         return;
       }

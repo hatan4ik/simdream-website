@@ -1,5 +1,5 @@
 import { WIX_SUBSCRIPTION_BOOKING_COPY } from '@/lib/i18n/wix-subscription-booking-copy';
-import { getWixMemberClient, wixMemberOAuthStorageKey } from '@/lib/wix/member-client';
+import { getWixMemberClient } from '@/lib/wix/member-client';
 import { wixSubscriptionBookingPackageForPlan } from '@/lib/wix/subscription-redemption';
 
 export type WixSubscriptionBookingCopy = (typeof WIX_SUBSCRIPTION_BOOKING_COPY)['en'];
@@ -9,6 +9,11 @@ export interface WixSubscriptionCheckoutInput {
   bookingDate: string;
   startTime: string;
   copy: Pick<WixSubscriptionBookingCopy, 'noEligiblePlan' | 'unavailable' | 'checkoutFailed'>;
+  /**
+   * The shared Wix member sign-in launcher (`startWixMemberSignIn` from the auth context). It owns the
+   * short-lived PKCE state that must survive the redirect, so this module never touches web storage.
+   */
+  signIn: (returnPath: string) => Promise<void>;
 }
 
 interface WixSlotCheckoutResponse {
@@ -27,11 +32,7 @@ export async function startWixSubscriptionCheckout(input: WixSubscriptionCheckou
   const { copy } = input;
   const wixClient = getWixMemberClient();
   if (!wixClient.auth.loggedIn()) {
-    const redirectUri = `${window.location.origin}/wix/members/callback`;
-    const oAuthData = wixClient.auth.generateOAuthData(redirectUri, window.location.href);
-    window.sessionStorage.setItem(wixMemberOAuthStorageKey(), JSON.stringify(oAuthData));
-    const { authUrl } = await wixClient.auth.getAuthUrl(oAuthData);
-    window.location.assign(authUrl);
+    await input.signIn(window.location.href);
     return;
   }
 

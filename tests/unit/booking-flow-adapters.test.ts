@@ -118,11 +118,15 @@ describe('startLocalCheckout', () => {
   });
 });
 
+const signIn = vi.fn(async (returnPath: string) => {
+  void returnPath;
+});
 const SUBSCRIPTION_INPUT = {
   packageId: 'pkg-captain-60',
   bookingDate: '2026-11-09',
   startTime: '10:00',
   copy: { noEligiblePlan: 'no plan', unavailable: 'gone', checkoutFailed: 'failed' },
+  signIn,
 };
 const COVERING_PLAN = '4aef54a4-c9bb-4355-9e39-087733a83fd2'; // staging plan that covers pkg-captain-60
 
@@ -147,18 +151,17 @@ const OPEN_SLOT = {
 };
 
 describe('startWixSubscriptionCheckout', () => {
-  it('sends a signed-out visitor to Wix member sign-in and remembers the OAuth state', async () => {
+  it('hands a signed-out visitor to the shared member sign-in and stores nothing itself', async () => {
     const client = memberClient();
     client.auth.loggedIn = () => false;
     wix.client = client;
+    signIn.mockClear();
     await startWixSubscriptionCheckout(SUBSCRIPTION_INPUT);
 
-    expect(client.auth.generateOAuthData).toHaveBeenCalledWith(
-      'https://simdream.test/wix/members/callback',
-      'https://simdream.test/book?subscription=wix'
-    );
-    expect(setItem).toHaveBeenCalledWith('oauth-key', JSON.stringify({ state: 's' }));
-    expect(assign).toHaveBeenCalledWith('https://wix.test/auth');
+    expect(signIn).toHaveBeenCalledWith('https://simdream.test/book?subscription=wix');
+    // The PKCE state is owned by the shared launcher in the auth context, never by this module.
+    expect(client.auth.generateOAuthData).not.toHaveBeenCalled();
+    expect(setItem).not.toHaveBeenCalled();
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
