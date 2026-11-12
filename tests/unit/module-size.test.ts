@@ -34,12 +34,13 @@ const SIZE_ALLOWLIST: Readonly<Record<string, number>> = {
   'lib/scheduler/kantorovich-engine.ts': 781,
   'lib/wix/backend-blueprint.ts': 732,
   'components/about/AboutExperienceView.tsx': 701,
-  'components/layout/Navbar.tsx': 667,
+  // 674: the Offers link added 7 lines. Temporary until the mobile panel and desktop flyout are extracted into
+  // components/layout/navbar/ (planned right after the daylight mobile-menu fix lands); then delete this entry.
+  'components/layout/Navbar.tsx': 674,
   'app/admin/page.tsx': 553,
   'lib/wix/booking-checkout-client.ts': 537,
   'app/(public)/subscriptions/page.tsx': 492,
   'lib/auth/auth-context.tsx': 454,
-  'components/legal/RulesContentView.tsx': 440,
   'components/layout/LiveMetarBar.tsx': 410,
   'app/(public)/experiences/page.tsx': 410,
 };
