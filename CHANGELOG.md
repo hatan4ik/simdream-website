@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.21.0](https://github.com/hatan4ik/simdream-website/compare/v1.20.0...v1.21.0) (2026-11-12)
+
+
+### Features
+
+* checkout consent and birthday discount, refund form, offers page, cookie consent, modular booking and navbar ([#115](https://github.com/hatan4ik/simdream-website/issues/115)) ([26eb52a](https://github.com/hatan4ik/simdream-website/commit/26eb52a28c9484f05a656730b7a6c6007ca06741))
+
 ## [1.20.0](https://github.com/hatan4ik/simdream-website/compare/v1.19.1...v1.20.0) (2026-11-12)
 
 
