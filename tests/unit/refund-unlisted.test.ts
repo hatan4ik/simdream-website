@@ -38,7 +38,8 @@ describe('the /refund page is unlisted', () => {
       .filter((file) => !/^(components\/refund|lib\/refund|app\/\(public\)\/refund|app\/api\/refund-requests)\//.test(file))
       .filter((file) => /['"`]\/refund(?:['"`/?#])/.test(read(file)));
     // The rules page refund clause is the one intended entry point (added with the rules rewrite).
-    expect(linkers.filter((file) => !/^components\/legal\/RulesContentView\.tsx$/.test(file))).toEqual([]);
+    // The rules refund clause is the only deliberate link; its path constant lives in lib/legal/anchors.ts.
+    expect(linkers.filter((file) => !/^(components\/legal\/RulesContentView\.tsx|lib\/legal\/anchors\.ts)$/.test(file))).toEqual([]);
   });
 
   it('keeps the private-data API out of the browser cache and the crawl', () => {
