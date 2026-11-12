@@ -30,7 +30,7 @@ export default async function SinglePostPage({ params }: PostPageProps) {
   const match = getBlogSeoBySlugOrId(slug);
 
   if (match) {
-    let decoded = slug;
+    let decoded: string;
     try {
       decoded = decodeURIComponent(slug).trim();
     } catch {
