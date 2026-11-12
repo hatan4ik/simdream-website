@@ -204,6 +204,21 @@ date that earns no discount unless told not to), `tests/usability/support/bookin
 `tests/a11y/keyboard.spec.ts` (the keyboard journeys now tab to the date control, type it and press Space on each
 confirmation). Nothing under `scripts/`, `tests/load` or `tests/perf` posted a booking.
 
-## 9. Verification
+## 9. Verification (run in this worktree, darwin, Node 26)
 
-See the handoff message of the workstream for the commands run and their results.
+| Command | Result |
+| --- | --- |
+| `npm run typecheck`, `npm run lint` (type hygiene) | pass |
+| `npx vitest run` (full) | 109 files pass; 1 failure, **not from this branch**: `tests/unit/refund-unlisted.test.ts` fails on `lib/legal/anchors.ts` (the legal workstream's `LEGAL_PATHS.refundForm = '/refund'`; the refund workstream's allow-list names only `components/legal/RulesContentView`). One-line fix: allow `lib/legal/anchors.ts` in that test's regex. 2,438 tests pass |
+| New vitest | `birthday/booking-discount` 26, `checkout-extras` 6, `booking-extras-client` 29, `wix-cart-note` 4, `validation` +3, `integration/checkout-consent-birthday` 30 |
+| `npm run test:build` (one isolated `.next-test` build) | compiled and type-checked, exit 0 |
+| Playwright chromium: `booking-consent-birthday` (both views, wix mode, flight-track), `booking-noise-free`, `booking-horizon`, `booking-recreational`, `booking-zero-slots`, `booking-reliability` | 45 passed |
+| Playwright chromium: `experience-routes`, `booking-success`, `subscription-passes`, `admin`, `offers` | 44 passed |
+| Playwright mobile-chrome: `booking-consent-birthday` (wizard; the 5 storefront cases skip on phones), `mobile`, `booking-horizon`, wizard cases of `booking-recreational` | 31 passed. The 8 failures in that run are Express Shop cases of `booking-noise-free` and `booking-recreational`, which assume the desktop storefront and are not a supported mobile-chrome combination (I ran them by mistake; not run again) |
+| a11y: `booking-states`, `keyboard`, new `booking-consent-states` (15 scans: 3 themes x en/he/ru wizard, applied state, Express Shop), `baseline-integrity` | 66 passed, empty baseline |
+| usability `forms`; resilience `checkout`, `book-slots` | 21 passed; 26 passed |
+| visual `/book` (cockpit and brand, en and he, mobile 390) | mobile passes. The four 1280 px snapshots fail with 457 (en) and 321 to 326 (he) differing pixels: the same counts the birthday handoff measured for its footer "Offers" link, so they are that existing difference, not this branch (the pilot step is not in any snapshot). No baseline was recorded or changed |
+| `npm run docs:verify` | fails as expected (GENESIS.md must list the new names, section 7) |
+
+Not run: firefox, webkit, mobile-safari, `npm run test:all`, Lighthouse, `npm run wix:build` (the 14 MiB worker budget is
+unmeasured), a real Wix staging booking, a real Stripe session.
