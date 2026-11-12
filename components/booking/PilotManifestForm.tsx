@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import type { PilotExperienceLevel } from '@/types';
 import { useLanguage } from '@/lib/i18n/language-context';
 import type { PilotDetails } from './hooks';
+import { FIELD_CONTROL, FIELD_LABEL } from './pilot-field-styles';
 
 interface PilotManifestFormProps {
   /** Unique prefix for the fields' element ids (the page's `useId()`). */
@@ -20,10 +21,6 @@ interface PilotManifestFormProps {
    */
   extraFields?: ReactNode;
 }
-
-const FIELD_LABEL = 'text-xs font-mono uppercase text-slate-400 font-semibold';
-const FIELD_CONTROL =
-  'w-full rounded-lg bg-slate-950 border border-slate-800 p-2.5 text-base sm:text-sm text-white focus:outline-none focus:border-sky-500';
 
 /**
  * The left column of the final step: the "Pilot in Command Details" heading, the pilot's name,

@@ -8,3 +8,7 @@ export { useBookingVoucher, type BookingVoucher } from './use-booking-voucher';
 export { useBookingManifest } from './use-booking-manifest';
 export { useBookingCheckout, type BookingCheckout } from './use-booking-checkout';
 export { useAddonControls, type AddonControls } from './use-addon-controls';
+export { useBookingConsent, type BookingConsent } from './use-booking-consent';
+export { useBookingBirthday, type BookingBirthday } from './use-booking-birthday';
+export { useBookingExtras, type BookingExtras } from './use-booking-extras';
+export { useBookingPricing } from './use-booking-pricing';

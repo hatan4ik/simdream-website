@@ -15,6 +15,7 @@ import {
   workshopInquirySchema,
 } from '@/lib/validation';
 import { minutesToTime } from '@/lib/scheduler/kantorovich-engine';
+import { LANGUAGES } from '@/lib/i18n/translations';
 import { bookingCheckoutBody, voucherCheckoutBody } from '../support/app';
 
 const optimizationRequest = (id: string, overrides: Record<string, unknown> = {}) => ({
@@ -414,5 +415,29 @@ describe('validationError', () => {
       startTime: 'Use HH:mm.',
       pilotName: expect.any(String),
     });
+  });
+});
+
+describe('booking checkout: consent and pilot birth date', () => {
+  it('lists exactly the six site languages for the consent', () => {
+    expect([...CHECKOUT_CONSENT_LANGUAGES].sort()).toEqual(LANGUAGES.map((language) => language.code).sort());
+  });
+
+  it('requires both confirmations to be literally true and the birth date to be a calendar date', () => {
+    expect(failedFields(checkoutRequestSchema, bookingCheckoutBody())).toEqual([]);
+    expect(failedFields(checkoutRequestSchema, bookingCheckoutBody({ consent: undefined }))).toEqual(['consent']);
+    expect(failedFields(checkoutRequestSchema, bookingCheckoutBody({ pilotBirthDate: undefined }))).toEqual(['pilotBirthDate']);
+    expect(failedFields(checkoutRequestSchema, bookingCheckoutBody({ pilotBirthDate: '1990-02-30' }))).toEqual(['pilotBirthDate']);
+  });
+
+  it('drops versions, times and discounts a client adds to the consent or the body', () => {
+    const parsed = bookingCheckoutSchema.parse(
+      bookingCheckoutBody({
+        consent: { rulesRefundsAndPrivacy: true, mediaReleaseAndWaiver: true, language: 'fr', acceptedAt: '1999-01-01T00:00:00Z', consentVersion: 'x' },
+        birthdayDiscountIls: 500,
+      })
+    );
+    expect(parsed.consent).toEqual({ rulesRefundsAndPrivacy: true, mediaReleaseAndWaiver: true, language: 'fr' });
+    expect('birthdayDiscountIls' in parsed).toBe(false);
   });
 });

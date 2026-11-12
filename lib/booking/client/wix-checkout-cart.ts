@@ -7,6 +7,7 @@ import {
   removeWixGiftCard,
   type WixNativeCheckoutCandidate,
 } from '@/lib/wix/booking-checkout-client';
+import { setWixCartNote } from '@/lib/wix/cart-note';
 import { getWixMemberClient } from '@/lib/wix/member-client';
 import type { WixCheckoutDraftState } from './wix-checkout-draft';
 
@@ -133,4 +134,12 @@ export async function removeAppliedCodeFromDraft(draft: WixCheckoutDraftState): 
 export async function getWixCheckoutUrl(draft: WixCheckoutDraftState): Promise<string> {
   const { checkoutUrl } = await getWixBookingCheckoutUrl(getWixMemberClient(), draft.cartId);
   return checkoutUrl;
+}
+
+/**
+ * Records the consent stamp (and the birthday month and day) on the draft's Wix cart before the hosted
+ * payment page opens. See `buildWixConsentNote`. Throws the given localized message when Wix refuses.
+ */
+export async function recordNoteOnWixDraft(draft: WixCheckoutDraftState, note: string, failureMessage: string): Promise<void> {
+  await setWixCartNote(getWixMemberClient(), draft.cartId, note, failureMessage);
 }

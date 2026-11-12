@@ -32,6 +32,13 @@ export async function sendBookingConfirmationEmail(booking: Booking): Promise<{ 
                 <td style="color: #fbbf24; font-weight: bold;">${escapeHtml(requestedRoute.copy.en.title)}<br><span style="color: #cbd5e1; font-weight: normal;">Saved with your booking. Your captain will confirm the final mission plan before your visit.</span></td>
               </tr>`
     : '';
+  // The birthday discount is already inside `totalIls`; this row only explains the amount.
+  const birthdayRow = booking.birthdayDiscountIls
+    ? `<tr>
+                <td style="color: #94a3b8;">Birthday Discount</td>
+                <td style="color: #10b981; font-weight: bold;">-₪${escapeHtml(booking.birthdayDiscountIls)}</td>
+              </tr>`
+    : '';
   const emailHtml = `
     <!DOCTYPE html>
     <html>
@@ -80,6 +87,7 @@ export async function sendBookingConfirmationEmail(booking: Booking): Promise<{ 
                 <td style="color: #94a3b8;">Center Location</td>
                 <td style="color: #ffffff;">Gershon Shatz St 36, Tel Aviv-Yafo (Yehudit Light Rail / HaShalom Station)</td>
               </tr>
+              ${birthdayRow}
               <tr>
                 <td style="color: #94a3b8;">Total Paid</td>
                 <td style="color: #10b981; font-weight: bold;">₪${escapeHtml(booking.totalIls)}</td>

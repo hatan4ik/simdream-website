@@ -21,7 +21,7 @@ interface UseBookingVoucherArgs {
   isWixSubscriptionRedemption: boolean;
   /** Codes are applied to the Wix cart (coupon or native Gift Card) instead of the local voucher API. */
   canUseWixNativeCheckout: boolean;
-  /** What a local voucher balance must cover. Independent of any discount already applied. */
+  /** What a local voucher balance must cover: the subtotal less the birthday discount. Independent of the voucher itself. */
   subtotalIls: number;
   pilotName: string;
   pilotEmail: string;
@@ -53,6 +53,8 @@ export function useBookingVoucher(args: UseBookingVoucherArgs) {
   const [voucherCode, setVoucherCode] = useState<string>(initialVoucherCode);
   const [cachedVoucherCode, setCachedVoucherCode] = useState<string>('');
   const [voucherDiscount, setVoucherDiscount] = useState<number>(0);
+  /** Balance of the verified local voucher, to re-check it when the amount it must cover changes. */
+  const [voucherBalanceIls, setVoucherBalanceIls] = useState<number>(0);
   const [voucherError, setVoucherError] = useState<string>('');
   const [voucherSuccess, setVoucherSuccess] = useState<string>('');
   const [isVerifyingVoucher, setIsVerifyingVoucher] = useState<boolean>(false);
@@ -77,6 +79,19 @@ export function useBookingVoucher(args: UseBookingVoucherArgs) {
       }
     } catch {}
   }, []);
+
+  // The amount a local voucher must cover changes with the add-ons and the birthday discount: keep the
+  // applied amount equal to it, or drop the voucher when its balance no longer reaches.
+  useEffect(() => {
+    if (canUseWixNativeCheckout || voucherDiscount <= 0 || voucherDiscount === subtotalIls) return;
+    if (voucherBalanceIls >= subtotalIls) {
+      setVoucherDiscount(subtotalIls);
+      return;
+    }
+    setVoucherDiscount(0);
+    setVoucherSuccess('');
+    setVoucherError(copy.voucherInsufficientBalance);
+  }, [subtotalIls]);
 
   // A changed flight, departure or pilot detail invalidates the Wix cart, and any code applied to it.
   useEffect(() => {
@@ -168,6 +183,7 @@ export function useBookingVoucher(args: UseBookingVoucherArgs) {
         throw new Error(copy.voucherInsufficientBalance);
       }
       const applicableDiscount = subtotalIls;
+      setVoucherBalanceIls(data.currentBalanceIls);
       setVoucherCode(code);
       setVoucherDiscount(applicableDiscount);
       setVoucherSuccess(

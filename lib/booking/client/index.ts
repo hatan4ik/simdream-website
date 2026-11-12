@@ -62,8 +62,30 @@ export {
   applyGiftCardToDraft,
   getWixCheckoutUrl,
   prepareWixCheckoutDraft,
+  recordNoteOnWixDraft,
   removeAppliedCodeFromDraft,
   type CouponApplication,
   type GiftCardApplication,
   type PrepareWixDraftInput,
 } from './wix-checkout-cart';
+export {
+  birthdayDateBounds,
+  birthdayStatusKind,
+  evaluateBirthdayField,
+  resolveBirthdayPathMode,
+  type BirthdayFieldErrorKey,
+  type BirthdayFieldInputs,
+  type BirthdayFieldState,
+  type BirthdayPathMode,
+  type BirthdayStatusKind,
+} from './birthday-field';
+export {
+  buildCheckoutExtraPayload,
+  buildConsentPayload,
+  firstMissingConsent,
+  type ConsentChoices,
+  type ConsentField,
+  type ConsentPayload,
+} from './consent-state';
+export { buildWixConsentNote, WIX_CART_NOTE_MAX_LENGTH, type WixConsentNoteInput } from './wix-consent-note';
+export { CHECKOUT_EXTRAS_COPY, getCheckoutExtrasCopy, type CheckoutExtrasCopy } from './extras-copy';

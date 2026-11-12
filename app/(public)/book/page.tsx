@@ -10,7 +10,6 @@ import {
   STEP_ADDONS,
   STEP_DATE_SLOT,
   STEP_PILOT,
-  presentManifestWithDraft,
   resolveCheckoutMode,
   stepAfterSlot,
   stepBeforePilot,
@@ -28,15 +27,16 @@ import {
   RouteIntentBanner,
   WixSubscriptionBanner,
   useAddonControls,
+  bookingExtraSlots,
   useBookingCheckout,
+  useBookingExtras,
   useBookingManifest,
+  useBookingPricing,
   useBookingSchedule,
   useBookingSelection,
   useBookingStep,
   useBookingUrlIntent,
-  useBookingVoucher,
   usePilotDetails,
-  useWixCheckoutDraft,
   type BookingViewMode,
 } from '@/components/booking';
 
@@ -79,32 +79,28 @@ function BookContent() {
     hasRequestedRoute: Boolean(selection.activeRequestedRoute),
   });
 
-  // Price, vouchers and the Wix cart. A voucher is verified against the voucher-free subtotal.
+  // Price, vouchers, the Wix cart and the mandatory extras (consent, birthday). A voucher is verified against
+  // the subtotal less the birthday discount; the manifest carries both reductions.
   const manifestInput = { activePackage, selectedSlot, selectedAddons, scopedAddons: selection.scopedAddons };
   const subtotalIls = useBookingManifest(manifestInput, 0).subtotalIls;
-  const wixDraft = useWixCheckoutDraft({
+  const extras = useBookingExtras({
     packageId: activePackage.id,
-    selectedDate,
-    selectedSlot,
-    pilotName: pilot.pilotName,
-    pilotEmail: pilot.pilotEmail,
-    pilotPhone: pilot.pilotPhone,
-    notes: pilot.notes,
-    messages: { errorSelectSlot: t.booking.errorSelectSlot, paymentStartFailed: t.booking.paymentStartFailed },
+    flightDate: selectedDate,
+    subtotalIls,
+    wixAuthoritative: schedule.wixBookingsAuthoritative,
+    isWixSubscriptionRedemption,
   });
-  const voucher = useBookingVoucher({
+  const { wixDraft, voucher, manifest, displayManifest, displayTotalAmount } = useBookingPricing({
+    manifestInput,
+    selectedDate,
+    pilot,
     initialVoucherCode: intent.initialVoucherCode,
     isWixSubscriptionRedemption,
     canUseWixNativeCheckout,
     subtotalIls,
-    pilotName: pilot.pilotName,
-    pilotEmail: pilot.pilotEmail,
-    pilotPhone: pilot.pilotPhone,
-    draft: wixDraft,
+    birthdayDiscountIls: extras.birthday.discountIls,
     copy: t.booking,
   });
-  const manifest = useBookingManifest(manifestInput, voucher.voucherDiscount);
-  const { displayManifest, displayTotalAmount } = presentManifestWithDraft(manifest, wixDraft.activeDraft);
 
   const checkout = useBookingCheckout({
     activePackage,
@@ -122,6 +118,9 @@ function BookContent() {
     wixSubscriptionCopy,
     copy: t.booking,
     onSlotMissing: () => setCurrentStep(STEP_DATE_SLOT),
+    extraValidation: extras.validate,
+    extraPayload: extras.payload,
+    wixCartNote: extras.wixCartNote,
   });
   const addonControls = useAddonControls({
     selectedAddons,
@@ -179,6 +178,7 @@ function BookContent() {
           checkout={checkout}
           addonControls={addonControls}
           displayManifest={displayManifest}
+          extraSlots={bookingExtraSlots(extras, 'storefront')}
           subscriptionCheckout={subscriptionCheckout}
         />
       ) : (
@@ -228,6 +228,7 @@ function BookContent() {
               displayTotalAmount={displayTotalAmount}
               isSubmitting={checkout.isSubmitting}
               subscriptionCheckout={subscriptionCheckout}
+              {...bookingExtraSlots(extras, 'wizard')}
               onBack={() => setCurrentStep(stepBeforePilot(isNoiseFreeBooking))}
             />
           )}

@@ -3,6 +3,7 @@
 import type { MissionManifestCalculation } from '@/types';
 import { AmazonFlightStorefront } from '@/components/scheduler/AmazonFlightStorefront';
 import { BookingAccountNotice } from './BookingAccountNotice';
+import type { BookingExtraSlots } from './booking-extra-slots';
 import type {
   AddonControls,
   BookingCheckout,
@@ -21,6 +22,8 @@ interface BookingStorefrontViewProps {
   addonControls: AddonControls;
   /** The manifest with the Wix cart's calculated total, when a Wix draft is active. */
   displayManifest: MissionManifestCalculation;
+  /** The shared checkout extras (birthday field, confirmations, discount row), built for the Express Shop. */
+  extraSlots?: BookingExtraSlots;
   /** Present while redeeming a Wix subscription: replaces the payment call to action. */
   subscriptionCheckout?: { notice: string; cta: string };
 }
@@ -29,8 +32,9 @@ interface BookingStorefrontViewProps {
  * The optional desktop one-page Express Shop. A thin adapter: it maps the page's booking state onto
  * the storefront's props and adds nothing of its own, so both views share one source of truth.
  *
- * NOTE: the storefront renders its own pilot form and buy box. A field or agreement added to
- * `PilotManifestStep` must also be added inside `AmazonFlightStorefront` to appear in this view.
+ * NOTE: the storefront renders its own pilot form and buy box. The mandatory extras (birthday field,
+ * consent block, discount row) come from `bookingExtraSlots()`, the same nodes `PilotManifestStep` gets, so
+ * both views stay in step; a new shared field goes into those slots, not into either view.
  */
 export function BookingStorefrontView({
   selection,
@@ -40,6 +44,7 @@ export function BookingStorefrontView({
   checkout,
   addonControls,
   displayManifest,
+  extraSlots,
   subscriptionCheckout,
 }: BookingStorefrontViewProps) {
   return (
@@ -87,6 +92,7 @@ export function BookingStorefrontView({
       checkoutError={checkout.bookingError}
       onSubmitBooking={checkout.handleCompleteBooking}
       subscriptionCheckout={subscriptionCheckout}
+      {...extraSlots}
     />
   );
 }

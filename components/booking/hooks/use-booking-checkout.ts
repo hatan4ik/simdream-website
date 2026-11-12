@@ -9,6 +9,7 @@ import {
   buildLocalCheckoutBody,
   findBookingBlocker,
   getWixCheckoutUrl,
+  recordNoteOnWixDraft,
   startLocalCheckout,
   startWixSubscriptionCheckout,
   type WixSubscriptionBookingCopy,
@@ -47,6 +48,12 @@ interface UseBookingCheckoutArgs {
    * fields always win. The server must validate them; the Wix-hosted checkout does not send them.
    */
   extraPayload?: Record<string, unknown>;
+  /**
+   * SEAM for feature modules on the Wix-hosted checkout, where no server of ours sees the booking: returns the
+   * note (consent stamp, birthday month and day) to record on the Wix cart right before the hosted payment page
+   * opens, or null for none. A failure to record it stops the checkout.
+   */
+  wixCartNote?: () => string | null;
 }
 
 /**
@@ -76,6 +83,7 @@ export function useBookingCheckout(args: UseBookingCheckoutArgs) {
     onSlotMissing,
     extraValidation,
     extraPayload,
+    wixCartNote,
   } = args;
   const { pilotName, pilotEmail, pilotPhone, notes } = pilot;
 
@@ -139,6 +147,8 @@ export function useBookingCheckout(args: UseBookingCheckoutArgs) {
           return;
         }
         const draft = await wixDraft.ensureDraft();
+        const note = wixCartNote?.();
+        if (note) await recordNoteOnWixDraft(draft, note, copy.paymentStartFailed);
         window.location.assign(await getWixCheckoutUrl(draft));
         return;
       }
