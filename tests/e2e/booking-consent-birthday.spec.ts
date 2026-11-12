@@ -1,6 +1,7 @@
 import type { Locator, Page } from '@playwright/test';
 import { SIMULATOR_PACKAGES } from '@/lib/db/seed-data';
 import { BIRTHDAY_CHECKOUT_COPY } from '@/lib/discounts/birthday';
+import { CHECKOUT_EXTRAS_COPY } from '@/lib/booking/client/extras-copy';
 import { CONSENT_COPY } from '@/lib/legal';
 import { completeBookingExtras, noDiscountBirthDate, sameMonthBirthDate } from '../support/booking-extras';
 import { expect, recordRequests, test } from './fixtures';
@@ -274,5 +275,32 @@ test.describe('the media release and waiver in checkout', () => {
 
     expect(checkoutRequests).toHaveLength(1);
     expect(checkoutRequests[0].postDataJSON()).toMatchObject({ pilotBirthDate: noDiscountBirthDate() });
+  });
+});
+
+test.describe('a Wix flight-track redemption (/book?subscription=wix)', () => {
+  test('still requires both confirmations and the birth date, and says the date is not stored', async ({
+    page,
+    booking,
+    schedule,
+    isMobile,
+  }) => {
+    await openPilotStep(booking, schedule, 'wizard', { query: '?package=captains-command-60&subscription=wix', noiseFree: true });
+    const checkoutRequests = recordRequests(page, '/api/checkout');
+    await expect(page.locator('[data-birthday-field]')).toHaveAttribute('data-birthday-mode', 'subscription');
+    await expect(page.locator('[data-birthday-field]')).toContainText(CHECKOUT_EXTRAS_COPY.en.birthdayNotStored);
+
+    // A redemption's button carries the Wix call to action, not the payment label.
+    await tap(page.locator('form button[type="submit"]').filter({ visible: true }), isMobile);
+
+    await expect(birthDate(page)).toBeFocused();
+    await expect(page.getByRole('alert').filter({ hasText: BIRTHDAY.required })).toHaveCount(1);
+    await expect(page.locator('[data-consent-agreement="rules"] [data-consent-error]')).toHaveText(CONSENT.rules.error);
+    await expect(page.locator('[data-consent-agreement="media"] [data-consent-error]')).toHaveText(CONSENT.media.error);
+    // A redemption goes to Wix, never to the local checkout, and never earns the birthday discount.
+    expect(checkoutRequests).toHaveLength(0);
+    await birthDate(page).fill(sameMonthBirthDate((await schedule.findOpenSlot({ duration: 60 })).date));
+    await expect(page.locator('[data-birthday-banner]')).toHaveCount(0);
+    await expect(page.locator('[data-birthday-discount-line]')).toHaveCount(0);
   });
 });
