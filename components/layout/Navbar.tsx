@@ -472,7 +472,7 @@ export function Navbar() {
                 data-button-variant="primary"
                 className={buttonClassName('primary', 'sm', 'min-h-11 px-3')}
               >
-                {t.nav.bookFlight.split(' ')[0]}
+                {t.nav.bookFlightShort}
               </Link>
             </div>
             <button
