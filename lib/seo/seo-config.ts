@@ -10,6 +10,7 @@ export type SeoPageKey =
   | 'about'
   | 'simulator'
   | 'pro'
+  | 'groundSchool'
   | 'fearOfFlying'
   | 'workshops'
   | 'vouchers'
@@ -170,6 +171,20 @@ export const PAGE_SEO_DEFINITIONS: Record<SeoPageKey, PageSeoDefinition> = {
       'professional flight training Tel Aviv',
       'הדרכה מקצועית לטייסים',
       'הכנה למבדקי חברות תעופה',
+    ],
+  },
+  groundSchool: {
+    path: '/ground-school',
+    title: 'FAA & EASA Ground School Theory and Oral Preparation | Sim Dream Tel Aviv',
+    description:
+      'Instructor-led FAA and EASA theory and oral-exam preparation from Tel Aviv: a monthly intensive with online, in-person and hybrid study options. Request cohort details and confirm the final schedule before enrollment.',
+    keywords: [
+      ...COMMON_KEYWORDS,
+      'FAA ground school Israel',
+      'EASA theory preparation Israel',
+      'pilot oral exam preparation Tel Aviv',
+      'לימודי קרקע FAA ישראל',
+      'הכנה לתיאוריה EASA ישראל',
     ],
   },
   fearOfFlying: {

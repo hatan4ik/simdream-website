@@ -44,6 +44,19 @@ test.describe('primary navigation', () => {
     await expect(page.getByRole('heading', { level: 1, name: 'Choose Flight Date & Operational Slot' })).toBeVisible();
   });
 
+  test('opens Ground School from the Professional Training desktop menu', async ({ page, isMobile }) => {
+    test.skip(isMobile, 'Desktop flyout is replaced by the touch drawer on phone projects.');
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.goto('/');
+
+    await page.getByRole('button', { name: 'Professional Training' }).click();
+    const menu = page.getByRole('menu', { name: 'Professional Training' });
+    await follow(menu.getByRole('link', { name: 'Ground School', exact: true }), '/ground-school');
+
+    await expect(page).toHaveURL('/ground-school');
+    await expect(page.getByRole('heading', { level: 1, name: 'Ground School for FAA & EASA Theory and Oral Preparation' })).toBeVisible();
+  });
+
   test('returns to the home page from the brand logo', async ({ page, chrome }) => {
     await page.goto('/workshops');
     await follow(chrome.homeLink(), '/');
