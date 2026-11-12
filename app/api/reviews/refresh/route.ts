@@ -7,7 +7,7 @@ import { REVIEW_LANGUAGES } from '@/lib/reviews/review-language';
 import { constantTimeEqual } from '@/lib/security/constant-time';
 
 /** A token shorter than this is a guess, not a secret; the route stays disabled until a real one is set. */
-export const MIN_REFRESH_TOKEN_LENGTH = 32;
+const MIN_REFRESH_TOKEN_LENGTH = 32;
 const REALM = 'Sim Dream reviews refresh';
 const NO_STORE = { 'Cache-Control': 'no-store' };
 
