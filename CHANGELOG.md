@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.19.1](https://github.com/hatan4ik/simdream-website/compare/v1.19.0...v1.19.1) (2026-11-12)
+
+
+### Bug Fixes
+
+* **theme:** light phone menu panel in Brand Daylight and Clean Studio ([#112](https://github.com/hatan4ik/simdream-website/issues/112)) ([588ffda](https://github.com/hatan4ik/simdream-website/commit/588ffdad0a3f9d35b096306e2e633414ae930486))
+
 ## [1.19.0](https://github.com/hatan4ik/simdream-website/compare/v1.18.0...v1.19.0) (2026-11-11)
 
 
