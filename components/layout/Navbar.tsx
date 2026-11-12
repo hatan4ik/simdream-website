@@ -19,6 +19,7 @@ import { BrandLogo } from '@/components/brand/BrandLogo';
 import { buttonClassName } from '@/components/ui/Button';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useLanguage } from '@/lib/i18n/language-context';
+import { getOffersNavLabel } from '@/lib/offers/nav-label';
 import { UiThemeSwitcher } from './UiThemeSwitcher';
 import { CockpitToneSwitcher } from './CockpitToneSwitcher';
 import { WhatsAppAction } from './WhatsAppAction';
@@ -51,7 +52,8 @@ export function Navbar() {
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const pathname = usePathname();
   const { user, isAdmin, logout, setDemoUser } = useAuth();
-  const { t, isRTL } = useLanguage();
+  const { t, isRTL, language } = useLanguage();
+  const offersLabel = getOffersNavLabel(language);
   const memberName = user?.fullName || user?.email || t.member.dashboard.defaultPilotName;
   const navbarRef = useRef<HTMLElement>(null);
   const mobileMenuTriggerRef = useRef<HTMLButtonElement>(null);
@@ -67,6 +69,7 @@ export function Navbar() {
 
   const navLinks = [
     { name: t.nav.experiences, href: '/experiences' },
+    { name: offersLabel, href: '/offers' },
     { name: t.nav.subscriptions, href: '/subscriptions' },
     { name: t.nav.simulator, href: '/pro' },
     { name: t.nav.workshops, href: '/workshops' },
@@ -94,6 +97,7 @@ export function Navbar() {
       label: t.nav.experiences,
       items: [
         { name: t.nav.experiences, href: '/experiences' },
+        { name: offersLabel, href: '/offers' },
         { name: t.nav.subscriptions, href: '/subscriptions' },
         { name: t.nav.vouchers, href: '/vouchers' },
         { name: t.nav.fearOfFlying, href: '/fear-of-flying' },
