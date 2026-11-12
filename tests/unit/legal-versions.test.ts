@@ -12,8 +12,8 @@ const digest = (value: unknown) => createHash('sha256').update(JSON.stringify(va
  * record), so changing the wording without a new version would make the record lie. When one of
  * these digests fails: bump the matching constant in lib/legal/versions.ts, then paste the new digest.
  */
-const LEGAL_DOCUMENT_DIGEST = '5ad77fb3b0d6b611';
-const CONSENT_DIGEST = 'REPLACE_ME';
+const LEGAL_DOCUMENT_DIGEST = '804e9001e1a8affe';
+const CONSENT_DIGEST = '0dbba211d3fdc6b5';
 
 describe('legal versions', () => {
   it('pins the current version constants', () => {

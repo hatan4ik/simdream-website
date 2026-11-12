@@ -38,7 +38,12 @@ export function LegalSectionCard({
     <Card className="p-6 space-y-4 scroll-mt-24" id={id}>
       <h2 className="text-xl font-bold text-white flex items-center gap-2">
         <Icon className="w-5 h-5 shrink-0 text-sky-400" aria-hidden="true" />
-        <span>{number ? `${number}. ${title}` : title}</span>
+        {number ? (
+          <span dir="ltr" className="shrink-0">
+            {number}.
+          </span>
+        ) : null}
+        <span>{title}</span>
       </h2>
       <div className="space-y-3" {...bodyProps}>
         {intro ? <p className="text-xs sm:text-sm leading-relaxed">{intro}</p> : null}

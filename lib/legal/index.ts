@@ -7,7 +7,9 @@
  * - Dynamic loaders for the long clause text (one module per language and document)
  *
  * UI lives in `components/legal/`. Never import `./content/*` directly: use the loaders, so the
- * client bundle only carries the language it displays.
+ * client bundle only carries the language it displays. The page-only copy (`./page-copy`,
+ * `./rules-headings`) is deliberately not exported here: it belongs to the `/rules` and
+ * `/privacy-policy` pages and would only add weight to the checkout bundle.
  */
 export { CONSENT_VERSION, LEGAL_DOCUMENT_VERSION, currentLegalVersionStamp } from './versions';
 export type { LegalVersionStamp } from './versions';
@@ -30,9 +32,6 @@ export {
   RESCHEDULE_FEE_ILS,
   SUBSCRIPTION_REFUND_USED_SESSION_RATE_ILS,
 } from './policy-constants';
-export { RULES_HEADINGS } from './rules-headings';
-export { PRIVACY_PAGE_COPY, RULES_PAGE_COPY } from './page-copy';
-export type { PrivacyPageCopy, RulesPageCopy } from './page-copy';
 export {
   loadMediaReleaseSection,
   loadPrivacyPolicy,
