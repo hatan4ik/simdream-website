@@ -1,4 +1,5 @@
-import blogSeoData from './blog-seo.json';
+import blogSeoCompactData from './blog-seo.json';
+import blogSlugMapData from './blog-slug-map.json';
 
 export const BLOG_SEO_LANGS = ['he', 'en', 'ru', 'fr', 'es', 'ar'] as const;
 export type BlogSeoLang = (typeof BLOG_SEO_LANGS)[number];
@@ -28,7 +29,112 @@ export interface BlogSeoRegistry {
   byLegacySlug: Record<string, { translationId: string; language: BlogSeoLang }>;
 }
 
-const REGISTRY: BlogSeoRegistry = blogSeoData as unknown as BlogSeoRegistry;
+interface CompactLocaleEntry {
+  t: string;
+  d: string;
+  k: string[];
+}
+
+interface CompactBlogSeoRecord {
+  id: string;
+  tid: string;
+  s: string;
+  c: string;
+  l: Record<BlogSeoLang, CompactLocaleEntry>;
+}
+
+interface RawSlugMap {
+  bySlug: Record<string, { translationId: string; language: string }>;
+  byTranslationId: Record<
+    string,
+    {
+      localSlug?: string;
+      he?: string;
+      en?: string;
+      ru?: string;
+      fr?: string;
+      es?: string;
+      ar?: string;
+    }
+  >;
+}
+
+function buildRegistry(): BlogSeoRegistry {
+  const compact = blogSeoCompactData as unknown as CompactBlogSeoRecord[];
+  const slugMap = blogSlugMapData as unknown as RawSlugMap;
+
+  const byTidAndLang: Record<string, Partial<Record<BlogSeoLang, Set<string>>>> = {};
+  const addSlug = (tid: string, lang: BlogSeoLang, raw?: string) => {
+    if (!raw) return;
+    const trimmed = raw.trim();
+    if (!trimmed) return;
+    const bucket = (byTidAndLang[tid] ??= {});
+    const set = (bucket[lang] ??= new Set<string>());
+    set.add(trimmed);
+    set.add(trimmed.toLowerCase());
+    const encoded = encodeURIComponent(trimmed);
+    if (encoded !== trimmed) set.add(encoded);
+  };
+
+  for (const [tid, group] of Object.entries(slugMap.byTranslationId)) {
+    if (group.localSlug) addSlug(tid, 'he', group.localSlug);
+    for (const lang of BLOG_SEO_LANGS) {
+      const val = group[lang];
+      if (typeof val === 'string') addSlug(tid, lang, val);
+    }
+  }
+  for (const [slugKey, info] of Object.entries(slugMap.bySlug)) {
+    if (isBlogSeoLang(info.language)) {
+      addSlug(info.translationId, info.language, slugKey);
+    }
+  }
+
+  const registry: BlogSeoRegistry = {
+    version: 1,
+    posts: [],
+    byTranslationId: {},
+    byPostId: {},
+    byShortSlug: {},
+    byLegacySlug: {},
+  };
+
+  for (const item of compact) {
+    const locales = {} as Record<BlogSeoLang, LocalizedBlogSeo>;
+    for (const lang of BLOG_SEO_LANGS) {
+      const entry = item.l[lang];
+      const legacySet = byTidAndLang[item.tid]?.[lang];
+      const legacySlugs = legacySet ? [...legacySet].filter((s) => s !== item.s) : [];
+      for (const leg of legacySlugs) {
+        registry.byLegacySlug[leg] = { translationId: item.tid, language: lang };
+        registry.byLegacySlug[leg.toLowerCase()] = { translationId: item.tid, language: lang };
+      }
+      locales[lang] = {
+        shortSlug: item.s,
+        metaTitle: entry.t,
+        metaDescription: entry.d,
+        keywords: entry.k,
+        legacySlugs,
+      };
+    }
+
+    const record: BlogSeoPostRecord = {
+      postId: item.id,
+      translationId: item.tid,
+      shortSlug: item.s,
+      category: item.c,
+      locales,
+    };
+
+    registry.posts.push(record);
+    registry.byTranslationId[item.tid] = record;
+    registry.byPostId[item.id] = record;
+    registry.byShortSlug[item.s] = item.tid;
+  }
+
+  return registry;
+}
+
+const REGISTRY: BlogSeoRegistry = buildRegistry();
 
 export function isBlogSeoLang(value: string | undefined): value is BlogSeoLang {
   return Boolean(value && (BLOG_SEO_LANGS as readonly string[]).includes(value));

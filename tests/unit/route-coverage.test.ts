@@ -60,12 +60,10 @@ function describePage(file: string): PageFile {
 const publicPages = [path.join(APP, 'page.tsx'), ...pageFiles(PUBLIC_GROUP)].map(describePage);
 const posts = getAllBlogPosts();
 
-/** Static pages plus the dynamic article routes expanded to all 6-language short canonical URLs. */
+/** Static pages plus the dynamic article route expanded to all 6-language short canonical URLs. */
 function expand(page: PageFile): PageFile[] {
-  if (page.route === '/post/[slug]') return posts.map((post) => ({ ...page, route: blogPostPath(post.slug, 'he') }));
-  if (page.route === '/post/[lang]/[slug]') {
-    const nonHebrew = BLOG_SEO_LANGS.filter((lang) => lang !== 'he');
-    return nonHebrew.flatMap((lang) =>
+  if (page.route === '/post/[...segments]') {
+    return BLOG_SEO_LANGS.flatMap((lang) =>
       posts.map((post) => ({ ...page, route: blogPostPath(post.slug, lang) }))
     );
   }
@@ -82,7 +80,7 @@ const sitemapPaths = sitemap().map((entry) => {
 describe('public route coverage: sitemap vs app/(public)', () => {
   it('reads every public page (sanity)', () => {
     expect(publicPages.map((p) => p.route)).toEqual(
-      expect.arrayContaining(['/', '/book', '/blog', '/post/[slug]', '/fear-of-flying', '/subscriptions', '/vouchers'])
+      expect.arrayContaining(['/', '/book', '/blog', '/post/[...segments]', '/fear-of-flying', '/subscriptions', '/vouchers'])
     );
     expect(posts).toHaveLength(39);
   });

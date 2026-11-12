@@ -1567,20 +1567,28 @@ function fitMetaDescription(focus: string, lang: BlogLang): string {
   throw new Error(`metaDescription length ${combined.length} out of [135..160] for ${lang}: "${combined}"`);
 }
 
+interface CompactLocaleEntry {
+  t: string;
+  d: string;
+  k: string[];
+}
+
+interface CompactBlogSeoRecord {
+  id: string;
+  tid: string;
+  s: string;
+  c: string;
+  l: Record<BlogLang, CompactLocaleEntry>;
+}
+
 function main() {
   const root = process.cwd();
   const posts = JSON.parse(readFileSync(path.join(root, 'lib/data/blog-posts.json'), 'utf8')) as RawBlogPost[];
   const slugMap = JSON.parse(readFileSync(path.join(root, 'lib/data/blog-slug-map.json'), 'utf8')) as RawSlugMap;
 
   const seenShortSlugs = new Set<string>();
-  const registry: BlogSeoRegistry = {
-    version: 1,
-    posts: [],
-    byTranslationId: {},
-    byPostId: {},
-    byShortSlug: {},
-    byLegacySlug: {},
-  };
+  const compactRecords: CompactBlogSeoRecord[] = [];
+  let legacyCount = 0;
 
   for (const post of posts) {
     const seed = POST_SEEDS[post.id];
@@ -1605,7 +1613,7 @@ function main() {
     }
     seenShortSlugs.add(shortSlug);
 
-    const locales = {} as Record<BlogLang, LocalizedSeoEntry>;
+    const locales = {} as Record<BlogLang, CompactLocaleEntry>;
 
     for (const lang of SUPPORTED_BLOG_LANGS) {
       const topic = seed.topics[lang];
@@ -1618,65 +1626,28 @@ function main() {
         assertNoCrossScript(kw, lang, `${post.id}.keywords`);
       }
 
-      const legacySet = new Set<string>();
-      const addLegacy = (raw?: string) => {
-        if (!raw) return;
-        const trimmed = raw.trim();
-        if (!trimmed || trimmed === shortSlug) return;
-        legacySet.add(trimmed);
-        const lower = trimmed.toLowerCase();
-        if (lower !== shortSlug) legacySet.add(lower);
-        const encoded = encodeURIComponent(trimmed);
-        if (encoded !== trimmed && encoded !== shortSlug) legacySet.add(encoded);
-      };
-
-      if (lang === 'he') {
-        addLegacy(post.slug);
-        addLegacy(group.localSlug);
-        addLegacy(group.he);
-      } else {
-        addLegacy(group[lang]);
-      }
-
-      // Also collect any other bySlug entries pointing to this translationId + lang
-      for (const [slugKey, info] of Object.entries(slugMap.bySlug)) {
-        if (info.translationId === translationId && info.language === lang) {
-          addLegacy(slugKey);
-        }
-      }
-
-      const legacySlugs = [...legacySet];
-      for (const leg of legacySlugs) {
-        registry.byLegacySlug[leg] = { translationId, language: lang };
-        registry.byLegacySlug[leg.toLowerCase()] = { translationId, language: lang };
-      }
+      if (lang === 'he' && group.localSlug) legacyCount++;
+      if (group[lang]) legacyCount++;
 
       locales[lang] = {
-        shortSlug,
-        metaTitle,
-        metaDescription,
-        keywords: topic.keywords,
-        legacySlugs,
+        t: metaTitle,
+        d: metaDescription,
+        k: topic.keywords,
       };
     }
 
-    const record: BlogSeoPostRecord = {
-      postId: post.id,
-      translationId,
-      shortSlug,
-      category: post.category,
-      locales,
-    };
-
-    registry.posts.push(record);
-    registry.byTranslationId[translationId] = record;
-    registry.byPostId[post.id] = record;
-    registry.byShortSlug[shortSlug] = translationId;
+    compactRecords.push({
+      id: post.id,
+      tid: translationId,
+      s: shortSlug,
+      c: post.category,
+      l: locales,
+    });
   }
 
   const outPath = path.join(root, 'lib/data/blog-seo.json');
-  writeFileSync(outPath, JSON.stringify(registry, null, 2) + '\n', 'utf8');
-  console.log(`Generated ${outPath}: ${registry.posts.length} posts, ${Object.keys(registry.byLegacySlug).length} legacy slug mappings.`);
+  writeFileSync(outPath, JSON.stringify(compactRecords) + '\n', 'utf8');
+  console.log(`Generated compact ${outPath}: ${compactRecords.length} posts (${legacyCount} base legacy slugs).`);
 }
 
 main();
