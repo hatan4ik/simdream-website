@@ -277,6 +277,21 @@ export const corporateInquiry = z.strictObject({
   createdAt: isoDateTime,
 });
 
+export const groundSchoolInquiryCreated = z.strictObject({ id: z.uuid(), status: z.literal('new') });
+
+export const groundSchoolInquiry = z.strictObject({
+  id: z.string().min(1),
+  fullName: z.string().min(1),
+  email: z.string().min(3),
+  phone: z.string().min(6),
+  pathway: z.enum(['faa', 'easa', 'exploring']),
+  modality: z.enum(['online', 'in_person', 'hybrid']),
+  focusTopics: z.string().optional(),
+  consentAt: isoDateTime,
+  status: z.enum(['new', 'contacted', 'enrolled', 'closed']),
+  createdAt: isoDateTime,
+});
+
 export const membershipBootstrap = z.strictObject({
   memberActive: z.literal(true),
   linkedGuestBookings: nonNegativeInt,

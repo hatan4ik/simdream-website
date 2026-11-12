@@ -37,6 +37,7 @@ interface Arranged {
   openSlotStart: string;
   ownedBookingReference: string;
   seedBookingId: string;
+  groundSchoolInquiryId: string;
   receiptLookup: MockInstance;
 }
 
@@ -211,6 +212,39 @@ const ROUTES: RouteCase[] = [
     path: () => '/api/workshops',
     body: () => ({ id: 'corp-01', status: 'contacted' }),
   },
+  {
+    label: 'GET /api/ground-school/inquiries',
+    route: 'groundSchoolInquiries',
+    method: 'GET',
+    policy: 'admin',
+    allowedStatus: 200,
+    path: () => '/api/ground-school/inquiries',
+  },
+  {
+    label: 'POST /api/ground-school/inquiries',
+    route: 'groundSchoolInquiries',
+    method: 'POST',
+    policy: 'public',
+    allowedStatus: 201,
+    path: () => '/api/ground-school/inquiries',
+    body: () => ({
+      fullName: 'Matrix Candidate',
+      email: 'candidate@matrix.test',
+      phone: '+972501234567',
+      pathway: 'faa',
+      modality: 'hybrid',
+      consent: true,
+    }),
+  },
+  {
+    label: 'PATCH /api/ground-school/inquiries',
+    route: 'groundSchoolInquiries',
+    method: 'PATCH',
+    policy: 'admin',
+    allowedStatus: 200,
+    path: () => '/api/ground-school/inquiries',
+    body: (ctx) => ({ id: ctx.groundSchoolInquiryId, status: 'contacted' }),
+  },
 ];
 
 type Outcome = { allowed: true } | { allowed: false; status: number };
@@ -244,6 +278,13 @@ async function arrange(): Promise<Arranged> {
   const app = await loadApp({ stripe: 'mocked', members: MEMBERS, env: { REVIEWS_REFRESH_TOKEN: TEST_REVIEWS_REFRESH_TOKEN } });
   const slot = await findOpenSlot(app, BOOKING_DATE, 30);
   const owned = await seedBooking(app, { userId: MEMBER_A.id, pilotEmail: MEMBER_A.email });
+  const groundSchoolInquiry = await app.store.createGroundSchoolInquiry({
+    fullName: 'Matrix Candidate',
+    email: 'candidate@matrix.test',
+    phone: '+972501234567',
+    pathway: 'faa',
+    modality: 'hybrid',
+  });
 
   // The receipt route asks Stripe for the charge; answer in-process instead of over the network.
   const { stripe } = await import('@/lib/stripe');
@@ -257,6 +298,7 @@ async function arrange(): Promise<Arranged> {
     openSlotStart: slot.startTime,
     ownedBookingReference: owned.bookingReference,
     seedBookingId: app.seed.DEMO_BOOKINGS[0].id,
+    groundSchoolInquiryId: groundSchoolInquiry.id,
     receiptLookup,
   };
 }
@@ -390,6 +432,7 @@ describe('production-mode rules', () => {
     { label: 'GET /api/bookings', route: 'bookings', path: '/api/bookings' },
     { label: 'GET /api/vouchers', route: 'vouchers', path: '/api/vouchers' },
     { label: 'GET /api/workshops', route: 'workshops', path: '/api/workshops' },
+    { label: 'GET /api/ground-school/inquiries', route: 'groundSchoolInquiries', path: '/api/ground-school/inquiries' },
   ];
 
   it.each(ADMIN_READS)(

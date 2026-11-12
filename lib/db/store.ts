@@ -8,6 +8,7 @@ import {
   FlightLog,
   FlightSlot,
   GiftVoucher,
+  GroundSchoolInquiry,
   SimulatorPackage,
   UserProfile,
 } from '@/types';
@@ -240,6 +241,21 @@ function toCorporateInquiry(row: DatabaseRow): CorporateInquiry {
   };
 }
 
+function toGroundSchoolInquiry(row: DatabaseRow): GroundSchoolInquiry {
+  return {
+    id: requiredString(row, 'id'),
+    fullName: requiredString(row, 'full_name'),
+    email: requiredString(row, 'email'),
+    phone: requiredString(row, 'phone'),
+    pathway: requiredString(row, 'pathway') as GroundSchoolInquiry['pathway'],
+    modality: requiredString(row, 'modality') as GroundSchoolInquiry['modality'],
+    focusTopics: optionalString(row, 'focus_topics'),
+    consentAt: requiredString(row, 'consent_at'),
+    status: requiredString(row, 'status') as GroundSchoolInquiry['status'],
+    createdAt: requiredString(row, 'created_at'),
+  };
+}
+
 function assertPersistentWrite(error: { message?: string; code?: string } | null): void {
   if (error) databaseError(error);
 }
@@ -256,6 +272,7 @@ class SimDreamStore {
   private bookings: Booking[] = [...DEMO_BOOKINGS];
   private vouchers: GiftVoucher[] = [...DEMO_VOUCHERS];
   private inquiries: CorporateInquiry[] = [...DEMO_CORPORATE_INQUIRIES];
+  private groundSchoolInquiries: GroundSchoolInquiry[] = [];
   private flightLogs: FlightLog[] = [...DEMO_FLIGHT_LOGS];
   private users: UserProfile[] = [...DEMO_USERS];
 
@@ -871,6 +888,67 @@ class SimDreamStore {
       .maybeSingle();
     assertPersistentWrite(error);
     return data ? toCorporateInquiry(data as DatabaseRow) : undefined;
+  }
+
+  async getGroundSchoolInquiries(): Promise<GroundSchoolInquiry[]> {
+    if (!this.production) return this.groundSchoolInquiries;
+    const { data, error } = await requireSupabaseAdmin()
+      .from('ground_school_inquiries')
+      .select('*')
+      .order('created_at', { ascending: false });
+    assertPersistentWrite(error);
+    return (data as DatabaseRow[]).map(toGroundSchoolInquiry);
+  }
+
+  async createGroundSchoolInquiry(
+    data: Omit<GroundSchoolInquiry, 'id' | 'createdAt' | 'consentAt' | 'status'>
+  ): Promise<GroundSchoolInquiry> {
+    const now = new Date().toISOString();
+    const inquiry: GroundSchoolInquiry = {
+      ...data,
+      id: crypto.randomUUID(),
+      consentAt: now,
+      status: 'new',
+      createdAt: now,
+    };
+    if (!this.production) {
+      this.groundSchoolInquiries.unshift(inquiry);
+      return inquiry;
+    }
+    const { data: inserted, error } = await requireSupabaseAdmin()
+      .from('ground_school_inquiries')
+      .insert({
+        full_name: inquiry.fullName,
+        email: inquiry.email,
+        phone: inquiry.phone,
+        pathway: inquiry.pathway,
+        modality: inquiry.modality,
+        focus_topics: inquiry.focusTopics || null,
+        consent_at: inquiry.consentAt,
+      })
+      .select('*')
+      .single();
+    assertPersistentWrite(error);
+    return toGroundSchoolInquiry(inserted as DatabaseRow);
+  }
+
+  async updateGroundSchoolInquiryStatus(
+    id: string,
+    status: GroundSchoolInquiry['status']
+  ): Promise<GroundSchoolInquiry | undefined> {
+    if (!this.production) {
+      const inquiry = this.groundSchoolInquiries.find((item) => item.id === id);
+      if (inquiry) inquiry.status = status;
+      return inquiry;
+    }
+    const { data, error } = await requireSupabaseAdmin()
+      .from('ground_school_inquiries')
+      .update({ status })
+      .eq('id', id)
+      .select('*')
+      .maybeSingle();
+    assertPersistentWrite(error);
+    return data ? toGroundSchoolInquiry(data as DatabaseRow) : undefined;
   }
 
   async getFlightLogs(pilotEmail?: string): Promise<FlightLog[]> {

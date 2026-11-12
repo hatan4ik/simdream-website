@@ -57,6 +57,15 @@ test.describe('mobile affordances', () => {
     await expect(chrome.navbar.getByRole('button', { name: /menu/i })).toBeVisible();
   });
 
+  test('keeps Ground School reachable through the touch menu', async ({ page, chrome }) => {
+    await page.goto('/');
+    await chrome.openMenu('tap');
+
+    await follow(chrome.navbar.getByRole('link', { name: 'Ground School', exact: true }), '/ground-school', 'tap');
+    await expect(page).toHaveURL('/ground-school');
+    await expect(page.getByRole('heading', { level: 1, name: 'Ground School for FAA & EASA Theory and Oral Preparation' })).toBeVisible();
+  });
+
   test('defaults to a week calendar and selects a date by touch', async ({ page, booking }) => {
     const farDay = israelDate(12);
     await booking.goto();

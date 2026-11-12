@@ -129,13 +129,14 @@ export function expectNoPrototypePollution(): void {
 
 /** Serialized persistent state, for proving that a denied request changed nothing. */
 export async function snapshotState(app: TestApp): Promise<string> {
-  const [bookings, vouchers, inquiries, users] = await Promise.all([
+  const [bookings, vouchers, inquiries, groundSchoolInquiries, users] = await Promise.all([
     app.store.getBookings(),
     app.store.getVouchers(),
     app.store.getCorporateInquiries(),
+    app.store.getGroundSchoolInquiries(),
     app.store.getAllUsers(),
   ]);
-  return JSON.stringify({ bookings, vouchers, inquiries, users });
+  return JSON.stringify({ bookings, vouchers, inquiries, groundSchoolInquiries, users });
 }
 
 /** Persists a booking directly, for arranging ownership scenarios. */

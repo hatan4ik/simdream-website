@@ -120,8 +120,8 @@ export function PrivacyPolicyContentView() {
           </h2>
           <p className="text-xs sm:text-sm">
             {isHe
-              ? 'בעת ביצוע הזמנת טיסה, רכישת שובר מתנה או פנייה בטופס יצירת הקשר באתרים simdream.co.il ו-simdream.aero, אנו אוספים את הפרטים הנדרשים למתן השירות: שם מלא, כתובת דוא״ל, מספר טלפון/וואטסאפ, מועד הטיסה המבוקש והערות להזמנה. המידע משמש לניהול יומן הטיסות, שליחת אישורי הזמנה ושוברים דיגיטליים, תיאום שינויים ומתן שירות לקוחות.'
-              : 'When you book a flight simulator session, purchase a gift voucher, or submit an inquiry on simdream.co.il or simdream.aero, we collect your name, email address, phone/WhatsApp number, selected flight schedule, and optional notes. This data is used strictly to dispatch your session, deliver booking confirmations and digital gift vouchers, and provide customer support.'}
+              ? 'בעת ביצוע הזמנת טיסה, רכישת שובר מתנה, בקשת פרטי הרשמה ללימודי קרקע או פנייה בטופס יצירת הקשר באתרים simdream.co.il ו-simdream.aero, אנו אוספים את הפרטים הנדרשים למתן השירות: שם מלא, כתובת דוא״ל, מספר טלפון/וואטסאפ, מועד הטיסה המבוקש והערות להזמנה. בבקשת לימודי קרקע נאספים גם מסלול התיאוריה, פורמט הלימוד והנושאים שביקשתם עליהם עזרה. המידע משמש לניהול יומן הטיסות, שליחת אישורי הזמנה ושוברים דיגיטליים, תיאום שינויים, מענה לבקשת פרטי המחזור ומתן שירות לקוחות.'
+              : 'When you book a flight simulator session, purchase a gift voucher, request Ground School enrollment details, or submit an inquiry on simdream.co.il or simdream.aero, we collect your name, email address, phone/WhatsApp number, selected flight schedule, and optional notes. A Ground School request also includes the theory pathway, study format, and topics you want help with. This data is used strictly to dispatch your session, deliver booking confirmations and digital gift vouchers, respond to the cohort-details request, and provide customer support.'}
           </p>
         </Card>
 
