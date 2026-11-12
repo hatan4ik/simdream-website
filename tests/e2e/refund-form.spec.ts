@@ -287,6 +287,28 @@ test.describe('refund request form', () => {
     expect(await page.locator('[data-refund-form]').innerText()).not.toMatch(/[؀-ۿ]/);
   });
 
+  test('fits a 320px phone: no horizontal scroll and every control is at least 44px tall', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 640 });
+    await openForm(page);
+    await fillOrder(page, { reference: 'WIX-3', email: 'dana@example.com', sessionDate: israelDate(10) });
+    for (const step of ['order', 'reason', 'review']) {
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      expect(overflow, `horizontal overflow on the ${step} step`).toBeLessThanOrEqual(0);
+      const small = await page.evaluate(() =>
+        [...document.querySelectorAll<HTMLElement>('[data-refund-form] button, [data-refund-form] input:not([type=radio]):not([type=checkbox]), [data-refund-form] textarea, [data-refund-form] label:has(input[type=radio]), [data-refund-form] label:has(input[type=checkbox])')]
+          .filter((element) => !element.closest('[aria-hidden="true"]'))
+          .map((element) => ({ name: element.tagName + ' ' + (element.textContent ?? '').slice(0, 24), height: element.getBoundingClientRect().height }))
+          .filter((item) => item.height > 0 && item.height < 44)
+      );
+      expect(small, `controls under 44px on the ${step} step`).toEqual([]);
+      if (step === 'order') await next(page).click();
+      else if (step === 'reason') {
+        await page.getByRole('radio', { name: /My plans changed/ }).check();
+        await next(page).click();
+      }
+    }
+  });
+
   test('renders in Arabic, right to left, without Hebrew letters', async ({ page }) => {
     await preferLanguage(page, 'ar');
     await page.goto('/refund');
