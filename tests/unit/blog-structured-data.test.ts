@@ -5,16 +5,18 @@ import { FACILITY_INFO } from '@/lib/config/facility-info';
 import { BLOG_AUTHORS, DEFAULT_BLOG_AUTHOR_ID, getBlogAuthor } from '@/lib/data/blog-authors';
 import { getAllBlogPosts, type BlogPost } from '@/lib/data/blog-posts';
 import {
+  BLOG_BREADCRUMB_LABELS,
   BLOG_BREADCRUMB_LABELS_HE,
   blogPostCanonicalUrl,
   buildBlogBreadcrumbJsonLd,
   buildBlogPostingJsonLd,
 } from '@/lib/seo/blog-structured-data';
+import { blogPostPath } from '@/lib/seo/site-routes';
 import { REPO_ROOT } from './_support/source';
 
 const posts = getAllBlogPosts();
 const sample = posts[0]!;
-const POST_PAGE = 'app/(public)/post/[slug]/page.tsx';
+const POST_VIEW = 'components/blog/BlogPostPageView.tsx';
 
 describe('blog author registry (E-E-A-T bylines)', () => {
   it('has a default byline whose profiles are only the official Sim Dream channels', () => {
@@ -65,7 +67,7 @@ describe('BlogPosting JSON-LD', () => {
       inLanguage: 'he-IL',
       mainEntityOfPage: { '@type': 'WebPage', '@id': blogPostCanonicalUrl(sample) },
     });
-    expect(blogPostCanonicalUrl(sample)).toBe(`${FACILITY_INFO.primaryDomain}/post/${encodeURIComponent(sample.slug)}`);
+    expect(blogPostCanonicalUrl(sample)).toBe(`${FACILITY_INFO.primaryDomain}${blogPostPath(sample.slug, 'he')}`);
   });
 
   it('omits dateModified when the corpus has none, and never mirrors datePublished', () => {
@@ -96,13 +98,25 @@ describe('BreadcrumbList JSON-LD', () => {
     for (const label of Object.values(BLOG_BREADCRUMB_LABELS_HE)) expect(label).toMatch(/^[֐-׿\s]+$/);
   });
 
-  it('is rendered by the article page from the shared builders, next to the visible breadcrumb', () => {
-    const source = readFileSync(path.join(REPO_ROOT, POST_PAGE), 'utf8');
+  it('supports localized inLanguage and BreadcrumbList labels for non-Hebrew posts', () => {
+    const enPost: BlogPost = { ...sample, language: 'en', title: 'Does Autopilot Land by Itself?' };
+    const postingEn = buildBlogPostingJsonLd(enPost);
+    const breadcrumbEn = buildBlogBreadcrumbJsonLd(enPost);
+    expect(postingEn.inLanguage).toBe('en-US');
+    expect(postingEn.mainEntityOfPage['@id']).toBe(`${FACILITY_INFO.primaryDomain}${blogPostPath(sample.slug, 'en')}`);
+    expect(breadcrumbEn.inLanguage).toBe('en-US');
+    expect(breadcrumbEn.itemListElement[0]?.name).toBe(BLOG_BREADCRUMB_LABELS.en.home);
+    expect(breadcrumbEn.itemListElement[1]?.name).toBe(BLOG_BREADCRUMB_LABELS.en.blog);
+  });
+
+  it('is rendered by the article view from the shared builders, next to the visible breadcrumb', () => {
+    const source = readFileSync(path.join(REPO_ROOT, POST_VIEW), 'utf8');
     expect(source).toContain('buildBlogPostingJsonLd(post)');
     expect(source).toContain('buildBlogBreadcrumbJsonLd(post)');
-    expect(source).toContain('{BLOG_BREADCRUMB_LABELS_HE.home}');
-    expect(source).toContain('{BLOG_BREADCRUMB_LABELS_HE.blog}');
-    expect(source).toContain('{author.nameHe}');
+    expect(source).toContain('BLOG_BREADCRUMB_LABELS[seoLang]');
+    expect(source).toContain('{breadcrumbLabels.home}');
+    expect(source).toContain('{breadcrumbLabels.blog}');
+    expect(source).toContain('{authorName}');
     expect(source).not.toContain('dateModified: post.datePublished');
     expect(source).not.toMatch(/'@type':\s*'Organization',\s*name:\s*'Sim Dream Aviation Team'/);
   });

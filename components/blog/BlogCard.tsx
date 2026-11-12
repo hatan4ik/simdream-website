@@ -54,7 +54,7 @@ export function BlogCard({ post, featured = false }: BlogCardProps) {
     year: 'numeric',
   }).format(new Date(post.datePublished));
 
-  const postUrl = `/post/${encodeURIComponent(post.slug)}`;
+  const postUrl = post.canonicalPath || `/post/${encodeURIComponent(post.shortSlug || post.slug)}`;
   const readTimeLabel = READ_TIME_LABELS[lang] || READ_TIME_LABELS.he!;
   const readMore = READ_MORE_LABELS[lang] || READ_MORE_LABELS.he!;
 
