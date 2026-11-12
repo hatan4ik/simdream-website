@@ -16,7 +16,10 @@ interface ConsentAgreementProps {
   ariaLabel: string;
   /** The one plain sentence under the label; also the checkbox's accessible description. */
   summary: string;
-  /** Inline error, announced when it appears. Empty while there is none. */
+  /**
+   * Inline error, tied to the checkbox with `aria-describedby`. The page's live region (the booking error
+   * alert) announces the same failure once on submit, so this text is not a second alert.
+   */
   error: string;
   /** Id of an extra note the checkbox is also described by (the 18+ declaration). */
   describedBy?: string;
@@ -76,7 +79,7 @@ export function ConsentAgreement({
       </p>
       {children}
       {error && (
-        <p id={errorId} role="alert" className="ps-9 text-xs font-semibold leading-relaxed text-red-300">
+        <p id={errorId} data-consent-error className="ps-9 text-xs font-semibold leading-relaxed text-red-300">
           {error}
         </p>
       )}

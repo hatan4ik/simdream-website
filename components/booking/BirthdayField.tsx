@@ -55,11 +55,15 @@ export function BirthdayField({ birthday, variant = 'wizard' }: BirthdayFieldPro
       <p id={hintId} className="text-xs leading-relaxed text-slate-400">
         {hint}
       </p>
-      {errorText && (
-        <p id={errorId} role="alert" className="text-xs font-semibold leading-relaxed text-red-300">
-          {errorText}
-        </p>
-      )}
+      {/* A polite live region that is always present: a date rejected on blur is announced when its text appears.
+          On submit the page's booking error alert announces the same failure. */}
+      <div aria-live="polite" data-birthday-error-region>
+        {errorText && (
+          <p id={errorId} className="text-xs font-semibold leading-relaxed text-red-300">
+            {errorText}
+          </p>
+        )}
+      </div>
       <BirthdayStatus id={statusId} birthday={birthday} />
       <BirthdayOfferLink />
     </div>

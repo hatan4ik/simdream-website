@@ -3,6 +3,7 @@ import { expect, preferTheme, type UiTheme } from '../support/e2e';
 import { waitUntilInteractive } from '../e2e/pages/hydration';
 import {
   checkoutButton,
+  completeExtrasByKeyboard,
   ensureStorefrontDateVisible,
   findBookableDate,
   openStorefrontOn,
@@ -70,6 +71,7 @@ test.describe('keyboard-only booking journey', () => {
     await page.keyboard.press('ArrowDown');
     await expect(page.getByRole('radio', { name: 'Sim Enthusiast' })).toBeChecked();
 
+    await completeExtrasByKeyboard(page);
     await tabTo(page, checkoutButton(page));
     const submitted = checkoutRequest(page);
     await page.keyboard.press('Enter');
@@ -83,6 +85,7 @@ test.describe('keyboard-only booking journey', () => {
       pilotEmail: 'dana.keyboard@example.com',
       pilotPhone: '054-555-0101',
       experienceLevel: 'enthusiast',
+      consent: { rulesRefundsAndPrivacy: true, mediaReleaseAndWaiver: true, language: 'en' },
     });
     expect((await sent.response())?.status()).toBe(503);
     await expect(page.getByRole('alert').filter({ hasText: PAYMENTS_UNAVAILABLE_MESSAGE }).first()).toBeVisible();
@@ -123,6 +126,7 @@ test.describe('keyboard-only booking journey', () => {
     await page.keyboard.type('dana.wizard@example.com');
     await page.keyboard.press('Tab');
     await page.keyboard.type('054-555-0102');
+    await completeExtrasByKeyboard(page);
     await tabTo(page, checkoutButton(page));
     const submitted = checkoutRequest(page);
     await page.keyboard.press('Enter');

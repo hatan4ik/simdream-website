@@ -1,6 +1,7 @@
 import type { Locator, Page, Response } from '@playwright/test';
 import { expect } from '../../support/e2e';
 import { displayDatePattern, escapeRegExp, ribbonLabel } from './format';
+import { completeBookingExtras, type CompleteExtrasOptions } from '../../support/booking-extras';
 import { waitUntilInteractive } from './hydration';
 
 export const PAYMENTS_UNAVAILABLE = 'Online payments are temporarily unavailable. Please contact us to book.';
@@ -189,10 +190,12 @@ export class WizardView {
     return this.page.getByRole('button', { name: /^Proceed to Secure Checkout/ });
   }
 
-  async fillPilot(details: PilotDetails): Promise<void> {
+  /** Fills the pilot's contact details and, unless `extras` is false, the mandatory birth date and both confirmations. */
+  async fillPilot(details: PilotDetails, extras: CompleteExtrasOptions | false = {}): Promise<void> {
     await this.pilotName().fill(details.name);
     await this.pilotEmail().fill(details.email);
     await this.pilotPhone().fill(details.phone);
+    if (extras) await completeBookingExtras(this.page, extras);
   }
 }
 
@@ -245,9 +248,11 @@ export class StorefrontView {
     return this.page.getByRole('button', { name: /^Proceed to Secure Checkout/ });
   }
 
-  async fillPilot(details: PilotDetails): Promise<void> {
+  /** Fills the pilot's contact details and, unless `extras` is false, the mandatory birth date and both confirmations. */
+  async fillPilot(details: PilotDetails, extras: CompleteExtrasOptions | false = {}): Promise<void> {
     await this.pilotName().fill(details.name);
     await this.pilotEmail().fill(details.email);
     await this.pilotPhone().fill(details.phone);
+    if (extras) await completeBookingExtras(this.page, extras);
   }
 }

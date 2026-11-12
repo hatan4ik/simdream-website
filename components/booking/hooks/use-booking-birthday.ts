@@ -1,7 +1,7 @@
 'use client';
 
 import { useId, useMemo, useState } from 'react';
-import { getBirthdayCheckoutCopy, getBirthdayErrorText } from '@/lib/discounts/birthday';
+import { getBirthdayCheckoutCopy, getBirthdayErrorText, getBirthdayPackageEligibility } from '@/lib/discounts/birthday';
 import { useLanguage } from '@/lib/i18n/language-context';
 import {
   birthdayDateBounds,
@@ -71,6 +71,8 @@ export function useBookingBirthday(args: UseBookingBirthdayArgs) {
     bounds,
     /** Whole shekels taken off in the preview: 0 unless the local checkout applies the offer. */
     discountIls: state.applied ? state.discountIls : 0,
+    /** This booking could earn the discount (local checkout, package that may carry it), whatever the date. */
+    discountPossible: mode === 'local' && getBirthdayPackageEligibility(packageId).applicable,
     errorText: visibleError,
     validate,
   };

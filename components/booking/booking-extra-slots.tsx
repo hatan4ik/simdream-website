@@ -22,6 +22,11 @@ export function bookingExtraSlots(extras: BookingExtras, variant: 'wizard' | 'st
   return {
     extraFields: <BirthdayField birthday={extras.birthday} variant={variant} />,
     agreements: <ConsentBlock consent={extras.consent} />,
-    extraDiscountLines: <BirthdayDiscountLine discountIls={extras.birthday.discountIls} />,
+    extraDiscountLines: (
+      <BirthdayDiscountLine
+        discountIls={extras.birthday.discountIls}
+        reserveSpace={variant === 'storefront' && extras.birthday.discountPossible}
+      />
+    ),
   };
 }
