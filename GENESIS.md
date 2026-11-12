@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:b5e4794478d63b1f9c1cf37774686dbd2e2cb514e31352c0415f1e9013123578 -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:203e64b4b1386489802bfd61fae8e20a7e9ce823a02adcf89dc29ca1cea8eada -->
 
 ## Verification contract
 
@@ -349,6 +349,7 @@ Add 3 curated one-click combos. Localize every package and add-on in all six lan
 
 - **Themes**:
   - 🌙 *Cockpit Night* is the dark telemetry theme with cerulean HUD accents and orange highlights. It supports three palette tones (`data-cockpit-tone`): *Classic Night* (`#070b14` canvas, `#020617` chrome, `#0f172a` card, `#1e293b` well), *Warmer Cobalt-Navy* (`#0C1A33` canvas, `#091428` chrome, `#13264A` card, `#1B335E` well), and *Squadron Mid-Navy* (`#102547` canvas, `#0C1D38` chrome, `#17325E` card, `#21437A` well), with contrast lifts preserving WCAG 2.2 AA on lighter navy surfaces. A compact 3-swatch toggle (`CockpitToneSwitcher`, persisted in `simdream_cockpit_tone`) lets visitors switch into and compare all three dark palettes alongside `UiThemeSwitcher`.
+  - *Default theme and the daylight guard:* a first-time visitor gets Brand Daylight (`public/theme-bootstrap.js` sets `data-ui="brand"` unless `simdream_ui_theme` is `cockpit`; Studio adds `data-look="studio"`). Every slate fill class used in source needs a matching `html[data-ui="brand"]` override in `app/globals.css`, or the element stays dark under daylight ink: `tests/unit/daylight-slate-overrides.test.ts` (with `tests/unit/_support/daylight-slate.ts`) fails on any uncovered `bg-`/`from-`/`via-`/`to-slate-*` class and keeps a one-entry `ALLOWED_UNCOVERED` list (the blog card photo scrim), and `tests/usability/mobile-menu-theme.spec.ts` (with `tests/usability/support/contrast.ts`) opens the phone menu panel at 390×844 in daylight, studio and cockpit (en/he/ru, plus the cobalt and squadron tones in en) and asserts a light panel with at least 4.5:1 link contrast in the light themes.
   - ☀️ *Brand Daylight*: default cloud white with cerulean and orange, implemented as `html[data-ui="brand"]` overrides.
   - ✨ *Clean Studio*: the daylight palette restyled after apple.com's mobile site (white canvas, `#f5f5f7` wells, 17px root type with tight semibold headlines, sentence-case labels, pill buttons, slim translucent nav). Layered on daylight: the document carries `data-ui="brand"` **and** `data-look="studio"`, and `html[data-look="studio"]` rules add only the restyle. Telemetry (elements with their own `dir="ltr"`) keeps its capitals and mono face.
   - A no-flicker bootstrap script (`public/theme-bootstrap.js`) sets the theme (`data-ui`, `data-look`) and saved `data-cockpit-tone` before first paint; the provider cycles cockpit → brand → studio, remembers the selected dark tone across light switches, and retints `<meta name="theme-color">` (`#070b14` / `#0C1A33` / `#102547`, `#f8fafc`, `#ffffff`).
