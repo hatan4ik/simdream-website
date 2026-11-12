@@ -1,9 +1,14 @@
 'use client';
 
 import { useEffect, useId, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { ChevronDown } from 'lucide-react';
 import { LegalClauseList } from '@/components/legal/shared/LegalClauseList';
-import { MEDIA_RELEASE_PATH, loadMediaReleaseSection, type ConsentCopy, type LegalLanguage, type LegalSectionBody } from '@/lib/legal';
+import { MEDIA_RELEASE_PATH, loadMediaReleaseSectionHe, type ConsentCopy, type LegalLanguage, type LegalSectionBody } from '@/lib/legal';
+
+// The server renders Hebrew only, so the clause text in the other five languages is loaded by a
+// client-only component and stays out of the Wix worker (docs/modules/wix-bundle-diet.md).
+const MediaReleaseLoaderIntl = dynamic(() => import('./MediaReleaseLoaderIntl'), { ssr: false });
 
 interface MediaReleaseDisclosureProps {
   copy: ConsentCopy['media'];
@@ -22,12 +27,14 @@ export function MediaReleaseDisclosure({ copy, language, newTabHint }: MediaRele
   const panelId = useId();
   const [open, setOpen] = useState(false);
   const [state, setState] = useState<LoadState>({ status: 'idle' });
+  const isHebrew = language === 'he';
+  const loaded = state.status === 'ready' && state.language === language;
 
   useEffect(() => {
-    if (!open || (state.status === 'ready' && state.language === language)) return;
+    if (!isHebrew || !open || loaded) return;
     let cancelled = false;
     setState({ status: 'loading' });
-    loadMediaReleaseSection(language)
+    loadMediaReleaseSectionHe()
       .then((section) => {
         if (!cancelled) setState({ status: 'ready', section, language });
       })
@@ -53,6 +60,7 @@ export function MediaReleaseDisclosure({ copy, language, newTabHint }: MediaRele
         <span>{open ? copy.collapse : copy.expand}</span>
         <ChevronDown className={`h-4 w-4 transition-transform motion-reduce:transition-none ${open ? 'rotate-180' : ''}`} aria-hidden="true" />
       </button>
+      {open && !isHebrew && !loaded && <MediaReleaseLoaderIntl language={language} onState={setState} />}
       {open && (
         <div
           id={panelId}

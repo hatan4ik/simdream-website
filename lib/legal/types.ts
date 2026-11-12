@@ -3,6 +3,12 @@ import type { SupportedLanguage } from '@/lib/i18n/translations';
 /** The six site languages; legal copy is keyed by these codes only. */
 export type LegalLanguage = SupportedLanguage;
 
+/**
+ * Every language except Hebrew. The server renders Hebrew only, so the text of these five is
+ * loaded by client-only modules (`*Intl`, `./loaders-intl`); see docs/modules/wix-bundle-diet.md.
+ */
+export type LegalIntlLanguage = Exclude<LegalLanguage, 'he'>;
+
 /** Languages that carry the long, pre-existing rules body (clauses 1 to 12 and the appendix). */
 export type RulesCoreLanguage = 'he' | 'en';
 

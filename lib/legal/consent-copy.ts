@@ -8,7 +8,8 @@ import type { LegalLanguage } from './types';
  *
  * 1. Rules and privacy: acceptance of the rules, the refund-by-form rule (clause 13) and the privacy policy.
  * 2. Media release and waiver of claims (clause 14), with a plain-language summary and the full
- *    clause behind an expander (`loadMediaReleaseSection(language)` from `./loaders`).
+ *    clause behind an expander (`loadMediaReleaseSectionHe()` from `./loaders`; the other five languages
+ *    come from the client-only `./loaders-intl`).
  *
  * Wording rules: one plain sentence first, the full legal text on demand. The labels name their
  * links with `{rules}`, `{refunds}` and `{privacy}` tokens (see `splitConsentLabel`) so every

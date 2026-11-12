@@ -4,10 +4,12 @@
  * - Versions: `LEGAL_DOCUMENT_VERSION`, `CONSENT_VERSION`
  * - Checkout consent copy (six languages), link helpers and the server-side consent record
  * - Anchors and paths of the legal pages, and the refund terms as numbers
- * - Dynamic loaders for the long clause text (one module per language and document)
+ * - Dynamic loaders for the long Hebrew clause text (one module per document)
  *
  * UI lives in `components/legal/`. Never import `./content/*` directly: use the loaders, so the
- * client bundle only carries the language it displays. The page-only copy (`./page-copy`,
+ * client bundle only carries the language it displays. The text in the other five languages is
+ * client-only (`./loaders-intl`, reached through `next/dynamic` with `ssr: false`, never from this
+ * index) so it stays out of the Wix worker: docs/modules/wix-bundle-diet.md. The page-only copy (`./page-copy`,
  * `./rules-headings`) is deliberately not exported here: it belongs to the `/rules` and
  * `/privacy-policy` pages and would only add weight to the checkout bundle.
  */
@@ -33,16 +35,17 @@ export {
   SUBSCRIPTION_REFUND_USED_SESSION_RATE_ILS,
 } from './policy-constants';
 export {
-  loadMediaReleaseSection,
-  loadPrivacyPolicy,
-  loadRulesCore,
-  loadRulesExtra,
+  loadMediaReleaseSectionHe,
+  loadPrivacyHe,
+  loadRulesCoreHe,
+  loadRulesExtraHe,
   rulesCoreLanguageFor,
 } from './loaders';
 export type {
   LegalBody,
   LegalClause,
   LegalClauseAction,
+  LegalIntlLanguage,
   LegalLanguage,
   LegalSectionBody,
   PrivacyBody,
