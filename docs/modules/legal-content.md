@@ -27,25 +27,27 @@ lib/legal/
   page-copy.ts          header/highlight/notice/contact copy of both pages in 6 languages
   consent-copy.ts       CONSENT_COPY (6 languages), splitConsentLabel(), CONSENT_LINKS, MEDIA_RELEASE_PATH, getConsentCopy()
   consent-record.ts     buildConsentRecord() (pure; the server stamps the time and versions)
-  loaders.ts            memoised dynamic import() loaders, one module per language per document
+  loaders.ts            memoised dynamic import() loaders for the HEBREW bodies (the only ones the server bundles)
+  loaders-intl.ts       the same for en/ru/fr/ar/es: CLIENT-ONLY (docs/modules/wix-bundle-diet.md)
   content/
     rules-core.{he,en}.ts          clauses 1-12 + privacy appendix (original Hebrew; faithful English)
     rules-extra.{he,en,ru,fr,ar,es}.ts   clauses 13-15 (refunds, media release and waiver, consent record)
     privacy.{he,en,ru,fr,ar,es}.ts       privacy policy, sections 1-6 original, 7-10 added
 components/legal/
   RulesContentView.tsx, PrivacyPolicyContentView.tsx    thin compositions
-  rules/    RulesHeader, RulesHighlights, RulesNotice, RulesToc, RulesSections, RulesBody, rules-section-icons
-  privacy/  PrivacyHeader, PrivacySections, PrivacyBody, privacy-section-icons
+  rules/    RulesHeader, RulesHighlights, RulesNotice, RulesToc, RulesSections, RulesBody, RulesBodyIntl (client-only), rules-section-icons
+  privacy/  PrivacyHeader, PrivacySections, PrivacyBody, PrivacyBodyIntl (client-only), privacy-section-icons
   shared/   LegalDocumentHeader, LegalToc, LegalSectionCard, LegalClauseList, LegalContactBox,
             LegalLoadingFallback, LegalHashScroll
 tests/unit/  legal-content, legal-consent-copy, legal-render, legal-versions, _support/legal-fixtures
 tests/usability/legal-pages.spec.ts
 ```
 
-The long clause text is read only through `loaders.ts` (`import()` per language). `RulesBody` /
-`PrivacyBody` read the promises with React `use()` inside one `<Suspense>`; the server renders the
-Hebrew default into the HTML and other languages load their chunk after the saved language resolves
-(a small "Loading the full text" card for a moment). The boundary element is memoised in the two views so the
+The long clause text is read only through `loaders.ts` (Hebrew) and `loaders-intl.ts` (the other five languages, `import()` per
+language). `RulesBody` / `PrivacyBody` read the promises with React `use()` inside one `<Suspense>`; the server renders the
+Hebrew default into the HTML (Hebrew loaders, in the worker). Every other language goes through `RulesBodyIntl` /
+`PrivacyBodyIntl`, which `next/dynamic` loads with `ssr: false`, so none of that text is in the Wix worker; its chunk arrives after the
+saved language resolves (the same small "Loading the full text" card for a moment). The boundary element is memoised in the two views so the
 language provider's post-mount context update does not discard the server-rendered text (found and fixed during the browser check).
 
 ### Design note: one section component, not sixteen
@@ -64,7 +66,7 @@ import {
   getConsentCopy, CONSENT_COPY, splitConsentLabel,    // checkout text (6 languages)
   CONSENT_LINKS,            // { rules: '/rules', refunds: '/rules#refunds', privacy: '/privacy-policy' }
   MEDIA_RELEASE_PATH,       // '/rules#media-release'
-  loadMediaReleaseSection,  // Promise<LegalSectionBody>: full clause 14 in the page language (expandable text)
+  loadMediaReleaseSectionHe, // Promise<LegalSectionBody>: full clause 14 in Hebrew (other languages: client-only loaders-intl.ts)
   buildConsentRecord,       // server side: { ok, record } | { ok: false, missing }
   LEGAL_PATHS,              // includes refundForm: '/refund'
   REFUND_WINDOW_DAYS, REFUND_MIN_BUSINESS_DAYS_BEFORE_SESSION, FREE_RESCHEDULE_NOTICE_HOURS,
@@ -78,7 +80,7 @@ import {
   1. `copy.rules`: label via `splitConsentLabel(copy.rules)` (parts of `{type:'text'}` and `{type:'link', key}`; links open
      `CONSENT_LINKS[key]` in a new tab with `rel="noopener noreferrer"`), `copy.rules.summary` under it, `ariaLabel` as the accessible name.
   2. `copy.media`: label, `summary`, `guardianNote` (booker is 18+; a minor's parent or guardian consents on the child's behalf),
-     `optOutNote`, an expander (`expand`/`collapse`) that renders `loadMediaReleaseSection(language)` (sections carry
+     `optOutNote`, an expander (`expand`/`collapse`) that renders the clause loaded by `loadMediaReleaseSectionHe()` or, for the other languages, by `MediaReleaseLoaderIntl` (sections carry
      `intro` and `clauses[].number/term/text/items`), `loadError` fallback with `openOnPage` linking `MEDIA_RELEASE_PATH`.
   3. `copy.recordNote` under both; `copy.heading`/`copy.intro` above.
 - The server (`POST /api/checkout`) must call `buildConsentRecord({ language, rulesRefundsAndPrivacy, mediaReleaseAndWaiver })`
@@ -162,7 +164,7 @@ discount applies; we keep only what is needed for that purpose"). If A5 stores o
 | Checkout consent copy | yes | yes | yes (NEEDS LEGAL REVIEW) |
 
 Decision: translating clauses 1-12 into ru/fr/ar/es was not done. It is about 12 KB of Hebrew per language, and the Wix worker has roughly
-230 KB of headroom left. Adding a language later is one file (`content/rules-core.<lang>.ts` plus one line in `loaders.ts`); until then that language shows the English text.
+230 KB of headroom left. Adding a language later is one file (`content/rules-core.<lang>.ts` plus one line in `loaders.ts` for Hebrew or `loaders-intl.ts` for any other language); until then that language shows the English text.
 The notices for ru/fr/ar/es are the previous notices extended by one sentence saying clauses 13-15 are in the visitor's language.
 
 Also fixed on the way: the rules/privacy header printed the Hebrew company name on every language page (including Arabic). It now appears on the Hebrew page only.
@@ -172,8 +174,8 @@ Also fixed on the way: the rules/privacy header printed the Hebrew company name 
 Source bytes (UTF-8) added by this branch: `lib/legal` 195,578 + `components/legal` 23,482 = 219,060; the two old monolithic views were 40,062, so net +179 KB source.
 Minified per file (esbuild, `--charset=utf8`): new 163 KB, old views 33 KB, **net about +130 KB** in the bundle. Of the new code about 40 KB is always loaded
 (consent copy 13 KB, page copy 13 KB, headings, loaders); the rest is one chunk per language and document, so one visitor downloads about 20-35 KB (Hebrew: 13 KB rules core + 7 KB extras + 7 KB privacy).
-The server bundle holds every chunk, so the worker grows by the full amount. If the budget is tight, the cheapest cuts are `privacy.{ru,fr,es,ar}` (about 33 KB) and
-`rules-extra.{ru,fr,es,ar}` (about 30 KB), falling back to English for those languages.
+The server bundle held every chunk, so the worker grew by the full amount. That is no longer so: the en/ru/fr/ar/es bodies (about 87 KB in the
+worker) are client-only now and the worker carries the Hebrew bodies only (`docs/modules/wix-bundle-diet.md`).
 
 ## 8. Decisions, assumptions, things removed
 

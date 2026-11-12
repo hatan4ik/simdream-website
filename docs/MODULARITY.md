@@ -35,8 +35,10 @@ Rules that apply to every module and are easy to break while splitting:
 5. **Genesis.** `npm run docs:verify` requires every `lib/**` file name and every `components/**/*.tsx` name to
    appear in `GENESIS.md`, and a fresh source fingerprint. Adding files means adding them there and stamping
    (`npm run docs:genesis:stamp`) after review.
-6. **Bundle.** The Wix worker bundle has a 14 MiB budget. Keep long per-language text out of modules that the
-   server also bundles; load it with a dynamic `import()` or keep it in a client-only module.
+6. **Bundle.** The Wix worker bundle has a 14 MiB budget (`scripts/prepare-wix-worker.mjs`, never raised). The server
+   renders Hebrew only, so non-Hebrew copy is client-only: put it in a `*Intl` module and import it only through
+   `dynamic(() => import(...), { ssr: false })`; a plain dynamic `import()` in a client component is still bundled for the
+   server. Details, measurements and the guard test: [`docs/modules/wix-bundle-diet.md`](modules/wix-bundle-diet.md).
 
 ### Splitting a file: the recipe
 

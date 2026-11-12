@@ -10,7 +10,7 @@ checkout, using the seams of `docs/modules/modular-booking.md`, the copy and rec
 | Requirement | Where |
 | --- | --- |
 | Two separate, unchecked-by-default, required confirmations: (1) rules + refund-by-form rule + privacy, (2) media release and waiver | `components/booking/ConsentBlock.tsx` (+ `ConsentAgreement`, `ConsentRulesLabel`, `MediaReleaseDisclosure`), state in `hooks/use-booking-consent.ts`, copy only from `CONSENT_COPY` |
-| Plain one-sentence summary, full clause expandable, loaded lazily per language | `MediaReleaseDisclosure` calls `loadMediaReleaseSection(language)` on first open (dynamic `import()` of the small extras module), rendered with `LegalClauseList` |
+| Plain one-sentence summary, full clause expandable, loaded lazily per language | `MediaReleaseDisclosure` loads the clause on first open (`loadMediaReleaseSectionHe()` for Hebrew; the other five languages through the client-only `MediaReleaseLoaderIntl`, `ssr: false`), rendered with `LegalClauseList` |
 | Links open in a new tab, the draft is kept | `ConsentRulesLabel` (`target="_blank" rel="noopener noreferrer"`, screen-reader suffix "opens in a new tab") |
 | Booker is 18+ (and the minor's guardian) | `copy.media.guardianNote`, linked to the checkbox with `aria-describedby` |
 | Blocked submit with a focused, announced error | `useBookingExtras().validate()` is the `extraValidation` seam: first invalid control takes focus, the first failure goes to the page's alert (`BookingErrorAlert`, or the buy box alert in the Express Shop), each control also carries its inline error |
