@@ -49,7 +49,7 @@ export default async function LocalizedPostPage({ params }: LocalizedPostPagePro
   }
 
   if (match) {
-    let decoded = slug;
+    let decoded: string;
     try {
       decoded = decodeURIComponent(slug).trim();
     } catch {
