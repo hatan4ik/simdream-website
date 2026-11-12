@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.21.1](https://github.com/hatan4ik/simdream-website/compare/v1.21.0...v1.21.1) (2026-11-12)
+
+
+### Bug Fixes
+
+* **contact:** deliver Dispatch inquiries through server route ([#180](https://github.com/hatan4ik/simdream-website/issues/180)) ([3374bdd](https://github.com/hatan4ik/simdream-website/commit/3374bdd43819f73b87b182c7a6f97f2f57d8558f))
+* **test:** scope the contact failure alert so the route announcer cannot match ([#181](https://github.com/hatan4ik/simdream-website/issues/181)) ([3982da5](https://github.com/hatan4ik/simdream-website/commit/3982da528559e658ebe605b7e021a24f30e4d13f))
+
 ## [1.21.0](https://github.com/hatan4ik/simdream-website/compare/v1.20.0...v1.21.0) (2026-11-12)
 
 
