@@ -40,6 +40,7 @@ export function buildNavigationLinks(t: Copy, offersLabel: string): NavigationLi
     { name: offersLabel, href: '/offers' },
     { name: t.nav.subscriptions, href: '/subscriptions' },
     { name: t.nav.simulator, href: '/pro' },
+    { name: t.nav.groundSchool, href: '/ground-school' },
     { name: t.nav.workshops, href: '/workshops' },
     { name: t.nav.vouchers, href: '/vouchers' },
     { name: t.nav.contact, href: '/contact' },
@@ -75,6 +76,7 @@ export function buildNavigationGroups(t: Copy, offersLabel: string): NavigationG
       label: t.nav.simulator,
       items: [
         { name: t.nav.simulator, href: '/pro' },
+        { name: t.nav.groundSchool, href: '/ground-school' },
         { name: t.nav.workshops, href: '/workshops' },
       ],
     },

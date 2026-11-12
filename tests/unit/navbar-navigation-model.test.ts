@@ -48,7 +48,7 @@ describe('navigation model: structure', () => {
   it('lists each group destination in order', () => {
     const hrefs = Object.fromEntries(groups.map((group) => [group.id, group.items.map((item) => item.href)]));
     expect(hrefs.experiences).toEqual(['/experiences', '/offers', '/subscriptions', '/vouchers', '/fear-of-flying']);
-    expect(hrefs.professional).toEqual(['/pro', '/workshops']);
+    expect(hrefs.professional).toEqual(['/pro', '/ground-school', '/workshops']);
     expect(hrefs.visit).toEqual(['/contact', '/about', '/blog']);
     expect(hrefs.social).toHaveLength(3);
   });
@@ -59,6 +59,7 @@ describe('navigation model: structure', () => {
       '/offers',
       '/subscriptions',
       '/pro',
+      '/ground-school',
       '/workshops',
       '/vouchers',
       '/contact',

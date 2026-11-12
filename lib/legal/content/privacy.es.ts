@@ -122,6 +122,12 @@ const PRIVACY_ES: PrivacyBody = {
           text: 'Cuando se envía una solicitud de reembolso mediante el formulario, se recogen los datos introducidos (por ejemplo, la reserva, los datos de contacto y el motivo de la solicitud). Se utilizan solo para tramitar la solicitud y responderla, y se conservan junto con el registro de la reserva.',
           added: true,
         },
+        {
+          term: 'Solicitudes de la Escuela en tierra:',
+          text: 'Cuando solicitas los detalles de inscripción a la Escuela en tierra, también recogemos la vía teórica, el formato de estudio y los temas en los que quieres ayuda. Estos datos se usan solo para responder a tu solicitud sobre la cohorte; una solicitud no es una inscripción ni un pago.',
+          added: true,
+          needsLegalReview: true,
+        },
       ],
     },
     {

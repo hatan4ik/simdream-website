@@ -12,13 +12,13 @@ const digest = (value: unknown) => createHash('sha256').update(JSON.stringify(va
  * record), so changing the wording without a new version would make the record lie. When one of
  * these digests fails: bump the matching constant in lib/legal/versions.ts, then paste the new digest.
  */
-const LEGAL_DOCUMENT_DIGEST = '804e9001e1a8affe';
+const LEGAL_DOCUMENT_DIGEST = '12af828def4999d6';
 const CONSENT_DIGEST = '0dbba211d3fdc6b5';
 
 describe('legal versions', () => {
   it('pins the current version constants', () => {
-    expect(LEGAL_DOCUMENT_VERSION).toBe('2026-11-11');
-    expect(CONSENT_VERSION).toBe('2026-11-11.1');
+    expect(LEGAL_DOCUMENT_VERSION).toBe('2026-11-12');
+    expect(CONSENT_VERSION).toBe('2026-11-12.1');
   });
 
   it('uses a calendar date for the document version and date.revision for the consent version', () => {
@@ -34,7 +34,7 @@ describe('legal versions', () => {
 
   it('fails when the rules or privacy wording changes without a new LEGAL_DOCUMENT_VERSION', () => {
     const current = digest({ core: RULES_CORE, extra: RULES_EXTRA, privacy: PRIVACY, headings: RULES_HEADINGS });
-    expect({ version: LEGAL_DOCUMENT_VERSION, digest: current }).toEqual({ version: '2026-11-11', digest: LEGAL_DOCUMENT_DIGEST });
+    expect({ version: LEGAL_DOCUMENT_VERSION, digest: current }).toEqual({ version: '2026-11-12', digest: LEGAL_DOCUMENT_DIGEST });
   });
 
   it('fails when the checkout consent wording changes without a new CONSENT_VERSION', () => {
@@ -42,6 +42,6 @@ describe('legal versions', () => {
       Object.entries(RULES_EXTRA).map(([language, body]) => [language, body.sections.filter((section) => section.id !== 'refunds')])
     );
     const current = digest({ copy: CONSENT_COPY, mediaRelease });
-    expect({ version: CONSENT_VERSION, digest: current }).toEqual({ version: '2026-11-11.1', digest: CONSENT_DIGEST });
+    expect({ version: CONSENT_VERSION, digest: current }).toEqual({ version: '2026-11-12.1', digest: CONSENT_DIGEST });
   });
 });

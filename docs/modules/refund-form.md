@@ -34,7 +34,7 @@ anything**: every request goes to a person (`needsStaffConfirmation` is always `
 | Entries | `lib/refund/index.ts` (client-safe), `lib/refund/server.ts` (server-only), `components/refund/index.ts` |
 | Copy | `lib/refund/copy/{he,en,ru,fr,ar,es}.ts`, `copy/email.ts`, `copy/refund-copy-types.ts`, `copy/fill-copy.ts`, `copy/index.ts` |
 | UI | `components/refund/*` (`RefundRequestView`, `OrderStep`, `ReasonStep`, `ReviewStep`, `ExpectationPanel`, `RefundSuccess`, `RefundUnavailable`, `RefundStepper`, `RefundPageHeader`, `FormField`, `ChoiceCard`, `ContactLinks`, `use-refund-form.ts`, `refund-form-types.ts`) |
-| Database | `lib/db/migrations/010_refund_requests.sql`, mirrored in `lib/db/schema.sql` |
+| Database | `lib/db/migrations/011_refund_requests.sql`, mirrored in `lib/db/schema.sql` |
 | Tests | `tests/unit/refund-*.test.ts` (4 files), `tests/integration/refund-requests*.test.ts` (2), `tests/support/fake-refund-supabase.ts`, `tests/e2e/refund-form.spec.ts`, `tests/a11y/refund-states.spec.ts` (+ keys in `tests/a11y/support/scan-keys.ts` and `a11y-baseline.json`) |
 
 The only shared files touched: `.env.example` (one optional variable), `lib/db/schema.sql` (the new table),
@@ -148,7 +148,7 @@ There is no CAPTCHA (honeypot, same-origin and limits only); add Turnstile if sp
 `GET /api/refund-requests` (admin Basic auth, `private, no-store`) lists the newest 100 requests, so stored
 requests are visible without SQL. There is no status-change endpoint yet: set `status` in the table by hand.
 
-## 7. Data model (migration `010_refund_requests.sql`, also in `schema.sql`)
+## 7. Data model (migration `011_refund_requests.sql`, also in `schema.sql`)
 
 Table `public.refund_requests`: `id`, `reference` (unique, `^RF-[A-HJ-NP-Z2-9]{6}$`), `client_request_id`
 (unique uuid), `status` (`new`, `in_review`, `resolved`, `declined`), `product_kind`, `reason`,
@@ -243,7 +243,7 @@ add a plain link to `https://www.simdream.co.il/refund` there.
 also needs a stamp after merging everything):
 
 - Page route `/refund`; API routes `/api/refund-requests` (POST, GET) and `/api/refund-requests/lookup` (POST)
-- Database: table `refund_requests`, migration `010_refund_requests.sql` (also change "migrations 001–009" to
+- Database: table `refund_requests`, migration `011_refund_requests.sql` (also change "migrations 001–009" to
   "001–010" and "schema.sql plus 003–009" to "003–010")
 - Environment: `REFUND_NOTIFY_EMAIL`
 - Library modules (mention each file name): `lib/refund/` `refund-policy`, `refund-types`, `refund-eligibility`,
@@ -264,7 +264,7 @@ Suggested paragraph (routing table / modules section):
 > refunds anything. `POST /api/refund-requests/lookup` verifies reference **and** email against the local
 > store and reveals only package title, session date/time and order date, otherwise `{ verified: false }`.
 > `POST /api/refund-requests` is same-origin, honeypot and rate limited, stores to `refund_requests`
-> (migration 010; Supabase in production, memory in development), emails the desk and acknowledges the
+> (migration 011; Supabase in production, memory in development), emails the desk and acknowledges the
 > customer through SendGrid, and **fails closed with 503** and the desk contact when neither storage nor email
 > can take the request. Copy lives in `lib/refund/copy/` in six languages.
 

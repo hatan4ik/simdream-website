@@ -1,5 +1,5 @@
 import { expect, test } from './fixtures';
-import { follow } from './pages/hydration';
+import { activate, follow } from './pages/hydration';
 
 const PRIMARY_NAV = [
   { link: 'Flight Experiences', path: '/experiences', heading: 'Popular Simulator Packages' },
@@ -42,6 +42,29 @@ test.describe('primary navigation', () => {
 
     await expect(page).toHaveURL('/book');
     await expect(page.getByRole('heading', { level: 1, name: 'Choose Flight Date & Operational Slot' })).toBeVisible();
+  });
+
+  test('opens Ground School from the Professional Training desktop menu', async ({ page, isMobile }) => {
+    test.skip(isMobile, 'Desktop flyout is replaced by the touch drawer on phone projects.');
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.goto('/');
+
+    await activate(page.getByRole('button', { name: 'Professional Training' }));
+    const menu = page.getByRole('menu', { name: 'Professional Training' });
+    const groundSchool = menu.getByRole('menuitem', { name: 'Ground School', exact: true });
+    await expect(groundSchool).toBeVisible();
+    await expect(groundSchool).toHaveAttribute('href', '/ground-school');
+
+    // The menu itself proves this client navigation surface is interactive. The
+    // Link is still a valid HTML anchor before Next attaches its client handler,
+    // so require the visitor-visible route transition rather than React's
+    // private hydration marker on the anchor.
+    const arrived = page.waitForURL('/ground-school');
+    await groundSchool.click();
+    await arrived;
+
+    await expect(page).toHaveURL('/ground-school');
+    await expect(page.getByRole('heading', { level: 1, name: 'Ground School for FAA & EASA Theory and Oral Preparation' })).toBeVisible();
   });
 
   test('returns to the home page from the brand logo', async ({ page, chrome }) => {

@@ -116,6 +116,22 @@ export const adminWorkshopPatchSchema = z.object({
   status: z.enum(['new', 'contacted', 'quoted', 'confirmed']),
 });
 
+/** Public course-detail request. This intentionally has no price, payment or cohort-capacity field. */
+export const groundSchoolInquirySchema = z.object({
+  fullName: safeText(120),
+  email: z.string().trim().email().max(254),
+  phone: z.string().trim().min(6).max(32),
+  pathway: z.enum(['faa', 'easa', 'exploring']),
+  modality: z.enum(['online', 'in_person', 'hybrid']),
+  focusTopics: z.string().trim().max(2_000).optional(),
+  consent: z.literal(true),
+});
+
+export const adminGroundSchoolInquiryPatchSchema = z.object({
+  id: z.string().trim().min(1).max(128),
+  status: z.enum(['new', 'contacted', 'enrolled', 'closed']),
+});
+
 const optimizableDuration = z.union([
   z.literal(30),
   z.literal(45),

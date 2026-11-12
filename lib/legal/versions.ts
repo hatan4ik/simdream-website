@@ -12,9 +12,9 @@
  * `tests/unit/legal-versions.test.ts` pins a digest of the wording and fails when the text changes
  * without these constants being bumped.
  */
-export const LEGAL_DOCUMENT_VERSION = '2026-11-11';
+export const LEGAL_DOCUMENT_VERSION = '2026-11-12';
 
-export const CONSENT_VERSION = '2026-11-11.1';
+export const CONSENT_VERSION = '2026-11-12.1';
 
 /** Shape of the version stamp stored with an order's consent record. */
 export interface LegalVersionStamp {

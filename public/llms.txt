@@ -79,6 +79,7 @@ Add-ons extend a consumer Experience Flight. Professional and Fear of Flying ses
 - [Flight Deck Journal (aviation blog, Hebrew)](https://www.simdream.co.il/blog)
 - [About Sim Dream and the Customer Flight Experience](https://www.simdream.co.il/about)
 - [Professional Training and Airline Assessment Prep (PRO tiers)](https://www.simdream.co.il/pro)
+- [FAA and EASA Ground School Theory and Oral Preparation](https://www.simdream.co.il/ground-school)
 - [Fear of Flying Course](https://www.simdream.co.il/fear-of-flying)
 - [Gift Vouchers and Gift Cards](https://www.simdream.co.il/vouchers)
 - [Corporate CRM Leadership Workshops](https://www.simdream.co.il/workshops)

@@ -6,7 +6,7 @@ import { getSupabaseAdmin, requireSupabaseAdmin } from '@/lib/db/supabase-admin'
 import type { RefundEvaluation, RefundPriority, RefundProductKind, RefundReason } from './refund-types';
 
 /**
- * Persistence for refund requests (migration 010). The same rules as the order store
+ * Persistence for refund requests (migration 011). The same rules as the order store
  * (AGENTS.md section 6): Supabase in production, process memory in development and tests, and
  * production without Supabase has NO storage unless ALLOW_IN_MEMORY_STORE=true opts a demo or test
  * server in. Without storage the service falls back to the email channel or fails closed (503).

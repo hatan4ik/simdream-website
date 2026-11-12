@@ -122,6 +122,12 @@ const PRIVACY_FR: PrivacyBody = {
           text: 'Lorsqu’une demande de remboursement est envoyée via le formulaire, les informations saisies sont collectées (par exemple la commande, les coordonnées et le motif de la demande). Elles servent uniquement à traiter la demande et à y répondre, et sont conservées avec l’enregistrement de la commande.',
           added: true,
         },
+        {
+          term: 'Demandes pour l’École au sol :',
+          text: 'Lorsque vous demandez les détails d’inscription à l’École au sol, nous recueillons aussi le parcours théorique, le format d’étude et les sujets pour lesquels vous souhaitez de l’aide. Ces données servent uniquement à répondre à votre demande d’informations sur la session ; une demande n’est ni une inscription ni un paiement.',
+          added: true,
+          needsLegalReview: true,
+        },
       ],
     },
     {

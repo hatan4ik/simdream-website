@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS public.bookings (
   discount_ils NUMERIC(10, 2) NOT NULL DEFAULT 0 CHECK (discount_ils >= 0),
   total_ils NUMERIC(10, 2) NOT NULL CHECK (total_ils >= 0),
   voucher_code TEXT,
-  -- Month and day only: the full date of birth is never stored (migration 011).
+  -- Month and day only: the full date of birth is never stored (migration 012).
   pilot_birthday_month SMALLINT,
   pilot_birthday_day SMALLINT,
   birthday_discount_ils NUMERIC(10, 2) NOT NULL DEFAULT 0,
@@ -183,6 +183,21 @@ CREATE TABLE IF NOT EXISTS public.corporate_inquiries (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- Ground School requests are not enrollments or payments. They are stored only
+-- for the training coordinator to confirm the actual cohort, capacity and instructor.
+CREATE TABLE IF NOT EXISTS public.ground_school_inquiries (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  full_name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  phone TEXT NOT NULL,
+  pathway TEXT NOT NULL CHECK (pathway IN ('faa', 'easa', 'exploring')),
+  modality TEXT NOT NULL CHECK (modality IN ('online', 'in_person', 'hybrid')),
+  focus_topics TEXT,
+  consent_at TIMESTAMPTZ NOT NULL,
+  status TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new', 'contacted', 'enrolled', 'closed')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 CREATE TABLE IF NOT EXISTS public.flight_logs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
@@ -211,7 +226,7 @@ CREATE TABLE IF NOT EXISTS public.google_reviews_snapshot (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- Refund requests from the unlisted /refund form (migration 010): requests for a person to review, never refunds.
+-- Refund requests from the unlisted /refund form (migration 011): requests for a person to review, never refunds.
 CREATE TABLE IF NOT EXISTS public.refund_requests (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   reference TEXT NOT NULL CHECK (reference ~ '^RF-[A-HJ-NP-Z2-9]{6}$'),
@@ -274,6 +289,7 @@ ALTER TABLE public.packages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.bookings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.gift_vouchers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.corporate_inquiries ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.ground_school_inquiries ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.flight_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.google_reviews_snapshot ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.refund_requests ENABLE ROW LEVEL SECURITY;
@@ -293,8 +309,10 @@ DROP POLICY IF EXISTS "Anyone can purchase voucher" ON public.gift_vouchers;
 DROP POLICY IF EXISTS "Admins can update vouchers" ON public.gift_vouchers;
 DROP POLICY IF EXISTS "Anyone can submit corporate inquiry" ON public.corporate_inquiries;
 DROP POLICY IF EXISTS "Admins can view and manage inquiries" ON public.corporate_inquiries;
+DROP POLICY IF EXISTS "Anyone can submit Ground School inquiry" ON public.ground_school_inquiries;
+DROP POLICY IF EXISTS "Admins can view and manage Ground School inquiries" ON public.ground_school_inquiries;
 DROP POLICY IF EXISTS "Users can view own flight logs" ON public.flight_logs;
 DROP POLICY IF EXISTS "Admins can manage flight logs" ON public.flight_logs;
 
-REVOKE ALL ON public.bookings, public.gift_vouchers, public.corporate_inquiries, public.flight_logs, public.google_reviews_snapshot, public.refund_requests FROM anon, authenticated;
+REVOKE ALL ON public.bookings, public.gift_vouchers, public.corporate_inquiries, public.ground_school_inquiries, public.flight_logs, public.google_reviews_snapshot, public.refund_requests FROM anon, authenticated;
 REVOKE EXECUTE ON FUNCTION public.redeem_gift_voucher(TEXT, NUMERIC) FROM PUBLIC, anon, authenticated;

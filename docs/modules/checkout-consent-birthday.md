@@ -21,7 +21,7 @@ checkout, using the seams of `docs/modules/modular-booking.md`, the copy and rec
 | `<BirthdayOfferLink />` near the field | inside `BirthdayField` |
 | Computed server-side from the slot's flight date, the client only previews | `lib/discounts/birthday/booking-discount.ts` (`resolveBookingBirthday`), called by the server (`checkout-extras.ts`) and by the browser preview (`lib/booking/client/birthday-field.ts`) |
 | Own line in the summary, total updates everywhere | `extraDiscountLines` seam; the discount is added to the manifest's discount, so summary, buy box, sticky bar, button, Stripe amount and the confirmation email agree |
-| Only month and day persisted | migration 011, `toBirthdayMonthDay()` |
+| Only month and day persisted | migration 012, `toBirthdayMonthDay()` |
 | Both pilot forms | `bookingExtraSlots(extras, variant)` builds the same three nodes for `PilotManifestStep` and for `AmazonFlightStorefront` |
 
 ## 2. Files
@@ -36,7 +36,7 @@ lib/booking/client/consent-state.ts          first missing confirmation, request
 lib/booking/client/wix-consent-note.ts       the Wix cart note (pure)
 lib/booking/client/extras-copy.ts            4 strings x 6 languages that no other module owns
 lib/wix/cart-note.ts                         setWixCartNote(): Cart V2 Update Cart, note only
-lib/db/migrations/011_booking_consent_birthday.sql   (mirrored in lib/db/schema.sql)
+lib/db/migrations/012_booking_consent_birthday.sql   (mirrored in lib/db/schema.sql)
 components/booking/{ConsentBlock,ConsentAgreement,ConsentRulesLabel,MediaReleaseDisclosure,
   BirthdayField,BirthdayStatus,BirthdayBanner,BirthdayDiscountLine,StorefrontVoucherBox,
   booking-extra-slots}.tsx, pilot-field-styles.ts
@@ -138,9 +138,9 @@ voucher part) and `birthday_discount_ils` keeps the birthday part.
 The "discount applied" flag of the birthday handoff is `birthday_discount_ils > 0`; a separate boolean could only disagree
 with it, so none was added (veto: one more column).
 
-## 4. Migration 011 and data model
+## 4. Migration 012 and data model
 
-`lib/db/migrations/011_booking_consent_birthday.sql` (idempotent, also in `schema.sql`): `pilot_birthday_month SMALLINT`,
+`lib/db/migrations/012_booking_consent_birthday.sql` (idempotent, also in `schema.sql`): `pilot_birthday_month SMALLINT`,
 `pilot_birthday_day SMALLINT` (both null or both set, 1..12 and 1..31), `birthday_discount_ils NUMERIC(10,2) NOT NULL
 DEFAULT 0` (0 .. `discount_ils`), `consent_record JSONB` (an object with `acceptedAt`, `consentVersion`,
 `legalDocumentVersion`). The existing `total_ils = subtotal_ils - discount_ils` check keeps holding. Bookings made before the
@@ -188,11 +188,11 @@ migration have NULL consent. Apply after 010 and a backup. Anything else that ta
 `lib/booking/client/{birthday-field,consent-state,extras-copy,wix-consent-note}.ts`,
 `lib/discounts/birthday/booking-discount.ts`, `lib/wix/cart-note.ts`; components `BirthdayBanner`, `BirthdayDiscountLine`,
 `BirthdayField`, `BirthdayStatus`, `ConsentAgreement`, `ConsentBlock`, `ConsentRulesLabel`, `MediaReleaseDisclosure`,
-`StorefrontVoucherBox`, `booking-extra-slots`; database `migration 011_booking_consent_birthday.sql` (and "001-011").
+`StorefrontVoucherBox`, `booking-extra-slots`; database `migration 012_booking_consent_birthday.sql` (and "001-011").
 
 AGENTS.md section 3 (booking engine), add:
 
-> **Mandatory extras in every booking flow.** The pilot step carries two separate, unchecked confirmations (rules, refund-by-form rule and privacy; media release and waiver, with the full clause loaded on demand) and the pilot's date of birth, in both the guided steps and the Express Shop, from the same modules (`bookingExtraSlots()` in `components/booking`). The submit is blocked with a focused, announced error until they are given. `POST /api/checkout` answers 400 without both confirmations or with an unusable birth date, stamps `buildConsentRecord()` with the server clock and the versions, and prices the 15 percent birthday discount from the slot's flight date with the engine in `lib/discounts/birthday` (`resolveBookingBirthday`); the Stripe amount is the discounted total, a voucher covers what remains, and only the birthday month and day, the discount amount and the consent record are stored (migration 011). The Wix-hosted checkout cannot enforce the discount: it shows no reduction, an honest notice instead, and records the consent stamp and the birthday day and month in the Wix cart `note` (`lib/wix/cart-note.ts`); a Wix subscription redemption requires the same inputs but stores nothing.
+> **Mandatory extras in every booking flow.** The pilot step carries two separate, unchecked confirmations (rules, refund-by-form rule and privacy; media release and waiver, with the full clause loaded on demand) and the pilot's date of birth, in both the guided steps and the Express Shop, from the same modules (`bookingExtraSlots()` in `components/booking`). The submit is blocked with a focused, announced error until they are given. `POST /api/checkout` answers 400 without both confirmations or with an unusable birth date, stamps `buildConsentRecord()` with the server clock and the versions, and prices the 15 percent birthday discount from the slot's flight date with the engine in `lib/discounts/birthday` (`resolveBookingBirthday`); the Stripe amount is the discounted total, a voucher covers what remains, and only the birthday month and day, the discount amount and the consent record are stored (migration 012). The Wix-hosted checkout cannot enforce the discount: it shows no reduction, an honest notice instead, and records the consent stamp and the birthday day and month in the Wix cart `note` (`lib/wix/cart-note.ts`); a Wix subscription redemption requires the same inputs but stores nothing.
 
 ## 8. Callers of the booking checkout that were updated
 

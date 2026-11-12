@@ -28,6 +28,7 @@ export const PUBLIC_SITE_ROUTES: readonly PublicSiteRoute[] = [
   { path: '/blog', changeFrequency: 'weekly', priority: 0.85, labelEn: 'Flight Deck Journal (aviation blog, Hebrew)' },
   { path: '/about', changeFrequency: 'monthly', priority: 0.8, labelEn: 'About Sim Dream and the Customer Flight Experience' },
   { path: '/pro', changeFrequency: 'weekly', priority: 0.9, labelEn: 'Professional Training and Airline Assessment Prep (PRO tiers)' },
+  { path: '/ground-school', changeFrequency: 'weekly', priority: 0.85, labelEn: 'FAA and EASA Ground School Theory and Oral Preparation' },
   { path: '/fear-of-flying', changeFrequency: 'weekly', priority: 0.85, labelEn: 'Fear of Flying Course' },
   { path: '/vouchers', changeFrequency: 'weekly', priority: 0.85, labelEn: 'Gift Vouchers and Gift Cards' },
   { path: '/workshops', changeFrequency: 'weekly', priority: 0.85, labelEn: 'Corporate CRM Leadership Workshops' },

@@ -249,7 +249,10 @@ describe('privacy policy', () => {
 
   it.each(LANGUAGES)('describes the new data points, cookies and local storage honestly in %s', (language) => {
     const checkout = PRIVACY[language].sections.find((section) => section.id === 'checkout-data');
-    expect(checkout?.clauses).toHaveLength(4);
+    expect(checkout?.clauses).toHaveLength(5);
+    // The Ground School request clause (added with #114) is the last one; translations are flagged for review.
+    expect(checkout?.clauses[4].term).toBeTruthy();
+    if (language !== 'he' && language !== 'en') expect(checkout?.clauses[4].needsLegalReview).toBe(true);
     const cookies = PRIVACY[language].sections.find((section) => section.id === 'cookies');
     expect(cookies?.clauses).toHaveLength(3);
     // Google / Meta tools are mentioned only as consent-gated; the statistics clause is flagged for review.

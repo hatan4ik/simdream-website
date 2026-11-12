@@ -1,5 +1,5 @@
 -- Checkout consent record and the Pilot in Command's birthday discount, stored with each booking.
--- Apply after 010_refund_requests.sql and a reviewed production backup. Idempotent.
+-- Apply after 011_refund_requests.sql and a reviewed production backup. Idempotent.
 --
 -- Data minimisation: the full date of birth is NEVER stored. The application validates it against the
 -- flight date, then keeps only the month and day (so staff can see the birthday) and the amount of the

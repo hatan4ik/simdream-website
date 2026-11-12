@@ -123,6 +123,11 @@ const PRIVACY_EN: PrivacyBody = {
           text: 'When a refund request is submitted through the form, the details entered in it are collected (such as the order, contact details and the reason for the request). They are used only to handle the request and to reply to it, and are kept with the order record.',
           added: true,
         },
+        {
+          term: 'Ground School requests:',
+          text: 'When you request Ground School enrollment details, we also collect the theory pathway, study format and topics you ask for help with. This is used only to reply to your request about cohort details; a request is not an enrollment or a payment.',
+          added: true,
+        },
       ],
     },
     {

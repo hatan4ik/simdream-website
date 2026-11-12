@@ -256,6 +256,25 @@ export interface CorporateInquiry {
   createdAt: string;
 }
 
+/** A request for cohort details; it is intentionally not a paid enrollment. */
+export type GroundSchoolPathway = 'faa' | 'easa' | 'exploring';
+export type GroundSchoolModality = 'online' | 'in_person' | 'hybrid';
+export type GroundSchoolInquiryStatus = 'new' | 'contacted' | 'enrolled' | 'closed';
+
+export interface GroundSchoolInquiry {
+  id: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  pathway: GroundSchoolPathway;
+  modality: GroundSchoolModality;
+  focusTopics?: string;
+  /** The applicant's explicit consent to use this request only for course follow-up. */
+  consentAt: string;
+  status: GroundSchoolInquiryStatus;
+  createdAt: string;
+}
+
 export interface FlightLog {
   id: string;
   pilotEmail: string;

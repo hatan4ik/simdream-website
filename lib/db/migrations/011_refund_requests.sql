@@ -1,5 +1,5 @@
 -- Refund requests submitted through the unlisted /refund form (POST /api/refund-requests).
--- Apply after 009_google_reviews_snapshot.sql. Idempotent.
+-- Apply after 010_ground_school_inquiries.sql. Idempotent.
 --
 -- A row is a REQUEST for a person to review, never a refund: nothing in the application pays,
 -- cancels or reschedules anything. `evaluation` keeps the rules' likely outcome at the moment of

@@ -47,7 +47,7 @@ export const booking = z.strictObject({
   discountIls: money,
   totalIls: money,
   voucherCode: z.string().optional(),
-  // Month and day only: the year of the pilot's birth is never stored (migration 011).
+  // Month and day only: the year of the pilot's birth is never stored (migration 012).
   pilotBirthdayMonth: z.number().int().min(1).max(12).optional(),
   pilotBirthdayDay: z.number().int().min(1).max(31).optional(),
   birthdayDiscountIls: money.optional(),
@@ -289,6 +289,21 @@ export const corporateInquiry = z.strictObject({
   primaryGoal: z.enum(['leadership', 'team_communication', 'high_stress_decision_making', 'vip_incentive']),
   message: z.string().optional(),
   status: z.enum(['new', 'contacted', 'quoted', 'confirmed']),
+  createdAt: isoDateTime,
+});
+
+export const groundSchoolInquiryCreated = z.strictObject({ id: z.uuid(), status: z.literal('new') });
+
+export const groundSchoolInquiry = z.strictObject({
+  id: z.string().min(1),
+  fullName: z.string().min(1),
+  email: z.string().min(3),
+  phone: z.string().min(6),
+  pathway: z.enum(['faa', 'easa', 'exploring']),
+  modality: z.enum(['online', 'in_person', 'hybrid']),
+  focusTopics: z.string().optional(),
+  consentAt: isoDateTime,
+  status: z.enum(['new', 'contacted', 'enrolled', 'closed']),
   createdAt: isoDateTime,
 });
 

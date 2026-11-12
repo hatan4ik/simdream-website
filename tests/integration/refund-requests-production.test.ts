@@ -128,7 +128,7 @@ describe('email only (a worker without Supabase)', () => {
 describe('Supabase storage', () => {
   const SUPABASE = { SUPABASE_SERVICE_ROLE_KEY: 'qa-key', NEXT_PUBLIC_SUPABASE_URL: 'https://qa.supabase.test' };
 
-  it('inserts one row in the migration 010 shape and marks the emails', async () => {
+  it('inserts one row in the migration 011 shape and marks the emails', async () => {
     const database = mockFakeRefundSupabase();
     mockMail();
     await loadApp({ env: { ...PRODUCTION, ...SUPABASE, ...MAIL_ENV } });
