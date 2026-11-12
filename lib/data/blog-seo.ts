@@ -60,7 +60,7 @@ export function getBlogSeoBySlugOrId(slugOrId: string | undefined): {
 } | undefined {
   if (!slugOrId) return undefined;
   const raw = slugOrId.trim();
-  let decoded = raw;
+  let decoded: string;
   try {
     decoded = decodeURIComponent(raw).trim();
   } catch {
