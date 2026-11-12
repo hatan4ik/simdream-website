@@ -1,0 +1,4 @@
+/** Fills `{name}` placeholders in a localized booking template; unknown placeholders stay visible. */
+export function formatBookingTemplate(template: string, values: Record<string, string | number>): string {
+  return template.replace(/\{(\w+)\}/g, (match, key: string) => String(values[key] ?? match));
+}
