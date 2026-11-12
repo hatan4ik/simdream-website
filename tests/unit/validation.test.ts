@@ -2,6 +2,7 @@ import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 import type { z } from 'zod';
 import {
+  CHECKOUT_CONSENT_LANGUAGES,
   adminBookingPatchSchema,
   adminScheduleOptimizationSchema,
   adminVoucherRedemptionSchema,
@@ -59,8 +60,19 @@ const validBookingArb = fc.record(
     requestedRouteId: fc.option(fc.stringMatching(/^route-[a-z0-9-]{1,40}$/), { nil: undefined }),
     voucherCode: fc.stringMatching(/^[a-z0-9-]{0,64}$/),
     notes: fc.string({ maxLength: 2_000 }),
+    pilotBirthDate: isoDateArb,
+    consent: fc.record({
+      rulesRefundsAndPrivacy: fc.constant(true as const),
+      mediaReleaseAndWaiver: fc.constant(true as const),
+      language: fc.constantFrom(...CHECKOUT_CONSENT_LANGUAGES),
+    }),
   },
-  { requiredKeys: ['kind', 'packageId', 'bookingDate', 'startTime', 'pilotName', 'pilotEmail', 'pilotPhone', 'experienceLevel'] }
+  {
+    requiredKeys: [
+      'kind', 'packageId', 'bookingDate', 'startTime', 'pilotName', 'pilotEmail', 'pilotPhone', 'experienceLevel',
+      'pilotBirthDate', 'consent',
+    ],
+  }
 );
 
 const validVoucherArb = fc.record(

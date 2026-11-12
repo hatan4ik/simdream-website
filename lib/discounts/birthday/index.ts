@@ -6,10 +6,12 @@
  *   applyBirthdayDiscount(subtotalIls)                   -> whole-shekel price and agorot for Stripe
  *   toBirthdayMonthDay(birthDate)                        -> the only part of a birth date to persist
  *   isBirthdayDiscountEnforceableOnActivePath(options)   -> may the UI advertise it on this checkout path
+ *   resolveBookingBirthday(input)                        -> validate + decide + price in one call (server and browser preview)
  *
  * Handoff and decisions: docs/modules/birthday-offers.md.
  */
 export * from './constants';
+export * from './booking-discount';
 export * from './capability';
 export * from './copy';
 export * from './eligibility';

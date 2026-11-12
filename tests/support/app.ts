@@ -113,6 +113,17 @@ export async function findOpenSlot(app: TestApp, date: string, durationMinutes: 
   return open;
 }
 
+/** Both checkout confirmations given, in the page language the booker read them in. */
+export function validConsentBody(language = 'en') {
+  return { rulesRefundsAndPrivacy: true, mediaReleaseAndWaiver: true, language };
+}
+
+/**
+ * A pilot birth date that earns no birthday discount on any date the suites book (June 15 is far from
+ * the November and December test flights), so prices in existing assertions stay the registry prices.
+ */
+export const NO_DISCOUNT_BIRTH_DATE = '1990-06-15';
+
 /** A valid booking checkout body; override any field per test. */
 export function bookingCheckoutBody(overrides: Record<string, unknown> = {}) {
   return {
@@ -125,6 +136,8 @@ export function bookingCheckoutBody(overrides: Record<string, unknown> = {}) {
     pilotPhone: '+972501234567',
     experienceLevel: 'beginner',
     addons: [],
+    pilotBirthDate: NO_DISCOUNT_BIRTH_DATE,
+    consent: validConsentBody(),
     ...overrides,
   };
 }

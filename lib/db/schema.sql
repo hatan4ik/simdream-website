@@ -64,6 +64,12 @@ CREATE TABLE IF NOT EXISTS public.bookings (
   discount_ils NUMERIC(10, 2) NOT NULL DEFAULT 0 CHECK (discount_ils >= 0),
   total_ils NUMERIC(10, 2) NOT NULL CHECK (total_ils >= 0),
   voucher_code TEXT,
+  -- Month and day only: the full date of birth is never stored (migration 011).
+  pilot_birthday_month SMALLINT,
+  pilot_birthday_day SMALLINT,
+  birthday_discount_ils NUMERIC(10, 2) NOT NULL DEFAULT 0,
+  -- What the booker confirmed at checkout, stamped by the server (rules clause 15).
+  consent_record JSONB,
   status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'confirmed', 'completed', 'cancelled')),
   payment_status TEXT NOT NULL DEFAULT 'pending' CHECK (payment_status IN ('pending', 'paid', 'refunded')),
   payment_method TEXT NOT NULL DEFAULT 'stripe' CHECK (payment_method IN ('stripe', 'voucher', 'desk')),
@@ -72,6 +78,20 @@ CREATE TABLE IF NOT EXISTS public.bookings (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   CHECK (discount_ils <= subtotal_ils),
   CHECK (total_ils = subtotal_ils - discount_ils),
+  CONSTRAINT bookings_pilot_birthday_valid CHECK (
+    (pilot_birthday_month IS NULL AND pilot_birthday_day IS NULL)
+    OR (pilot_birthday_month BETWEEN 1 AND 12 AND pilot_birthday_day BETWEEN 1 AND 31)
+  ),
+  CONSTRAINT bookings_birthday_discount_valid CHECK (birthday_discount_ils >= 0 AND birthday_discount_ils <= discount_ils),
+  CONSTRAINT bookings_consent_record_shape CHECK (
+    consent_record IS NULL
+    OR (
+      jsonb_typeof(consent_record) = 'object'
+      AND consent_record ? 'acceptedAt'
+      AND consent_record ? 'consentVersion'
+      AND consent_record ? 'legalDocumentVersion'
+    )
+  ),
   CHECK ((payment_method = 'voucher' AND payment_status = 'paid') OR payment_method <> 'voucher'),
   EXCLUDE USING gist (
     tsrange(

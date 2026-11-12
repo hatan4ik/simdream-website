@@ -47,6 +47,21 @@ export const booking = z.strictObject({
   discountIls: money,
   totalIls: money,
   voucherCode: z.string().optional(),
+  // Month and day only: the year of the pilot's birth is never stored (migration 011).
+  pilotBirthdayMonth: z.number().int().min(1).max(12).optional(),
+  pilotBirthdayDay: z.number().int().min(1).max(31).optional(),
+  birthdayDiscountIls: money.optional(),
+  // What the booker confirmed at checkout, stamped by the server (rules clause 15).
+  consentRecord: z
+    .strictObject({
+      legalDocumentVersion: z.string().min(1),
+      consentVersion: z.string().min(1),
+      acceptedAt: isoDateTime,
+      language: z.enum(['he', 'en', 'ru', 'fr', 'ar', 'es']),
+      rulesRefundsAndPrivacy: z.literal(true),
+      mediaReleaseAndWaiver: z.literal(true),
+    })
+    .optional(),
   status: bookingStatus,
   paymentStatus,
   paymentMethod: z.enum(['stripe', 'voucher', 'desk']),

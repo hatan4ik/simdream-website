@@ -14,6 +14,7 @@ import {
 } from '@/lib/scheduler/mission-calculator';
 import { memberIdForBooking } from '@/lib/auth/member-ownership';
 import { bookingCheckoutSchema, voucherCheckoutSchema } from '@/lib/validation';
+import { resolveCheckoutExtras } from './checkout-extras';
 import { SlotReservationConflictError, type CheckoutDependencies } from './checkout-ports';
 import { z } from 'zod';
 
@@ -109,12 +110,29 @@ async function createBookingFromRequest(
     throw new CheckoutError('The selected mission add-ons no longer fit in this departure window.', 409);
   }
 
+  // The consent record and the birthday discount are decided here from the slot's own date and the
+  // registry subtotal; the client sends only the two confirmations and the typed birth date.
+  const now = dependencies.clock.now();
+  const extras = resolveCheckoutExtras({
+    packageId: pkg.id,
+    bookingDate: input.bookingDate,
+    subtotalIls: manifest.subtotalIls,
+    pilotBirthDate: input.pilotBirthDate,
+    consent: input.consent,
+    now,
+    today: israelToday(now),
+  });
+  if (!extras.ok) throw new CheckoutError(extras.message);
+  const birthdayDiscountIls = extras.birthday.discountIls;
+  // What is left to pay after the birthday discount; a voucher must cover exactly this.
+  const payableIls = manifest.totalIls - birthdayDiscountIls;
+
   const isVoucherPayment = Boolean(input.voucherCode);
   let voucher: GiftVoucher | undefined;
   if (input.voucherCode) {
     voucher = validVoucherForAmount(
       await dependencies.repository.getVoucherByCode(input.voucherCode),
-      manifest.totalIls,
+      payableIls,
       dependencies.clock.now()
     );
   }
@@ -142,9 +160,15 @@ async function createBookingFromRequest(
     addons: addonIds,
     requestedRouteId: requestedRoute?.id,
     subtotalIls: manifest.subtotalIls,
-    discountIls: isVoucherPayment ? manifest.totalIls : 0,
-    totalIls: isVoucherPayment ? 0 : manifest.totalIls,
+    // `discountIls` is everything off the subtotal: the birthday discount plus the voucher cover.
+    discountIls: birthdayDiscountIls + (isVoucherPayment ? payableIls : 0),
+    totalIls: isVoucherPayment ? 0 : payableIls,
     voucherCode: voucher?.code,
+    // Data minimisation: month and day only, never the year or the full date.
+    pilotBirthdayMonth: extras.birthday.birthday.month,
+    pilotBirthdayDay: extras.birthday.birthday.day,
+    birthdayDiscountIls,
+    consentRecord: extras.consentRecord,
     status: isVoucherPayment ? 'confirmed' : 'pending',
     paymentStatus: isVoucherPayment ? 'paid' : 'pending',
     paymentMethod: isVoucherPayment ? 'voucher' : 'stripe',
@@ -152,7 +176,7 @@ async function createBookingFromRequest(
   }));
 
   if (voucher) {
-    const redemption = await dependencies.repository.redeemVoucher(voucher.code, manifest.totalIls);
+    const redemption = await dependencies.repository.redeemVoucher(voucher.code, payableIls);
     if (!redemption.success) {
       await dependencies.repository.updateBookingStatus(booking.id, 'cancelled');
       throw new CheckoutError(redemption.message, 409);

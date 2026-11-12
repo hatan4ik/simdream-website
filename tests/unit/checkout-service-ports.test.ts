@@ -91,6 +91,8 @@ test('checkout service delegates the hosted redirect through the injected card g
     pilotPhone: '+972501234567',
     experienceLevel: 'beginner',
     addons: [],
+    pilotBirthDate: '2000-06-15',
+    consent: { rulesRefundsAndPrivacy: true, mediaReleaseAndWaiver: true, language: 'en' },
   });
 
   const result = await service.startBookingCheckout(new Request('https://simdream.example.test/api/checkout'), booking);
@@ -125,6 +127,8 @@ test('checkout service maps an injected repository slot conflict to the existing
     pilotPhone: '+972501234567',
     experienceLevel: 'beginner',
     addons: [],
+    pilotBirthDate: '2000-06-15',
+    consent: { rulesRefundsAndPrivacy: true, mediaReleaseAndWaiver: true, language: 'en' },
   });
 
   await expect(service.startBookingCheckout(new Request('https://simdream.example.test/api/checkout'), booking)).rejects.toMatchObject(

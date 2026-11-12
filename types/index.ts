@@ -1,4 +1,5 @@
 import type { GiftCardDesignId } from '@/lib/catalog/gift-card-designs';
+import type { ConsentRecord } from '@/lib/legal/consent-record';
 
 export type PackageCategory = 'recreational' | 'training' | 'corporate' | 'fear_of_flying';
 export type FlightPackageDuration = 30 | 45 | 60 | 90 | 120 | 240;
@@ -191,9 +192,17 @@ export interface Booking {
   /** A custom World Trio request retained for dispatch; a captain confirms it before the visit. */
   requestedRouteId?: string;
   subtotalIls: number;
+  /** Everything taken off the subtotal: the birthday discount plus any voucher cover. */
   discountIls: number;
   totalIls: number;
   voucherCode?: string;
+  /** The pilot's birthday as month and day only (data minimisation): the year is never stored. */
+  pilotBirthdayMonth?: number;
+  pilotBirthdayDay?: number;
+  /** The birthday discount inside `discountIls` (0 when none applied). */
+  birthdayDiscountIls?: number;
+  /** What the booker confirmed at checkout, stamped by the server (rules clause 15). */
+  consentRecord?: ConsentRecord;
   status: BookingStatus;
   paymentStatus: PaymentStatus;
   paymentMethod: PaymentMethod;
