@@ -48,6 +48,8 @@ The visual identity is the official **simdream.co.il** logo: an **orange airplan
 ## 2. Canonical Routing & URL Discipline
 
 - **Canonical Professional Training Route**: [`app/(public)/pro/page.tsx`](app/(public)/pro/page.tsx) (`/pro`) is the single source of truth for commercial assessment training.
+- **Offers & Benefits route**: [`app/(public)/offers/page.tsx`](app/(public)/offers/page.tsx) (`/offers`) explains every offer in six languages from the registries (never retyped prices or percentages): the birthday discount with an in-browser calculator (`#birthday`, nothing stored or sent), the Discounted Promotion, flight and professional tracks, gift vouchers, the no-stacking rule and the fair-use fine print. It is listed in the header "Experiences" flyout, the drawer and the footer through `lib/offers/nav-label.ts`. `GET /api/offers/capabilities` reports whether the live checkout can apply the birthday discount.
+- **Refund requests**: `/refund` is deliberately unlisted: no Navbar, Footer, sitemap, llms.txt, structured-data or robots.txt entry, `robots: { index: false, follow: false }` in its layout, linked only from the rules refund clause and confirmation emails (`tests/unit/refund-unlisted.test.ts`). Refund numbers and clauses live only in `REFUND_POLICY` (`lib/refund/refund-policy.ts`); the estimate shown to customers never approves or pays anything.
 - **Canonical Customer Story Route**: [`app/(public)/about/page.tsx`](app/(public)/about/page.tsx) (`/about`) explains Sim Dream’s story, the consumer flight experience, and official social channels. It is intentionally separate from professional training.
 - **Experience Flights ("טיסות חוויה") Route Catalog**: `/experiences#world-routes` ([`components/experiences/WorldRoutesSection.tsx`](components/experiences/WorldRoutesSection.tsx)) is the only place that lists World Trio routes, sights and flight adventures. Its content lives in [`lib/data/experience-routes.ts`](lib/data/experience-routes.ts): every world-trio add-on appears exactly once and takes price and minutes from `FLIGHT_ADDONS` (never duplicate them); an on-request World Trio opens `/book?package=captains-command-60&route=<id>` in the calendar-first flow. The booking must retain only a registry-validated `requestedRouteId`, require a 60-minute or longer session, add no route surcharge, and plainly state that the captain confirms the final mission plan before the visit. Scenario adventures still use `/contact?subject=route&route=<id>` because they are a briefing inquiry, not a scheduled World Trio. Every airport must be a real Boeing 737 destination with a real ICAO code (§1 pillar 5), and all copy ships in the six languages (§5). `tests/unit/experience-routes.test.ts` enforces these rules.
 - **Permanent Redirects (301)**:
@@ -75,6 +77,8 @@ The booking engine adapts dynamically depending on the selected package category
 | **Professional Training** (`training`) | Strictly the 3 PRO tiers (60 PRO, 90 PRO, 120 PRO). Consumer 30m & 45m suppressed. | **Zero add-on noise (`addons = []`)**. Tourist combos, extreme turbulence modules, and guest-experience upsells are completely suppressed. | **2-Step Streamlined Flow**: `Date & Operational Slot` &rarr; `Pilot Manifest & Checkout`. (Step 2 Add-ons is completely bypassed). | `atpl` (Airline Transport Pilot) |
 | **Fear of Flying** (`fear_of_flying`) | Strictly Fear of Flying Course (`pkg-fear-of-flying-90`). | **Zero add-on noise (`addons = []`)**. V1 engine failures, storms, and crosswind challenges are suppressed. | **2-Step Streamlined Flow**: `Date & Therapeutic Slot` &rarr; `Pilot Manifest & Checkout`. | `beginner` |
 | **Recreational / Consumer** (`recreational`) | Full consumer catalog (30m Discovery, 45m Daytime Promo, 60m Captain, 90m Odyssey). | Full e-commerce catalog with curated 1-click combos, 7 world trios, Cold & Dark startup, and optional guest seating. | **3-Step Flow**: `Date & Slot` &rarr; `Cockpit Add-ons` &rarr; `Pilot Manifest & Checkout`. | User choice |
+
+**Mandatory extras in every booking flow.** The pilot step carries two separate, unchecked confirmations (rules, refund-by-form rule and privacy; media release and waiver, with the full clause loaded on demand) and the pilot's date of birth, in both the guided steps and the Express Shop, from the same modules (`bookingExtraSlots()` in `components/booking`). The submit is blocked with a focused, announced error until they are given. `POST /api/checkout` answers 400 without both confirmations or with an unusable birth date, stamps `buildConsentRecord()` with the server clock and the versions, and prices the 15 percent birthday discount from the slot's flight date with the engine in `lib/discounts/birthday` (`resolveBookingBirthday`); the Stripe amount is the discounted total, a voucher covers what remains, and only the birthday month and day, the discount amount and the consent record are stored (migration 011). The Wix-hosted checkout cannot enforce the discount: it shows no reduction, an honest notice instead, and records the consent stamp and the birthday day and month in the Wix cart `note` (`lib/wix/cart-note.ts`); a Wix subscription redemption requires the same inputs but stores nothing.
 
 ---
 
@@ -163,6 +167,9 @@ The platform supports 6 languages with zero cross-language contamination:
    - [`lib/wix/catalog.ts`](lib/wix/catalog.ts) maps every `SIMULATOR_PACKAGES` id to its Wix Bookings service id; `reconcileCatalog()` must report 0 mismatches. Run `npm run wix:smoke` after touching the catalog or the Wix services (it lists services, reconciles, and reads tomorrow's bookable slots).
    - Agent know-how for Wix work comes from `npx skills add wix/skills` (installed under `.agents/skills/`, git-ignored) plus the Wix MCP connector; confirm every endpoint from the docs, never from memory.
 
+8. **Refund requests**: `POST /api/refund-requests` returns 201 only when the request was stored or emailed to the team and answers 503 with the desk contact otherwise; the order lookup reveals only title, session date/time and order date and only when reference and email both match; logs never carry request data.
+9. **Birthday discount**: the pure engine `lib/discounts/birthday/` gives 15 percent of the booking subtotal (whole shekels, half up, agorot for Stripe) when the pilot's birthday falls in the FLIGHT date's calendar month or up to 14 days before it (`BIRTHDAY_*` constants; forward grace supported, off). The flight date decides, never the booking date. It never stacks (Terms 8.1): not on the Discounted Promotion, subscription redemptions or gift-voucher purchases. The server re-evaluates every claim, persists only month, day and the applied flag, and shows no banner or discount while `isBirthdayDiscountEnforceableOnActivePath()` is false (the Wix-authoritative checkout cannot enforce it with a visitor session: `docs/modules/birthday-offers.md`).
+
 ---
 
 ## 7. Quality Assurance (QA) Checklist
@@ -189,3 +196,19 @@ Search engines and AI assistants quote whatever the site publishes about itself,
 3. **FAQPage only beside a visible FAQ**: emit [`components/seo/FaqPageJsonLd.tsx`](components/seo/FaqPageJsonLd.tsx) inside the FAQ section of the route, passing the exact array that section maps over in the visitor's language. Never add FAQPage to the root layout or to a route without the same questions and answers on screen.
 4. **Ratings are never hard-coded**: no `aggregateRating` or `review` in any schema; Google's own numbers reach the page only through the review bar (§1.7).
 5. `tests/unit/seo-integrity.test.ts` renders the graph and enforces all of the above, and keeps the CSP `img-src` in step with the blog cover hosts.
+
+---
+
+## 9. Modularity
+
+Every feature is a folder module with one public `index.ts`: UI in `components/<feature>/` (one component per file, hooks in `hooks/`), pure logic and thin I/O adapters in `lib/<feature>/`, copy in the module's own `Record<SupportedLanguage, ...>` file. Files stay under 400 lines; `tests/unit/module-size.test.ts` fails when an unlisted file exceeds that or an allowlisted one grows, and an allowlist entry is deleted once its file is within budget. `/book` is the reference implementation (`docs/MODULARITY.md`). Plug features into a module through its documented optional props, never by editing the middle of a component.
+
+---
+
+## 10. Legal content, consent and versions
+
+1. The rules keep the owner's clause numbering (1-12 plus appendix); new clauses are appended (13+) and existing numbers never change. Refund requests go through `/refund` only (clause 13); `/refund` stays unlisted.
+2. Legal wording lives in `lib/legal/content/*`, one module per language and document, loaded with `import()`; never import those modules directly.
+3. Any change to legal or consent wording bumps `LEGAL_DOCUMENT_VERSION` / `CONSENT_VERSION` in `lib/legal/versions.ts`; `tests/unit/legal-versions.test.ts` enforces it.
+4. The checkout shows two separate, unchecked checkboxes (rules + refund rule + privacy; media release and waiver) with the copy from `CONSENT_COPY`, and the server stores `buildConsentRecord()` with the order.
+5. Legal translations are flagged NEEDS LEGAL REVIEW until counsel signs off; no Hebrew text on non-Hebrew pages.
