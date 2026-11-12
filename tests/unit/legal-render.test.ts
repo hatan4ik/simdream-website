@@ -130,7 +130,8 @@ describe('privacy policy rendering', () => {
     for (const section of PRIVACY[language].sections) {
       expect(html).toContain(`id="${section.id}"`);
       expect(html).toContain(`href="#${section.id}"`);
-      expect(html).toContain(`${section.number}. ${section.title.replace(/&/g, '&amp;')}`);
+      // The number sits in its own left-to-right span, so an RTL page never reorders "13." around the title.
+      expect(html).toContain(`<span dir="ltr" class="shrink-0">${section.number}.</span><span>${section.title.replace(/&/g, '&amp;')}</span>`);
     }
   });
 
