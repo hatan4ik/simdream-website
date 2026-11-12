@@ -3,6 +3,7 @@ import { Booking, GiftVoucher } from '@/types';
 import { formatDate } from './utils';
 import { findOnRequestWorldRoute } from './data/experience-routes';
 import { getGiftCardDesign } from './catalog/gift-card-designs';
+import { FACILITY_INFO } from './config/facility-info';
 
 const apiKey = process.env.SENDGRID_API_KEY || '';
 export const isSendgridConfigured = Boolean(
@@ -14,6 +15,7 @@ if (isSendgridConfigured) {
 }
 
 const senderEmail = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || 'info@simdream.co.il';
+const contactInquiryRecipient = process.env.CONTACT_INQUIRY_RECIPIENT?.trim() || FACILITY_INFO.contact.email;
 
 function escapeHtml(value: string | number): string {
   return String(value)
@@ -22,6 +24,55 @@ function escapeHtml(value: string | number): string {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
+}
+
+export interface ContactInquiryEmail {
+  name: string;
+  email: string;
+  phone: string;
+  subject: string;
+  message: string;
+}
+
+/**
+ * Delivers a customer Dispatch request to the configured operations recipient.
+ * Unlike local booking/voucher simulations, an unavailable mail transport is a
+ * delivery failure: the contact form must not claim that Dispatch received it.
+ */
+export async function sendContactInquiryEmail(inquiry: ContactInquiryEmail): Promise<{ success: boolean; message: string }> {
+  if (!isSendgridConfigured) {
+    console.error('Contact inquiry delivery unavailable: SendGrid is not configured.');
+    return { success: false, message: 'Contact delivery is unavailable.' };
+  }
+
+  const safeName = escapeHtml(inquiry.name);
+  const safeEmail = escapeHtml(inquiry.email);
+  const safePhone = escapeHtml(inquiry.phone || 'Not supplied');
+  const safeSubject = escapeHtml(inquiry.subject);
+  const safeMessage = escapeHtml(inquiry.message).replace(/\n/g, '<br>');
+  const text = [
+    'New SimDream Dispatch inquiry',
+    `Subject: ${inquiry.subject}`,
+    `Name: ${inquiry.name}`,
+    `Email: ${inquiry.email}`,
+    `Phone: ${inquiry.phone || 'Not supplied'}`,
+    '',
+    inquiry.message,
+  ].join('\n');
+
+  try {
+    await sgMail.send({
+      to: contactInquiryRecipient,
+      from: senderEmail,
+      subject: `[SimDream Dispatch] ${inquiry.subject}`,
+      text,
+      html: `<div style="font-family:Arial,sans-serif;max-width:640px;color:#0f172a"><h1>New SimDream Dispatch inquiry</h1><p><strong>Subject:</strong> ${safeSubject}</p><p><strong>Name:</strong> ${safeName}<br><strong>Email:</strong> ${safeEmail}<br><strong>Phone:</strong> ${safePhone}</p><p><strong>Message</strong><br>${safeMessage}</p></div>`,
+    });
+    return { success: true, message: 'Contact inquiry delivered.' };
+  } catch {
+    console.error('Contact inquiry delivery failed.');
+    return { success: false, message: 'Contact delivery failed.' };
+  }
 }
 
 export async function sendBookingConfirmationEmail(booking: Booking): Promise<{ success: boolean; message: string }> {

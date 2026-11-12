@@ -22,6 +22,7 @@ import {
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
+import { useDispatchInquiryForm } from '@/components/contact/use-dispatch-inquiry';
 import { useLanguage, SupportedLanguage } from '@/lib/i18n/language-context';
 import {
   FACILITY_INFO,
@@ -485,15 +486,8 @@ export default function ContactPage() {
   }, [customOrigin, gpsStatus, gpsMetrics, activePreset, travelMode]);
 
   // Contact Form State
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    subject: 'General Question',
-    message: '',
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
+  const { formData, setFormData, updateFormData, isSubmitting, isSuccess, formError, handleSubmit } =
+    useDispatchInquiryForm(t.contact.formDeliveryError);
   /** The last message this page prefilled itself, so a language change can replace it safely. */
   const autoPrefillRef = useRef('');
 
@@ -539,14 +533,6 @@ export default function ContactPage() {
     t.contact.subscriptionPlanInquiryPrefill,
     t.contact.routeInquiryPrefill,
   ]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    await new Promise((resolve) => setTimeout(resolve, 600));
-    setIsSuccess(true);
-    setIsSubmitting(false);
-  };
 
   const activeDistanceKm =
     gpsStatus === 'ready' && gpsMetrics ? gpsMetrics.roadDistanceKm : activePreset.distanceKm;
@@ -1004,7 +990,7 @@ export default function ContactPage() {
                 <p className="text-xs text-slate-300">{t.contact.formSuccessDesc}</p>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} method="POST" action="/contact" className="space-y-4 text-xs">
+              <form onSubmit={handleSubmit} className="space-y-4 text-xs">
                 <div className="space-y-1.5">
                   <label
                     htmlFor="contact-name"
@@ -1019,7 +1005,7 @@ export default function ContactPage() {
                     required
                     autoComplete="name"
                     value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    onChange={(e) => updateFormData('name', e.target.value)}
                     placeholder="e.g. Ronen Katz"
                     className="w-full rounded-lg bg-slate-950 border border-slate-800 p-2.5 text-base text-white focus:outline-none focus:border-sky-500"
                   />
@@ -1043,7 +1029,7 @@ export default function ContactPage() {
                       autoCapitalize="off"
                       spellCheck={false}
                       value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      onChange={(e) => updateFormData('email', e.target.value)}
                       placeholder="ronen@example.com"
                       className="w-full rounded-lg bg-slate-950 border border-slate-800 p-2.5 text-base text-white focus:outline-none focus:border-sky-500"
                     />
@@ -1062,7 +1048,7 @@ export default function ContactPage() {
                       type="tel"
                       autoComplete="tel"
                       value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      onChange={(e) => updateFormData('phone', e.target.value)}
                       placeholder="055-507-1307"
                       dir="ltr"
                       className="w-full rounded-lg bg-slate-950 border border-slate-800 p-2.5 text-base text-white focus:outline-none focus:border-sky-500 text-left rtl:text-right"
@@ -1081,7 +1067,7 @@ export default function ContactPage() {
                     id="contact-subject"
                     name="subject"
                     value={formData.subject}
-                    onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                    onChange={(e) => updateFormData('subject', e.target.value)}
                     className="w-full rounded-lg bg-slate-950 border border-slate-800 p-2.5 text-base text-white focus:outline-none focus:border-sky-500"
                   >
                     <option value="General Question">{t.contact.subjectGeneral}</option>
@@ -1106,11 +1092,17 @@ export default function ContactPage() {
                     rows={4}
                     required
                     value={formData.message}
-                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                    onChange={(e) => updateFormData('message', e.target.value)}
                     placeholder={t.contact.formMessagePlaceholder}
                     className="w-full rounded-lg bg-slate-950 border border-slate-800 p-2.5 text-base text-white focus:outline-none focus:border-sky-500"
                   />
                 </div>
+
+                {formError ? (
+                  <p role="alert" className="rounded-lg border border-red-500/50 bg-red-950/30 p-3 text-sm text-red-100">
+                    {formError}
+                  </p>
+                ) : null}
 
                 <Button type="submit" size="md" isLoading={isSubmitting} className="w-full">
                   <Send aria-hidden="true" className="w-4 h-4" />

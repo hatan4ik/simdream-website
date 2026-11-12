@@ -111,6 +111,15 @@ export const workshopInquirySchema = z.object({
   message: z.string().trim().max(2_000).optional(),
 });
 
+/** Public Dispatch inquiry. Keep this independent from B2B workshop lead fields. */
+export const contactInquirySchema = z.object({
+  name: safeText(120),
+  email: z.string().trim().email().max(254),
+  phone: z.string().trim().max(32).optional().default(''),
+  subject: safeText(160),
+  message: safeText(2_000),
+});
+
 export const adminWorkshopPatchSchema = z.object({
   id: z.string().trim().min(1).max(128),
   status: z.enum(['new', 'contacted', 'quoted', 'confirmed']),
