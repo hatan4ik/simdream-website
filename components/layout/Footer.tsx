@@ -13,6 +13,7 @@ import { FACILITY_INFO } from '@/lib/config/facility-info';
 import { useLiveFacilityStatus } from '@/lib/config/use-live-facility-status';
 import { useClientValue } from '@/lib/ui/use-client-value';
 import { SOCIAL_CHANNELS } from './social-channels';
+import { ConsentSettingsLink } from '@/components/consent';
 
 export function Footer() {
   const { t, language } = useLanguage();
@@ -310,6 +311,7 @@ export function Footer() {
             <Link href="/privacy-policy" className="text-slate-400 hover:text-sky-400 underline underline-offset-2">
               {t.footer.privacyPolicy}
             </Link>
+            <ConsentSettingsLink className="text-slate-400 hover:text-sky-400 underline underline-offset-2" />
             <Link href="/pro" className="text-slate-400 hover:text-sky-400 underline underline-offset-2">
               {t.footer.proTraining}
             </Link>

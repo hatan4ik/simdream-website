@@ -88,9 +88,20 @@
     padding-inline-end: calc(var(--safe-area-inset-left) + --spacing(--value(integer)));
   }
 }
-/* A sticky bottom bar's offset from the screen edge, clear of the home indicator. */
+/* A sticky bottom bar's offset from the screen edge, clear of the home indicator. While the cookie
+   banner is open (components/consent) it publishes its height as --consent-banner-offset, so the bar
+   rises above the banner instead of hiding behind it; unset, that is 0px and nothing changes. */
 @utility bottom-safe-area-* {
-  bottom: calc(var(--safe-area-inset-bottom) + --spacing(--value(integer)));
+  bottom: calc(max(var(--safe-area-inset-bottom), var(--consent-banner-offset, 0px)) + --spacing(--value(integer)));
+}
+/* The same offset keeps focused elements, anchors and the very end of the page clear of the open
+   cookie banner (WCAG 2.2 "Focus Not Obscured"); it only adds room below the content, so nothing
+   moves. Unset, both are 0px. */
+html {
+  scroll-padding-bottom: var(--consent-banner-offset, 0px);
+}
+body {
+  padding-bottom: var(--consent-banner-offset, 0px);
 }
 
 /* Horizontal overflow: `clip` on both html and body. Unlike `hidden`, clip never turns body
