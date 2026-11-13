@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.28.0](https://github.com/hatan4ik/simdream-website/compare/v1.27.0...v1.28.0) (2026-11-13)
+
+
+### Features
+
+* **ux:** add a branded, localized 404 page ([#200](https://github.com/hatan4ik/simdream-website/issues/200)) ([e7c5574](https://github.com/hatan4ik/simdream-website/commit/e7c55743765ac9f18799cfa929fd99e17f2b623f))
+
 ## [1.27.0](https://github.com/hatan4ik/simdream-website/compare/v1.26.0...v1.27.0) (2026-11-13)
 
 

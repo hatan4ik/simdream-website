@@ -10,6 +10,14 @@
 
 ## Product changes by version
 
+### [v1.28.0](https://github.com/hatan4ik/simdream-website/releases/tag/v1.28.0) — 2026-11-13
+
+#### Features
+
+- **ux:** add a branded, localized 404 page (#200) (e7c5574)
+
+Deployment evidence: [GitHub Release](https://github.com/hatan4ik/simdream-website/releases/tag/v1.28.0).
+
 ### [v1.27.0](https://github.com/hatan4ik/simdream-website/releases/tag/v1.27.0) — 2026-11-13
 
 #### Features
