@@ -1,6 +1,6 @@
 {
   "name": "simdream-website",
-  "version": "1.24.0",
+  "version": "1.25.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -11,6 +11,8 @@
     "docs:verify": "tsx scripts/check-genesis-coverage.ts --require GENESIS.md",
     "docs:genesis": "npm run docs:verify",
     "docs:genesis:stamp": "tsx scripts/check-genesis-coverage.ts --stamp GENESIS.md",
+    "releases:generate": "tsx scripts/release-ledger.ts",
+    "releases:verify": "tsx scripts/release-ledger.ts --check",
     "llms:generate": "tsx scripts/generate-llms-txt.ts",
     "preview": "next start",
     "typecheck": "tsc --noEmit",
