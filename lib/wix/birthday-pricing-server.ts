@@ -1,15 +1,21 @@
 import 'server-only';
 
 import { z } from 'zod';
-import { applyBirthdayDiscount, resolveBookingBirthday } from '@/lib/discounts/birthday';
+import {
+  applyBirthdayDiscount,
+  isBirthdayDiscountApplicablePackage,
+  resolveBookingBirthday,
+} from '@/lib/discounts/birthday';
 import { SIMULATOR_PACKAGES } from '@/lib/db/seed-data';
 import { israelToday } from '@/lib/scheduler/israel-clock';
 import { packagePriceForSlot } from '@/lib/scheduler/mission-calculator';
 import { packageIdForWixService, wixServiceIdFor } from './catalog';
 import {
   createWixBirthdayPricingClaim,
-  verifyWixBirthdayPricingClaim,
-  type WixBirthdayPricingClaimPayload,
+  verifyPromotionClaim,
+  type PromotionDiscountPercent,
+  type PromotionKind,
+  type VerifiedPromotionClaim,
 } from './birthday-pricing-claim';
 
 export const WIX_BIRTHDAY_CLAIM_FIELD_ID_ENV = 'WIX_BIRTHDAY_CLAIM_FIELD_ID';
@@ -104,15 +110,46 @@ export async function issueWixBirthdayPricingClaim(
   };
 }
 
+export interface WixPricingContactDetails {
+  email?: string;
+  phone?: string;
+  firstName?: string;
+  lastName?: string;
+  fullName?: string;
+}
+
 export interface WixPricingProviderBooking {
   bookedEntity?: {
     slot?: { serviceId?: string; startDate?: string; timezone?: string };
   };
   additionalFields?: Array<{ id?: string; _id?: string; value?: string }>;
+  contactDetails?: WixPricingContactDetails;
+}
+
+export type WixPricingIdentityVerifier = (
+  contactDetails: WixPricingContactDetails,
+  identityKeys: readonly string[]
+) => boolean | Promise<boolean>;
+
+export interface WixPricingCalculationOptions {
+  config?: WixBirthdayPricingProviderConfig | null;
+  now?: Date;
+  verifyIdentity?: WixPricingIdentityVerifier;
 }
 
 export type WixBirthdayPricingDecision =
   | { ok: true; calculatedPrice: number; birthdayApplied: boolean }
+  | { ok: false; code: 'unsupported-service' | 'invalid-birthday-claim' | 'invalid-flight-date' };
+
+export type WixPromotionPricingDecision =
+  | {
+      ok: true;
+      calculatedPrice: number;
+      birthdayApplied: boolean;
+      discountApplied: boolean;
+      discountPercent: PromotionDiscountPercent;
+      promoKind?: PromotionKind;
+    }
   | { ok: false; code: 'unsupported-service' | 'invalid-birthday-claim' | 'invalid-flight-date' };
 
 function bookingDateTimeParts(
@@ -149,15 +186,87 @@ function bookingDateTimeParts(
   }
 }
 
+function normalizedContactCandidates(contactDetails: WixPricingContactDetails): string[] {
+  const candidates = new Set<string>();
+  const email = contactDetails.email?.trim().toLowerCase();
+  if (email) {
+    candidates.add(email);
+    candidates.add(`email:${email}`);
+  }
+  const rawPhone = contactDetails.phone?.trim();
+  if (rawPhone) {
+    const digits = rawPhone.replace(/\D/g, '');
+    if (digits) {
+      candidates.add(digits);
+      candidates.add(`phone:${digits}`);
+      if (digits.startsWith('972') && digits.length >= 11) {
+        const local = `0${digits.slice(3)}`;
+        candidates.add(local);
+        candidates.add(`phone:${local}`);
+      } else if (digits.startsWith('0') && digits.length === 10) {
+        const intl = `972${digits.slice(1)}`;
+        candidates.add(intl);
+        candidates.add(`phone:${intl}`);
+      }
+    }
+  }
+  return [...candidates];
+}
+
+async function hmacSha256Digests(secret: string, value: string): Promise<[string, string]> {
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+  const sig = new Uint8Array(await crypto.subtle.sign('HMAC', key, encoder.encode(value)));
+  let hex = '';
+  let binary = '';
+  for (const byte of sig) {
+    hex += byte.toString(16).padStart(2, '0');
+    binary += String.fromCharCode(byte);
+  }
+  const base64url = btoa(binary).replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');
+  return [hex, base64url];
+}
+
+async function defaultVerifyIdentity(
+  contactDetails: WixPricingContactDetails,
+  identityKeys: readonly string[],
+  secret: string
+): Promise<boolean> {
+  const candidates = normalizedContactCandidates(contactDetails);
+  if (candidates.length === 0) return false;
+  const keySet = new Set(identityKeys);
+  for (const candidate of candidates) {
+    if (keySet.has(candidate)) return true;
+    const [hex, b64] = await hmacSha256Digests(secret, candidate);
+    if (keySet.has(hex) || keySet.has(b64)) return true;
+  }
+  return false;
+}
+
+function claimMatchesBooking(
+  claim: VerifiedPromotionClaim,
+  packageId: string,
+  serviceId: string,
+  flightDate: string
+): boolean {
+  return claim.packageId === packageId && claim.serviceId === serviceId && claim.flightDate === flightDate;
+}
+
 /**
- * Wix calls this after creating a booking. Every service keeps its original
- * duration and catalog identity; only this final price changes when a valid
- * claim is bound to the same service and Israel flight date.
+ * Evaluates a Wix booking against any supported promotion claim (`birthday`, `loyalty`, `prepaid`).
+ * Falls back to standard registry price if `identityKeys` fails contact verification or if a
+ * loyalty/birthday claim is used on an ineligible package.
  */
-export async function calculateWixBirthdayBookingPrice(
+export async function calculateWixBookingPrice(
   booking: WixPricingProviderBooking,
-  options: { config?: WixBirthdayPricingProviderConfig | null; now?: Date } = {}
-): Promise<WixBirthdayPricingDecision> {
+  options: WixPricingCalculationOptions = {}
+): Promise<WixPromotionPricingDecision> {
   const config = options.config === undefined ? getWixBirthdayPricingProviderConfig() : options.config;
   if (!config) throw new Error('Wix birthday pricing is not configured.');
   const slot = booking.bookedEntity?.slot;
@@ -172,23 +281,95 @@ export async function calculateWixBirthdayBookingPrice(
   const value = booking.additionalFields?.find(
     (field) => (field.id ?? field._id) === config.claimFieldId
   )?.value;
+
   // No claim means a normal booking. Returning the registry-backed standard
   // price is essential because an active provider overrides Wix's default
   // Bookings calculator for every mapped service.
-  if (!value) return { ok: true, calculatedPrice: basePriceIls, birthdayApplied: false };
+  if (!value) {
+    return { ok: true, calculatedPrice: basePriceIls, birthdayApplied: false, discountApplied: false, discountPercent: 0 };
+  }
 
-  const claim = await verifyWixBirthdayPricingClaim(value, config.claimSecret, options.now);
+  const claim = await verifyPromotionClaim(value, config.claimSecret, options.now);
   if (!claim || !claimMatchesBooking(claim, packageId, serviceId, bookingTime.flightDate)) {
     return { ok: false, code: 'invalid-birthday-claim' };
   }
-  // The claim issuer has already checked the full birthday and age. Only its
-  // signed month/day remains here, so re-running date eligibility with a fake
-  // year would be both misleading and unnecessary. The price helper owns the
-  // policy percentage and exact whole-shekel rounding.
+
+  if (claim.identityKeys && claim.identityKeys.length > 0 && booking.contactDetails) {
+    const matched = options.verifyIdentity
+      ? await options.verifyIdentity(booking.contactDetails, claim.identityKeys)
+      : await defaultVerifyIdentity(booking.contactDetails, claim.identityKeys, config.claimSecret);
+    if (!matched) {
+      return {
+        ok: true,
+        calculatedPrice: basePriceIls,
+        birthdayApplied: false,
+        discountApplied: false,
+        discountPercent: 0,
+        promoKind: claim.promoKind,
+      };
+    }
+  }
+
+  if (claim.promoKind === 'prepaid') {
+    return {
+      ok: true,
+      calculatedPrice: basePriceIls,
+      birthdayApplied: false,
+      discountApplied: false,
+      discountPercent: 0,
+      promoKind: 'prepaid',
+    };
+  }
+
+  if (claim.promoKind === 'loyalty') {
+    if (!isBirthdayDiscountApplicablePackage(packageId)) {
+      return {
+        ok: true,
+        calculatedPrice: basePriceIls,
+        birthdayApplied: false,
+        discountApplied: false,
+        discountPercent: 0,
+        promoKind: 'loyalty',
+      };
+    }
+    const price = applyBirthdayDiscount(basePriceIls, claim.discountPercent);
+    return {
+      ok: true,
+      calculatedPrice: price.totalIls,
+      birthdayApplied: false,
+      discountApplied: true,
+      discountPercent: claim.discountPercent,
+      promoKind: 'loyalty',
+    };
+  }
+
+  // Birthday claim: the issuer has already checked the full birthday and age.
+  // The price helper owns the policy percentage and exact whole-shekel rounding.
   const price = applyBirthdayDiscount(basePriceIls);
-  return { ok: true, calculatedPrice: price.totalIls, birthdayApplied: true };
+  return {
+    ok: true,
+    calculatedPrice: price.totalIls,
+    birthdayApplied: true,
+    discountApplied: true,
+    discountPercent: 15,
+    promoKind: 'birthday',
+  };
 }
 
-function claimMatchesBooking(claim: WixBirthdayPricingClaimPayload, packageId: string, serviceId: string, flightDate: string): boolean {
-  return claim.p === packageId && claim.s === serviceId && claim.f === flightDate;
+/**
+ * Wix calls this after creating a booking. Every service keeps its original
+ * duration and catalog identity; only this final price changes when a valid
+ * claim is bound to the same service and Israel flight date.
+ */
+export async function calculateWixBirthdayBookingPrice(
+  booking: WixPricingProviderBooking,
+  options: WixPricingCalculationOptions = {}
+): Promise<WixBirthdayPricingDecision> {
+  const decision = await calculateWixBookingPrice(booking, options);
+  if (!decision.ok) return decision;
+  return {
+    ok: true,
+    calculatedPrice: decision.calculatedPrice,
+    birthdayApplied: decision.birthdayApplied,
+  };
 }
