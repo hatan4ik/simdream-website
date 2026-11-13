@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.21.2](https://github.com/hatan4ik/simdream-website/compare/v1.21.1...v1.21.2) (2026-11-13)
+
+
+### Bug Fixes
+
+* **reviews:** remove invalid route export MIN_REFRESH_TOKEN_LENGTH ([#184](https://github.com/hatan4ik/simdream-website/issues/184)) ([f1cfb1e](https://github.com/hatan4ik/simdream-website/commit/f1cfb1e3c8d64eeff9aebc1cc80f891209dacd67))
+
 ## [1.21.1](https://github.com/hatan4ik/simdream-website/compare/v1.21.0...v1.21.1) (2026-11-12)
 
 
