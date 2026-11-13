@@ -30,7 +30,7 @@ test.describe('error responses', () => {
     const response = await page.goto('/security-web-route-that-does-not-exist');
 
     expect(response?.status()).toBe(404);
-    await expect(page.getByText(/could not be found/i).first()).toBeVisible();
+    await expect(page.locator('[data-not-found]')).toBeVisible();
     expect(internalDetailsIn((await response?.text()) ?? '')).toEqual([]);
     expect(internalDetailsIn(await page.locator('body').innerText())).toEqual([]);
   });
