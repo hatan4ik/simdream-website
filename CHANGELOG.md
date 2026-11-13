@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.27.0](https://github.com/hatan4ik/simdream-website/compare/v1.26.0...v1.27.0) (2026-11-13)
+
+
+### Features
+
+* **loyalty:** generalize promotion claim contract and add 7-language checkout copy ([#198](https://github.com/hatan4ik/simdream-website/issues/198)) ([f2336e9](https://github.com/hatan4ik/simdream-website/commit/f2336e9bcc374b0e99b90b1948dda67b4eb1a78b))
+
 ## [1.26.0](https://github.com/hatan4ik/simdream-website/compare/v1.25.0...v1.26.0) (2026-11-13)
 
 
