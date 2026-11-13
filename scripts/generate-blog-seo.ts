@@ -1567,19 +1567,7 @@ function fitMetaDescription(focus: string, lang: BlogLang): string {
   throw new Error(`metaDescription length ${combined.length} out of [135..160] for ${lang}: "${combined}"`);
 }
 
-interface CompactLocaleEntry {
-  t: string;
-  d: string;
-  k: string[];
-}
-
-interface CompactBlogSeoRecord {
-  id: string;
-  tid: string;
-  s: string;
-  c: string;
-  l: Record<BlogLang, CompactLocaleEntry>;
-}
+type CompactLocaleTuple = [string, string, string[]];
 
 function main() {
   const root = process.cwd();
@@ -1587,7 +1575,7 @@ function main() {
   const slugMap = JSON.parse(readFileSync(path.join(root, 'lib/data/blog-slug-map.json'), 'utf8')) as RawSlugMap;
 
   const seenShortSlugs = new Set<string>();
-  const compactRecords: CompactBlogSeoRecord[] = [];
+  const compactByTid: Record<string, Record<BlogLang, CompactLocaleTuple>> = {};
   let legacyCount = 0;
 
   for (const post of posts) {
@@ -1613,7 +1601,7 @@ function main() {
     }
     seenShortSlugs.add(shortSlug);
 
-    const locales = {} as Record<BlogLang, CompactLocaleEntry>;
+    const locales = {} as Record<BlogLang, CompactLocaleTuple>;
 
     for (const lang of SUPPORTED_BLOG_LANGS) {
       const topic = seed.topics[lang];
@@ -1629,25 +1617,15 @@ function main() {
       if (lang === 'he' && group.localSlug) legacyCount++;
       if (group[lang]) legacyCount++;
 
-      locales[lang] = {
-        t: metaTitle,
-        d: metaDescription,
-        k: topic.keywords,
-      };
+      locales[lang] = [metaTitle, metaDescription, topic.keywords];
     }
 
-    compactRecords.push({
-      id: post.id,
-      tid: translationId,
-      s: shortSlug,
-      c: post.category,
-      l: locales,
-    });
+    compactByTid[translationId] = locales;
   }
 
   const outPath = path.join(root, 'lib/data/blog-seo.json');
-  writeFileSync(outPath, JSON.stringify(compactRecords) + '\n', 'utf8');
-  console.log(`Generated compact ${outPath}: ${compactRecords.length} posts (${legacyCount} base legacy slugs).`);
+  writeFileSync(outPath, JSON.stringify(compactByTid) + '\n', 'utf8');
+  console.log(`Generated compact ${outPath}: ${Object.keys(compactByTid).length} posts (${legacyCount} base legacy slugs).`);
 }
 
 main();

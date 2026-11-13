@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next';
 import { FACILITY_INFO } from '@/lib/config/facility-info';
 import { getAllBlogPosts } from '@/lib/data/blog-posts';
-import { BLOG_SEO_LANGS, resolveShortSlug } from '@/lib/data/blog-seo';
+import { BLOG_SEO_LANGS, resolveShortSlug } from '@/lib/data/blog-short-slugs';
 import { PUBLIC_SITE_ROUTES, blogPostPath, siteUrl } from '@/lib/seo/site-routes';
 
 export default function sitemap(): MetadataRoute.Sitemap {

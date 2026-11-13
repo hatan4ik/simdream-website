@@ -1,7 +1,7 @@
 import { FACILITY_INFO } from '@/lib/config/facility-info';
 import { getBlogAuthor } from '@/lib/data/blog-authors';
 import type { BlogPost } from '@/lib/data/blog-categories';
-import { isBlogSeoLang, type BlogSeoLang } from '@/lib/data/blog-seo';
+import { isBlogSeoLang, type BlogSeoLang } from '@/lib/data/blog-short-slugs';
 import { blogPostPath, siteUrl } from './site-routes';
 
 /**

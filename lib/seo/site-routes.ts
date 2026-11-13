@@ -8,7 +8,7 @@
  * (`lib/data/blog-posts`) through `blogPostPath()`, never listed by hand.
  */
 
-import { isBlogSeoLang, resolveShortSlug } from '@/lib/data/blog-seo';
+import { isBlogSeoLang, resolveShortSlug } from '@/lib/data/blog-short-slugs';
 
 export type SitemapChangeFrequency = 'daily' | 'weekly' | 'monthly';
 

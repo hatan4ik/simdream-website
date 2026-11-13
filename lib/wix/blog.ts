@@ -6,11 +6,7 @@ import {
   type BlogContentNode,
 } from '@/lib/data/blog-posts';
 import blogSlugMapData from '@/lib/data/blog-slug-map.json';
-import {
-  getBlogSeoBySlugOrId,
-  getLocalizedBlogSeo,
-  resolveShortSlug,
-} from '@/lib/data/blog-seo';
+import { getShortSlugMatch, resolveShortSlug } from '@/lib/data/blog-short-slugs';
 import { blogPostPath } from '@/lib/seo/site-routes';
 import { isWixConfigured } from './config';
 import { wixPost } from './client';
@@ -189,26 +185,20 @@ function convertWixRichContentNodes(wixNodes: unknown): BlogContentNode[] {
 }
 
 function extractWixSeo(
-  wixPostItem: Pick<WixBlogPost, 'title' | 'excerpt' | 'slug' | 'translationId' | 'seoData'>,
-  lang: string
-): { seoTitle: string; seoDescription: string; seoKeywords?: string[] } {
+  wixPostItem: Pick<WixBlogPost, 'seoData'>
+): { seoTitle?: string; seoDescription?: string } {
   const tags = wixPostItem.seoData?.tags ?? [];
   const titleTag = tags.find((t) => t.type === 'title' && typeof t.children === 'string' && t.children.trim());
   const descTag = tags.find(
     (t) => t.type === 'meta' && t.props?.name === 'description' && typeof t.props?.content === 'string'
   );
-  const wixTitle = titleTag?.children?.trim() || wixPostItem.seoData?.title?.trim();
-  const wixDesc =
+  const seoTitle = titleTag?.children?.trim() || wixPostItem.seoData?.title?.trim() || undefined;
+  const seoDescription =
     (typeof descTag?.props?.content === 'string' ? descTag.props.content.trim() : undefined) ||
-    wixPostItem.seoData?.description?.trim();
+    wixPostItem.seoData?.description?.trim() ||
+    undefined;
 
-  const localSeo = getLocalizedBlogSeo(wixPostItem.translationId || wixPostItem.slug, lang);
-
-  return {
-    seoTitle: wixTitle || localSeo?.metaTitle || `${wixPostItem.title} | SimDream`,
-    seoDescription: wixDesc || localSeo?.metaDescription || wixPostItem.excerpt || '',
-    seoKeywords: localSeo?.keywords,
-  };
+  return { seoTitle, seoDescription };
 }
 
 /**
@@ -258,7 +248,7 @@ export async function listWixBlogPosts(
 
           const lang = p.language || targetLang;
           const shortSlug = resolveShortSlug(p.translationId || p.slug);
-          const seo = extractWixSeo(p, lang);
+          const seo = extractWixSeo(p);
           return {
             id: p.id,
             slug: p.slug,
@@ -275,9 +265,8 @@ export async function listWixBlogPosts(
             language: lang,
             translationId: p.translationId,
             siblingSlugs: extractSiblingSlugs(groupMeta),
-            seoTitle: seo.seoTitle,
-            seoDescription: seo.seoDescription,
-            seoKeywords: seo.seoKeywords,
+            ...(seo.seoTitle ? { seoTitle: seo.seoTitle } : {}),
+            ...(seo.seoDescription ? { seoDescription: seo.seoDescription } : {}),
             hasTranslatedBody: true,
           };
         });
@@ -291,7 +280,6 @@ export async function listWixBlogPosts(
     const entry = blogSlugMap.bySlug[p.slug];
     const group = entry ? blogSlugMap.byTranslationId[entry.translationId] : undefined;
     const shortSlug = resolveShortSlug(entry?.translationId || p.slug);
-    const seo = getLocalizedBlogSeo(entry?.translationId || p.slug, 'he');
     return {
       ...p,
       shortSlug,
@@ -299,9 +287,6 @@ export async function listWixBlogPosts(
       language: 'he',
       translationId: entry?.translationId,
       siblingSlugs: extractSiblingSlugs(group),
-      seoTitle: seo?.metaTitle,
-      seoDescription: seo?.metaDescription,
-      seoKeywords: seo?.keywords,
       hasTranslatedBody: true,
     };
   });
@@ -314,9 +299,9 @@ export async function listWixBlogPosts(
 export async function resolveBlogPost(slug: string, requestedLang?: string): Promise<BlogPost | undefined> {
   const decoded = decodeURIComponent(slug).trim().toLowerCase();
   const slugEntry = blogSlugMap.bySlug[decoded] || blogSlugMap.bySlug[slug];
-  const seoMatch = getBlogSeoBySlugOrId(slug);
-  const targetLang = requestedLang || seoMatch?.language || slugEntry?.language || 'he';
-  const matchedTid = seoMatch?.record.translationId || slugEntry?.translationId;
+  const slugMatch = getShortSlugMatch(slug);
+  const targetLang = requestedLang || slugMatch?.language || slugEntry?.language || 'he';
+  const matchedTid = slugMatch?.translationId || slugEntry?.translationId;
   const matchedGroup = matchedTid ? blogSlugMap.byTranslationId[matchedTid] : undefined;
   const wixQuerySlug =
     (matchedGroup && typeof matchedGroup[targetLang] === 'string' && matchedGroup[targetLang]) ||
@@ -341,7 +326,7 @@ export async function resolveBlogPost(slug: string, requestedLang?: string): Pro
           'https://static.wixstatic.com/media/49097a_89df782bcec442a4921ae970d077c0f1~mv2.webp';
         const lang = p.language || targetLang;
         const shortSlug = resolveShortSlug(p.translationId || matchedTid || p.slug);
-        const seo = extractWixSeo({ ...p, translationId: p.translationId || matchedTid }, lang);
+        const seo = extractWixSeo(p);
 
         return {
           id: p.id,
@@ -361,9 +346,8 @@ export async function resolveBlogPost(slug: string, requestedLang?: string): Pro
           language: lang,
           translationId: p.translationId || matchedTid,
           siblingSlugs: extractSiblingSlugs(groupMeta),
-          seoTitle: seo.seoTitle,
-          seoDescription: seo.seoDescription,
-          seoKeywords: seo.seoKeywords,
+          ...(seo.seoTitle ? { seoTitle: seo.seoTitle } : {}),
+          ...(seo.seoDescription ? { seoDescription: seo.seoDescription } : {}),
           hasTranslatedBody: lang === 'he' || contentNodes.length > 0,
         };
       }
@@ -379,18 +363,14 @@ export async function resolveBlogPost(slug: string, requestedLang?: string): Pro
     const tid = matchedTid || entry?.translationId;
     const group = tid ? blogSlugMap.byTranslationId[tid] : undefined;
     const shortSlug = resolveShortSlug(tid || local.slug);
-    const seo = getLocalizedBlogSeo(tid || local.slug, targetLang);
     return {
       ...local,
-      slug: seoMatch && !seoMatch.isLegacy ? shortSlug : slug,
+      slug: slugMatch && !slugMatch.isLegacy ? shortSlug : slug,
       shortSlug,
       canonicalPath: blogPostPath(shortSlug, targetLang),
       language: targetLang,
       translationId: tid,
       siblingSlugs: extractSiblingSlugs(group),
-      seoTitle: seo?.metaTitle,
-      seoDescription: seo?.metaDescription,
-      seoKeywords: seo?.keywords,
       hasTranslatedBody: targetLang === 'he',
     };
   }

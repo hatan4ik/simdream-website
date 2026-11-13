@@ -2,11 +2,11 @@ import React from 'react';
 import type { Metadata } from 'next';
 import { notFound, permanentRedirect } from 'next/navigation';
 import {
+  ALL_SHORT_SLUGS,
   BLOG_SEO_LANGS,
-  getAllBlogSeoRecords,
-  getBlogSeoBySlugOrId,
+  getShortSlugMatch,
   isBlogSeoLang,
-} from '@/lib/data/blog-seo';
+} from '@/lib/data/blog-short-slugs';
 import { buildBlogPostMetadata } from '@/lib/seo/blog-post-metadata';
 import { blogPostPath } from '@/lib/seo/site-routes';
 import { resolveBlogPost } from '@/lib/wix/blog';
@@ -27,13 +27,12 @@ function decodeSegment(raw: string): string {
 }
 
 export async function generateStaticParams() {
-  const records = getAllBlogSeoRecords();
-  const heParams = records.map((record) => ({
-    segments: [record.shortSlug],
+  const heParams = ALL_SHORT_SLUGS.map((shortSlug) => ({
+    segments: [shortSlug],
   }));
   const localizedParams = NON_HEBREW_LANGS.flatMap((lang) =>
-    records.map((record) => ({
-      segments: [lang, record.shortSlug],
+    ALL_SHORT_SLUGS.map((shortSlug) => ({
+      segments: [lang, shortSlug],
     }))
   );
   return [...heParams, ...localizedParams];
@@ -44,7 +43,7 @@ export async function generateMetadata({ params }: PostCatchAllPageProps): Promi
 
   if (segments.length === 1) {
     const slug = segments[0]!;
-    const match = getBlogSeoBySlugOrId(slug);
+    const match = getShortSlugMatch(slug);
     const lang = match?.language ?? 'he';
     const post = await resolveBlogPost(slug, lang);
     return buildBlogPostMetadata(post);
@@ -67,13 +66,13 @@ export default async function PostCatchAllPage({ params }: PostCatchAllPageProps
 
   if (segments.length === 1) {
     const slug = segments[0]!;
-    const match = getBlogSeoBySlugOrId(slug);
+    const match = getShortSlugMatch(slug);
 
     if (match) {
       const decoded = decodeSegment(slug);
       const targetLang = match.language ?? 'he';
-      if (match.isLegacy || targetLang !== 'he' || decoded !== match.record.shortSlug) {
-        permanentRedirect(blogPostPath(match.record.shortSlug, targetLang));
+      if (match.isLegacy || targetLang !== 'he' || decoded !== match.shortSlug) {
+        permanentRedirect(blogPostPath(match.shortSlug, targetLang));
       }
     }
 
@@ -90,15 +89,15 @@ export default async function PostCatchAllPage({ params }: PostCatchAllPageProps
       notFound();
     }
 
-    const match = getBlogSeoBySlugOrId(slug!);
+    const match = getShortSlugMatch(slug!);
     if (lang === 'he') {
-      permanentRedirect(blogPostPath(match?.record.shortSlug ?? slug!, 'he'));
+      permanentRedirect(blogPostPath(match?.shortSlug ?? slug!, 'he'));
     }
 
     if (match) {
       const decoded = decodeSegment(slug!);
-      if (match.isLegacy || decoded !== match.record.shortSlug) {
-        permanentRedirect(blogPostPath(match.record.shortSlug, lang));
+      if (match.isLegacy || decoded !== match.shortSlug) {
+        permanentRedirect(blogPostPath(match.shortSlug, lang));
       }
     }
 

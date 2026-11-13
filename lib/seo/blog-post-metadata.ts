@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 import { FACILITY_INFO } from '@/lib/config/facility-info';
 import { getBlogAuthor } from '@/lib/data/blog-authors';
 import type { BlogPost } from '@/lib/data/blog-categories';
-import { BLOG_SEO_LANGS, isBlogSeoLang, resolveShortSlug } from '@/lib/data/blog-seo';
+import { BLOG_SEO_LANGS, isBlogSeoLang, resolveShortSlug } from '@/lib/data/blog-short-slugs';
+import { getLocalizedBlogSeo } from '@/lib/data/blog-seo';
 import { blogPostCanonicalUrl } from './blog-structured-data';
 import { blogPostPath, siteUrl } from './site-routes';
 
@@ -29,8 +30,10 @@ export function buildBlogPostMetadata(post: BlogPost | undefined): Metadata {
   const canonicalUrl = isLanguageMismatchFallback ? hebrewCanonicalUrl : selfCanonicalUrl;
 
   const author = getBlogAuthor(post.authorId);
-  const title = post.seoTitle || `${post.title} | SimDream`;
-  const description = post.seoDescription || post.excerpt;
+  const localSeo = getLocalizedBlogSeo(post.translationId || shortSlug, lang);
+  const title = post.seoTitle || localSeo?.metaTitle || `${post.title} | SimDream`;
+  const description = post.seoDescription || localSeo?.metaDescription || post.excerpt;
+  const keywords = post.seoKeywords?.length ? post.seoKeywords : localSeo?.keywords;
 
   const languageAlternates: Record<string, string> = {};
   for (const l of BLOG_SEO_LANGS) {
@@ -41,7 +44,7 @@ export function buildBlogPostMetadata(post: BlogPost | undefined): Metadata {
   return {
     title,
     description,
-    ...(post.seoKeywords?.length ? { keywords: post.seoKeywords } : {}),
+    ...(keywords?.length ? { keywords } : {}),
     authors: [{ name: lang === 'he' || lang === 'ar' ? author.nameHe : author.nameEn, url: author.url }],
     ...(isLanguageMismatchFallback ? { robots: { index: false, follow: true } } : {}),
     alternates: {

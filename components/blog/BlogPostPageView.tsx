@@ -9,7 +9,7 @@ import {
   type BlogPost,
 } from '@/lib/data/blog-posts';
 import { getBlogAuthor } from '@/lib/data/blog-authors';
-import { BLOG_SEO_LANGS, isBlogSeoLang, resolveShortSlug } from '@/lib/data/blog-seo';
+import { BLOG_SEO_LANGS, isBlogSeoLang, resolveShortSlug } from '@/lib/data/blog-short-slugs';
 import {
   BLOG_BREADCRUMB_LABELS,
   BLOG_LANGUAGE_LOCALES,
