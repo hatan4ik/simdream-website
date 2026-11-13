@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Language, LANGUAGES, LanguageInfo, translations, SupportedLanguage } from './translations';
 import {
   DEFAULT_LANGUAGE,
+  extractPathLocale,
   languageDirection,
   resolveLanguagePreference,
 } from './language-preference';
@@ -56,7 +57,9 @@ export function LanguageProvider({
     } catch {
       // Keep the server-provided language when storage is unavailable.
     }
-    const selectedLanguage = resolveLanguagePreference(saved ?? initialLanguage);
+    const pathLocale =
+      typeof window !== 'undefined' ? extractPathLocale(window.location.pathname) : null;
+    const selectedLanguage = resolveLanguagePreference(pathLocale ?? saved ?? initialLanguage);
     setLanguageState(selectedLanguage);
     persistLanguagePreference(selectedLanguage);
     setPreferenceResolved(true);
