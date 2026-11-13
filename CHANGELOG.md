@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.22.0](https://github.com/hatan4ik/simdream-website/compare/v1.21.2...v1.22.0) (2026-11-13)
+
+
+### Features
+
+* **seo:** short canonical blog URLs, 6-lang metadata, 301 redirects, llms.txt & sitemap ([#183](https://github.com/hatan4ik/simdream-website/issues/183)) ([3881ede](https://github.com/hatan4ik/simdream-website/commit/3881edeaa5e857d22320537ea63e4fba634b2a3f))
+
 ## [1.21.2](https://github.com/hatan4ik/simdream-website/compare/v1.21.1...v1.21.2) (2026-11-13)
 
 
