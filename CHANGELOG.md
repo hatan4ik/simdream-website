@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.26.0](https://github.com/hatan4ik/simdream-website/compare/v1.25.0...v1.26.0) (2026-11-13)
+
+
+### Features
+
+* **i18n,blog:** add full German (de) frontend & Wix Blog support ([#195](https://github.com/hatan4ik/simdream-website/issues/195)) ([5eddc07](https://github.com/hatan4ik/simdream-website/commit/5eddc07f068d72f8f045d0e2cb94f77f666a13b2))
+
 ## [1.25.0](https://github.com/hatan4ik/simdream-website/compare/v1.24.0...v1.25.0) (2026-11-13)
 
 
