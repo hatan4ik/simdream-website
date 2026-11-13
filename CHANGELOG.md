@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.25.0](https://github.com/hatan4ik/simdream-website/compare/v1.24.0...v1.25.0) (2026-11-13)
+
+
+### Features
+
+* **release:** add audited Wix deployment ledger ([#193](https://github.com/hatan4ik/simdream-website/issues/193)) ([e9d4dc8](https://github.com/hatan4ik/simdream-website/commit/e9d4dc8a821f4ec7c59727dfef4958496db5a105))
+
 ## [1.24.0](https://github.com/hatan4ik/simdream-website/compare/v1.23.0...v1.24.0) (2026-11-13)
 
 

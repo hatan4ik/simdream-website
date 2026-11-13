@@ -10,6 +10,14 @@
 
 ## Product changes by version
 
+### [v1.25.0](https://github.com/hatan4ik/simdream-website/releases/tag/v1.25.0) — 2026-11-13
+
+#### Features
+
+- **release:** add audited Wix deployment ledger (#193) (e9d4dc8)
+
+Deployment evidence: [GitHub Release](https://github.com/hatan4ik/simdream-website/releases/tag/v1.25.0).
+
 ### [v1.24.0](https://github.com/hatan4ik/simdream-website/releases/tag/v1.24.0) — 2026-11-13
 
 #### Features
