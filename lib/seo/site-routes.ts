@@ -8,6 +8,8 @@
  * (`lib/data/blog-posts`) through `blogPostPath()`, never listed by hand.
  */
 
+import { isBlogSeoLang, resolveShortSlug } from '@/lib/data/blog-short-slugs';
+
 export type SitemapChangeFrequency = 'daily' | 'weekly' | 'monthly';
 
 export interface PublicSiteRoute {
@@ -37,9 +39,18 @@ export const PUBLIC_SITE_ROUTES: readonly PublicSiteRoute[] = [
   { path: '/privacy-policy', changeFrequency: 'monthly', priority: 0.5, labelEn: 'Privacy and Cookie Policy (מדיניות פרטיות)' },
 ];
 
-/** Path of a blog article; Hebrew slugs are percent-encoded exactly as the static params are. */
-export function blogPostPath(slug: string): string {
-  return `/post/${encodeURIComponent(slug)}`;
+/**
+ * Canonical short path of a blog article:
+ * - Hebrew (`he`): `/post/<shortSlug>`
+ * - Other languages (`en`, `ru`, `fr`, `es`, `ar`): `/post/<lang>/<shortSlug>`
+ */
+export function blogPostPath(slug: string, lang = 'he'): string {
+  const shortSlug = resolveShortSlug(slug);
+  const encoded = encodeURIComponent(shortSlug);
+  if (lang !== 'he' && isBlogSeoLang(lang)) {
+    return `/post/${lang}/${encoded}`;
+  }
+  return `/post/${encoded}`;
 }
 
 /** Absolute URL for a site path on the canonical domain (`/` maps to the bare origin). */

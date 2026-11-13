@@ -6,6 +6,9 @@ import {
   type BlogContentNode,
 } from '@/lib/data/blog-posts';
 import blogSlugMapData from '@/lib/data/blog-slug-map.json';
+import { resolveShortSlug } from '@/lib/data/blog-short-slugs';
+import { getShortSlugMatch } from '@/lib/data/blog-legacy-slugs';
+import { blogPostPath } from '@/lib/seo/site-routes';
 import { isWixConfigured } from './config';
 import { wixPost } from './client';
 
@@ -68,6 +71,24 @@ export const wixBlogPostSchema = z
     richContent: z
       .object({
         nodes: z.array(z.record(z.string(), z.unknown())).optional(),
+      })
+      .loose()
+      .optional(),
+    seoData: z
+      .object({
+        tags: z
+          .array(
+            z
+              .object({
+                type: z.string().optional(),
+                props: z.record(z.string(), z.unknown()).optional(),
+                children: z.string().optional(),
+              })
+              .loose()
+          )
+          .optional(),
+        title: z.string().optional(),
+        description: z.string().optional(),
       })
       .loose()
       .optional(),
@@ -164,6 +185,23 @@ function convertWixRichContentNodes(wixNodes: unknown): BlogContentNode[] {
   return result;
 }
 
+function extractWixSeo(
+  wixPostItem: Pick<WixBlogPost, 'seoData'>
+): { seoTitle?: string; seoDescription?: string } {
+  const tags = wixPostItem.seoData?.tags ?? [];
+  const titleTag = tags.find((t) => t.type === 'title' && typeof t.children === 'string' && t.children.trim());
+  const descTag = tags.find(
+    (t) => t.type === 'meta' && t.props?.name === 'description' && typeof t.props?.content === 'string'
+  );
+  const seoTitle = titleTag?.children?.trim() || wixPostItem.seoData?.title?.trim() || undefined;
+  const seoDescription =
+    (typeof descTag?.props?.content === 'string' ? descTag.props.content.trim() : undefined) ||
+    wixPostItem.seoData?.description?.trim() ||
+    undefined;
+
+  return { seoTitle, seoDescription };
+}
+
 /**
  * Returns all language sibling slugs for a given slug or translationId.
  */
@@ -209,9 +247,14 @@ export async function listWixBlogPosts(
             localFallback?.coverImage ||
             'https://static.wixstatic.com/media/49097a_89df782bcec442a4921ae970d077c0f1~mv2.webp';
 
+          const lang = p.language || targetLang;
+          const shortSlug = resolveShortSlug(p.translationId || p.slug);
+          const seo = extractWixSeo(p);
           return {
             id: p.id,
             slug: p.slug,
+            shortSlug,
+            canonicalPath: blogPostPath(shortSlug, lang),
             title: p.title,
             excerpt: p.excerpt || localFallback?.excerpt || '',
             coverImage,
@@ -220,9 +263,12 @@ export async function listWixBlogPosts(
             category: groupMeta?.category || localFallback?.category || 'aviation_knowledge',
             ctaTarget: groupMeta?.ctaTarget || localFallback?.ctaTarget || 'general_booking',
             contentNodes: [],
-            language: p.language || targetLang,
+            language: lang,
             translationId: p.translationId,
             siblingSlugs: extractSiblingSlugs(groupMeta),
+            ...(seo.seoTitle ? { seoTitle: seo.seoTitle } : {}),
+            ...(seo.seoDescription ? { seoDescription: seo.seoDescription } : {}),
+            hasTranslatedBody: true,
           };
         });
       }
@@ -234,43 +280,60 @@ export async function listWixBlogPosts(
   return getAllBlogPosts().map((p) => {
     const entry = blogSlugMap.bySlug[p.slug];
     const group = entry ? blogSlugMap.byTranslationId[entry.translationId] : undefined;
+    const shortSlug = resolveShortSlug(entry?.translationId || p.slug);
     return {
       ...p,
+      shortSlug,
+      canonicalPath: blogPostPath(shortSlug, 'he'),
       language: 'he',
       translationId: entry?.translationId,
       siblingSlugs: extractSiblingSlugs(group),
+      hasTranslatedBody: true,
     };
   });
 }
 
 /**
- * Resolves a blog post by its slug (in Hebrew or any translated language)
+ * Resolves a blog post by its shortSlug or legacy slug (in Hebrew or any translated language)
  * from the live Wix Blog API or local registry.
  */
-export async function resolveBlogPost(slug: string): Promise<BlogPost | undefined> {
+export async function resolveBlogPost(slug: string, requestedLang?: string): Promise<BlogPost | undefined> {
   const decoded = decodeURIComponent(slug).trim().toLowerCase();
   const slugEntry = blogSlugMap.bySlug[decoded] || blogSlugMap.bySlug[slug];
+  const slugMatch = getShortSlugMatch(slug);
+  const targetLang = requestedLang || slugMatch?.language || slugEntry?.language || 'he';
+  const matchedTid = slugMatch?.translationId || slugEntry?.translationId;
+  const matchedGroup = matchedTid ? blogSlugMap.byTranslationId[matchedTid] : undefined;
+  const wixQuerySlug =
+    (matchedGroup && typeof matchedGroup[targetLang] === 'string' && matchedGroup[targetLang]) ||
+    (targetLang === 'he' && matchedGroup?.localSlug) ||
+    decodeURIComponent(slug);
 
   if (isWixConfigured()) {
     try {
       const raw = await wixPost<unknown>(WIX_BLOG_QUERY_POSTS_URL, {
-        filter: { slug: { $eq: decodeURIComponent(slug) } },
-        fieldsets: ['URL', 'RICH_CONTENT'],
+        filter: { slug: { $eq: wixQuerySlug } },
+        fieldsets: ['URL', 'RICH_CONTENT', 'SEO'],
       });
       const parsed = queryBlogPostsResponseSchema.safeParse(raw);
       if (parsed.success && parsed.data.posts.length > 0) {
         const p = parsed.data.posts[0]!;
         const contentNodes = convertWixRichContentNodes(p.richContent?.nodes);
-        const groupMeta = p.translationId ? blogSlugMap.byTranslationId[p.translationId] : undefined;
+        const groupMeta = p.translationId ? blogSlugMap.byTranslationId[p.translationId] : matchedGroup;
         const localFallback = groupMeta?.localSlug ? getBlogPostBySlug(groupMeta.localSlug) : undefined;
         const coverImage =
           groupMeta?.coverImage ||
           localFallback?.coverImage ||
           'https://static.wixstatic.com/media/49097a_89df782bcec442a4921ae970d077c0f1~mv2.webp';
+        const lang = p.language || targetLang;
+        const shortSlug = resolveShortSlug(p.translationId || matchedTid || p.slug);
+        const seo = extractWixSeo(p);
 
         return {
           id: p.id,
           slug: p.slug,
+          shortSlug,
+          canonicalPath: blogPostPath(shortSlug, lang),
           title: p.title,
           excerpt: p.excerpt || localFallback?.excerpt || '',
           coverImage,
@@ -281,9 +344,12 @@ export async function resolveBlogPost(slug: string): Promise<BlogPost | undefine
           ctaTarget: groupMeta?.ctaTarget || localFallback?.ctaTarget || 'general_booking',
           authorId: localFallback?.authorId,
           contentNodes: contentNodes.length > 0 ? contentNodes : (localFallback?.contentNodes || []),
-          language: p.language || slugEntry?.language || 'he',
-          translationId: p.translationId || slugEntry?.translationId,
+          language: lang,
+          translationId: p.translationId || matchedTid,
           siblingSlugs: extractSiblingSlugs(groupMeta),
+          ...(seo.seoTitle ? { seoTitle: seo.seoTitle } : {}),
+          ...(seo.seoDescription ? { seoDescription: seo.seoDescription } : {}),
+          hasTranslatedBody: lang === 'he' || contentNodes.length > 0,
         };
       }
     } catch {
@@ -291,35 +357,23 @@ export async function resolveBlogPost(slug: string): Promise<BlogPost | undefine
     }
   }
 
-  // Local fallback:
-  // If slug is Hebrew or known alias:
-  const local = getBlogPostBySlug(slug);
+  // Local fallback by Hebrew slug or shortSlug/legacySlug translationId:
+  const local = getBlogPostBySlug(slug) ?? (matchedGroup?.localSlug ? getBlogPostBySlug(matchedGroup.localSlug) : undefined);
   if (local) {
     const entry = blogSlugMap.bySlug[local.slug];
-    const group = entry ? blogSlugMap.byTranslationId[entry.translationId] : undefined;
+    const tid = matchedTid || entry?.translationId;
+    const group = tid ? blogSlugMap.byTranslationId[tid] : undefined;
+    const shortSlug = resolveShortSlug(tid || local.slug);
     return {
       ...local,
-      language: 'he',
-      translationId: entry?.translationId,
+      slug: slugMatch && !slugMatch.isLegacy ? shortSlug : slug,
+      shortSlug,
+      canonicalPath: blogPostPath(shortSlug, targetLang),
+      language: targetLang,
+      translationId: tid,
       siblingSlugs: extractSiblingSlugs(group),
+      hasTranslatedBody: targetLang === 'he',
     };
-  }
-
-  // If slug was a translated slug pointing to a local Hebrew article
-  if (slugEntry?.translationId) {
-    const group = blogSlugMap.byTranslationId[slugEntry.translationId];
-    if (group?.localSlug) {
-      const localPost = getBlogPostBySlug(group.localSlug);
-      if (localPost) {
-        return {
-          ...localPost,
-          slug,
-          language: slugEntry.language,
-          translationId: slugEntry.translationId,
-          siblingSlugs: extractSiblingSlugs(group),
-        };
-      }
-    }
   }
 
   return undefined;

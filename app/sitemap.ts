@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next';
 import { FACILITY_INFO } from '@/lib/config/facility-info';
 import { getAllBlogPosts } from '@/lib/data/blog-posts';
+import { BLOG_SEO_LANGS, resolveShortSlug } from '@/lib/data/blog-short-slugs';
 import { PUBLIC_SITE_ROUTES, blogPostPath, siteUrl } from '@/lib/seo/site-routes';
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -15,12 +16,24 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: route.priority,
   }));
 
-  const blogEntries: MetadataRoute.Sitemap = getAllBlogPosts().map((post) => ({
-    url: siteUrl(baseUrl, blogPostPath(post.slug)),
-    lastModified: new Date(post.dateModified ?? post.datePublished),
-    changeFrequency: 'monthly',
-    priority: 0.7,
-  }));
+  const blogEntries: MetadataRoute.Sitemap = getAllBlogPosts().flatMap((post) => {
+    const shortSlug = resolveShortSlug(post.slug);
+    const lastModified = new Date(post.dateModified ?? post.datePublished);
+    const heUrl = siteUrl(baseUrl, blogPostPath(shortSlug, 'he'));
+    const languages: Record<string, string> = {};
+    for (const lang of BLOG_SEO_LANGS) {
+      languages[lang] = siteUrl(baseUrl, blogPostPath(shortSlug, lang));
+    }
+    languages['x-default'] = heUrl;
+
+    return BLOG_SEO_LANGS.map((lang) => ({
+      url: siteUrl(baseUrl, blogPostPath(shortSlug, lang)),
+      lastModified,
+      changeFrequency: 'monthly' as const,
+      priority: lang === 'he' ? 0.7 : 0.65,
+      alternates: { languages },
+    }));
+  });
 
   return [...staticEntries, ...blogEntries];
 }

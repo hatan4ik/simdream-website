@@ -1,36 +1,30 @@
 import React from 'react';
-import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Calendar, Clock, ArrowRight, ArrowLeft, UserCheck } from 'lucide-react';
 import {
-  getAllBlogPosts,
   getRelatedBlogPosts,
   BLOG_CATEGORIES,
   getBlogCategoryLabel,
+  type BlogPost,
 } from '@/lib/data/blog-posts';
-import blogSlugMapData from '@/lib/data/blog-slug-map.json';
 import { getBlogAuthor } from '@/lib/data/blog-authors';
+import { BLOG_SEO_LANGS, isBlogSeoLang, resolveShortSlug } from '@/lib/data/blog-short-slugs';
 import {
-  BLOG_BREADCRUMB_LABELS_HE,
-  blogPostCanonicalUrl,
+  BLOG_BREADCRUMB_LABELS,
+  BLOG_LANGUAGE_LOCALES,
   buildBlogBreadcrumbJsonLd,
   buildBlogPostingJsonLd,
 } from '@/lib/seo/blog-structured-data';
-import { resolveBlogPost } from '@/lib/wix/blog';
-import { BlogContentRenderer } from '@/components/blog/BlogContentRenderer';
-import { BlogConversionCta } from '@/components/blog/BlogConversionCta';
-import { BlogCard } from '@/components/blog/BlogCard';
-import { BlogPostLanguageSync } from '@/components/blog/BlogPostLanguageSync';
+import { blogPostPath } from '@/lib/seo/site-routes';
 import type { SupportedLanguage } from '@/lib/i18n/translations';
 import { isSupportedLanguage } from '@/lib/i18n/language-preference';
+import { BlogContentRenderer } from './BlogContentRenderer';
+import { BlogConversionCta } from './BlogConversionCta';
+import { BlogCard } from './BlogCard';
+import { BlogPostLanguageSync } from './BlogPostLanguageSync';
 
-interface PostPageProps {
-  params: Promise<{ slug: string }>;
-}
-
-const READ_TIME_LABELS: Record<string, string> = {
+const READ_TIME_LABELS: Record<SupportedLanguage, string> = {
   he: 'דקות קריאה',
   en: 'min read',
   ru: 'мин чтения',
@@ -39,7 +33,7 @@ const READ_TIME_LABELS: Record<string, string> = {
   ar: 'دقائق قراءة',
 };
 
-const BACK_TO_BLOG_LABELS: Record<string, string> = {
+const BACK_TO_BLOG_LABELS: Record<SupportedLanguage, string> = {
   he: 'חזרה לכל המאמרים ביומן הטיסה',
   en: 'Back to all articles in Flight Deck Journal',
   ru: 'Назад ко всем статьям в Бортовом журнале',
@@ -48,7 +42,7 @@ const BACK_TO_BLOG_LABELS: Record<string, string> = {
   ar: 'العودة إلى جميع مقالات يومية قمرة القيادة',
 };
 
-const RELATED_POSTS_TITLES: Record<string, string> = {
+const RELATED_POSTS_TITLES: Record<SupportedLanguage, string> = {
   he: 'מאמרים נוספים שיעניינו אותך',
   en: 'More articles you might like',
   ru: 'Другие статьи, которые могут вас заинтересовать',
@@ -56,82 +50,6 @@ const RELATED_POSTS_TITLES: Record<string, string> = {
   es: 'Otros artículos que podrían interesarte',
   ar: 'مقالات أخرى قد تهمك',
 };
-
-const LOCALE_BY_LANG: Record<string, string> = {
-  he: 'he-IL',
-  en: 'en-US',
-  ru: 'ru-RU',
-  fr: 'fr-FR',
-  es: 'es-ES',
-  ar: 'ar-EG',
-};
-
-interface BlogSlugMapFile {
-  bySlug: Record<string, { translationId: string; language: string }>;
-}
-
-export async function generateStaticParams() {
-  const bySlug = (blogSlugMapData as unknown as BlogSlugMapFile).bySlug || {};
-  const slugs = Object.keys(bySlug);
-  if (slugs.length > 0) {
-    return slugs.map((slug) => ({
-      slug: encodeURIComponent(slug),
-    }));
-  }
-  const posts = getAllBlogPosts();
-  return posts.map((post) => ({
-    slug: encodeURIComponent(post.slug),
-  }));
-}
-
-export async function generateMetadata({ params }: PostPageProps): Promise<Metadata> {
-  const { slug } = await params;
-  const post = await resolveBlogPost(slug);
-  if (!post) return { title: 'מאמר לא נמצא | SimDream' };
-
-  const canonicalUrl = blogPostCanonicalUrl(post);
-  const author = getBlogAuthor(post.authorId);
-
-  const languageAlternates: Record<string, string> = {};
-  if (post.siblingSlugs) {
-    for (const [lang, s] of Object.entries(post.siblingSlugs)) {
-      languageAlternates[lang] = `https://www.simdream.co.il/post/${encodeURIComponent(s)}`;
-    }
-  }
-
-  return {
-    title: `${post.title} | SimDream`,
-    description: post.excerpt,
-    authors: [{ name: author.nameHe, url: author.url }],
-    alternates: {
-      canonical: canonicalUrl,
-      ...(Object.keys(languageAlternates).length > 0 ? { languages: languageAlternates } : {}),
-    },
-    openGraph: {
-      title: post.title,
-      description: post.excerpt,
-      url: canonicalUrl,
-      type: 'article',
-      publishedTime: post.datePublished,
-      ...(post.dateModified ? { modifiedTime: post.dateModified } : {}),
-      authors: [author.url],
-      images: [
-        {
-          url: post.coverImage,
-          width: 1200,
-          height: 630,
-          alt: post.title,
-        },
-      ],
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: post.title,
-      description: post.excerpt,
-      images: [post.coverImage],
-    },
-  };
-}
 
 const BREADCRUMB_NAV_LABELS: Record<SupportedLanguage, string> = {
   he: 'נתיב ניווט',
@@ -142,40 +60,49 @@ const BREADCRUMB_NAV_LABELS: Record<SupportedLanguage, string> = {
   ar: 'مسار التنقل',
 };
 
-export default async function SinglePostPage({ params }: PostPageProps) {
-  const { slug } = await params;
-  const post = await resolveBlogPost(slug);
+interface BlogPostPageViewProps {
+  post: BlogPost;
+}
 
-  if (!post) {
-    notFound();
-  }
-
+export function BlogPostPageView({ post }: BlogPostPageViewProps) {
   const lang: SupportedLanguage =
     post.language && isSupportedLanguage(post.language) ? post.language : 'he';
+  const seoLang = isBlogSeoLang(lang) ? lang : 'he';
   const isRTL = lang === 'he' || lang === 'ar';
+
   const categoryMeta =
     BLOG_CATEGORIES.find((c) => c.id === post.category) ?? BLOG_CATEGORIES[0]!;
   const categoryLabel = getBlogCategoryLabel(post.category, lang);
 
-  const locale = LOCALE_BY_LANG[lang] || 'he-IL';
+  const locale = BLOG_LANGUAGE_LOCALES[seoLang];
   const formattedDate = new Intl.DateTimeFormat(locale, {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
   }).format(new Date(post.datePublished));
 
-  const relatedPosts = getRelatedBlogPosts(post, 3);
+  const relatedPosts = getRelatedBlogPosts(post, 3).map((related) => ({
+    ...related,
+    canonicalPath: blogPostPath(related.slug, 'he'),
+  }));
   const author = getBlogAuthor(post.authorId);
 
-  // JSON-LD for rich results: BlogPosting (Person author, real dateModified only) and
-  // BreadcrumbList, both built in lib/seo/blog-structured-data.ts and unit-tested there.
   const blogPostingJsonLd = buildBlogPostingJsonLd(post);
   const breadcrumbJsonLd = buildBlogBreadcrumbJsonLd(post);
+  const breadcrumbLabels = BLOG_BREADCRUMB_LABELS[seoLang];
 
-  const readTimeSuffix = READ_TIME_LABELS[lang] || READ_TIME_LABELS.he!;
-  const backToBlogText = BACK_TO_BLOG_LABELS[lang] || BACK_TO_BLOG_LABELS.he!;
-  const relatedTitle = RELATED_POSTS_TITLES[lang] || RELATED_POSTS_TITLES.he!;
+  const shortSlug = post.shortSlug || resolveShortSlug(post.translationId || post.slug);
+  const siblingPaths: Record<string, string> = {};
+  for (const l of BLOG_SEO_LANGS) {
+    siblingPaths[l] = blogPostPath(shortSlug, l);
+  }
+
+  const readTimeSuffix = READ_TIME_LABELS[lang];
+  const backToBlogText = BACK_TO_BLOG_LABELS[lang];
+  const relatedTitle = RELATED_POSTS_TITLES[lang];
   const BackArrow = isRTL ? ArrowRight : ArrowLeft;
+  const authorName = lang === 'he' ? author.nameHe : author.nameEn;
+  const authorRole = lang === 'he' ? author.roleHe : author.roleEn;
 
   return (
     <>
@@ -188,22 +115,24 @@ export default async function SinglePostPage({ params }: PostPageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
 
-      {/* Synchronizes the language dropdown state and navigates to siblings upon toggle */}
-      <BlogPostLanguageSync siblingSlugs={post.siblingSlugs} currentLang={lang} />
+      <BlogPostLanguageSync
+        siblingSlugs={post.siblingSlugs}
+        siblingPaths={siblingPaths}
+        currentLang={lang}
+      />
 
       <article dir={isRTL ? 'rtl' : 'ltr'} className="min-h-screen bg-slate-950 pt-8 pb-24">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Breadcrumb Navigation */}
           <nav
-            aria-label={BREADCRUMB_NAV_LABELS[lang] || 'נתיב ניווט'}
+            aria-label={BREADCRUMB_NAV_LABELS[lang]}
             className="flex items-center gap-2 text-xs text-slate-400 mb-8"
           >
             <Link href="/" className="hover:text-white transition-colors">
-              {BLOG_BREADCRUMB_LABELS_HE.home}
+              {breadcrumbLabels.home}
             </Link>
             <span>/</span>
             <Link href="/blog" className="hover:text-white transition-colors">
-              {BLOG_BREADCRUMB_LABELS_HE.blog}
+              {breadcrumbLabels.blog}
             </Link>
             <span>/</span>
             <span className="text-slate-300 font-medium truncate max-w-[200px] sm:max-w-none">
@@ -211,7 +140,6 @@ export default async function SinglePostPage({ params }: PostPageProps) {
             </span>
           </nav>
 
-          {/* Article Header */}
           <header className="mb-10 space-y-5">
             <div className="flex flex-wrap items-center gap-3">
               <span
@@ -240,19 +168,17 @@ export default async function SinglePostPage({ params }: PostPageProps) {
               {post.excerpt}
             </p>
 
-            {/* Author Byline */}
             <div className="flex items-center gap-3 pt-4 border-t border-slate-800/80">
               <div className="w-10 h-10 rounded-full bg-sky-500/15 border border-sky-500/30 flex items-center justify-center text-sky-400">
                 <UserCheck className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-sm font-bold text-white">{author.nameHe}</p>
-                <p className="text-xs text-slate-400">{author.roleHe}</p>
+                <p className="text-sm font-bold text-white">{authorName}</p>
+                <p className="text-xs text-slate-400">{authorRole}</p>
               </div>
             </div>
           </header>
 
-          {/* Hero Cover Image */}
           <div className="relative aspect-[16/9] w-full rounded-3xl overflow-hidden border border-slate-800 shadow-2xl mb-12 bg-slate-900">
             <Image
               src={post.coverImage}
@@ -264,15 +190,12 @@ export default async function SinglePostPage({ params }: PostPageProps) {
             />
           </div>
 
-          {/* Main Article Content */}
           <div className="prose prose-invert max-w-none">
             <BlogContentRenderer nodes={post.contentNodes} />
           </div>
 
-          {/* Contextual In-Cockpit Conversion Box */}
           <BlogConversionCta target={post.ctaTarget} />
 
-          {/* Back to Blog Button */}
           <div className="my-10 text-center">
             <Link
               href="/blog"
@@ -283,12 +206,9 @@ export default async function SinglePostPage({ params }: PostPageProps) {
             </Link>
           </div>
 
-          {/* Related Articles Section */}
           {relatedPosts.length > 0 && (
             <aside aria-label={relatedTitle} className="mt-16 pt-12 border-t border-slate-800">
-              <h2 className="text-2xl font-extrabold text-white mb-8">
-                {relatedTitle}
-              </h2>
+              <h2 className="text-2xl font-extrabold text-white mb-8">{relatedTitle}</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {relatedPosts.map((related) => (
                   <BlogCard key={related.id} post={related} />

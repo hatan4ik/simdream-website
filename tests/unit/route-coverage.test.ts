@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import sitemap from '@/app/sitemap';
 import { FACILITY_INFO } from '@/lib/config/facility-info';
 import { getAllBlogPosts } from '@/lib/data/blog-posts';
+import { BLOG_SEO_LANGS } from '@/lib/data/blog-seo';
 import { PUBLIC_SITE_ROUTES, blogPostPath } from '@/lib/seo/site-routes';
 import { REPO_ROOT } from './_support/source';
 
@@ -59,9 +60,13 @@ function describePage(file: string): PageFile {
 const publicPages = [path.join(APP, 'page.tsx'), ...pageFiles(PUBLIC_GROUP)].map(describePage);
 const posts = getAllBlogPosts();
 
-/** Static pages plus the dynamic article route expanded to the 39 corpus slugs. */
+/** Static pages plus the dynamic article route expanded to all 6-language short canonical URLs. */
 function expand(page: PageFile): PageFile[] {
-  if (page.route === '/post/[slug]') return posts.map((post) => ({ ...page, route: blogPostPath(post.slug) }));
+  if (page.route === '/post/[...segments]') {
+    return BLOG_SEO_LANGS.flatMap((lang) =>
+      posts.map((post) => ({ ...page, route: blogPostPath(post.slug, lang) }))
+    );
+  }
   if (page.route.includes('[')) throw new Error(`Teach route-coverage.test.ts how to expand ${page.route}`);
   return [page];
 }
@@ -75,7 +80,7 @@ const sitemapPaths = sitemap().map((entry) => {
 describe('public route coverage: sitemap vs app/(public)', () => {
   it('reads every public page (sanity)', () => {
     expect(publicPages.map((p) => p.route)).toEqual(
-      expect.arrayContaining(['/', '/book', '/blog', '/post/[slug]', '/fear-of-flying', '/subscriptions', '/vouchers'])
+      expect.arrayContaining(['/', '/book', '/blog', '/post/[...segments]', '/fear-of-flying', '/subscriptions', '/vouchers'])
     );
     expect(posts).toHaveLength(39);
   });
@@ -103,11 +108,14 @@ describe('public route coverage: sitemap vs app/(public)', () => {
     expect(new Set(sitemapPaths).size).toBe(sitemapPaths.length);
   });
 
-  it('includes all 39 blog article slugs, percent-encoded like the static params', () => {
+  it('includes all 39 blog articles across all 6 languages as clean ASCII short URLs', () => {
     const articleEntries = sitemapPaths.filter((p) => p.startsWith('/post/'));
-    expect(articleEntries).toHaveLength(39);
-    expect(new Set(articleEntries)).toEqual(new Set(posts.map((post) => blogPostPath(post.slug))));
-    for (const route of articleEntries) expect(route).not.toMatch(/[֐-׿\s]/);
+    expect(articleEntries).toHaveLength(39 * BLOG_SEO_LANGS.length);
+    const expected = BLOG_SEO_LANGS.flatMap((lang) =>
+      posts.map((post) => blogPostPath(post.slug, lang))
+    );
+    expect(new Set(articleEntries)).toEqual(new Set(expected));
+    for (const route of articleEntries) expect(route).not.toMatch(/[\u0590-\u05FF\s%]/);
   });
 
   it('keeps post-checkout confirmations, the redirect alias and login out of the index', () => {

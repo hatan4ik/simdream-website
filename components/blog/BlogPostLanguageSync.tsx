@@ -7,6 +7,7 @@ import { isSupportedLanguage } from '@/lib/i18n/language-preference';
 
 interface BlogPostLanguageSyncProps {
   siblingSlugs?: Record<string, string>;
+  siblingPaths?: Record<string, string>;
   currentLang?: string;
 }
 
@@ -16,6 +17,7 @@ interface BlogPostLanguageSyncProps {
  */
 export function BlogPostLanguageSync({
   siblingSlugs = {},
+  siblingPaths = {},
   currentLang = 'he',
 }: BlogPostLanguageSyncProps) {
   const router = useRouter();
@@ -54,11 +56,16 @@ export function BlogPostLanguageSync({
     if (!language || language === currentLang || language === initialLangRef.current) return;
 
     initialLangRef.current = language;
+    const targetPath = siblingPaths[language];
+    if (targetPath && targetPath !== siblingPaths[currentLang]) {
+      router.push(targetPath);
+      return;
+    }
     const targetSlug = siblingSlugs[language];
     if (targetSlug && targetSlug !== siblingSlugs[currentLang]) {
       router.push(`/post/${encodeURIComponent(targetSlug)}`);
     }
-  }, [language, currentLang, languageResolved, siblingSlugs, router]);
+  }, [language, currentLang, languageResolved, siblingSlugs, siblingPaths, router]);
 
   return null;
 }

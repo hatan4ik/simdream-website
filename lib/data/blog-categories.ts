@@ -68,6 +68,13 @@ export interface BlogPost {
   language?: string;
   translationId?: string;
   siblingSlugs?: Record<string, string>;
+  shortSlug?: string;
+  canonicalPath?: string;
+  seoTitle?: string;
+  seoDescription?: string;
+  seoKeywords?: string[];
+  /** False when a non-Hebrew post fell back to the local Hebrew body copy. */
+  hasTranslatedBody?: boolean;
 }
 
 export interface BlogCategoryMeta {

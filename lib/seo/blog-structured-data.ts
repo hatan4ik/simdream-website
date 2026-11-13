@@ -1,27 +1,49 @@
 import { FACILITY_INFO } from '@/lib/config/facility-info';
 import { getBlogAuthor } from '@/lib/data/blog-authors';
 import type { BlogPost } from '@/lib/data/blog-categories';
+import { isBlogSeoLang, type BlogSeoLang } from '@/lib/data/blog-short-slugs';
 import { blogPostPath, siteUrl } from './site-routes';
 
 /**
- * JSON-LD for `/post/[slug]`: the `BlogPosting` with a `Person` author from the
- * byline registry and a `BreadcrumbList` (Home → Blog → article). The article pages
- * are Hebrew (`inLanguage: he-IL`), so the breadcrumb names are the Hebrew labels the
- * visible breadcrumb prints; the page imports them from here so the two never differ.
+ * JSON-LD for `/post/[slug]` and `/post/[lang]/[slug]`: the `BlogPosting` with a
+ * `Person` author from the byline registry and a `BreadcrumbList` (Home → Blog → article)
+ * localized to the article's language.
  */
 
 export const BLOG_POST_LANGUAGE = 'he-IL';
 
-/** Labels of the visible breadcrumb on the article page and of the `BreadcrumbList`. */
-export const BLOG_BREADCRUMB_LABELS_HE = {
-  home: 'ראשי',
-  blog: 'יומן הטיסה',
-} as const;
+export const BLOG_LANGUAGE_LOCALES: Record<BlogSeoLang, string> = {
+  he: 'he-IL',
+  en: 'en-US',
+  ru: 'ru-RU',
+  fr: 'fr-FR',
+  es: 'es-ES',
+  ar: 'ar-EG',
+};
+
+export const BLOG_BREADCRUMB_LABELS: Record<BlogSeoLang, { home: string; blog: string }> = {
+  he: { home: 'ראשי', blog: 'יומן הטיסה' },
+  en: { home: 'Home', blog: 'Flight Deck Journal' },
+  ru: { home: 'Главная', blog: 'Бортовой журнал' },
+  fr: { home: 'Accueil', blog: 'Journal de bord' },
+  es: { home: 'Inicio', blog: 'Diario de cabina' },
+  ar: { home: 'الرئيسية', blog: 'يومية قمرة القيادة' },
+};
+
+/** Backwards-compatible Hebrew breadcrumb labels alias. */
+export const BLOG_BREADCRUMB_LABELS_HE = BLOG_BREADCRUMB_LABELS.he;
 
 const BASE_URL = FACILITY_INFO.primaryDomain;
 
-export function blogPostCanonicalUrl(post: Pick<BlogPost, 'slug'>): string {
-  return siteUrl(BASE_URL, blogPostPath(post.slug));
+function resolveLang(lang?: string): BlogSeoLang {
+  return isBlogSeoLang(lang) ? lang : 'he';
+}
+
+export function blogPostCanonicalUrl(
+  post: Pick<BlogPost, 'slug' | 'shortSlug' | 'language'>
+): string {
+  const lang = resolveLang(post.language);
+  return siteUrl(BASE_URL, blogPostPath(post.shortSlug || post.slug, lang));
 }
 
 /** `Person` entity for the post's byline; `sameAs` lists only official Sim Dream profiles. */
@@ -49,16 +71,18 @@ export function buildBlogAuthorJsonLd(post: Pick<BlogPost, 'authorId'>) {
  * real modification date; mirroring `datePublished` would be a false freshness signal.
  */
 export function buildBlogPostingJsonLd(post: BlogPost) {
+  const lang = resolveLang(post.language);
+  const inLanguage = BLOG_LANGUAGE_LOCALES[lang];
   const canonicalUrl = blogPostCanonicalUrl(post);
   return {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
     headline: post.title,
-    description: post.excerpt,
+    description: post.seoDescription || post.excerpt,
     image: [post.coverImage],
     datePublished: post.datePublished,
     ...(post.dateModified ? { dateModified: post.dateModified } : {}),
-    inLanguage: BLOG_POST_LANGUAGE,
+    inLanguage,
     mainEntityOfPage: {
       '@type': 'WebPage',
       '@id': canonicalUrl,
@@ -77,16 +101,21 @@ export function buildBlogPostingJsonLd(post: BlogPost) {
 }
 
 /** `BreadcrumbList`: Home → Blog → article title, in the article's language. */
-export function buildBlogBreadcrumbJsonLd(post: Pick<BlogPost, 'slug' | 'title'>) {
+export function buildBlogBreadcrumbJsonLd(
+  post: Pick<BlogPost, 'slug' | 'shortSlug' | 'title' | 'language'>
+) {
+  const lang = resolveLang(post.language);
+  const inLanguage = BLOG_LANGUAGE_LOCALES[lang];
+  const labels = BLOG_BREADCRUMB_LABELS[lang];
   const trail = [
-    { name: BLOG_BREADCRUMB_LABELS_HE.home, item: siteUrl(BASE_URL, '/') },
-    { name: BLOG_BREADCRUMB_LABELS_HE.blog, item: siteUrl(BASE_URL, '/blog') },
+    { name: labels.home, item: siteUrl(BASE_URL, '/') },
+    { name: labels.blog, item: siteUrl(BASE_URL, '/blog') },
     { name: post.title, item: blogPostCanonicalUrl(post) },
   ];
   return {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
-    inLanguage: BLOG_POST_LANGUAGE,
+    inLanguage,
     itemListElement: trail.map((crumb, index) => ({
       '@type': 'ListItem',
       position: index + 1,
