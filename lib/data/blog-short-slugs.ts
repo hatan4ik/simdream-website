@@ -1,5 +1,3 @@
-import blogSlugMapData from './blog-slug-map.json';
-
 export const BLOG_SEO_LANGS = ['he', 'en', 'ru', 'fr', 'es', 'ar'] as const;
 export type BlogSeoLang = (typeof BLOG_SEO_LANGS)[number];
 
@@ -49,39 +47,59 @@ export const SHORT_SLUG_BY_TID: Readonly<Record<string, string>> = {
   '5c30eac5-7f62-465a-bf33-17c64484f4bc': 'airline-pilot-interview-tips',
 };
 
+export const SHORT_SLUG_BY_HE_SLUG: Readonly<Record<string, string>> = {
+  'מדריך-ללימוד-מערכות-מטוס-בלי-ללכת-לאיבוד': 'aircraft-systems-guide',
+  'המלצות-לסימולטור-טיסה-חוויות-בלתי-נשכחות': 'flight-simulator-recommendations',
+  'האם-טייס-אוטומטי-נוחת-לבד-תשובה-מהקוקפיט-simdream': 'does-autopilot-land-alone',
+  'פעילות-גיבוש-לזוג-שלא-מרגישה-כמו-עוד-דייט': 'couples-flight-simulator-date',
+  'אטרקציה-זוגית-יוקרתית-שלא-שוכחים': 'luxury-couples-flight-experience',
+  'הכנה-לראיון-חברת-תעופה-בלי-לאבד-גובה': 'airline-interview-simulator-prep',
+  'האם-אפשר-להגיע-בלי-ידע-קודם-לטייס-סימולטור': 'fly-simulator-no-experience',
+  'גישה-ונחיתה-בשדות-הכי-מאתגרים-בעולם-simdream': 'challenging-airport-landings-guide',
+  'איך-לבצע-גישת-אינסברוק-בעמק-בבואינג-simdream': 'innsbruck-valley-approach-737',
+  'איך-להזמין-שובר-טיסה-מתנה-בלי-לפספס': 'how-to-buy-flight-voucher',
+  'סימולטור-בואינג-למתחילים-איך-מתחילים-נכון': 'boeing-737-simulator-beginners',
+  'מתנת-יום-הולדת-לגבר-שבאמת-מרגשת': 'birthday-gift-for-men-flight',
+  'איך-מתרגלים-נחיתת-רוח-צד-בסימולטור-בואינג-737-simdream': 'crosswind-landing-practice-737',
+  'רעיון-לדייט-לא-שגרתי-שבאמת-יפתיע': 'unique-date-idea-tel-aviv',
+  'כמה-זמן-נמשכת-חוויית-טיסה-בסימולטור': 'flight-simulator-session-duration',
+  'מדריך-לתרגול-המראה-ונחיתה-בלי-לנחש': 'takeoff-and-landing-guide-737',
+  'סימולטורים-חווייתיים-לתעופה-גלה-את-עולם-הסימולטורים-לטיסה': 'experiential-flight-simulators-guide',
+  'כשל-מנוע-בהמראה-ואיך-מגיבים-נכון-בקוקפיט-737-simdream': 'engine-failure-takeoff-737-guide',
+  'איך-נוחתים-בפרו-בהוטן-כמו-צוות-אמיתי': 'paro-bhutan-approach-737-crew',
+  'חוות-דעת-על-חוויית-טייס-במושב-קפטן-אמיתי-simdream': 'captains-seat-cockpit-review',
+  'האטרקציות-התעופתיות-המובילות-בישראל-אטרקציות-תעופה-מקומיות': 'top-aviation-attractions-israel',
+  'מה-כולל-שובר-מתנה-דיגיטלי-לטיסת-סימולטור': 'digital-flight-gift-voucher-guide',
+  'האם-ניתן-לבחור-שדה-תעופה-לטיסה-בסימולטור-simdream': 'choose-airport-flight-simulator',
+  'הפתעות-מקוריות-לבן-זוג-שבאמת-זוכרים': 'original-partner-surprise-flight',
+  'סימולטור-ביתי-מול-מקצועי-מה-באמת-מרגישים': 'home-vs-pro-flight-simulator',
+  'טיסה-וירטואלית-ליעדים-בעולם-כך-זה-מרגיש': 'virtual-flight-world-destinations',
+  'שיטות-להפגת-פחד-טיסה': 'overcome-fear-of-flying-methods',
+  'חוויה-בתל-אביב-בסימולטור-טיסה-היתרונות-של-סימולטור-טיסה-בתל-אביב': 'flight-simulator-tel-aviv-guide',
+  'מדריך-לגישות-היסטוריות-מפורסמות-בטיסת-נוסעים-simdream': 'historic-airline-approaches-guide',
+  'טרנדים-באירועי-חברה-שמוציאים-את-הצוות-מהשגרה-simdream': 'corporate-team-building-flight-sim',
+  'איך-מתכנתים-נתיב-בfmc-בסימולטור-בואינג-737-simdream': 'program-fmc-route-boeing-737',
+  'נחיתת-קאי-טאק-בסימולטור-הפנייה-שלא-שוכחים-simdream': 'kai-tak-landing-simulator-turn',
+  'פעילות-משפחתית-מיוחדת-שלא-שוכחים': 'family-flight-simulator-activity',
+  'האטרקציות-התעופה-המובילות-בישראל': 'best-aviation-attractions-israel',
+  'למה-כדאי-לקרוא-בלוגים-על-סימולטורים-חווית-טיסה-במיטבה': 'why-read-flight-simulator-blogs',
+  'בואינג-737-לעומת-איירבוס-מה-באמת-שונה': 'boeing-737-vs-airbus-differences',
+  'מדריך-גישת-קאי-טאק-נחיתת-737-על-מסלול-13-simdream': 'kai-tak-runway-13-approach-737',
+  'איך-לבחור-חוויית-בואינג-737-שמתאימה-לכם': 'choose-boeing-737-flight-package',
+  'איך-מתכוננים-לראיון-טייס-בצורה-חכמה': 'airline-pilot-interview-tips',
+};
+
 export const TID_BY_SHORT_SLUG: Readonly<Record<string, string>> = Object.fromEntries(
   Object.entries(SHORT_SLUG_BY_TID).map(([tid, slug]) => [slug, tid])
 );
 
 export const ALL_SHORT_SLUGS: readonly string[] = Object.values(SHORT_SLUG_BY_TID);
 
-interface RawSlugMap {
-  bySlug: Record<string, { translationId: string; language: string }>;
-  byTranslationId: Record<
-    string,
-    {
-      localSlug?: string;
-      he?: string;
-      en?: string;
-      ru?: string;
-      fr?: string;
-      es?: string;
-      ar?: string;
-    }
-  >;
-}
-
-const SLUG_MAP = blogSlugMapData as unknown as RawSlugMap;
-
-export interface ShortSlugMatch {
-  translationId: string;
-  shortSlug: string;
-  language?: BlogSeoLang;
-  isLegacy: boolean;
-}
-
-export function getShortSlugMatch(slugOrId: string | undefined): ShortSlugMatch | undefined {
-  if (!slugOrId) return undefined;
+/**
+ * Resolves a shortSlug, translationId, or Hebrew corpus slug to the canonical shortSlug
+ * without importing `blog-slug-map.json` or `blog-seo.json`.
+ */
+export function resolveShortSlug(slugOrId: string): string {
   const raw = slugOrId.trim();
   let decoded = raw;
   try {
@@ -91,47 +109,9 @@ export function getShortSlugMatch(slugOrId: string | undefined): ShortSlugMatch 
   }
   const lower = decoded.toLowerCase();
 
-  const directShort = SHORT_SLUG_BY_TID[raw];
-  if (directShort) {
-    return { translationId: raw, shortSlug: directShort, isLegacy: false };
-  }
-
-  const tidFromShort = TID_BY_SHORT_SLUG[lower];
-  if (tidFromShort) {
-    return { translationId: tidFromShort, shortSlug: lower, isLegacy: false };
-  }
-
-  const slugEntry =
-    SLUG_MAP.bySlug[raw] ??
-    SLUG_MAP.bySlug[decoded] ??
-    SLUG_MAP.bySlug[lower] ??
-    SLUG_MAP.bySlug[raw.toLowerCase()];
-
-  if (slugEntry) {
-    const shortSlug = SHORT_SLUG_BY_TID[slugEntry.translationId];
-    if (shortSlug) {
-      return {
-        translationId: slugEntry.translationId,
-        shortSlug,
-        language: isBlogSeoLang(slugEntry.language) ? slugEntry.language : undefined,
-        isLegacy: true,
-      };
-    }
-  }
-
-  return undefined;
-}
-
-/**
- * Resolves any known slug (short or legacy) or translationId to the canonical shortSlug.
- * Falls back to the decoded input if it is an unknown live Wix slug.
- */
-export function resolveShortSlug(slugOrId: string): string {
-  const match = getShortSlugMatch(slugOrId);
-  if (match) return match.shortSlug;
-  try {
-    return decodeURIComponent(slugOrId).trim();
-  } catch {
-    return slugOrId.trim();
-  }
+  if (SHORT_SLUG_BY_TID[raw]) return SHORT_SLUG_BY_TID[raw]!;
+  if (TID_BY_SHORT_SLUG[lower]) return lower;
+  if (SHORT_SLUG_BY_HE_SLUG[decoded]) return SHORT_SLUG_BY_HE_SLUG[decoded]!;
+  if (SHORT_SLUG_BY_HE_SLUG[lower]) return SHORT_SLUG_BY_HE_SLUG[lower]!;
+  return decoded;
 }

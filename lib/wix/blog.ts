@@ -6,7 +6,8 @@ import {
   type BlogContentNode,
 } from '@/lib/data/blog-posts';
 import blogSlugMapData from '@/lib/data/blog-slug-map.json';
-import { getShortSlugMatch, resolveShortSlug } from '@/lib/data/blog-short-slugs';
+import { resolveShortSlug } from '@/lib/data/blog-short-slugs';
+import { getShortSlugMatch } from '@/lib/data/blog-legacy-slugs';
 import { blogPostPath } from '@/lib/seo/site-routes';
 import { isWixConfigured } from './config';
 import { wixPost } from './client';

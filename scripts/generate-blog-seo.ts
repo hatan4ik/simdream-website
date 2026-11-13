@@ -1567,7 +1567,7 @@ function fitMetaDescription(focus: string, lang: BlogLang): string {
   throw new Error(`metaDescription length ${combined.length} out of [135..160] for ${lang}: "${combined}"`);
 }
 
-type CompactLocaleTuple = [string, string, string[]];
+type CompactLocaleTuple = [string, string];
 
 function main() {
   const root = process.cwd();
@@ -1617,7 +1617,7 @@ function main() {
       if (lang === 'he' && group.localSlug) legacyCount++;
       if (group[lang]) legacyCount++;
 
-      locales[lang] = [metaTitle, metaDescription, topic.keywords];
+      locales[lang] = [metaTitle, metaDescription];
     }
 
     compactByTid[translationId] = locales;

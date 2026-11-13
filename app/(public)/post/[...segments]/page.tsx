@@ -4,9 +4,9 @@ import { notFound, permanentRedirect } from 'next/navigation';
 import {
   ALL_SHORT_SLUGS,
   BLOG_SEO_LANGS,
-  getShortSlugMatch,
   isBlogSeoLang,
 } from '@/lib/data/blog-short-slugs';
+import { getShortSlugMatch } from '@/lib/data/blog-legacy-slugs';
 import { buildBlogPostMetadata } from '@/lib/seo/blog-post-metadata';
 import { blogPostPath } from '@/lib/seo/site-routes';
 import { resolveBlogPost } from '@/lib/wix/blog';

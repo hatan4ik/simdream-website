@@ -1,8 +1,8 @@
 import blogSeoCompactData from './blog-seo.json';
+import { getShortSlugMatch } from './blog-legacy-slugs';
 import {
   BLOG_SEO_LANGS,
   SHORT_SLUG_BY_TID,
-  getShortSlugMatch,
   isBlogSeoLang,
   resolveShortSlug,
   type BlogSeoLang,
@@ -23,18 +23,36 @@ export interface BlogSeoPostRecord {
   locales: Record<BlogSeoLang, LocalizedBlogSeo>;
 }
 
-type CompactLocaleTuple = [string, string, string[]];
+type CompactLocaleTuple = [string, string];
 type CompactSeoByTid = Record<string, Record<BlogSeoLang, CompactLocaleTuple>>;
 
 const COMPACT_SEO = blogSeoCompactData as unknown as CompactSeoByTid;
+
+const LANG_BASE_KEYWORDS: Record<BlogSeoLang, readonly [string, string, string]> = {
+  he: ['SimDream', 'סימולטור טיסה', 'בואינג 737'],
+  en: ['SimDream', 'Boeing 737 simulator', 'flight training'],
+  ru: ['SimDream', 'авиасимулятор', 'Боинг 737'],
+  fr: ['SimDream', 'simulateur de vol', 'Boeing 737'],
+  es: ['SimDream', 'simulador de vuelo', 'Boeing 737'],
+  ar: ['SimDream', 'محاكي طيران', 'بوينغ 737'],
+};
+
+function buildKeywords(lang: BlogSeoLang, shortSlug: string): string[] {
+  return [...LANG_BASE_KEYWORDS[lang], shortSlug.replace(/-/g, ' ')];
+}
 
 function buildRecord(tid: string, shortSlug: string): BlogSeoPostRecord | undefined {
   const entry = COMPACT_SEO[tid];
   if (!entry) return undefined;
   const locales = {} as Record<BlogSeoLang, LocalizedBlogSeo>;
   for (const lang of BLOG_SEO_LANGS) {
-    const [metaTitle, metaDescription, keywords] = entry[lang];
-    locales[lang] = { shortSlug, metaTitle, metaDescription, keywords };
+    const [metaTitle, metaDescription] = entry[lang];
+    locales[lang] = {
+      shortSlug,
+      metaTitle,
+      metaDescription,
+      keywords: buildKeywords(lang, shortSlug),
+    };
   }
   return { translationId: tid, shortSlug, locales };
 }
@@ -69,6 +87,11 @@ export function getLocalizedBlogSeo(
   const resolvedLang: BlogSeoLang = isBlogSeoLang(lang) ? lang : 'he';
   const entry = COMPACT_SEO[match.translationId]?.[resolvedLang];
   if (!entry) return undefined;
-  const [metaTitle, metaDescription, keywords] = entry;
-  return { shortSlug: match.shortSlug, metaTitle, metaDescription, keywords };
+  const [metaTitle, metaDescription] = entry;
+  return {
+    shortSlug: match.shortSlug,
+    metaTitle,
+    metaDescription,
+    keywords: buildKeywords(resolvedLang, match.shortSlug),
+  };
 }
