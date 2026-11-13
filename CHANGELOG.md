@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.22.1](https://github.com/hatan4ik/simdream-website/compare/v1.22.0...v1.22.1) (2026-11-13)
+
+
+### Bug Fixes
+
+* **blog,i18n:** localize blog hero and honor Wix path locale prefix ([#188](https://github.com/hatan4ik/simdream-website/issues/188)) ([9e241e7](https://github.com/hatan4ik/simdream-website/commit/9e241e7bcd61dae3b9f2843a0630e21438d098aa))
+
 ## [1.22.0](https://github.com/hatan4ik/simdream-website/compare/v1.21.2...v1.22.0) (2026-11-13)
 
 
