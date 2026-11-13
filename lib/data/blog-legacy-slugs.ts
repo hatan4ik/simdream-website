@@ -22,7 +22,7 @@ export interface ShortSlugMatch {
 export function getShortSlugMatch(slugOrId: string | undefined): ShortSlugMatch | undefined {
   if (!slugOrId) return undefined;
   const raw = slugOrId.trim();
-  let decoded = raw;
+  let decoded: string;
   try {
     decoded = decodeURIComponent(raw).trim();
   } catch {
