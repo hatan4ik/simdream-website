@@ -1,3 +1,5 @@
+import { NOT_FOUND_COPY } from '@/components/not-found/not-found-copy';
+import { translations } from '@/lib/i18n/translations';
 import { expect, test } from './fixtures';
 import { activate, follow } from './pages/hydration';
 
@@ -205,11 +207,42 @@ test.describe('unknown routes', () => {
     const response = await page.goto('/flight-plan-that-does-not-exist');
 
     expect(response?.status()).toBe(404);
-    await expect(page.getByRole('heading', { level: 1, name: '404' })).toBeVisible();
-    await expect(page.getByRole('heading', { level: 2, name: 'This page could not be found.' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: NOT_FOUND_COPY.en.title })).toBeVisible();
+    await expect(page.getByText(NOT_FOUND_COPY.en.intro)).toBeVisible();
     await expect(chrome.bookCta()).toBeVisible();
 
     await follow(chrome.homeLink(), '/');
     await expect(page).toHaveURL('/');
+  });
+
+  test('offer a way back inside the page itself: book, home and contact', async ({ page }) => {
+    await page.goto('/flight-plan-that-does-not-exist');
+    const notFound = page.locator('[data-not-found]');
+
+    // This visitor prefers English, so the way back is the English URL space (Hebrew owns the root).
+    await expect(notFound.getByRole('link', { name: 'Book a Flight' })).toHaveAttribute('href', '/en/book');
+    await expect(notFound.getByRole('link', { name: NOT_FOUND_COPY.en.home })).toHaveAttribute('href', '/en');
+    await expect(notFound.getByRole('link', { name: 'Location & Contact' })).toHaveAttribute('href', '/en/contact');
+
+    await follow(notFound.getByRole('link', { name: 'Book a Flight' }), '/en/book');
+  });
+
+  test('answer in the language of the URL and keep its prefix on every way back', async ({ page }) => {
+    const response = await page.goto('/ru/flight-plan-that-does-not-exist');
+
+    expect(response?.status()).toBe(404);
+    await expect(page.locator('html')).toHaveAttribute('lang', 'ru');
+    await expect(page.getByRole('heading', { level: 1, name: NOT_FOUND_COPY.ru.title })).toBeVisible();
+    await expect(page).toHaveTitle(`${NOT_FOUND_COPY.ru.title} | Sim Dream`);
+
+    const notFound = page.locator('[data-not-found]');
+    await expect(notFound.getByRole('link', { name: NOT_FOUND_COPY.ru.home })).toHaveAttribute('href', '/ru');
+    await expect(notFound.getByRole('link', { name: translations.ru.nav.bookFlight })).toHaveAttribute('href', '/ru/book');
+    await expect(notFound.getByRole('link', { name: translations.ru.nav.contact })).toHaveAttribute('href', '/ru/contact');
+  });
+
+  test('title the tab after the problem, not the home page', async ({ page }) => {
+    await page.goto('/en/flight-plan-that-does-not-exist');
+    await expect(page).toHaveTitle(`${NOT_FOUND_COPY.en.title} | Sim Dream`);
   });
 });

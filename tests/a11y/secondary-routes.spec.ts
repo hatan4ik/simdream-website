@@ -45,7 +45,7 @@ const OPEN_STATE: Record<SecondaryScanState, (page: Page) => Promise<void>> = {
   'not found page': async (page) => {
     const response = await page.goto('/definitely-missing');
     expect(response?.status()).toBe(404);
-    await expect(page.getByRole('heading', { level: 1, name: '404' })).toBeVisible();
+    await expect(page.locator('[data-not-found] h1')).toBeVisible();
   },
 };
 
