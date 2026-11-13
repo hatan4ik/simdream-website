@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.23.0](https://github.com/hatan4ik/simdream-website/compare/v1.22.1...v1.23.0) (2026-11-13)
+
+
+### Features
+
+* **i18n:** route Wix locales through public URLs ([#187](https://github.com/hatan4ik/simdream-website/issues/187)) ([8bf10b3](https://github.com/hatan4ik/simdream-website/commit/8bf10b329a42ea146ef81981ad8ea99ebf8cf916))
+
 ## [1.22.1](https://github.com/hatan4ik/simdream-website/compare/v1.22.0...v1.22.1) (2026-11-13)
 
 
