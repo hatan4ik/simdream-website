@@ -101,7 +101,7 @@ export const ALL_SHORT_SLUGS: readonly string[] = Object.values(SHORT_SLUG_BY_TI
  */
 export function resolveShortSlug(slugOrId: string): string {
   const raw = slugOrId.trim();
-  let decoded = raw;
+  let decoded: string;
   try {
     decoded = decodeURIComponent(raw).trim();
   } catch {
