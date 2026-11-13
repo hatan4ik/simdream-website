@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.24.0](https://github.com/hatan4ik/simdream-website/compare/v1.23.0...v1.24.0) (2026-11-13)
+
+
+### Features
+
+* **wix:** add birthday pricing provider ([#191](https://github.com/hatan4ik/simdream-website/issues/191)) ([dc533fb](https://github.com/hatan4ik/simdream-website/commit/dc533fbd11d60ee0601babee7578f2c8cc920a33))
+
 ## [1.23.0](https://github.com/hatan4ik/simdream-website/compare/v1.22.1...v1.23.0) (2026-11-13)
 
 
