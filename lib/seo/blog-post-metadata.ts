@@ -14,7 +14,7 @@ const BASE_URL = FACILITY_INFO.primaryDomain;
  * Includes `metaTitle`, `metaDescription`, `keywords`, short canonical URL, all 6 `hreflang`
  * alternates + `x-default`, and a language-mismatch safeguard when a translated body is unavailable.
  */
-export function buildBlogPostMetadata(post: BlogPost | undefined): Metadata {
+export async function buildBlogPostMetadata(post: BlogPost | undefined): Promise<Metadata> {
   if (!post) {
     return {
       title: 'מאמר לא נמצא | SimDream',
@@ -30,7 +30,7 @@ export function buildBlogPostMetadata(post: BlogPost | undefined): Metadata {
   const canonicalUrl = isLanguageMismatchFallback ? hebrewCanonicalUrl : selfCanonicalUrl;
 
   const author = getBlogAuthor(post.authorId);
-  const localSeo = getLocalizedBlogSeo(post.translationId || shortSlug, lang);
+  const localSeo = await getLocalizedBlogSeo(post.translationId || shortSlug, lang);
   const title = post.seoTitle || localSeo?.metaTitle || `${post.title} | SimDream`;
   const description = post.seoDescription || localSeo?.metaDescription || post.excerpt;
   const keywords = post.seoKeywords?.length ? post.seoKeywords : localSeo?.keywords;

@@ -22,9 +22,9 @@ describe('blog-seo.json registry & short canonical URLs', () => {
     vi.restoreAllMocks();
   });
 
-  it('covers all 39 posts across all 6 languages with unique ASCII shortSlugs', () => {
+  it('covers all 39 posts across all 6 languages with unique ASCII shortSlugs', async () => {
     const posts = getAllBlogPosts();
-    const records = getAllBlogSeoRecords();
+    const records = await getAllBlogSeoRecords();
     expect(records).toHaveLength(posts.length);
     expect(records).toHaveLength(39);
 
@@ -67,9 +67,9 @@ describe('blog-seo.json registry & short canonical URLs', () => {
     }
   });
 
-  it('resolves every legacy slug from blog-posts.json and blog-slug-map.json to its shortSlug', () => {
+  it('resolves every legacy slug from blog-posts.json and blog-slug-map.json to its shortSlug', async () => {
     for (const post of getAllBlogPosts()) {
-      const match = getBlogSeoBySlugOrId(post.slug);
+      const match = await getBlogSeoBySlugOrId(post.slug);
       expect(match, post.slug).toBeDefined();
       expect(match?.isLegacy).toBe(true);
       expect(blogPostPath(post.slug, 'he')).toBe(`/post/${match?.record.shortSlug}`);
@@ -77,7 +77,7 @@ describe('blog-seo.json registry & short canonical URLs', () => {
 
     const bySlug = (blogSlugMapData as { bySlug: Record<string, { translationId: string; language: string }> }).bySlug;
     for (const [legacySlug, info] of Object.entries(bySlug)) {
-      const match = getBlogSeoBySlugOrId(legacySlug);
+      const match = await getBlogSeoBySlugOrId(legacySlug);
       expect(match, legacySlug).toBeDefined();
       expect(match?.record.translationId).toBe(info.translationId);
       expect(match?.isLegacy).toBe(true);
@@ -88,7 +88,7 @@ describe('blog-seo.json registry & short canonical URLs', () => {
     const hePost = await resolveBlogPost('aircraft-systems-guide', 'he');
     expect(hePost).toBeDefined();
     expect(hePost?.hasTranslatedBody).toBe(true);
-    const heMeta = buildBlogPostMetadata(hePost);
+    const heMeta = await buildBlogPostMetadata(hePost);
     expect(heMeta.alternates?.canonical).toBe('https://www.simdream.co.il/post/aircraft-systems-guide');
     expect(heMeta.alternates?.languages?.['x-default']).toBe('https://www.simdream.co.il/post/aircraft-systems-guide');
     expect(heMeta.alternates?.languages?.en).toBe('https://www.simdream.co.il/post/en/aircraft-systems-guide');
@@ -98,10 +98,10 @@ describe('blog-seo.json registry & short canonical URLs', () => {
     const enFallback = await resolveBlogPost('aircraft-systems-guide', 'en');
     expect(enFallback).toBeDefined();
     expect(enFallback?.hasTranslatedBody).toBe(false);
-    const enFallbackMeta = buildBlogPostMetadata(enFallback);
+    const enFallbackMeta = await buildBlogPostMetadata(enFallback);
     expect(enFallbackMeta.robots).toEqual({ index: false, follow: true });
     expect(enFallbackMeta.alternates?.canonical).toBe('https://www.simdream.co.il/post/aircraft-systems-guide');
-    expect(enFallbackMeta.title).toBe(getLocalizedBlogSeo('aircraft-systems-guide', 'en')?.metaTitle);
+    expect(enFallbackMeta.title).toBe((await getLocalizedBlogSeo('aircraft-systems-guide', 'en'))?.metaTitle);
   });
 
   it('prefers Wix seoData.tags when live Wix Blog returns SEO tags', async () => {
@@ -132,7 +132,7 @@ describe('blog-seo.json registry & short canonical URLs', () => {
     expect(post?.hasTranslatedBody).toBe(true);
     expect(post?.seoTitle).toBe('Custom Wix SEO Title | SimDream');
     expect(post?.seoDescription).toBe('Custom Wix SEO description for 737 cockpit systems.');
-    const meta = buildBlogPostMetadata(post);
+    const meta = await buildBlogPostMetadata(post);
     expect(meta.robots).toBeUndefined();
     expect(meta.alternates?.canonical).toBe('https://www.simdream.co.il/post/en/aircraft-systems-guide');
   });

@@ -1,6 +1,6 @@
 import { FACILITY_INFO, ROUTE_ORIGIN_PRESETS } from '@/lib/config/facility-info';
 import { getAllBlogPosts } from '@/lib/data/blog-posts';
-import { getLocalizedBlogSeo, resolveShortSlug } from '@/lib/data/blog-seo';
+import { getLocalizedBlogSeoSync, resolveShortSlug } from '@/lib/data/blog-seo';
 import { FLIGHT_ADDONS, SIMULATOR_PACKAGES } from '@/lib/db/seed-data';
 import lastKnownRating from '@/lib/reviews/last-known-rating.json';
 import type { PackageCategory } from '@/types';
@@ -119,7 +119,7 @@ export function buildLlmsTxt(): string {
     'The Flight Deck Journal publishes articles on airline screening preparation, cockpit skills, fear of flying, gifts and aviation knowledge. Multilingual editions are served at `/post/<lang>/<short-slug>` (`en`, `ru`, `fr`, `es`, `ar`) with `he` as `x-default`.',
     ...getAllBlogPosts().map((post) => {
       const shortSlug = resolveShortSlug(post.slug);
-      const seoHe = getLocalizedBlogSeo(shortSlug, 'he');
+      const seoHe = getLocalizedBlogSeoSync(shortSlug, 'he');
       const desc = seoHe?.metaDescription || post.excerpt;
       return `- [${post.title}](${siteUrl(base, blogPostPath(shortSlug, 'he'))}) — published ${post.datePublished}: ${desc}`;
     }),
@@ -127,7 +127,7 @@ export function buildLlmsTxt(): string {
     '## Flight Deck Journal (English Canonical Index)',
     ...getAllBlogPosts().map((post) => {
       const shortSlug = resolveShortSlug(post.slug);
-      const seoEn = getLocalizedBlogSeo(shortSlug, 'en');
+      const seoEn = getLocalizedBlogSeoSync(shortSlug, 'en');
       const titleEn = seoEn?.metaTitle.replace(/\s*\|\s*SimDream$/, '') || shortSlug;
       const descEn = seoEn?.metaDescription || '';
       return `- [${titleEn}](${siteUrl(base, blogPostPath(shortSlug, 'en'))}): ${descEn}`;

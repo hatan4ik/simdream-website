@@ -1623,7 +1623,7 @@ function main() {
     compactByTid[translationId] = locales;
   }
 
-  const outPath = path.join(root, 'lib/data/blog-seo.json');
+  const outPath = path.join(root, 'public/data/blog-seo.json');
   writeFileSync(outPath, JSON.stringify(compactByTid) + '\n', 'utf8');
   console.log(`Generated compact ${outPath}: ${Object.keys(compactByTid).length} posts (${legacyCount} base legacy slugs).`);
 }
