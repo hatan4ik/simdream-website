@@ -10,6 +10,14 @@
 
 ## Product changes by version
 
+### [v1.27.0](https://github.com/hatan4ik/simdream-website/releases/tag/v1.27.0) — 2026-11-13
+
+#### Features
+
+- **loyalty:** generalize promotion claim contract and add 7-language checkout copy (#198) (f2336e9)
+
+Deployment evidence: [GitHub Release](https://github.com/hatan4ik/simdream-website/releases/tag/v1.27.0).
+
 ### [v1.26.0](https://github.com/hatan4ik/simdream-website/releases/tag/v1.26.0) — 2026-11-13
 
 #### Features
