@@ -251,6 +251,7 @@ describe('Wix checkout draft', () => {
     pilotEmail: 'ada@example.com ',
     pilotPhone: '+972501234567',
     notes: ' ',
+    birthdayValue: '1990-11-25',
   };
   const draft: WixCheckoutDraftState = { inputKey: buildWixCheckoutDraftKey(inputs), cartId: 'cart', totalIls: 500 };
 
@@ -258,6 +259,7 @@ describe('Wix checkout draft', () => {
     expect(buildWixCheckoutDraftKey(inputs)).toBe(buildWixCheckoutDraftKey({ ...inputs, pilotName: 'Ada', notes: '' }));
     expect(buildWixCheckoutDraftKey(inputs)).not.toBe(buildWixCheckoutDraftKey({ ...inputs, slotId: 'slot-2' }));
     expect(buildWixCheckoutDraftKey(inputs)).not.toBe(buildWixCheckoutDraftKey({ ...inputs, pilotPhone: '+972500000000' }));
+    expect(buildWixCheckoutDraftKey(inputs)).not.toBe(buildWixCheckoutDraftKey({ ...inputs, birthdayValue: '1990-11-26' }));
     expect(buildWixCheckoutDraftKey({ ...inputs, slotId: undefined })).toContain('\u001f\u001f');
   });
 

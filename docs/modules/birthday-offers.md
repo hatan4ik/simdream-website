@@ -1,11 +1,8 @@
 # Birthday offers module (workstream A5)
 
 Pure birthday-discount engine, the public Offers page (`/offers`), the navigation entry, and the Wix
-feasibility finding. Scope stops at the engine and the explanation page: the mandatory date-of-birth
-field, the checkout banner and the server pricing are workstream A6.
-
-Branch `feat/birthday-offers`. Nothing under `app/(public)/book/`, `components/booking/`, `lib/booking/`
-or `lib/db/` was touched.
+feasibility finding. The original A5 scope stopped at the engine and explanation page; the current
+implementation also documents the active-but-default-off Wix Bookings Pricing-provider handoff.
 
 ## 1. Files
 
@@ -106,18 +103,42 @@ Evidence, one claim per source (Wix docs read on 2026-11-11):
 | No visitor-writable price or discount field was found: the base booking price comes from the service configuration, and any other reduction in eCommerce checkout comes from coupons, automatic discounts or fees. | Bookings Pricing API intro: https://dev.wix.com/docs/api-reference/business-solutions/bookings/pricing/pricing-api/introduction |
 | A Wix Automation can email a UNIQUE single-use coupon code on a trigger. | https://support.wix.com/en/article/the-new-automation-builder-adding-and-sending-a-coupon |
 
-Conclusion. With only an anonymous visitor session and no secret, the birthday discount CANNOT be enforced on the
-Wix-authoritative path. Every mechanism that could enforce it needs something this app does not have today:
-(a) admin credentials (a client secret in a backend) to mint one single-use coupon per validated claim, an
-architecture decision that the repo rules currently forbid; (b) a separately hosted Wix app with the Bookings
-pricing plugin and Wix's approval; (c) a Wix-owned flow outside the checkout (Automations emailing a single-use
-coupon, which is how the owner's current live `/promotion` page works: a form, then a coupon by email).
+Conclusion before the pricing-provider work: with only an anonymous visitor session and no secret, the birthday discount
+could not be enforced on the Wix-authoritative path. Coupons and discount rules are still the wrong mechanism: neither
+can securely bind a customer-entered birthday to one booking. The implemented candidate is instead the Bookings Pricing
+Integration service plugin described below. It remains **inactive until its separate Wix Custom App extension is
+registered and configured on SimDream-Staging**; therefore a deployment containing only this repository remains
+fail-closed and the old Wix notice stays visible.
 
-Safe behaviour (implemented): `isBirthdayDiscountEnforceableOnActivePath({ wixAuthoritative })` is `false` on the Wix
-path (`WIX_PATH_CAN_ENFORCE_BIRTHDAY_DISCOUNT = false`); `/offers` then shows an amber notice instead of a promise
-(via `GET /api/offers/capabilities`); the checkout must not show the banner or a discount line and the server must
-not reduce any amount there. The date-of-birth field the owner wants may still be collected. To flip it, make one of
-(a) to (c) real, verify it end to end, then change that one constant. Not built here, not verified end to end.
+### 4.1 Native Wix Bookings Pricing provider (implemented, inactive by default)
+
+The repository now contains the provider endpoint and frontend handoff. It preserves the same native Booking service and
+duration—there is no duplicate "15% off" service—and Wix becomes the price authority at checkout.
+
+1. The browser validates the mandatory birthday locally only for presentation. For an eligible flight it calls
+   `POST /api/wix/birthday/claim`. The trusted server validates the existing policy, then issues a 10-minute HMAC claim
+   containing only package ID, Wix service ID, Israel flight date, birthday month/day and expiry. It does **not** return or
+   store a birth year.
+2. `prepareWixBookingCheckout()` sends that opaque token in a configured Bookings `additionalFields` field when creating
+   the native booking. No full date of birth is submitted to Wix.
+3. Wix calls `POST {DEPLOYMENT-URI}/v1/calculate-price` after it creates the booking. The route accepts only a signed
+   RS256 Wix service-plugin JWT; it verifies the signature with the Custom App public key, `iss = wix.com`, the Custom
+   App `aud`, and current `iat`/`exp` before reading the booking.
+4. The provider maps the booked service to `SIMULATOR_PACKAGES`, recomputes the Israel local date and the 18:00/Saturday
+   prime-time tariff, validates the HMAC claim against that exact service/date, and returns the registry price or its
+   `applyBirthdayDiscount()` result. A missing claim returns the normal price; an invalid claim fails the pricing call.
+   The frontend's preview is never a price authority.
+5. A native Wix Gift Card remains payment credit and may cover the reduced balance. A promo code cannot be combined with
+   birthday pricing in the SimDream UI. Keep public promo codes out of covered Booking services in Wix as well: the
+   pricing provider has no coupon context and only Wix can prevent a checkout UI bypass.
+
+Wix documents that this service plugin is called only after a booking exists, that the pre-booking preview remains the
+standard Wix price, and that only one pricing provider may be active on a site. The UI therefore creates the normal
+visitor-owned Booking/cart first and replaces its displayed total with Wix's calculated cart total once it exists.
+
+Activation details and the required Custom App step are in
+[`WIX_BIRTHDAY_PRICING_PROVIDER.md`](../WIX_BIRTHDAY_PRICING_PROVIDER.md). Do not set
+`WIX_BIRTHDAY_PRICING_PROVIDER_ENABLED=true` until every activation test in that document passes.
 
 ## 5. Navigation placement (item C)
 
@@ -186,8 +207,9 @@ Read with curl on 2026-11-11. It lists offers that the new site does not reflect
 5. Gift voucher as payment together with the discount: allowed by this decision; confirm.
 6. BRAVO15 (first responders) and the live subscription prices differ from the new site; keep, port or retire?
 7. An ID check on arrival is not in the Terms, so it is not mentioned; add a sentence if the owner wants it.
-8. Wix path: which of the three enforcement routes in section 4, if any, should be built. Until then the discount is
-   advertised only on the local Stripe path.
+8. Wix path: the Bookings Pricing provider is now coded but not active. The owner must complete the Custom App extension
+   registration and the staging verification in `WIX_BIRTHDAY_PRICING_PROVIDER.md` before the offer can be advertised on
+   a Wix-authoritative checkout.
 9. The SEO description of `/offers` quotes the 15 percent: revisit it if the Wix path stays the live checkout.
 
 ## 9. The `nav.bookFlightShort` key and the 360px header (coordinator extra task)
@@ -254,7 +276,11 @@ checkout copy `copy.ts` is 11.6 KB), `lib/offers` 43 KB (of which the six page c
 coordinator should measure.
 
 
-## 11. Lines for GENESIS.md and AGENTS.md
+## 11. Historical A5 handoff notes (superseded)
+
+The current requirements are in `AGENTS.md`, `GENESIS.md`, and
+[`WIX_BIRTHDAY_PRICING_PROVIDER.md`](../WIX_BIRTHDAY_PRICING_PROVIDER.md). The notes below record the original A5
+handoff only; do not copy their former Wix visitor-session limitation into new work.
 
 AGENTS.md section 2 (Routing), add:
 

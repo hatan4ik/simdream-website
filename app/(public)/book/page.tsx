@@ -79,8 +79,7 @@ function BookContent() {
     hasRequestedRoute: Boolean(selection.activeRequestedRoute),
   });
 
-  // Price, vouchers, the Wix cart and the mandatory extras (consent, birthday). A voucher is verified against
-  // the subtotal less the birthday discount; the manifest carries both reductions.
+  // Price, vouchers, Wix cart and mandatory extras share one manifest.
   const manifestInput = { activePackage, selectedSlot, selectedAddons, scopedAddons: selection.scopedAddons };
   const subtotalIls = useBookingManifest(manifestInput, 0).subtotalIls;
   const extras = useBookingExtras({
@@ -88,6 +87,7 @@ function BookContent() {
     flightDate: selectedDate,
     subtotalIls,
     wixAuthoritative: schedule.wixBookingsAuthoritative,
+    canUseWixNativeCheckout,
     isWixSubscriptionRedemption,
   });
   const { wixDraft, voucher, manifest, displayManifest, displayTotalAmount } = useBookingPricing({
@@ -98,10 +98,9 @@ function BookContent() {
     isWixSubscriptionRedemption,
     canUseWixNativeCheckout,
     subtotalIls,
-    birthdayDiscountIls: extras.birthday.discountIls,
+    birthday: extras.birthday,
     copy: t.booking,
   });
-
   const checkout = useBookingCheckout({
     activePackage,
     selectedDate,
@@ -118,6 +117,7 @@ function BookContent() {
     wixSubscriptionCopy,
     language,
     copy: t.booking,
+    birthdayDiscountApplied: extras.birthday.discountIls > 0,
     onSlotMissing: () => setCurrentStep(STEP_DATE_SLOT),
     extraValidation: extras.validate,
     extraPayload: extras.payload,

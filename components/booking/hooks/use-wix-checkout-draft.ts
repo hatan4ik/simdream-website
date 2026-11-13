@@ -17,6 +17,9 @@ interface UseWixCheckoutDraftArgs {
   pilotEmail: string;
   pilotPhone: string;
   notes: string;
+  birthdayValue: string;
+  /** Gets a short-lived server proof right before Wix creates the booking. */
+  createBirthdayPricingClaim?: () => Promise<{ fieldId: string; token: string } | null>;
   messages: { errorSelectSlot: string; paymentStartFailed: string };
 }
 
@@ -27,7 +30,18 @@ interface UseWixCheckoutDraftArgs {
  * cart is prepared on demand by `ensureDraft`.
  */
 export function useWixCheckoutDraft(args: UseWixCheckoutDraftArgs) {
-  const { packageId, selectedDate, selectedSlot, pilotName, pilotEmail, pilotPhone, notes, messages } = args;
+  const {
+    packageId,
+    selectedDate,
+    selectedSlot,
+    pilotName,
+    pilotEmail,
+    pilotPhone,
+    notes,
+    birthdayValue,
+    createBirthdayPricingClaim,
+    messages,
+  } = args;
   const [draft, setDraft] = useState<WixCheckoutDraftState | null>(null);
 
   const draftKey = buildWixCheckoutDraftKey({
@@ -38,11 +52,13 @@ export function useWixCheckoutDraft(args: UseWixCheckoutDraftArgs) {
     pilotEmail,
     pilotPhone,
     notes,
+    birthdayValue,
   });
   const activeDraft = pickActiveWixCheckoutDraft(draft, draftKey);
 
   const prepareDraft = async (): Promise<WixCheckoutDraftState> => {
     if (!selectedSlot) throw new Error(messages.errorSelectSlot);
+    const birthdayPricingClaim = await createBirthdayPricingClaim?.();
     const prepared = await prepareWixCheckoutDraft({
       inputKey: draftKey,
       packageId,
@@ -52,6 +68,7 @@ export function useWixCheckoutDraft(args: UseWixCheckoutDraftArgs) {
       pilotEmail,
       pilotPhone,
       notes,
+      birthdayPricingClaim,
       paymentStartFailed: messages.paymentStartFailed,
     });
     setDraft(prepared);

@@ -21,6 +21,8 @@ interface UseBookingVoucherArgs {
   isWixSubscriptionRedemption: boolean;
   /** Codes are applied to the Wix cart (coupon or native Gift Card) instead of the local voucher API. */
   canUseWixNativeCheckout: boolean;
+  /** Wix pricing-provider birthday reduction and a coupon are deliberately non-stackable. */
+  birthdayDiscountApplied: boolean;
   /** What a local voucher balance must cover: the subtotal less the birthday discount. Independent of the voucher itself. */
   subtotalIls: number;
   pilotName: string;
@@ -41,6 +43,7 @@ export function useBookingVoucher(args: UseBookingVoucherArgs) {
     initialVoucherCode,
     isWixSubscriptionRedemption,
     canUseWixNativeCheckout,
+    birthdayDiscountApplied,
     subtotalIls,
     pilotName,
     pilotEmail,
@@ -69,6 +72,17 @@ export function useBookingVoucher(args: UseBookingVoucherArgs) {
     setDraft(null);
     setWixCheckoutCodeKind('coupon');
   }, [isWixSubscriptionRedemption]);
+
+  // Never leave the selector on a coupon once a Wix birthday price applies.
+  // A changed birthday invalidates the draft as well, so any former coupon is
+  // not carried into the newly-priced cart.
+  useEffect(() => {
+    if (!canUseWixNativeCheckout || !birthdayDiscountApplied || wixCheckoutCodeKind !== 'coupon') return;
+    setWixCheckoutCodeKind('gift-card');
+    setVoucherCode('');
+    setVoucherSuccess('');
+    setVoucherError(copy.wixBirthdayCouponNotCombinable);
+  }, [canUseWixNativeCheckout, birthdayDiscountApplied, wixCheckoutCodeKind, copy.wixBirthdayCouponNotCombinable]);
 
   useEffect(() => {
     try {
@@ -152,6 +166,10 @@ export function useBookingVoucher(args: UseBookingVoucherArgs) {
 
     try {
       if (canUseWixNativeCheckout) {
+        if (birthdayDiscountApplied && wixCheckoutCodeKind === 'coupon') {
+          setVoucherError(copy.wixBirthdayCouponNotCombinable);
+          return;
+        }
         if (!pilotName.trim() || !pilotEmail.trim() || !pilotPhone.trim()) {
           setVoucherError(
             wixCheckoutCodeKind === 'gift-card'
@@ -228,6 +246,10 @@ export function useBookingVoucher(args: UseBookingVoucherArgs) {
 
   /** Switches between a Wix coupon and a native Gift Card, clearing the entry and its messages. */
   const selectCodeKind = (kind: WixCheckoutCodeKind) => {
+    if (birthdayDiscountApplied && kind === 'coupon') {
+      setVoucherError(copy.wixBirthdayCouponNotCombinable);
+      return;
+    }
     setWixCheckoutCodeKind(kind);
     setVoucherCode('');
     setVoucherError('');
@@ -246,6 +268,7 @@ export function useBookingVoucher(args: UseBookingVoucherArgs) {
     voucherSuccess,
     isVerifyingVoucher,
     wixCheckoutCodeKind,
+    birthdayCouponBlocked: canUseWixNativeCheckout && birthdayDiscountApplied,
     selectCodeKind,
     verifyVoucher: handleVerifyVoucher,
     removeVoucher: handleRemoveVoucher,

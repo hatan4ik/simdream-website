@@ -23,6 +23,8 @@ export interface WixCheckoutDraftInputs {
   pilotEmail: string;
   pilotPhone: string;
   notes: string;
+  /** The raw value remains in browser memory only; it invalidates an old Wix cart if it changes. */
+  birthdayValue: string;
 }
 
 /**
@@ -38,6 +40,7 @@ export function buildWixCheckoutDraftKey(inputs: WixCheckoutDraftInputs): string
     inputs.pilotEmail.trim(),
     inputs.pilotPhone.trim(),
     inputs.notes.trim(),
+    inputs.birthdayValue,
   ].join('\u001f');
 }
 

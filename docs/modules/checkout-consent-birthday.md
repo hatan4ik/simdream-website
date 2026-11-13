@@ -91,10 +91,14 @@ bookings there, so the server never sees them and cannot enforce anything.
   `LEGAL_DOCUMENT_VERSION`, page language, browser time) and `recordNoteOnWixDraft()` PATCHes it into the visitor-owned
   cart's `note` right before `get-checkout-url`. If Wix refuses, the checkout stops with the localized
   `paymentStartFailed` message.
-- Birthday: still mandatory and validated (age, not in the future). **No banner, no discount line, no total change.** The
-  field carries the honest notice `birthdayWixNotice` from the first paint ("cannot be applied automatically ... your day
-  and month are passed to our team with the order"). The day and month (never the year) go into the same cart note so
-  staff can honour the owner's manual process.
+- Birthday: still mandatory and validated (age, not in the future). By default there is **no banner, no discount line,
+  and no total change**; the field carries `birthdayWixNotice` and only day/month reaches the staff cart note.
+  When the separately configured Bookings Pricing provider is active, `GET /api/offers/capabilities` enables the
+  `wix-pricing` path instead. The browser exchanges a qualifying full date for a short-lived signed claim, stores only
+  that opaque claim in the configured Booking `additionalFields` field, and Wix calls the provider to calculate the
+  final price. The full date/year never goes to Wix; the provider rechecks service, Israel flight date and claim expiry.
+  See [`WIX_BIRTHDAY_PRICING_PROVIDER.md`](../WIX_BIRTHDAY_PRICING_PROVIDER.md). A promo coupon is blocked in this path;
+  a native Gift Card is payment credit and remains allowed.
 - Not stored in our database. The browser time in the note is not authoritative; Wix's own cart and order timestamps are.
 
 Documentation behind the choice (read 2026-11-11):
@@ -131,8 +135,8 @@ voucher part) and `birthday_discount_ils` keeps the birthday part.
 | Data | Local checkout | Wix-hosted | Subscription redemption |
 | --- | --- | --- | --- |
 | Full date of birth | request body and React state only, never stored or logged | React state only | React state only |
-| Birthday month and day | `bookings.pilot_birthday_month/day` | in the Wix cart note (staff) | nowhere |
-| Birthday discount | `bookings.birthday_discount_ils` (inside `discount_ils`) | none | none |
+| Birthday month and day | `bookings.pilot_birthday_month/day` | cart note only while the provider is off; provider claim has month/day but no year | nowhere |
+| Birthday discount | `bookings.birthday_discount_ils` (inside `discount_ils`) | Wix-calculated price only when the configured provider is active; otherwise none | none |
 | Consent record | `bookings.consent_record` (server time, versions, language) | Wix cart note (browser time, versions, language) | nowhere |
 
 The "discount applied" flag of the birthday handoff is `birthday_discount_ils > 0`; a separate boolean could only disagree
@@ -182,7 +186,11 @@ migration have NULL consent. Apply after 010 and a backup. Anything else that ta
 5. Should the Stripe line item description mention the birthday discount? Today the customer sees one discounted amount.
 6. The rules text (clause 15.2) says the consent record holds version and time; it matches.
 
-## 7. Lines for GENESIS.md and AGENTS.md
+## 7. Historical A6 handoff notes (superseded)
+
+`AGENTS.md`, `GENESIS.md`, and [`WIX_BIRTHDAY_PRICING_PROVIDER.md`](../WIX_BIRTHDAY_PRICING_PROVIDER.md) now state the
+current contract. The copied handoff text below predates the optional Wix Pricing provider and is retained only as
+delivery history.
 
 `npm run docs:verify` (not stamped here) lists the new names to add: library modules `lib/booking/checkout-extras.ts`,
 `lib/booking/client/{birthday-field,consent-state,extras-copy,wix-consent-note}.ts`,

@@ -161,7 +161,7 @@ test.describe('Offers & Benefits page', () => {
     test('reports the local checkout path as able to apply it', async ({ request }) => {
       const response = await request.get('/api/offers/capabilities');
       expect(response.status()).toBe(200);
-      expect(await response.json()).toEqual({ birthdayDiscountEnforceable: true });
+      expect(await response.json()).toEqual({ birthdayDiscountEnforceable: true, wixBirthdayPricingProviderEnabled: false });
     });
   });
 });

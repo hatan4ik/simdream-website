@@ -41,6 +41,7 @@ describe('resolveBirthdayPathMode', () => {
   it.each([
     [{ wixAuthoritative: false, isWixSubscriptionRedemption: false }, 'local'],
     [{ wixAuthoritative: true, isWixSubscriptionRedemption: false }, 'wix'],
+    [{ wixAuthoritative: true, wixBirthdayPricingProviderEnabled: true, isWixSubscriptionRedemption: false }, 'wix-pricing'],
     [{ wixAuthoritative: false, isWixSubscriptionRedemption: true }, 'subscription'],
     [{ wixAuthoritative: true, isWixSubscriptionRedemption: true }, 'subscription'],
   ] as const)('%j is the %s path', (inputs, mode) => {
@@ -99,6 +100,7 @@ describe('evaluateBirthdayField', () => {
 
   it('applies nothing on the Wix-hosted checkout or a subscription redemption, whatever the date', () => {
     expect(evaluateBirthdayField(field({ mode: 'wix' }))).toMatchObject({ status: 'valid', applied: false, discountIls: 0, blockedBy: 'checkout_path' });
+    expect(evaluateBirthdayField(field({ mode: 'wix-pricing' }))).toMatchObject({ status: 'valid', applied: true, discountIls: 104 });
     expect(evaluateBirthdayField(field({ mode: 'subscription' }))).toMatchObject({ applied: false, discountIls: 0, blockedBy: 'subscription_redemption' });
   });
 
@@ -123,6 +125,9 @@ describe('birthdayStatusKind', () => {
   it('always carries the honest notice on the Wix-hosted checkout, with or without a date', () => {
     expect(birthdayStatusKind(evaluateBirthdayField(field({ mode: 'wix' })))).toBe('wix_notice');
     expect(birthdayStatusKind(evaluateBirthdayField(field({ mode: 'wix', value: '' })))).toBe('wix_notice');
+  });
+  it('uses the normal congratulations banner when the configured Wix provider can enforce the offer', () => {
+    expect(birthdayStatusKind(evaluateBirthdayField(field({ mode: 'wix-pricing' })))).toBe('banner');
   });
   it('shows nothing before a valid date, and nothing for a subscription (the hint says it)', () => {
     expect(birthdayStatusKind(evaluateBirthdayField(field({ value: '' })))).toBe('none');

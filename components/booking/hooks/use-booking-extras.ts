@@ -12,6 +12,7 @@ interface UseBookingExtrasArgs {
   /** Registry subtotal in whole shekels, before any voucher or discount. */
   subtotalIls: number;
   wixAuthoritative: boolean;
+  canUseWixNativeCheckout: boolean;
   isWixSubscriptionRedemption: boolean;
 }
 
