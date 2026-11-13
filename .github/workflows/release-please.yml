@@ -51,6 +51,35 @@ jobs:
         with:
           config-file: .release-please-config.json
           manifest-file: .release-please-manifest.json
+      - name: Set up Node for the generated release ledger
+        if: steps.verified-tip.outputs.current == 'true' && steps.release.outputs.prs_created == 'true'
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Generate the release ledger in the release candidate
+        if: steps.verified-tip.outputs.current == 'true' && steps.release.outputs.prs_created == 'true'
+        env:
+          RELEASE_PR: ${{ steps.release.outputs.pr }}
+        run: |
+          set -euo pipefail
+          release_branch="$(jq -er '.headBranchName' <<< "$RELEASE_PR")"
+          case "$release_branch" in
+            release-please--branches--main--components--simdream-website) ;;
+            *) echo "Unexpected Release Please branch: $release_branch" >&2; exit 1 ;;
+          esac
+          git fetch origin "$release_branch"
+          git checkout --detach "origin/$release_branch"
+          npm ci
+          npm run releases:generate
+          if git diff --quiet -- RELEASES.md; then
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add RELEASES.md
+          git commit -m 'chore(main): generate release ledger'
+          git push origin HEAD:"$release_branch"
       # GitHub marks this GITHUB_TOKEN-generated pull-request workflow
       # `action_required` before it starts any jobs. Approve that one
       # PR-attached run instead of dispatching a detached duplicate, so branch
