@@ -1,6 +1,5 @@
 import React from 'react';
 import type { Metadata } from 'next';
-import { BookOpen } from 'lucide-react';
 import { getAllBlogPosts } from '@/lib/data/blog-posts';
 import { BlogIndexView } from '@/components/blog/BlogIndexView';
 
@@ -34,25 +33,7 @@ export default function BlogPage() {
   return (
     <div className="min-h-screen bg-slate-950 pt-10 pb-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header Hero */}
-        <header className="text-center max-w-3xl mx-auto mb-12">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-sky-500/10 border border-sky-500/30 text-sky-400 text-xs font-mono uppercase tracking-widest mb-4">
-            <BookOpen className="w-3.5 h-3.5" />
-            <span>יומן הטיסה של סים דרים · FLIGHT DECK JOURNAL</span>
-          </div>
-          <h1 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight mb-4">
-            מאמרים, מדריכים ותובנות מתא הטייס
-          </h1>
-          <p className="text-slate-400 text-base sm:text-lg leading-relaxed">
-            ידע תעופתי אמיתי, הסברים על מערכות בואינג 737, מדריכי גישות ונחיתות מאתגרות בעולם,
-            והכנה מעשית למיוני חברות תעופה – היישר מהקברניטים של Sim Dream.
-          </p>
-        </header>
-
-        {/* Interactive Blog Catalog */}
-        <main>
-          <BlogIndexView initialPosts={posts} />
-        </main>
+        <BlogIndexView initialPosts={posts} />
       </div>
     </div>
   );

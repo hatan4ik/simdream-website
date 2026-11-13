@@ -8,7 +8,7 @@ import {
   type BlogPost,
   type BlogCategory,
 } from '@/lib/data/blog-categories';
-import { useLanguage } from '@/lib/i18n/language-context';
+import { useLanguage, type Language } from '@/lib/i18n/language-context';
 import { BlogCard } from './BlogCard';
 
 interface BlogIndexViewProps {
@@ -16,8 +16,11 @@ interface BlogIndexViewProps {
 }
 
 const UI_COPY: Record<
-  string,
+  Language,
   {
+    heroBadge: string;
+    heroTitle: string;
+    heroSubtitle: string;
     featuredBadge: string;
     allArticles: string;
     searchPlaceholder: string;
@@ -27,6 +30,10 @@ const UI_COPY: Record<
   }
 > = {
   he: {
+    heroBadge: 'יומן הטיסה של סים דרים · FLIGHT DECK JOURNAL',
+    heroTitle: 'מאמרים, מדריכים ותובנות מתא הטייס',
+    heroSubtitle:
+      'ידע תעופתי אמיתי, הסברים על מערכות בואינג 737, מדריכי גישות ונחיתות מאתגרות בעולם, והכנה מעשית למיוני חברות תעופה – היישר מהקברניטים של Sim Dream.',
     featuredBadge: 'מאמר מומלץ מהקוקפיט',
     allArticles: 'כל המאמרים',
     searchPlaceholder: 'חיפוש מאמרים ונושאים...',
@@ -35,6 +42,10 @@ const UI_COPY: Record<
     resetSearch: 'הצגת כל המאמרים',
   },
   en: {
+    heroBadge: 'SIM DREAM FLIGHT DECK JOURNAL',
+    heroTitle: 'Articles, Guides & Cockpit Insights',
+    heroSubtitle:
+      'Authentic aviation knowledge, Boeing 737 systems briefings, challenging global approach and landing guides, and practical airline assessment prep — straight from the Sim Dream captains.',
     featuredBadge: 'Featured Cockpit Dispatch',
     allArticles: 'All Articles',
     searchPlaceholder: 'Search flight articles & briefings...',
@@ -43,6 +54,10 @@ const UI_COPY: Record<
     resetSearch: 'Show all articles',
   },
   ru: {
+    heroBadge: 'БОРТОВОЙ ЖУРНАЛ SIM DREAM · FLIGHT DECK JOURNAL',
+    heroTitle: 'Статьи, руководства и заметки из кабины',
+    heroSubtitle:
+      'Подлинные авиационные знания, разбор систем Boeing 737, гиды по сложным заходам и посадкам в аэропортах мира и практическая подготовка к отборам в авиакомпании — напрямую от командиров Sim Dream.',
     featuredBadge: 'Рекомендуемая статья из кабины',
     allArticles: 'Все статьи',
     searchPlaceholder: 'Поиск статей и тем...',
@@ -51,6 +66,10 @@ const UI_COPY: Record<
     resetSearch: 'Показать все статьи',
   },
   fr: {
+    heroBadge: 'JOURNAL DE BORD SIM DREAM · FLIGHT DECK JOURNAL',
+    heroTitle: 'Articles, guides et retours du cockpit',
+    heroSubtitle:
+      'Connaissances aéronautiques authentiques, explications sur les systèmes du Boeing 737, guides d’approches et d’atterrissages exigeants dans le monde entier et préparation pratique aux sélections des compagnies — directement par les commandants de bord de Sim Dream.',
     featuredBadge: 'Article vedette du cockpit',
     allArticles: 'Tous les articles',
     searchPlaceholder: 'Rechercher des articles et sujets...',
@@ -59,6 +78,10 @@ const UI_COPY: Record<
     resetSearch: 'Afficher tous les articles',
   },
   es: {
+    heroBadge: 'DIARIO DE VUELO DE SIM DREAM · FLIGHT DECK JOURNAL',
+    heroTitle: 'Artículos, guías e ideas desde la cabina',
+    heroSubtitle:
+      'Conocimiento aeronáutico real, explicaciones sobre los sistemas del Boeing 737, guías de aproximaciones y aterrizajes desafiantes en todo el mundo y preparación práctica para selecciones de aerolíneas — directamente de los comandantes de Sim Dream.',
     featuredBadge: 'Artículo destacado de la cabina',
     allArticles: 'Todos los artículos',
     searchPlaceholder: 'Buscar artículos y temas...',
@@ -67,6 +90,10 @@ const UI_COPY: Record<
     resetSearch: 'Mostrar todos los artículos',
   },
   ar: {
+    heroBadge: 'سجل رحلات سيم دريم · FLIGHT DECK JOURNAL',
+    heroTitle: 'مقالات وأدلة ورؤى من قمرة القيادة',
+    heroSubtitle:
+      'معرفة طيران حقيقية، شروحات لأنظمة بوينغ 737، أدلة الاقتراب والهبوط في أصعب مطارات العالم، وإعداد عملي لمقابلات شركات الطيران — مباشرة من قباطنة Sim Dream.',
     featuredBadge: 'مقال مميز من قمرة القيادة',
     allArticles: 'جميع المقالات',
     searchPlaceholder: 'البحث في المقالات والمواضيع...',
@@ -133,8 +160,24 @@ export function BlogIndexView({ initialPosts }: BlogIndexViewProps) {
   }, [posts, selectedCategory, searchQuery]);
 
   return (
-    <div dir={isRTL ? 'rtl' : 'ltr'} className="space-y-12">
-      {/* Featured Spotlight Article */}
+    <div dir={isRTL ? 'rtl' : 'ltr'}>
+      {/* Header Hero */}
+      <header className="text-center max-w-3xl mx-auto mb-12">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-sky-500/10 border border-sky-500/30 text-sky-400 text-xs font-mono uppercase tracking-widest mb-4">
+          <BookOpen className="w-3.5 h-3.5" />
+          <span>{copy.heroBadge}</span>
+        </div>
+        <h1 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight mb-4">
+          {copy.heroTitle}
+        </h1>
+        <p className="text-slate-400 text-base sm:text-lg leading-relaxed">
+          {copy.heroSubtitle}
+        </p>
+      </header>
+
+      {/* Interactive Blog Catalog */}
+      <main className="space-y-12">
+        {/* Featured Spotlight Article */}
       {selectedCategory === 'all' && !searchQuery && featuredPost && (
         <section aria-label={copy.featuredBadge}>
           <div className="flex items-center gap-2 mb-4 text-xs font-mono font-bold text-sky-400 uppercase tracking-widest">
@@ -226,6 +269,7 @@ export function BlogIndexView({ initialPosts }: BlogIndexViewProps) {
           </div>
         )}
       </section>
+      </main>
     </div>
   );
 }
