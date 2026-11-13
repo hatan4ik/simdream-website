@@ -1,4 +1,6 @@
 import { WIX_SUBSCRIPTION_BOOKING_COPY } from '@/lib/i18n/wix-subscription-booking-copy';
+import type { Language } from '@/lib/i18n/translations';
+import { localizeInternalHref } from '@/lib/i18n/locale-routing';
 import { getWixMemberClient } from '@/lib/wix/member-client';
 import { wixSubscriptionBookingPackageForPlan } from '@/lib/wix/subscription-redemption';
 
@@ -8,6 +10,7 @@ export interface WixSubscriptionCheckoutInput {
   packageId: string;
   bookingDate: string;
   startTime: string;
+  language: Language;
   copy: Pick<WixSubscriptionBookingCopy, 'noEligiblePlan' | 'unavailable' | 'checkoutFailed'>;
   /**
    * The shared Wix member sign-in launcher (`startWixMemberSignIn` from the auth context). It owns the
@@ -68,7 +71,10 @@ export async function startWixSubscriptionCheckout(input: WixSubscriptionCheckou
       timezone: checkout.timeZone || 'Asia/Jerusalem',
     },
     callbacks: {
-      postFlowUrl: `${window.location.origin}/subscriptions#flight-deck`,
+      postFlowUrl: `${window.location.origin}${localizeInternalHref('/subscriptions#flight-deck', input.language)}`,
+    },
+    preferences: {
+      additionalQueryParameters: { lang: input.language },
     },
   });
   const checkoutUrl = redirectSession.redirectSession?.fullUrl;

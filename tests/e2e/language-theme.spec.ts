@@ -13,6 +13,8 @@ const COPY: Record<Language, { vouchersTitle: string; hero: string }> = {
 };
 
 const directionOf = (language: Language) => (RTL_LANGUAGES.includes(language) ? 'rtl' : 'ltr');
+const localePath = (language: Language, pathname: string) =>
+  language === 'he' ? pathname : pathname === '/' ? `/${language}` : `/${language}${pathname}`;
 
 test.describe('language switcher', () => {
   test('uses Hebrew for a brand-new visitor before any language has been saved', async ({ browser }) => {
@@ -43,6 +45,7 @@ test.describe('language switcher', () => {
 
       await chrome.switchLanguage(language);
 
+      await expect(page).toHaveURL(localePath(language, '/vouchers'));
       await expect(chrome.html()).toHaveAttribute('lang', language);
       await expect(chrome.html()).toHaveAttribute('dir', dir);
       await expect(title).toHaveText(COPY[language].vouchersTitle);
@@ -51,8 +54,8 @@ test.describe('language switcher', () => {
       await expect(chrome.html()).toHaveAttribute('dir', dir);
       await expect(title).toHaveText(COPY[language].vouchersTitle);
 
-      await follow(chrome.homeLink(), '/');
-      await expect(page).toHaveURL('/');
+      await follow(chrome.homeLink(), localePath(language, '/'));
+      await expect(page).toHaveURL(localePath(language, '/'));
       await expect(chrome.html()).toHaveAttribute('lang', language);
       await expect(chrome.html()).toHaveAttribute('dir', dir);
       await expect(page.getByRole('heading', { level: 1 })).toContainText(COPY[language].hero);
@@ -69,6 +72,17 @@ test.describe('language switcher', () => {
     await chrome.revealHeaderControls();
     await expect(chrome.languageButton()).toContainText('ar');
   });
+
+  for (const language of ['en', 'ru', 'fr', 'ar', 'es'] as const) {
+    test(`renders ${language} directly from its Wix subdirectory URL`, async ({ page, chrome }) => {
+      await page.goto(localePath(language, '/vouchers'));
+
+      await expect(page).toHaveURL(localePath(language, '/vouchers'));
+      await expect(chrome.html()).toHaveAttribute('lang', language);
+      await expect(chrome.html()).toHaveAttribute('dir', directionOf(language));
+      await expect(page.getByRole('heading', { level: 1 })).toHaveText(COPY[language].vouchersTitle);
+    });
+  }
 });
 
 test.describe('interface theme switcher', () => {

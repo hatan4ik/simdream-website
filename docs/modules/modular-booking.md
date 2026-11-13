@@ -51,6 +51,7 @@ All are optional, render nothing when omitted, and are wired in `app/(public)/bo
 | Extra discount line (birthday discount) | `extraDiscountLines` on `PilotManifestStep` (passed to `OrderSummary`) | Under the voucher line, above the code-entry box. Display only: lower `displayTotalAmount` in the page and have the server recompute. |
 | Block submit until consent and birthday are valid | `extraValidation: () => string \| null` on `useBookingCheckout` | Runs after the pilot-fields check; the returned (localized) message becomes the booking error. |
 | Send the new fields to the server | `extraPayload` on `useBookingCheckout` | Merged into the `POST /api/checkout` body; core fields always win (`buildLocalCheckoutBody`). |
+| Keep a Wix subscription checkout localized | `language` on `useBookingCheckout` | Passed to `startWixSubscriptionCheckout`, which uses Wix's documented redirect-session `lang` preference and returns to the matching public locale URL. |
 | New state | A new hook per feature (for example `useBookingConsent`), called in the page before `useBookingCheckout`. | Do not grow `usePilotDetails`. |
 | New copy | The new module's own `Record<SupportedLanguage, ...>` file (not `translations.ts`). | |
 

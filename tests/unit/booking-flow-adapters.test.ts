@@ -125,6 +125,7 @@ const SUBSCRIPTION_INPUT = {
   packageId: 'pkg-captain-60',
   bookingDate: '2026-11-09',
   startTime: '10:00',
+  language: 'en' as const,
   copy: { noEligiblePlan: 'no plan', unavailable: 'gone', checkoutFailed: 'failed' },
   signIn,
 };
@@ -178,7 +179,8 @@ describe('startWixSubscriptionCheckout', () => {
     });
     expect(client.redirects.createRedirectSession).toHaveBeenCalledWith({
       bookingsCheckout: { slotAvailability: OPEN_SLOT.slotAvailability, timezone: 'Asia/Jerusalem' },
-      callbacks: { postFlowUrl: 'https://simdream.test/subscriptions#flight-deck' },
+      callbacks: { postFlowUrl: 'https://simdream.test/en/subscriptions#flight-deck' },
+      preferences: { additionalQueryParameters: { lang: 'en' } },
     });
     expect(assign).toHaveBeenCalledWith('https://wix.test/checkout');
   });

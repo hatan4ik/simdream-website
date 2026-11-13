@@ -8,6 +8,8 @@ import {
 import { getWixClient, wixPost } from './client';
 import { isWixConfigured } from './config';
 import { WIX_PLAN_IDS, wixPlanIdFor } from './catalog';
+import { PRIMARY_WIX_LANGUAGE, localizeInternalHref } from '@/lib/i18n/locale-routing';
+import type { Language } from '@/lib/i18n/translations';
 
 export { WIX_PLAN_IDS, wixPlanIdFor };
 
@@ -111,6 +113,8 @@ export interface PlanCheckoutOptions {
   planId: string;
   baseUrl: string;
   passId?: string;
+  /** ISO 639 language sent to Wix-managed checkout through the documented redirect-session preference. */
+  language?: Language;
 }
 
 /**
@@ -118,11 +122,12 @@ export interface PlanCheckoutOptions {
  */
 export async function createPlanCheckoutUrl(options: PlanCheckoutOptions): Promise<string> {
   const client = getWixClient();
-  const thankYouUrl = `${options.baseUrl}/subscriptions/thank-you`;
+  const language = options.language ?? PRIMARY_WIX_LANGUAGE;
+  const thankYouUrl = `${options.baseUrl}${localizeInternalHref('/subscriptions/thank-you', language)}`;
   const pass = findSubscriptionPass(options.passId);
   const postFlowUrl = pass
-    ? `${options.baseUrl}${subscriptionPassReturnPath(pass)}`
-    : `${options.baseUrl}/subscriptions`;
+    ? `${options.baseUrl}${localizeInternalHref(subscriptionPassReturnPath(pass), language)}`
+    : `${options.baseUrl}${localizeInternalHref('/subscriptions', language)}`;
 
   const session = await client.redirects.createRedirectSession({
     paidPlansCheckout: {
@@ -131,6 +136,11 @@ export async function createPlanCheckoutUrl(options: PlanCheckoutOptions): Promi
     callbacks: {
       postFlowUrl,
       thankYouPageUrl: thankYouUrl,
+    },
+    preferences: {
+      // Wix documents `lang` on redirect sessions as the supported way to
+      // localize its managed checkout pages.
+      additionalQueryParameters: { lang: language },
     },
   });
 

@@ -116,6 +116,7 @@ function BookContent() {
     voucher,
     wixDraft,
     wixSubscriptionCopy,
+    language,
     copy: t.booking,
     onSlotMissing: () => setCurrentStep(STEP_DATE_SLOT),
     extraValidation: extras.validate,

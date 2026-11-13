@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
@@ -17,6 +16,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
 import { formatCurrency } from '@/lib/utils';
 import { useLanguage } from '@/lib/i18n/language-context';
+import { localizeInternalHref } from '@/lib/i18n/locale-routing';
 import { WorldRoutesSection } from '@/components/experiences/WorldRoutesSection';
 import {
   CONSUMER_SUBSCRIPTION_PASSES,
@@ -35,7 +35,7 @@ export default function ExperiencesPage() {
       const res = await fetch('/api/subscriptions/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ planId: passId }),
+        body: JSON.stringify({ planId: passId, language }),
       });
       if (!res.ok) throw new Error('Checkout API failed');
       const data = await res.json();
@@ -46,7 +46,7 @@ export default function ExperiencesPage() {
       throw new Error('No checkout URL');
     } catch (err) {
       console.warn('Subscription checkout redirect failed, falling back to dispatch:', err);
-      window.location.href = `/contact?subject=subscription&plan=${passId}`;
+      window.location.href = localizeInternalHref(`/contact?subject=subscription&plan=${passId}`, language);
     }
   };
 

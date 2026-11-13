@@ -120,6 +120,7 @@ describe('Wix Pricing Plans schema & resolution', () => {
       planId: 'test-plan-id',
       baseUrl: 'https://simdream.co.il',
       passId: 'flight-foundations-5x60',
+      language: 'fr',
     });
 
     expect(url).toBe('https://checkout.wix.com/hosted-paid-plans-session');
@@ -128,8 +129,11 @@ describe('Wix Pricing Plans schema & resolution', () => {
         planId: 'test-plan-id',
       },
       callbacks: {
-        postFlowUrl: 'https://simdream.co.il/subscriptions#flight-foundations-5x60',
-        thankYouPageUrl: 'https://simdream.co.il/subscriptions/thank-you',
+        postFlowUrl: 'https://simdream.co.il/fr/subscriptions#flight-foundations-5x60',
+        thankYouPageUrl: 'https://simdream.co.il/fr/subscriptions/thank-you',
+      },
+      preferences: {
+        additionalQueryParameters: { lang: 'fr' },
       },
     });
   });

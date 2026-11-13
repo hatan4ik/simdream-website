@@ -4,6 +4,12 @@
 
 **Authority:** [`GENESIS.md`](../GENESIS.md) remains the canonical description of the currently running Next.js/Supabase/Stripe system. This document describes a deliberate future integration or migration path to Wix Headless.
 
+### Wix Multilingual URL and checkout contract (2026-11-12)
+
+Wix Multilingual is configured with **Hebrew as the primary locale** and a **subdirectory** URL structure. The public frontend therefore treats these as canonical URLs: Hebrew at `/`, and English, Russian, French, Arabic and Spanish at `/en`, `/ru`, `/fr`, `/ar` and `/es` respectively (with the same prefix retained for every internal page). `proxy.ts` rewrites only those secondary prefixes to the single Next.js route tree and forwards the locale to the root layout. The language selector changes both the visible language and the URL; core header and footer navigation preserve that prefix. The application continues to support exactly its six shipped languages. German may remain visible in Wix configuration, but has no public prefix until German content and QA are delivered.
+
+For Wix **redirect-session** flows (Pricing Plans purchase and member subscription booking), the client passes the selected language through the documented `preferences.additionalQueryParameters.lang` and uses localized return URLs. That is the supported way for Wix-managed checkout to select the page language. The one-off base-flight Cart V2 flow has a narrower documented API: `get-checkout-url` offers a cart checkout URL (and optional currency) but no locale or callback fields. SimDream therefore preserves that returned URL exactly rather than appending an unsupported parameter. A controlled staging purchase must still verify the final email/service-name language, native Cart V2 checkout language, payment outcome and return behavior before declaring those parts complete.
+
 ## 1. Executive decision
 
 SimDream should treat Wix Headless as a business platform, not as a replacement for the SimDream customer experience. The existing frontend owns the aviation product experience, multilingual UX, accessibility, package education, and custom scheduling presentation. Wix owns the business records and native operations that it is good at: Bookings, Members, checkout, payment-provider configuration, CMS content, notifications, and staff dashboards.

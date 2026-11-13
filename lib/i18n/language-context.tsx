@@ -43,9 +43,12 @@ function persistLanguagePreference(language: Language) {
 export function LanguageProvider({
   children,
   initialLanguage = DEFAULT_LANGUAGE,
+  routedLanguage,
 }: {
   children: React.ReactNode;
   initialLanguage?: Language;
+  /** A language extracted from a Wix `/en/...`-style URL takes precedence over local storage. */
+  routedLanguage?: Language;
 }) {
   const [language, setLanguageState] = useState<Language>(initialLanguage);
   const [preferenceResolved, setPreferenceResolved] = useState(false);
@@ -59,11 +62,13 @@ export function LanguageProvider({
     }
     const pathLocale =
       typeof window !== 'undefined' ? extractPathLocale(window.location.pathname) : null;
-    const selectedLanguage = resolveLanguagePreference(pathLocale ?? saved ?? initialLanguage);
+    // The visible URL wins after hydration; the proxy-provided locale lets SSR
+    // render the same language before the client reads window.location.
+    const selectedLanguage = resolveLanguagePreference(pathLocale ?? routedLanguage ?? saved ?? initialLanguage);
     setLanguageState(selectedLanguage);
     persistLanguagePreference(selectedLanguage);
     setPreferenceResolved(true);
-  }, [initialLanguage]);
+  }, [initialLanguage, routedLanguage]);
 
   useEffect(() => {
     if (!preferenceResolved) return;

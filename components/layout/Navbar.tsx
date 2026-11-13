@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { BrandLogo } from '@/components/brand/BrandLogo';
 import { useLanguage } from '@/lib/i18n/language-context';
+import { stripLocalePrefix } from '@/lib/i18n/locale-routing';
 import { getOffersNavLabel } from '@/lib/offers/nav-label';
 import {
   CompactNavActions,
@@ -17,6 +18,7 @@ import {
   buildNavigationLinks,
   useNavbarMenus,
 } from './navbar/index';
+import { useLocalizedInternalHref } from './navbar/use-localized-internal-href';
 
 /**
  * A compact, Apple-inspired navigation model: clear categories with a full-width detail
@@ -30,7 +32,9 @@ import {
 export function Navbar() {
   const pathname = usePathname();
   const { t, isRTL, language } = useLanguage();
-  const menus = useNavbarMenus({ pathname, isRTL });
+  const normalizedPathname = stripLocalePrefix(pathname ?? '/');
+  const localHref = useLocalizedInternalHref();
+  const menus = useNavbarMenus({ pathname: normalizedPathname, isRTL });
   const offersLabel = getOffersNavLabel(language);
   const navigationGroups = buildNavigationGroups(t, offersLabel);
 
@@ -50,21 +54,21 @@ export function Navbar() {
           {/* The logo is the one element that yields when the row is too tight (a 360px phone with a
               long short Book label): it scales down proportionally instead of pushing the menu
               trigger off screen. With room to spare nothing changes, so no layout shifts by a pixel. */}
-          <Link href="/" className="flex items-center group min-w-0 shrink">
+          <Link href={localHref('/')} className="flex items-center group min-w-0 shrink">
             <BrandLogo className="h-6 sm:h-7 w-auto min-w-0 object-contain group-hover:opacity-90 transition-opacity" priority />
           </Link>
 
-          <DesktopNavTriggers groups={navigationGroups} pathname={pathname} menu={menus.desktop} />
+          <DesktopNavTriggers groups={navigationGroups} pathname={normalizedPathname} menu={menus.desktop} />
           <DesktopNavActions menus={menus} />
           <CompactNavActions menu={menus.mobile} />
         </div>
       </div>
 
-      <DesktopNavPanel groups={navigationGroups} pathname={pathname} menu={menus.desktop} />
+      <DesktopNavPanel groups={navigationGroups} pathname={normalizedPathname} menu={menus.desktop} />
       <MobileNavigation
         links={buildNavigationLinks(t, offersLabel)}
         aboutLinks={buildAboutLinks(t)}
-        pathname={pathname}
+        pathname={normalizedPathname}
         menu={menus.mobile}
       />
     </nav>

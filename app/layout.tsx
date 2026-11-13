@@ -5,6 +5,7 @@ import { UiThemeProvider } from '@/lib/theme/ui-theme-context';
 import { AuthProvider } from '@/lib/auth/auth-context';
 import { LanguageProvider } from '@/lib/i18n/language-context';
 import { DEFAULT_LANGUAGE, languageDirection } from '@/lib/i18n/language-preference';
+import { isSecondaryWixLanguage } from '@/lib/i18n/locale-routing';
 import { LiveMetarBar } from '@/components/layout/LiveMetarBar';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
@@ -52,10 +53,12 @@ export default async function RootLayout({
 }>) {
   const requestHeaders = await headers();
   const nonce = requestHeaders.get('x-nonce') ?? undefined;
-  // Locale is a browser-only preference. Deliberately do not read or write a
-  // language cookie: anonymous public browsing must not create a tracking
-  // identifier. LanguageProvider restores an explicit localStorage choice.
-  const initialLanguage = DEFAULT_LANGUAGE;
+  // A secondary Wix Multilingual URL is authoritative (for example `/en/book`).
+  // Root URLs retain the existing local browser preference as a progressive
+  // enhancement; we deliberately do not create a tracking cookie.
+  const routedLanguageHeader = requestHeaders.get('x-simdream-locale');
+  const routedLanguage = isSecondaryWixLanguage(routedLanguageHeader) ? routedLanguageHeader : undefined;
+  const initialLanguage = routedLanguage ?? DEFAULT_LANGUAGE;
   // The wix-site-host.com addresses are pre-production delivery URLs. Their
   // canonical domain remains simdream.co.il, but explicit noindex prevents a
   // preview from competing with the production domain before the cutover.
@@ -72,7 +75,7 @@ export default async function RootLayout({
       </head>
       <body className="min-h-screen flex flex-col bg-aviation-darkest text-slate-100 antialiased transition-colors duration-200">
         <UiThemeProvider>
-          <LanguageProvider initialLanguage={initialLanguage}>
+          <LanguageProvider initialLanguage={initialLanguage} routedLanguage={routedLanguage}>
             <AuthProvider>
               <SkipLink />
               <ConsentManager />

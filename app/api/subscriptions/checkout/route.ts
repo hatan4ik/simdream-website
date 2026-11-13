@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { findSubscriptionPass, type SubscriptionPassId } from '@/lib/data/subscription-passes';
 import { createPlanCheckoutUrl, resolveWixPlanId } from '@/lib/wix';
+import { PRIMARY_WIX_LANGUAGE, isSupportedLanguage, localizeInternalHref } from '@/lib/i18n/locale-routing';
+import type { Language } from '@/lib/i18n/translations';
 
 export const dynamic = 'force-dynamic';
 
 async function handleCheckout(req: NextRequest) {
   let planId = '';
   let wixMemberCheckout = false;
+  let language: Language = PRIMARY_WIX_LANGUAGE;
 
   if (req.method === 'POST') {
     const contentType = req.headers.get('content-type') || '';
@@ -14,6 +17,7 @@ async function handleCheckout(req: NextRequest) {
       const body = await req.json().catch(() => ({}));
       planId = String(body.planId || body.passId || '');
       wixMemberCheckout = body.wixMemberCheckout === true;
+      if (isSupportedLanguage(body.language)) language = body.language;
     } else if (contentType.includes('application/x-www-form-urlencoded')) {
       const formData = await req.formData().catch(() => null);
       if (formData) {
@@ -60,6 +64,7 @@ async function handleCheckout(req: NextRequest) {
           planId: resolvedWixPlanId,
           baseUrl,
           passId: pass.id,
+          language,
         });
       }
       wixConnected = true;
@@ -70,7 +75,7 @@ async function handleCheckout(req: NextRequest) {
 
   // Graceful fallback to Captain Dispatch if the plan is not yet configured or published on Wix
   if (!checkoutUrl) {
-    checkoutUrl = `${baseUrl}/contact?subject=subscription&plan=${pass.id}&notice=dispatch_assisted`;
+    checkoutUrl = `${baseUrl}${localizeInternalHref(`/contact?subject=subscription&plan=${pass.id}&notice=dispatch_assisted`, language)}`;
   }
 
   if (isDirectFormPost || (req.method === 'GET' && acceptsHtml)) {
