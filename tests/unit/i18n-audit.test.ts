@@ -6,7 +6,7 @@ import { FLIGHT_ADDONS, SIMULATOR_PACKAGES } from '@/lib/db/seed-data';
 import { LANGUAGES, getLocalizedAddons, getLocalizedPackages, translations, type Language } from '@/lib/i18n/translations';
 import { REPO_ROOT, literalTexts, location, parseSource, readConstLiteral, sourceFiles, walk } from './_support/source';
 
-const CODES: Language[] = ['he', 'en', 'ru', 'fr', 'ar', 'es'];
+const CODES: Language[] = ['he', 'en', 'ru', 'fr', 'ar', 'es', 'de'];
 const HEBREW = /[֐-׿]/;
 const ARABIC = /[؀-ۿ]/;
 /** Scripts that must never appear in each language's copy (AGENTS.md section 5). */
@@ -17,6 +17,7 @@ const FORBIDDEN_SCRIPTS: Record<Language, Array<{ name: string; pattern: RegExp 
   ru: [{ name: 'Hebrew', pattern: HEBREW }, { name: 'Arabic', pattern: ARABIC }],
   fr: [{ name: 'Hebrew', pattern: HEBREW }, { name: 'Arabic', pattern: ARABIC }],
   es: [{ name: 'Hebrew', pattern: HEBREW }, { name: 'Arabic', pattern: ARABIC }],
+  de: [{ name: 'Hebrew', pattern: HEBREW }, { name: 'Arabic', pattern: ARABIC }],
 };
 
 type Shape = string | Shape[] | { [key: string]: Shape };
@@ -64,6 +65,7 @@ describe('translations dictionary', () => {
       fr: 'ltr',
       ar: 'rtl',
       es: 'ltr',
+      de: 'ltr',
     });
   });
 

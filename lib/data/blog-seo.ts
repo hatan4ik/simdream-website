@@ -36,6 +36,7 @@ const LANG_BASE_KEYWORDS: Record<BlogSeoLang, readonly [string, string, string]>
   fr: ['SimDream', 'simulateur de vol', 'Boeing 737'],
   es: ['SimDream', 'simulador de vuelo', 'Boeing 737'],
   ar: ['SimDream', 'محاكي طيران', 'بوينغ 737'],
+  de: ['SimDream', 'Flugsimulator', 'Boeing 737'],
 };
 
 const PUBLIC_SEO_JSON_RELATIVE = ['public', 'data', 'blog-seo.json'] as const;

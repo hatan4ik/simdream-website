@@ -116,7 +116,7 @@ export function buildLlmsTxt(): string {
     ...PUBLIC_SITE_ROUTES.map((route) => `- [${route.labelEn}](${siteUrl(base, route.path)})`),
     '',
     '## Blog Articles (Hebrew — Canonical Short URLs)',
-    'The Flight Deck Journal publishes articles on airline screening preparation, cockpit skills, fear of flying, gifts and aviation knowledge. Multilingual editions are served at `/post/<lang>/<short-slug>` (`en`, `ru`, `fr`, `es`, `ar`) with `he` as `x-default`.',
+    'The Flight Deck Journal publishes articles on airline screening preparation, cockpit skills, fear of flying, gifts and aviation knowledge. Multilingual editions are served at `/post/<lang>/<short-slug>` (`en`, `ru`, `fr`, `es`, `ar`, `de`) with `he` as `x-default`.',
     ...getAllBlogPosts().map((post) => {
       const shortSlug = resolveShortSlug(post.slug);
       const seoHe = getLocalizedBlogSeoSync(shortSlug, 'he');

@@ -135,6 +135,23 @@ export const BIRTHDAY_CHECKOUT_COPY: Record<SupportedLanguage, BirthdayCheckoutC
     pricingUnavailable: 'No se pudo verificar el precio de cumpleaños. Inténtalo de nuevo.',
     notEligible: 'No hay descuento de cumpleaños para esta fecha de vuelo.',
   },
+  de: {
+    linkLabel: 'Wie funktioniert der Geburtstagsrabatt?',
+    bannerTitle: 'Alles Gute zum Geburtstag, Kapitän.',
+    bannerSameMonth: 'Ihr Geburtstagsmonat schenkt Ihnen {percent}% Rabatt auf diesen Flug. Er ist unten bereits abgezogen.',
+    bannerGraceBefore: 'Ihr Geburtstag war vor wenigen Tagen, daher gelten Ihre {percent}% noch. Sie sind unten bereits abgezogen.',
+    bannerGraceAfter: 'Ihr Geburtstag steht kurz bevor, daher gelten {percent}% Rabatt für diesen Flug. Sie sind unten bereits abgezogen.',
+    discountLine: 'Geburtstagsrabatt ({percent}%)',
+    fieldLabel: 'Geburtsdatum des Pilot in Command',
+    fieldHint: 'Die Person, die fliegen wird. Wir nutzen es zur Prüfung des Geburtstagsangebots und speichern nur Tag und Monat.',
+    required: 'Bitte geben Sie das Geburtsdatum des Pilot in Command ein.',
+    invalid: 'Bitte geben Sie ein gültiges Geburtsdatum ein.',
+    future: 'Das Geburtsdatum darf nicht in der Zukunft liegen.',
+    tooYoung: 'Der Pilot in Command muss am Flugdatum mindestens {minAge} Jahre alt sein.',
+    tooOld: 'Bitte prüfen Sie das Jahr: Dieses Geburtsdatum wirkt unplausibel.',
+    pricingUnavailable: 'Der Geburtstagspreis konnte nicht bestätigt werden. Bitte versuchen Sie es erneut.',
+    notEligible: 'Für dieses Flugdatum gilt kein Geburtstagsrabatt.',
+  },
 };
 
 /** Fills `{name}` placeholders; the birthday copy only ever needs the constants below. */

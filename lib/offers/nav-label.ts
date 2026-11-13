@@ -15,6 +15,7 @@ export const OFFERS_NAV_LABEL: Record<SupportedLanguage, string> = {
   fr: 'Offres et avantages',
   ar: 'العروض والمزايا',
   es: 'Ofertas y ventajas',
+  de: 'Angebote & Vorteile',
 };
 
 export function getOffersNavLabel(language: SupportedLanguage): string {

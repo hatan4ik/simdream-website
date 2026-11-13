@@ -58,6 +58,7 @@ const priceLocales: Record<Language, string> = {
   fr: 'fr-IL',
   ar: 'ar-IL-u-nu-latn',
   es: 'es-IL',
+  de: 'de-IL',
 };
 
 function publicTuition(language: Language): string {

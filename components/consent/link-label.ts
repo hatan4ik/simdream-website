@@ -11,4 +11,5 @@ export const CONSENT_LINK_LABEL: Record<Language, string> = {
   fr: 'Paramètres des cookies',
   ar: 'إعدادات ملفات تعريف الارتباط',
   es: 'Configuración de cookies',
+  de: 'Cookie-Einstellungen',
 };

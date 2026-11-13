@@ -62,4 +62,17 @@ export const WIX_SUBSCRIPTION_BOOKING_COPY: LocalizedRecord<WixSubscriptionBooki
     unavailable: 'هذا الموعد لم يعد متاحًا. اختاروا موعدًا متاحًا آخر.',
     checkoutFailed: 'تعذر فتح Wix Bookings. يرجى المحاولة مرة أخرى.',
   },
+  de: {
+    eyebrow: 'WIX-ABO EINLÖSEN',
+    title: 'Dieser Flug ist durch Ihr aktives Flugprogramm abgedeckt.',
+    description:
+      'Wählen Sie ein freies Zeitfenster und fahren Sie mit Wix Bookings fort. Wix prüft Ihr Mitgliedskonto und löst eine enthaltene Session ein; Extras und Gutscheine sind nicht Teil dieser Einlösung.',
+    checkoutLabel: 'Flugprogramm in Wix Bookings einlösen',
+    memberRequired:
+      'Melden Sie sich zuerst bei dem Wix-Mitgliedskonto an, dem dieses Flugprogramm gehört.',
+    noEligiblePlan:
+      'Kein aktives Wix-Flugprogramm deckt diese Flugdauer ab. Kehren Sie zu Ihrer Flugprogramm-Übersicht zurück und wählen Sie eine enthaltene Session.',
+    unavailable: 'Dieser Termin ist nicht mehr verfügbar. Wählen Sie ein anderes freies Zeitfenster.',
+    checkoutFailed: 'Wix Bookings konnte nicht geöffnet werden. Bitte versuchen Sie es erneut.',
+  },
 };

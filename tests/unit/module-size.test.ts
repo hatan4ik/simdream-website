@@ -16,11 +16,14 @@ const MAX_MODULE_LINES = 400;
 
 /** Pure catalogues and per-language copy. They hold no logic to split and are exempt from the budget. */
 const DATA_FILES: Readonly<Record<string, string>> = {
-  'lib/i18n/translations.ts': 'six-language UI dictionary',
-  'lib/data/experience-routes.ts': 'World Trio and adventure catalogue with six-language copy',
-  'lib/data/subscription-page-copy.ts': 'six-language copy of the /subscriptions page',
+  'lib/i18n/translations.ts': 'seven-language UI dictionary',
+  'lib/i18n/de.ts': 'German UI translation dictionary',
+  'lib/data/experience-routes.ts': 'World Trio and adventure catalogue with seven-language copy',
+  'lib/data/subscription-page-copy.ts': 'seven-language copy of the /subscriptions page',
   'lib/data/subscription-passes.ts': 'flight-track catalogue and its copy',
   'lib/db/seed-data.ts': 'package, add-on and demo seed registry',
+  'components/about/about-copy.ts': 'seven-language copy of AboutExperienceView',
+  'components/pro/pro-copy.ts': 'seven-language copy of ProSessionsView',
 };
 
 /** Current offenders and the line count they may not exceed. Lower an entry when the file shrinks; delete it at 400 or less. */
@@ -35,13 +38,10 @@ const SIZE_ALLOWLIST: Readonly<Record<string, number>> = {
   'lib/db/store.ts': 1005,
   'lib/scheduler/kantorovich-engine.ts': 781,
   'lib/wix/backend-blueprint.ts': 732,
-  'components/about/AboutExperienceView.tsx': 701,
   'app/admin/page.tsx': 553,
   'lib/wix/booking-checkout-client.ts': 537,
   'app/(public)/subscriptions/page.tsx': 492,
   'lib/auth/auth-context.tsx': 454,
-  'components/layout/LiveMetarBar.tsx': 410,
-  'app/(public)/experiences/page.tsx': 410,
 };
 
 /** The booking page is a thin orchestrator; its modules are the reference for the convention. */

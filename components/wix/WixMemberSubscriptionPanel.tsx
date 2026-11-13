@@ -95,6 +95,19 @@ const COPY: LocalizedRecord<MemberCopy> = {
     redeem: 'حجز رحلة مشمولة',
     signInFailed: 'تعذر فتح تسجيل دخول Wix. يرجى المحاولة مرة أخرى.',
   },
+  de: {
+    eyebrow: 'WIX-MITGLIEDER',
+    title: 'Ihre Flugprogramm-Übersicht',
+    signedOut: 'Melden Sie sich an oder erstellen Sie ein Wix-Mitgliedskonto, bevor Sie ein Flugprogramm kaufen oder einen der enthaltenen Flüge buchen.',
+    signedIn: 'Ihre aktiven SimDream-Flugprogramme werden unten angezeigt. Für den Kauf eines Programms und die Buchung der enthaltenen Flüge ist eine Mitgliedschaft erforderlich.',
+    signIn: 'Anmelden oder Konto erstellen',
+    signOut: 'Abmelden',
+    loading: 'Ihre Flugprogramme werden geladen…',
+    noActive: 'Noch keine aktiven Flugprogramme.',
+    active: 'Aktiv',
+    redeem: 'Inklusivflug buchen',
+    signInFailed: 'Wix-Mitgliederanmeldung konnte nicht geöffnet werden. Bitte versuchen Sie es erneut.',
+  },
 };
 
 interface SubscriptionOrder {

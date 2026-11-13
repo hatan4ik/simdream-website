@@ -181,6 +181,26 @@ export const SUBSCRIPTION_SECTION_COPY: LocalizedRecord<SubscriptionSectionCopy>
       'تدريب مسارات الطيران هو تجربة محاكاة تعليمية وتطبيقية فقط. لا يمنح ساعات طيران مسجلة أو رخصة أو تأهيلاً على طراز أو رصيداً لاختبار أو ضمان عمل لدى شركة طيران.',
     consultDispatch: 'هل لديكم استفسار؟ تواصلوا مع العمليات',
   },
+  de: {
+    badge: 'FLUG-TRACKS UNTER KAPITÄNSLEITUNG',
+    title: 'Wählen Sie Ihren Flug-Track',
+    subtitle:
+      'Fünf oder zehn Boeing-737-Flüge mit demselben Flugkapitän, einmal bezahlt und in Ihrem Tempo geflogen. Urteilsvermögen, Sicherheit und Cockpit-Routine, die ein einzelner Flug nicht vermitteln kann.',
+    sessionLabel: 'enthaltene Flüge',
+    totalFlightTimeLabel: 'gesamte Cockpitzeit',
+    flexibilityLabel: 'jeden Flug buchen, wann es Ihnen passt · Einmalzahlung',
+    standardValueLabel: 'Einzelflug-Wert',
+    savingsLabel: 'Sie sparen',
+    curriculumLabel: 'Lernabfolge unter Kapitänsleitung',
+    trainingModulesLabel: 'Fokussierte Zusatz-Trainingsthemen',
+    trainingModulesDescription:
+      'Ihr Kapitän kann diese instruktorgeführten Themen in einen Track-Flug einbinden. Jede separat aufgeführte Zusatzzeit unterliegt der Buchungskapazität und den bei der Anmeldung bestätigten Bedingungen.',
+    requestEnrollment: 'Diesen Track starten',
+    redirectingToPayment: 'Weiterleitung zur Zahlung...',
+    educationalDisclosure:
+      'Das Flight-Track-Coaching ist ausschließlich ein pädagogisches Simulatorerlebnis. Es gewährt keine anrechenbaren Flugstunden, keine Pilotenlizenz, kein Type Rating, keine Prüfungsanrechnung und keine Beschäftigungsgarantie bei einer Fluggesellschaft.',
+    consultDispatch: 'Fragen? Einsatzleitung kontaktieren',
+  },
 };
 
 export const SUBSCRIPTION_PASSES: readonly SubscriptionPass[] = [
@@ -247,6 +267,17 @@ export const SUBSCRIPTION_PASSES: readonly SubscriptionPass[] = [
           'الوعي بالطقس المباشر وأساسيات مسح عدادات IFR',
           'قرارات الرياح الجانبية وتدريب ILS',
           'مهمة ختامية مع استخلاص شخصي من الكابتن',
+        ],
+      },
+      de: {
+        title: 'Flug-Grundlagen · 5 × 60 Min.',
+        summary: 'Ein souveräner Einstieg von der Cockpit-Orientierung bis zur stabilen, wetterbewussten Landung.',
+        curriculum: [
+          'Kapitäns-Ablauf: Steuerung, Instrumenten-Scan und stabiler Anflug',
+          'FMS und Cockpit-Logik Schritt für Schritt erklärt',
+          'Live-Wetter-Bewusstsein und Grundlagen des IFR-Instrumenten-Scans',
+          'Seitenwind-Entscheidungen und ILS-Coaching',
+          'Abschlussmission mit persönlichem Kapitäns-Debriefing',
         ],
       },
     },
@@ -316,6 +347,17 @@ export const SUBSCRIPTION_PASSES: readonly SubscriptionPass[] = [
           'مهمة قيادة متعددة المراحل مع ملاحظات الكابتن',
         ],
       },
+      de: {
+        title: 'Fortgeschrittener Kapitän · 5 × 90 Min.',
+        summary: 'Fünf intensive Sitzungen für ruhige Entscheidungsfindung, Seitenwind und unerwartete Situationen.',
+        curriculum: [
+          'Präzises manuelles Fliegen mit Leistungs- und Lagewerten ohne Automatik',
+          'Seitenwindlandungen, eingeschränkte Sicht und anspruchsvolle Flughäfen',
+          'Systemstörungen, Checklisten-Führung und ruhige Aufgabenverteilung',
+          'Ruhige Kommunikation im Cockpit unter hoher Arbeitsbelastung',
+          'Mehrstufige Kapitänsmission mit detailliertem Kapitäns-Feedback',
+        ],
+      },
     },
   },
   {
@@ -381,6 +423,17 @@ export const SUBSCRIPTION_PASSES: readonly SubscriptionPass[] = [
           'بناء المسار في FMC وإحاطات المغادرة والوصول',
           'مسح العدادات وإدارة الطاقة وبوابات الاقتراب',
           'CRM وTEM واتخاذ القرارات العملية في قمرة القيادة',
+        ],
+      },
+      de: {
+        title: 'Cockpit-Beherrschung & Systeme · 10 × 60 Min.',
+        summary: 'Zehn fokussierte Flüge, die praktisches Steuern mit Kapitäns-Briefings zu Systemen, Navigation und Teamwork verbinden.',
+        curriculum: [
+          'Die Geschichte der Flugzeugsysteme: Elektrik, Pneumatik, Hydraulik und Redundanz',
+          'Flugplanung: Wetter, Treibstoff, Ausweichflughäfen und Sicherheitsreserven',
+          'FMC-Routenprogrammierung sowie Abflug- und Anflug-Briefings',
+          'Instrumenten-Scan, Energiemanagement und stabile Anflugtore',
+          'Zusammenarbeit im Cockpit, Gefahrenerkennung und praxisnahe Entscheidungen',
         ],
       },
     },
@@ -455,6 +508,17 @@ export const SUBSCRIPTION_PASSES: readonly SubscriptionPass[] = [
           'مهمة التخرج: مساركم وهبوطكم واستخلاص الكابتن',
         ],
       },
+      de: {
+        title: 'Der Kapitänskurs · 10 × 90 Min.',
+        summary: 'Zehn vollwertige Sitzungen vom Cold-&-Dark-Start bis zum souveränen Führen einer Boeing 737.',
+        curriculum: [
+          'Cold & Dark: Die gesamte Boeing 737 Schritt für Schritt zum Leben erwecken',
+          'Vom Start bis zur Landung unter persönlicher Anleitung Ihres Kapitäns',
+          'Anspruchsvolle Anflüge: Seitenwind, Nebel und weltberühmte Flughäfen',
+          'Wenn etwas passiert: Triebwerksausfall und Checklisten-Ruhe bewahren',
+          'Abschlussmission: Ihre Route, Ihre Landung und Ihr Kapitäns-Debriefing',
+        ],
+      },
     },
   },
   {
@@ -527,6 +591,17 @@ export const SUBSCRIPTION_PASSES: readonly SubscriptionPass[] = [
           'ورقة تقييم نهائية وإحاطة ليوم المقابلة من كابتن عامل في شركة طيران',
         ],
       },
+      de: {
+        title: 'Airline-Interview-Vorbereitung PRO · 3 × 90 Min.',
+        summary: 'Drei volle 90-Minuten-Simulator-Checks für Piloten im Auswahlverfahren bei El Al, Arkia, Israir, Wizz Air oder Ryanair.',
+        curriculum: [
+          'Raw-Data-ILS, Holdings und Steilkurven ohne Flight Director',
+          'V1-Triebwerksausfall, QRH-Management und strukturierte Entscheidungsfindung',
+          'Standard-Callouts, Pilot-Monitoring-Koordination und Kapitäns-Briefings',
+          'Realistisches Echtzeit-Auswahlprofil inklusive Abschätzungen unter Zeitdruck',
+          'Abschließender Bewertungsbogen und Briefing für den Interviewtag mit aktivem Linienkapitän',
+        ],
+      },
     },
   },
   {
@@ -597,6 +672,17 @@ export const SUBSCRIPTION_PASSES: readonly SubscriptionPass[] = [
           'الاقترابات الدقيقة وغير الدقيقة: ILS وLOC/DME وRNAV مع الدخول إلى الانتظار',
           'العمل بمحرك واحد: الفشل عند V1 وILS بمحرك واحد والذهاب حول وتسلسل QRH',
           'ملف كامل بتوقيت فعلي مع تنسيق PM وورقة تقييم من الكابتن',
+        ],
+      },
+      de: {
+        title: 'Airline-Interview-Vorbereitung PRO · 5 × 60 Min.',
+        summary: 'Fünf fokussierte 60-Minuten-Sitzungen vom Raw-Data-Scan bis zu komplexen QRH-Fällen für Piloten in der Airline-Vorbereitung.',
+        curriculum: [
+          'Sitzung 1: Raw-Data-Scan und präzise manuelle Flugsteuerung',
+          'Sitzung 2: Steilkurven, Geschwindigkeitskontrolle und Stabilisierung',
+          'Sitzung 3: Holdings, Go-Arounds und Non-Precision-Anflüge',
+          'Sitzung 4: V1-Triebwerksausfall, QRH-Verfahren und Ausweichentscheidungen',
+          'Sitzung 5: Vollständiges Echtzeit-Checkprofil mit PM-Koordination und Kapitäns-Bewertungsbogen',
         ],
       },
     },

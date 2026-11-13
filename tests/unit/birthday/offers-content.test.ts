@@ -22,7 +22,7 @@ import { PUBLIC_SITE_ROUTES } from '@/lib/seo/site-routes';
 import { PAGE_SEO_DEFINITIONS } from '@/lib/seo/seo-config';
 import { REPO_ROOT, sourceFiles } from '../_support/source';
 
-const LANGUAGES: SupportedLanguage[] = ['he', 'en', 'ru', 'fr', 'ar', 'es'];
+const LANGUAGES: SupportedLanguage[] = ['he', 'en', 'ru', 'fr', 'ar', 'es', 'de'];
 const HEBREW = /[֐-׿]/;
 const ARABIC = /[؀-ۿ]/;
 const FORBIDDEN: Record<SupportedLanguage, RegExp[]> = {
@@ -32,6 +32,7 @@ const FORBIDDEN: Record<SupportedLanguage, RegExp[]> = {
   ru: [HEBREW, ARABIC],
   fr: [HEBREW, ARABIC],
   es: [HEBREW, ARABIC],
+  de: [HEBREW, ARABIC],
 };
 const EMOJI = /\p{Extended_Pictographic}/u;
 const KNOWN_PLACEHOLDERS = new Set([

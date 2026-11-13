@@ -17,6 +17,6 @@ describe('Ground School public registry', () => {
     expect(copy.advantages).toHaveLength(4);
     expect(Object.keys(copy.pathwayOptions)).toEqual(['faa', 'easa', 'exploring']);
     expect(Object.keys(copy.modalityOptions)).toEqual(['online', 'in_person', 'hybrid']);
-    expect(copy.disclosure).toMatch(/not|אינם|не|n’est|ليست|no/i);
+    expect(copy.disclosure).toMatch(/not|אינם|не|n’est|ليست|no|keine/i);
   });
 });

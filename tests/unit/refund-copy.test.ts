@@ -3,7 +3,7 @@ import { REFUND_COPY, describeEvaluation, evaluateRefundEligibility, fillCopy, f
 import { REFUND_EMAIL_COPY } from '@/lib/refund/copy/email';
 import type { Language } from '@/lib/i18n/translations';
 
-const CODES: Language[] = ['he', 'en', 'ru', 'fr', 'ar', 'es'];
+const CODES: Language[] = ['he', 'en', 'ru', 'fr', 'ar', 'es', 'de'];
 const HEBREW = /[֐-׿]/;
 const ARABIC = /[؀-ۿ]/;
 const PLACEHOLDER = /\{\w+\}/g;

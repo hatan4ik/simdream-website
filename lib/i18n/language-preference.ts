@@ -9,7 +9,7 @@ export const DEFAULT_LANGUAGE: Language = 'he';
  * 380 KB translation tables into the Wix worker a second time. `tests/unit/language-codes.test.ts`
  * pins this list to `LANGUAGES`.
  */
-export const LANGUAGE_CODES: readonly Language[] = ['en', 'he', 'ru', 'fr', 'ar', 'es'];
+export const LANGUAGE_CODES: readonly Language[] = ['en', 'he', 'ru', 'fr', 'ar', 'es', 'de'];
 
 const supportedLanguageCodes = new Set<Language>(LANGUAGE_CODES);
 
@@ -25,7 +25,7 @@ export function languageDirection(language: Language): 'ltr' | 'rtl' {
   return language === 'he' || language === 'ar' ? 'rtl' : 'ltr';
 }
 
-const PATH_LOCALE_RE = /^\/(he|en|ru|fr|ar|es)(?:\/|$)/;
+const PATH_LOCALE_RE = /^\/(he|en|ru|fr|ar|es|de)(?:\/|$)/;
 
 /** Extracts a leading Wix Multilingual locale segment (`/en/...`) when present. */
 export function extractPathLocale(pathname: string | null | undefined): Language | null {

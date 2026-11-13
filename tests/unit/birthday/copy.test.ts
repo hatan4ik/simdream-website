@@ -11,7 +11,7 @@ import {
   type BirthdayDateError,
 } from '@/lib/discounts/birthday';
 
-const LANGUAGES: SupportedLanguage[] = ['he', 'en', 'ru', 'fr', 'ar', 'es'];
+const LANGUAGES: SupportedLanguage[] = ['he', 'en', 'ru', 'fr', 'ar', 'es', 'de'];
 const HEBREW = /[֐-׿]/;
 const ARABIC = /[؀-ۿ]/;
 const FORBIDDEN: Record<SupportedLanguage, RegExp[]> = {
@@ -21,6 +21,7 @@ const FORBIDDEN: Record<SupportedLanguage, RegExp[]> = {
   ru: [HEBREW, ARABIC],
   fr: [HEBREW, ARABIC],
   es: [HEBREW, ARABIC],
+  de: [HEBREW, ARABIC],
 };
 const EMOJI = /\p{Extended_Pictographic}/u;
 const KEYS = Object.keys(BIRTHDAY_CHECKOUT_COPY.en);

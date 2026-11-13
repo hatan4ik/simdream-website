@@ -8,6 +8,7 @@ const DATE_LOCALES: Record<SupportedLanguage, string> = {
   fr: 'fr-FR',
   ar: 'ar-IL',
   es: 'es-ES',
+  de: 'de-DE',
 };
 
 /** Whole shekels as the site prints them elsewhere (₪1,290). */

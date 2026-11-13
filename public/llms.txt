@@ -88,7 +88,7 @@ Add-ons extend a consumer Experience Flight. Professional and Fear of Flying ses
 - [Privacy and Cookie Policy (מדיניות פרטיות)](https://www.simdream.co.il/privacy-policy)
 
 ## Blog Articles (Hebrew — Canonical Short URLs)
-The Flight Deck Journal publishes articles on airline screening preparation, cockpit skills, fear of flying, gifts and aviation knowledge. Multilingual editions are served at `/post/<lang>/<short-slug>` (`en`, `ru`, `fr`, `es`, `ar`) with `he` as `x-default`.
+The Flight Deck Journal publishes articles on airline screening preparation, cockpit skills, fear of flying, gifts and aviation knowledge. Multilingual editions are served at `/post/<lang>/<short-slug>` (`en`, `ru`, `fr`, `es`, `ar`, `de`) with `he` as `x-default`.
 - [האם טייס אוטומטי נוחת לבד? תשובה מהקוקפיט](https://www.simdream.co.il/post/does-autopilot-land-alone) — published 2026-10-25: מתי מערכת Autoland פועלת, מה תפקיד הקברניט בגישת ILS ואיך מתרגלים זאת. בסימולטור בואינג 737 בתל אביב עם קברניט פעיל. חוויה אותנטית ומקצועית בקוקפיט בואינג 737.
 - [גישה ונחיתה בשדות הכי מאתגרים בעולם](https://www.simdream.co.il/post/challenging-airport-landings-guide) — published 2026-10-21: מדיירה, אינסברוק ופרו — איך מתמודדים בקוקפיט עם רוחות צד, הרים ומסלולים קצרים. בסימולטור בואינג 737 בתל אביב עם קברניט פעיל. חוויה אותנטית ומקצועית בקוקפיט.
 - [איך מתרגלים נחיתת רוח צד בסימולטור בואינג 737](https://www.simdream.co.il/post/crosswind-landing-practice-737) — published 2026-10-21: טכניקות Crab ו-Wing-Low, עבודת רגליים על ההגה וניהול מצערות בנחיתת רוח צד. בסימולטור בואינג 737 בתל אביב עם קברניט פעיל. חוויה אותנטית ומקצועית בקוקפיט בואינג.

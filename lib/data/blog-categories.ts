@@ -85,6 +85,7 @@ export interface BlogCategoryMeta {
   labelFr: string;
   labelEs: string;
   labelAr: string;
+  labelDe: string;
   descriptionHe: string;
   badgeColor: string;
 }
@@ -98,6 +99,7 @@ export const BLOG_CATEGORIES: readonly BlogCategoryMeta[] = [
     labelFr: 'Sélection compagnie & ATPL',
     labelEs: 'Preparación para aerolíneas y ATPL',
     labelAr: 'التحضير لاختبارات الطيران وATPL',
+    labelDe: 'Airline-Assessment & ATPL',
     descriptionHe: 'מדריכים מעשיים להכנה למיוני טייס בחברות תעופה, תכנות FMC ונהלי קוקפיט.',
     badgeColor: 'border-sky-500/30 bg-sky-500/10 text-sky-400',
   },
@@ -109,6 +111,7 @@ export const BLOG_CATEGORIES: readonly BlogCategoryMeta[] = [
     labelFr: 'Compétences cockpit & défis',
     labelEs: 'Habilidades de cabina y desafíos',
     labelAr: 'مهارات قمرة القيادة وتحديات الطيران',
+    labelDe: 'Cockpit-Skills & Herausforderungen',
     descriptionHe: 'גישות מורכבות, נחיתות רוח צד, שדות תעופה מאתגרים בעולם ומערכות בואינג 737.',
     badgeColor: 'border-orange-500/30 bg-orange-500/10 text-orange-400',
   },
@@ -120,6 +123,7 @@ export const BLOG_CATEGORIES: readonly BlogCategoryMeta[] = [
     labelFr: 'Cadeaux et événements uniques',
     labelEs: 'Regalos y experiencias únicas',
     labelAr: 'الهدايا والفعاليات المميزة',
+    labelDe: 'Geschenke & besondere Erlebnisse',
     descriptionHe: 'רעיונות למתנות יום הולדת, דייטים בלתי נשכחים ופעילויות גיבוש יוקרתיות.',
     badgeColor: 'border-amber-500/30 bg-amber-500/10 text-amber-400',
   },
@@ -131,6 +135,7 @@ export const BLOG_CATEGORIES: readonly BlogCategoryMeta[] = [
     labelFr: 'Surmonter la peur de voler',
     labelEs: 'Superar el miedo a volar',
     labelAr: 'التغلب على الخوف من الطيران',
+    labelDe: 'Flugangst überwinden',
     descriptionHe: 'הסברים מרגיעים מהקוקפיט וכלים מעשיים להתגברות על חרדת טיסה.',
     badgeColor: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400',
   },
@@ -142,6 +147,7 @@ export const BLOG_CATEGORIES: readonly BlogCategoryMeta[] = [
     labelFr: 'Connaissances aéronautiques & systèmes',
     labelEs: 'Conocimientos aeronáuticos y sistemas',
     labelAr: 'المعرفة وأنظمة الطيران',
+    labelDe: 'Luftfahrtwissen & Systeme',
     descriptionHe: 'מערכות בואינג 737, השוואות תעופתיות ומה קורה באמת מאחורי דלת תא הטייס.',
     badgeColor: 'border-indigo-500/30 bg-indigo-500/10 text-indigo-400',
   },
@@ -161,6 +167,8 @@ export function getBlogCategoryLabel(category: BlogCategory, lang = 'he'): strin
       return meta.labelEs;
     case 'ar':
       return meta.labelAr;
+    case 'de':
+      return meta.labelDe;
     case 'he':
     default:
       return meta.labelHe;

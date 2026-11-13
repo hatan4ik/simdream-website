@@ -20,6 +20,7 @@ const READ_TIME_LABELS: Record<string, string> = {
   fr: 'min de lecture',
   es: 'min de lectura',
   ar: 'دقائق قراءة',
+  de: 'Min. Lesezeit',
 };
 
 const READ_MORE_LABELS: Record<string, { short: string; full: string }> = {
@@ -29,6 +30,7 @@ const READ_MORE_LABELS: Record<string, { short: string; full: string }> = {
   fr: { short: 'En savoir plus', full: "Lire l'article complet" },
   es: { short: 'Leer más', full: 'Leer artículo completo' },
   ar: { short: 'اقرأ المزيد', full: 'قراءة المقال بالكامل' },
+  de: { short: 'Mehr lesen', full: 'Vollständigen Artikel lesen' },
 };
 
 const LOCALE_BY_LANG: Record<string, string> = {
@@ -38,6 +40,7 @@ const LOCALE_BY_LANG: Record<string, string> = {
   fr: 'fr-FR',
   es: 'es-ES',
   ar: 'ar-EG',
+  de: 'de-DE',
 };
 
 export function BlogCard({ post, featured = false }: BlogCardProps) {

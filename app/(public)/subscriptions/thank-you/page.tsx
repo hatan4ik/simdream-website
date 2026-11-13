@@ -96,6 +96,20 @@ const THANK_YOU_COPY: LocalizedRecord<ThankYouCopy> = {
     calendarButton: 'فتح تقويم الطيران',
     dispatchNotice: 'هل تحتاجون لمساعدة في الجدولة؟ قسم العمليات في خدمتكم دائماً.',
   },
+  de: {
+    badge: 'KAUF BESTÄTIGT',
+    title: 'Willkommen im Sim Dream Flight Club!',
+    subtitle:
+      'Ihr Boeing 737 Flugprogramm ist bestätigt. Ihre enthaltenen Flüge sind ab sofort aktiv und Sie buchen jeden Flug flexibel nach Ihrem Zeitplan.',
+    orderRefLabel: 'Bestellnummer',
+    nextStepsTitle: 'Nächste Schritte ins Cockpit',
+    step1: 'Ihre Bestätigung und der Zahlungsbeleg wurden an Ihre E-Mail-Adresse gesendet.',
+    step2: 'Vereinbaren Sie Ihre erste Flugsession direkt über den Kalender oder über unsere Disposition.',
+    step3: 'Jede Session beinhaltet ein 1-zu-1-Coaching mit einem aktiven Verkehrspiloten.',
+    dashboardButton: 'Zum Flight Deck',
+    calendarButton: 'Flugkalender öffnen',
+    dispatchNotice: 'Benötigen Sie individuelle Terminhilfe? Unser Dispatch ist für Sie da.',
+  },
 };
 
 function ThankYouContent() {

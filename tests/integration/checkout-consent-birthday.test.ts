@@ -59,7 +59,7 @@ describe('POST /api/checkout: consent is mandatory', () => {
     const slot = await openSlot(app, 30);
     const response = await postCheckout(
       app,
-      bookingCheckoutBody({ bookingDate: DAY, startTime: slot.startTime, consent: validConsentBody('de') })
+      bookingCheckoutBody({ bookingDate: DAY, startTime: slot.startTime, consent: validConsentBody('pt') })
     );
     expect(response.status).toBe(400);
   });

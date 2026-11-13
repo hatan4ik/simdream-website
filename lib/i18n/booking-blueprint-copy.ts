@@ -141,4 +141,33 @@ export const BOOKING_BLUEPRINT_COPY: LocalizedRecord<BookingBlueprintCopy> = {
     closeDialogLabel: 'إغلاق تفاصيل الباقة',
     selectBtn: (price) => `اختيار هذه الباقة (${price})`,
   },
+  de: {
+    whatIncludedBtn: 'Leistungsumfang ansehen',
+    badge: 'OFFIZIELLER FLUGPLAN • LEISTUNGSUMFANG',
+    missionArch: 'Ihre Cockpit-Mission, Schritt für Schritt',
+    duration: (minutes) => `${minutes}-Minuten-Flugsession`,
+    handsOnPic: 'Aktive Steuerung als Pilot-in-Command:',
+    handsOnDesc: (minutes) =>
+      `${minutes} Minuten auf dem Kapitäns- oder First-Officer-Sitz mit aktivem Steuergefühl in einem authentischen Cockpit.`,
+    takeoffTitle: 'Start- & Lande-Grundlagen:',
+    takeoffDesc: 'Geführter Start, Steigflugnavigation, Platzrunde und manuelle Landung.',
+    worldTitle: 'Weltrouten & Szenarien:',
+    world60:
+      'Enthält das Start- & Landetraining sowie 1 World-Trio-Thema Ihrer Wahl: drei legendäre Flughäfen, Mittelmeerinseln oder die Alpen in Innsbruck.',
+    world90:
+      'Enthält das Start- & Landetraining sowie bis zu 2 World-Trio-Themen (4–6 internationale Landungen) plus Cold & Dark Startup oder V1-Triebwerksausfall. Zwei Piloten können sich am Steuer abwechseln.',
+    worldPro:
+      'Komplettes manuelles Fliegen nach Raw Data (FD OFF), 45°-Steilkurven, V1-Cut-Triebwerksausfall, Einmotoren-ILS-Anflug und QRH-Checklistenarbeit.',
+    worldBasic: 'Fokussierte Start- und Landesession an einem internationalen Flughafen wie Ben Gurion (LLBG).',
+    observersTitle: 'Beobachter im Cockpit:',
+    observersDesc:
+      'Bis zu zwei Gäste können kostenlos auf den Cockpit-Jumpseats Platz nehmen. Fotos und Videos sind willkommen.',
+    guidanceTitle: 'Begleitung durch einen Verkehrspiloten:',
+    guidanceDesc:
+      'Persönliches Pre-Flight-Briefing und aktive Begleitung im Cockpit durch einen Verkehrspiloten.',
+    highlightsTitle: 'Das ist im Paket enthalten',
+    closeBtn: 'Details schließen',
+    closeDialogLabel: 'Paketdetails schließen',
+    selectBtn: (price) => `Dieses Paket wählen (${price})`,
+  },
 };

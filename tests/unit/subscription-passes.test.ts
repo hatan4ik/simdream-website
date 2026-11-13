@@ -13,7 +13,7 @@ import {
 } from '@/lib/data/subscription-passes';
 import { SUBSCRIPTION_PAGE_COPY } from '@/lib/data/subscription-page-copy';
 
-const CODES: Language[] = ['he', 'en', 'ru', 'fr', 'ar', 'es'];
+const CODES: Language[] = ['he', 'en', 'ru', 'fr', 'ar', 'es', 'de'];
 const HEBREW = /[\u0590-\u05FF]/;
 const ARABIC = /[\u0600-\u06FF]/;
 const FORBIDDEN: Record<Language, RegExp[]> = {
@@ -23,6 +23,7 @@ const FORBIDDEN: Record<Language, RegExp[]> = {
   ru: [HEBREW, ARABIC],
   fr: [HEBREW, ARABIC],
   es: [HEBREW, ARABIC],
+  de: [HEBREW, ARABIC],
 };
 const LEGACY_TERMS: Record<Language, RegExp[]> = {
   en: [/\bpass(?:es)?\b/i, /multi-flight/i],
@@ -31,6 +32,7 @@ const LEGACY_TERMS: Record<Language, RegExp[]> = {
   fr: [/\bpass\b/iu],
   ar: [/بطاق/u],
   es: [/\bpass(?:es)?\b/iu, /multi-flight/i],
+  de: [/\bpass(?:es)?\b/iu, /multi-flight/i],
 };
 const SUBSCRIPTION_TERMS: Record<Language, RegExp> = {
   en: /subscription/i,
@@ -39,6 +41,7 @@ const SUBSCRIPTION_TERMS: Record<Language, RegExp> = {
   fr: /abonnement/i,
   ar: /اشتراك/,
   es: /subscription|suscripci[oó]n/i,
+  de: /abonnement|abo/i,
 };
 
 function stringLeaves(value: unknown): string[] {
@@ -174,6 +177,7 @@ const PRO_VOCABULARY: Record<Exclude<Language, 'es'>, RegExp> = {
   ru: /отбор|скрининг|собеседован|\bSOP\b|\bQRH\b|\bV1\b|\bATPL\b|сырым данным|в стиле авиакомпании|в стиле авиалиний/i,
   fr: /sélection|entretien|\bSOP\b|\bQRH\b|\bV1\b|\bATPL\b|raw data|style compagnie/i,
   ar: /مقابلة|مقابلات|اختبار قبول|اختبارات|\bSOP\b|\bQRH\b|\bV1\b|\bATPL\b|البيانات الخام|بأسلوب شركات الطيران/,
+  de: /interview|auswahl|screening|\bSOP\b|\bQRH\b|\bV1\b|raw[- ]data|\bATPL\b|airline[- ]/i,
 };
 
 describe('consumer flight tracks never speak to airline candidates', () => {
@@ -231,6 +235,7 @@ const LIMITED_TIME_TERMS: Record<Exclude<Language, 'es'>, RegExp> = {
   ru: /12 месяц|годов|(?:^|\s)года?(?=[\s.,;:!?]|$)|365|срок действ|действует|действителен|истек|безлимит|неограничен/iu,
   fr: /12 mois|annuel|\ban\b|année|365|validit|valable|expir|illimit/i,
   ar: /12 شهر|سنوي|سنة|365|صلاحي|صالح|تنتهي|غير محدود/,
+  de: /\b12[- ]?monat|\bjährlich|\bjahr|\b365\b|\bgültig|\bläuft ab|\bunbegrenzt/i,
 };
 
 describe('flight track copy never leads with a deadline', () => {

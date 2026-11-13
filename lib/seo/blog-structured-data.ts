@@ -19,6 +19,7 @@ export const BLOG_LANGUAGE_LOCALES: Record<BlogSeoLang, string> = {
   fr: 'fr-FR',
   es: 'es-ES',
   ar: 'ar-EG',
+  de: 'de-DE',
 };
 
 export const BLOG_BREADCRUMB_LABELS: Record<BlogSeoLang, { home: string; blog: string }> = {
@@ -28,6 +29,7 @@ export const BLOG_BREADCRUMB_LABELS: Record<BlogSeoLang, { home: string; blog: s
   fr: { home: 'Accueil', blog: 'Journal de bord' },
   es: { home: 'Inicio', blog: 'Diario de cabina' },
   ar: { home: 'الرئيسية', blog: 'يومية قمرة القيادة' },
+  de: { home: 'Startseite', blog: 'Cockpit-Journal' },
 };
 
 /** Backwards-compatible Hebrew breadcrumb labels alias. */
