@@ -91,10 +91,18 @@ def translate_batch(texts, target_lang, max_retries=3):
             time.sleep(1)
 
 def slugify(text, lang):
-    clean = re.sub(r'[\s_]+', '-', text.strip().lower())
+    clean = text.strip().lower()
+    if lang == 'de':
+        clean = (
+            clean.replace('ä', 'ae')
+            .replace('ö', 'oe')
+            .replace('ü', 'ue')
+            .replace('ß', 'ss')
+        )
+    clean = re.sub(r'[\s_]+', '-', clean)
     clean = re.sub(r'[:?.,!&\'"()\[\]{}]+', '', clean)
     clean = re.sub(r'-+', '-', clean).strip('-')
-    if lang in ['en', 'fr', 'es']:
+    if lang in ['en', 'fr', 'es', 'de']:
         clean = re.sub(r'[^a-z0-9\-]+', '', clean)
     return clean[:80] or f"{lang}-article"
 

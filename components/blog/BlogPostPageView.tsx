@@ -31,6 +31,7 @@ const READ_TIME_LABELS: Record<SupportedLanguage, string> = {
   fr: 'min de lecture',
   es: 'min de lectura',
   ar: 'دقائق قراءة',
+  de: 'Min. Lesezeit',
 };
 
 const BACK_TO_BLOG_LABELS: Record<SupportedLanguage, string> = {
@@ -40,6 +41,7 @@ const BACK_TO_BLOG_LABELS: Record<SupportedLanguage, string> = {
   fr: 'Retour à tous les articles du Journal de bord',
   es: 'Volver a todos los artículos del Diario de cabina',
   ar: 'العودة إلى جميع مقالات يومية قمرة القيادة',
+  de: 'Zurück zu allen Artikeln im Cockpit-Journal',
 };
 
 const RELATED_POSTS_TITLES: Record<SupportedLanguage, string> = {
@@ -49,6 +51,7 @@ const RELATED_POSTS_TITLES: Record<SupportedLanguage, string> = {
   fr: 'Autres articles qui pourraient vous intéresser',
   es: 'Otros artículos que podrían interesarte',
   ar: 'مقالات أخرى قد تهمك',
+  de: 'Weitere Artikel, die Sie interessieren könnten',
 };
 
 const BREADCRUMB_NAV_LABELS: Record<SupportedLanguage, string> = {
@@ -58,6 +61,7 @@ const BREADCRUMB_NAV_LABELS: Record<SupportedLanguage, string> = {
   fr: "Fil d'Ariane",
   es: 'Ruta de navegación',
   ar: 'مسار التنقل',
+  de: 'Brotkrümelnavigation',
 };
 
 interface BlogPostPageViewProps {

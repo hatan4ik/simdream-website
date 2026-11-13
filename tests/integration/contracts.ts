@@ -57,7 +57,7 @@ export const booking = z.strictObject({
       legalDocumentVersion: z.string().min(1),
       consentVersion: z.string().min(1),
       acceptedAt: isoDateTime,
-      language: z.enum(['he', 'en', 'ru', 'fr', 'ar', 'es']),
+      language: z.enum(['he', 'en', 'ru', 'fr', 'ar', 'es', 'de']),
       rulesRefundsAndPrivacy: z.literal(true),
       mediaReleaseAndWaiver: z.literal(true),
     })
@@ -338,7 +338,7 @@ export const scheduleOptimizationPreview = z.strictObject({
   rationale: z.string().min(1),
 });
 
-const reviewLanguage = z.enum(['he', 'en', 'ru', 'fr', 'ar', 'es']);
+const reviewLanguage = z.enum(['he', 'en', 'ru', 'fr', 'ar', 'es', 'de']);
 
 const googleReview = z.strictObject({
   id: z.string().min(1),

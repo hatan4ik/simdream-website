@@ -254,6 +254,82 @@ export const GROUND_SCHOOL_COPY: LocalizedRecord<GroundSchoolCopy> = {
     formName: 'Nombre completo', formEmail: 'Correo electrónico', formPhone: 'Teléfono / WhatsApp', formPathway: 'Ruta teórica', formModality: 'Formato preferido', formFocus: 'Temas en los que quieres ayuda', formFocusPlaceholder: 'Por ejemplo: cartas meteorológicas, cálculos de rendimiento, normativa, práctica de respuestas orales…', formConsent: 'Acepto que Sim Dream use estos datos para responder a mi solicitud de inscripción a la escuela en tierra, como se describe en la Política de privacidad.', formSubmit: 'Enviar solicitud', formSubmitting: 'Enviando…', formSuccessTitle: 'Solicitud recibida', formSuccessDescription: 'El coordinador enviará los detalles de la próxima cohorte antes de confirmar plaza o pago.', formError: 'No se pudo enviar tu solicitud. Revisa los campos e inténtalo de nuevo.',
     pathwayOptions: { faa: 'Preparación de teoría / oral FAA', easa: 'Preparación de teoría / oral EASA', exploring: 'Aún estoy eligiendo una ruta' }, modalityOptions: { online: 'En línea', in_person: 'Presencial en Tel Aviv', hybrid: 'Híbrido' }, disclosureTitle: 'Información importante del programa', disclosure: 'La escuela en tierra es tutoría educativa independiente y preparación para exámenes. No es una escuela aprobada por FAA o EASA, no otorga licencia, habilitación, crédito oficial de formación ni resultado de examen, y no garantiza que un candidato apruebe un examen teórico u oral externo. Las credenciales del instructor y el plan final de la cohorte se confirman antes de la inscripción.',
   },
+  de: {
+    navLabel: 'Theoriekurs',
+    heroBadge: 'PROFI-TRAINING · FAA- / EASA-THEORIE- & ORAL-VORBEREITUNG',
+    heroTitle: 'Ground School für FAA- & EASA-Theorie und mündliche Prüfungen',
+    heroSubtitle:
+      'Ein monatlicher Intensivkurs mit Instruktor für Kandidaten, die strukturierte Theorie, gezielte Oral-Prüfungsvorbereitung und einen realistischen Lernplan aus Israel suchen – online, vor Ort oder hybrid.',
+    heroCta: 'Anmeldung für den Theoriekurs anfragen',
+    overviewBadge: 'AUS ISRAEL LERNEN',
+    overviewTitle: 'Prüfungsreife aufbauen ohne Auslandsalltag',
+    overview:
+      'Für Kandidaten, deren Weg FAA- oder EASA-Theorie erfordert, reduziert ein lokales Lernprogramm vermeidbare Reise-, Unterkunfts-, Mietwagen- und Wartezeiten für einen separaten Kurs in den USA oder Europa. Das Training beginnt bei Ihrem Zielpfad und Ihren schwierigen Themen und formt daraus einen realistischen Monatsplan.',
+    advantagesTitle: 'Warum Kandidaten dieses Format wählen',
+    advantages: [
+      {
+        title: 'Lernbasis vor Ort',
+        description: 'Lernen Sie aus Israel persönlich, online oder hybrid statt regelmäßige Auslandsreisen für Theorie-Coaching einzuplanen.',
+      },
+      {
+        title: 'Gezielte 1:1-Unterstützung',
+        description: 'Bringen Sie genau die Themen mit, die Sie bremsen – Wetter, Luftrecht, Flugleistung, Navigation, Systeme oder Oral-Szenarien – und arbeiten Sie sie mit einem Instruktor durch.',
+      },
+      {
+        title: 'Zielorientiertes Mentoring',
+        description: 'Ihr Plan richtet sich nach Lizenzweg, Prüfungstermin, Lernstil und Ihren realen Budgetentscheidungen.',
+      },
+      {
+        title: 'Theorie mit Praxisbezug',
+        description: 'Luftfahrtbeispiele und strukturierte mündliche Übungen verwandeln isolierte Fakten in klare Erklärungen und sicherere Entscheidungen.',
+      },
+    ],
+    scheduleBadge: 'MONATLICHER INTENSIVKURS',
+    scheduleTitle: 'Ein vierwöchiger Intensiv-Lernplan',
+    scheduleSubtitle:
+      'Jeder Durchgang folgt dieser Struktur. Der Koordinator bestätigt die nächsten Termine, Zeitzone, Instruktor, Kapazität und den Online-/Präsenz-Mix vor der endgültigen Anmeldung.',
+    modules: [
+      { week: 'Woche 1', title: 'Diagnose & Grundlagen', description: 'Zielpfad bestätigen, Wissenslücken erkennen und einen fokussierten Lernplan für Luftrecht, Aerodynamik und Flugzeugsysteme aufstellen.' },
+      { week: 'Woche 2', title: 'Wetter, Navigation & Flugplanung', description: 'Meteorologie, Karten, Leistungsberechnung, Navigationslogik und die Entscheidungswege hinter der richtigen Antwort durcharbeiten.' },
+      { week: 'Woche 3', title: 'Flugleistung, Betrieb & Schwachstellen', description: 'Themen vertiefen, die Zeit oder Sicherheit kosten – mit geführter Problemlösung und individueller Unterstützung.' },
+      { week: 'Woche 4', title: 'Oral-Training & Nächste Schritte', description: 'Konzepte laut und strukturiert erklären, gezieltes Feedback erhalten und mit einem persönlichen Wiederholungsplan in die offizielle Prüfung gehen.' },
+    ],
+    supportTitle: 'Hilfe dort, wo der Stoff schwierig wird',
+    supportDescription:
+      'Das Programm umfasst 1:1-Unterstützung bei anspruchsvollen Themen und dem Aufbau mündlicher Antworten. Ihr Instruktor hilft Ihnen, Ihr Wissen klar zu formulieren und einen machbaren Plan einzuhalten.',
+    formatTitle: 'Unterrichtsformate',
+    formatItems: ['Live-Online-Sessions', 'Präsenzunterricht in Tel Aviv', 'Hybrider Plan mit dem Koordinator'],
+    tuitionLabel: 'Kursgebühr Ground School',
+    tuitionDetail:
+      'Der Gesamtpreis wird in Israelischen Schekel angezeigt. Eine Anfrage löst weder eine Zahlung noch eine verbindliche Platzreservierung aus.',
+    requestTitle: 'Anmeldedetails anfragen',
+    requestDescription:
+      'Teilen Sie dem Koordinator Ihren gewünschten Theoriepfad und Ihr Lernformat mit. Sie erhalten die Details zum nächsten Durchgang vor einer verbindlichen Anmeldung oder Zahlung.',
+    formName: 'Vollständiger Name',
+    formEmail: 'E-Mail-Adresse',
+    formPhone: 'Telefon / WhatsApp',
+    formPathway: 'Theoriepfad',
+    formModality: 'Bevorzugtes Format',
+    formFocus: 'Themen, bei denen Sie Unterstützung wünschen',
+    formFocusPlaceholder: 'z. B. Wetterkarten, Leistungsberechnung, Luftrecht, Oral-Prüfungstraining…',
+    formConsent:
+      'Ich bin damit einverstanden, dass Sim Dream diese Angaben verwendet, um meine Anfrage zum Theoriekurs wie in der Datenschutzerklärung beschrieben zu beantworten.',
+    formSubmit: 'Anfrage senden',
+    formSubmitting: 'Wird gesendet…',
+    formSuccessTitle: 'Anfrage erhalten',
+    formSuccessDescription:
+      'Der Koordinator sendet Ihnen die Details zum nächsten Durchgang, bevor ein Platz oder eine Zahlung bestätigt wird.',
+    formError: 'Ihre Anfrage konnte nicht gesendet werden. Prüfen Sie die Felder und versuchen Sie es erneut.',
+    pathwayOptions: {
+      faa: 'FAA-Theorie- / Oral-Vorbereitung',
+      easa: 'EASA-Theorie- / Oral-Vorbereitung',
+      exploring: 'Ich wähle meinen Pfad noch aus',
+    },
+    modalityOptions: { online: 'Online', in_person: 'Vor Ort in Tel Aviv', hybrid: 'Hybrid' },
+    disclosureTitle: 'Wichtiger Programmhinweis',
+    disclosure:
+      'Die Ground School ist ein unabhängiges Bildungs-Tutoring und Prüfungstraining. Sie ist keine von FAA oder EASA zugelassene Flugschule, verleiht keine Lizenzen, Berechtigungen, offiziellen Ausbildungsstunden oder Prüfungsergebnisse und garantiert nicht das Bestehen externer Theorie- oder Oral-Prüfungen. Qualifikationen des Instruktors und der endgültige Kursplan werden vor der Anmeldung bestätigt.',
+  },
 };
 
 export function groundSchoolCopy(language: Language): GroundSchoolCopy {

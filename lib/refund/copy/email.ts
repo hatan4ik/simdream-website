@@ -61,4 +61,13 @@ export const REFUND_EMAIL_COPY: Record<Language, RefundEmailCopy> = {
     rulesLabel: 'Normas de reembolso',
     footer: 'Sim Dream LTD',
   },
+  de: {
+    subject: 'Ihr Sim Dream Erstattungsantrag {reference}',
+    greeting: 'Hallo {name},',
+    received: 'wir haben Ihren Erstattungsantrag erhalten.',
+    referenceLabel: 'Ihre Referenznummer',
+    next: 'Ein Teammitglied gleicht den Antrag mit den Erstattungsregeln ab und antwortet Ihnen per E-Mail oder Telefon. Die Regeln sehen bis zu {days} Tage für die Antwort auf einen schriftlichen Antrag vor. Diese Nachricht ist eine Eingangsbestätigung, noch keine Entscheidung.',
+    rulesLabel: 'Erstattungsregeln',
+    footer: 'Sim Dream LTD',
+  },
 };

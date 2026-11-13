@@ -1,6 +1,7 @@
 import { SIMULATOR_PACKAGES, FLIGHT_ADDONS } from '@/lib/db/seed-data';
+import { germanTranslations } from './de';
 
-export type Language = 'en' | 'he' | 'ru' | 'fr' | 'ar' | 'es';
+export type Language = 'en' | 'he' | 'ru' | 'fr' | 'ar' | 'es' | 'de';
 export type SupportedLanguage = Language;
 /**
  * Existing specialist copy may intentionally fall back to English while a new
@@ -23,6 +24,7 @@ export const LANGUAGES: LanguageInfo[] = [
   { code: 'fr', name: 'French', nativeName: 'Français', flag: '🇫🇷', dir: 'ltr' },
   { code: 'ar', name: 'Arabic', nativeName: 'العربية', flag: '🇸🇦', dir: 'rtl' },
   { code: 'es', name: 'Spanish', nativeName: 'Español', flag: '🇪🇸', dir: 'ltr' },
+  { code: 'de', name: 'German', nativeName: 'Deutsch', flag: '🇩🇪', dir: 'ltr' },
 ];
 
 const baseTranslations = {
@@ -4445,7 +4447,7 @@ const spanishTranslations = {
   },
 };
 
-export const translations = { ...baseTranslations, es: spanishTranslations };
+export const translations = { ...baseTranslations, es: spanishTranslations, de: germanTranslations };
 
 const PROMO_45_TRANSLATIONS: LocalizedRecord<{
   title: string;
@@ -4522,6 +4524,20 @@ const PROMO_45_TRANSLATIONS: LocalizedRecord<{
       'إقلاعان وهبوطان كاملان في مطارات من اختيارك',
       'تجربة قمرة بوينغ 737 أصيلة',
       'ما يصل إلى ضيفين في مقاعد المراقب (Jumpseat)',
+    ],
+  },
+  de: {
+    title: 'Vergünstigter Aktionsflug (45 Min.)',
+    badge: 'Aktionsangebot • So–Di • Bis 18:00',
+    shortDesc: 'Sondertarif für Sonntag bis Dienstag tagsüber (10:00–18:00). Ein 45-Minuten-Flug mit zwei Landungen und Wunschwetter.',
+    description:
+      'Verfügbar von Sonntag bis Dienstag vor 18:00 Uhr. Genießen Sie 45 Minuten reine Cockpit-Flugzeit (60 Minuten Gesamtslot inklusive 15 Minuten technischem Turnaround) mit vollständigem Start, Platzrunde und zwei Anflügen an internationalen Flughäfen.',
+    features: [
+      '45 Minuten Flugzeit als Pilot-in-Command (+15 Min. Vorbereitung = 60 Min. Slot)',
+      'Verfügbar Sonntag–Dienstag tagsüber (10:00–18:00)',
+      'Zwei vollständige Starts und Landungen an Flughäfen Ihrer Wahl',
+      'Authentisches Boeing 737 Cockpit-Flugerlebnis',
+      'Bis zu 2 Beobachter auf den Cockpit-Jumpseats',
     ],
   },
 };
@@ -4785,6 +4801,58 @@ const MISSION_ADDONS_TRANSLATIONS: LocalizedRecord<Record<string, { name: string
       name: 'ثلاثية أساطير الطيران والشرق الأوسط — دبي (OMDB)، صخرة جبل طارق (LXGB) ولارنكا (LCLK)',
       description:
         'المسار والمشاهد (+40 دقيقة): التحليق بجوار برج خليفة ونخلة جميرا إلى مطار دبي (OMDB)، ومواجهة الرياح الدوامية حول صخرة جبل طارق على مدرج يقطعه شارع حي (LXGB)، والاقتراب الساحلي الكلاسيكي إلى لارنكا في قبرص (LCLK).',
+    },
+  },
+  de: {
+    'addon-cold-dark': {
+      name: 'Boeing 737 Cold & Dark Cockpit-Start',
+      description:
+        'Das erwartet Sie (+20 Min.): Sie betreten ein komplett stromloses, dunkles 737-MAX-Flugdeck. Gemeinsam mit Ihrem Instruktor schalten Sie Batterie und Bodenstrom ein, starten die APU, konfigurieren Zapfluftventile und Treibstoffpumpen im Overhead-Panel, richten die IRS-Navigation aus und zünden beide CFM-LEAP-1B-Triebwerke nach realer Checkliste.',
+    },
+    'addon-xwind-ifr': {
+      name: 'Seitenwind (X-Wind) / Live-METAR / IFR-Instrumentenflug',
+      description:
+        'Das erwartet Sie (+15 Min.): Statt ruhigem Sichtflug fliegen Sie nach realen Wetterberichten (METAR) unter Instrumentenflugregeln (IFR) durch dichte Wolken und Gewitter. Meistern Sie die Vorhaltewinkel- und Ausrichtetechnik gegen 30 Knoten böigen Seitenwind und führen Sie den Jet per Präzisions-ILS-Nadeln bis zum Minimum.',
+    },
+    'addon-extreme-airports': {
+      name: 'Extrem-Flughäfen-Trio — Paro (VQPR), Hongkong Kai Tak (VHHX) & Innsbruck (LOWI)',
+      description:
+        'Das erwartet Sie (+25 Min.): Testen Sie Ihre Nerven bei den anspruchsvollsten Kapitäns-Anflügen der Welt, bei denen kein Autopilot landen kann. Schlängeln Sie sich visuell zwischen 5.500 m hohen Himalaya-Gipfeln nach Paro (VQPR), fliegen Sie die legendäre 47°-Checkerboard-Kurve in Kai Tak (VHHX) und durchfliegen Sie das steile Alpental nach Innsbruck (LOWI).',
+    },
+    'addon-classical-eu': {
+      name: 'Klassische EU-Drehkreuze Trio — London Heathrow (EGLL), Paris CDG (LFPG) & Amsterdam (EHAM)',
+      description:
+        'Route & Ausblick (+40 Min.): Erweitern Sie Ihren Flug um eine europäische Flaggschiff-Tour zu drei legendären Drehkreuzen. Fliegen Sie Präzisionsanflüge über die Themse nach London Heathrow (EGLL), Parallelbahnen in Paris Charles de Gaulle (LFPG) und die unter dem Meeresspiegel liegenden Polderbahnen in Amsterdam Schiphol (EHAM).',
+    },
+    'addon-med-islands': {
+      name: 'Mittelmeerinseln & Riviera Trio — Korfu (LGKR), Skiathos (LGSK) & Nizza (LFMN)',
+      description:
+        'Route & Ausblick (+40 Min.): Sonnenverwöhnte Küstenanflüge! Streifen Sie über den Klosterdamm auf die von Wasser umgebene Piste von Korfu (LGKR), erleben Sie die berühmte Strand-Schwelle von Skiathos (LGSK) und fliegen Sie die geschwungene Riviera-Sichtkurve vorbei an Monaco nach Nizza Côte d’Azur (LFMN).',
+    },
+    'addon-us-megacities': {
+      name: 'US-Metropolen Skyline Trio — New York (KLGA), Washington (KDCA) & San Francisco (KSFO)',
+      description:
+        'Route & Ausblick (+40 Min.): Legendäre US-Sichtanflüge! Kurven Sie vorbei an Manhattan, Empire State Building & Freiheitsstatue auf dem Expressway Visual nach LaGuardia (KLGA Rwy 31), folgen Sie dem Potomac vorbei an Pentagon & Washington Monument (KDCA Rwy 19) und sinken Sie vorbei an der Golden Gate Bridge in die Bucht von San Francisco (KSFO).',
+    },
+    'addon-night-neon': {
+      name: 'City-Center & Night-Neon Trio — London City (EGLC), Tokio Haneda (RJTT) & Las Vegas (KLAS)',
+      description:
+        'Route & Ausblick (+40 Min.): Atemberaubende Sonnenuntergangs- und Nachtkulissen. Meistern Sie den steilen 5,5°-Gleitpfad vorbei an Tower Bridge & Canary Wharf nach London City (EGLC), überfliegen Sie den leuchtenden Tokyo Tower nach Haneda (RJTT) und landen Sie parallel zum funkelnden Las Vegas Strip (KLAS).',
+    },
+    'addon-alpine-mountains': {
+      name: 'Alpen & Fjord Gebirgs-Trio — Queenstown (NZQN), Genf (LSGG) & Salzburg (LOWS)',
+      description:
+        'Route & Ausblick (+40 Min.): Dramatische Navigation zwischen schneebedeckten Gipfeln! Fliegen Sie einen geschwungenen RNP-AR-Anflug durch die Remarkables und über den Lake Wakatipu nach Queenstown (NZQN), sinken Sie vorbei am Mont Blanc über den Genfersee (LSGG) und meistern Sie den Sichtanflug am Untersberg in Salzburg (LOWS).',
+    },
+    'addon-tropical-ocean': {
+      name: 'Karibik & Ozean-Pisten Trio — St. Maarten (TNCM), Rio (SBRJ) & Malediven (VRMM)',
+      description:
+        'Route & Ausblick (+40 Min.): Türkisfarbene Riffe und ultrakurze Wasserpisten! Fliegen Sie in 12 Metern Höhe über den Maho Beach auf St. Maarten (TNCM Rwy 10), kurven Sie vorbei an Christusstatue & Zuckerhut auf die kurze Bucht-Piste von Rio Santos Dumont (SBRJ) und landen Sie auf einem Korallenatoll in Malé auf den Malediven (VRMM).',
+    },
+    'addon-middle-east-legends': {
+      name: 'Luftfahrt-Legenden & Nahost Trio — Dubai (OMDB), Gibraltar (LXGB) & Larnaka (LCLK)',
+      description:
+        'Route & Ausblick (+40 Min.): Gleiten Sie vorbei an Burj Khalifa und Palm Jumeirah nach Dubai International (OMDB), meistern Sie Fallwinde am Felsen von Gibraltar auf einer von einer Straße gekreuzten Piste (LXGB) und fliegen Sie den klassischen Küstenanflug auf Larnaka, Zypern (LCLK).',
     },
   },
 };

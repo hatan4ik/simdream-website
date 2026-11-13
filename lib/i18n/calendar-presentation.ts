@@ -10,6 +10,7 @@ export const CALENDAR_LOCALES: LocalizedRecord<string> = {
   fr: 'fr-FR',
   ar: 'ar-IL',
   es: 'es-ES',
+  de: 'de-DE',
 };
 
 /** Sunday is customary in Israel and the US; French and Russian calendars begin on Monday. */
@@ -20,6 +21,7 @@ const WEEK_STARTS_ON: LocalizedRecord<number> = {
   fr: 1,
   ar: 0,
   es: 1,
+  de: 1,
 };
 
 /** Shared accessible labels for any booking calendar control. */
@@ -67,6 +69,12 @@ const CALENDAR_NAVIGATION_LABELS: LocalizedRecord<CalendarNavigationLabels> = {
     nextWeek: 'Semana siguiente',
     today: 'Hoy',
     horizonNote: 'Los vuelos se pueden reservar con hasta un año de antelación.',
+  },
+  de: {
+    previousWeek: 'Vorherige Woche',
+    nextWeek: 'Nächste Woche',
+    today: 'Heute',
+    horizonNote: 'Flüge können bis zu ein Jahr im Voraus gebucht werden.',
   },
 };
 

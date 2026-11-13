@@ -24,13 +24,14 @@ describe('extractPathLocale', () => {
     expect(extractPathLocale('/fr/')).toBe('fr');
     expect(extractPathLocale('/ar/pro')).toBe('ar');
     expect(extractPathLocale('/es/experiences')).toBe('es');
+    expect(extractPathLocale('/de/blog')).toBe('de');
   });
 
   it('returns null for unprefixed, unsupported, or nested locale segments', () => {
     expect(extractPathLocale('/blog')).toBeNull();
     expect(extractPathLocale('/post/en/slug')).toBeNull();
     expect(extractPathLocale('/english/blog')).toBeNull();
-    expect(extractPathLocale('/de/blog')).toBeNull();
+    expect(extractPathLocale('/pt/blog')).toBeNull();
     expect(extractPathLocale('')).toBeNull();
     expect(extractPathLocale(null)).toBeNull();
     expect(extractPathLocale(undefined)).toBeNull();

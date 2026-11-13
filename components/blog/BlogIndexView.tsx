@@ -101,6 +101,18 @@ const UI_COPY: Record<
     noResultsText: 'جرب اختيار فئة أخرى أو مسح شريط البحث.',
     resetSearch: 'عرض جميع المقالات',
   },
+  de: {
+    heroBadge: 'SIM DREAM COCKPIT-JOURNAL · FLIGHT DECK JOURNAL',
+    heroTitle: 'Artikel, Leitfäden & Einblicke aus dem Cockpit',
+    heroSubtitle:
+      'Fundiertes Luftfahrtwissen, Erklärungen zu Boeing 737 Systemen, Guides für anspruchsvolle Anflüge und Landungen weltweit sowie praxisnahe Vorbereitung auf Airline-Assessments – direkt von den Sim Dream Kapitänen.',
+    featuredBadge: 'Empfohlener Cockpit-Beitrag',
+    allArticles: 'Alle Artikel',
+    searchPlaceholder: 'Artikel & Themen durchsuchen...',
+    noResultsTitle: 'Keine Artikel zu Ihrer Suche gefunden',
+    noResultsText: 'Wählen Sie eine andere Kategorie oder leeren Sie das Suchfeld.',
+    resetSearch: 'Alle Artikel anzeigen',
+  },
 };
 
 export function BlogIndexView({ initialPosts }: BlogIndexViewProps) {

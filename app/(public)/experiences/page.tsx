@@ -313,19 +313,7 @@ export default function ExperiencesPage() {
                     {pendingPassId === pass.id ? (
                       <span className="inline-flex items-center gap-2">
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>
-                          {language === 'he'
-                            ? 'מעביר לתשלום...'
-                            : language === 'ru'
-                              ? 'Переход к оплате...'
-                              : language === 'fr'
-                                ? 'Redirection vers le paiement...'
-                                : language === 'ar'
-                                  ? 'جارٍ التحويل للدفع...'
-                                  : language === 'es'
-                                    ? 'Redirigiendo al pago...'
-                                  : 'Redirecting to payment...'}
-                        </span>
+                        <span>{subscriptionCopy.redirectingToPayment}</span>
                       </span>
                     ) : (
                       <>

@@ -67,6 +67,14 @@ export const CHECKOUT_EXTRAS_COPY: Record<SupportedLanguage, CheckoutExtrasCopy>
     birthdayNotStored:
       'Una sesión de un bono de vuelos no incluye descuento de cumpleaños, por lo que la fecha de nacimiento solo se comprueba y no se guarda.',
   },
+  de: {
+    opensInNewTab: 'öffnet in einem neuen Tab',
+    birthdayNotApplicable: 'Der Geburtstagsrabatt gilt für diese Buchung nicht.',
+    birthdayWixNotice:
+      'Der Geburtstagsrabatt kann in diesem Checkout nicht automatisch angewendet werden. Ihr Tag und Monat werden zusammen mit der Bestellung an unser Team übermittelt.',
+    birthdayNotStored:
+      'Eine Session aus einem Flugprogramm beinhaltet keinen Geburtstagsrabatt; das Geburtsdatum wird daher nur geprüft und nicht gespeichert.',
+  },
 };
 
 export function getCheckoutExtrasCopy(language: string): CheckoutExtrasCopy {

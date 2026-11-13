@@ -11,7 +11,7 @@ import {
   findOnRequestWorldRoute,
 } from '@/lib/data/experience-routes';
 
-const CODES: Language[] = ['he', 'en', 'ru', 'fr', 'ar', 'es'];
+const CODES: Language[] = ['he', 'en', 'ru', 'fr', 'ar', 'es', 'de'];
 const HEBREW = /[֐-׿]/;
 const ARABIC = /[؀-ۿ]/;
 /** AGENTS.md section 5: scripts that must never leak into another language's copy. */
@@ -22,6 +22,7 @@ const FORBIDDEN: Record<Language, RegExp[]> = {
   ru: [HEBREW, ARABIC],
   fr: [HEBREW, ARABIC],
   es: [HEBREW, ARABIC],
+  de: [HEBREW, ARABIC],
 };
 /** ICAO location indicators are four upper-case letters (ICAO Doc 7910). */
 const ICAO = /^[A-Z]{4}$/;

@@ -2,7 +2,7 @@ import type { Language } from './translations';
 
 /** Wix owns Hebrew at the root URL; its supported secondary locales use path prefixes. */
 export const PRIMARY_WIX_LANGUAGE: Language = 'he';
-export const SECONDARY_WIX_LANGUAGES = ['en', 'ru', 'fr', 'ar', 'es'] as const satisfies readonly Language[];
+export const SECONDARY_WIX_LANGUAGES = ['en', 'ru', 'fr', 'ar', 'es', 'de'] as const satisfies readonly Language[];
 
 export function isSupportedLanguage(value: string | null | undefined): value is Language {
   return value === 'he' || SECONDARY_WIX_LANGUAGES.some((language) => language === value);

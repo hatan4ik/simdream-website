@@ -118,7 +118,7 @@ describe('reviews snapshot store', () => {
       source: 'test source',
       overallRating: 4.9,
       totalReviewsCount: 127,
-      reviewsByLanguage: { en: [snapshot.reviewsByLanguage.en[0]], he: [], ru: [], fr: [], ar: [], es: [] },
+      reviewsByLanguage: { en: [snapshot.reviewsByLanguage.en[0]], he: [], ru: [], fr: [], ar: [], es: [], de: [] },
     });
   });
 

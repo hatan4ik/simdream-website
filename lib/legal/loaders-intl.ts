@@ -17,6 +17,7 @@ const RULES_EXTRA_LOADERS: Record<LegalIntlLanguage, ModuleLoader<LegalBody>> = 
   fr: () => import('./content/rules-extra.fr'),
   ar: () => import('./content/rules-extra.ar'),
   es: () => import('./content/rules-extra.es'),
+  de: () => import('./content/rules-extra.de'),
 };
 
 const PRIVACY_LOADERS: Record<LegalIntlLanguage, ModuleLoader<PrivacyBody>> = {
@@ -25,6 +26,7 @@ const PRIVACY_LOADERS: Record<LegalIntlLanguage, ModuleLoader<PrivacyBody>> = {
   fr: () => import('./content/privacy.fr'),
   ar: () => import('./content/privacy.ar'),
   es: () => import('./content/privacy.es'),
+  de: () => import('./content/privacy.de'),
 };
 
 /** Rules clauses 1 to 12 and the privacy appendix: the one long body every non-Hebrew page shows is the English original. */

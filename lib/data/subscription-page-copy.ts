@@ -896,4 +896,163 @@ export const SUBSCRIPTION_PAGE_COPY: LocalizedRecord<SubscriptionPageCopy> = {
     bottomCtaButton: 'اختيار مساري',
     bottomContactConcierge: 'هل لديكم استفسار؟ اتصلوا أو تواصلوا عبر واتساب مباشرة مع العمليات',
   },
+  de: {
+    eyebrow: 'SIM DREAM CAPTAIN’S CLUB · FLUGPROGRAMME',
+    heroTitle: 'Bei Ihrem fünften Flug fliegen Sie die 737 selbst.',
+    heroSubtitle:
+      'Ein einzelner Flug ist eine Erinnerung. Ein Programm aus fünf oder zehn Flügen mit einem Flugkapitän macht daraus echtes Können: Sie programmieren das FMC, fliegen die Platzrunde von Hand und landen bei Seitenwind – jedes Mal mit einem Verkehrspiloten an Ihrer Seite. Einmal zahlen, im eigenen Tempo fliegen und bis zu ₪2.550 gegenüber Einzelflügen sparen.',
+    stats: {
+      paymentValue: 'Einmal zahlen',
+      paymentLabel: 'Keine Verlängerung, keine monatliche Gebühr',
+      paceValue: 'Ihr Tempo',
+      paceLabel: 'Jeden Flug flexibel buchen, wann es Ihnen passt',
+      mentorshipValue: 'Aktive Kapitäne',
+      mentorshipLabel: '1-zu-1 bei jedem Flug',
+      savingsValue: 'Bis zu 30 % sparen',
+      savingsLabel: 'Gegenüber Einzelflügen',
+    },
+    reasonsTitle: 'Warum mehr als einen Flug buchen?',
+    reasonsSubtitle: 'Wählen Sie den Grund, der zu Ihnen passt. Für jeden gibt es das passende Programm.',
+    pillars: [
+      {
+        title: 'Ich möchte nie wieder nur Passagier sein.',
+        description:
+          'Beim ersten Flug geht es um das Gefühl. Bis zum fünften Flug führen Sie die Abläufe des Kapitäns selbst aus, lesen die Instrumente und fliegen einen stabilisierten Anflug auf Ihre selbst geplante Landung. Starten Sie mit Flight Foundations, 5 × 60.',
+      },
+      {
+        title: 'Ich möchte große Missionen, keine kurze Kostprobe.',
+        description:
+          'Neunzigminütige Flüge geben Ihnen Zeit, die Route zu planen, sie zu fliegen, auf Scherwind oder ein Durchstarten zu reagieren und alles sauber nachzubesprechen. Advanced Captain, 5 × 90, ist genau dafür gebaut.',
+      },
+      {
+        title: 'Ich möchte fliegen, wie echte Crews es tun.',
+        description:
+          'Zehn Flüge, die das Gesamtbild formen: wie die Systeme arbeiten, wie sich die Crew das Cockpit teilt, wie eine Route geplant und von Hand nach Instrumenten geflogen wird und was bei Störungen zu tun ist. Flight Deck Mastery 10 × 60 oder der Captains’ Course 10 × 90.',
+      },
+      {
+        title: 'Ich habe Flugangst und möchte sie verstehen.',
+        description:
+          'Turbulenzen, Triebwerksgeräusche und Durchstartmanöver verlieren ihren Schrecken, sobald Sie sie selbst vom linken Sitz aus gesteuert haben. Mehrere ruhige Flüge mit demselben Kapitän schaffen ein Verständnis, das ein einzelner Flug nicht leisten kann.',
+      },
+    ],
+    filterAll: 'Alle Programme',
+    filter5: '5-Flüge-Programme (Aufbau)',
+    filter10: '10-Flüge-Programme (Kapitänslehrplan)',
+    recommendedBadge: 'EMPFEHLUNG DES KAPITÄNS',
+    perSessionLabel: 'effektiv pro Flug',
+    minutesLabel: 'Min.',
+    totalMinutesLabel: 'Minuten gesamt',
+    roadmapTitle: 'Der 5-stufige Lernweg im Flugdeck',
+    roadmapSubtitle:
+      'Jeder Flug baut auf dem vorherigen auf. Das ist der strukturierte Lehrplan, den Sie gemeinsam mit aktiven Flugkapitänen meistern.',
+    stages: [
+      {
+        stage: 'Stufe 01',
+        title: 'Primäre Steuerung & Cockpit-Abläufe',
+        description:
+          'Steuerkräfte, elektrische Trimmung, Flight-Director-Anzeigen, Startrotation und manuelle Sichtplatzrunden sicher beherrschen.',
+      },
+      {
+        stage: 'Stufe 02',
+        title: 'FMC-Programmierung & Autopilot-Modi',
+        description:
+          'Wegpunkte eingeben, Leistungsparameter konfigurieren und laterale sowie vertikale Flugprofile über LNAV/VNAV steuern.',
+      },
+      {
+        stage: 'Stufe 03',
+        title: 'Schlechtwetter & 35-Knoten-Seitenwind',
+        description:
+          'Wetterradar im Cockpit deuten, starke Turbulenzen aussteuern, Vorhaltewinkel korrigieren und CAT-III-ILS-Autolandungen erleben.',
+      },
+      {
+        stage: 'Stufe 04',
+        title: 'Systemstörungen & Notfallszenarien',
+        description:
+          'Notfälle in Ruhe meistern: ein Triebwerksausfall nach dem Start, ein einmotoriges Durchstarten und Druckabfall – mit der Checkliste in der Hand und einem Kapitän neben Ihnen.',
+      },
+      {
+        stage: 'Stufe 05',
+        title: 'Legendäre Extrem-Anflüge weltweit',
+        description:
+          'Fliegen Sie die Checkerboard-Kurve in Hongkong Kai Tak, navigieren Sie durch das enge Alpental nach Innsbruck und sinken Sie nach Paro in Bhutan.',
+      },
+    ],
+    comparisonTitle: 'Einzelflug vs. Flugprogramm',
+    comparisonSubtitle:
+      'Was sich ändert, wenn Sie statt eines einzelnen Fluges ein 5- oder 10-Flüge-Programm wählen.',
+    comparisonHeaders: {
+      feature: 'Das erhalten Sie',
+      singleFlight: 'Einzelflug',
+      sub5: '5-Flüge-Programm',
+      sub10: '10-Flüge-Programm',
+    },
+    comparisonRows: [
+      {
+        feature: 'Cockpit-Flugzeit',
+        single: '60–90 Min. (1 Flug)',
+        sub5: '300–450 Min. (5 Flüge)',
+        sub10: '600–900 Min. (10 Flüge)',
+      },
+      {
+        feature: 'Preis pro Flug',
+        single: 'Standardtarif',
+        sub5: '20 % sparen (bis zu ₪860)',
+        sub10: '30 % sparen (bis zu ₪2.550)',
+      },
+      {
+        feature: 'Was Sie am Ende selbst fliegen',
+        single: 'Start und geführte Landung',
+        sub5: 'FMC-Setup, manuelle Platzrunde, Seitenwindlandung',
+        sub10: 'Komplette Missionen, Notfälle und Abschlussflug',
+      },
+      {
+        feature: 'Trainingslehrplan',
+        single: 'Einführungsflug',
+        sub5: '5-stufiger Aufbaulehrplan',
+        sub10: 'Umfassender Kapitänslehrplan',
+      },
+      {
+        feature: 'Buchung',
+        single: 'Ein fester Termin',
+        sub5: 'Jeder Flug flexibel nach Wunsch',
+        sub10: 'Jeder Flug flexibel nach Wunsch',
+      },
+      {
+        feature: 'Persönliches Debriefing',
+        single: 'Kurzes mündliches Debriefing',
+        sub5: 'Fortschritt im Flugbuch',
+        sub10: 'Ausführliches Entwicklungs-Debriefing',
+      },
+    ],
+    faqTitle: 'Fragen vor der Programmwahl',
+    faqSubtitle: 'Wie Kauf, Terminbuchung und Flüge im Programm ablaufen.',
+    faqEyebrow: 'Fragen zum Programm',
+    faqs: [
+      {
+        question: 'Wie buche ich die Flüge in meinem Programm?',
+        answer:
+          'Einzeln nacheinander oder mehrere zusammen – ganz wie Sie möchten. Unsere Disposition plant sie mit Ihnen, und jede Buchung wird gegen den Live-Kalender bestätigt.',
+      },
+      {
+        question: 'Kann ich gezielte Cockpit-Trainingsthemen hinzufügen?',
+        answer:
+          'Ihr Kapitän kann passende Lerninhalte wie Cold & Dark, Seitenwind/IFR oder Extrem-Flughäfen einbinden. Etwaige Zusatzzeit, Preise und Beobachterplätze werden vorab separat bestätigt.',
+      },
+      {
+        question: 'Brauche ich Vorkenntnisse im Fliegen oder am Simulator?',
+        answer:
+          'Es sind keinerlei Vorkenntnisse nötig. Jeder Flug findet 1-zu-1 mit einem aktiven Verkehrspiloten statt, der jede Mission an Ihr Tempo anpasst.',
+      },
+      {
+        question: 'Ist das ein Abo mit automatischer monatlicher Abbuchung?',
+        answer:
+          'Nein. Sie zahlen einmalig und danach wird nichts mehr abgebucht: keine Verlängerung, keine Monatsgebühren, keine Bindung. Ihre Flüge bleiben ab Kaufdatum ein volles Jahr lang buchbar.',
+      },
+    ],
+    bottomCtaTitle: 'Ihr erster Flug kann schon diese Woche stattfinden.',
+    bottomCtaSubtitle: 'Wählen Sie das Programm, das zu Ihrem Ziel passt, oder sprechen Sie mit unserem Cheffluglehrer über einen individuellen Plan.',
+    bottomCtaBadge: 'Sim Dream Piloten-Entwicklungspfad',
+    bottomCtaButton: 'Mein Programm wählen',
+    bottomContactConcierge: 'Fragen? Direkt per Telefon oder WhatsApp mit der Disposition sprechen',
+  },
 };

@@ -6,18 +6,20 @@ import {
 } from '@/lib/i18n/locale-routing';
 
 describe('Wix Multilingual URL routing', () => {
-  it('recognizes only the five supported secondary language URL prefixes', () => {
+  it('recognizes the six supported secondary language URL prefixes', () => {
     expect(languageFromLocalePathname('/en/book')).toBe('en');
     expect(languageFromLocalePathname('/ar')).toBe('ar');
+    expect(languageFromLocalePathname('/de/book')).toBe('de');
     expect(languageFromLocalePathname('/he/book')).toBeNull();
-    expect(languageFromLocalePathname('/de/book')).toBeNull();
+    expect(languageFromLocalePathname('/pt/book')).toBeNull();
   });
 
   it('removes only a supported secondary locale prefix before the Next route resolves', () => {
     expect(stripLocalePrefix('/en/book')).toBe('/book');
     expect(stripLocalePrefix('/fr')).toBe('/');
+    expect(stripLocalePrefix('/de/book')).toBe('/book');
     expect(stripLocalePrefix('/book')).toBe('/book');
-    expect(stripLocalePrefix('/de/book')).toBe('/de/book');
+    expect(stripLocalePrefix('/pt/book')).toBe('/pt/book');
   });
 
   it('creates canonical language URLs while retaining query strings and fragments', () => {

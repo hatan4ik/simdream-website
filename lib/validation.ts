@@ -26,7 +26,7 @@ const giftCardDesignIds = GIFT_CARD_DESIGNS.map((design) => design.id) as unknow
 ];
 
 /** The six page languages a consent can be given in (`tests/unit/validation.test.ts` pins this to `LANGUAGES`). */
-export const CHECKOUT_CONSENT_LANGUAGES = ['he', 'en', 'ru', 'fr', 'ar', 'es'] as const satisfies readonly SupportedLanguage[];
+export const CHECKOUT_CONSENT_LANGUAGES = ['he', 'en', 'ru', 'fr', 'ar', 'es', 'de'] as const satisfies readonly SupportedLanguage[];
 
 /**
  * The two separate confirmations of the checkout (rules clause 15). The browser sends only the two

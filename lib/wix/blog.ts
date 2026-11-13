@@ -30,6 +30,7 @@ interface BlogGroupMeta {
   fr?: string;
   es?: string;
   ar?: string;
+  de?: string;
   [key: string]: unknown;
 }
 
@@ -114,7 +115,7 @@ export interface WixBlogListOptions {
 function extractSiblingSlugs(group: BlogGroupMeta | undefined): Record<string, string> {
   if (!group) return {};
   const result: Record<string, string> = {};
-  for (const lang of ['he', 'en', 'ru', 'fr', 'es', 'ar'] as const) {
+  for (const lang of ['he', 'en', 'ru', 'fr', 'es', 'ar', 'de'] as const) {
     const s = group[lang];
     if (typeof s === 'string' && s) {
       result[lang] = s;

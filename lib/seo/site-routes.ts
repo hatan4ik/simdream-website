@@ -42,7 +42,7 @@ export const PUBLIC_SITE_ROUTES: readonly PublicSiteRoute[] = [
 /**
  * Canonical short path of a blog article:
  * - Hebrew (`he`): `/post/<shortSlug>`
- * - Other languages (`en`, `ru`, `fr`, `es`, `ar`): `/post/<lang>/<shortSlug>`
+ * - Other languages (`en`, `ru`, `fr`, `es`, `ar`, `de`): `/post/<lang>/<shortSlug>`
  */
 export function blogPostPath(slug: string, lang = 'he'): string {
   const shortSlug = resolveShortSlug(slug);

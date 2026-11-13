@@ -1,7 +1,7 @@
 import type { Language } from '@/lib/i18n/translations';
 
 /** The site's six languages, which are also the languages review texts can be requested in. */
-export const REVIEW_LANGUAGES = ['he', 'en', 'ru', 'fr', 'ar', 'es'] as const satisfies readonly Language[];
+export const REVIEW_LANGUAGES = ['he', 'en', 'ru', 'fr', 'ar', 'es', 'de'] as const satisfies readonly Language[];
 
 export type ReviewLanguage = (typeof REVIEW_LANGUAGES)[number];
 
@@ -21,6 +21,7 @@ const DATE_LOCALES: Record<ReviewLanguage, string> = {
   fr: 'fr-FR',
   ar: 'ar-IL',
   es: 'es-ES',
+  de: 'de-DE',
 };
 
 /** "3 Nov 2026" in the visitor's language, or an empty string when Google supplied no publish time. */

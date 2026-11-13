@@ -11,7 +11,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
-export const SUPPORTED_BLOG_LANGS = ['he', 'en', 'ru', 'fr', 'es', 'ar'] as const;
+export const SUPPORTED_BLOG_LANGS = ['he', 'en', 'ru', 'fr', 'es', 'ar', 'de'] as const;
 export type BlogLang = (typeof SUPPORTED_BLOG_LANGS)[number];
 
 interface RawBlogPost {
@@ -36,6 +36,7 @@ interface RawSlugMap {
       fr?: string;
       es?: string;
       ar?: string;
+      de?: string;
     }
   >;
 }
@@ -103,6 +104,11 @@ const DESC_TAILS: Record<BlogLang, string[]> = {
     'اختبر قمرة القيادة 1:1 في SimDream تل أبيب دون خبرة مسبقة.',
     'تعلّم إجراءات بوينغ 737 الحقيقية في تل أبيب بإشراف كابتن.',
   ],
+  de: [
+    'Im 1:1-Boeing-737-Simulator in Tel Aviv mit aktivem Flugkapitän.',
+    'Erleben Sie echtes Cockpit-Coaching bei SimDream Tel Aviv.',
+    'Ohne Vorkenntnisse in unserer Boeing 737 in Tel Aviv abheben.',
+  ],
 };
 
 const TITLE_PADDING: Record<BlogLang, string[]> = {
@@ -112,6 +118,7 @@ const TITLE_PADDING: Record<BlogLang, string[]> = {
   fr: ['Boeing 737', 'Tel-Aviv', 'Simulateur', 'Guide'],
   es: ['Boeing 737', 'Tel Aviv', 'Simulador', 'Guía'],
   ar: ['بوينغ 737', 'تل أبيب', 'محاكي طيران', 'دليل'],
+  de: ['Boeing 737', 'Tel Aviv', 'Flugsimulator', 'Guide'],
 };
 
 const POST_SEEDS: Record<string, PostTopicSeed> = {
@@ -148,6 +155,11 @@ const POST_SEEDS: Record<string, PostTopicSeed> = {
         focus: 'تعرّف على كيفية فهم أنظمة الطائرة الكهربائية والهيدروليكية وإلكترونيات الطيران بوضوح',
         keywords: ['أنظمة الطائرة', 'بوينغ 737', 'قمرة القيادة', 'تدريب الطيارين'],
       },
+      de: {
+        title: 'Flugzeugsysteme-Guide: Boeing 737 Cockpit',
+        focus: 'Lernen Sie Elektrik, Hydraulik und Avionik der Boeing 737 systematisch verstehen',
+        keywords: ['Flugzeugsysteme', 'Boeing 737', 'Cockpit-Guide', 'Pilotentraining'],
+      },
     },
   },
   'post-02': {
@@ -182,6 +194,11 @@ const POST_SEEDS: Record<string, PostTopicSeed> = {
         title: 'توصيات لاختيار أفضل تجربة محاكي طيران',
         focus: 'اكتشف ما يميّز محاكي الطيران الاحترافي وكيف تختار جلسة طيران لا تُنسى لك أو كهدية',
         keywords: ['محاكي طيران', 'توصيات', 'بوينغ 737', 'تل أبيب'],
+      },
+      de: {
+        title: 'Flugsimulator Empfehlungen: Bestes Erlebnis',
+        focus: 'Entdecken Sie, was einen Boeing-737-Simulator unvergesslich macht und wie Sie wählen',
+        keywords: ['Flugsimulator', 'Tel Aviv Attraktion', 'Boeing 737', 'Cockpit-Erlebnis'],
       },
     },
   },
@@ -218,6 +235,11 @@ const POST_SEEDS: Record<string, PostTopicSeed> = {
         focus: 'تعرّف على متى يعمل نظام الهبوط الآلي Autoland وما يفعله الطيارون خلال الاقتراب',
         keywords: ['الطيار الآلي', 'الهبوط الآلي', 'بوينغ 737', 'قمرة القيادة'],
       },
+      de: {
+        title: 'Landet der Autopilot allein? Cockpit-Antwort',
+        focus: 'Wann Autoland in der Boeing 737 genutzt wird, was Piloten prüfen und wie ILS funktioniert',
+        keywords: ['Autopilot Landung', 'Autoland', 'Boeing 737', 'ILS-Anflug'],
+      },
     },
   },
   'post-04': {
@@ -252,6 +274,11 @@ const POST_SEEDS: Record<string, PostTopicSeed> = {
         title: 'نشاط رومانسي مميز للأزواج في محاكي الطيران',
         focus: 'استمتعا بموعد غير تقليدي في قمرة بوينغ 737 حيث تتشاركان القيادة معاً لحظة بلحظة',
         keywords: ['نشاط للأزواج', 'موعد مميز', 'بوينغ 737', 'تل أبيب'],
+      },
+      de: {
+        title: 'Paar-Flugsimulator-Date in Tel Aviv',
+        focus: 'Teilen Sie ein einzigartiges Paarerlebnis als Kapitän und Erster Offizier in der 737',
+        keywords: ['Paar-Date', 'Tel Aviv', 'Boeing 737', 'Geschenkidee'],
       },
     },
   },
@@ -288,6 +315,11 @@ const POST_SEEDS: Record<string, PostTopicSeed> = {
         focus: 'عش تجربة خاصة وحصرية لشخصين داخل قمرة بوينغ 737 مع أجواء راقية وذكريات لا تُنسى',
         keywords: ['تجربة فاخرة', 'للأزواج', 'بوينغ 737', 'تل أبيب'],
       },
+      de: {
+        title: 'Luxus-Flugerlebnis für Paare in Tel Aviv',
+        focus: 'Genießen Sie ein exklusives privates Boeing-737-Cockpit-Date für besondere Anlässe',
+        keywords: ['Luxus-Date', 'Paarerlebnis', 'Boeing 737', 'Tel Aviv'],
+      },
     },
   },
   'post-06': {
@@ -322,6 +354,11 @@ const POST_SEEDS: Record<string, PostTopicSeed> = {
         title: 'التحضير لمقابلة شركات الطيران وفحص المحاكي',
         focus: 'نصائح عملية للطيارين للاستعداد لاختبارات التوظيف وفحص المهارات على محاكي بوينغ 737',
         keywords: ['مقابلة طيران', 'اختبار المحاكي', 'بوينغ 737', 'توظيف طيارين'],
+      },
+      de: {
+        title: 'Airline-Interview-Vorbereitung: Sim-Check',
+        focus: 'Praxisnahe Simulator-Tipps für Piloten vor El Al, Arkia, Wizz Air und Ryanair',
+        keywords: ['Airline-Interview', 'Simulator-Check', 'Pilotenauswahl', 'Boeing 737'],
       },
     },
   },
@@ -358,6 +395,11 @@ const POST_SEEDS: Record<string, PostTopicSeed> = {
         focus: 'نعم! اكتشف كيف يرافقك كابتن طيران خطوة بخطوة من الإقلاع حتى الهبوط دون أي خبرة سابقة',
         keywords: ['دون خبرة', 'للمبتدئين', 'محاكي طيران', 'بوينغ 737'],
       },
+      de: {
+        title: 'Flugsimulator fliegen ohne Vorkenntnisse?',
+        focus: 'Ja! Erfahren Sie, wie aktive Flugkapitäne Einsteiger vom Start bis zur Landung führen',
+        keywords: ['Anfänger', 'ohne Vorkenntnisse', 'Flugsimulator', 'Boeing 737'],
+      },
     },
   },
   'post-08': {
@@ -392,6 +434,11 @@ const POST_SEEDS: Record<string, PostTopicSeed> = {
         title: 'الاقتراب والهبوط في أصعب مطارات العالم',
         focus: 'تعرّف على تحديات مطارات ماديرا وإنسبروك وبارو وكيف يتعامل الطيارون مع الرياح والتضاريس',
         keywords: ['أصعب المطارات', 'هبوط ماديرا', 'بوينغ 737', 'مهارات القمرة'],
+      },
+      de: {
+        title: 'Landen auf den extremsten Flughäfen der Welt',
+        focus: 'Erleben Sie Madeira, Paro und Innsbruck und wie Piloten Gelände und Seitenwind meistern',
+        keywords: ['Extreme Flughäfen', 'Paro', 'Madeira', 'Innsbruck'],
       },
     },
   },
@@ -428,6 +475,11 @@ const POST_SEEDS: Record<string, PostTopicSeed> = {
         focus: 'دليل شامل للاقتراب الجبلي الشهير في النمسا LOWI وإدارة الارتفاع والسرعة في القمرة',
         keywords: ['اقتراب إنسبروك', 'LOWI', 'بوينغ 737', 'هبوط جبلي'],
       },
+      de: {
+        title: 'Innsbruck-Talanflug in der Boeing 737',
+        focus: 'Schritt-für-Schritt-Blick auf Österreichs berühmten Alpenanflug, Energie und Gelände',
+        keywords: ['Innsbruck', 'Alpenanflug', 'Boeing 737', 'Sichtanflug'],
+      },
     },
   },
   'post-10': {
@@ -462,6 +514,11 @@ const POST_SEEDS: Record<string, PostTopicSeed> = {
         title: 'كيف تطلب قسيمة هدية لمحاكي الطيران بذكاء',
         focus: 'دليل اختيار مدة الجلسة والإضافات المناسبة والحصول على قسيمة هدية رقمية فورية',
         keywords: ['قسيمة هدية', 'محاكي طيران', 'هدية مميزة', 'بوينغ 737'],
+      },
+      de: {
+        title: 'Flugsimulator-Geschenkgutschein bestellen',
+        focus: 'So wählen Sie die richtige Flugdauer, Extras und den sofortigen digitalen Gutschein',
+        keywords: ['Geschenkgutschein', 'Flugsimulator', 'Gutschein', 'Boeing 737'],
       },
     },
   },
@@ -498,6 +555,11 @@ const POST_SEEDS: Record<string, PostTopicSeed> = {
         focus: 'كل ما تحتاج معرفته قبل دخول قمرة القيادة لأول مرة لتستمتع بالإقلاع والهبوط بثقة',
         keywords: ['محاكي للمبتدئين', 'بوينغ 737', 'أول تجربة طيران', 'تل أبيب'],
       },
+      de: {
+        title: 'Boeing-737-Simulator für Anfänger: Startklar',
+        focus: 'Alles, was Erstflieger vor dem Einstieg in unser 1:1-Boeing-737-Cockpit wissen müssen',
+        keywords: ['Anfänger-Guide', 'Boeing 737', 'Erstflug', 'Tel Aviv'],
+      },
     },
   },
   'post-12': {
@@ -532,6 +594,11 @@ const POST_SEEDS: Record<string, PostTopicSeed> = {
         title: 'هدية عيد ميلاد للرجال لا تُنسى: قيادة بوينغ 737',
         focus: 'فاجئه بتجربة جلوسه في مقعد الكابتن لقيادة طائرة بوينغ 737 في عيد ميلاده',
         keywords: ['هدية عيد ميلاد', 'هدية للرجال', 'بوينغ 737', 'تل أبيب'],
+      },
+      de: {
+        title: 'Unvergessliches Geburtstagsgeschenk: 737',
+        focus: 'Überraschen Sie ihn mit dem Kapitänssitz einer Boeing 737 zum Geburtstag',
+        keywords: ['Geburtstagsgeschenk', 'Geschenk für Männer', 'Boeing 737', 'Tel Aviv'],
       },
     },
   },
@@ -568,6 +635,11 @@ const POST_SEEDS: Record<string, PostTopicSeed> = {
         focus: 'تعلّم تقنيات التحكم بالدفة والميلان وتوجيه الطائرة بأمان أثناء الرياح الجانبية القوية',
         keywords: ['رياح جانبية', 'هبوط بوينغ 737', 'محاكي الطيران', 'تدريب'],
       },
+      de: {
+        title: 'Seitenwindlandung im Boeing-737-Simulator',
+        focus: 'Meistern Sie Crab, De-Crab, Seitenruder-Koordination und Ausschweben bei starkem Wind',
+        keywords: ['Seitenwindlandung', 'Boeing 737', 'Flugtechnik', 'Simulator'],
+      },
     },
   },
   'post-14': {
@@ -602,6 +674,11 @@ const POST_SEEDS: Record<string, PostTopicSeed> = {
         title: 'فكرة موعد غير تقليدية في تل أبيب ستفاجئ شريكك',
         focus: 'تجاوز المواعيد المعتادة وحلّقا معاً فوق باريس أو نيويورك أو تل أبيب في قمرة بوينغ 737',
         keywords: ['فكرة موعد', 'تل أبيب', 'نشاط للأزواج', 'بوينغ 737'],
+      },
+      de: {
+        title: 'Einzigartige Date-Idee in Tel Aviv',
+        focus: 'Vergessen Sie das übliche Dinner und heben Sie gemeinsam über Paris oder New York ab',
+        keywords: ['Date-Idee', 'Tel Aviv', 'Boeing 737', 'Paare'],
       },
     },
   },
@@ -638,6 +715,11 @@ const POST_SEEDS: Record<string, PostTopicSeed> = {
         focus: 'مقارنة بين باقات 30 و45 و60 و90 دقيقة في قمرة بوينغ 737 لاختيار المدة الأنسب لك',
         keywords: ['مدة الجلسة', 'باقات الطيران', 'بوينغ 737', 'تل أبيب'],
       },
+      de: {
+        title: 'Wie lange dauert eine Simulator-Sitzung?',
+        focus: 'Vergleichen Sie 30, 45, 60 und 90 Minuten in der Boeing 737 für das perfekte Erlebnis',
+        keywords: ['Flugdauer', 'Pakete', 'Boeing 737', 'Tel Aviv'],
+      },
     },
   },
   'post-16': {
@@ -672,6 +754,11 @@ const POST_SEEDS: Record<string, PostTopicSeed> = {
         title: 'دليل التدريب على الإقلاع والهبوط في بوينغ 737',
         focus: 'تعلّم ضبط السرعة وزاوية الصعود والحفاظ على محور المدرج والهبوط السلس في القمرة',
         keywords: ['الإقلاع والهبوط', 'بوينغ 737', 'قمرة القيادة', 'دليل طيران'],
+      },
+      de: {
+        title: 'Boeing 737 Start- und Landetraining Guide',
+        focus: 'Lernen Sie Längsneigung, Geschwindigkeitskontrolle, Mittellinie und sanftes Aufsetzen',
+        keywords: ['Start und Landung', 'Boeing 737', 'Flugtraining', 'Cockpit'],
       },
     },
   },
@@ -708,6 +795,11 @@ const POST_SEEDS: Record<string, PostTopicSeed> = {
         focus: 'تعرّف على كيف تصنع القمرة الحقيقية بمقياس 1:1 وأدوات التحكم الآلية إحساس الطيران الفعلي',
         keywords: ['محاكاة الطيران', 'بوينغ 737', 'قمرة قيادة', 'تل أبيب'],
       },
+      de: {
+        title: 'Erlebnis-Flugsimulatoren: Im 737-Cockpit',
+        focus: 'Wie 1:1-Cockpit-Hardware, motorisierte Steuerung und 220°-Sicht echtes Fliegen erzeugen',
+        keywords: ['Erlebnissimulator', 'Boeing 737', '220-Grad-Sicht', 'Tel Aviv'],
+      },
     },
   },
   'post-18': {
@@ -742,6 +834,11 @@ const POST_SEEDS: Record<string, PostTopicSeed> = {
         title: 'عطل المحرك عند الإقلاع وكيفية التصرف في بوينغ 737',
         focus: 'كيف يتعامل الطيارون مع عطل المحرك عند سرعة V1 للحفاظ على التوازن والصعود بأمان',
         keywords: ['عطل المحرك', 'V1', 'بوينغ 737', 'طوارئ الطيران'],
+      },
+      de: {
+        title: 'Triebwerksausfall beim Start in der 737',
+        focus: 'Wie Piloten einen V1-Triebwerksausfall meistern, Kurs halten und sicher steigen',
+        keywords: ['Triebwerksausfall', 'V1', 'Boeing 737', 'Notverfahren'],
       },
     },
   },
@@ -778,6 +875,11 @@ const POST_SEEDS: Record<string, PostTopicSeed> = {
         focus: 'اختبر أحد أصعب الاقترابات البصرية بين جبال الهيمالايا مع التحكم الدقيق في قمرة بوينغ 737',
         keywords: ['بارو بوتان', 'VQPR', 'بوينغ 737', 'هبوط صعب'],
       },
+      de: {
+        title: 'Landung in Paro Bhutan (VQPR) wie Profis',
+        focus: 'Fliegen Sie einen der seltensten Himalaya-Sichtanflüge mit präziser Energiesteuerung',
+        keywords: ['Paro Bhutan', 'VQPR', 'Himalaya', 'Boeing 737'],
+      },
     },
   },
   'post-20': {
@@ -812,6 +914,11 @@ const POST_SEEDS: Record<string, PostTopicSeed> = {
         title: 'تجربة وآراء الزوار في مقعد الكابتن الحقيقي',
         focus: 'نظرة قريبة على مشاعر الطيران من المقعد الأيسر في قمرة بوينغ 737 ولماذا يوصي بها الزوار',
         keywords: ['آراء الزوار', 'مقعد الكابتن', 'SimDream', 'بوينغ 737'],
+      },
+      de: {
+        title: 'Kapitänssitz-Test: Echtes 737-Cockpit-Gefühl',
+        focus: 'Einblick in das, was Besucher auf dem linken Sitz unseres 1:1-737-Simulators erleben',
+        keywords: ['Kapitänssitz', 'Erfahrungsbericht', 'Boeing 737', 'Tel Aviv'],
       },
     },
   },
@@ -848,6 +955,11 @@ const POST_SEEDS: Record<string, PostTopicSeed> = {
         focus: 'من محاكي بوينغ 737 في تل أبيب إلى أبرز الأنشطة لعشاق الطيران والمغامرة الجوية',
         keywords: ['تجارب الطيران', 'أنشطة تل أبيب', 'بوينغ 737', 'محاكي طيران'],
       },
+      de: {
+        title: 'Top-Luftfahrtattraktionen in Israel erleben',
+        focus: 'Vom 1:1-Boeing-737-Simulator in Tel Aviv bis zu ikonischen Luftfahrtorten in Israel',
+        keywords: ['Luftfahrtattraktionen', 'Israel', 'Tel Aviv', 'Boeing 737'],
+      },
     },
   },
   'post-22': {
@@ -882,6 +994,11 @@ const POST_SEEDS: Record<string, PostTopicSeed> = {
         title: 'ماذا تشمل قسيمة الهدية الرقمية لمحاكي الطيران؟',
         focus: 'إحاطة قبل الطيران، مقعد الكابتن، مرافقون مجاناً في القمرة وصلاحية مرنة للحجز الإلكتروني',
         keywords: ['قسيمة هدية رقمية', 'هدية طيران', 'بوينغ 737', 'SimDream'],
+      },
+      de: {
+        title: 'Was ist im digitalen Fluggutschein enthalten?',
+        focus: 'Briefing, Kapitänssitz, kostenlose Jumpseat-Gäste und flexible digitale Einlösung',
+        keywords: ['Fluggutschein', 'Geschenkkarte', 'Jumpseat', 'Boeing 737'],
       },
     },
   },
@@ -918,6 +1035,11 @@ const POST_SEEDS: Record<string, PostTopicSeed> = {
         focus: 'أكثر من 24,000 مطار حقيقي حول العالم من بن غوريون إلى إنسبروك ونيويورك وهونغ كونغ',
         keywords: ['اختيار المطار', '24000 مطار', 'بوينغ 737', 'محاكي طيران'],
       },
+      de: {
+        title: 'Kann man den Flughafen im Simulator wählen?',
+        focus: 'Entdecken Sie über 24.000 echte Flughäfen von Ben Gurion bis Kai Tak, JFK und Innsbruck',
+        keywords: ['24000 Flughäfen', 'Wunschziel', 'Boeing 737', 'Flugsimulator'],
+      },
     },
   },
   'post-24': {
@@ -952,6 +1074,11 @@ const POST_SEEDS: Record<string, PostTopicSeed> = {
         title: 'مفاجأة مبتكرة لشريك حياتك في قمرة بوينغ 737',
         focus: 'اصنع لحظة لا تُنسى بمفاجأة شريكك بقيادة طائرة بوينغ 737 في ذكرى زواج أو مناسبة خاصة',
         keywords: ['مفاجأة للشريك', 'هدية ذكرى', 'بوينغ 737', 'تل أبيب'],
+      },
+      de: {
+        title: 'Originelle Partner-Überraschung: 737 fliegen',
+        focus: 'Planen Sie eine unvergessliche Überraschung mit einer privaten Boeing-737-Sitzung',
+        keywords: ['Partner-Überraschung', 'Geschenkidee', 'Boeing 737', 'Tel Aviv'],
       },
     },
   },
@@ -988,6 +1115,11 @@ const POST_SEEDS: Record<string, PostTopicSeed> = {
         focus: 'لماذا لا تُقارن قمرة بوينغ 737 بمقياس 1:1 وأدوات التحكم الآلية بأي جهاز منزلي',
         keywords: ['محاكي منزلي واحترافي', 'قمرة 1:1', 'بوينغ 737', 'مقارنة'],
       },
+      de: {
+        title: 'Heim- vs. Profi-Flugsimulator im Vergleich',
+        focus: 'Warum sich ein 1:1-Boeing-737-Cockpit mit Motorsteuerung völlig anders anfühlt',
+        keywords: ['Profi-Simulator', 'Heimsimulator', 'Boeing 737', 'Vergleich'],
+      },
     },
   },
   'post-26': {
@@ -1022,6 +1154,11 @@ const POST_SEEDS: Record<string, PostTopicSeed> = {
         title: 'رحلة طيران افتراضية إلى وجهات العالم في 737',
         focus: 'أقلع من تل أبيب واهبط في أشهر مطارات العالم داخل قمرة قيادة بوينغ 737 مكتملة',
         keywords: ['طيران افتراضي', 'وجهات العالم', 'بوينغ 737', 'تل أبيب'],
+      },
+      de: {
+        title: 'Virtueller Flug zu Weltzielen in der 737',
+        focus: 'Starten Sie in Tel Aviv und landen Sie in Weltmetropolen im originalgroßen Cockpit',
+        keywords: ['Weltziele', 'Virtueller Flug', 'Boeing 737', 'Tel Aviv'],
       },
     },
   },
@@ -1058,6 +1195,11 @@ const POST_SEEDS: Record<string, PostTopicSeed> = {
         focus: 'افهم أصوات الطائرة والمطبات الهوائية واكتسب الطمأنينة والثقة داخل القمرة مع كابتن خبير',
         keywords: ['الخوف من الطيران', 'فوبيا الطيران', 'المطبات الهوائية', 'تل أبيب'],
       },
+      de: {
+        title: 'Flugangst wirksam überwinden im Cockpit',
+        focus: 'Verstehen Sie Flugzeuggeräusche, Turbulenzen und Sicherheit mit einem ruhigen Kapitän',
+        keywords: ['Flugangst', 'Flugangst überwinden', 'Boeing 737', 'Tel Aviv'],
+      },
     },
   },
   'post-28': {
@@ -1092,6 +1234,11 @@ const POST_SEEDS: Record<string, PostTopicSeed> = {
         title: 'تجربة محاكي الطيران في تل أبيب: المزايا الكاملة',
         focus: 'تعرّف على مزايا مركز بوينغ 737 في قلب تل أبيب وسهولة الوصول والتدريب مع طيارين محترفين',
         keywords: ['محاكي طيران تل أبيب', 'أنشطة تل أبيب', 'بوينغ 737', 'SimDream'],
+      },
+      de: {
+        title: 'Flugsimulator-Erlebnis in Tel Aviv: Guide',
+        focus: 'Warum SimDream im Zentrum von Tel Aviv Israels führendes 737-Cockpit-Erlebnis ist',
+        keywords: ['Flugsimulator Tel Aviv', 'SimDream', 'Boeing 737', 'Erlebnis'],
       },
     },
   },
@@ -1128,6 +1275,11 @@ const POST_SEEDS: Record<string, PostTopicSeed> = {
         focus: 'استكشف أشهر مسارات الهبوط الأسطورية مثل مدرج 13 في كاي تاك داخل محاكي بوينغ 737',
         keywords: ['اقترابات تاريخية', 'كاي تاك', 'تاريخ الطيران', 'بوينغ 737'],
       },
+      de: {
+        title: 'Guide zu legendären Airline-Anflügen',
+        focus: 'Erleben Sie berühmte Anflüge wie Kai Tak Piste 13 und River Visual im 737-Simulator',
+        keywords: ['Legendäre Anflüge', 'Kai Tak', 'River Visual', 'Boeing 737'],
+      },
     },
   },
   'post-30': {
@@ -1162,6 +1314,11 @@ const POST_SEEDS: Record<string, PostTopicSeed> = {
         title: 'اتجاهات فعاليات الشركات وبناء الفرق في القمرة',
         focus: 'عزّز مهارات القيادة والتواصل تحت الضغط من خلال ورش عمل CRM في محاكي بوينغ 737',
         keywords: ['فعاليات شركات', 'بناء فرق', 'ورش CRM', 'تل أبيب'],
+      },
+      de: {
+        title: 'Teambuilding-Trends im Boeing-737-Cockpit',
+        focus: 'Stärken Sie Führung und CRM-Kommunikation mit wirkungsvollen 737-Team-Workshops',
+        keywords: ['Teambuilding', 'CRM-Workshop', 'Führung', 'Boeing 737'],
       },
     },
   },
@@ -1198,6 +1355,11 @@ const POST_SEEDS: Record<string, PostTopicSeed> = {
         focus: 'دليل خطوة بخطوة لإدخال مسار الطيران وإجراءات SID وSTAR في حاسوب الرحلة CDU',
         keywords: ['برمجة FMC', 'CDU بوينغ 737', 'تخطيط الرحلة', 'تدريب'],
       },
+      de: {
+        title: 'Flugroute im 737-FMC programmieren: Guide',
+        focus: 'Schritt-für-Schritt-Anleitung für Routen, SIDs, STARs und Leistung in der 737-CDU',
+        keywords: ['FMC', 'CDU', 'Flugplanung', 'Boeing 737'],
+      },
     },
   },
   'post-32': {
@@ -1232,6 +1394,11 @@ const POST_SEEDS: Record<string, PostTopicSeed> = {
         title: 'الهبوط في مطار كاي تاك: المنعطف الذي لا يُنسى',
         focus: 'اختبر الانعطاف البصري الأسطوري نحو المدرج 13 في هونغ كونغ داخل قمرة بوينغ 737',
         keywords: ['هبوط كاي تاك', 'VHHX', 'بوينغ 737', 'محاكي طيران'],
+      },
+      de: {
+        title: 'Kai-Tak-Landesimulator: Die 47°-Kurve',
+        focus: 'Erleben Sie Hongkongs legendäre Checkerboard-Sichtkurve auf Piste 13 in der 737',
+        keywords: ['Kai Tak', 'Checkerboard', 'Hongkong', 'Boeing 737'],
       },
     },
   },
@@ -1268,6 +1435,11 @@ const POST_SEEDS: Record<string, PostTopicSeed> = {
         focus: 'مغامرة عائلية مشوقة للأعمار من 10 سنوات فأكثر مع مقاعد مجانية للمرافقين داخل القمرة',
         keywords: ['نشاط عائلي', 'تل أبيب', 'بوينغ 737', 'محاكي طيران'],
       },
+      de: {
+        title: 'Unvergessliche Familienaktivität in Tel Aviv',
+        focus: 'Ein spannendes Familienabenteuer ab 10 Jahren mit kostenlosen Jumpseat-Plätzen',
+        keywords: ['Familienaktivität', 'Tel Aviv', 'Kinder ab 10', 'Boeing 737'],
+      },
     },
   },
   'post-34': {
@@ -1302,6 +1474,11 @@ const POST_SEEDS: Record<string, PostTopicSeed> = {
         title: 'أفضل وجهات وتجارب الطيران في إسرائيل',
         focus: 'تعرّف على أفضل الأنشطة الجوية ولماذا يتصدّر محاكي بوينغ 737 التقييمات في تل أبيب',
         keywords: ['أفضل تجارب الطيران', 'بوينغ 737', 'تل أبيب', 'SimDream'],
+      },
+      de: {
+        title: 'Beste Luftfahrtattraktionen in Israel im Test',
+        focus: 'Entdecken Sie Israels bestbewertete Flugerlebnisse und warum SimDream vorn liegt',
+        keywords: ['Beste Attraktionen', 'Israel', 'Flugerlebnis', 'Boeing 737'],
       },
     },
   },
@@ -1338,6 +1515,11 @@ const POST_SEEDS: Record<string, PostTopicSeed> = {
         focus: 'كيف تساعدك شروحات القمرة ونصائح الطيارين على تحقيق أقصى متعة في جلستك الأولى',
         keywords: ['مدونة الطيران', 'نصائح القمرة', 'بوينغ 737', 'SimDream'],
       },
+      de: {
+        title: 'Warum Flugsimulator-Blogs vor dem Flug lesen?',
+        focus: 'Wie Cockpit-Guides und Pilotentipps helfen, mehr aus Ihrer 737-Sitzung herauszuholen',
+        keywords: ['Flugsimulator Blog', 'Cockpit-Tipps', 'Vorbereitung', 'Boeing 737'],
+      },
     },
   },
   'post-36': {
@@ -1372,6 +1554,11 @@ const POST_SEEDS: Record<string, PostTopicSeed> = {
         title: 'بوينغ 737 مقابل إيرباص A320: الفروق الحقيقية',
         focus: 'مقارنة بين مقود الطيران التقليدي والعصا الجانبية وفلسفة الأتمتة وإحساس القيادة الفعلي',
         keywords: ['بوينغ ضد إيرباص', '737 مقابل A320', 'قمرة القيادة', 'طيران'],
+      },
+      de: {
+        title: 'Boeing 737 vs. Airbus A320: Echte Unterschiede',
+        focus: 'Vergleichen Sie Steuerhorn vs. Sidestick, Automatisierung und Cockpit-Ergonomie',
+        keywords: ['Boeing 737 vs Airbus A320', 'Steuerhorn', 'Sidestick', 'Cockpit'],
       },
     },
   },
@@ -1408,6 +1595,11 @@ const POST_SEEDS: Record<string, PostTopicSeed> = {
         focus: 'شرح دقيق لتخطيط الانعطاف البصري IGS 13 وضبط الارتفاع والسرعة في بوينغ 737',
         keywords: ['كاي تاك مدرج 13', 'IGS 13', 'بوينغ 737', 'دليل هبوط'],
       },
+      de: {
+        title: 'Kai Tak Piste 13 Anflug-Guide in der 737',
+        focus: 'Wie man die IGS-13-Sichtkurve fliegt, Höhenfenster hält und sauber aufsetzt',
+        keywords: ['Kai Tak Piste 13', 'IGS 13', 'Anflug-Guide', 'Boeing 737'],
+      },
     },
   },
   'post-38': {
@@ -1443,6 +1635,11 @@ const POST_SEEDS: Record<string, PostTopicSeed> = {
         focus: 'قارن بين جلسات 30 و45 و60 و90 دقيقة واختر التجربة الأنسب لمستواك وأهدافك',
         keywords: ['اختيار باقة طيران', 'بوينغ 737', 'تل أبيب', 'SimDream'],
       },
+      de: {
+        title: 'Das richtige Boeing-737-Flugpaket wählen',
+        focus: 'Passen Sie Erfahrungslevel und Ziele an unsere 30-, 45-, 60- oder 90-Minuten-Flüge an',
+        keywords: ['Flugpaket wählen', '30 60 90 Minuten', 'Boeing 737', 'Tel Aviv'],
+      },
     },
   },
   'post-39': {
@@ -1477,6 +1674,11 @@ const POST_SEEDS: Record<string, PostTopicSeed> = {
         title: 'كيف تستعد بذكاء لمقابلة توظيف الطيارين',
         focus: 'طوّر مهارات الطيران اليدوي والعمل الجماعي CRM والإجابات التقنية قبل اختبار القبول',
         keywords: ['مقابلة طيار', 'توظيف طيارين', 'اختبار طيران', 'بوينغ 737'],
+      },
+      de: {
+        title: 'Klug auf das Piloten-Interview vorbereiten',
+        focus: 'Schärfen Sie Raw-Data-Fliegen, CRM-Briefings und Technik-Antworten vor dem Check',
+        keywords: ['Piloten-Interview', 'Airline-Auswahl', 'Raw Data', 'Boeing 737'],
       },
     },
   },
@@ -1554,6 +1756,7 @@ function fitMetaDescription(focus: string, lang: BlogLang): string {
       fr: ' Cockpit Boeing 737 authentique avec commandant — réservez en ligne dès maintenant.',
       es: ' Cabina Boeing 737 auténtica con capitán — reserva tu sesión online hoy mismo.',
       ar: ' قمرة بوينغ 737 حقيقية بإشراف كابتن طيران — احجز جلستك عبر الإنترنت اليوم.',
+      de: ' Echtes 1:1-Boeing-737-Cockpit mit Kapitän — jetzt online buchen.',
     };
     const padded = `${combined}${extra[lang]}`;
     if (padded.length >= 135 && padded.length <= 160) return padded;

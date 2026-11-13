@@ -1,4 +1,4 @@
-export const BLOG_SEO_LANGS = ['he', 'en', 'ru', 'fr', 'es', 'ar'] as const;
+export const BLOG_SEO_LANGS = ['he', 'en', 'ru', 'fr', 'es', 'ar', 'de'] as const;
 export type BlogSeoLang = (typeof BLOG_SEO_LANGS)[number];
 
 export function isBlogSeoLang(value: string | undefined): value is BlogSeoLang {

@@ -268,6 +268,36 @@ export const CONSENT_COPY: Record<LegalLanguage, ConsentCopy> = {
     },
     recordNote: 'La versión y la hora de tus confirmaciones se guardan con tu reserva.',
   },
+  de: {
+    heading: 'Vor der Zahlung',
+    intro: 'Für den Abschluss Ihrer Buchung sind zwei kurze Bestätigungen erforderlich.',
+    rules: {
+      label: 'Ich akzeptiere {rules}, {refunds} und {privacy}.',
+      linkRules: 'die Nutzungsbedingungen und Regeln',
+      linkRefunds: 'die Erstattungsregel per Formular',
+      linkPrivacy: 'die Datenschutzerklärung',
+      summary: `Eine vollständige Erstattung setzt einen Antrag innerhalb von ${WINDOW} Tagen nach Bestellung und mindestens ${MIN_DAYS} Werktage vor Ihrer Session voraus – ausschließlich über unser Online-Erstattungsformular.`,
+      ariaLabel: 'Nutzungsbedingungen, Erstattungsregel per Formular und Datenschutzerklärung akzeptieren',
+      error: 'Bitte akzeptieren Sie die Regeln, die Erstattungsregel und die Datenschutzerklärung, um fortzufahren.',
+    },
+    media: {
+      label: 'Ich stimme der Medienfreigabe und dem Anspruchsverzicht zu (Ziffer 14 der Regeln).',
+      summary:
+        'Sim Dream darf Fotos, Videos und Audioaufnahmen Ihres Besuchs ohne Vergütung für Marketingzwecke online und gedruckt nutzen; diese Zustimmung umfasst den Verzicht auf Ansprüche aus dieser Nutzung.',
+      guardianNote:
+        'Mit dem Ankreuzen bestätigen Sie, dass Sie mindestens 18 Jahre alt sind. Nimmt ein Minderjähriger teil, willigt ein Elternteil oder Erziehungsberechtigter in dessen Namen ein.',
+      optOutNote: 'Sie können weiterhin schriftlich bitten, nicht gefilmt zu werden (Ziffer 6.4).',
+      expand: 'Vollständigen Text lesen',
+      collapse: 'Vollständigen Text ausblenden',
+      fullTextTitle: 'Medienfreigabe und Anspruchsverzicht',
+      loading: 'Wird geladen…',
+      loadError: 'Der vollständige Text konnte nicht geladen werden. Sie können ihn auf der Regelseite lesen.',
+      openOnPage: 'Auf der Regelseite öffnen',
+      ariaLabel: 'Medienfreigabe und Anspruchsverzicht zustimmen',
+      error: 'Bitte stimmen Sie der Medienfreigabe und dem Anspruchsverzicht zu, um fortzufahren.',
+    },
+    recordNote: 'Wir speichern die Version und den Zeitpunkt Ihrer Bestätigungen zusammen mit Ihrer Bestellung.',
+  },
 };
 
 export function getConsentCopy(language: string): ConsentCopy {

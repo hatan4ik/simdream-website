@@ -1,5 +1,6 @@
 import type { SupportedLanguage } from '@/lib/i18n/translations';
 import { OFFERS_COPY_AR } from './copy/ar';
+import { OFFERS_COPY_DE } from './copy/de';
 import { OFFERS_COPY_EN } from './copy/en';
 import { OFFERS_COPY_ES } from './copy/es';
 import { OFFERS_COPY_FR } from './copy/fr';
@@ -17,6 +18,7 @@ export const OFFERS_COPY: Record<SupportedLanguage, OffersCopy> = {
   fr: OFFERS_COPY_FR,
   ar: OFFERS_COPY_AR,
   es: OFFERS_COPY_ES,
+  de: OFFERS_COPY_DE,
 };
 
 /** Fills `{name}` placeholders; an unknown placeholder stays visible so a missing value is noticed. */

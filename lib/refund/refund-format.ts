@@ -12,6 +12,7 @@ const LOCALES: Record<Language, string> = {
   fr: 'fr-FR',
   ar: 'ar-u-ca-gregory-nu-latn',
   es: 'es-ES',
+  de: 'de-DE',
 };
 
 const localeFor = (language: Language) => LOCALES[language] || LOCALES.en;

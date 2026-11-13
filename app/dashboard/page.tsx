@@ -79,6 +79,7 @@ const DATE_LOCALES: LocalizedRecord<string> = {
   fr: 'fr-FR',
   ar: 'ar-u-nu-latn',
   es: 'es-ES',
+  de: 'de-DE',
 };
 
 function formatMissionDate(ymd: string, language: Language): string {

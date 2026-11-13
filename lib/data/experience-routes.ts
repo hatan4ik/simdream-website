@@ -149,6 +149,18 @@ export const WORLD_ROUTES: WorldRoute[] = [
         ],
         bestFor: ['عشاق الإثارة', 'طيارو المحاكاة المتمرسون', 'هدايا الأحلام'],
       },
+      de: {
+        title: 'Extreme Flughäfen der Welt',
+        tagline: 'Drei Anflüge, bei denen nur die Hände eines Kapitäns das Flugzeug landen können.',
+        pilotNote:
+          'Nur wenige Dutzend Kapitäne weltweit sind für Paro zertifiziert. Der Autopilot ist aus, die Talwände sind zum Greifen nah und man fliegt nach Sicht. Näher kommt ein Gast echtem Gebirgs-Linienflug nicht.',
+        airports: [
+          { name: 'Paro, Bhutan', sight: 'Sichtflug-Slalom zwischen 18.000 ft hohen Himalaya-Graten zu einer versteckten Talpiste' },
+          { name: 'Hongkong Kai Tak', sight: 'Die legendäre 47°-Checkerboard-Kurve in 650 ft Höhe über den Dächern von Kowloon' },
+          { name: 'Innsbruck', sight: 'Steiler Sinkflug im Alpental mit Sichtplatzrunde auf Piste 08' },
+        ],
+        bestFor: ['Adrenalin-Fans', 'Erfahrene Sim-Piloten', 'Bucket-List-Geschenke'],
+      },
     },
   },
   {
@@ -222,6 +234,18 @@ export const WORLD_ROUTES: WorldRoute[] = [
           { name: 'أمستردام سخيبول', sight: 'بولدربان: مدرج على عمق أربعة أمتار تحت سطح البحر' },
         ],
         bestFor: ['الطيارون لأول مرة', 'المسافرون الدائمون', 'العائلات'],
+      },
+      de: {
+        title: 'Klassische Europa-Drehkreuze',
+        tagline: 'Die drei Megahubs, die jeder Linienpilot im Schlaf kennt.',
+        pilotNote:
+          'Das ist mein tägliches Büro. Heatrows 27L über der Themse, die Parallelbahnen von Charles de Gaulle und Schiphols Polderbaan vier Meter unter dem Meeresspiegel. Sie fliegen echte ILS-Anflüge genau wie die Airlines.',
+        airports: [
+          { name: 'London Heathrow', sight: 'ILS über der Themse mit Windsor Castle und Wembley unter der Tragfläche' },
+          { name: 'Paris Charles de Gaulle', sight: 'Parallelbahnbetrieb mit dem Eiffelturm am Horizont' },
+          { name: 'Amsterdam Schiphol', sight: 'Die Polderbaan: eine Landebahn vier Meter unter dem Meeresspiegel' },
+        ],
+        bestFor: ['Erstflieger', 'Vielflieger', 'Familien'],
       },
     },
   },
@@ -297,6 +321,18 @@ export const WORLD_ROUTES: WorldRoute[] = [
         ],
         bestFor: ['الأزواج', 'عشاق عطلات الصيف', 'محبو الطيران البصري'],
       },
+      de: {
+        title: 'Mittelmeerinseln & Riviera',
+        tagline: 'Sonnenverwöhnte Küstenanflüge, anderthalb Flugstunden von Tel Aviv entfernt.',
+        pilotNote:
+          'Sommer-Charterfliegerei vom Feinsten. Korfus Piste beginnt am Wasser, in Skiathos liegen Sonnenanbeter direkt unter der Schwelle, und der Riviera Visual nach Nizza schwingt sich an Monaco vorbei. Purer Sichtflug, Füße am Seitenruder.',
+        airports: [
+          { name: 'Korfu', sight: 'Über den Damm des Klosters Vlacherna auf eine von Wasser umgebene Piste' },
+          { name: 'Skiathos', sight: 'Europas St. Maarten: Planespotter am Strand unter der Landebahnschwelle' },
+          { name: 'Nizza Côte d’Azur', sight: 'Der Riviera Visual: ein geschwungener Anflug vorbei an Monaco und Cap d’Antibes' },
+        ],
+        bestFor: ['Paare', 'Sommerurlaubs-Fans', 'Sichtflug-Begeisterte'],
+      },
     },
   },
   {
@@ -370,6 +406,18 @@ export const WORLD_ROUTES: WorldRoute[] = [
           { name: 'سان فرانسيسكو', sight: 'هبوط فوق جسر البوابة الذهبية نحو الخليج وألكاتراز في الأسفل' },
         ],
         bestFor: ['المسافرون إلى أمريكا', 'عشاق المدن', 'محبو المعالم الحضرية'],
+      },
+      de: {
+        title: 'Amerikanische Megacity-Skylines',
+        tagline: 'Die drei meistfotografierten Sichtanflüge der Vereinigten Staaten.',
+        pilotNote:
+          'Der Expressway Visual nach LaGuardia ist eine handgeflogene Kurve in 1.500 ft Höhe, während Manhattan die Frontscheibe füllt. Der River Visual nach Washington folgt dem Potomac zwischen Sperrgebieten hindurch. Anflüge, mit denen Piloten angeben.',
+        airports: [
+          { name: 'New York LaGuardia', sight: 'Expressway Visual auf Piste 31 vorbei am Empire State Building und der Freiheitsstatue' },
+          { name: 'Washington National', sight: 'River Visual auf Piste 19 den Potomac hinunter vorbei an Monument und Pentagon' },
+          { name: 'San Francisco', sight: 'Sinkflug über die Golden Gate Bridge in die Bucht mit Alcatraz darunter' },
+        ],
+        bestFor: ['USA-Reisende', 'Städte-Fans', 'Wahrzeichen-Liebhaber'],
       },
     },
   },
@@ -445,6 +493,18 @@ export const WORLD_ROUTES: WorldRoute[] = [
         ],
         bestFor: ['جلسات المساء', 'هدايا رومانسية', 'ذكريات مشتركة من الرحلة'],
       },
+      de: {
+        title: 'City-Centre & Nacht-Neon',
+        tagline: 'Sonnenuntergangs- und Nachtlandungen in drei der hellsten Städte der Welt.',
+        pilotNote:
+          'Nachtflug verändert alles: Die Piste wird zum Lichtband und die Stadt zum Neonteppich. London Citys 5,5°-Gleitpfad ist fast doppelt so steil wie üblich, und Tokio bei Nacht ist der schönste Anflug, den ich je geflogen bin.',
+        airports: [
+          { name: 'London City', sight: 'Steiler 5,5°-Anflug vorbei an Tower Bridge und Canary Wharf' },
+          { name: 'Tokio Haneda', sight: 'Über Rainbow Bridge und Tokyo Tower auf eine in der Bucht gebaute Piste' },
+          { name: 'Las Vegas', sight: 'Landung parallel zum Strip, der Sphere und den Bellagio-Fontänen' },
+        ],
+        bestFor: ['Abend-Sitzungen', 'Romantische Geschenke', 'Gemeinsame Flugerinnerungen'],
+      },
     },
   },
   {
@@ -518,6 +578,18 @@ export const WORLD_ROUTES: WorldRoute[] = [
           { name: 'سالزبورغ', sight: 'دورة بصرية تحت منحدرات أونترسبرغ في مدينة موزارت' },
         ],
         bestFor: ['عشاق التزلج', 'مصوّرو الطبيعة', 'محبو الطيران الدقيق'],
+      },
+      de: {
+        title: 'Alpen- & Fjord-Bergmeister',
+        tagline: 'Schneebedeckte Gipfel, Gletscherseen und geschwungene Anflüge zwischen Felsen.',
+        pilotNote:
+          'Gebirgsfliegerei ist Energiemanagement: Man kann nicht auf die übliche Art durchstarten, also zählt jeder Knoten und jeder Fuß. Queenstowns geschwungener RNP-Pfad durch die Remarkables ist das präziseste Fliegen eines Verkehrsflugzeugs.',
+        airports: [
+          { name: 'Queenstown', sight: 'Geschwungener RNP-AR-Anflug durch die Remarkables über dem Lake Wakatipu' },
+          { name: 'Genf', sight: 'Sinkflug vorbei am Mont Blanc entlang des gesamten Genfersees' },
+          { name: 'Salzburg', sight: 'Sichtplatzrunde unter den Klippen des Untersbergs in Mozarts Stadt' },
+        ],
+        bestFor: ['Ski-Fans', 'Naturfotografen', 'Präzisionsflug-Liebhaber'],
       },
     },
   },
@@ -593,6 +665,18 @@ export const WORLD_ROUTES: WorldRoute[] = [
         ],
         bestFor: ['شهر العسل', 'عشاق الشواطئ', 'تحدي المدرج القصير'],
       },
+      de: {
+        title: 'Tropische Karibik & Ozean-Pisten',
+        tagline: 'Türkisfarbene Riffe, Strandschwellen und mitten ins Meer gebaute Landebahnen.',
+        pilotNote:
+          'Kurz, nass, heiß und feucht: Ozeanpisten bestrafen langes Ausschweben. Santos Dumont misst 1.323 Meter mit Wasser an beiden Enden – der Aufsetzpunkt ist alles. Ich zeige Ihnen, wie Airline-Crews exakt auf den Zahlen landen.',
+        airports: [
+          { name: 'St. Maarten Princess Juliana', sight: 'Vierzig Fuß über dem Zaun von Maho Beach auf Piste 10' },
+          { name: 'Rio de Janeiro Santos Dumont', sight: 'Vorbei an Christusstatue und Zuckerhut auf eine 1.323-m-Buchtpiste' },
+          { name: 'Malé Velana', sight: 'Eine Korallenatoll-Piste umgeben von der Lagune des Indischen Ozeans' },
+        ],
+        bestFor: ['Flitterwochen', 'Strandliebhaber', 'Kurzstrecken-Herausforderung'],
+      },
     },
   },
   {
@@ -666,6 +750,18 @@ export const WORLD_ROUTES: WorldRoute[] = [
           { name: 'لارنكا', sight: 'المقاربة الساحلية الكلاسيكية لشرق المتوسط، أقرب مطار بديل لإسرائيل' },
         ],
         bestFor: ['المسافرون إلى الخليج', 'عشاق التاريخ', 'أول ثلاثية عالمية'],
+      },
+      de: {
+        title: 'Luftfahrt-Legenden & Ikonische Hubs',
+        tagline: 'Vom Burj Khalifa zum Felsen von Gibraltar und über Zypern zurück nach Hause.',
+        pilotNote:
+          'Dubai ist der verkehrsreichste internationale Flughafen der Welt, und in Gibraltar kreuzt eine Hauptstraße die Piste. Larnaka ist der Anflug, den jede israelische Crew kennt: unser nächster Ausweichflughafen, vierzig Minuten ab Ben Gurion.',
+        airports: [
+          { name: 'Dubai International', sight: 'Vorbei am Burj Khalifa und Palm Jumeirah auf parallele Pisten' },
+          { name: 'Gibraltar', sight: 'Windrotoren vom 1.400 ft hohen Felsen auf eine von der Winston Churchill Avenue gekreuzte Piste' },
+          { name: 'Larnaka', sight: 'Der klassische Küstenanflug im östlichen Mittelmeer, Israels nächster Ausweichplatz' },
+        ],
+        bestFor: ['Golf-Reisende', 'Geschichtsfans', 'Erstes Welt-Trio'],
       },
     },
   },
@@ -742,6 +838,18 @@ export const WORLD_ROUTES: WorldRoute[] = [
         ],
         bestFor: ['العائلات', 'الأجداد والأحفاد', 'المهاجرون الجدد'],
       },
+      de: {
+        title: 'Heimathimmel Israel',
+        tagline: 'Starten Sie in Ben Gurion und sehen Sie Ihr Land vom Kapitänssitz aus.',
+        pilotNote:
+          'Nichts übertrifft es, die eigene Straße aus 3.000 Fuß zu erkennen. Wir starten auf Piste 26 über Tel Aviv, fliegen die Küste entlang und über das Tote Meer 1.400 Fuß unter dem Meeresspiegel und landen in der Timna-Wüste in Ramon. Jeder Israeli sollte das einmal fliegen.',
+        airports: [
+          { name: 'Tel Aviv Ben Gurion', sight: 'Abflug über die Küste von Tel Aviv und die Azrieli-Türme' },
+          { name: 'Eilat Ramon', sight: 'Wüstental-Anflug neben den Timna-Bergen mit dem Roten Meer voraus' },
+          { name: 'Ovda', sight: 'Eine ehemalige Luftwaffenpiste im Negev als malerische Wüstenlandung' },
+        ],
+        bestFor: ['Familien', 'Großeltern und Enkel', 'Neueinwanderer'],
+      },
     },
   },
   {
@@ -814,6 +922,18 @@ export const WORLD_ROUTES: WorldRoute[] = [
           { name: 'تينيريفي الشمالي', sight: 'مقاربة ILS داخل غيوم سريعة الحركة على ارتفاع 2,000 قدم فوق منحدرات جبل تيدي' },
         ],
         bestFor: ['محبو الطيران في الأحوال الجوية', 'طيارو المحاكاة المتمرسون', 'متنقلو الجزر'],
+      },
+      de: {
+        title: 'Atlantik-Außenposten',
+        tagline: 'Inselpisten auf Stelzen, in Fjorden und mitten in den Wolken.',
+        pilotNote:
+          'Madeira erfordert eine besondere Kapitänsqualifikation: Die Piste ruht auf Betonpfeilern und der Wind fällt von den Klippen. Vágar versteckt sich zwischen Färöer-Fjorden, und Teneriffa Nord liegt oft in orografischen Wolken. Drei Flughäfen, die Respekt verlangen.',
+        airports: [
+          { name: 'Madeira Funchal', sight: 'Handgeflogener Kurvenanflug auf eine Piste auf 180 Betonpfeilern' },
+          { name: 'Färöer-Inseln Vágar', sight: 'Durch Nordatlantik-Fjorde auf eine kurze, windumtoste Piste' },
+          { name: 'Teneriffa Nord', sight: 'ILS in schnell ziehende Wolken 2.000 ft hoch an den Hängen des Teide' },
+        ],
+        bestFor: ['Schlechtwetter-Fans', 'Erfahrene Sim-Piloten', 'Inselhüpfer'],
       },
     },
   },
@@ -888,6 +1008,18 @@ export const WORLD_ROUTES: WorldRoute[] = [
         ],
         bestFor: ['رومانسيو الشتاء', 'الحالمون بالشفق القطبي', 'التعامل مع الطقس البارد'],
       },
+      de: {
+        title: 'Arktisches Nordlicht',
+        tagline: 'Schnee, Polarlichter und vereiste Pisten jenseits des Polarkreises.',
+        pilotNote:
+          'Spitzbergen ist der nördlichste Flughafen, den eine Boeing 737 im Linienbetrieb anfliegt, auf 78° Nord. Im Winter geht die Sonne nie auf, die Bremswirkung wird in Reibungskoeffizienten gemeldet und das Nordlicht tanzt über dem Gleitpfad. Pullover mitbringen!',
+        airports: [
+          { name: 'Tromsø', sight: 'Fjordanflug zwischen schneebedeckten Gipfeln unter dem Nordlicht' },
+          { name: 'Spitzbergen Longyearbyen', sight: 'Das nördlichste 737-Ziel der Welt: Polarnacht und gefrorene Piste' },
+          { name: 'Keflavík', sight: 'Lavafelder und Atlantikböen auf Islands windumtostem ILS' },
+        ],
+        bestFor: ['Winterromantiker', 'Nordlicht-Träumer', 'Kaltwetter-Fliegerei'],
+      },
     },
   },
   {
@@ -960,6 +1092,18 @@ export const WORLD_ROUTES: WorldRoute[] = [
           { name: 'لاسا غونغار', sight: 'هضبة التبت على ارتفاع 11,713 قدماً على طول نهر يارلونغ تسانغبو' },
         ],
         bestFor: ['عشاق الجبال', 'المتنزهون والمتسلقون', 'طيارون يريدون الأرقام'],
+      },
+      de: {
+        title: 'Dach der Welt',
+        tagline: 'Drei Hochgebirgsflughäfen, wo die Luft dünn ist und die Reserven noch dünner.',
+        pilotNote:
+          'In 11.000 Fuß Höhe landet die 737 schneller, steigt langsamer und braucht fast die gesamte Piste. Kathmandus steiler VOR-Sinkflug zum Himalaya, Lehs Einbahn-Tal, Lhasa auf dem Tibet-Plateau: Hier wird Leistungsberechnung zur Realität.',
+        airports: [
+          { name: 'Kathmandu Tribhuvan', sight: 'Steiler VOR/DME-Sinkflug in den Kessel mit dem Everest am Horizont' },
+          { name: 'Leh Kushok Bakula Rimpochee', sight: 'Einbahn-Tallandung auf 10.682 ft, kein Durchstarten nach dem Entscheidungspunkt' },
+          { name: 'Lhasa Gonggar', sight: 'Das tibetische Hochplateau auf 11.713 ft entlang des Yarlung-Tsangpo-Flusses' },
+        ],
+        bestFor: ['Bergliebhaber', 'Trekker und Bergsteiger', 'Piloten, die es genau wissen wollen'],
       },
     },
   },
@@ -1034,6 +1178,18 @@ export const WORLD_ROUTES: WorldRoute[] = [
         ],
         bestFor: ['الحالمون بالسفاري', 'جولة مريحة', 'الأجداد'],
       },
+      de: {
+        title: 'Afrikas große Horizonte',
+        tagline: 'Tafelberg, Kilimandscharo und die Pyramiden aus dem Cockpit.',
+        pilotNote:
+          'Afrika ist der Kontinent der weiten Himmel. Der Anflug auf Kapstadt dreht direkt unter dem Tafelberg rechts ein, der Schnee des Kilimandscharos liegt im kurzen Endanflug über den Wolken, und Kairo im Morgengrauen legt die Pyramiden von Gizeh unter Ihre linke Tragfläche. Ruhig, weit, unvergesslich.',
+        airports: [
+          { name: 'Kapstadt', sight: 'Anflug unter dem Tafelberg, wo sich unten zwei Ozeane treffen' },
+          { name: 'Kilimandscharo', sight: 'Endanflug direkt auf Afrikas höchsten Gipfel über den Wolken' },
+          { name: 'Kairo', sight: 'Ankunft im Morgengrauen über dem Nil mit den Pyramiden von Gizeh unter dem Flügel' },
+        ],
+        bestFor: ['Safari-Träumer', 'Entspannte Rundflüge', 'Großeltern'],
+      },
     },
   },
   {
@@ -1106,6 +1262,18 @@ export const WORLD_ROUTES: WorldRoute[] = [
           { name: 'هونولولو دانيال ك. إينوي', sight: 'دايموند هيد ووايكيكي قبل الملامسة على مدرج الشعاب' },
         ],
         bestFor: ['المسافرون إلى الشرق الأقصى', 'تدريب الرياح الجانبية', 'غروب استوائي'],
+      },
+      de: {
+        title: 'Pazifik-Ring & Passatwinde',
+        tagline: 'Hafenbrücken, Vulkanküsten und die windigste Landebahn im Pazifik.',
+        pilotNote:
+          'Wellington ist unter Crews aus gutem Grund berühmt: eine kurze Piste mit Meer an beiden Enden und ein böiger Südwind, der nie aufhört. Sydneys 34L legt Harbour Bridge und Opera House zu Ihrer Rechten, und Honolulus Reef Runway wurde direkt ins Meer gebaut.',
+        airports: [
+          { name: 'Wellington', sight: 'Böiger Seitenwind auf eine 2.081-m-Piste mit der Cookstraße an beiden Enden' },
+          { name: 'Sydney Kingsford Smith', sight: 'Harbour Bridge und Opera House unter der Tragfläche auf Piste 34L' },
+          { name: 'Honolulu Daniel K. Inouye', sight: 'Diamond Head und Waikiki vor dem Aufsetzen auf der Reef Runway' },
+        ],
+        bestFor: ['Fernost-Reisende', 'Seitenwind-Training', 'Tropische Sonnenuntergänge'],
       },
     },
   },
@@ -1180,6 +1348,18 @@ export const WORLD_ROUTES: WorldRoute[] = [
         ],
         bestFor: ['عشاق أمريكا الجنوبية', 'مهووسو الأداء', 'طيارو المحاكاة المتمرسون'],
       },
+      de: {
+        title: 'Lateinamerikanische Höhenflüge',
+        tagline: 'Von einer Hangpiste in Honduras bis zum höchsten internationalen Flughafen der Erde.',
+        pilotNote:
+          'La Paz El Alto liegt auf 13.325 Fuß: Die 737 braucht eine 4.000-Meter-Piste und setzt trotzdem mit Geschwindigkeiten auf, die sich wie ein Start anfühlen. Toncontín ist das genaue Gegenteil – eine kurze Piste hinter einem Bergrücken. Zwei Extreme desselben Flugzeugs.',
+        airports: [
+          { name: 'Tegucigalpa Toncontín', sight: 'Enge Sinkflugkurve hinter dem Bergrücken auf eine kurze Hangpiste' },
+          { name: 'Quito Mariscal Sucre', sight: 'Anflug auf 7.900 ft zwischen Andenvulkanen, Cotopaxi am Horizont' },
+          { name: 'La Paz El Alto', sight: 'Der höchste internationale Flughafen der Welt, 13.325 ft über dem Altiplano' },
+        ],
+        bestFor: ['Südamerika-Fans', 'Performance-Enthusiasten', 'Erfahrene Sim-Piloten'],
+      },
     },
   },
   {
@@ -1253,6 +1433,18 @@ export const WORLD_ROUTES: WorldRoute[] = [
         ],
         bestFor: ['عشاق الطبيعة', 'محبو التزلج والمشي', 'طيران خلاب هادئ'],
       },
+      de: {
+        title: 'Nordamerikanische Wildnis',
+        tagline: 'Gletscher, die Grand Tetons und ein von Bergen umrahmter Pazifikhafen.',
+        pilotNote:
+          'Jackson Hole ist der einzige US-Flughafen in einem Nationalpark: Die Tetons ragen 7.000 Fuß direkt neben der Piste auf. Anchorage bringt den Denali und die Chugach-Gletscher, und Vancouvers Anflug fädelt sich zwischen den North Shore Mountains und der Strait of Georgia hindurch.',
+        airports: [
+          { name: 'Jackson Hole', sight: 'Steiler Anflug unter den Grand Tetons im Grand-Teton-Nationalpark' },
+          { name: 'Anchorage Ted Stevens', sight: 'Gletscher und Denali am Horizont, das Frachtdrehkreuz des Pazifiks' },
+          { name: 'Vancouver', sight: 'Zwischen den North Shore Mountains und der Strait of Georgia auf die Meereshöhen-Piste' },
+        ],
+        bestFor: ['Naturfreunde', 'Ski- und Wanderfans', 'Ruhiges Panoramafliegen'],
+      },
     },
   },
 ];
@@ -1293,6 +1485,12 @@ export const ADVENTURES: Adventure[] = [
         description:
           'أدنى رحلة على وجه الأرض. أقلع من بن غوريون، واعبر القدس عند الفجر، وانزل فوق صحراء يهودا لتطير على طول البحر الميت على ارتفاع 1,400 قدم تحت سطح البحر، ومسعدة ومنحدرات عين جدي بجوار جناحك.',
       },
+      de: {
+        title: 'Tiefflug über das Tote Meer & Sonnenaufgang über Masada',
+        where: 'Israel, ab Ben Gurion',
+        description:
+          'Der tiefste Flug der Erde. Start in Ben Gurion, Überflug Jerusalems im Morgengrauen und Sinkflug über die Judäische Wüste, um 1.400 Fuß unter dem Meeresspiegel entlang des Toten Meeres zu fliegen – mit Masada und den Klippen von En Gedi neben der Tragfläche.',
+      },
     },
   },
   {
@@ -1329,6 +1527,12 @@ export const ADVENTURES: Adventure[] = [
         where: 'شمال الأطلسي، كيفلافيك كمطار بديل',
         description:
           'حلّق في مرحلة محيطية مكثفة من نيويورك إلى لندن كما تفعل أطقم 737 في الرحلات الطويلة: تصريح محيطي، وتقارير موقع، وقرار وقود فوق المحيط، وعطل محرك يرسلك إلى المطار البديل المتجمد في كيفلافيك.',
+      },
+      de: {
+        title: 'Transatlantik-ETOPS-Überquerung',
+        where: 'Nordatlantik, Keflavík als Ausweichflughafen',
+        description:
+          'Fliegen Sie eine komprimierte Ozean-Etappe von New York nach London wie Langstrecken-737-Crews: ozeanische Freigabe, Positionsmeldungen, eine Treibstoffentscheidung über dem Meer und ein Triebwerksausfall, der Sie zum vereisten Ausweichflughafen Keflavík führt.',
       },
     },
   },
@@ -1367,6 +1571,12 @@ export const ADVENTURES: Adventure[] = [
         description:
           'الرحلة الخلابة التي تشتهر بها نيبال، على متن 737. اصعد من كاتماندو عند الشروق واتجه شرقاً على طول سلسلة الهيمالايا على ارتفاع 29,000 قدم، وجهاً لوجه مع إيفرست ولوتسي وماكالو، قبل العودة إلى الوادي.',
       },
+      de: {
+        title: 'Everest-Gebirgsrundflug',
+        where: 'Himalaya, ab Kathmandu',
+        description:
+          'Der berühmte Rundflug Nepals – geflogen in einer 737. Steigen Sie bei Sonnenaufgang aus Kathmandu auf und folgen Sie der Himalaya-Kette auf 29.000 Fuß nach Osten, auf Augenhöhe mit Everest, Lhotse und Makalu, bevor es zurück ins Tal geht.',
+      },
     },
   },
   {
@@ -1403,6 +1613,12 @@ export const ADVENTURES: Adventure[] = [
         where: 'أي وجهة، طقس حي أو مخصص',
         description:
           'تصل لتجد خلية عاصفة تجلس فوق المطار. انتظر في نمط الانتظار، واقرأ رادار الطقس، ووازن الوقود مقابل الوقت، واتخذ قرار القبطان: الانتظار، أو التحويل إلى المطار البديل والهبوط تحت المطر مع رياح جانبية بسرعة 25 عقدة. القرار قرارك.',
+      },
+      de: {
+        title: 'Gewitter-Ausweichentscheidung',
+        where: 'Jedes Ziel, Live- oder Wunschwetter',
+        description:
+          'Bei der Ankunft liegt eine Gewitterzelle direkt über dem Flughafen. Im Warteschleifenverfahren kreisen, Wetterradar lesen, Treibstoff gegen Zeit abwägen und die Kapitänsentscheidung treffen: abwarten oder zum Ausweichflughafen abdrehen und bei Regen mit 25 Knoten Seitenwind landen. Sie entscheiden.',
       },
     },
   },
@@ -1441,6 +1657,12 @@ export const ADVENTURES: Adventure[] = [
         description:
           'جولة حول العالم بزمن مكثف: هبوط واحد في كل قارة تختاره مع قبطانك. شروق في سيدني، وظهيرة فوق كيب تاون، وغروب في ريو، وأضواء طوكيو، مع إعادة تموضع المحاكي بين المراحل لتُقضى كل دقيقة في المقاربة.',
       },
+      de: {
+        title: 'In 90 Minuten um die Welt',
+        where: 'Sechs Kontinente, sechs Landungen',
+        description:
+          'Eine zeitlich komprimierte Weltreise: eine Landung auf jedem Kontinent, gemeinsam mit Ihrem Kapitän gewählt. Sonnenaufgang in Sydney, Mittag über Kapstadt, Sonnenuntergang in Rio und die Lichter von Tokio – der Simulator versetzt Sie zwischen den Etappen, damit jede Minute im Anflug verbracht wird.',
+      },
     },
   },
   {
@@ -1477,6 +1699,12 @@ export const ADVENTURES: Adventure[] = [
         where: 'أي مطار من 24,000 مطار حول العالم',
         description:
           'أين نشأت؟ أين يعيش والداك؟ أخبرنا بالمدينة ونحمّل المطار الحقيقي والتضاريس الحقيقية وطقس اليوم. اهبط حيث تعيش عائلتك، وهم يشاهدون من مقاعد المقصورة.',
+      },
+      de: {
+        title: 'Heimflug: Ihr eigener Flughafen',
+        where: 'Jeder von 24.000 Flughäfen weltweit',
+        description:
+          'Wo sind Sie aufgewachsen? Wo leben Ihre Eltern? Nennen Sie uns die Stadt und wir laden den echten Flughafen, das echte Gelände und das heutige Wetter. Landen Sie dort, wo Ihre Familie lebt, während sie von den Cockpit-Sitzen zuschaut.',
       },
     },
   },
@@ -1823,6 +2051,65 @@ export const EXPERIENCE_ROUTES_COPY: LocalizedRecord<ExperienceRoutesCopy> = {
     includedPillarDesc: 'اختاروا من بين 14 مساراً عالمياً دون أي رسوم إضافية (0 ش.ج). يبرمج القبطان كمبيوتر الطيران (FMC) نحو وجهتكم المختارة.',
     extendedPillarTitle: 'مهمة موسّعة (100 دقيقة · +290 ش.ج)',
     extendedPillarDesc: 'هل ترغبون في الهبوط في 3 مطارات مختلفة في جلسة واحدة؟ تضيف +40 دقيقة في المقصورة (إجمالي 100 دقيقة) لثلاث مقاربات متتالية كاملة.',
+  },
+  de: {
+    badge: 'ERLEBNISFLÜGE • AUS DEM LOGBUCH DES KAPITÄNS',
+    title: 'Routen, Aussichten & Abenteuer weltweit',
+    subtitle:
+      'Jeder Erlebnisflug umfasst eine Start- und Landeübung sowie ein Welt-Trio: drei echte Flughäfen direkt hintereinander geflogen. Das sind die Routen, die ich einem Gast vorschlagen würde, ausgewählt aus dreißig Jahren im Cockpit.',
+    captainIntro:
+      'Auf den meisten dieser Pisten bin ich selbst im Linienbetrieb gelandet. Wählen Sie ein Trio nach Region oder Nervenkitzel, lesen Sie meine Notiz zu jedem Anflug und wir fliegen es gemeinsam in der Boeing 737 bei Live- oder Wunschwetter.',
+    statsRoutes: 'kuratierte Welt-Trios',
+    statsAirports: 'handverlesene Flughäfen',
+    statsWorldwide: 'Flughäfen auf Anfrage verfügbar',
+    filterAll: 'Alle Regionen',
+    regions: {
+      israel: 'Israel',
+      europe: 'Europa & Atlantik',
+      americas: 'Amerika',
+      asia_pacific: 'Asien-Pazifik',
+      africa_middle_east: 'Afrika & Naher Osten',
+      extreme: 'Extreme Anflüge',
+    },
+    bookableBadge: 'Erweiterte Mission (+40 Min.)',
+    onRequestBadge: 'Im 60-Min.-Flug enthalten',
+    extraMinutes: (minutes) => `+${minutes} Min. Cockpitzeit`,
+    difficultyLabel: 'Schwierigkeitswertung des Kapitäns',
+    difficultyLevels: {
+      1: 'Entspannter Rundflug',
+      2: 'Leicht, vollständig geführt',
+      3: 'Manueller Sichtflug',
+      4: 'Anspruchsvoll, Instruktor unterstützt',
+      5: 'Anflug nur für Kapitäne',
+    },
+    pilotNoteLabel: 'Notiz des Kapitäns',
+    bestForLabel: 'Ideal für',
+    bookTrioCta: 'Erweiterten Flug buchen (100 Min.)',
+    requestRouteCta: 'Diese Route im 60-Min.-Flug wählen',
+    bookingIntentEyebrow: 'WELT-TRIO ZU IHREM FLUG HINZUGEFÜGT',
+    bookingIntentDescription:
+      'Diese Route ist bereits ausgewählt. Wählen Sie eine Abflugzeit für den gesamten Flug und prüfen Sie Minuten und Preis im Manifest vor der Zahlung.',
+    bookingIntentAddOn: 'Routen-Extra',
+    routeRequestEyebrow: 'INDIVIDUELLE ROUTENANFRAGE',
+    routeRequestDescription:
+      'Wählen Sie Datum und Uhrzeit für eine Sitzung ab 60 Minuten. Wir speichern Ihre Routenanfrage mit der Buchung, und Ihr Kapitän bestätigt vor Ihrem Besuch den endgültigen Missionsplan.',
+    routeRequestPriceNote: 'Kein Routenaufpreis heute',
+    routeRequestSaved: 'Routenanfrage mit Buchung gespeichert',
+    routeRequestConfirmation: 'Kapitänsbestätigung erforderlich',
+    adventuresBadge: 'FLUGABENTEUER',
+    adventuresTitle: 'Jenseits der Trios: Missionen, die ein Kapitän fliegt',
+    adventuresSubtitle:
+      'Szenarioflüge, die mit Ihrem Kapitän gebrieft und während Ihrer gebuchten Sitzung geflogen werden. Nennen Sie uns Ihren Wunsch bei der Buchung oder beim Briefing.',
+    fromSession: (minutes) => `Ab einer ${minutes}-Minuten-Sitzung`,
+    askCaptainCta: 'Kapitän fragen',
+    bookableHint: 'Buchbare Trios öffnen einen 60-minütigen Captain’s-Command-Flug mit bereits ausgewähltem Trio; prüfen Sie vor dem Bezahlen das vollständige Manifest.',
+    onRequestHint: 'Routenanfragen öffnen den Buchungskalender mit einer 60-Minuten-Sitzung. Wir speichern Ihren Wunsch mit der Buchung und Ihr Kapitän bestätigt den Missionsplan.',
+    howItWorksTitle: 'So wählen Sie Ihre Flugroute',
+    howItWorksSubtitle: 'Fliegen Sie legendäre reale Routen. Wählen Sie ein enthaltenes Ziel in Ihrem Standardflug oder erweitern Sie auf eine Multi-Stopp-Mission.',
+    includedPillarTitle: 'Im 60-Min.-Flug enthalten (0 ₪ extra)',
+    includedPillarDesc: 'Wählen Sie eine unserer 14 kuratierten Weltrouten ohne Aufpreis. Ihr Kapitän programmiert den Bordcomputer (FMC) für Ihr Wunschziel.',
+    extendedPillarTitle: 'Erweiterte Mission (100 Min. · +290 ₪)',
+    extendedPillarDesc: 'Sie möchten in einer Sitzung an 3 verschiedenen Flughäfen landen? Fügt +40 Minuten Cockpitzeit (100 Min. gesamt) für 3 volle Anflüge hinzu.',
   },
 };
 

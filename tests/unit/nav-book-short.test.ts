@@ -10,15 +10,16 @@ import { LANGUAGES, translations } from '@/lib/i18n/translations';
 describe('nav.bookFlightShort', () => {
   const codes = LANGUAGES.map((language) => language.code);
 
-  it('exists in all six languages', () => {
-    expect(codes.sort()).toEqual(['ar', 'en', 'es', 'fr', 'he', 'ru']);
+  it('exists in all seven languages', () => {
+    expect(codes.sort()).toEqual(['ar', 'de', 'en', 'es', 'fr', 'he', 'ru']);
     for (const code of codes) expect(translations[code].nav.bookFlightShort.trim(), code).not.toBe('');
   });
 
-  it('is the first word of the full label in every language but Russian', () => {
-    for (const code of codes.filter((candidate) => candidate !== 'ru')) {
+  it('is the first word of the full label in every language but Russian and German', () => {
+    for (const code of codes.filter((candidate) => candidate !== 'ru' && candidate !== 'de')) {
       expect(translations[code].nav.bookFlightShort, code).toBe(translations[code].nav.bookFlight.split(' ')[0]);
     }
+    expect(translations.de.nav.bookFlightShort).toBe('Buchen');
   });
 
   it('is the short word "Бронь" in Russian', () => {

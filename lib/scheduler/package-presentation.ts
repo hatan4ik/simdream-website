@@ -54,6 +54,15 @@ const PACKAGE_FORMULA_COPY: LocalizedRecord<Record<FormulaKey, string>> = {
     90: '⚡ إقلاع/هبوط + باقتان ثلاثيتان + طوارئ (طيار أو طياران)',
     default: '✈️ جلسة طيران بوينغ 737',
   },
+  de: {
+    training: '🎯 Airline-Checkride • Raw Data & V1-Ausfall',
+    fear_of_flying: '🕊️ Ruhiges Coaching mit Kapitän • Eigenes Tempo',
+    30: '🛫 Geführter Start, manuelles Fliegen & Landung',
+    45: '🌤️ Tagesflug • 2 Landungen (bis 18:00)',
+    60: '⭐ Start/Landung + 1 Welt-Trio (3 Flughäfen inklusive)',
+    90: '⚡ Start/Landung + 2 Welt-Trios + Notfälle (1–2 Piloten)',
+    default: '✈️ Boeing 737 Flugsession',
+  },
 };
 
 const PACKAGE_FORMULA_CLASSES: Record<FormulaKey, string> = {

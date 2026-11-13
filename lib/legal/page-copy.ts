@@ -53,7 +53,8 @@ const legalLineRu = `${legalNameEn} • Рег. номер: ${REG}`;
 const legalLineFr = `${legalNameEn} • N° d'enregistrement : ${REG}`;
 const legalLineAr = `${legalNameEn} • رقم التسجيل: ${REG}`;
 const legalLineEs = `${legalNameEn} • Registro: ${REG}`;
-const LEGAL_LINES = { he: legalLineHe, en: legalLineLatin, ru: legalLineRu, fr: legalLineFr, ar: legalLineAr, es: legalLineEs };
+const legalLineDe = `${legalNameEn} • Reg.-Nr.: ${REG}`;
+const LEGAL_LINES = { he: legalLineHe, en: legalLineLatin, ru: legalLineRu, fr: legalLineFr, ar: legalLineAr, es: legalLineEs, de: legalLineDe };
 
 export const RULES_PAGE_COPY: Record<LegalLanguage, RulesPageCopy> = {
   en: {
@@ -196,6 +197,28 @@ export const RULES_PAGE_COPY: Record<LegalLanguage, RulesPageCopy> = {
     contactQuestion: '¿Tienes preguntas sobre las normas o una reserva existente?',
     privacyLink: 'Ver política de privacidad →',
   },
+  de: {
+    badge: 'OFFIZIELLE NUTZUNGSBEDINGUNGEN & REGELN • SIM DREAM ISRAEL',
+    title: 'Hausordnung & Nutzungsbedingungen — Sim Dream Israel',
+    legalLine: LEGAL_LINES.de,
+    address: `Adresse des Zentrums: ${address.streetEn}, ${address.cityEn} | Offizielle Domains: simdream.co.il, simdream.aero`,
+    versionLabel: 'Version',
+    tocLabel: 'Inhalt',
+    loading: 'Vollständiger Text wird geladen…',
+    translationNotice:
+      'Die offiziellen Regeln und Nutzungsbedingungen von SimDream Israel sind rechtlich auf Hebräisch und Englisch gemäß israelischem Recht verbindlich. Die Ziffern 1 bis 12 und der Anhang werden unten in der offiziellen englischen Fassung angezeigt; die Ziffern 13 bis 15 stehen in Ihrer Sprache.',
+    ageBadge: 'Altersvorgaben',
+    ageTitle: 'Simulator-Zutritt: Ab 10 Jahren',
+    ageDesc: 'Teilnehmer von 10–15 Jahren benötigen die Begleitung eines Erwachsenen. Online-Buchung & Zahlung ab 18 Jahren.',
+    arrivalBadge: 'Ankunft & Pünktlichkeit',
+    arrivalTitle: '5 Minuten vor dem Termin erscheinen',
+    arrivalDesc: 'Verspätungen über 10 Minuten können zu einer verkürzten Session (ohne Erstattung) oder Umbuchungsgebühren führen.',
+    natureBadge: 'Art der Leistung',
+    natureTitle: 'Erlebniszentrum & Briefing',
+    natureDesc: 'Die Dauer beinhaltet das Briefing im Cockpit. Der Simulator ist eine Erlebnis- und Trainingsanlage, keine Lizenzierungsstelle.',
+    contactQuestion: 'Fragen zu den Regeln oder zu einer bestehenden Buchung?',
+    privacyLink: 'Datenschutzerklärung ansehen →',
+  },
 };
 
 export const PRIVACY_PAGE_COPY: Record<LegalLanguage, PrivacyPageCopy> = {
@@ -264,5 +287,16 @@ export const PRIVACY_PAGE_COPY: Record<LegalLanguage, PrivacyPageCopy> = {
     loading: 'Cargando el texto completo…',
     contactOfficer: 'Contacto de privacidad y protección de datos',
     rulesLink: 'Ver normas y condiciones del centro →',
+  },
+  de: {
+    badge: 'OFFIZIELLE DATENSCHUTZ- & COOKIE-RICHTLINIE • SIM DREAM ISRAEL',
+    title: 'Datenschutz- & Cookie-Richtlinie — Sim Dream Israel',
+    legalLine: LEGAL_LINES.de,
+    address: `Adresse: ${address.streetEn}, ${address.cityEn} | Datenschutz: ${contact.email}`,
+    versionLabel: 'Version',
+    tocLabel: 'Inhalt',
+    loading: 'Vollständiger Text wird geladen…',
+    contactOfficer: 'Kontakt für Datenschutz und Datensicherheit',
+    rulesLink: 'Nutzungsbedingungen & Regeln ansehen →',
   },
 };

@@ -345,4 +345,56 @@ export const CONSENT_COPY: Record<Language, ConsentCopy> = {
       },
     ],
   },
+  de: {
+    bannerLabel: 'Cookies und Datenschutz',
+    noticeBody:
+      'Diese Website setzt keine Werbe- oder Analyse-Cookies und verfolgt Sie nicht über andere Websites hinweg. Sie speichert nur das Nötigste für den Betrieb: Ihre Sprach- und Darstellungseinstellungen auf diesem Gerät sowie Cookies, die unsere Buchungs-, Zahlungs- und Login-Anbieter auf ihren eigenen Seiten setzen.',
+    choiceTitle: 'Ihre Cookie-Einstellungen',
+    choiceBody:
+      'Wir verwenden Speicher, der für den Betrieb der Website erforderlich ist, sowie optionalen Speicher, den Sie zulassen oder ablehnen können. Sie können Ihre Auswahl jederzeit über die „Cookie-Einstellungen“ ändern.',
+    gotIt: 'Verstanden',
+    acceptAll: 'Alle akzeptieren',
+    rejectNonEssential: 'Nur notwendige',
+    customize: 'Anpassen',
+    privacyPolicy: 'Datenschutzerklärung',
+    dialogTitle: 'Cookie-Einstellungen',
+    dialogIntroNotice:
+      'Dies ist alles, was die Website auf Ihrem Gerät speichert und warum. Es wird keine optionale Kategorie verwendet, daher muss nichts ein- oder ausgeschaltet werden.',
+    dialogIntroChoice:
+      'Wählen Sie, welche optionalen Speicher Sie zulassen möchten. Notwendiger Speicher ist immer aktiv. Sie können dies jederzeit ändern.',
+    close: 'Schließen',
+    save: 'Auswahl speichern',
+    alwaysOn: 'Immer aktiv',
+    on: 'Ein',
+    off: 'Aus',
+    notUsed: 'Auf dieser Website nicht verwendet',
+    storedHeading: 'Was gespeichert wird',
+    categories: {
+      necessary: { title: 'Notwendig', description: 'Für den Betrieb und die Sicherheit der Website erforderlich. Kann nicht deaktiviert werden.' },
+      preferences: { title: 'Präferenzen', description: 'Merkt sich Einstellungen wie Ihre Sprache und das Design zwischen Besuchen.' },
+      analytics: { title: 'Analyse', description: 'Misst die Nutzung der Website, damit wir sie verbessern können.' },
+      marketing: { title: 'Marketing', description: 'Zeigt oder misst Werbung auf dieser Website oder anderswo.' },
+    },
+    storedItems: [
+      {
+        title: 'Sprach- und Darstellungsauswahl',
+        description:
+          'Ihre Sprache und Ihr Design werden im lokalen Speicher Ihres Browsers auf diesem Gerät gespeichert. Es ist kein Cookie und identifiziert Sie nicht. Sie können es jederzeit in den Browsereinstellungen löschen.',
+      },
+      {
+        title: 'Anmelde- und Buchungssitzung',
+        description:
+          'Wird nur für den geöffneten Browser-Tab (Session Storage) gespeichert, während Sie sich anmelden oder eine Buchung abschließen, und beim Schließen des Tabs gelöscht.',
+      },
+      {
+        title: 'Buchungs-, Zahlungs- und Login-Anbieter',
+        description:
+          'Wenn Sie sich anmelden oder bezahlen, setzen Wix und unser Zahlungsanbieter auf ihren eigenen Seiten die Cookies, die für die Sicherheit dieser Schritte erforderlich sind.',
+      },
+      {
+        title: 'Karte auf der Kontaktseite',
+        description: 'Die Kontaktseite bettet eine Google-Karte ein. Google erhält beim Laden Ihre IP-Adresse und kann eigene Cookies setzen.',
+      },
+    ],
+  },
 };

@@ -260,33 +260,7 @@ const CLEAN_COPY: Record<
  * unavailable in the PRO and fear-of-flying flows. This keeps the calendar's
  * compact selector compatible with the noise-free booking contract.
  */
-const DURATION_OPTION_SUBTITLES: LocalizedRecord<{ training: string; fearOfFlying: string; discovery: string }> = {
-  en: {
-    training: 'Airline assessment preparation',
-    fearOfFlying: 'Calm captain-led coaching',
-    discovery: 'Guided Discovery Mission',
-  },
-  he: {
-    training: 'הכנה למבדקי חברת תעופה',
-    fearOfFlying: 'ליווי רגוע עם קברניט',
-    discovery: 'משימת היכרות מודרכת',
-  },
-  ru: {
-    training: 'Подготовка к отбору в авиакомпанию',
-    fearOfFlying: 'Спокойная сессия с капитаном',
-    discovery: 'Ознакомительная миссия с инструктором',
-  },
-  fr: {
-    training: 'Préparation aux évaluations aériennes',
-    fearOfFlying: 'Accompagnement serein avec un commandant',
-    discovery: 'Mission découverte guidée',
-  },
-  ar: {
-    training: 'تحضير لتقييمات شركات الطيران',
-    fearOfFlying: 'تدريب هادئ بإشراف كابتن',
-    discovery: 'مهمة استكشافية بإرشاد مدرب',
-  },
-};
+import { DURATION_OPTION_SUBTITLES } from './kantorovich-copy';
 
 function durationOptionSubtitle(pkg: SimulatorPackage, language: Language): string {
   const copy = DURATION_OPTION_SUBTITLES[language] || DURATION_OPTION_SUBTITLES.en;

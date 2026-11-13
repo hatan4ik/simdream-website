@@ -1,12 +1,14 @@
 import RULES_CORE_EN from '@/lib/legal/content/rules-core.en';
 import RULES_CORE_HE from '@/lib/legal/content/rules-core.he';
 import RULES_EXTRA_AR from '@/lib/legal/content/rules-extra.ar';
+import RULES_EXTRA_DE from '@/lib/legal/content/rules-extra.de';
 import RULES_EXTRA_EN from '@/lib/legal/content/rules-extra.en';
 import RULES_EXTRA_ES from '@/lib/legal/content/rules-extra.es';
 import RULES_EXTRA_FR from '@/lib/legal/content/rules-extra.fr';
 import RULES_EXTRA_HE from '@/lib/legal/content/rules-extra.he';
 import RULES_EXTRA_RU from '@/lib/legal/content/rules-extra.ru';
 import PRIVACY_AR from '@/lib/legal/content/privacy.ar';
+import PRIVACY_DE from '@/lib/legal/content/privacy.de';
 import PRIVACY_EN from '@/lib/legal/content/privacy.en';
 import PRIVACY_ES from '@/lib/legal/content/privacy.es';
 import PRIVACY_FR from '@/lib/legal/content/privacy.fr';
@@ -14,7 +16,7 @@ import PRIVACY_HE from '@/lib/legal/content/privacy.he';
 import PRIVACY_RU from '@/lib/legal/content/privacy.ru';
 import type { LegalBody, LegalClause, LegalLanguage, PrivacyBody, RulesCoreLanguage } from '@/lib/legal/types';
 
-export const LANGUAGES: readonly LegalLanguage[] = ['he', 'en', 'ru', 'fr', 'ar', 'es'];
+export const LANGUAGES: readonly LegalLanguage[] = ['he', 'en', 'ru', 'fr', 'ar', 'es', 'de'];
 
 export const RULES_CORE: Record<RulesCoreLanguage, LegalBody> = { he: RULES_CORE_HE, en: RULES_CORE_EN };
 
@@ -25,6 +27,7 @@ export const RULES_EXTRA: Record<LegalLanguage, LegalBody> = {
   fr: RULES_EXTRA_FR,
   ar: RULES_EXTRA_AR,
   es: RULES_EXTRA_ES,
+  de: RULES_EXTRA_DE,
 };
 
 export const PRIVACY: Record<LegalLanguage, PrivacyBody> = {
@@ -34,6 +37,7 @@ export const PRIVACY: Record<LegalLanguage, PrivacyBody> = {
   fr: PRIVACY_FR,
   ar: PRIVACY_AR,
   es: PRIVACY_ES,
+  de: PRIVACY_DE,
 };
 
 export const HEBREW = /[֐-׿]/;
@@ -47,6 +51,7 @@ export const FORBIDDEN_SCRIPTS: Record<LegalLanguage, Array<{ name: string; patt
   ru: [{ name: 'Hebrew', pattern: HEBREW }, { name: 'Arabic', pattern: ARABIC }],
   fr: [{ name: 'Hebrew', pattern: HEBREW }, { name: 'Arabic', pattern: ARABIC }],
   es: [{ name: 'Hebrew', pattern: HEBREW }, { name: 'Arabic', pattern: ARABIC }],
+  de: [{ name: 'Hebrew', pattern: HEBREW }, { name: 'Arabic', pattern: ARABIC }],
 };
 
 /** Every string leaf of a value, with its path. */
