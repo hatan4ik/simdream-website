@@ -10,6 +10,14 @@
 
 ## Product changes by version
 
+### [v1.26.0](https://github.com/hatan4ik/simdream-website/releases/tag/v1.26.0) — 2026-11-13
+
+#### Features
+
+- **i18n,blog:** add full German (de) frontend & Wix Blog support (#195) (5eddc07)
+
+Deployment evidence: [GitHub Release](https://github.com/hatan4ik/simdream-website/releases/tag/v1.26.0).
+
 ### [v1.25.0](https://github.com/hatan4ik/simdream-website/releases/tag/v1.25.0) — 2026-11-13
 
 #### Features
