@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { requireAdmin } from '@/lib/auth/admin-guard';
+import { languageFromLocalePathname, stripLocalePrefix } from '@/lib/i18n/locale-routing';
+
+const REQUEST_LANGUAGE_HEADER = 'x-simdream-locale';
 
 function createContentSecurityPolicy(nonce: string): string {
   const development = process.env.NODE_ENV === 'development';
@@ -28,9 +31,8 @@ function createContentSecurityPolicy(nonce: string): string {
   ].join('; ');
 }
 
-function applyContentSecurityPolicy(request: NextRequest, response: NextResponse, nonce: string): NextResponse {
-  const policy = createContentSecurityPolicy(nonce);
-  response.headers.set('Content-Security-Policy', policy);
+function applyContentSecurityPolicy(response: NextResponse, nonce: string): NextResponse {
+  response.headers.set('Content-Security-Policy', createContentSecurityPolicy(nonce));
   return response;
 }
 
@@ -56,21 +58,31 @@ function isAdminRoute(pathname: string): boolean {
   );
 }
 
-// Next.js 16 proxy guard for the admin shell and a strict per-request CSP. Route
-// handlers repeat authorization so API data remains protected if a proxy is bypassed.
+// Next.js 16 proxy guard for the admin shell and a strict per-request CSP. Wix
+// Multilingual secondary locales (`/en/...`, `/fr/...`) are internally rewritten
+// to the shared route tree while the locale travels as a request header.
 export async function proxy(request: NextRequest) {
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set('x-nonce', nonce);
 
-  if (isAdminRoute(request.nextUrl.pathname)) {
+  const language = languageFromLocalePathname(request.nextUrl.pathname);
+  const resolvedPathname = language ? stripLocalePrefix(request.nextUrl.pathname) : request.nextUrl.pathname;
+  if (language) requestHeaders.set(REQUEST_LANGUAGE_HEADER, language);
+
+  if (isAdminRoute(resolvedPathname)) {
     const denied = await requireAdmin(request);
-    if (denied) return applyContentSecurityPolicy(request, denied, nonce);
+    if (denied) return applyContentSecurityPolicy(denied, nonce);
   }
 
+  if (!language) {
+    return applyContentSecurityPolicy(NextResponse.next({ request: { headers: requestHeaders } }), nonce);
+  }
+
+  const destination = request.nextUrl.clone();
+  destination.pathname = resolvedPathname;
   return applyContentSecurityPolicy(
-    request,
-    NextResponse.next({ request: { headers: requestHeaders } }),
+    NextResponse.rewrite(destination, { request: { headers: requestHeaders } }),
     nonce
   );
 }

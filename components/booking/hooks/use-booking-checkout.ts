@@ -4,6 +4,7 @@ import { useState, type FormEvent } from 'react';
 import type { FlightSlot, PilotExperienceLevel, SimulatorPackage } from '@/types';
 import type { WorldRoute } from '@/lib/data/experience-routes';
 import type { translations } from '@/lib/i18n/translations';
+import type { Language } from '@/lib/i18n/translations';
 import { extractErrorMessage } from '@/lib/utils';
 import { useAuth } from '@/lib/auth/auth-context';
 import {
@@ -35,6 +36,8 @@ interface UseBookingCheckoutArgs {
   voucher: BookingVoucher;
   wixDraft: WixCheckoutDraftHandle;
   wixSubscriptionCopy: WixSubscriptionBookingCopy;
+  /** The public locale forwarded to Wix's documented redirect-session preference. */
+  language: Language;
   copy: BookingCopy;
   /** Called when the visitor submits without a departure: return to the date and slot step. */
   onSlotMissing: () => void;
@@ -80,6 +83,7 @@ export function useBookingCheckout(args: UseBookingCheckoutArgs) {
     voucher,
     wixDraft,
     wixSubscriptionCopy,
+    language,
     copy,
     onSlotMissing,
     extraValidation,
@@ -131,6 +135,7 @@ export function useBookingCheckout(args: UseBookingCheckoutArgs) {
           bookingDate: selectedDate,
           startTime: selectedSlot.startTime,
           copy: wixSubscriptionCopy,
+          language,
           signIn: startWixMemberSignIn,
         });
         return;

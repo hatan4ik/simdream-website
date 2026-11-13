@@ -508,7 +508,7 @@ export async function removeWixGiftCard(
   return priceFromCalculation(calculation);
 }
 
-/** Gets the final Wix-hosted payment URL for an already calculated visitor cart. */
+/** Cart V2 has no documented locale/return field; redirect sessions carry `preferences.additionalQueryParameters.lang`. */
 export async function getWixBookingCheckoutUrl(client: WixBrowserClient, cartId: string): Promise<{ checkoutUrl: string }> {
   const checkout = await wixPost<WixCheckoutUrlResponse>(client, `${WIX_CREATE_CART_URL}/${cartId}/get-checkout-url`, {});
   if (!checkout.checkoutUrl) throw new WixBookingCheckoutClientError('Wix did not return a checkout page. Please try again.');

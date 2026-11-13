@@ -2,8 +2,10 @@
 
 import React, { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { Globe, ChevronDown, Check } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { LANGUAGES, Language } from '@/lib/i18n/translations';
+import { localizeInternalHref } from '@/lib/i18n/locale-routing';
 
 /**
  * Language is a choice, not an action menu. The compact header control therefore exposes an
@@ -23,6 +25,7 @@ export function LanguageSelector({
   placement?: 'down' | 'up';
 }) {
   const { language, setLanguage, currentLanguageInfo } = useLanguage();
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [focusIndex, setFocusIndex] = useState<number | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -44,6 +47,11 @@ export function LanguageSelector({
 
   const choose = (nextLanguage: Language) => {
     setLanguage(nextLanguage);
+    // The browser URL is the public language contract with Wix. Read it at the
+    // click boundary so the destination retains the current path, query and hash.
+    const currentHref = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    const nextHref = localizeInternalHref(currentHref, nextLanguage);
+    if (nextHref !== currentHref) router.push(nextHref);
     close();
   };
 

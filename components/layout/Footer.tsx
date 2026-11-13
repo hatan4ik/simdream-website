@@ -15,9 +15,11 @@ import { useClientValue } from '@/lib/ui/use-client-value';
 import { SOCIAL_CHANNELS } from './social-channels';
 import { getOffersNavLabel } from '@/lib/offers/nav-label';
 import { ConsentSettingsLink } from '@/components/consent';
+import { useLocalizedInternalHref } from './navbar/use-localized-internal-href';
 
 export function Footer() {
   const { t, language } = useLanguage();
+  const localHref = useLocalizedInternalHref();
   const { isAdmin } = useAuth();
   const liveStatus = useLiveFacilityStatus();
   // Read in the browser: a render-time read froze the build year into prerendered pages (E2E-12).
@@ -96,42 +98,42 @@ export function Footer() {
             </h2>
             <ul className="space-y-2.5 text-xs">
               <li>
-                <Link href="/book?package=discovery-30" className="hover:text-sky-400 transition-colors">
+                <Link href={localHref('/book?package=discovery-30')} className="hover:text-sky-400 transition-colors">
                   {t.packages['pkg-discovery-30'].title}
                 </Link>
               </li>
               <li>
-                <Link href="/book?package=captains-command-60" className="hover:text-sky-400 transition-colors">
+                <Link href={localHref('/book?package=captains-command-60')} className="hover:text-sky-400 transition-colors">
                   {t.packages['pkg-captain-60'].title}
                 </Link>
               </li>
               <li>
-                <Link href="/book?package=ultimate-aviator-90" className="hover:text-sky-400 transition-colors">
+                <Link href={localHref('/book?package=ultimate-aviator-90')} className="hover:text-sky-400 transition-colors">
                   {t.packages['pkg-ultimate-90'].title}
                 </Link>
               </li>
               <li>
-                <Link href="/book?package=airline-assessment-prep" className="hover:text-sky-400 transition-colors">
+                <Link href={localHref('/book?package=airline-assessment-prep')} className="hover:text-sky-400 transition-colors">
                   {t.packages['pkg-assessment-prep-120'].title}
                 </Link>
               </li>
               <li>
-                <Link href="/book?package=fear-of-flying-course" className="hover:text-sky-400 transition-colors">
+                <Link href={localHref('/book?package=fear-of-flying-course')} className="hover:text-sky-400 transition-colors">
                   {t.packages['pkg-fear-of-flying-90'].title}
                 </Link>
               </li>
               <li>
-                <Link href="/fear-of-flying" className="hover:text-sky-400 transition-colors">
+                <Link href={localHref('/fear-of-flying')} className="hover:text-sky-400 transition-colors">
                   {t.nav.fearOfFlying}
                 </Link>
               </li>
               <li>
-                <Link href="/offers" className="hover:text-sky-400 transition-colors">
+                <Link href={localHref('/offers')} className="hover:text-sky-400 transition-colors">
                   {getOffersNavLabel(language)}
                 </Link>
               </li>
               <li>
-                <Link href="/vouchers" className="hover:text-sky-400 transition-colors text-sky-400 font-semibold">
+                <Link href={localHref('/vouchers')} className="hover:text-sky-400 transition-colors text-sky-400 font-semibold">
                   {t.nav.vouchers} &rarr;
                 </Link>
               </li>
@@ -145,45 +147,45 @@ export function Footer() {
             </h2>
             <ul className="space-y-2.5 text-xs">
               <li>
-                <Link href="/about" className="hover:text-sky-400 transition-colors">
+                <Link href={localHref('/about')} className="hover:text-sky-400 transition-colors">
                   {t.nav.about}
                 </Link>
               </li>
               <li>
-                <Link href="/pro" className="hover:text-sky-400 transition-colors">
+                <Link href={localHref('/pro')} className="hover:text-sky-400 transition-colors">
                   {t.nav.simulator}
                 </Link>
               </li>
               <li>
-                <Link href="/workshops" className="hover:text-sky-400 transition-colors">
+                <Link href={localHref('/workshops')} className="hover:text-sky-400 transition-colors">
                   {t.nav.workshops}
                 </Link>
               </li>
               <li>
-                <Link href="/blog" className="hover:text-sky-400 transition-colors">
+                <Link href={localHref('/blog')} className="hover:text-sky-400 transition-colors">
                   {t.nav.blog}
                 </Link>
               </li>
               <li>
-                <Link href="/rules" className="hover:text-sky-400 transition-colors flex items-center gap-1.5 text-slate-300">
+                <Link href={localHref('/rules')} className="hover:text-sky-400 transition-colors flex items-center gap-1.5 text-slate-300">
                   <FileText className="w-3.5 h-3.5 text-sky-400 shrink-0" />
                   <span>{t.footer.termsRules}</span>
                 </Link>
               </li>
               <li>
-                <Link href="/privacy-policy" className="hover:text-sky-400 transition-colors flex items-center gap-1.5 text-slate-300">
+                <Link href={localHref('/privacy-policy')} className="hover:text-sky-400 transition-colors flex items-center gap-1.5 text-slate-300">
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                   <span>{t.footer.privacyPolicy}</span>
                 </Link>
               </li>
               <li>
-                <Link href="/dashboard" className="hover:text-sky-400 transition-colors">
+                <Link href={localHref('/dashboard')} className="hover:text-sky-400 transition-colors">
                   {t.nav.logbook}
                 </Link>
               </li>
               {isAdmin && (
                 <li>
-                  <Link href="/admin" className="hover:text-amber-400 transition-colors text-slate-400">
+                  <Link href={localHref('/admin')} className="hover:text-amber-400 transition-colors text-slate-400">
                     {t.nav.adminBoard}
                   </Link>
                 </li>
@@ -270,7 +272,7 @@ export function Footer() {
                 <p>{t.footer.rulesPoint2}</p>
                 <p>{t.footer.rulesPoint3}</p>
                 <p className="pt-1">
-                  <Link href="/rules" className="text-sky-400 hover:underline font-mono font-semibold">
+                  <Link href={localHref('/rules')} className="text-sky-400 hover:underline font-mono font-semibold">
                     {t.footer.readFullRules}
                   </Link>
                 </p>
@@ -295,7 +297,7 @@ export function Footer() {
                 <p>{t.footer.privacyPoint1}</p>
                 <p>{t.footer.privacyPoint2}</p>
                 <p className="pt-1">
-                  <Link href="/privacy-policy" className="text-emerald-400 hover:underline font-mono font-semibold">
+                  <Link href={localHref('/privacy-policy')} className="text-emerald-400 hover:underline font-mono font-semibold">
                     {t.footer.readFullPrivacy}
                   </Link>
                 </p>
@@ -311,14 +313,14 @@ export function Footer() {
               &copy; {year} {FACILITY_INFO.legalNameEn} (ח.פ. / Reg.{' '}
               {FACILITY_INFO.companyRegistrationNumber}). {t.footer.rightsReserved}
             </p>
-            <Link href="/rules" className="text-slate-400 hover:text-sky-400 underline underline-offset-2">
+            <Link href={localHref('/rules')} className="text-slate-400 hover:text-sky-400 underline underline-offset-2">
               {t.footer.termsRules}
             </Link>
-            <Link href="/privacy-policy" className="text-slate-400 hover:text-sky-400 underline underline-offset-2">
+            <Link href={localHref('/privacy-policy')} className="text-slate-400 hover:text-sky-400 underline underline-offset-2">
               {t.footer.privacyPolicy}
             </Link>
             <ConsentSettingsLink className="text-slate-400 hover:text-sky-400 underline underline-offset-2" />
-            <Link href="/pro" className="text-slate-400 hover:text-sky-400 underline underline-offset-2">
+            <Link href={localHref('/pro')} className="text-slate-400 hover:text-sky-400 underline underline-offset-2">
               {t.footer.proTraining}
             </Link>
           </div>

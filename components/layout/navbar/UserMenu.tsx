@@ -7,10 +7,12 @@ import { useLanguage } from '@/lib/i18n/language-context';
 import { DEMO_MODE_ENABLED } from './demo-mode';
 import type { NavbarUserMenu } from './use-navbar-menus';
 import { useNavbarMember } from './use-navbar-member';
+import { useLocalizedInternalHref } from './use-localized-internal-href';
 
 /** The account button and its dropdown (tablet and desktop; phones get the same links at the top of the drawer). */
 export function UserMenu({ menu }: { menu: NavbarUserMenu }) {
   const { t } = useLanguage();
+  const localHref = useLocalizedInternalHref();
   const { user, isAdmin, logout, setDemoUser, memberName } = useNavbarMember();
 
   return (
@@ -56,7 +58,7 @@ export function UserMenu({ menu }: { menu: NavbarUserMenu }) {
           </div>
 
           <Link
-            href={user ? '/dashboard' : '/login'}
+            href={localHref(user ? '/dashboard' : '/login')}
             role="menuitem"
             onClick={() => menu.close()}
             className="flex items-center gap-2 px-3 py-2 text-slate-300 hover:text-white hover:bg-slate-800 focus:outline-none focus-visible:bg-slate-800"
@@ -67,7 +69,7 @@ export function UserMenu({ menu }: { menu: NavbarUserMenu }) {
 
           {isAdmin && (
             <Link
-              href="/admin"
+              href={localHref('/admin')}
               role="menuitem"
               onClick={() => menu.close()}
               className="flex items-center gap-2 px-3 py-2 text-amber-300 hover:text-amber-200 hover:bg-slate-800 focus:outline-none focus-visible:bg-slate-800"

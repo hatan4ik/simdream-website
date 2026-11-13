@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { getWixMemberClient } from '@/lib/wix/member-client';
 import { subscriptionPassReturnPath, type SubscriptionPass } from '@/lib/data/subscription-passes';
+import { useLanguage } from '@/lib/i18n/language-context';
+import { localizeInternalHref } from '@/lib/i18n/locale-routing';
 
 /**
  * Starts the single-payment checkout of a flight track (consumer tracks on `/subscriptions`,
@@ -13,6 +15,7 @@ import { subscriptionPassReturnPath, type SubscriptionPass } from '@/lib/data/su
  */
 export function useSubscriptionCheckout() {
   const [pendingPassId, setPendingPassId] = useState<string | null>(null);
+  const { language } = useLanguage();
 
   const buySubscription = async (pass: Pick<SubscriptionPass, 'id' | 'audience'>) => {
     const passId = pass.id;
@@ -24,7 +27,7 @@ export function useSubscriptionCheckout() {
       const res = await fetch('/api/subscriptions/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ planId: passId, wixMemberCheckout: isMember }),
+        body: JSON.stringify({ planId: passId, wixMemberCheckout: isMember, language }),
       });
       if (!res.ok) throw new Error('Checkout API failed');
       const data = await res.json();
@@ -33,8 +36,11 @@ export function useSubscriptionCheckout() {
         const redirectSession = await wixClient.redirects.createRedirectSession({
           paidPlansCheckout: { planId: data.wixPlanId },
           callbacks: {
-            postFlowUrl: `${window.location.origin}${subscriptionPassReturnPath(pass)}`,
-            thankYouPageUrl: `${window.location.origin}/subscriptions/thank-you`,
+            postFlowUrl: `${window.location.origin}${localizeInternalHref(subscriptionPassReturnPath(pass), language)}`,
+            thankYouPageUrl: `${window.location.origin}${localizeInternalHref('/subscriptions/thank-you', language)}`,
+          },
+          preferences: {
+            additionalQueryParameters: { lang: language },
           },
         });
         const memberCheckoutUrl = redirectSession.redirectSession?.fullUrl;
@@ -51,7 +57,7 @@ export function useSubscriptionCheckout() {
       throw new Error('No checkout URL');
     } catch (err) {
       console.warn('Subscription checkout redirect failed, falling back to dispatch:', err);
-      window.location.href = `/contact?subject=subscription&plan=${passId}`;
+      window.location.href = localizeInternalHref(`/contact?subject=subscription&plan=${passId}`, language);
     }
   };
 

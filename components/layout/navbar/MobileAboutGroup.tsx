@@ -7,6 +7,7 @@ import { ConsentSettingsLink } from '@/components/consent';
 import { useLanguage } from '@/lib/i18n/language-context';
 import type { NavigationLink } from './navigation-model';
 import type { NavbarMobileMenu } from './use-navbar-menus';
+import { useLocalizedInternalHref } from './use-localized-internal-href';
 
 /** The classes every entry of this group shares, so the cookie-settings button reads exactly like its sibling links. */
 const ABOUT_ENTRY_CLASS =
@@ -24,6 +25,7 @@ type MobileAboutGroupProps = {
  */
 export function MobileAboutGroup({ links, menu }: MobileAboutGroupProps) {
   const { t } = useLanguage();
+  const localHref = useLocalizedInternalHref();
   return (
     <details className="group border-t border-slate-800 pt-3">
       <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between rounded-xl px-3 text-base font-medium text-slate-200 hover:bg-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400">
@@ -32,7 +34,7 @@ export function MobileAboutGroup({ links, menu }: MobileAboutGroupProps) {
       </summary>
       <div className="mt-1 grid gap-1 border-l border-slate-800 pl-2 rtl:border-l-0 rtl:border-r rtl:pl-0 rtl:pr-2">
         {links.map((link) => (
-          <Link key={link.href} href={link.href} onClick={() => menu.close()} className={ABOUT_ENTRY_CLASS}>
+          <Link key={link.href} href={localHref(link.href)} onClick={() => menu.close()} className={ABOUT_ENTRY_CLASS}>
             {link.name}
           </Link>
         ))}

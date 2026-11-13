@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:5b2306a1423168b19ac2152e24b663093fb007d83efd1611c01f85c0a7c88a65 -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:9b6cd2b0f88587cff0735dbb144fab86f06feee0034f148916dffb8ae1aa322e -->
 
 ## Verification contract
 
@@ -193,7 +193,7 @@ Build **simdream.co.il**, the booking and marketing platform for **Sim Dream LTD
    - The guided wizard is the default. Keep the optional Express Shop on desktop only; do not expose it at phone breakpoints, where localized labels must remain single-line and touch-safe.
 4. **Unicode purity and RTL isolation.**
    - Resolve every user-visible string through `lib/i18n/translations.ts`, with identical key trees in all six languages.
-   - Hebrew is the first-visit default. `lib/i18n/language-preference.ts` validates the six supported codes and derives direction. An explicit `simdream_lang` preference stays in browser local storage; public browsing neither reads nor writes a language cookie. `LanguageProvider` restores the choice after hydration, while a bounded inline bootstrap prevents a returning visitor from seeing the Hebrew fallback before their saved language commits.
+   - Hebrew is the first-visit default. `lib/i18n/language-preference.ts` validates the six supported codes and derives direction. An explicit `simdream_lang` preference stays in browser local storage; public browsing neither reads nor writes a language cookie. `LanguageProvider` restores the choice after hydration, while a bounded inline bootstrap prevents a returning visitor from seeing the Hebrew fallback before their saved language commits. Wix Multilingual uses Hebrew at `/` and the other shipped languages at `/en`, `/ru`, `/fr`, `/ar` and `/es`; `lib/i18n/locale-routing.ts` and `proxy.ts` rewrite those canonical secondary prefixes to the shared Next route tree. A locale URL is authoritative over a stale local preference, and the selector changes both the language and URL. German has no public prefix until it is translated and QA-approved.
    - Never choose display text with an `isRTL` ternary; `isRTL` is for layout only.
    - No Hebrew letters in non-Hebrew copy and no Arabic letters in non-Arabic copy.
    - Telemetry stays `dir="ltr"` inside RTL text: METAR, frequencies, booking references, times, slot ranges, prices, emails.
@@ -615,7 +615,7 @@ app/
               blog/ admin/schedule-efficiency/ admin/schedule-optimization/
 components/
   brand/BrandLogo.tsx            # BrandLogo (airplane + wordmark), BrandMark (airplane)
-  layout/  Navbar Footer LanguageSelector UiThemeSwitcher CockpitToneSwitcher LiveMetarBar SkipLink
+  layout/  Navbar Footer LanguageSelector UiThemeSwitcher CockpitToneSwitcher LiveMetarBar SkipLink navbar/ (modular navigation and locale href)
   scheduler/ AmazonFlightStorefront KantorovichCalendarScheduler
   reviews/ReviewMeta               # header dropdown only; no page carousel
   about/AboutExperienceView  pro/ProSessionsView  fear-of-flying/FearOfFlyingView  blog/BlogCard BlogContentRenderer BlogConversionCta BlogIndexView BlogPostLanguageSync BlogPostPageView  legal/ PrivacyPolicyContentView RulesContentView
@@ -627,13 +627,13 @@ lib/
   catalog/gift-voucher-packages  data/experience-routes subscription-passes subscription-page-copy blog-posts blog-categories blog-authors blog-seo blog-short-slugs blog-legacy-slugs  db/ store schema.sql seed-data supabase-admin migrations/
   auth/ admin-guard request-auth member-ownership safe-redirect auth-context
   security/rate-limit constant-time
-  i18n/ translations language-context language-preference calendar-presentation booking-blueprint-copy wix-subscription-booking-copy
+  i18n/ translations language-context language-preference locale-routing calendar-presentation booking-blueprint-copy wix-subscription-booking-copy
   config/ facility-info server-env use-live-facility-status
   theme/ui-theme-context  ui/ use-client-value use-modal-focus  seo/ seo-config structured-data site-routes llms-txt blog-structured-data blog-post-metadata
   reviews/google-reviews-cache google-reviews-source review-translation reviews-snapshot-store snapshot-window use-google-reviews review-language last-known-rating.json  i18n/booking-blueprint-copy
   stripe.ts  sendgrid.ts  validation.ts  utils.ts  supabaseClient.ts
 types/index.ts
-proxy.ts                          # /admin guard
+proxy.ts                          # /admin guard and secondary locale-prefix rewrites
 public/brand/                     # official logo assets; theme-bootstrap.js; llms.txt (generated, see scripts/generate-llms-txt.ts)
 tests/  unit/ integration/ security/ reliability/ e2e/ a11y/ usability/ security-web/ resilience/ visual/ load/ perf/ support/
 scripts/ test-all.ts run-sandboxed.ts with-server.ts update-visual-baselines.sh check-genesis-coverage.ts generate-llms-txt.ts refresh-google-rating.mjs setup-google-places-key.sh wix-provision.ts wix-readiness.ts wix-smoke.ts migrate-wix-blog.ts harvest-wix-blog.py

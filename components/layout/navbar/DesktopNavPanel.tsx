@@ -6,6 +6,7 @@ import { ExternalLink } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { isNavPathActive, type NavigationGroup } from './navigation-model';
 import type { NavbarDesktopMenu } from './use-navbar-menus';
+import { useLocalizedInternalHref } from './use-localized-internal-href';
 
 type DesktopNavPanelProps = {
   groups: NavigationGroup[];
@@ -16,6 +17,7 @@ type DesktopNavPanelProps = {
 /** The full-width flyout under the header for the open group (xl and up). Renders nothing while none is open. */
 export function DesktopNavPanel({ groups, pathname, menu }: DesktopNavPanelProps) {
   const { t } = useLanguage();
+  const localHref = useLocalizedInternalHref();
   if (!menu.activeId) return null;
   const group = groups.find((candidate) => candidate.id === menu.activeId);
 
@@ -70,7 +72,7 @@ export function DesktopNavPanel({ groups, pathname, menu }: DesktopNavPanelProps
                 {itemContents}
               </a>
             ) : (
-              <Link key={item.href} href={item.href} role="menuitem" onClick={() => menu.close()} className={itemClassName}>
+              <Link key={item.href} href={localHref(item.href)} role="menuitem" onClick={() => menu.close()} className={itemClassName}>
                 {itemContents}
               </Link>
             );

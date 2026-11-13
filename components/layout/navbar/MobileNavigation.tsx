@@ -11,6 +11,7 @@ import { MobileAboutGroup } from './MobileAboutGroup';
 import { isNavPathActive, type NavigationLink } from './navigation-model';
 import type { NavbarMobileMenu } from './use-navbar-menus';
 import { useNavbarMember } from './use-navbar-member';
+import { useLocalizedInternalHref } from './use-localized-internal-href';
 
 type MobileNavigationProps = {
   /** The flat list of destinations. */
@@ -28,6 +29,7 @@ type MobileNavigationProps = {
  */
 export function MobileNavigation({ links, aboutLinks, pathname, menu }: MobileNavigationProps) {
   const { t } = useLanguage();
+  const localHref = useLocalizedInternalHref();
   const { user, isAdmin, setDemoUser, memberName } = useNavbarMember();
   if (!menu.open) return null;
 
@@ -39,7 +41,7 @@ export function MobileNavigation({ links, aboutLinks, pathname, menu }: MobileNa
       className="xl:hidden absolute inset-x-0 top-full z-[70] max-h-[calc(100svh-8rem)] overflow-y-auto overscroll-contain border-t border-slate-700 bg-slate-950/98 px-4 pt-3 pb-safe-area-4 space-y-3 shadow-2xl backdrop-blur-xl"
     >
       <Link
-        href={user ? '/dashboard' : '/login'}
+        href={localHref(user ? '/dashboard' : '/login')}
         onClick={() => menu.close()}
         className="flex min-h-14 items-center gap-3 rounded-xl border border-sky-500/20 bg-sky-500/5 px-3 py-2 text-slate-100 hover:bg-sky-500/10"
       >
@@ -54,7 +56,7 @@ export function MobileNavigation({ links, aboutLinks, pathname, menu }: MobileNa
         {links.map((link) => (
           <Link
             key={link.href}
-            href={link.href}
+            href={localHref(link.href)}
             onClick={() => menu.close()}
             className={`block min-h-12 px-3 py-3 rounded-xl text-base font-medium ${
               isNavPathActive(pathname, link.href) ? 'text-sky-400 bg-sky-500/10' : 'text-slate-300 hover:bg-slate-900'
@@ -64,7 +66,7 @@ export function MobileNavigation({ links, aboutLinks, pathname, menu }: MobileNa
           </Link>
         ))}
         <Link
-          href={user ? '/dashboard' : '/login'}
+          href={localHref(user ? '/dashboard' : '/login')}
           onClick={() => menu.close()}
           className="block min-h-12 px-3 py-3 rounded-xl text-base font-medium text-slate-300 hover:bg-slate-900"
         >
@@ -72,7 +74,7 @@ export function MobileNavigation({ links, aboutLinks, pathname, menu }: MobileNa
         </Link>
         {isAdmin && (
           <Link
-            href="/admin"
+            href={localHref('/admin')}
             onClick={() => menu.close()}
             className="block min-h-12 px-3 py-3 rounded-xl text-base font-medium text-amber-400 hover:bg-slate-900"
           >
