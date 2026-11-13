@@ -292,4 +292,6 @@ The GitHub Actions pipeline is the release path for the Wix-managed frontend. Se
 3. GitHub creates the immutable SemVer tag, proves that the exact SHA already passed the full `Verify` matrix on `main`, reruns deterministic source and production-build checks on the tag, waits for `wix-production` approval, publishes through the Wix CLI, and smoke-checks `/`, `/book`, and `/vouchers`.
 4. Roll back a verified version entirely from **GitHub Actions → Roll back Wix production**. No laptop Wix CLI session is required.
 
+Release notes are generated in [`CHANGELOG.md`](CHANGELOG.md); the readable version-by-version index is [`RELEASES.md`](RELEASES.md). After a protected Wix publication succeeds, the matching immutable GitHub Release receives the tag commit, UTC publish time, Wix URL, workflow link and smoke-test outcome. It intentionally does not claim that separate Wix business configuration was activated.
+
 The repository retains a self-managed Next.js deployment path for local development or a future non-Wix host. It is not the customer production release path.

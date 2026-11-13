@@ -114,6 +114,13 @@ jobs:
     name: Publish approved Wix release
     needs: verify-release
     if: vars.WIX_PRODUCTION_CI_ENABLED == 'true'
+    # The publishing job, and not the provenance job, may append evidence to
+    # the immutable GitHub Release after Wix and the public smoke checks pass.
+    # It never writes source.
+    permissions:
+      actions: read
+      contents: write
+      deployments: write
     runs-on: ubuntu-latest
     timeout-minutes: 30
     environment:
@@ -165,6 +172,18 @@ jobs:
           for path in / /book /vouchers; do
             curl --fail --location --retry 30 --retry-delay 5 --retry-all-errors --silent --show-error "$SITE_URL$path" > /dev/null
           done
+      - name: Record immutable publication evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SITE_URL: ${{ steps.wix.outputs.url }}
+        run: |
+          set -euo pipefail
+          npx tsx scripts/record-wix-release.ts \
+            --tag "$RELEASE_TAG" \
+            --commit "$(git rev-list -n 1 "$RELEASE_TAG")" \
+            --published-at "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" \
+            --site-url "$SITE_URL" \
+            --output release-publication.md
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
@@ -172,4 +191,5 @@ jobs:
           path: |
             wix-build.log
             wix-deploy.log
+            release-publication.md
           if-no-files-found: ignore
