@@ -1,6 +1,6 @@
 'use client';
 
-import { useId, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useState } from 'react';
 import { getBirthdayCheckoutCopy, getBirthdayErrorText, getBirthdayPackageEligibility } from '@/lib/discounts/birthday';
 import { useLanguage } from '@/lib/i18n/language-context';
 import {
@@ -18,6 +18,8 @@ interface UseBookingBirthdayArgs {
   subtotalIls: number;
   /** `/api/slots` reported a live Wix Bookings calendar: the Wix-hosted checkout cannot enforce the offer. */
   wixAuthoritative: boolean;
+  /** Native pricing applies only to the supported one-service Wix checkout. */
+  canUseWixNativeCheckout?: boolean;
   isWixSubscriptionRedemption: boolean;
 }
 
@@ -28,14 +30,56 @@ interface UseBookingBirthdayArgs {
  * state, and never leaves it except in the checkout request.
  */
 export function useBookingBirthday(args: UseBookingBirthdayArgs) {
-  const { packageId, flightDate, subtotalIls, wixAuthoritative, isWixSubscriptionRedemption } = args;
+  const {
+    packageId,
+    flightDate,
+    subtotalIls,
+    wixAuthoritative,
+    canUseWixNativeCheckout = false,
+    isWixSubscriptionRedemption,
+  } = args;
   const { language } = useLanguage();
   const id = `${useId()}-pilot-birthday`;
   const [value, setValue] = useState('');
   const [blurred, setBlurred] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [wixBirthdayPricingProviderEnabled, setWixBirthdayPricingProviderEnabled] = useState(false);
 
-  const mode = resolveBirthdayPathMode({ wixAuthoritative, isWixSubscriptionRedemption });
+  // The provider is configured only on the server. Start fail-closed (the
+  // existing Wix notice), then learn the public capability for this visit.
+  useEffect(() => {
+    let disposed = false;
+    if (!wixAuthoritative || !canUseWixNativeCheckout || isWixSubscriptionRedemption) {
+      setWixBirthdayPricingProviderEnabled(false);
+      return () => {
+        disposed = true;
+      };
+    }
+    void fetch('/api/offers/capabilities', { cache: 'no-store' })
+      .then(async (response) => {
+        if (!response.ok) return false;
+        const data: unknown = await response.json();
+        return Boolean(
+          data &&
+            typeof data === 'object' &&
+            'wixBirthdayPricingProviderEnabled' in data &&
+            (data as { wixBirthdayPricingProviderEnabled?: unknown }).wixBirthdayPricingProviderEnabled === true
+        );
+      })
+      .catch(() => false)
+      .then((enabled) => {
+        if (!disposed) setWixBirthdayPricingProviderEnabled(enabled);
+      });
+    return () => {
+      disposed = true;
+    };
+  }, [wixAuthoritative, canUseWixNativeCheckout, isWixSubscriptionRedemption]);
+
+  const mode = resolveBirthdayPathMode({
+    wixAuthoritative,
+    wixBirthdayPricingProviderEnabled: canUseWixNativeCheckout && wixBirthdayPricingProviderEnabled,
+    isWixSubscriptionRedemption,
+  });
   const state = useMemo(
     () => evaluateBirthdayField({ value, packageId, flightDate, subtotalIls, mode }),
     [value, packageId, flightDate, subtotalIls, mode]
@@ -60,6 +104,32 @@ export function useBookingBirthday(args: UseBookingBirthdayArgs) {
     return errorText;
   };
 
+  /**
+   * Exchanges a qualifying browser-only birth date for an opaque, short-lived
+   * claim. The full date is never written to Wix and the provider is still the
+   * only party allowed to calculate the final amount.
+   */
+  const createWixBirthdayPricingClaim = async (): Promise<{ fieldId: string; token: string } | null> => {
+    if (mode !== 'wix-pricing' || !state.applied) return null;
+    const response = await fetch('/api/wix/birthday/claim', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ packageId, birthDate: value, flightDate }),
+    });
+    const data: unknown = await response.json().catch(() => null);
+    if (
+      !response.ok ||
+      !data ||
+      typeof data !== 'object' ||
+      (data as { applied?: unknown }).applied !== true ||
+      typeof (data as { fieldId?: unknown }).fieldId !== 'string' ||
+      typeof (data as { token?: unknown }).token !== 'string'
+    ) {
+      throw new Error(copy.pricingUnavailable);
+    }
+    return { fieldId: (data as { fieldId: string }).fieldId, token: (data as { token: string }).token };
+  };
+
   return {
     id,
     value,
@@ -69,12 +139,13 @@ export function useBookingBirthday(args: UseBookingBirthdayArgs) {
     state,
     statusKind: birthdayStatusKind(state),
     bounds,
-    /** Whole shekels taken off in the preview: 0 unless the local checkout applies the offer. */
+    /** Whole shekels taken off in the preview: 0 unless the active checkout can apply the offer. */
     discountIls: state.applied ? state.discountIls : 0,
     /** This booking could earn the discount (local checkout, package that may carry it), whatever the date. */
-    discountPossible: mode === 'local' && getBirthdayPackageEligibility(packageId).applicable,
+    discountPossible: (mode === 'local' || mode === 'wix-pricing') && getBirthdayPackageEligibility(packageId).applicable,
     errorText: visibleError,
     validate,
+    createWixBirthdayPricingClaim,
   };
 }
 

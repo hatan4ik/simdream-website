@@ -26,6 +26,8 @@ export interface BirthdayCheckoutCopy {
   future: string;
   tooYoung: string;
   tooOld: string;
+  /** The signed Wix proof could not be issued, so checkout must stop safely. */
+  pricingUnavailable: string;
   /** A valid date that earns nothing on this flight date. */
   notEligible: string;
 }
@@ -45,6 +47,7 @@ export const BIRTHDAY_CHECKOUT_COPY: Record<SupportedLanguage, BirthdayCheckoutC
     future: 'The date of birth cannot be in the future.',
     tooYoung: 'The Pilot in Command must be at least {minAge} years old on the flight date.',
     tooOld: 'Please check the year: this date of birth does not look right.',
+    pricingUnavailable: 'Birthday pricing could not be verified. Please try again.',
     notEligible: 'No birthday discount applies to this flight date.',
   },
   he: {
@@ -61,6 +64,7 @@ export const BIRTHDAY_CHECKOUT_COPY: Record<SupportedLanguage, BirthdayCheckoutC
     future: 'תאריך הלידה לא יכול להיות בעתיד.',
     tooYoung: 'הטייס המפקד חייב להיות בן {minAge} לפחות ביום הטיסה.',
     tooOld: 'נא לבדוק את השנה: תאריך הלידה לא נראה תקין.',
+    pricingUnavailable: 'לא ניתן היה לאמת את מחיר יום ההולדת. נסו שוב.',
     notEligible: 'אין הנחת יום הולדת בתאריך הטיסה הזה.',
   },
   ru: {
@@ -77,6 +81,7 @@ export const BIRTHDAY_CHECKOUT_COPY: Record<SupportedLanguage, BirthdayCheckoutC
     future: 'Дата рождения не может быть в будущем.',
     tooYoung: 'Командиру воздушного судна должно быть не менее {minAge} лет на дату полета.',
     tooOld: 'Проверьте год: такая дата рождения выглядит неверной.',
+    pricingUnavailable: 'Не удалось подтвердить цену ко дню рождения. Попробуйте ещё раз.',
     notEligible: 'На эту дату полета скидка ко дню рождения не действует.',
   },
   fr: {
@@ -93,6 +98,7 @@ export const BIRTHDAY_CHECKOUT_COPY: Record<SupportedLanguage, BirthdayCheckoutC
     future: 'La date de naissance ne peut pas être dans le futur.',
     tooYoung: 'Le commandant de bord doit avoir au moins {minAge} ans à la date du vol.',
     tooOld: 'Vérifiez l’année : cette date de naissance semble incorrecte.',
+    pricingUnavailable: 'Le tarif anniversaire n’a pas pu être vérifié. Réessayez.',
     notEligible: 'Aucune remise anniversaire pour cette date de vol.',
   },
   ar: {
@@ -109,6 +115,7 @@ export const BIRTHDAY_CHECKOUT_COPY: Record<SupportedLanguage, BirthdayCheckoutC
     future: 'لا يمكن أن يكون تاريخ الميلاد في المستقبل.',
     tooYoung: 'يجب ألا يقل عمر قائد الطائرة عن {minAge} سنوات في تاريخ الرحلة.',
     tooOld: 'تحقق من السنة: لا يبدو تاريخ الميلاد هذا صحيحًا.',
+    pricingUnavailable: 'تعذر التحقق من سعر عيد الميلاد. حاول مرة أخرى.',
     notEligible: 'لا ينطبق خصم عيد الميلاد على تاريخ الرحلة هذا.',
   },
   es: {
@@ -125,6 +132,7 @@ export const BIRTHDAY_CHECKOUT_COPY: Record<SupportedLanguage, BirthdayCheckoutC
     future: 'La fecha de nacimiento no puede ser futura.',
     tooYoung: 'El piloto al mando debe tener al menos {minAge} años en la fecha del vuelo.',
     tooOld: 'Revisa el año: esta fecha de nacimiento no parece correcta.',
+    pricingUnavailable: 'No se pudo verificar el precio de cumpleaños. Inténtalo de nuevo.',
     notEligible: 'No hay descuento de cumpleaños para esta fecha de vuelo.',
   },
 };

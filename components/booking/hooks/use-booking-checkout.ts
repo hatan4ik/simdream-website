@@ -38,6 +38,8 @@ interface UseBookingCheckoutArgs {
   wixSubscriptionCopy: WixSubscriptionBookingCopy;
   /** The public locale forwarded to Wix's documented redirect-session preference. */
   language: Language;
+  /** A Wix birthday price and a native coupon must never stack. */
+  birthdayDiscountApplied?: boolean;
   copy: BookingCopy;
   /** Called when the visitor submits without a departure: return to the date and slot step. */
   onSlotMissing: () => void;
@@ -84,6 +86,7 @@ export function useBookingCheckout(args: UseBookingCheckoutArgs) {
     wixDraft,
     wixSubscriptionCopy,
     language,
+    birthdayDiscountApplied = false,
     copy,
     onSlotMissing,
     extraValidation,
@@ -142,6 +145,11 @@ export function useBookingCheckout(args: UseBookingCheckoutArgs) {
       }
 
       if (canUseWixNativeCheckout) {
+        if (birthdayDiscountApplied && voucher.wixCheckoutCodeKind === 'coupon') {
+          voucher.setVoucherError(copy.wixBirthdayCouponNotCombinable);
+          setIsSubmitting(false);
+          return;
+        }
         const enteredCode = voucher.voucherCode.trim();
         const { activeDraft } = wixDraft;
         const hasAppliedCode = voucher.wixCheckoutCodeKind === 'gift-card'

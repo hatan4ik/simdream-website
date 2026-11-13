@@ -94,6 +94,7 @@ describe('Wix native booking checkout client', () => {
         pilotPhone: '054-777-3074',
         notes: 'Flight plan request',
         couponCode: 'WIX-TEST',
+        birthdayPricingClaim: { fieldId: 'a4722fd-b7a0-4df0-b01d-b9b81f01bd11', token: 'signed-claim' },
       })
     ).resolves.toEqual({ checkoutUrl: 'https://checkout.wix.com/pay/session' });
 
@@ -111,6 +112,13 @@ describe('Wix native booking checkout client', () => {
       body: {
         booking: {
           selectedPaymentOption: 'ONLINE',
+          additionalFields: [
+            {
+              id: 'a4722fd-b7a0-4df0-b01d-b9b81f01bd11',
+              value: 'signed-claim',
+              valueType: 'SHORT_TEXT',
+            },
+          ],
           bookedEntity: {
             slot: {
               scheduleId: 'schedule-id',

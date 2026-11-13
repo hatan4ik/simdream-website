@@ -1,13 +1,13 @@
 'use client';
 
+import { wixBirthdayPricingAdditionalFields, type WixBirthdayPricingClaimField } from './booking-additional-fields';
+
 const WIX_TIME_SLOT_GET_URL = 'https://www.wixapis.com/_api/service-availability/v2/time-slots/get';
 const WIX_CREATE_BOOKING_URL = 'https://www.wixapis.com/bookings/v2/bookings';
 const WIX_CREATE_CART_URL = 'https://www.wixapis.com/ecom/v2/carts';
 const WIX_BOOKINGS_APP_ID = '13d21c63-b5ec-5912-8397-c3a5ddb27a97';
 
-export interface WixBrowserClient {
-  fetchWithAuth(input: RequestInfo | URL, init?: RequestInit): Promise<Response>;
-}
+export interface WixBrowserClient { fetchWithAuth(input: RequestInfo | URL, init?: RequestInit): Promise<Response>; }
 
 export interface WixNativeCheckoutSlot {
   serviceId?: string;
@@ -39,8 +39,7 @@ export interface StartWixBookingCheckoutInput extends WixNativeCheckoutCandidate
   pilotName: string;
   pilotEmail: string;
   pilotPhone: string;
-  notes?: string;
-  couponCode?: string;
+  notes?: string; couponCode?: string; birthdayPricingClaim?: WixBirthdayPricingClaimField;
 }
 
 export class WixBookingCheckoutClientError extends Error {}
@@ -383,6 +382,7 @@ export async function prepareWixBookingCheckout(
       },
       totalParticipants: 1,
       selectedPaymentOption: paymentOption(input.paymentOptions),
+      ...wixBirthdayPricingAdditionalFields(input.birthdayPricingClaim),
     },
     formSubmission,
     participantNotification: { notifyParticipants: true },

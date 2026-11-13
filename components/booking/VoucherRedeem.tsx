@@ -34,6 +34,7 @@ export function VoucherRedeem({ formId, voucher, canUseWixNativeCheckout }: Vouc
     voucherSuccess,
     isVerifyingVoucher,
     wixCheckoutCodeKind,
+    birthdayCouponBlocked,
     selectCodeKind,
     verifyVoucher,
     removeVoucher,
@@ -91,8 +92,9 @@ export function VoucherRedeem({ formId, voucher, canUseWixNativeCheckout }: Vouc
               <button
                 type="button"
                 aria-pressed={wixCheckoutCodeKind === 'coupon'}
+                aria-disabled={birthdayCouponBlocked || undefined}
                 onClick={() => selectCodeKind('coupon')}
-                className={`${CODE_KIND_BASE} ${wixCheckoutCodeKind === 'coupon' ? CODE_KIND_ACTIVE : CODE_KIND_IDLE}`}
+                className={`${CODE_KIND_BASE} ${birthdayCouponBlocked ? 'cursor-not-allowed opacity-50' : wixCheckoutCodeKind === 'coupon' ? CODE_KIND_ACTIVE : CODE_KIND_IDLE}`}
               >
                 {t.booking.wixCouponCodeType}
               </button>

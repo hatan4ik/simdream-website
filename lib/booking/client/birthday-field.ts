@@ -24,16 +24,19 @@ import { israelToday } from '@/lib/scheduler/israel-clock';
 /**
  * - `local`: Supabase + Stripe checkout; the server can apply and enforce the discount.
  * - `wix`: Wix-hosted checkout; the discount cannot be enforced there (docs/modules/birthday-offers.md, section 4).
+ * - `wix-pricing`: an active Wix Bookings Pricing provider verifies a server-signed claim at checkout.
  * - `subscription`: redemption of a prepaid flight-track session through Wix; no discount, nothing stored.
  */
-export type BirthdayPathMode = 'local' | 'wix' | 'subscription';
+export type BirthdayPathMode = 'local' | 'wix' | 'wix-pricing' | 'subscription';
 
 export function resolveBirthdayPathMode(inputs: {
   wixAuthoritative: boolean;
+  wixBirthdayPricingProviderEnabled?: boolean;
   isWixSubscriptionRedemption: boolean;
 }): BirthdayPathMode {
   if (inputs.isWixSubscriptionRedemption) return 'subscription';
-  return inputs.wixAuthoritative ? 'wix' : 'local';
+  if (!inputs.wixAuthoritative) return 'local';
+  return inputs.wixBirthdayPricingProviderEnabled ? 'wix-pricing' : 'wix';
 }
 
 function shiftYears(date: CivilDate, years: number): CivilDate {
@@ -123,7 +126,7 @@ export function evaluateBirthdayField(inputs: BirthdayFieldInputs): BirthdayFiel
 
 /**
  * Which message sits under the date control. `banner` is the congratulations with the discount. On the
- * Wix-hosted checkout the notice is always shown (nothing appears or disappears with the date), and for a
+ * Wix-hosted checkout without the pricing provider the notice is always shown (nothing appears or disappears with the date), and for a
  * flight-track redemption the field's own hint already says the date is not stored.
  */
 export type BirthdayStatusKind = 'none' | 'banner' | 'not_eligible' | 'not_applicable' | 'wix_notice';
