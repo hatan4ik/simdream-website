@@ -38,6 +38,7 @@
     "test:lighthouse": "tsx scripts/with-server.ts --port 3805 -- tsx tests/perf/run-lighthouse.ts",
     "wix:smoke": "tsx scripts/wix-smoke.ts",
     "wix:blog:migrate": "tsx scripts/migrate-wix-blog.ts",
+    "crm:migrate": "tsx tools/crm-migration/cli.ts",
     "wix:blog:translate": "tsx scripts/translate-wix-blog.ts",
     "wix:readiness": "tsx scripts/wix-readiness.ts",
     "wix:provision": "tsx scripts/wix-provision.ts",

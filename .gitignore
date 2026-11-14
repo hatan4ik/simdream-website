@@ -77,3 +77,6 @@ yarn-error.log*
 /.kiro/
 /.opencode/
 /.windsurf/
+
+# local CRM migration export (real customer data: never commit)
+/.crm-migration/
