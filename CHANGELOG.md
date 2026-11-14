@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.28.2](https://github.com/hatan4ik/simdream-website/compare/v1.28.1...v1.28.2) (2026-11-14)
+
+
+### Bug Fixes
+
+* **wix:** surface Cart V2 error code and message on cart creation failure ([#210](https://github.com/hatan4ik/simdream-website/issues/210)) ([4a4e285](https://github.com/hatan4ik/simdream-website/commit/4a4e2857571f0c6ece6b9a242b66dd6fd5e79344))
+
 ## [1.28.1](https://github.com/hatan4ik/simdream-website/compare/v1.28.0...v1.28.1) (2026-11-14)
 
 
