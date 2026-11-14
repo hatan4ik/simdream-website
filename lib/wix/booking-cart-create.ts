@@ -7,6 +7,32 @@ const WIX_BOOKINGS_APP_ID = '13d21c63-b5ec-5912-8397-c3a5ddb27a97';
 
 interface WixCartCreateResponse {
   cart?: { id?: string };
+  message?: unknown;
+  details?: {
+    applicationError?: {
+      code?: unknown;
+      description?: unknown;
+    };
+  };
+}
+
+const FALLBACK_CART_CREATE_ERROR = 'Wix did not create a checkout cart. Please try again.';
+
+function nonEmptyString(value: unknown): string | null {
+  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
+}
+
+function formatWixCartCreateError(status: number, payload: WixCartCreateResponse | null): string {
+  if (!payload || typeof payload !== 'object') return FALLBACK_CART_CREATE_ERROR;
+  const appError = payload.details?.applicationError;
+  const code = nonEmptyString(appError?.code);
+  const message = nonEmptyString(payload.message);
+  const description = nonEmptyString(appError?.description);
+  const parts = [code, message, description && description !== message ? description : null].filter(
+    (part): part is string => part !== null
+  );
+  if (parts.length === 0) return FALLBACK_CART_CREATE_ERROR;
+  return `Wix did not create a checkout cart (${status}): ${parts.join(' — ')}`;
 }
 
 /**
@@ -46,7 +72,7 @@ export async function createWixCartForBooking(
   });
   const payload = (await response.json().catch(() => null)) as WixCartCreateResponse | null;
   if (!response.ok || !payload?.cart?.id) {
-    throw new Error('Wix did not create a checkout cart. Please try again.');
+    throw new Error(formatWixCartCreateError(response.status, payload));
   }
   return payload.cart.id;
 }
