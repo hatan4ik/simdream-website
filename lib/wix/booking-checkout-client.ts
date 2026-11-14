@@ -388,9 +388,17 @@ export async function prepareWixBookingCheckout(
       },
       totalParticipants: 1,
       selectedPaymentOption: paymentOption(input.paymentOptions),
-      ...wixBirthdayPricingAdditionalFields(input.birthdayPricingClaim),
+      // Wix Bookings V2 strips `booking.additionalFields` whenever `formSubmission`
+      // is present. For promotion claims, supply `contactDetails` directly so
+      // `additionalFields` reaches the Bookings Pricing Provider SPI intact.
+      ...(input.birthdayPricingClaim
+        ? {
+            contactDetails: customerInfo,
+            ...wixBirthdayPricingAdditionalFields(input.birthdayPricingClaim),
+          }
+        : {}),
     },
-    formSubmission,
+    ...(input.birthdayPricingClaim ? {} : { formSubmission }),
     participantNotification: { notifyParticipants: true },
   });
   const bookingId = booking.booking?.id;
