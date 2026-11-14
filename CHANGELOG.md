@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.28.6](https://github.com/hatan4ik/simdream-website/compare/v1.28.5...v1.28.6) (2026-11-14)
+
+
+### Bug Fixes
+
+* **booking:** price wix-pricing birthday preview on base package only ([#220](https://github.com/hatan4ik/simdream-website/issues/220)) ([cc7a84c](https://github.com/hatan4ik/simdream-website/commit/cc7a84c2dfbb0c3d7733a2f927f24bc9d7f696b1))
+
 ## [1.28.5](https://github.com/hatan4ik/simdream-website/compare/v1.28.4...v1.28.5) (2026-11-14)
 
 
