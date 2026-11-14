@@ -224,6 +224,7 @@ function BookContent() {
               selectedSlot={selectedSlot}
               selectedAddonIds={selectedAddons}
               addons={localizedAddons}
+              onRemoveAddon={addonControls.toggleAddon}
               voucher={voucher}
               canUseWixNativeCheckout={canUseWixNativeCheckout}
               displayTotalAmount={displayTotalAmount}
@@ -241,8 +242,7 @@ function BookContent() {
 
 export default function BookPage() {
   return (
-    // The fallback reserves a viewport of height so the storefront replacing it does not
-    // shove the footer up the screen (cumulative layout shift).
+    // Fallback reserves viewport height to avoid footer CLS.
     <Suspense fallback={<BookingLoadingFallback />}>
       <BookContent />
     </Suspense>

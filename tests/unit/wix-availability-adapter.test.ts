@@ -44,4 +44,32 @@ describe('Wix availability adapter', () => {
       disabledReason: 'promo_days_only',
     });
   });
+
+  it('caps maxAvailableMinutes before the earliest subsequent Wix-unavailable slot', () => {
+    const local = generateKantorovichSlots('2026-11-09', 60, []);
+    const adapted = intersectKantorovichSlotsWithWix(local, [
+      { localStartDate: '2026-11-09T10:15:00', localEndDate: '2026-11-09T11:15:00', bookable: true },
+      { localStartDate: '2026-11-09T11:30:00', localEndDate: '2026-11-09T12:30:00', bookable: false },
+    ]);
+
+    const slot1015 = adapted.find((slot) => slot.startTime === '10:15');
+    expect(slot1015?.available).toBe(true);
+    expect(slot1015?.maxAvailableMinutes).toBe(60);
+  });
+
+  it('keeps maxAvailableMinutes intact when all subsequent slots are open in Wix', () => {
+    const local = generateKantorovichSlots('2026-11-09', 60, []);
+    const wixAllOpen = local.map((slot) => ({
+      localStartDate: `2026-11-09T${slot.startTime}:00`,
+      localEndDate: `2026-11-09T${slot.endTime}:00`,
+      bookable: true,
+    }));
+
+    const adapted = intersectKantorovichSlotsWithWix(local, wixAllOpen);
+    const local1015 = local.find((slot) => slot.startTime === '10:15');
+    const adapted1015 = adapted.find((slot) => slot.startTime === '10:15');
+
+    expect(adapted1015?.available).toBe(true);
+    expect(adapted1015?.maxAvailableMinutes).toBe(local1015?.maxAvailableMinutes);
+  });
 });

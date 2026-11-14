@@ -25,6 +25,8 @@ interface PilotManifestStepProps {
   selectedAddonIds: string[];
   /** The localized catalog the selected add-on ids are resolved against. */
   addons: FlightAddon[];
+  /** Optional handler to remove an add-on directly from the order summary. */
+  onRemoveAddon?: (addonId: string) => void;
   voucher: BookingVoucher;
   canUseWixNativeCheckout: boolean;
   /** The payable total shown in the summary and on the button. */
@@ -60,6 +62,7 @@ export function PilotManifestStep({
   selectedSlot,
   selectedAddonIds,
   addons,
+  onRemoveAddon,
   voucher,
   canUseWixNativeCheckout,
   displayTotalAmount,
@@ -90,6 +93,7 @@ export function PilotManifestStep({
           selectedSlot={selectedSlot}
           selectedAddonIds={selectedAddonIds}
           addons={addons}
+          onRemoveAddon={onRemoveAddon}
           discount={{
             amountIls: voucher.voucherDiscount,
             label: voucher.appliedCodeLabel,

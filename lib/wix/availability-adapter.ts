@@ -1,8 +1,12 @@
 import 'server-only';
 
 import type { FlightSlot } from '@/types';
-import { generateKantorovichSlots } from '@/lib/scheduler/kantorovich-engine';
-import { closeDepartedSlots } from '@/lib/scheduler/kantorovich-engine';
+import {
+  closeDepartedSlots,
+  generateKantorovichSlots,
+  longestMissionWithin,
+  timeToMinutes,
+} from '@/lib/scheduler/kantorovich-engine';
 import { wixServiceIdFor } from './catalog';
 import { listWixAvailability, type WixTimeSlot } from './bookings';
 
@@ -40,10 +44,29 @@ export function intersectKantorovichSlotsWithWix(
   wixTimeSlots: readonly WixTimeSlot[]
 ): FlightSlot[] {
   const wixStarts = nativeBookableStartTimes(wixTimeSlots);
-  return kantorovichSlots.map((slot) => ({
-    ...slot,
-    available: slot.available && wixStarts.has(slot.startTime),
-  }));
+  return kantorovichSlots.map((slot, i) => {
+    const available = slot.available && wixStarts.has(slot.startTime);
+    if (!available) {
+      return { ...slot, available };
+    }
+
+    let maxAvailableMinutes = slot.maxAvailableMinutes;
+    for (let j = i + 1; j < kantorovichSlots.length; j++) {
+      const laterSlot = kantorovichSlots[j];
+      if (!wixStarts.has(laterSlot.startTime)) {
+        const gapMinutes = timeToMinutes(laterSlot.startTime) - timeToMinutes(slot.startTime);
+        const wixMaxMinutes = longestMissionWithin(gapMinutes, slot.durationMinutes);
+        maxAvailableMinutes = Math.min(maxAvailableMinutes ?? wixMaxMinutes, wixMaxMinutes);
+        break;
+      }
+    }
+
+    return {
+      ...slot,
+      available,
+      maxAvailableMinutes,
+    };
+  });
 }
 
 function localDayBounds(date: string): { fromLocalDate: string; toLocalDate: string } {
