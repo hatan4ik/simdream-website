@@ -10,6 +10,14 @@
 
 ## Product changes by version
 
+### [v1.28.5](https://github.com/hatan4ik/simdream-website/releases/tag/v1.28.5) — 2026-11-14
+
+#### Bug Fixes
+
+- **wix:** ignore pre-checkout MISSING_DELIVERY_METHOD violation for addon carts (#218) (2e59b37)
+
+Deployment evidence: [GitHub Release](https://github.com/hatan4ik/simdream-website/releases/tag/v1.28.5).
+
 ### [v1.28.4](https://github.com/hatan4ik/simdream-website/releases/tag/v1.28.4) — 2026-11-14
 
 #### Bug Fixes
