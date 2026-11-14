@@ -10,6 +10,14 @@
 
 ## Product changes by version
 
+### [v1.28.4](https://github.com/hatan4ik/simdream-website/releases/tag/v1.28.4) — 2026-11-14
+
+#### Bug Fixes
+
+- **wix:** omit formSubmission when birthdayPricingClaim is present so additionalFields reaches pricing SPI (#215) (920446f)
+
+Deployment evidence: [GitHub Release](https://github.com/hatan4ik/simdream-website/releases/tag/v1.28.4).
+
 ### [v1.28.3](https://github.com/hatan4ik/simdream-website/releases/tag/v1.28.3) — 2026-11-14
 
 #### Bug Fixes
