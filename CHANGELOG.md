@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.28.1](https://github.com/hatan4ik/simdream-website/compare/v1.28.0...v1.28.1) (2026-11-14)
+
+
+### Bug Fixes
+
+* **wix:** support add-ons and route requests natively in Wix checkout ([#202](https://github.com/hatan4ik/simdream-website/issues/202)) ([fe4b4c7](https://github.com/hatan4ik/simdream-website/commit/fe4b4c79b2b2e838e0066a6a0a946600cd3eff18))
+
 ## [1.28.0](https://github.com/hatan4ik/simdream-website/compare/v1.27.0...v1.28.0) (2026-11-13)
 
 
