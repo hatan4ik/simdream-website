@@ -462,4 +462,75 @@ describe('Wix native booking checkout client', () => {
       'Wix did not create a checkout cart. Please try again.'
     );
   });
+
+  it('allows DELIVERY/MISSING_DELIVERY_METHOD violations from Wix Stores add-ons when total is calculated', async () => {
+    const baseInput = {
+      ...CANDIDATE,
+      pilotName: 'Avi Cohen',
+      pilotEmail: 'avi@example.com',
+      pilotPhone: '0501234567',
+    };
+    const client: WixBrowserClient = {
+      fetchWithAuth: async (input) => {
+        const url = String(input);
+        if (url.endsWith('/time-slots/get')) return response({ timeSlot: { ...CANDIDATE.slotAvailability } });
+        if (url.endsWith('/bookings')) return response({ booking: { id: 'booking-1' } });
+        if (url.endsWith('/carts')) return response({ cart: { id: 'cart-1' } });
+        if (url.endsWith('/carts/cart-1')) return response({ cart: { id: 'cart-1' } });
+        if (url.endsWith('/carts/cart-1/calculate')) {
+          return response({
+            summary: {
+              violations: [
+                {
+                  scope: 'DELIVERY',
+                  code: 'MISSING_DELIVERY_METHOD',
+                  description: 'The cart is missing a delivery method.',
+                  severity: 'ERROR',
+                },
+              ],
+              priceSummary: { discount: { amount: '0' }, total: { amount: '890.00' } },
+            },
+          });
+        }
+        throw new Error(`Unexpected URL ${url}`);
+      },
+    };
+
+    const draft = await prepareWixBookingCheckout(client, {
+      ...baseInput,
+      addonIds: ['addon-cold-dark'],
+    });
+    expect(draft).toEqual({ cartId: 'cart-1', price: { discountIls: 0, totalIls: 890 } });
+  });
+
+  it('rejects non-delivery cart calculation violations', async () => {
+    const baseInput = {
+      ...CANDIDATE,
+      pilotName: 'Avi Cohen',
+      pilotEmail: 'avi@example.com',
+      pilotPhone: '0501234567',
+    };
+    const client: WixBrowserClient = {
+      fetchWithAuth: async (input) => {
+        const url = String(input);
+        if (url.endsWith('/time-slots/get')) return response({ timeSlot: { ...CANDIDATE.slotAvailability } });
+        if (url.endsWith('/bookings')) return response({ booking: { id: 'booking-1' } });
+        if (url.endsWith('/carts')) return response({ cart: { id: 'cart-1' } });
+        if (url.endsWith('/carts/cart-1')) return response({ cart: { id: 'cart-1' } });
+        if (url.endsWith('/carts/cart-1/calculate')) {
+          return response({
+            summary: {
+              violations: [{ scope: 'BOOKING', code: 'SLOT_NOT_AVAILABLE' }],
+              priceSummary: { discount: { amount: '0' }, total: { amount: '890.00' } },
+            },
+          });
+        }
+        throw new Error(`Unexpected URL ${url}`);
+      },
+    };
+
+    await expect(prepareWixBookingCheckout(client, baseInput)).rejects.toThrow(
+      'Wix could not validate this checkout. Please choose another time.'
+    );
+  });
 });

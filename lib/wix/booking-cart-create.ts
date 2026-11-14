@@ -35,6 +35,15 @@ function formatWixCartCreateError(status: number, payload: WixCartCreateResponse
   return `Wix did not create a checkout cart (${status}): ${parts.join(' — ')}`;
 }
 
+export function hasBlockingCheckoutViolations(violations: readonly unknown[] | undefined): boolean {
+  if (!violations || violations.length === 0) return false;
+  return violations.some((entry) => {
+    if (!entry || typeof entry !== 'object') return true;
+    const { scope, code } = entry as { scope?: unknown; code?: unknown };
+    return !(scope === 'DELIVERY' && code === 'MISSING_DELIVERY_METHOD');
+  });
+}
+
 /**
  * Creates a Cart V2 cart containing the Wix Bookings reservation and any mapped
  * Wix Stores add-on products (`quantity: 1`, `appId: WIX_STORES_APP_ID`).
