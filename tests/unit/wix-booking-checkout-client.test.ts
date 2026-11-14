@@ -115,6 +115,12 @@ describe('Wix native booking checkout client', () => {
       body: {
         booking: {
           selectedPaymentOption: 'ONLINE',
+          contactDetails: {
+            firstName: 'Avi',
+            lastName: 'Pilot',
+            email: 'pilot@example.test',
+            phone: '+972547773074',
+          },
           additionalFields: [
             {
               id: 'a4722fd-b7a0-4df0-b01d-b9b81f01bd11',
@@ -131,15 +137,9 @@ describe('Wix native booking checkout client', () => {
             },
           },
         },
-        formSubmission: {
-          first_name: 'Avi',
-          last_name: 'Pilot',
-          email: 'pilot@example.test',
-          phone: '+972547773074',
-          add_your_message: 'Flight plan request',
-        },
       },
     });
+    expect((calls[1].body as Record<string, unknown>).formSubmission).toBeUndefined();
     expect(calls[2]).toMatchObject({
       url: 'https://www.wixapis.com/ecom/v2/carts',
       body: {

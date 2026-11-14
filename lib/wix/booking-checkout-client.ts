@@ -388,9 +388,9 @@ export async function prepareWixBookingCheckout(
       },
       totalParticipants: 1,
       selectedPaymentOption: paymentOption(input.paymentOptions),
-      ...wixBirthdayPricingAdditionalFields(input.birthdayPricingClaim),
+      ...wixBirthdayPricingAdditionalFields(input.birthdayPricingClaim, customerInfo),
     },
-    formSubmission,
+    ...(input.birthdayPricingClaim ? {} : { formSubmission }),
     participantNotification: { notifyParticipants: true },
   });
   const bookingId = booking.booking?.id;
