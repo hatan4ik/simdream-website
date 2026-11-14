@@ -10,6 +10,14 @@
 
 ## Product changes by version
 
+### [v1.29.0](https://github.com/hatan4ik/simdream-website/releases/tag/v1.29.0) — 2026-11-14
+
+#### Features
+
+- **theme:** orange primary buttons in the Cobalt and Squadron night tones (#222) (57e28df)
+
+Deployment evidence: [GitHub Release](https://github.com/hatan4ik/simdream-website/releases/tag/v1.29.0).
+
 ### [v1.28.6](https://github.com/hatan4ik/simdream-website/releases/tag/v1.28.6) — 2026-11-14
 
 #### Bug Fixes
