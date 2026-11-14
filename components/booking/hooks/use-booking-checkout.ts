@@ -8,6 +8,7 @@ import type { Language } from '@/lib/i18n/translations';
 import { extractErrorMessage } from '@/lib/utils';
 import { useAuth } from '@/lib/auth/auth-context';
 import {
+  appendWixMissionSummaryToNote,
   buildLocalCheckoutBody,
   findBookingBlocker,
   getWixCheckoutUrl,
@@ -163,7 +164,7 @@ export function useBookingCheckout(args: UseBookingCheckoutArgs) {
           return;
         }
         const draft = await wixDraft.ensureDraft();
-        const note = wixCartNote?.();
+        const note = appendWixMissionSummaryToNote(wixCartNote?.(), selectedAddons, activeRequestedRoute);
         if (note) await recordNoteOnWixDraft(draft, note, copy.paymentStartFailed);
         window.location.assign(await getWixCheckoutUrl(draft));
         return;

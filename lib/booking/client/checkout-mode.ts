@@ -4,31 +4,29 @@ export interface CheckoutModeInputs {
   wixBookingsAuthoritative: boolean;
   /** The browser has a configured Wix client id. */
   wixBookingFrontendActive: boolean;
-  selectedAddonCount: number;
+  selectedAddonCount?: number;
   /** A captain-confirmed custom World Trio request is part of the booking. */
-  hasRequestedRoute: boolean;
+  hasRequestedRoute?: boolean;
 }
 
 export interface CheckoutMode {
-  /** Single-service bookings are written natively through a Wix cart and hosted checkout. */
+  /** Bookings (including add-ons and route requests) are written natively through a Wix cart and hosted checkout. */
   canUseWixNativeCheckout: boolean;
-  /** A live Wix calendar blocks add-on or route bookings that only the local checkout can write. */
+  /** A live Wix calendar blocks falling back to local checkout when the Wix frontend client is inactive. */
   requiresUnsupportedLocalCheckout: boolean;
 }
 
 /**
- * Wix is the native writer for simple single-service bookings. The local checkout keeps ownership
- * of multi-item missions, locally funded vouchers and route intent until those catalog concepts
- * have matching Wix Bookings entities. A live Wix calendar has one reservation writer: falling
- * back to local checkout would let the two calendars sell the same simulator time.
+ * Wix is the native writer for bookings on a live Wix calendar, including Wix Stores add-ons
+ * and captain-confirmed route requests. A live Wix calendar has one reservation writer: falling
+ * back to local checkout when the Wix frontend client is inactive would let two calendars sell
+ * the same simulator time.
  */
 export function resolveCheckoutMode(inputs: CheckoutModeInputs): CheckoutMode {
   const canUseWixNativeCheckout =
     !inputs.isWixSubscriptionRedemption &&
     inputs.wixBookingsAuthoritative &&
-    inputs.wixBookingFrontendActive &&
-    inputs.selectedAddonCount === 0 &&
-    !inputs.hasRequestedRoute;
+    inputs.wixBookingFrontendActive;
   const requiresUnsupportedLocalCheckout =
     inputs.wixBookingsAuthoritative && !inputs.isWixSubscriptionRedemption && !canUseWixNativeCheckout;
   return { canUseWixNativeCheckout, requiresUnsupportedLocalCheckout };

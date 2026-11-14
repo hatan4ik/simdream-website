@@ -22,6 +22,7 @@ export interface PrepareWixDraftInput {
   pilotEmail: string;
   pilotPhone: string;
   notes: string;
+  addonIds?: readonly string[];
   /** A short-lived server-signed birthday proof, never a birth date. */
   birthdayPricingClaim?: { fieldId: string; token: string } | null;
   /** Message when the app endpoint does not return a complete Wix slot. */
@@ -53,6 +54,7 @@ export async function prepareWixCheckoutDraft(input: PrepareWixDraftInput): Prom
     pilotEmail: input.pilotEmail,
     pilotPhone: input.pilotPhone,
     notes: input.notes,
+    addonIds: input.addonIds,
     birthdayPricingClaim: input.birthdayPricingClaim ?? undefined,
   });
   return {

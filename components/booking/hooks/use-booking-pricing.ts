@@ -1,7 +1,8 @@
 'use client';
 
 import type { FlightAddon, FlightSlot, SimulatorPackage } from '@/types';
-import { presentManifestWithDraft } from '@/lib/booking/client';
+import type { WorldRoute } from '@/lib/data/experience-routes';
+import { buildWixMissionNotes, presentManifestWithDraft } from '@/lib/booking/client';
 import type { translations } from '@/lib/i18n/translations';
 import type { PilotDetails } from './use-pilot-details';
 import { useBookingManifest } from './use-booking-manifest';
@@ -17,6 +18,7 @@ interface UseBookingPricingArgs {
   };
   selectedDate: string;
   pilot: PilotDetails;
+  activeRequestedRoute?: WorldRoute;
   initialVoucherCode: string;
   isWixSubscriptionRedemption: boolean;
   canUseWixNativeCheckout: boolean;
@@ -39,8 +41,9 @@ interface UseBookingPricingArgs {
  * `displayTotalAmount` is the Wix cart's own calculated total while a Wix draft is active.
  */
 export function useBookingPricing(args: UseBookingPricingArgs) {
-  const { manifestInput, selectedDate, pilot, subtotalIls, birthday, copy } = args;
-  const { activePackage, selectedSlot } = manifestInput;
+  const { manifestInput, selectedDate, pilot, activeRequestedRoute, subtotalIls, birthday, copy } = args;
+  const { activePackage, selectedSlot, selectedAddons } = manifestInput;
+  const bookingNotes = buildWixMissionNotes(pilot.notes, selectedAddons, activeRequestedRoute);
   const wixDraft = useWixCheckoutDraft({
     packageId: activePackage.id,
     selectedDate,
@@ -48,8 +51,10 @@ export function useBookingPricing(args: UseBookingPricingArgs) {
     pilotName: pilot.pilotName,
     pilotEmail: pilot.pilotEmail,
     pilotPhone: pilot.pilotPhone,
-    notes: pilot.notes,
+    notes: bookingNotes,
     birthdayValue: birthday.value,
+    addonIds: selectedAddons,
+    requestedRouteId: activeRequestedRoute?.id,
     createBirthdayPricingClaim: birthday.createWixBirthdayPricingClaim,
     messages: { errorSelectSlot: copy.errorSelectSlot, paymentStartFailed: copy.paymentStartFailed },
   });
