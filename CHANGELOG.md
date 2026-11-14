@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.28.3](https://github.com/hatan4ik/simdream-website/compare/v1.28.2...v1.28.3) (2026-11-14)
+
+
+### Bug Fixes
+
+* **booking,wix:** add OrderSummary addon remove button and cap Wix slot maxAvailableMinutes ([#212](https://github.com/hatan4ik/simdream-website/issues/212)) ([1e0e587](https://github.com/hatan4ik/simdream-website/commit/1e0e58787aadedb0425fae493f65d0c4ea23c606))
+
 ## [1.28.2](https://github.com/hatan4ik/simdream-website/compare/v1.28.1...v1.28.2) (2026-11-14)
 
 
