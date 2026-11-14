@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.28.5](https://github.com/hatan4ik/simdream-website/compare/v1.28.4...v1.28.5) (2026-11-14)
+
+
+### Bug Fixes
+
+* **wix:** ignore pre-checkout MISSING_DELIVERY_METHOD violation for addon carts ([#218](https://github.com/hatan4ik/simdream-website/issues/218)) ([2e59b37](https://github.com/hatan4ik/simdream-website/commit/2e59b37295148660247745843acde4e9430e4af7))
+
 ## [1.28.4](https://github.com/hatan4ik/simdream-website/compare/v1.28.3...v1.28.4) (2026-11-14)
 
 
