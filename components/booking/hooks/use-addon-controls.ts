@@ -16,8 +16,6 @@ interface UseAddonControlsArgs {
   maxSlotMinutes: number;
   wixBookingsAuthoritative: boolean;
   isWixSubscriptionRedemption: boolean;
-  /** Shown as the booking error when a live Wix calendar blocks adding an add-on. */
-  onWixAuthorityRequired: () => void;
 }
 
 /**
@@ -37,7 +35,6 @@ export function useAddonControls(args: UseAddonControlsArgs) {
     maxSlotMinutes,
     wixBookingsAuthoritative,
     isWixSubscriptionRedemption,
-    onWixAuthorityRequired,
   } = args;
 
   useEffect(() => {
@@ -64,7 +61,6 @@ export function useAddonControls(args: UseAddonControlsArgs) {
       maxSlotMinutes,
     });
     if (result.kind === 'set') setSelectedAddons(result.ids);
-    else if (result.kind === 'wix-authority-required') onWixAuthorityRequired();
     // 'no-fit': the add-on would overflow the selected slot window, so nothing changes.
   };
 

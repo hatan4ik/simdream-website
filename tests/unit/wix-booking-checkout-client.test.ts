@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest';
 import {
   applyWixCoupon,
   applyWixGiftCard,
+  createWixCartForBooking,
   normalizeWixBookingPhone,
+  prepareWixBookingCheckout,
   removeWixCoupon,
   removeWixGiftCard,
   startWixBookingCheckout,
@@ -10,6 +12,7 @@ import {
   type WixBrowserClient,
   type WixNativeCheckoutCandidate,
 } from '@/lib/wix/booking-checkout-client';
+import { WIX_ADDON_PRODUCT_IDS, WIX_STORES_APP_ID } from '@/lib/wix/catalog';
 
 const CANDIDATE: WixNativeCheckoutCandidate = {
   slotAvailability: {
@@ -342,5 +345,82 @@ describe('Wix native booking checkout client', () => {
         pilotPhone: '+972547773074',
       })
     ).rejects.toThrow('no longer available');
+  });
+
+  it('includes Wix Stores line items for selected addonIds in createWixCartForBooking and prepareWixBookingCheckout', async () => {
+    const cartCalls: unknown[] = [];
+    const cartOnlyClient: WixBrowserClient = {
+      fetchWithAuth: async (_input, init) => {
+        cartCalls.push(init?.body ? JSON.parse(String(init.body)) : null);
+        return response({ cart: { id: 'cart-with-addons' } });
+      },
+    };
+
+    await expect(
+      createWixCartForBooking(cartOnlyClient, 'booking-123', ['addon-cold-dark', 'addon-unknown', 'addon-extra-seat'])
+    ).resolves.toBe('cart-with-addons');
+
+    expect(cartCalls).toEqual([
+      {
+        cart: { source: { channelType: 'WEB' } },
+        catalogItems: [
+          {
+            quantity: 1,
+            catalogReference: { appId: '13d21c63-b5ec-5912-8397-c3a5ddb27a97', catalogItemId: 'booking-123' },
+          },
+          {
+            quantity: 1,
+            catalogReference: { appId: WIX_STORES_APP_ID, catalogItemId: WIX_ADDON_PRODUCT_IDS['addon-cold-dark'] },
+          },
+          {
+            quantity: 1,
+            catalogReference: { appId: WIX_STORES_APP_ID, catalogItemId: WIX_ADDON_PRODUCT_IDS['addon-extra-seat'] },
+          },
+        ],
+      },
+    ]);
+
+    const prepareCalls: Array<{ url: string; body: unknown }> = [];
+    const replies = [
+      response({ timeSlot: { bookable: true, scheduleId: 'schedule-id' } }),
+      response({ booking: { id: 'booking-456' } }),
+      response({ cart: { id: 'cart-456' } }),
+      response({ cart: { id: 'cart-456' } }),
+      calculation('0', '940'),
+    ];
+    const prepareClient: WixBrowserClient = {
+      fetchWithAuth: async (input, init) => {
+        prepareCalls.push({ url: String(input), body: init?.body ? JSON.parse(String(init.body)) : null });
+        const next = replies.shift();
+        if (!next) throw new Error('unexpected Wix request');
+        return next;
+      },
+    };
+
+    await expect(
+      prepareWixBookingCheckout(prepareClient, {
+        ...CANDIDATE,
+        pilotName: 'Avi Pilot',
+        pilotEmail: 'pilot@example.test',
+        pilotPhone: '+972547773074',
+        addonIds: ['addon-cold-dark'],
+      })
+    ).resolves.toEqual({ cartId: 'cart-456', price: { discountIls: 0, totalIls: 940 } });
+
+    expect(prepareCalls[2]).toMatchObject({
+      url: 'https://www.wixapis.com/ecom/v2/carts',
+      body: {
+        catalogItems: [
+          {
+            quantity: 1,
+            catalogReference: { appId: '13d21c63-b5ec-5912-8397-c3a5ddb27a97', catalogItemId: 'booking-456' },
+          },
+          {
+            quantity: 1,
+            catalogReference: { appId: WIX_STORES_APP_ID, catalogItemId: WIX_ADDON_PRODUCT_IDS['addon-cold-dark'] },
+          },
+        ],
+      },
+    });
   });
 });

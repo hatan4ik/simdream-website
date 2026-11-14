@@ -1,6 +1,9 @@
 'use client';
 
 import { wixBirthdayPricingAdditionalFields, type WixBirthdayPricingClaimField } from './booking-additional-fields';
+import { createWixCartForBooking } from './booking-cart-create';
+
+export { createWixCartForBooking };
 
 const WIX_TIME_SLOT_GET_URL = 'https://www.wixapis.com/_api/service-availability/v2/time-slots/get';
 const WIX_CREATE_BOOKING_URL = 'https://www.wixapis.com/bookings/v2/bookings';
@@ -39,7 +42,10 @@ export interface StartWixBookingCheckoutInput extends WixNativeCheckoutCandidate
   pilotName: string;
   pilotEmail: string;
   pilotPhone: string;
-  notes?: string; couponCode?: string; birthdayPricingClaim?: WixBirthdayPricingClaimField;
+  notes?: string;
+  couponCode?: string;
+  birthdayPricingClaim?: WixBirthdayPricingClaimField;
+  addonIds?: readonly string[];
 }
 
 export class WixBookingCheckoutClientError extends Error {}
@@ -390,17 +396,7 @@ export async function prepareWixBookingCheckout(
   const bookingId = booking.booking?.id;
   if (!bookingId) throw new WixBookingCheckoutClientError('Wix did not create the flight reservation. Please try again.');
 
-  const cart = await wixPost<WixCartResponse>(client, WIX_CREATE_CART_URL, {
-    cart: { source: { channelType: 'WEB' } },
-    catalogItems: [
-      {
-        quantity: 1,
-        catalogReference: { appId: WIX_BOOKINGS_APP_ID, catalogItemId: bookingId },
-      },
-    ],
-  });
-  const cartId = cart.cart?.id;
-  if (!cartId) throw new WixBookingCheckoutClientError('Wix did not create a checkout cart. Please try again.');
+  const cartId = await createWixCartForBooking(client, bookingId, input.addonIds);
 
   // The booking form and the cart are separate Wix business objects. Without
   // this Cart V2 update, the hosted checkout cannot inherit the already

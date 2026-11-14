@@ -18,6 +18,8 @@ interface UseWixCheckoutDraftArgs {
   pilotPhone: string;
   notes: string;
   birthdayValue: string;
+  addonIds?: readonly string[];
+  requestedRouteId?: string;
   /** Gets a short-lived server proof right before Wix creates the booking. */
   createBirthdayPricingClaim?: () => Promise<{ fieldId: string; token: string } | null>;
   messages: { errorSelectSlot: string; paymentStartFailed: string };
@@ -39,6 +41,8 @@ export function useWixCheckoutDraft(args: UseWixCheckoutDraftArgs) {
     pilotPhone,
     notes,
     birthdayValue,
+    addonIds,
+    requestedRouteId,
     createBirthdayPricingClaim,
     messages,
   } = args;
@@ -53,6 +57,8 @@ export function useWixCheckoutDraft(args: UseWixCheckoutDraftArgs) {
     pilotPhone,
     notes,
     birthdayValue,
+    addonIds,
+    requestedRouteId,
   });
   const activeDraft = pickActiveWixCheckoutDraft(draft, draftKey);
 
@@ -68,6 +74,7 @@ export function useWixCheckoutDraft(args: UseWixCheckoutDraftArgs) {
       pilotEmail,
       pilotPhone,
       notes,
+      addonIds,
       birthdayPricingClaim,
       paymentStartFailed: messages.paymentStartFailed,
     });

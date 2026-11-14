@@ -97,3 +97,26 @@ export const WIX_GIFT_CARD_VARIANT_IDS: Readonly<Record<number, string>> = {
 export function wixGiftCardVariantIdFor(amountIls: number): string | null {
   return WIX_GIFT_CARD_VARIANT_IDS[amountIls] ?? null;
 }
+
+/**
+ * SimDream flight add-on id → Wix Stores product id on the dedicated
+ * "SimDream-Staging" Headless site (metasite 317b0c6d-6608-499a-bb3c-b1c37650e460).
+ */
+export const WIX_STORES_APP_ID = '215238eb-22a5-4c36-9e7b-e7c08025e04e';
+export const WIX_ADDON_PRODUCT_IDS: Readonly<Record<string, string>> = {
+  'addon-cold-dark': '4b6bfc32-5adc-4d0a-94e5-6fa177f42c90',
+  'addon-xwind-ifr': '3de37a09-fb0d-4bc1-91a7-7b887fcd0a76',
+  'addon-extreme-airports': '6d692f62-5670-4d74-bdaa-c84afa6b0452',
+  'addon-classical-eu': 'e1ca1858-858f-4320-9cad-8f0236b100f4',
+  'addon-med-islands': 'bce6ca82-9c79-463b-b81b-7d3afa9ecd63',
+  'addon-us-megacities': '135d7b15-5c88-4e29-b0a3-dbab3f1016c9',
+  'addon-night-neon': '4aa2a056-60de-4b2b-883b-e254bd2cee05',
+  'addon-alpine-mountains': 'eb6d28e5-a5e4-41c6-8853-729b41af301f',
+  'addon-tropical-ocean': '11d3359b-6a71-4eba-ba30-efa20ba57fc3',
+  'addon-middle-east-legends': 'a78175d8-e134-402e-ae33-a7ed61b62eb9',
+  'addon-extra-seat': '5c873a27-0e54-4736-bccd-9ed7755a23fc',
+};
+
+export function wixAddonProductIdFor(addonId: string): string | null {
+  return WIX_ADDON_PRODUCT_IDS[addonId] ?? null;
+}

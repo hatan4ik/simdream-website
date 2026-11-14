@@ -5,8 +5,10 @@ import {
   STEP_ADDONS,
   STEP_DATE_SLOT,
   STEP_PILOT,
+  appendWixMissionSummaryToNote,
   buildLocalCheckoutBody,
   buildWixCheckoutDraftKey,
+  buildWixMissionNotes,
   computeRequiredMissionMinutes,
   extractSlotList,
   filterMissionCompatibleSlots,
@@ -192,10 +194,14 @@ describe('add-on toggling', () => {
     expect(resolveAddonToggle({ ...inputs, addonId: 'ghost' })).toEqual({ kind: 'set', ids: ['ghost'] });
   });
 
-  it('cannot sell a new add-on while a live Wix calendar owns reservations, but may remove one', () => {
+  it('allows toggling add-ons on a live Wix calendar whenever they fit in the slot', () => {
     expect(resolveAddonToggle({ ...inputs, addonId: 'trio', wixBookingsAuthoritative: true })).toEqual({
-      kind: 'wix-authority-required',
+      kind: 'set',
+      ids: ['trio'],
     });
+    expect(
+      resolveAddonToggle({ ...inputs, addonId: 'trio', wixBookingsAuthoritative: true, totalDurationMinutes: 100 })
+    ).toEqual({ kind: 'no-fit' });
     expect(
       resolveAddonToggle({ ...inputs, addonId: 'trio', wixBookingsAuthoritative: true, selectedAddonIds: ['trio'] })
     ).toEqual({ kind: 'set', ids: [] });
@@ -214,17 +220,33 @@ describe('checkout mode', () => {
     hasRequestedRoute: false,
   };
 
-  it('uses the Wix native checkout for a plain single-service booking on a live Wix calendar', () => {
+  it('uses the Wix native checkout on a live Wix calendar including add-ons and route requests', () => {
     expect(resolveCheckoutMode(base)).toEqual({ canUseWixNativeCheckout: true, requiresUnsupportedLocalCheckout: false });
+    expect(resolveCheckoutMode({ ...base, selectedAddonCount: 1 })).toEqual({
+      canUseWixNativeCheckout: true,
+      requiresUnsupportedLocalCheckout: false,
+    });
+    expect(resolveCheckoutMode({ ...base, hasRequestedRoute: true })).toEqual({
+      canUseWixNativeCheckout: true,
+      requiresUnsupportedLocalCheckout: false,
+    });
+    expect(resolveCheckoutMode({ ...base, selectedAddonCount: 2, hasRequestedRoute: true })).toEqual({
+      canUseWixNativeCheckout: true,
+      requiresUnsupportedLocalCheckout: false,
+    });
   });
 
-  it('blocks add-ons and route requests while Wix is the reservation writer', () => {
-    expect(resolveCheckoutMode({ ...base, selectedAddonCount: 1 })).toEqual({
+  it('still blocks local checkout when Wix is authoritative and the Wix frontend client is inactive', () => {
+    expect(resolveCheckoutMode({ ...base, wixBookingFrontendActive: false })).toEqual({
       canUseWixNativeCheckout: false,
       requiresUnsupportedLocalCheckout: true,
     });
-    expect(resolveCheckoutMode({ ...base, hasRequestedRoute: true }).requiresUnsupportedLocalCheckout).toBe(true);
-    expect(resolveCheckoutMode({ ...base, wixBookingFrontendActive: false }).requiresUnsupportedLocalCheckout).toBe(true);
+    expect(
+      resolveCheckoutMode({ ...base, wixBookingFrontendActive: false, selectedAddonCount: 1, hasRequestedRoute: true })
+    ).toEqual({
+      canUseWixNativeCheckout: false,
+      requiresUnsupportedLocalCheckout: true,
+    });
   });
 
   it('leaves the local checkout alone when Wix is not authoritative', () => {
@@ -260,7 +282,25 @@ describe('Wix checkout draft', () => {
     expect(buildWixCheckoutDraftKey(inputs)).not.toBe(buildWixCheckoutDraftKey({ ...inputs, slotId: 'slot-2' }));
     expect(buildWixCheckoutDraftKey(inputs)).not.toBe(buildWixCheckoutDraftKey({ ...inputs, pilotPhone: '+972500000000' }));
     expect(buildWixCheckoutDraftKey(inputs)).not.toBe(buildWixCheckoutDraftKey({ ...inputs, birthdayValue: '1990-11-26' }));
+    expect(buildWixCheckoutDraftKey(inputs)).not.toBe(buildWixCheckoutDraftKey({ ...inputs, addonIds: ['addon-cold-dark'] }));
+    expect(buildWixCheckoutDraftKey({ ...inputs, addonIds: ['a', 'b'] })).toBe(
+      buildWixCheckoutDraftKey({ ...inputs, addonIds: ['b', 'a'] })
+    );
+    expect(buildWixCheckoutDraftKey(inputs)).not.toBe(
+      buildWixCheckoutDraftKey({ ...inputs, requestedRouteId: 'route-alpine' })
+    );
     expect(buildWixCheckoutDraftKey({ ...inputs, slotId: undefined })).toContain('\u001f\u001f');
+  });
+
+  it('formats mission notes and cart notes with selected add-ons and requested route', () => {
+    const route = { id: 'route-test', airports: [{ icao: 'LLBG' }, { icao: 'LOWI' }, { icao: 'LSZH' }] };
+    expect(buildWixMissionNotes('  Window seat ', ['addon-cold-dark'], route)).toBe(
+      'Window seat | Requested route: route-test (LLBG-LOWI-LSZH) | Add-ons: addon-cold-dark'
+    );
+    expect(appendWixMissionSummaryToNote('Consent ok', ['addon-extra-seat'], route)).toBe(
+      'Consent ok | Requested route: route-test (LLBG-LOWI-LSZH) | Add-ons: addon-extra-seat'
+    );
+    expect(appendWixMissionSummaryToNote(null, [], undefined)).toBeNull();
   });
 
   it('treats a draft as active only while its inputs are unchanged', () => {

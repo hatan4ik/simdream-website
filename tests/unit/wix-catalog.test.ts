@@ -1,6 +1,14 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { SIMULATOR_PACKAGES } from '@/lib/db/seed-data';
-import { WIX_SERVICE_IDS, packageIdForWixService, unmappedPackageIds, wixServiceIdFor } from '@/lib/wix/catalog';
+import { FLIGHT_ADDONS, SIMULATOR_PACKAGES } from '@/lib/db/seed-data';
+import {
+  WIX_ADDON_PRODUCT_IDS,
+  WIX_SERVICE_IDS,
+  WIX_STORES_APP_ID,
+  packageIdForWixService,
+  unmappedPackageIds,
+  wixAddonProductIdFor,
+  wixServiceIdFor,
+} from '@/lib/wix/catalog';
 import { reconcileCatalog, sharedWixResourceTypeIds, type WixService } from '@/lib/wix/bookings';
 import { isWixAvailabilityAdapterEnabled, isWixConfigured, isWixShadowReadsEnabled } from '@/lib/wix/config';
 import { getWixClient, resetWixClientForTests, WixNotConfiguredError } from '@/lib/wix/client';
@@ -36,6 +44,18 @@ describe('Wix service map', () => {
     expect(packageIdForWixService(serviceId!)).toBe('pkg-captain-60');
     expect(wixServiceIdFor('pkg-does-not-exist')).toBeNull();
     expect(packageIdForWixService('00000000-0000-0000-0000-000000000000')).toBeNull();
+  });
+
+  it('maps every flight add-on to a unique Wix Stores product id', () => {
+    expect(WIX_STORES_APP_ID).toMatch(UUID);
+    const ids = Object.values(WIX_ADDON_PRODUCT_IDS);
+    expect(ids).toHaveLength(FLIGHT_ADDONS.length);
+    expect(new Set(ids).size).toBe(ids.length);
+    for (const id of ids) expect(id).toMatch(UUID);
+    for (const addon of FLIGHT_ADDONS) {
+      expect(wixAddonProductIdFor(addon.id)).toMatch(UUID);
+    }
+    expect(wixAddonProductIdFor('addon-does-not-exist')).toBeNull();
   });
 });
 

@@ -94,6 +94,7 @@ function BookContent() {
     manifestInput,
     selectedDate,
     pilot,
+    activeRequestedRoute: selection.activeRequestedRoute,
     initialVoucherCode: intent.initialVoucherCode,
     isWixSubscriptionRedemption,
     canUseWixNativeCheckout,
@@ -134,7 +135,6 @@ function BookContent() {
     maxSlotMinutes: manifest.maxAvailableMinutes,
     wixBookingsAuthoritative: schedule.wixBookingsAuthoritative,
     isWixSubscriptionRedemption,
-    onWixAuthorityRequired: () => checkout.setBookingError(t.booking.wixBookingAuthorityRequired),
   });
   const subscriptionCheckout = isWixSubscriptionRedemption
     ? { notice: wixSubscriptionCopy.description, cta: wixSubscriptionCopy.checkoutLabel }
