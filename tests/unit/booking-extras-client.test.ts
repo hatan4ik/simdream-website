@@ -112,6 +112,17 @@ describe('evaluateBirthdayField', () => {
     expect(evaluateBirthdayField(field({ packageId: 'pkg-promo-45', subtotalIls: 490 }))).toMatchObject({ applied: false, blockedBy: 'discounted_promotion' });
     expect(evaluateBirthdayField(field({ packageId: 'pkg-pro-90', subtotalIls: 1285 }))).toMatchObject({ applied: false, blockedBy: 'category_excluded' });
   });
+
+  it('prices wix-pricing birthday preview on basePriceIls (excluding Wix Stores add-ons) while local uses subtotalIls', () => {
+    expect(evaluateBirthdayField(field({ mode: 'wix-pricing', subtotalIls: 890, basePriceIls: 690 }))).toMatchObject({
+      applied: true,
+      discountIls: 104,
+    });
+    expect(evaluateBirthdayField(field({ mode: 'local', subtotalIls: 890, basePriceIls: 690 }))).toMatchObject({
+      applied: true,
+      discountIls: 134,
+    });
+  });
 });
 
 describe('birthdayStatusKind', () => {
