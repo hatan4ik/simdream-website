@@ -87,6 +87,8 @@ export interface BirthdayFieldInputs {
   flightDate: string;
   /** Registry subtotal in whole shekels, before any voucher. */
   subtotalIls: number;
+  /** Base flight price in whole shekels (excluding Wix Stores add-ons). */
+  basePriceIls?: number;
   mode: BirthdayPathMode;
   today?: string;
 }
@@ -103,11 +105,16 @@ export function evaluateBirthdayField(inputs: BirthdayFieldInputs): BirthdayFiel
   const { mode } = inputs;
   if (!inputs.value) return { ...EMPTY, mode, status: 'empty', error: 'required' };
 
+  // The Wix Bookings pricing provider only prices the base flight service;
+  // Wix Stores add-on line items remain at their catalog price on Hosted Checkout.
+  const discountableIls =
+    mode === 'wix-pricing' && inputs.basePriceIls !== undefined ? inputs.basePriceIls : inputs.subtotalIls;
+
   const result = resolveBookingBirthday({
     birthDate: inputs.value,
     flightDate: inputs.flightDate,
     packageId: inputs.packageId,
-    subtotalIls: Math.round(inputs.subtotalIls),
+    subtotalIls: Math.round(discountableIls),
     isSubscriptionRedemption: mode === 'subscription',
     wixAuthoritative: mode === 'wix',
     today: inputs.today,
