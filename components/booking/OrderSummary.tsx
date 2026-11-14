@@ -1,6 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { X } from 'lucide-react';
 import type { FlightAddon, FlightSlot, MissionManifestCalculation } from '@/types';
 import { Badge } from '@/components/ui/Badge';
 import { formatBookingTemplate } from '@/lib/booking/client';
@@ -14,6 +15,8 @@ interface OrderSummaryProps {
   selectedAddonIds: string[];
   /** The localized catalog the selected add-on ids are resolved against. */
   addons: FlightAddon[];
+  /** Optional handler to remove an add-on directly from the summary. */
+  onRemoveAddon?: (addonId: string) => void;
   /** The applied voucher, coupon or gift card, if any. Zero `amountIls` hides the line. */
   discount: { amountIls: number; label: string; code: string | undefined };
   /** The payable total shown to the visitor. The server (or the Wix cart) stays authoritative. */
@@ -38,6 +41,7 @@ export function OrderSummary({
   selectedSlot,
   selectedAddonIds,
   addons,
+  onRemoveAddon,
   discount,
   totalIls,
   extraDiscountLines,
@@ -113,9 +117,21 @@ export function OrderSummary({
                   </span>
                 )}
               </div>
-              <span className="font-mono text-emerald-400 font-semibold shrink-0">
-                {formatCurrency(addon.priceIls)}
-              </span>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <span className="font-mono text-emerald-400 font-semibold">
+                  {formatCurrency(addon.priceIls)}
+                </span>
+                {onRemoveAddon && (
+                  <button
+                    type="button"
+                    onClick={() => onRemoveAddon(addonId)}
+                    aria-label={`Remove ${addon.name}`}
+                    className="p-1 rounded hover:bg-red-500/20 text-slate-400 hover:text-red-300 transition-colors"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
             </div>
           );
         })}
