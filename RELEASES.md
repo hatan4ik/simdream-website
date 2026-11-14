@@ -10,6 +10,14 @@
 
 ## Product changes by version
 
+### [v1.28.2](https://github.com/hatan4ik/simdream-website/releases/tag/v1.28.2) — 2026-11-14
+
+#### Bug Fixes
+
+- **wix:** surface Cart V2 error code and message on cart creation failure (#210) (4a4e285)
+
+Deployment evidence: [GitHub Release](https://github.com/hatan4ik/simdream-website/releases/tag/v1.28.2).
+
 ### [v1.28.1](https://github.com/hatan4ik/simdream-website/releases/tag/v1.28.1) — 2026-11-14
 
 #### Bug Fixes
