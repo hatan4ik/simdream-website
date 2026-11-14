@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.28.4](https://github.com/hatan4ik/simdream-website/compare/v1.28.3...v1.28.4) (2026-11-14)
+
+
+### Bug Fixes
+
+* **wix:** omit formSubmission when birthdayPricingClaim is present so additionalFields reaches pricing SPI ([#215](https://github.com/hatan4ik/simdream-website/issues/215)) ([920446f](https://github.com/hatan4ik/simdream-website/commit/920446fb01bbc46b563f4e09736d822692aef462))
+
 ## [1.28.3](https://github.com/hatan4ik/simdream-website/compare/v1.28.2...v1.28.3) (2026-11-14)
 
 
