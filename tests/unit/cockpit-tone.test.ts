@@ -78,4 +78,40 @@ describe('Cockpit Night palette tones', () => {
       expect(contrastRatio('#fca5a5', bg)).toBeGreaterThanOrEqual(4.5);
     }
   });
+
+  it('paints the primary action brand orange with a chrome-navy label in the two navy tones only', () => {
+    const css = fs.readFileSync(path.join(process.cwd(), 'app/globals.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+    const token = (name: string) => new RegExp(`--color-${name}:\\s*(#[0-9a-f]{6});`, 'i').exec(css)?.[1] ?? '';
+    const orange500 = token('orange-500');
+    const orange400 = token('orange-400');
+    expect(orange500).toBe('#ff5500');
+
+    // Every rule that colours a primary Button from the orange scale is scoped to Cobalt and Squadron:
+    // Classic Night, SimDream Day and Clean Studio keep the cerulean pill.
+    const NAVY_TONES = 'html[data-ui="cockpit"]:is([data-cockpit-tone="cobalt"], [data-cockpit-tone="squadron"])';
+    const PRIMARY = '[data-ui-control="button"][data-button-variant="primary"]';
+    const orangePrimaryRules = [...css.matchAll(/([^{};]+)\{([^{}]*)\}/g)]
+      .map(([, prelude, body]) => ({ prelude: prelude!.trim(), body: body! }))
+      .filter(({ prelude, body }) => prelude.includes(PRIMARY) && body.includes('--color-orange-'));
+    expect(orangePrimaryRules.length).toBeGreaterThan(0);
+    for (const { prelude } of orangePrimaryRules) {
+      expect(prelude.split('html').length - 1, prelude).toBe(prelude.split(NAVY_TONES).length - 1);
+    }
+
+    const bodyOf = (selector: string) => orangePrimaryRules.find(({ prelude }) => prelude === selector)?.body ?? '';
+    const resting = bodyOf(`${NAVY_TONES} ${PRIMARY}`);
+    expect(resting).toContain('background-color: var(--color-orange-500) !important');
+    expect(resting).toContain('border-color: var(--color-orange-500) !important');
+    expect(resting).toContain('color: var(--cockpit-chrome) !important');
+    const hover = bodyOf(`${NAVY_TONES} ${PRIMARY}:hover`);
+    expect(hover).toContain('background-color: var(--color-orange-400) !important');
+
+    // White on #FF5500 is 3.2:1, below WCAG AA for the 14-21px regular label; the chrome navy passes
+    // on the resting fill and on the lighter hover fill.
+    expect(contrastRatio('#ffffff', orange500)).toBeLessThan(4.5);
+    for (const tone of ['cobalt', 'squadron'] as const) {
+      expect(contrastRatio(COCKPIT_TONE_COLORS[tone].chrome, orange500)).toBeGreaterThanOrEqual(4.5);
+      expect(contrastRatio(COCKPIT_TONE_COLORS[tone].chrome, orange400)).toBeGreaterThanOrEqual(4.5);
+    }
+  });
 });

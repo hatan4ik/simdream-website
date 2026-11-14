@@ -7,7 +7,8 @@
      sky-* utility is brand cerulean (same lightness ladder, so contrast ratios hold).
    - Orange #FF5500: the airplane mark and tagline. Replaces Tailwind's orange scale.
      #FF5500 is 3.2:1 on white: use it for the logo, icons, rules and large text only;
-     small orange text on light surfaces uses orange-700 (5.3:1).
+     small orange text on light surfaces uses orange-700 (5.3:1). As a fill it carries dark
+     ink only (the primary action in the Cobalt and Squadron tones, below), never white text.
    ========================================================================== */
 @theme {
   --color-sky-50: #f2f9fd;
@@ -526,6 +527,24 @@ html[data-ui="cockpit"][data-cockpit-tone="squadron"] .text-rose-400 {
 
 html[data-ui="cockpit"][data-cockpit-tone="squadron"] .text-purple-400 {
   color: #d8b4fe !important;
+}
+
+/* Primary action in the two navy tones: the brand orange #FF5500 instead of the cerulean pill
+   (AGENTS.md §1.6). White on #FF5500 is only 3.2:1, so the label is the tone's chrome navy:
+   5.7:1 in Cobalt and 5.2:1 in Squadron, 7.2:1 and 6.6:1 on the lighter orange-400 hover fill.
+   Colour only: the pill, 1px border and type stay with components/ui/Button.tsx. Classic Night,
+   Daylight and Studio are not matched and keep the cerulean primary. */
+html[data-ui="cockpit"]:is([data-cockpit-tone="cobalt"], [data-cockpit-tone="squadron"]) [data-ui-control="button"][data-button-variant="primary"] {
+  background-color: var(--color-orange-500) !important;
+  border-color: var(--color-orange-500) !important;
+  color: var(--cockpit-chrome) !important;
+}
+html[data-ui="cockpit"]:is([data-cockpit-tone="cobalt"], [data-cockpit-tone="squadron"]) [data-ui-control="button"][data-button-variant="primary"] * {
+  color: var(--cockpit-chrome) !important;
+}
+html[data-ui="cockpit"]:is([data-cockpit-tone="cobalt"], [data-cockpit-tone="squadron"]) [data-ui-control="button"][data-button-variant="primary"]:hover {
+  background-color: var(--color-orange-400) !important;
+  border-color: var(--color-orange-400) !important;
 }
 
 html[data-ui="brand"] body {
