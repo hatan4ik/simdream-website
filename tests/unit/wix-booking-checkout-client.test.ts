@@ -423,4 +423,43 @@ describe('Wix native booking checkout client', () => {
       },
     });
   });
+
+  it('surfaces Wix applicationError.code, message, and description when cart creation fails', async () => {
+    const client: WixBrowserClient = {
+      fetchWithAuth: async () =>
+        response(
+          {
+            message: 'Catalog item was not found',
+            details: {
+              applicationError: {
+                code: 'ITEM_NOT_FOUND_IN_CATALOG',
+                description: 'Product cold-dark-v1 does not exist in Wix Stores',
+              },
+            },
+          },
+          400
+        ),
+    };
+
+    await expect(createWixCartForBooking(client, 'booking-123', ['addon-cold-dark'])).rejects.toThrow(
+      'Wix did not create a checkout cart (400): ITEM_NOT_FOUND_IN_CATALOG — Catalog item was not found — Product cold-dark-v1 does not exist in Wix Stores'
+    );
+  });
+
+  it('falls back cleanly when the cart creation error response is empty or non-JSON', async () => {
+    const emptyClient: WixBrowserClient = {
+      fetchWithAuth: async () => new Response(null, { status: 502 }),
+    };
+    await expect(createWixCartForBooking(emptyClient, 'booking-123')).rejects.toThrow(
+      'Wix did not create a checkout cart. Please try again.'
+    );
+
+    const htmlErrorClient: WixBrowserClient = {
+      fetchWithAuth: async () =>
+        new Response('<html>Bad Gateway</html>', { status: 502, headers: { 'Content-Type': 'text/html' } }),
+    };
+    await expect(createWixCartForBooking(htmlErrorClient, 'booking-123')).rejects.toThrow(
+      'Wix did not create a checkout cart. Please try again.'
+    );
+  });
 });
