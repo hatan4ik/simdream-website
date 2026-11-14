@@ -48,7 +48,7 @@
   "dependencies": {
     "@sendgrid/mail": "^8.1.3",
     "@stripe/stripe-js": "^4.8.0",
-    "@supabase/supabase-js": "^2.45.4",
+    "@supabase/supabase-js": "^2.119.0",
     "@tailwindcss/postcss": "^4.3.3",
     "@wix/members": "^1.0.541",
     "@wix/pricing-plans": "^1.0.440",
