@@ -11,8 +11,6 @@ interface UseBookingExtrasArgs {
   flightDate: string;
   /** Registry subtotal in whole shekels, before any voucher or discount. */
   subtotalIls: number;
-  /** Base flight price in whole shekels (excluding Wix Stores add-ons). */
-  basePriceIls?: number;
   wixAuthoritative: boolean;
   canUseWixNativeCheckout: boolean;
   isWixSubscriptionRedemption: boolean;
