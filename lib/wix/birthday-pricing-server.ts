@@ -17,43 +17,16 @@ import {
   type PromotionKind,
   type VerifiedPromotionClaim,
 } from './birthday-pricing-claim';
+import { getWixBirthdayPricingProviderConfig, type WixBirthdayPricingProviderConfig } from './birthday-pricing-config';
+import { isWixSlotStartOnStrictGrid } from './booking-grid-policy';
 
-export const WIX_BIRTHDAY_CLAIM_FIELD_ID_ENV = 'WIX_BIRTHDAY_CLAIM_FIELD_ID';
-
-export interface WixBirthdayPricingProviderConfig {
-  claimFieldId: string;
-  claimSecret: string;
-  providerAppId: string;
-  providerPublicKey: string;
-}
-
-const guidSchema = z.string().uuid();
-
-function nonEmptyEnvironment(name: string): string | null {
-  const value = process.env[name]?.trim();
-  return value || null;
-}
-
-/**
- * The route stays fail-closed until *all* pricing-provider secrets and the
- * Bookings custom-field id exist. A deployment containing only source code
- * therefore cannot accidentally advertise or grant the reduction.
- */
-export function getWixBirthdayPricingProviderConfig(): WixBirthdayPricingProviderConfig | null {
-  if (process.env.WIX_BIRTHDAY_PRICING_PROVIDER_ENABLED?.trim().toLowerCase() !== 'true') return null;
-  const claimFieldId = nonEmptyEnvironment(WIX_BIRTHDAY_CLAIM_FIELD_ID_ENV);
-  const claimSecret = nonEmptyEnvironment('WIX_BIRTHDAY_CLAIM_SECRET');
-  const providerAppId = nonEmptyEnvironment('WIX_BIRTHDAY_PRICING_PROVIDER_APP_ID');
-  const providerPublicKey = nonEmptyEnvironment('WIX_BIRTHDAY_PRICING_PROVIDER_PUBLIC_KEY');
-  if (!claimFieldId || !claimSecret || !providerAppId || !providerPublicKey) return null;
-  if (!guidSchema.safeParse(claimFieldId).success || !guidSchema.safeParse(providerAppId).success) return null;
-  if (new TextEncoder().encode(claimSecret).byteLength < 32 || !providerPublicKey.includes('BEGIN PUBLIC KEY')) return null;
-  return { claimFieldId, claimSecret, providerAppId, providerPublicKey };
-}
-
-export function isWixBirthdayPricingProviderEnabled(): boolean {
-  return getWixBirthdayPricingProviderConfig() !== null;
-}
+// The configuration lives in its own module so `npm run wix:readiness` can read it outside Next.
+export {
+  getWixBirthdayPricingProviderConfig,
+  isWixBirthdayPricingProviderEnabled,
+  WIX_BIRTHDAY_CLAIM_FIELD_ID_ENV,
+  type WixBirthdayPricingProviderConfig,
+} from './birthday-pricing-config';
 
 const issueClaimSchema = z.object({
   packageId: z.string().min(1),
@@ -137,9 +110,16 @@ export interface WixPricingCalculationOptions {
   verifyIdentity?: WixPricingIdentityVerifier;
 }
 
+/** Every refusal; the route answers each with the same 400, so Wix cannot price the booking. */
+export type WixPricingRejectionCode =
+  | 'unsupported-service'
+  | 'invalid-birthday-claim'
+  | 'invalid-flight-date'
+  | 'off-grid-departure';
+
 export type WixBirthdayPricingDecision =
   | { ok: true; calculatedPrice: number; birthdayApplied: boolean }
-  | { ok: false; code: 'unsupported-service' | 'invalid-birthday-claim' | 'invalid-flight-date' };
+  | { ok: false; code: WixPricingRejectionCode };
 
 export type WixPromotionPricingDecision =
   | {
@@ -150,7 +130,7 @@ export type WixPromotionPricingDecision =
       discountPercent: PromotionDiscountPercent;
       promoKind?: PromotionKind;
     }
-  | { ok: false; code: 'unsupported-service' | 'invalid-birthday-claim' | 'invalid-flight-date' };
+  | { ok: false; code: WixPricingRejectionCode };
 
 function bookingDateTimeParts(
   startDate: string,
@@ -277,6 +257,8 @@ export async function calculateWixBookingPrice(
 
   const bookingTime = slot.startDate ? bookingDateTimeParts(slot.startDate, slot.timezone) : null;
   if (!bookingTime) return { ok: false, code: 'invalid-flight-date' };
+  // The browser creates the Wix booking, so only this check binds it to the local grid, claim or not.
+  if (!isWixSlotStartOnStrictGrid(packageId, slot.startDate)) return { ok: false, code: 'off-grid-departure' };
   const basePriceIls = packagePriceForSlot(pkg, bookingTime.isPrimeTime);
   const value = booking.additionalFields?.find(
     (field) => (field.id ?? field._id) === config.claimFieldId

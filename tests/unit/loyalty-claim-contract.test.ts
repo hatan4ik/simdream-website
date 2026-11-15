@@ -179,7 +179,7 @@ describe('unified pricing provider evaluation', () => {
         bookedEntity: {
           slot: {
             serviceId: CAPTAIN_60_SERVICE,
-            startDate: '2026-11-13T08:00:00.000Z',
+            startDate: '2026-11-13T08:15:00.000Z',
             timezone: 'Asia/Jerusalem',
           },
         },
@@ -218,7 +218,7 @@ describe('unified pricing provider evaluation', () => {
           bookedEntity: {
             slot: {
               serviceId: CAPTAIN_60_SERVICE,
-              startDate: '2026-11-13T08:00:00.000Z',
+              startDate: '2026-11-13T08:15:00.000Z',
               timezone: 'Asia/Jerusalem',
             },
           },
@@ -278,7 +278,7 @@ describe('unified pricing provider evaluation', () => {
           bookedEntity: {
             slot: {
               serviceId: PRO_60_SERVICE,
-              startDate: '2026-11-10T08:00:00.000Z',
+              startDate: '2026-11-10T08:15:00.000Z',
               timezone: 'Asia/Jerusalem',
             },
           },
@@ -304,7 +304,7 @@ describe('unified pricing provider evaluation', () => {
 
     const baseSlot = {
       serviceId: CAPTAIN_60_SERVICE,
-      startDate: '2026-11-13T08:00:00.000Z',
+      startDate: '2026-11-13T08:15:00.000Z',
       timezone: 'Asia/Jerusalem',
     };
 

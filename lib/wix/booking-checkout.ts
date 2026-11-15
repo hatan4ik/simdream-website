@@ -2,11 +2,12 @@ import 'server-only';
 
 import { z } from 'zod';
 import { FLIGHT_ADDONS, SIMULATOR_PACKAGES } from '@/lib/db/seed-data';
-import { closeDepartedSlots, generateKantorovichSlots } from '@/lib/scheduler/kantorovich-engine';
+import { closeDepartedSlots } from '@/lib/scheduler/kantorovich-engine';
 import { computeRequiredMissionMinutes } from '@/lib/booking/client/slot-selection';
 import { isoDate } from '@/lib/validation';
 import { intersectKantorovichSlotsWithWix, listWixBookableSlotsForDuration } from './availability-adapter';
 import { listWixAvailability, listWixServices, wixResourceTypeIdsForService, type WixTimeSlot } from './bookings';
+import { isOnStrictWixGrid, strictWixGridSlots } from './booking-grid-policy';
 import { wixServiceIdFor } from './catalog';
 import { isWixConfigured, WIX_TIME_ZONE } from './config';
 
@@ -81,6 +82,10 @@ export async function resolveWixBookingCheckout(input: WixBookingCheckoutInput):
   const requiredMissionMinutes = computeRequiredMissionMinutes(durationMinutes, input.addonIds ?? [], FLIGHT_ADDONS);
   const serviceId = wixServiceIdFor(input.packageId);
   if (!serviceId) throw new Error(`No Wix service maps to ${input.packageId}.`);
+  // The same grid rule the Wix pricing provider applies when Wix prices the booking.
+  if (!isOnStrictWixGrid(input.packageId, input.bookingDate, input.startTime)) {
+    throw new WixBookingUnavailableError('The requested Wix booking slot is no longer available.');
+  }
 
   const services = await listWixServices();
   const service = services.find((candidate) => candidate.id === serviceId);
@@ -97,7 +102,7 @@ export async function resolveWixBookingCheckout(input: WixBookingCheckoutInput):
       toLocalDate: `${input.bookingDate}T23:59:59`,
       includeResourceTypeIds: wixResourceTypeIdsForService(service),
     }),
-    Promise.resolve(closeDepartedSlots(generateKantorovichSlots(input.bookingDate, durationMinutes, []), new Date())),
+    Promise.resolve(closeDepartedSlots(strictWixGridSlots(input.packageId, input.bookingDate), new Date())),
     extendedTier ? listWixBookableSlotsForDuration(input.bookingDate, extendedTier) : Promise.resolve(null),
   ]);
 

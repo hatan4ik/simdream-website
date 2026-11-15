@@ -14,6 +14,36 @@ This design avoids a second discounted service, preserves service duration/capac
 birth date or birth year to Wix. A birthday price and a promo coupon are intentionally non-stackable; native Gift Card
 credit remains allowed as tender.
 
+## Grid enforcement
+
+With `WIX_AVAILABILITY_ADAPTER_ENABLED=true` the server accepts a requested start only on the strict local zero-waste
+grid (`resolveWixBookingCheckout()` in `lib/wix/booking-checkout.ts`), but the browser then calls Wix Create Booking
+itself, so a caller can book any other start Wix offers. **The availability adapter alone does not bind Wix bookings to
+the local grid; this provider does.**
+
+- For every booking of a mapped service the provider reads `bookedEntity.slot.startDate` (Wix documents it as an
+  RFC 3339 instant), converts it to the Israel wall clock and prices it only when that start is an open departure of
+  the package's empty-day grid: `isOnStrictWixGrid()` in `lib/wix/booking-grid-policy.ts`, the same function the server
+  resolver uses. The booking's `timezone` label is ignored because the browser sets it. A start without an explicit UTC
+  offset, or not on a whole minute, cannot be placed on the grid and is refused too.
+- An off-grid start is refused with `off-grid-departure`, claim or no claim, through the same path as an altered claim:
+  the endpoint answers 400 and returns no `calculatedPrice`. Wix's Bookings Pricing API documents that Calculate Price
+  then fails with `ERROR_CONTACTING_PRICING_PROVIDER` ("the provider may be unavailable or returned an error"), so the
+  booking cannot be priced at checkout. Confirm it with the off-grid row of the verification matrix below.
+- An on-grid booking is priced exactly as before, and a service that maps to no SimDream package keeps
+  `unsupported-service`. The provider has no clock: closing departures that have already left and the add-on fit checks
+  stay in the server resolver, and Wix still guards its own capacity.
+- `npm run wix:readiness` prints `Scheduling grid enforcement: provider` when the provider configuration is complete
+  (`wixGridEnforcement()` in `lib/wix/booking-grid-enforcement.ts`, which is `getWixBirthdayPricingProviderConfig() !==
+  null`) and `none` otherwise. With `none` while the adapter flag is on it adds a WARN line: off-grid Wix bookings are
+  possible until the pricing provider is active or Wix service scheduling is configured to the same grid. The line
+  reflects the environment of the shell that runs the command (including `.env.local`), never calls Wix and never
+  changes the exit code; run it with the deployment's values to judge that deployment. `GET /api/offers/capabilities`
+  does not report it.
+- Before activating, check whether Wix prices staff-created dashboard bookings and bookings paid with a Pricing Plan
+  through the provider. Staff bookings at an off-grid time would then be refused as well; Pricing Plan bookings that Wix
+  does not price through the provider are not bound by this check.
+
 ## Preconditions
 
 - The active target is **SimDream-Staging**, metasite `317b0c6d-6608-499a-bb3c-b1c37650e460`.
@@ -82,6 +112,7 @@ Before advertising this offer or connecting live payments, execute and record ea
 | PRO, Fear of Flying, corporate, subscription redemption | standard price; no birthday reduction |
 | Missing claim | standard price |
 | Altered/expired claim | booking cannot be priced; it must not receive a discount |
+| Off-grid start (5 minutes after a grid departure, booked straight through Wix Create Booking), with and without a claim | booking cannot be priced (`off-grid-departure`); it never reaches payment |
 | Birthday price with a native Gift Card | gift-card credit applies to the reduced balance |
 | Birthday price with a promo coupon | UI refuses combination; Wix service coupon scope must also prevent it |
 | Non-birthday normal booking | original price, duration and email service name unchanged |
@@ -97,6 +128,7 @@ calculated cart price matches the hosted checkout and that no session is marked 
 3. Redeploy/restart the worker and verify `/api/offers/capabilities` returns
    `wixBirthdayPricingProviderEnabled: false`.
 4. Re-run a normal base-flight checkout. It must use the standard service price and show the existing Wix birthday notice.
+   Grid enforcement goes back to `none` with the provider: off-grid Wix bookings are possible again.
 
 The standard checkout remains available; no duplicate services, catalogue mutation, or customer-data cleanup is needed.
 

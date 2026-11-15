@@ -102,6 +102,16 @@ describe('POST /api/wix/birthday-pricing/v1/calculate-price', () => {
     expect(pricing.calculate).toHaveBeenCalledWith(booking, { config });
   });
 
+  it('refuses an off-grid departure with the same error as any booking it cannot price', async () => {
+    pricing.verifyBooking.mockResolvedValue({ bookedEntity: { slot: { serviceId: 'service' } } });
+    pricing.calculate.mockResolvedValue({ ok: false, code: 'off-grid-departure' });
+    const response = await readJson<{ error: string; calculatedPrice?: number }>(
+      await calculatePrice(apiRequest('/api/wix/birthday-pricing/v1/calculate-price', { rawBody: 'signed-wix-jwt' }))
+    );
+    expect(response).toMatchObject({ status: 400, body: { error: 'Wix booking could not be priced.' } });
+    expect(response.body.calculatedPrice).toBeUndefined();
+  });
+
   it('fails closed for an unsupported booking, a calculator outage, or missing config', async () => {
     pricing.verifyBooking.mockResolvedValue({});
     pricing.calculate.mockResolvedValueOnce({ ok: false, code: 'unsupported-service' }).mockRejectedValueOnce(new Error('offline'));
