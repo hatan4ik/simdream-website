@@ -46,6 +46,7 @@ export async function loadApp(options: LoadAppOptions = {}) {
   for (const [name, value] of Object.entries(env)) vi.stubEnv(name, value);
 
   const checkoutSessions: CreateCheckoutParams[] = [];
+  const expiredCheckoutSessions: string[] = [];
   if (options.stripe === 'mocked') {
     vi.doMock('@/lib/stripe', async (importOriginal) => {
       const actual = await importOriginal<typeof import('@/lib/stripe')>();
@@ -55,7 +56,12 @@ export async function loadApp(options: LoadAppOptions = {}) {
           if (options.stripeFailure) throw options.stripeFailure;
           checkoutSessions.push(params);
           const sessionId = `cs_test_mock_${checkoutSessions.length}`;
-          return { url: `https://checkout.stripe.com/c/pay/${sessionId}`, sessionId };
+          // Stripe's own expiry for these sessions: 30 minutes after creation (lib/stripe.ts).
+          const expiresAt = new Date(Date.now() + 30 * 60_000).toISOString();
+          return { url: `https://checkout.stripe.com/c/pay/${sessionId}`, sessionId, expiresAt };
+        }),
+        expireCheckoutSession: vi.fn(async (sessionId: string) => {
+          expiredCheckoutSessions.push(sessionId);
         }),
       };
     });
@@ -83,6 +89,14 @@ export async function loadApp(options: LoadAppOptions = {}) {
     seed,
     /** Checkout Session parameters recorded by the Stripe mock, in call order. */
     checkoutSessions,
+    /** Checkout Session ids the server asked the Stripe mock to expire, in call order. */
+    expiredCheckoutSessions,
+    /**
+     * Clears this app's in-memory rate-limit counters, as a freshly loaded app starts. Each loadApp()
+     * already begins with empty counters; call this between the runs of a property test that repeats
+     * the same checkout as independent cases. The limits themselves are never changed.
+     */
+    resetRateLimits: async () => (await import('@/lib/security/rate-limit')).resetInMemoryRateLimitsForTests(),
     routes: {
       adminScheduleEfficiency: () => import('@/app/api/admin/schedule-efficiency/route'),
       adminScheduleOptimization: () => import('@/app/api/admin/schedule-optimization/route'),

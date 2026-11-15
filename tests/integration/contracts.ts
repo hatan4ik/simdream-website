@@ -66,6 +66,10 @@ export const booking = z.strictObject({
   paymentStatus,
   paymentMethod: z.enum(['stripe', 'voucher', 'desk']),
   stripePaymentIntentId: z.string().optional(),
+  // The hosted checkout of an unpaid card hold, so a returning pilot resumes it (migration 013).
+  stripeCheckoutSessionId: z.string().min(1).optional(),
+  stripeCheckoutUrl: z.url().optional(),
+  stripeCheckoutExpiresAt: isoDateTime.optional(),
   notes: z.string().optional(),
   createdAt: isoDateTime,
 });

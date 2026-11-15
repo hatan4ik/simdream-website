@@ -1,9 +1,10 @@
 import 'server-only';
 
-import type { Booking, GiftVoucher } from '@/types';
+import type { Booking, GiftVoucher, SimulatorPackage } from '@/types';
 import { FLIGHT_ADDONS, SIMULATOR_PACKAGES } from '@/lib/db/seed-data';
 import { BOOKING_HORIZON_MESSAGE, isBeyondBookingHorizon } from '@/lib/scheduler/booking-horizon';
 import { hasDeparted, israelToday } from '@/lib/scheduler/israel-clock';
+import { getDayOperatingConfig, getKantorovichPricing, timeToMinutes } from '@/lib/scheduler/kantorovich-engine';
 import { giftCertificateAmount, giftCertificatePackageById } from '@/lib/catalog/gift-voucher-packages';
 import { DEFAULT_GIFT_CARD_DESIGN_ID } from '@/lib/catalog/gift-card-designs';
 import { findOnRequestWorldRoute, MINIMUM_ROUTE_REQUEST_MINUTES } from '@/lib/data/experience-routes';
@@ -11,15 +12,65 @@ import {
   calculateMissionManifest,
   packageAllowsAddons,
   sanitizePackageTitle,
+  type CalculateMissionManifestInput,
 } from '@/lib/scheduler/mission-calculator';
 import { memberIdForBooking } from '@/lib/auth/member-ownership';
 import { bookingCheckoutSchema, voucherCheckoutSchema } from '@/lib/validation';
 import { resolveCheckoutExtras } from './checkout-extras';
 import { CheckoutError } from './checkout-error';
-import { SlotReservationConflictError, type CheckoutDependencies } from './checkout-ports';
+import { resolveUnpaidHold } from './checkout-hold-policy';
+import { SlotReservationConflictError, type CardCheckoutSession, type CheckoutDependencies } from './checkout-ports';
 import { z } from 'zod';
 
 export { CheckoutError };
+
+type BookingCheckoutInput = z.infer<typeof bookingCheckoutSchema>;
+type MissionSlot = NonNullable<CalculateMissionManifestInput['slot']>;
+
+type BookingCheckoutOutcome =
+  | { kind: 'resumed'; session: CardCheckoutSession }
+  | { kind: 'created'; booking: Booking; isVoucherPayment: boolean };
+
+/** The browser receives only where to go; the session's expiry stays on the server. */
+function stripeRedirect(session: CardCheckoutSession) {
+  return { kind: 'stripe' as const, url: session.url, sessionId: session.sessionId };
+}
+
+/** The departure's tariff as the scheduler prices it, whoever holds it now. Only the price is read from it. */
+function departureTariff(bookingDate: string, startTime: string, durationMinutes: number): MissionSlot {
+  const { isSaturday } = getDayOperatingConfig(bookingDate);
+  const { isPrimeTime } = getKantorovichPricing(durationMinutes, timeToMinutes(startTime), isSaturday);
+  return { startTime, endTime: startTime, maxAvailableMinutes: Number.POSITIVE_INFINITY, isPrimeTime };
+}
+
+/** The mission's manifest, its server-decided extras, and what is left to pay on this departure. */
+function priceMission(pkg: SimulatorPackage, input: BookingCheckoutInput, addonIds: string[], slot: MissionSlot, now: Date) {
+  const manifest = calculateMissionManifest({
+    pkg,
+    slot,
+    selectedAddonIds: addonIds,
+    availableAddons: FLIGHT_ADDONS,
+  });
+
+  if (manifest.totalDurationMinutes > manifest.maxAvailableMinutes) {
+    throw new CheckoutError('The selected mission add-ons no longer fit in this departure window.', 409);
+  }
+
+  // The consent record and the birthday discount are decided here from the slot's own date and the
+  // registry subtotal; the client sends only the two confirmations and the typed birth date.
+  const extras = resolveCheckoutExtras({
+    packageId: pkg.id,
+    bookingDate: input.bookingDate,
+    subtotalIls: manifest.subtotalIls,
+    pilotBirthDate: input.pilotBirthDate,
+    consent: input.consent,
+    now,
+    today: israelToday(now),
+  });
+  if (!extras.ok) throw new CheckoutError(extras.message);
+  // What is left to pay after the birthday discount; a voucher must cover exactly this.
+  return { manifest, extras, payableIls: manifest.totalIls - extras.birthday.discountIls };
+}
 
 function validVoucherForAmount(voucher: GiftVoucher | undefined, amount: number, now: Date): GiftVoucher {
   if (!voucher || voucher.paymentStatus !== 'paid' || voucher.isRedeemed) {
@@ -50,11 +101,8 @@ async function conflictsAsCheckoutErrors<T>(operation: Promise<T>): Promise<T> {
 async function createBookingFromRequest(
   dependencies: CheckoutDependencies,
   request: Request,
-  input: z.infer<typeof bookingCheckoutSchema>
-): Promise<{
-  booking: Booking;
-  isVoucherPayment: boolean;
-}> {
+  input: BookingCheckoutInput
+): Promise<BookingCheckoutOutcome> {
   if (input.bookingDate < israelToday()) {
     throw new CheckoutError('Bookings must be for today or a future date.');
   }
@@ -88,39 +136,31 @@ async function createBookingFromRequest(
     throw new CheckoutError('Mission add-ons are not available for this package.');
   }
 
+  const isVoucherPayment = Boolean(input.voucherCode);
+  const now = dependencies.clock.now();
+  // A card checkout holds the departure unpaid: the same pilot's retry resumes or replaces their
+  // own hold (never a 409 against themselves), and one email may not stack up holds.
+  if (!isVoucherPayment) {
+    const resumed = await resolveUnpaidHold(dependencies, {
+      pilotEmail: input.pilotEmail,
+      packageId: pkg.id,
+      bookingDate: input.bookingDate,
+      startTime: input.startTime,
+      addonIds,
+      payableIls: () =>
+        priceMission(pkg, input, addonIds, departureTariff(input.bookingDate, input.startTime, pkg.durationMinutes), now)
+          .payableIls,
+      now,
+    });
+    if (resumed) return { kind: 'resumed', session: resumed };
+  }
+
   const slot = await conflictsAsCheckoutErrors(
     dependencies.repository.assertBookableStart(input.bookingDate, input.startTime, pkg.durationMinutes)
   );
-
-  const manifest = calculateMissionManifest({
-    pkg,
-    slot,
-    selectedAddonIds: addonIds,
-    availableAddons: FLIGHT_ADDONS,
-  });
-
-  if (manifest.totalDurationMinutes > manifest.maxAvailableMinutes) {
-    throw new CheckoutError('The selected mission add-ons no longer fit in this departure window.', 409);
-  }
-
-  // The consent record and the birthday discount are decided here from the slot's own date and the
-  // registry subtotal; the client sends only the two confirmations and the typed birth date.
-  const now = dependencies.clock.now();
-  const extras = resolveCheckoutExtras({
-    packageId: pkg.id,
-    bookingDate: input.bookingDate,
-    subtotalIls: manifest.subtotalIls,
-    pilotBirthDate: input.pilotBirthDate,
-    consent: input.consent,
-    now,
-    today: israelToday(now),
-  });
-  if (!extras.ok) throw new CheckoutError(extras.message);
+  const { manifest, extras, payableIls } = priceMission(pkg, input, addonIds, slot, now);
   const birthdayDiscountIls = extras.birthday.discountIls;
-  // What is left to pay after the birthday discount; a voucher must cover exactly this.
-  const payableIls = manifest.totalIls - birthdayDiscountIls;
 
-  const isVoucherPayment = Boolean(input.voucherCode);
   let voucher: GiftVoucher | undefined;
   if (input.voucherCode) {
     voucher = validVoucherForAmount(
@@ -177,7 +217,7 @@ async function createBookingFromRequest(
     dependencies.confirmations.sendBookingConfirmation(booking).catch(console.error);
   }
 
-  return { booking, isVoucherPayment };
+  return { kind: 'created', booking, isVoucherPayment };
 }
 
 /**
@@ -187,11 +227,12 @@ async function createBookingFromRequest(
  */
 export function createCheckoutService(dependencies: CheckoutDependencies) {
   return {
-    async startBookingCheckout(request: Request, input: z.infer<typeof bookingCheckoutSchema>) {
+    async startBookingCheckout(request: Request, input: BookingCheckoutInput) {
       // Resolve every fallible setting before the first write, so a misconfiguration
       // can never leave a spent voucher or an unexpiring pending hold behind.
       const origin = dependencies.origin.resolve(request);
       const result = await createBookingFromRequest(dependencies, request, input);
+      if (result.kind === 'resumed') return stripeRedirect(result.session);
       const booking = result.booking;
       const successUrl =
         origin +
@@ -207,8 +248,9 @@ export function createCheckoutService(dependencies: CheckoutDependencies) {
         };
       }
 
+      let session: CardCheckoutSession | undefined;
       try {
-        const session = await dependencies.cardCheckout.createHostedCheckout({
+        session = await dependencies.cardCheckout.createHostedCheckout({
           title: 'Sim Dream: ' + booking.packageTitle + ' (' + booking.durationMinutes + ' min)',
           description: booking.bookingDate + ' • ' + booking.startTime + '–' + booking.endTime + ' Israel time',
           amountIls: booking.totalIls,
@@ -217,8 +259,12 @@ export function createCheckoutService(dependencies: CheckoutDependencies) {
           successUrl,
           cancelUrl: origin + '/book?cancelled=true',
         });
-        return { kind: 'stripe' as const, ...session };
+        // Stored with the hold, so the same pilot's retry can resume this checkout (checkout-hold-policy.ts).
+        await dependencies.repository.attachHostedCheckout(booking.id, session);
+        return stripeRedirect(session);
       } catch (error) {
+        // A released hold never keeps a payable checkout; the original failure is what the caller sees.
+        if (session) await dependencies.cardCheckout.expireHostedCheckout(session.sessionId).catch(() => undefined);
         await dependencies.repository.cancelPendingBooking(booking.id);
         throw error;
       }
@@ -265,7 +311,7 @@ export function createCheckoutService(dependencies: CheckoutDependencies) {
           successUrl: origin + '/vouchers?purchase=processing&session_id={CHECKOUT_SESSION_ID}',
           cancelUrl: origin + '/vouchers?cancelled=true',
         });
-        return { kind: 'stripe' as const, ...session };
+        return stripeRedirect(session);
       } catch (error) {
         await dependencies.repository.cancelPendingVoucher(voucher.id);
         throw error;

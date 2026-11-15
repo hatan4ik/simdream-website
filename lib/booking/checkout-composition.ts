@@ -2,9 +2,10 @@ import 'server-only';
 
 import { requireAuthenticatedUser } from '@/lib/auth/request-auth';
 import { getApplicationOrigin } from '@/lib/config/server-env';
+import { attachHostedCheckout, listUnpaidPendingBookings } from '@/lib/db/checkout-hold-store';
 import { BookingConflictError, store } from '@/lib/db/store';
 import { sendBookingConfirmationEmail } from '@/lib/sendgrid';
-import { createCheckoutSession } from '@/lib/stripe';
+import { createCheckoutSession, expireCheckoutSession } from '@/lib/stripe';
 import {
   CheckoutDependencies,
   SlotReservationConflictError,
@@ -36,12 +37,15 @@ export function createRuntimeCheckoutDependencies(): CheckoutDependencies {
       createBooking: (draft: BookingDraft) => translateReservationConflict(store.createBooking(draft)),
       updateBookingStatus: (id, status) => store.updateBookingStatus(id, status),
       cancelPendingBooking: (id) => store.cancelPendingBooking(id),
+      listUnpaidPendingBookings: (pilotEmail) => listUnpaidPendingBookings(pilotEmail),
+      attachHostedCheckout: (bookingId, session) => attachHostedCheckout(bookingId, session),
       createPendingVoucher: (draft: PendingVoucherDraft) => store.createPendingVoucher(draft),
       cancelPendingVoucher: (id) => store.cancelPendingVoucher(id),
       redeemVoucher: (code, amountIls) => store.redeemVoucher(code, amountIls),
     },
     cardCheckout: {
       createHostedCheckout: (command) => createCheckoutSession(command),
+      expireHostedCheckout: (sessionId) => expireCheckoutSession(sessionId),
     },
     identity: {
       getAuthenticatedMember: (request) => requireAuthenticatedUser(request),

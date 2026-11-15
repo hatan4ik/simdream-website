@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:6cdd55e55869cc50f4381ea09662f95b203af32cba65b24c8a4d9c671906bb62 -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:f7582cf40674c4d03dcab6b32b02918ecef2815d012738171f2c184978ec2117 -->
 
 ## Verification contract
 
@@ -112,7 +112,7 @@ Sim Dream LTD runs one full-size **Boeing 737 MAX 8 flight simulator** at Gersho
 
 ### 4. Data models
 
-TypeScript types in `types/index.ts` mirror the Postgres tables in `lib/db/schema.sql` (plus migrations 001–012):
+TypeScript types in `types/index.ts` mirror the Postgres tables in `lib/db/schema.sql` (plus migrations 001–013):
 
 | Type | Table | Key fields |
 | --- | --- | --- |
@@ -132,7 +132,7 @@ TypeScript types in `types/index.ts` mirror the Postgres tables in `lib/db/schem
 - Admin authentication is interim HTTP Basic auth; the documented target is Supabase Auth with server-side roles and MFA.
 - Voucher-code verification and failed admin Basic-auth attempts are rate-limited by a privacy-preserving, atomic database function (migration `005`); development and unit tests use an equivalent in-process limiter. The browser harness has a triple-gated `.next-test` isolation marker so parallel synthetic attackers cannot throttle unrelated authenticated journeys. Production fails closed when rate-limit persistence is unavailable.
 - HTML responses use a per-request CSP nonce from `proxy.ts`; this removes script-src `'unsafe-inline'`, but makes rendered pages dynamic rather than statically prerendered.
-- Production requires migrations **001–012** applied in order on an existing database (or `schema.sql` plus 003–012 on a new one; 009 is idempotent and `schema.sql` already holds its table).
+- Production requires migrations **001–013** applied in order on an existing database (or `schema.sql` plus 003–013 on a new one; 009 and 013 are idempotent and `schema.sql` already holds what they add).
 - Only `/login` sets `noindex`. `/dashboard` and `/auth/*` are indexable (they hold no private data when signed out), so consider `noindex` there too.
 - **Catalog authority is unified**: `GET /api/packages` and checkout resolve package names, prices and durations from the same immutable server-side `SIMULATOR_PACKAGES` registry. The optional legacy `packages` table is not a public-catalog dependency, so an absent table cannot take `/api/packages` offline on a Wix-hosted deployment.
 - **i18n is not yet total**: the dictionary has six-language parity and tests, but hard-coded English remains in some legal and admin surfaces, while specialist catalogue records use an explicit English fallback until their Spanish editorial review is complete.
@@ -300,6 +300,8 @@ Add 3 curated one-click combos. Localize every package and add-on in all six lan
   5. creates a Stripe Checkout session, or confirms immediately when a voucher covers the total.
 
   Stripe or persistence failure answers 503 and leaves no orphaned hold or voucher debit. Success answers 201.
+- **Checkout throttle** (`lib/booking/checkout-throttle.ts`): after validation, the Wix-authority 409 and the payments check, and before any record, every local checkout consumes `checkout-init-ip` (10 per 10 minutes, 60 for the shared `unknown-client` bucket), `checkout-init-email` (6 per 30 minutes on the normalized pilot or sender email) and, for bookings, `checkout-init-slot` (8 per 30 minutes on `<date>T<start>`) together. A refusal is 429 with the longest `Retry-After`; an unreachable limiter is 503 `no-store`. The Wix Gift Cards path has no limiter store and is not throttled.
+- **Unpaid holds** (`lib/booking/checkout-hold-policy.ts`, persistence `lib/db/checkout-hold-store.ts`, migration `013_booking_hosted_checkout.sql`): a card booking stores its Stripe session id, URL and expiry on the pending booking. The same normalized email retrying the departure it holds (same package, date and start) gets that session back (201) when the add-on set, the payable total and the open session all match; otherwise the old session is expired, the hold cancelled, and a normal checkout follows. Any other departure is refused with 429 once the email holds two unpaid pending bookings; a different email keeps the 409, and voucher-funded bookings skip these rules.
 - The checkout service has no direct import of the concrete store, Stripe, SendGrid, Supabase authentication, or origin configuration. Those integrations live in the server-only `checkout-composition.ts`; `tests/unit/checkout-service-ports.test.ts` proves that a substitute hosted-payment gateway and repository preserve the same redirect and 409 conflict contracts.
 - When the strict `WIX_SHADOW_READS_ENABLED=true` flag is present, a successful booking initialization schedules a non-blocking `after()` task. The Wix shadow observer receives only package/date/time/base duration, compares the mapped service and selected base-package slot, and emits a generated correlation event with no customer, voucher, booking, payment or card data. Wix is not a checkout writer at this stage; a failed shadow read cannot change the response.
 - `POST /api/webhooks/stripe` verifies the signature, then:
@@ -626,9 +628,9 @@ components/
   seo/ StructuredDataJsonLd FaqPageJsonLd  ui/ Button Card Badge
 lib/
   scheduler/ kantorovich-engine mission-calculator package-presentation tiled-interval-optimizer israel-clock booking-horizon
-  booking/checkout-service checkout-error checkout-ports checkout-composition checkout-runtime
+  booking/checkout-service checkout-error checkout-ports checkout-composition checkout-runtime checkout-throttle checkout-hold-policy
   wix/ client config catalog bookings availability-adapter booking-checkout booking-cart-create booking-checkout-client checkout-prefill subscription-redemption subscription-booking checkout-shadow member-client backend-blueprint gift-cards plans readiness blog
-  catalog/gift-voucher-packages  data/experience-routes subscription-passes subscription-page-copy blog-posts blog-categories blog-authors blog-seo blog-short-slugs blog-legacy-slugs  db/ store schema.sql seed-data supabase-admin migrations/
+  catalog/gift-voucher-packages  data/experience-routes subscription-passes subscription-page-copy blog-posts blog-categories blog-authors blog-seo blog-short-slugs blog-legacy-slugs  db/ store checkout-hold-store schema.sql seed-data supabase-admin migrations/
   auth/ admin-guard request-auth member-ownership safe-redirect auth-context
   customer/ customer-draft
   security/rate-limit constant-time
@@ -658,7 +660,7 @@ AGENTS.md  ARCHITECTURE.md  README.md  TESTING.md  KANTOROVICH_SCHEDULER_SPEC.md
   - iPhone SE (320 px) to iPad landscape and Android phones/tablets with no horizontal overflow, 48 px controls and ≥12 px text.
 - Production without Supabase or Stripe fails closed (503), never with fake data.
 - Before launch, verify the providers, which no build or test can prove:
-  - migrations 001–012 are applied and `ALLOW_IN_MEMORY_STORE` is absent in production;
+  - migrations 001–013 are applied and `ALLOW_IN_MEMORY_STORE` is absent in production;
   - `REVIEWS_REFRESH_TOKEN` is set identically as a GitHub repository secret and on the Wix site, and one manual run of the Google reviews snapshot workflow stored a snapshot;
   - Google, Facebook and Apple are enabled in Supabase Auth with callback URLs for the deployed origin;
   - the Stripe keys are set and the webhook receives `checkout.session.completed`, `checkout.session.expired` and `checkout.session.async_payment_failed`;

@@ -207,6 +207,14 @@ export interface Booking {
   paymentStatus: PaymentStatus;
   paymentMethod: PaymentMethod;
   stripePaymentIntentId?: string;
+  /**
+   * The hosted Stripe Checkout of an unpaid card hold (migration 013), so a pilot who returns and
+   * submits the same departure again resumes it instead of being blocked by their own hold.
+   */
+  stripeCheckoutSessionId?: string;
+  stripeCheckoutUrl?: string;
+  /** When that checkout can no longer be paid (ISO time). */
+  stripeCheckoutExpiresAt?: string;
   notes?: string;
   createdAt: string;
   /** Set while a webhook delivery is sending the confirmation email (see claimConfirmation). */

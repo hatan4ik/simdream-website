@@ -32,6 +32,10 @@ export interface CheckoutRepository {
   createBooking(draft: BookingDraft): Promise<Booking>;
   updateBookingStatus(id: string, status: Booking['status']): Promise<Booking | undefined>;
   cancelPendingBooking(id: string): Promise<Booking | undefined>;
+  /** Unpaid card holds (`status` and `paymentStatus` both `pending`) of one pilot email, compared normalized. */
+  listUnpaidPendingBookings(pilotEmail: string): Promise<Booking[]>;
+  /** Remembers the hosted checkout of a still-unpaid pending booking, so a retry can resume it. */
+  attachHostedCheckout(bookingId: string, session: CardCheckoutSession): Promise<void>;
   createPendingVoucher(draft: PendingVoucherDraft): Promise<GiftVoucher>;
   cancelPendingVoucher(id: string): Promise<void>;
   redeemVoucher(code: string, amountIls: number): Promise<VoucherRedemption>;
@@ -52,10 +56,14 @@ export interface CardCheckoutCommand {
 export interface CardCheckoutSession {
   url: string;
   sessionId: string;
+  /** When the provider stops accepting payment on this session (ISO time). */
+  expiresAt: string;
 }
 
 export interface CardCheckoutGateway {
   createHostedCheckout(command: CardCheckoutCommand): Promise<CardCheckoutSession>;
+  /** Closes an open hosted checkout so it can no longer be paid; one already expired or completed is left as it is. */
+  expireHostedCheckout(sessionId: string): Promise<void>;
 }
 
 export interface CheckoutIdentityGateway {

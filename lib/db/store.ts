@@ -1,17 +1,7 @@
 import 'server-only';
 
-import {
-  Booking,
-  CorporateInquiry,
-  DailyEfficiencyReport,
-  FlightAddon,
-  FlightLog,
-  FlightSlot,
-  GiftVoucher,
-  GroundSchoolInquiry,
-  SimulatorPackage,
-  UserProfile,
-} from '@/types';
+import type { Booking, CorporateInquiry, DailyEfficiencyReport, FlightAddon, FlightLog, FlightSlot } from '@/types';
+import type { GiftVoucher, GroundSchoolInquiry, SimulatorPackage, UserProfile } from '@/types';
 import {
   DEMO_BOOKINGS,
   DEMO_CORPORATE_INQUIRIES,
@@ -136,6 +126,10 @@ function toBooking(row: DatabaseRow): Booking {
     paymentStatus: requiredString(row, 'payment_status') as Booking['paymentStatus'],
     paymentMethod: requiredString(row, 'payment_method') as Booking['paymentMethod'],
     stripePaymentIntentId: optionalString(row, 'stripe_payment_intent'),
+    // The hosted checkout of an unpaid card hold (migration 013, written by checkout-hold-store.ts).
+    stripeCheckoutSessionId: optionalString(row, 'stripe_checkout_session_id'),
+    stripeCheckoutUrl: optionalString(row, 'stripe_checkout_url'),
+    stripeCheckoutExpiresAt: optionalString(row, 'stripe_checkout_expires_at'),
     notes: optionalString(row, 'notes'),
     createdAt: requiredString(row, 'created_at'),
     confirmationClaimedAt: optionalString(row, 'confirmation_claimed_at'),

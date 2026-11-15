@@ -510,6 +510,8 @@ describe('POST /api/checkout: card bookings', () => {
 
     await fc.assert(
       fc.asyncProperty(fc.dictionary(injectedKey, injectedValue, { minKeys: 1 }), async (injected) => {
+        // Every run is an independent checkout of the same departure by the same pilot.
+        await app.resetRateLimits();
         const slot = await findSlotWhere(app, DAY, 30, (candidate) => candidate.available, 'open');
         const sessionsBefore = app.checkoutSessions.length;
 

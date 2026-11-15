@@ -33,9 +33,9 @@ const SIZE_ALLOWLIST: Readonly<Record<string, number>> = {
   'components/pro/ProSessionsView.tsx': 1100,
   'app/(public)/vouchers/page.tsx': 1078,
   'components/scheduler/KantorovichCalendarScheduler.tsx': 941,
-  // 1005: Ground School inquiries (#114) landed on main after this ratchet was written (+78 lines of class methods).
+  // Ground School inquiries (#114) landed on main after this ratchet was written (+78 lines of class methods).
   // They move out with the store split planned in docs/MODULARITY.md; then lower this number.
-  'lib/db/store.ts': 1005,
+  'lib/db/store.ts': 999,
   'lib/scheduler/kantorovich-engine.ts': 781,
   'lib/wix/backend-blueprint.ts': 732,
   'app/admin/page.tsx': 553,
