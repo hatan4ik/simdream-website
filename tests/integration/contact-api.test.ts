@@ -142,3 +142,29 @@ describe('POST /api/contact', () => {
     expect(unexpectedFailure.sendContactInquiryEmail).not.toHaveBeenCalled();
   });
 });
+
+describe('POST /api/contact with the real rate limiter', () => {
+  it('cannot be evaded by rotating a spoofed leftmost x-forwarded-for entry', async () => {
+    vi.resetModules();
+    vi.doUnmock('@/lib/security/rate-limit');
+    vi.stubEnv('VERCEL', '');
+    vi.stubEnv('RATE_LIMIT_CLIENT_IP_HEADER', '');
+    vi.stubEnv('RATE_LIMIT_TRUSTED_PROXY_HOPS', '');
+    const sendContactInquiryEmail = vi.fn(async () => ({ success: true, message: 'Delivered.' }));
+    vi.doMock('@/lib/sendgrid', () => ({ sendContactInquiryEmail }));
+    const { POST } = await import('@/app/api/contact/route');
+    // The nearest proxy appended 203.0.113.24; everything to its left came from the client.
+    const send = (forwardedFor: string) =>
+      POST(apiRequest('/api/contact', { body: contactInquiry, headers: { 'x-forwarded-for': forwardedFor } }));
+
+    const statuses: number[] = [];
+    for (let attempt = 1; attempt <= 6; attempt += 1) {
+      statuses.push((await send(`198.51.100.${attempt}, 203.0.113.24`)).status);
+    }
+    expect(statuses).toEqual([202, 202, 202, 202, 202, 429]);
+    expect(sendContactInquiryEmail).toHaveBeenCalledTimes(5);
+
+    // Another visitor, as appended by the same proxy, keeps its own allowance.
+    expect((await send('198.51.100.1, 203.0.113.25')).status).toBe(202);
+  });
+});
