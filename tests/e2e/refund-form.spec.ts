@@ -319,7 +319,10 @@ test.describe('refund request form', () => {
     await toReview(page);
     await expect(page.locator('[data-honeypot]')).toHaveCount(1);
 
-    expect(await measureHorizontalOverflow(page)).toEqual({ documentWidth: 320, viewportWidth: 320, offenders: [] });
+    // Compare the page with its own viewport: desktop WebKit keeps a classic scrollbar, so the 320px window is 312px wide inside.
+    const overflow = await measureHorizontalOverflow(page);
+    expect(overflow.offenders).toEqual([]);
+    expect(overflow.documentWidth).toBe(overflow.viewportWidth);
   });
 
   test('keeps the honeypot on the review step from overflowing the page at 320px, right to left', async ({ page }) => {
@@ -338,7 +341,10 @@ test.describe('refund request form', () => {
     await expect(page.getByRole('heading', { level: 2, name: HE.review.title })).toBeFocused();
     await expect(page.locator('[data-honeypot]')).toHaveCount(1);
 
-    expect(await measureHorizontalOverflow(page)).toEqual({ documentWidth: 320, viewportWidth: 320, offenders: [] });
+    // Compare the page with its own viewport: desktop WebKit keeps a classic scrollbar, so the 320px window is 312px wide inside.
+    const overflow = await measureHorizontalOverflow(page);
+    expect(overflow.offenders).toEqual([]);
+    expect(overflow.documentWidth).toBe(overflow.viewportWidth);
   });
 
   test('renders in Arabic, right to left, without Hebrew letters', async ({ page }) => {
