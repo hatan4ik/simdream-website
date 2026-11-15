@@ -81,9 +81,11 @@ function BookContent() {
 
   // Price, vouchers, Wix cart and mandatory extras share one manifest.
   const manifestInput = { activePackage, selectedSlot, selectedAddons, scopedAddons: selection.scopedAddons };
-  const { subtotalIls, basePriceIls } = useBookingManifest(manifestInput, 0);
+  const subtotalIls = useBookingManifest(manifestInput, 0).subtotalIls;
   const extras = useBookingExtras({
-    packageId: activePackage.id, flightDate: selectedDate, subtotalIls, basePriceIls,
+    packageId: activePackage.id,
+    flightDate: selectedDate,
+    subtotalIls,
     wixAuthoritative: schedule.wixBookingsAuthoritative,
     canUseWixNativeCheckout,
     isWixSubscriptionRedemption,

@@ -16,8 +16,6 @@ interface UseBookingBirthdayArgs {
   flightDate: string;
   /** Registry subtotal in whole shekels, before any voucher. */
   subtotalIls: number;
-  /** Base flight price in whole shekels (excluding Wix Stores add-ons). */
-  basePriceIls?: number;
   /** `/api/slots` reported a live Wix Bookings calendar: the Wix-hosted checkout cannot enforce the offer. */
   wixAuthoritative: boolean;
   /** Native pricing applies only to the supported one-service Wix checkout. */
@@ -36,7 +34,6 @@ export function useBookingBirthday(args: UseBookingBirthdayArgs) {
     packageId,
     flightDate,
     subtotalIls,
-    basePriceIls,
     wixAuthoritative,
     canUseWixNativeCheckout = false,
     isWixSubscriptionRedemption,
@@ -84,8 +81,8 @@ export function useBookingBirthday(args: UseBookingBirthdayArgs) {
     isWixSubscriptionRedemption,
   });
   const state = useMemo(
-    () => evaluateBirthdayField({ value, packageId, flightDate, subtotalIls, basePriceIls, mode }),
-    [value, packageId, flightDate, subtotalIls, basePriceIls, mode]
+    () => evaluateBirthdayField({ value, packageId, flightDate, subtotalIls, mode }),
+    [value, packageId, flightDate, subtotalIls, mode]
   );
   const bounds = useMemo(() => birthdayDateBounds(flightDate), [flightDate]);
 
