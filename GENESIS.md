@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:7a0cc7f856399aaf2e229b34c07ccfdc47276c5346f47e4a56e72a78d56bcbcf -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:ba50bcd2f57cbc4ab5cd7c83509c0abf938f2be17adcb8a6cee28ae396787e5a -->
 
 ## Verification contract
 
@@ -301,7 +301,7 @@ Add 3 curated one-click combos. Localize every package and add-on in all six lan
   4. creates a `pending` booking;
   5. creates a Stripe Checkout session, or confirms immediately when a voucher covers the total.
 
-  Stripe or persistence failure answers 503 and leaves no orphaned hold or voucher debit. Success answers 201.
+  Stripe or persistence failure answers 503 and leaves no orphaned hold or voucher debit, with one deliberate exception: a failed write of the hosted-session fields after the Stripe session exists still answers 201 and keeps the hold (see "Unpaid holds" below). Success answers 201.
 - **Checkout throttle** (`lib/booking/checkout-throttle.ts`): after validation, the Wix-authority 409 and the payments check, and before any record, every local checkout consumes `checkout-init-ip` (10 per 10 minutes, 60 for the shared `unknown-client` bucket), `checkout-init-email` (6 per 30 minutes on the normalized pilot or sender email) and, for bookings, `checkout-init-slot` (8 per 30 minutes on `<date>T<start>`) together. A refusal is 429 with the longest `Retry-After`; an unreachable limiter is 503 `no-store`. The Wix Gift Cards path has no limiter store and is not throttled.
 - **Unpaid holds** (`lib/booking/checkout-hold-policy.ts`, persistence `lib/db/checkout-hold-store.ts`, migration `013_booking_hosted_checkout.sql`): a card booking stores its Stripe session id, URL and expiry on the pending booking; if that write fails (for example before migration 013 is applied) the customer still gets the session, the service logs one fixed line, and the hold has no stored session. Because the email is unverified, a retry never releases a live hold. The same normalized email retrying the departure it holds (same package, date and start) gets that session back (201) when the session is open and the add-on set and payable total match. A session past its stored expiry goes to `expireHostedCheckout()`; only an exactly `expired` outcome cancels the hold and lets a normal checkout follow, a `complete` (paid, webhook pending) outcome answers 409 "already paid", any other outcome answers 409, and a gateway failure answers 503, all releasing nothing. Any other retry (different while the session is open, no stored session, or a stored expiry that is not a time) answers 409 and touches nothing. Any other departure is refused with 429 once the email holds two unpaid pending card bookings (`paymentMethod` `stripe`); a different email keeps the 409, and voucher-funded bookings skip these rules.
 - The checkout service has no direct import of the concrete store, Stripe, SendGrid, Supabase authentication, or origin configuration. Those integrations live in the server-only `checkout-composition.ts`; `tests/unit/checkout-service-ports.test.ts` proves that a substitute hosted-payment gateway and repository preserve the same redirect and 409 conflict contracts.

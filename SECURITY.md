@@ -92,6 +92,10 @@ The unpaid-hold rule (`lib/booking/checkout-hold-policy.ts`, AGENTS.md section 6
 2. receive that hold's Stripe payment-page URL, by sending a request that matches it (same package, date, start, add-ons and payable total while the session is open);
 3. use up that email's checkout allowance (`checkout-init-email`, 6 per 30 minutes), which keeps the customer out of checkout for that time.
 
-Probing is bounded by the same limits (per email, per departure and per client, `lib/booking/checkout-throttle.ts`). A hold token bound to the browser that started the checkout would remove all three; it is not built.
+With the email alone (no departure needed) someone can also:
+
+4. start two card checkouts in the customer's name, which plants two unpaid holds; the customer's own checkout of any other departure is then refused by the two-hold cap (429) until those holds expire, up to 30 minutes, and this can be repeated each window within the email allowance.
+
+Probing is bounded by the same limits (per email, per departure and per client, `lib/booking/checkout-throttle.ts`). A hold token bound to the browser that started the checkout would remove the first three, and the fourth only if the cap were keyed on that token too; it is not built.
 
 A pending card booking is released by Stripe's `checkout.session.expired` webhook. A hold whose webhook never arrives keeps its slot, and it now also counts toward the email's two-hold cap. A retry of the same departure can still release it once its stored expiry has passed and Stripe reports the session `expired`, but a hold without a stored session (one made before migration 013, or one whose session could not be stored) waits for the webhook alone. The Stripe endpoint must therefore receive `checkout.session.expired` ([README, "Stripe Webhook Setup"](README.md#stripe-webhook-setup-production)).
