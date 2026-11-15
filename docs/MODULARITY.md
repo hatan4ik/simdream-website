@@ -13,7 +13,7 @@ A feature is a **folder module** with one public entry.
 | UI | `components/<feature>/` | One component per file, named after the file. Small, typed props. No data fetching inside leaf components. |
 | Page state | `components/<feature>/hooks/` | One React hook per concern (`use-<thing>.ts`). A hook may use React and the browser; it holds state and effects, not business rules. |
 | Rules and adapters | `lib/<feature>/` | Pure logic (rules, calculations, validation) with no React and no I/O, plus thin I/O adapters (a `fetch`, a Wix call) that take plain arguments. Unit-testable in Node. |
-| Copy | the module's own copy file | A `Record<SupportedLanguage, ...>` with all six languages, resolved with `copy[language] \|\| copy.en` (pattern: `lib/data/subscription-page-copy.ts`). Existing modules still read `t.<area>` from `lib/i18n/translations.ts`; new modules do not add keys there. |
+| Copy | the module's own copy file | A `Record<SupportedLanguage, ...>` with all seven languages, resolved with `copy[language] \|\| copy.en` (pattern: `lib/data/subscription-page-copy.ts`). Existing modules still read `t.<area>` from `lib/i18n/translations.ts`; new modules do not add keys there. |
 | Public entry | `index.ts` in each folder | Everything another module may use is re-exported here. Import `@/components/booking`, never `@/components/booking/AddonCard`. No reaching into a sibling's internals. |
 | Types | next to the code that owns them | Prop groups are the hook return types (`ReturnType<typeof useX>`), so they cannot drift. |
 | Tests | `tests/unit` for rules and adapters, `tests/integration` for routes, a Playwright spec for UI | A module's behaviour is pinned by tests, not by a reader's care. |
@@ -102,7 +102,7 @@ low risk. Line estimates after a split are rough.
 | File | Lines | Why it is data |
 | --- | ---: | --- |
 | `lib/i18n/translations.ts` | 4,810 | Six-language UI dictionary. Owned centrally; per-language files are a possible later change (coordinate, it is a merge hotspot). |
-| `lib/data/experience-routes.ts` | 1,839 | World Trio and adventure catalogue with six-language copy; two small helpers at the end. |
+| `lib/data/experience-routes.ts` | 1,839 | World Trio and adventure catalogue with seven-language copy; two small helpers at the end. |
 | `lib/data/subscription-page-copy.ts` | 899 | Six-language copy for `/subscriptions`. |
 | `lib/data/subscription-passes.ts` | 647 | Flight-track catalogue and its copy; four small helpers at the end. |
 | `lib/db/seed-data.ts` | 779 | Package, add-on and demo seed registry (`SIMULATOR_PACKAGES`, `FLIGHT_ADDONS`). |

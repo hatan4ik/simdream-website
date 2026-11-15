@@ -220,12 +220,12 @@ function checklist(): Item[] {
     ['server-authoritative pricing', /server[- ](authoritative|recomputes|side pric)|recompute/i],
     ['exact email matching for member linking', /exact(ly)?[^\n]{0,40}email|email[^\n]{0,40}exact/i],
     ['Israel clock for departed slots', /Israel (clock|time)|Asia\/Jerusalem/i],
-    ['month calendar default, optional week view', /month[^\n]{0,60}(grid|view|calendar)/i],
+    ['week calendar default, optional month view', /week[^\n]{0,60}(default|calendar|view)/i],
     ['Basic auth on /admin', /Basic auth/i],
     ['security headers (HSTS, CSP)', /HSTS|Strict-Transport-Security/i],
   ];
   for (const [label, pattern] of invariants) add('Invariants', label, pattern);
-  addAll('Invariants', 'all five languages (Hebrew, English, Russian, French, Arabic)', /Hebrew|\bhe\b/, /English|\ben\b/, /Russian|\bru\b/, /French|\bfr\b/, /Arabic|\bar\b/);
+  addAll('Invariants', 'all seven languages (Hebrew, English, Russian, French, Arabic, Spanish, German)', /Hebrew|\bhe\b/, /English|\ben\b/, /Russian|\bru\b/, /French|\bfr\b/, /Arabic|\bar\b/, /Spanish|\bes\b/, /German|\bde\b/);
 
   return items;
 }

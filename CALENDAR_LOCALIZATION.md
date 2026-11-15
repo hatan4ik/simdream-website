@@ -7,8 +7,8 @@
 
 The booking calendar is no longer English-first or limited to a 14-day ribbon:
 
-- **Month view is the default** in both booking interfaces.
-- A compact **Week view** remains available as an optional alternative.
+- **Week view is the default** in both booking interfaces.
+- A full **Month view** remains available as an optional alternative.
 - Every supported language has localized calendar presentation:
   - Hebrew (`he-IL`), RTL
   - English (`en-GB`), LTR
@@ -16,15 +16,16 @@ The booking calendar is no longer English-first or limited to a 14-day ribbon:
   - French (`fr-FR`), LTR
   - Arabic (`ar-IL`), RTL
   - Spanish (`es-ES`), LTR
-- Weeks begin on **Sunday** for Hebrew, Arabic, and English; **Monday** for Russian, French, and Spanish.
+  - German (`de-DE`), LTR
+- Weeks begin on **Sunday** for Hebrew, Arabic, and English; **Monday** for Russian, French, Spanish, and German.
 - Month names, weekday labels, date order, and day numerals are rendered through `Intl`, not English lookup tables.
 - RTL navigation arrows flip visually, while aviation telemetry such as slot times remains explicitly LTR.
 
 ## Customer Experience
 
-1. A visitor arrives on `/book` and sees the current **month grid** by default.
-2. They can choose **Week** for a seven-day compact calendar centered on the selected date.
-3. Previous/next month controls expose dates beyond the current grid.
+1. A visitor arrives on `/book` and sees the current **week** by default.
+2. They can choose **Month** for a full grid centered on the selected date.
+3. Previous/next controls expose dates beyond the current grid in either presentation.
 4. Selecting any date preserves the existing availability, package-selection, zero-slots recovery, and checkout behavior.
 5. If no compatible slot exists, the localized recovery flow still offers the next day and compatible package durations.
 
@@ -32,8 +33,8 @@ The change is present in both supported booking experiences:
 
 | Interface | Component | Calendar behavior |
 | --- | --- | --- |
-| One-page storefront | `components/scheduler/AmazonFlightStorefront.tsx` | Default month grid, optional week view, localized slots and recovery copy |
-| Guided wizard | `components/scheduler/KantorovichCalendarScheduler.tsx` | Default month grid, optional week view, localized date selection |
+| One-page storefront | `components/scheduler/AmazonFlightStorefront.tsx` | Default week view, optional month grid, localized slots and recovery copy |
+| Guided wizard | `components/scheduler/KantorovichCalendarScheduler.tsx` | Default week view, optional month grid, localized date selection |
 
 ## Engineering Design
 
@@ -117,9 +118,9 @@ npx playwright test --project=visual
 
 ## Acceptance Checklist
 
-- [x] Month view is the default in both booking interfaces.
-- [x] Week remains an optional compact view.
-- [x] Hebrew, English, Russian, French, Arabic, and Spanish render their own calendar presentation.
+- [x] Week view is the default in both booking interfaces.
+- [x] Month remains an optional full-grid view.
+- [x] Hebrew, English, Russian, French, Arabic, Spanish, and German render their own calendar presentation.
 - [x] Arabic and Hebrew render RTL navigation correctly.
 - [x] Flight times remain LTR and readable in RTL interfaces.
 - [x] Dates outside the visible month remain reachable through month navigation.

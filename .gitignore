@@ -41,6 +41,9 @@ service-account.json
 # deployment
 .vercel
 
+# local Foundry deployment state (generated per machine)
+/.foundry/.deployment.json
+
 # local tooling caches
 .eslintcache
 .swc/
@@ -80,3 +83,6 @@ yarn-error.log*
 
 # local CRM migration export (real customer data: never commit)
 /.crm-migration/
+
+# Wix CLI generated deployment topology and debug logs (project binding lives in wix.config.json)
+/.wix/

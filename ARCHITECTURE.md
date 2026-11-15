@@ -11,15 +11,15 @@ flowchart TD
     subgraph ClientLayer["Client & User Interface Layer"]
         User["Visitor / Pilot Candidate"]
         BrandLogoSystem["Official Brand Identity<br/>BrandLogo.tsx (Orange Plane + Cerulean Wordmark)<br/>Header: logo alone, no tagline"]
-        ThemeEngine["Triple UX Engine<br/>🌙 Cockpit Night (default) • ☀️ Brand Daylight • ✨ Clean Studio<br/>Sim Dream cerulean #2096C7 + orange #FF5500"]
-        I18nEngine["5-Language Engine (i18n)<br/>HE (RTL) • AR (RTL) • EN (LTR) • RU (LTR) • FR (LTR)"]
+        ThemeEngine["Triple UX Engine<br/>☀️ Brand Daylight (default) • 🌙 Cockpit Night • ✨ Clean Studio<br/>Sim Dream cerulean #2096C7 + orange #FF5500"]
+        I18nEngine["7-Language Engine (i18n)<br/>HE/AR (RTL) • EN/RU/FR/ES/DE (LTR)"]
         StorefrontUI["Dual Booking Storefront<br/>Amazon 1-Page Storefront / 3-Step Wizard"]
         SubPortalUI["Flight Subscription Portal<br/>Dedicated /subscriptions & /experiences category"]
     end
 
     subgraph RoutingLayer["Edge Routing & Next.js 16 App Router"]
-        CanonicalRedirects["Canonical 301 Permanent Redirects<br/>/simulator, /training ➔ /pro"]
-        PublicPages["Public Pages<br/>/ • /about • /pro • /experiences • /book • /book/success<br/>/subscriptions • /subscriptions/thank-you • /workshops • /vouchers<br/>/contact • /rules • /privacy-policy"]
+        CanonicalRedirects["Configured 301 Permanent Redirects<br/>/simulator, /training ➔ /pro • /aerophobia ➔ /fear-of-flying<br/>/book-online ➔ /book • legacy gift voucher ➔ /vouchers<br/>/cooperation ➔ /workshops • /pricing-plans/list ➔ /subscriptions<br/>/blog/:slug ➔ /post/:slug"]
+        PublicPages["Public Pages<br/>/ • /about • /pro • /experiences • /book • /book/success • /offers<br/>/subscriptions • /subscriptions/thank-you • /workshops • /vouchers • /ground-school<br/>/contact • /rules • /privacy-policy • /refund • /fear-of-flying • /blog • /post/[...segments]"]
         MemberPages["Member Area<br/>/dashboard • /login • /wix/members/callback<br/>legacy /auth/callback • /auth/reset-password"]
         AdminPages["Admin Dispatch Command Center<br/>/admin (Bookings, Vouchers, Workshops, Schedule Efficiency)"]
     end
@@ -29,23 +29,25 @@ flowchart TD
         KantorovichEngine["Tiled Interval Scheduler Engine<br/>lib/scheduler/kantorovich-engine.ts"]
         MissionCalc["Mission Calculator<br/>Flight time + Addons + Voucher Manifest"]
         WixPlansResolver["Wix Pricing Plans Resolver<br/>lib/wix/plans.ts (Price & Pattern Matching)"]
-        ReviewsCache["Google Reviews Snapshot<br/>stored twice a day (06:00/17:00 Israel); no Google call per page view; no local fallback claims"]
+        ReviewsCache["Google Reviews Snapshot<br/>stored twice a day (06:00/17:00 Israel); without one, one Google read per server/window; last-known aggregate only when unavailable"]
     end
 
-    subgraph APILayer["Next.js Serverless API Routes (14 Handlers)"]
+    subgraph APILayer["Next.js Route Handlers (24 route files)"]
         BookingAPIs["Booking & Capacity APIs<br/>GET /api/slots • GET /api/packages<br/>POST /api/checkout • POST /api/webhooks/stripe"]
         SubscriptionAPIs["Subscription Checkout API<br/>POST & GET /api/subscriptions/checkout"]
         MemberAPIs["Member Profile & Receipts<br/>GET /api/my-bookings • GET /api/my-bookings/[ref]/receipt<br/>POST /api/membership/bootstrap"]
-        OperationsAPIs["Operational Entities<br/>GET/PATCH /api/bookings • GET/POST/PATCH /api/vouchers<br/>GET/POST/PATCH /api/workshops • GET/POST /api/reviews • POST /api/reviews/refresh (token)"]
+        ContentAPIs["Content & Offers APIs<br/>GET /api/blog • GET /api/offers/capabilities"]
+        OperationsAPIs["Operational & Customer APIs<br/>GET/POST/PATCH /api/bookings • GET/POST/PATCH /api/vouchers • GET/POST/PATCH /api/workshops<br/>POST /api/contact • GET/POST/PATCH /api/ground-school/inquiries<br/>GET/POST /api/refund-requests • POST /api/refund-requests/lookup<br/>GET/POST /api/reviews • POST /api/reviews/refresh"]
         AdminAPIs["Admin Optimization<br/>GET /api/admin/schedule-efficiency • POST /api/admin/schedule-optimization"]
+        WixAPIs["Wix Pricing & Booking APIs<br/>POST /api/wix/bookings/checkout • POST /api/wix/birthday/claim<br/>POST /api/wix/birthday-pricing/v1/calculate-price"]
     end
 
     subgraph PersistenceLayer["Persistence & External Services"]
         SupabaseDB[("Supabase PostgreSQL (Production)<br/>Row-Level Security & Exclusion Constraints")]
         InMemoryFallback[("In-Memory Store Fallback<br/>Local Dev & Non-500 Demo Resilience (ALLOW_IN_MEMORY_STORE)")]
-        StripeService["Stripe Hosted Checkout<br/>Card payment flow & Webhooks"]
+        StripeService["Legacy Stripe Hosted Checkout<br/>Card payment flow & Webhooks"]
         WixHeadless["Wix Headless Platform (@wix/sdk)<br/>Members • Calendar sessions • Bookings • Pricing Plans • Hosted Checkout"]
-        GooglePlaces["Google Places API<br/>15m cached data; empty when unavailable"]
+        GooglePlaces["Google Places + Cloud Translation<br/>Stored snapshot; process-window fallback; aggregate-only cold fallback"]
     end
 
     User --> ThemeEngine --> I18nEngine
@@ -60,18 +62,20 @@ flowchart TD
 
     StorefrontUI --> BookingAPIs
     SubPortalUI --> SubscriptionAPIs
+    PublicPages --> ContentAPIs
 
     BookingAPIs --> KantorovichEngine
     BookingAPIs --> MissionCalc
     SubscriptionAPIs --> WixPlansResolver
+    BookingAPIs -.->|Wix-authoritative mode| WixAPIs --> WixHeadless
     PublicPages --> ReviewsCache --> GooglePlaces
 
     KantorovichEngine --> SupabaseDB
     KantorovichEngine -.->|If unconfigured| InMemoryFallback
-    BookingAPIs --> StripeService
+    BookingAPIs -->|legacy mode: Wix adapter disabled| StripeService
     StripeService --> BookingAPIs
     SubscriptionAPIs --> WixHeadless
-    BookingAPIs -.->|Shadow Reads| WixHeadless
+    BookingAPIs -.->|Optional shadow reads| WixHeadless
     MemberPages --> MemberAPIs --> WixHeadless
     MemberAPIs -.->|legacy booking history & Stripe receipts| SupabaseDB
     AdminPages --> AdminAPIs --> SupabaseDB
@@ -80,7 +84,7 @@ flowchart TD
 
 ### Checkout dependency boundary
 
-`POST /api/checkout` remains a Next.js Route Handler. It calls the provider-neutral business service in `lib/booking/checkout-service.ts`, which receives only the checkout repository, hosted-card gateway, authenticated-member lookup, confirmation notifier, origin resolver, and clock ports from `lib/booking/checkout-ports.ts`. The server-only `lib/booking/checkout-composition.ts` currently binds those ports to Supabase, Stripe, SendGrid, and Supabase Auth; `checkout-runtime.ts` is the route-facing composition. This preserves the server-authoritative schedule, pricing, voucher, guest-checkout, and webhook rules while allowing a Wix staging adapter to be introduced without changing the customer UI or the checkout policy.
+`POST /api/checkout` is the legacy local Next.js checkout path. It calls the provider-neutral business service in `lib/booking/checkout-service.ts`, whose server composition binds Supabase, Stripe, SendGrid, and Supabase Auth. It preserves server-authoritative schedule, pricing, voucher, guest-checkout, and Stripe webhook rules. When `WIX_AVAILABILITY_ADAPTER_ENABLED=true`, that local writer refuses mapped base-flight checkout so that Wix-native browser checkout is the only writer for the same slot. The frontend's Wix path revalidates the live slot, creates a Wix booking, builds Cart V2 (including mapped Store add-ons when present), calculates the cart, and opens Wix-hosted checkout. The repository proves this integration code and its flags—not that any external Wix payment/provider configuration is active.
 
 ### Wix Member identity and Flight Deck boundary
 
@@ -88,17 +92,17 @@ Wix Members is the primary login for the managed frontend. `/login`, subscriptio
 
 For `/dashboard`, the browser sends its short-lived member access token to `GET /api/my-bookings`. `lib/auth/request-auth.ts` validates that token with Wix's current-member endpoint before `lib/wix/member-bookings.ts` queries Calendar using `memberId/me`. The result is a read-only Wix appointment projection: title, status, date, time and duration only. The UI deliberately hides price, invoice, Stripe receipt and local boarding-pass actions for it; Calendar is not payment proof. Active Pricing Plan orders remain in the shared `WixMemberSubscriptionPanel`; local Stripe receipts continue through the legacy verified Supabase ownership path.
 
-### Wix P3 shadow-read boundary
+### Wix availability and shadow-read boundaries
 
 When `WIX_SHADOW_READS_ENABLED=true`, a successful local booking initialization schedules a post-response diagnostic through Next.js `after()`. [`lib/wix/checkout-shadow.ts`](lib/wix/checkout-shadow.ts) queries only Wix Bookings' public service catalog and the mapped appointment service's availability for the already-selected local departure. It emits a redacted correlation event containing package/date/time, catalog-drift fields and match/mismatch status—never customer identity, voucher, booking-record, payment or card data.
 
-The observer is strictly optional and non-blocking: disabled is the default; Wix failure is reduced to a diagnostic event; no Wix booking, checkout session, payment, member, voucher, coupon or CMS writer is reachable from the shadow interface. Supabase/Stripe remains the only checkout writer and Stripe's signed webhook remains the only card-payment authority. The documented Wix Bookings endpoints are paginated so a comparison never silently uses only a partial availability result.
+The observer is strictly optional and non-blocking: disabled is the default; Wix failure is reduced to a diagnostic event; no Wix booking, checkout session, payment, member, voucher, coupon or CMS writer is reachable from the shadow interface. This describes the shadow path only. With `WIX_AVAILABILITY_ADAPTER_ENABLED=true`, the separate Wix-authoritative browser flow is allowed to create the mapped Wix booking and Cart V2 checkout, while the local writer is blocked. Stripe's signed webhook remains the only payment authority for the local path. The documented Wix Bookings endpoints are paginated so a comparison never silently uses only a partial availability result.
 
 ### Wix Pricing Plans & flight subscriptions checkout boundary
 
 Flight tracks are single-payment, 12-month commercial packages: four consumer tracks (`flight-foundations-5x60`, `advanced-captain-5x90`, `atpl-concepts-10x60`, `airline-readiness-10x90`, sold on `/subscriptions`) and two PRO tracks (`pro-interview-3x90`, `pro-interview-5x60`, sold on `/pro#pro-tracks` only). Checkout does not run through the one-off simulator slot booking engine:
 1. `POST /api/subscriptions/checkout` receives the validated subscription pass ID.
-2. `lib/wix/plans.ts` resolves the matching Wix Pricing Plan (checking `WIX_PLAN_IDS` environment overrides first, followed by dynamic scanning of live public plans by price and title pattern).
+2. `lib/wix/plans.ts` resolves the matching Wix Pricing Plan (checking the static `WIX_PLAN_IDS` map, populated by the six individual `WIX_PLAN_ID_*` environment variables, then dynamically scanning live public plans by price and title pattern).
 3. `createPlanCheckoutUrl()` calls `@wix/redirects` `client.redirects.createRedirectSession({ paidPlansCheckout: { planId } })` with `thankYouPageUrl: /subscriptions/thank-you` and `postFlowUrl: /subscriptions`.
 4. If a plan is not yet published in Wix, the API gracefully falls back to Captain Dispatch (`/contact?subject=subscription&plan=...&notice=dispatch_assisted`) rather than failing closed with HTTP 500.
 
@@ -122,7 +126,7 @@ flowchart TD
     subgraph RecreationalFlow["Full 3-Step Storefront Flow (Recreational / Consumer)"]
         DetectPackage -->|category = 'recreational'| RecConfig["Display Full Catalog (30m, 45m, 60m, 90m)<br/>User Selects Pilot Level"]
         RecConfig --> Step1Rec["Step 1: Date & Slot Selection<br/>(Live Runway Capacity Bar)"]
-        Step1Rec --> Step2Rec["Step 2: Cockpit Add-ons & Combos<br/>(Cold & Dark, 7 World Trios, Extra Cockpit Guest)"]
+        Step1Rec --> Step2Rec["Step 2: Cockpit Add-ons & Combos<br/>(Cold & Dark, 8 World Trios, Extra Cockpit Guest)"]
         Step2Rec --> Step3Rec["Step 3: Pilot Manifest & Checkout<br/>(Voucher Reapply & Manifest Summary)"]
     end
 
@@ -132,7 +136,7 @@ flowchart TD
         SubAction --> SubCheckout(["POST /api/subscriptions/checkout"])
     end
 
-    Step3Pro --> SubmitCheckout(["POST /api/checkout (Stripe)"])
+    Step3Pro --> SubmitCheckout(["Checkout handoff<br/>Wix native when enabled; legacy /api/checkout otherwise"])
     Step3Rec --> SubmitCheckout
     SubCheckout --> WixRedirectFlow(["Wix Pricing Plans Hosted Checkout (@wix/redirects)"])
 ```
@@ -153,6 +157,7 @@ flowchart LR
         B60["60 min Flight ➔ 75 min Block"]
         B90["90 min Flight ➔ 105 min Block"]
         B120["120 min Flight ➔ 150 min Block"]
+        B240["240 min Workshop ➔ 255 min Block"]
     end
 
     subgraph ValidationEngine["3. Dynamic Programming Tile Engine"]
@@ -183,7 +188,9 @@ flowchart LR
 
 ---
 
-## 4. Payment & Checkout Lifecycle Sequence Diagram
+## 4. Legacy Supabase/Stripe Payment & Checkout Lifecycle Sequence Diagram
+
+This diagram applies only while `WIX_AVAILABILITY_ADAPTER_ENABLED` is disabled. When Wix authority is enabled, the browser revalidates the selected slot through `POST /api/wix/bookings/checkout`, creates the native Wix booking and Cart V2 draft, and opens Wix-hosted checkout; the local `POST /api/checkout` writer returns `409` rather than creating a competing reservation.
 
 ```mermaid
 sequenceDiagram
@@ -197,7 +204,7 @@ sequenceDiagram
     actor Admin as Admin Dispatch Board
 
     Customer->>Browser: Selects Package, Slot, Pilot Manifest & Clicks Checkout
-    Browser->>Server: POST /api/checkout (IDs only: packageId, slotId, addonIds)
+    Browser->>Server: POST /api/checkout (selection, manifest, and consent inputs; no price, duration, or discount authority)
 
     activate Server
     Server->>DB: Fetch authoritative package price, slot capacity & existing bookings
@@ -205,13 +212,13 @@ sequenceDiagram
 
     alt Fully Funded Voucher Applied
         Server->>DB: Mark Voucher Redeemed & Create Confirmed Booking
-        Server-->>Browser: HTTP 200 { success: true, bookingReference: "SD-..." }
+        Server-->>Browser: HTTP 201 { success: true, bookingReference: "SD-..." }
         Browser-->>Customer: Redirect to /book/success
     else Card Checkout
         Server->>DB: Create Pending Booking with UUID
         Server->>Stripe: Create Stripe Checkout Session (metadata: booking_id, slot_id)
         Stripe-->>Server: Checkout URL (stripe.com/pay/cs_test_...)
-        Server-->>Browser: HTTP 200 { checkoutUrl: "https://checkout.stripe.com/..." }
+        Server-->>Browser: HTTP 201 { checkoutUrl: "https://checkout.stripe.com/..." }
         deactivate Server
         Browser-->>Customer: Redirect to Stripe Hosted Checkout
         Customer->>Stripe: Completes Card Payment
@@ -238,7 +245,7 @@ sequenceDiagram
     participant API as Next.js API (/api/subscriptions/checkout)
     participant WixClient as Wix Client (lib/wix/plans.ts)
     participant Wix as Wix Headless (Pricing Plans V3)
-    participant PayPlus as Hosted Payment / PayPlus
+    participant Payment as Wix-hosted checkout / PayPlus when enabled
     participant Return as Browser (/subscriptions/thank-you)
 
     Customer->>Browser: Selects Subscription (e.g. 5x90 Advanced Captain) & Clicks "Buy Subscription"
@@ -253,13 +260,14 @@ sequenceDiagram
     API-->>Browser: HTTP 200 { checkoutUrl: "https://...wix-site-host.com/..." }
     deactivate API
     Browser-->>Customer: Redirects customer to hosted payment page
-    Customer->>PayPlus: Completes subscription payment
-    PayPlus-->>Return: Redirects to /subscriptions/thank-you?planOrderId=...
+    Note over Wix,Payment: PayPlus is a deferred Wix payment-provider integration; do not treat it as active until Wix payment setup and cutover are verified.
+    Customer->>Payment: Completes payment with the provider configured in Wix
+    Payment-->>Return: Redirects to /subscriptions/thank-you?planOrderId=...
     Return-->>Customer: Renders confetti & next steps to schedule sessions
 ```
 ---
 
-## 5. Bidirectional 5-Language Architecture (i18n)
+## 5. Bidirectional 7-Language Architecture (i18n)
 
 ```mermaid
 flowchart TD
@@ -267,12 +275,14 @@ flowchart TD
         SelectedLang["Active Language State (stored in browser local storage)"]
     end
 
-    subgraph Languages["Supported 5 Languages"]
+    subgraph Languages["Supported 7 Languages"]
         HE["Hebrew ('he')<br/>RTL • dir='rtl'"]
         AR["Arabic ('ar')<br/>RTL • dir='rtl'"]
         EN["English ('en')<br/>LTR • dir='ltr'"]
         RU["Russian ('ru')<br/>LTR • dir='ltr'"]
         FR["French ('fr')<br/>LTR • dir='ltr'"]
+        ES["Spanish ('es')<br/>LTR • dir='ltr'"]
+        DE["German ('de')<br/>LTR • dir='ltr'"]
     end
 
     subgraph StrictRules["Architectural & Isolation Rules"]
@@ -290,12 +300,16 @@ flowchart TD
     SelectedLang --> EN
     SelectedLang --> RU
     SelectedLang --> FR
+    SelectedLang --> ES
+    SelectedLang --> DE
 
     HE --> StrictRules
     AR --> StrictRules
     EN --> StrictRules
     RU --> StrictRules
     FR --> StrictRules
+    ES --> StrictRules
+    DE --> StrictRules
 
     StrictRules --> DOM
 ```
