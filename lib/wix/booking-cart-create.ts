@@ -35,13 +35,33 @@ function formatWixCartCreateError(status: number, payload: WixCartCreateResponse
   return `Wix did not create a checkout cart (${status}): ${parts.join(' — ')}`;
 }
 
-export function hasBlockingCheckoutViolations(violations: readonly unknown[] | undefined): boolean {
-  if (!violations || violations.length === 0) return false;
-  return violations.some((entry) => {
+function blockingCheckoutViolations(violations: readonly unknown[] | undefined): unknown[] {
+  if (!violations || violations.length === 0) return [];
+  return violations.filter((entry) => {
     if (!entry || typeof entry !== 'object') return true;
     const { scope, code } = entry as { scope?: unknown; code?: unknown };
     return !(scope === 'DELIVERY' && code === 'MISSING_DELIVERY_METHOD');
   });
+}
+
+export function hasBlockingCheckoutViolations(violations: readonly unknown[] | undefined): boolean {
+  return blockingCheckoutViolations(violations).length > 0;
+}
+
+/** Formats non-delivery Cart V2 calculate violations so checkout errors surface the real Wix reason. */
+export function formatBlockingCheckoutViolations(violations: readonly unknown[] | undefined): string | null {
+  const blocking = blockingCheckoutViolations(violations);
+  if (blocking.length === 0) return null;
+  const parts = blocking
+    .map((entry) => {
+      if (!entry || typeof entry !== 'object') return null;
+      const { scope, code, description, message } = entry as Record<string, unknown>;
+      const label = [nonEmptyString(scope), nonEmptyString(code)].filter(Boolean).join('/');
+      const detail = nonEmptyString(description) ?? nonEmptyString(message);
+      return [label, detail && detail !== label ? detail : null].filter(Boolean).join(': ') || null;
+    })
+    .filter((item): item is string => item !== null);
+  return parts.length > 0 ? parts.join('; ') : null;
 }
 
 /**

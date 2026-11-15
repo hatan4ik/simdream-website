@@ -38,6 +38,7 @@ export async function prepareWixCheckoutDraft(input: PrepareWixDraftInput): Prom
       packageId: input.packageId,
       bookingDate: input.bookingDate,
       startTime: input.startTime,
+      ...(input.addonIds && input.addonIds.length > 0 ? { addonIds: input.addonIds } : {}),
     }),
   });
   const wixSlot = (await wixSlotResponse.json()) as Partial<WixNativeCheckoutCandidate> & { error?: string };

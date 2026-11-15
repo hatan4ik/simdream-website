@@ -1,9 +1,11 @@
 import 'server-only';
 
 import { z } from 'zod';
-import { SIMULATOR_PACKAGES } from '@/lib/db/seed-data';
+import { FLIGHT_ADDONS, SIMULATOR_PACKAGES } from '@/lib/db/seed-data';
 import { closeDepartedSlots, generateKantorovichSlots } from '@/lib/scheduler/kantorovich-engine';
+import { computeRequiredMissionMinutes } from '@/lib/booking/client/slot-selection';
 import { isoDate } from '@/lib/validation';
+import { intersectKantorovichSlotsWithWix, listWixBookableSlotsForDuration } from './availability-adapter';
 import { listWixAvailability, listWixServices, wixResourceTypeIdsForService, type WixTimeSlot } from './bookings';
 import { wixServiceIdFor } from './catalog';
 import { isWixConfigured, WIX_TIME_ZONE } from './config';
@@ -18,6 +20,7 @@ export const wixBookingCheckoutSchema = z.object({
   packageId: z.string().refine(isMappedPackage),
   bookingDate: isoDate,
   startTime: startTimeSchema,
+  addonIds: z.array(z.string()).max(20).optional(),
 });
 
 export type WixBookingCheckoutInput = z.infer<typeof wixBookingCheckoutSchema>;
@@ -38,6 +41,13 @@ export interface WixBookingCheckoutSlot {
 }
 
 export class WixBookingUnavailableError extends Error {}
+
+const WIX_AVAILABILITY_TIERS = [30, 45, 60, 90, 120] as const;
+
+function extendedWixDurationTier(requiredMinutes: number, baseDurationMinutes: number): number | null {
+  if (requiredMinutes <= baseDurationMinutes) return null;
+  return WIX_AVAILABILITY_TIERS.find((tier) => tier >= requiredMinutes) ?? 120;
+}
 
 function packageDuration(packageId: string): number {
   const pkg = SIMULATOR_PACKAGES.find((candidate) => candidate.id === packageId);
@@ -68,6 +78,7 @@ export async function resolveWixBookingCheckout(input: WixBookingCheckoutInput):
   if (!isWixConfigured()) throw new Error('Wix Bookings is not configured.');
 
   const durationMinutes = packageDuration(input.packageId);
+  const requiredMissionMinutes = computeRequiredMissionMinutes(durationMinutes, input.addonIds ?? [], FLIGHT_ADDONS);
   const serviceId = wixServiceIdFor(input.packageId);
   if (!serviceId) throw new Error(`No Wix service maps to ${input.packageId}.`);
 
@@ -78,7 +89,8 @@ export async function resolveWixBookingCheckout(input: WixBookingCheckoutInput):
   const location = wixLocationForCheckout(service);
   if (!location) throw new Error(`Wix service ${serviceId} has no supported bookable location.`);
 
-  const [availability, strictGrid] = await Promise.all([
+  const extendedTier = extendedWixDurationTier(requiredMissionMinutes, durationMinutes);
+  const [availability, strictGrid, extendedSlots] = await Promise.all([
     listWixAvailability({
       serviceId,
       fromLocalDate: `${input.bookingDate}T00:00:00`,
@@ -86,14 +98,29 @@ export async function resolveWixBookingCheckout(input: WixBookingCheckoutInput):
       includeResourceTypeIds: wixResourceTypeIdsForService(service),
     }),
     Promise.resolve(closeDepartedSlots(generateKantorovichSlots(input.bookingDate, durationMinutes, []), new Date())),
+    extendedTier ? listWixBookableSlotsForDuration(input.bookingDate, extendedTier) : Promise.resolve(null),
   ]);
 
-  const canonicalSlot = strictGrid.find((slot) => slot.startTime === input.startTime && slot.available);
+  const intersectedGrid = intersectKantorovichSlotsWithWix(strictGrid, availability.timeSlots);
+  const canonicalSlot = intersectedGrid.find((slot) => slot.startTime === input.startTime && slot.available);
   const wixSlot = availability.timeSlots.find(
     (slot) => slot.bookable !== false && matchesLocalStart(slot, input.bookingDate, input.startTime)
   );
   if (!canonicalSlot || !wixSlot) {
     throw new WixBookingUnavailableError('The requested Wix booking slot is no longer available.');
+  }
+
+  if ((canonicalSlot.maxAvailableMinutes ?? durationMinutes) < requiredMissionMinutes) {
+    throw new WixBookingUnavailableError('The requested Wix booking slot cannot accommodate the selected add-on duration.');
+  }
+
+  if (extendedSlots) {
+    const fitsExtendedWixSlot = extendedSlots.some(
+      (slot) => slot.bookable !== false && matchesLocalStart(slot, input.bookingDate, input.startTime)
+    );
+    if (!fitsExtendedWixSlot) {
+      throw new WixBookingUnavailableError('The requested Wix booking slot cannot accommodate the selected add-on duration.');
+    }
   }
 
   return {
