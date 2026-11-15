@@ -1,4 +1,7 @@
-const WIX_CART_V2_URL = 'https://www.wixapis.com/ecom/v2/carts';
+import { wixCartUrl, type WixFetchWithAuth } from './cart-v2-shared';
+
+export type { WixFetchWithAuth };
+
 const WIX_CHECKOUT_V1_URL = 'https://www.wixapis.com/ecom/v1/checkouts';
 export const WIX_DEFAULT_COUNTRY_CODE = 'IL';
 
@@ -9,8 +12,6 @@ const WIX_DEFAULT_ADDRESS = {
   subdivision: '',
   postalCode: '',
 } as const;
-
-export type WixFetchWithAuth = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
 
 export interface WixContactName {
   firstName: string;
@@ -93,7 +94,7 @@ export async function patchWixCartCustomerInfo(
   };
 
   const patchCart = (cartPayload: Record<string, unknown>) =>
-    fetchWithAuth(`${WIX_CART_V2_URL}/${cartId}`, {
+    fetchWithAuth(wixCartUrl(cartId), {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       // Cart V2 requires the ID both in the URL and the partial cart payload.

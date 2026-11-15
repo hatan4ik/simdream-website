@@ -39,8 +39,10 @@ const SIZE_ALLOWLIST: Readonly<Record<string, number>> = {
   'lib/scheduler/kantorovich-engine.ts': 781,
   'lib/wix/backend-blueprint.ts': 732,
   'app/admin/page.tsx': 553,
-  'lib/wix/booking-checkout-client.ts': 537,
   'app/(public)/subscriptions/page.tsx': 492,
+  // Lowered from 537 when its Cart V2 transport moved to lib/wix/cart-v2-shared.ts; what is left is
+  // booking-flow logic (Wix price interpretation, DST-safe time conversion), not transport.
+  'lib/wix/booking-checkout-client.ts': 482,
   'lib/auth/auth-context.tsx': 454,
 };
 

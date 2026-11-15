@@ -1,20 +1,15 @@
 'use client';
 
 import { WIX_STORES_APP_ID, wixAddonProductIdFor } from './catalog';
-
-const WIX_CREATE_CART_URL = 'https://www.wixapis.com/ecom/v2/carts';
-const WIX_BOOKINGS_APP_ID = '13d21c63-b5ec-5912-8397-c3a5ddb27a97';
-
-interface WixCartCreateResponse {
-  cart?: { id?: string };
-  message?: unknown;
-  details?: {
-    applicationError?: {
-      code?: unknown;
-      description?: unknown;
-    };
-  };
-}
+import {
+  WIX_BOOKINGS_APP_ID,
+  WIX_CART_V2_URL,
+  postWixJson,
+  wixCatalogLineItem,
+  wixCreateCartBody,
+  wixErrorFields,
+  type WixCartCreateResponse,
+} from './cart-v2-shared';
 
 const FALLBACK_CART_CREATE_ERROR = 'Wix did not create a checkout cart. Please try again.';
 
@@ -22,12 +17,12 @@ function nonEmptyString(value: unknown): string | null {
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
 }
 
-function formatWixCartCreateError(status: number, payload: WixCartCreateResponse | null): string {
-  if (!payload || typeof payload !== 'object') return FALLBACK_CART_CREATE_ERROR;
-  const appError = payload.details?.applicationError;
-  const code = nonEmptyString(appError?.code);
-  const message = nonEmptyString(payload.message);
-  const description = nonEmptyString(appError?.description);
+function formatWixCartCreateError(status: number, payload: unknown): string {
+  const fields = wixErrorFields(payload);
+  if (!fields) return FALLBACK_CART_CREATE_ERROR;
+  const code = nonEmptyString(fields.code);
+  const message = nonEmptyString(fields.message);
+  const description = nonEmptyString(fields.description);
   const parts = [code, message, description && description !== message ? description : null].filter(
     (part): part is string => part !== null
   );
@@ -85,33 +80,17 @@ export async function createWixCartForBooking(
 ): Promise<string> {
   const addonCatalogItems = (addonIds ?? []).flatMap((addonId) => {
     const productId = wixAddonProductIdFor(addonId);
-    return productId
-      ? [
-          {
-            quantity: 1,
-            catalogReference: { appId: WIX_STORES_APP_ID, catalogItemId: productId },
-          },
-        ]
-      : [];
+    return productId ? [wixCatalogLineItem(WIX_STORES_APP_ID, productId)] : [];
   });
 
-  const response = await client.fetchWithAuth(WIX_CREATE_CART_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      cart: { source: { channelType: 'WEB' } },
-      catalogItems: [
-        {
-          quantity: 1,
-          catalogReference: { appId: WIX_BOOKINGS_APP_ID, catalogItemId: bookingId },
-        },
-        ...addonCatalogItems,
-      ],
-    }),
-  });
-  const payload = (await response.json().catch(() => null)) as WixCartCreateResponse | null;
-  if (!response.ok || !payload?.cart?.id) {
+  const { response, payload } = await postWixJson(
+    (input, init) => client.fetchWithAuth(input, init),
+    WIX_CART_V2_URL,
+    wixCreateCartBody([wixCatalogLineItem(WIX_BOOKINGS_APP_ID, bookingId), ...addonCatalogItems])
+  );
+  const cart = (payload as WixCartCreateResponse | null)?.cart;
+  if (!response.ok || !cart?.id) {
     throw new Error(formatWixCartCreateError(response.status, payload));
   }
-  return payload.cart.id;
+  return cart.id;
 }

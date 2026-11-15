@@ -2,6 +2,15 @@ import { z } from 'zod';
 import { CheckoutError } from '@/lib/booking/checkout-error';
 import { giftCertificateAmount, giftCertificatePackageById } from '@/lib/catalog/gift-voucher-packages';
 import { GIFT_CARD_DESIGNS, getGiftCardDesign, type GiftCardDesignId } from '@/lib/catalog/gift-card-designs';
+import {
+  WIX_CART_V2_URL,
+  isHttpsCheckoutUrl,
+  wixCartUrl,
+  wixCatalogLineItem,
+  wixCreateCartBody,
+  type WixCartCreateResponse,
+  type WixCheckoutUrlResponse,
+} from './cart-v2-shared';
 import { normalizeWixPhone, patchWixCartCustomerInfo, splitWixContactName } from './checkout-prefill';
 import { getWixClient, wixPost } from './client';
 import { isWixConfigured } from './config';
@@ -20,7 +29,6 @@ export {
 };
 
 const WIX_GIFT_CARD_PRODUCTS_QUERY_URL = 'https://www.wixapis.com/gift-cards/v1/gift-card-products/query';
-const WIX_CREATE_CART_URL = 'https://www.wixapis.com/ecom/v2/carts';
 
 const wixMoneySchema = z
   .object({
@@ -191,19 +199,10 @@ export async function createWixGiftCardCheckout(
     catalogOptions.message = input.personalMessage.trim();
   }
 
-  const cartResponse = await wixPost<{ cart?: { id?: string } }>(WIX_CREATE_CART_URL, {
-    cart: { source: { channelType: 'WEB' } },
-    catalogItems: [
-      {
-        quantity: 1,
-        catalogReference: {
-          appId: WIX_GIFT_CARDS_APP_ID,
-          catalogItemId: productId,
-          options: catalogOptions,
-        },
-      },
-    ],
-  });
+  const cartResponse = await wixPost<WixCartCreateResponse>(
+    WIX_CART_V2_URL,
+    wixCreateCartBody([wixCatalogLineItem(WIX_GIFT_CARDS_APP_ID, productId, catalogOptions)])
+  );
 
   const cartId = cartResponse.cart?.id;
   if (!cartId) {
@@ -232,12 +231,10 @@ export async function createWixGiftCardCheckout(
     console.warn('[wix:gift-cards] Non-fatal customerInfo prefill error:', err);
   }
 
-  const checkoutResponse = await wixPost<{ checkoutUrl?: string }>(
-    `${WIX_CREATE_CART_URL}/${cartId}/get-checkout-url`,
-    {}
-  );
+  const checkoutResponse = await wixPost<WixCheckoutUrlResponse>(wixCartUrl(cartId, 'get-checkout-url'), {});
   const checkoutUrl = checkoutResponse.checkoutUrl;
-  if (!checkoutUrl || new URL(checkoutUrl).protocol !== 'https:') {
+  // A value that is not a URL makes isHttpsCheckoutUrl throw the URL parser's TypeError, uncaught here.
+  if (!checkoutUrl || !isHttpsCheckoutUrl(checkoutUrl)) {
     throw new Error('Wix did not return a secure checkout URL for the gift card.');
   }
 
