@@ -1,5 +1,7 @@
 import type { Page } from '@playwright/test';
 import { FACILITY_INFO } from '../../lib/config/facility-info';
+import { HE } from '../../lib/refund/copy/he';
+import { measureHorizontalOverflow } from '../usability/support/geometry';
 import { preferLanguage } from '../support/e2e';
 import { expect, recordRequests, test } from './fixtures';
 
@@ -307,6 +309,36 @@ test.describe('refund request form', () => {
         await next(page).click();
       }
     }
+  });
+
+  test('keeps the honeypot on the review step from overflowing the page at 320px, left to right', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 640 });
+    await openForm(page);
+    // No session date: with one, the stepper and the estimate panel are 311px wide at 320px whatever the trap does (a refund layout issue of its own).
+    await fillOrder(page, { reference: 'WIX-4', email: 'dana@example.com' });
+    await toReview(page);
+    await expect(page.locator('[data-honeypot]')).toHaveCount(1);
+
+    expect(await measureHorizontalOverflow(page)).toEqual({ documentWidth: 320, viewportWidth: 320, offenders: [] });
+  });
+
+  test('keeps the honeypot on the review step from overflowing the page at 320px, right to left', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 640 });
+    await preferLanguage(page, 'he');
+    await page.goto('/refund');
+    await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
+    await page.getByLabel(HE.order.referenceLabel).fill('WIX-4');
+    await page.getByLabel(HE.order.emailLabel).fill('dana@example.com');
+    await page.getByLabel(HE.order.nameLabel).fill('Dana Pilot');
+    await page.getByLabel(HE.order.phoneLabel).fill('+972501234567');
+    await page.getByRole('button', { name: HE.actions.continue, exact: true }).click();
+    await expect(page.getByRole('heading', { level: 2, name: HE.reason.title })).toBeFocused();
+    await page.getByRole('radio', { name: new RegExp(HE.reason.options.change_of_plans.title) }).check();
+    await page.getByRole('button', { name: HE.actions.continue, exact: true }).click();
+    await expect(page.getByRole('heading', { level: 2, name: HE.review.title })).toBeFocused();
+    await expect(page.locator('[data-honeypot]')).toHaveCount(1);
+
+    expect(await measureHorizontalOverflow(page)).toEqual({ documentWidth: 320, viewportWidth: 320, offenders: [] });
   });
 
   test('renders in Arabic, right to left, without Hebrew letters', async ({ page }) => {

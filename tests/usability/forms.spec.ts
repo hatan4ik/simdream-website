@@ -1,5 +1,5 @@
 import type { Locator, Page } from '@playwright/test';
-import { expect } from '../support/e2e';
+import { expect, preferLanguage } from '../support/e2e';
 import {
   checkoutButton,
   fillStorefrontManifest,
@@ -12,7 +12,8 @@ import {
 } from './support/booking';
 import { test } from './support/fixtures';
 import { HONEYPOT_FIELD } from '../../lib/security/honeypot';
-import { gotoSettled, isolateFromThirdParties } from './support/page';
+import { measureHorizontalOverflow } from './support/geometry';
+import { freezeCssMotion, gotoSettled, isolateFromThirdParties } from './support/page';
 
 test.use({ reducedMotion: 'reduce', video: 'off' });
 test.describe.configure({ timeout: 90_000 });
@@ -259,11 +260,19 @@ test.describe('workshop inquiry honeypot', () => {
     await expect(trap).toHaveAttribute('data-form-type', 'other');
     expect(await trap.evaluate((field) => field.closest('[aria-hidden="true"]') !== null)).toBe(true);
     await expect(page.getByRole('textbox', { name: /leave this field empty/i })).toHaveCount(0);
-    // Far off-screen on the start side (left in LTR, right in RTL), so a sighted visitor never sees it or any text with it.
-    const box = await trap.boundingBox();
-    const viewportWidth = page.viewportSize()?.width ?? 0;
+    // Hidden by clipping a 1px box (no negative or huge offsets, which would stick out of the viewport), and still rendered:
+    // not display:none, visibility:hidden or type=hidden, which bots skip.
+    const wrapper = page.locator('[data-honeypot]');
+    const box = await wrapper.boundingBox();
     if (!box) throw new Error('The honeypot has no layout box to measure.');
-    expect(box.x + box.width <= 0 || box.x >= viewportWidth).toBe(true);
+    expect(box.width).toBeLessThanOrEqual(1);
+    expect(box.height).toBeLessThanOrEqual(1);
+    const style = await wrapper.evaluate((element) => {
+      const computed = getComputedStyle(element);
+      return { position: computed.position, clipPath: computed.clipPath, display: computed.display, visibility: computed.visibility };
+    });
+    expect(style).toEqual({ position: 'absolute', clipPath: 'inset(50%)', display: 'block', visibility: 'visible' });
+    await expect(trap).not.toHaveAttribute('type', 'hidden');
 
     // At the end of the form, after the free-text notes and before the submit button, never beside a field of a recognisable type.
     const order = await page.evaluate((selector) => {
@@ -285,4 +294,27 @@ test.describe('workshop inquiry honeypot', () => {
     await expect(page.getByText('Inquiry Received Successfully!')).toBeVisible();
     expect(posted).toMatchObject({ companyName: 'QA Flight Ops', [HONEYPOT_FIELD]: '' });
   });
+});
+
+test.describe('workshop inquiry honeypot layout', () => {
+  /** The trap is hidden by clipping, never by pushing it out of the page: nothing may stick out of the viewport. */
+  for (const { language, dir } of [
+    { language: 'en', dir: 'ltr' },
+    { language: 'he', dir: 'rtl' },
+  ] as const) {
+    test(`adds no horizontal overflow to /workshops at 320px (${language}, ${dir})`, async ({ page }) => {
+      await page.setViewportSize({ width: 320, height: 800 });
+      await preferLanguage(page, language);
+      await gotoSettled(page, '/workshops');
+      await freezeCssMotion(page);
+      await expect(page.locator('html')).toHaveAttribute('dir', dir);
+      await expect(page.locator('[data-honeypot]')).toHaveCount(1);
+
+      expect(await measureHorizontalOverflow(page)).toEqual({ documentWidth: 320, viewportWidth: 320, offenders: [] });
+      const trap = await page.locator('[data-honeypot]').boundingBox();
+      if (!trap) throw new Error('The honeypot has no layout box to measure.');
+      expect(trap.x).toBeGreaterThanOrEqual(-1);
+      expect(trap.x + trap.width).toBeLessThanOrEqual(321);
+    });
+  }
 });

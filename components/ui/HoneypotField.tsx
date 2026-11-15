@@ -9,9 +9,13 @@ export interface HoneypotFieldProps {
 }
 
 /**
- * A decoy input only a script fills in. It sits off-screen, outside the tab order and out of the
- * accessibility tree, and adds no visible text, so a person never sees, reaches or hears it.
+ * A decoy input only a script fills in. It is clipped to a 1px box, outside the tab order and out
+ * of the accessibility tree, and adds no visible text, so a person never sees, reaches or hears it.
  * The server treats any value as a bot (lib/security/honeypot.ts).
+ *
+ * It is hidden by clipping, never by pushing it out of the page: an element placed at -9999px (or
+ * +9999px in right-to-left) sticks out of the viewport, so layout checks flag the page as
+ * overflowing. It is also not `display:none`, `visibility:hidden` or `type=hidden`, which bots skip.
  *
  * Browsers and password managers must not fill it for a real person either: its name carries no
  * autofill word, it has no id, `autoComplete="off"`, and the vendor opt-outs below. Place it away
@@ -20,7 +24,7 @@ export interface HoneypotFieldProps {
  */
 export function HoneypotField({ label, value, onChange }: HoneypotFieldProps) {
   return (
-    <div aria-hidden="true" data-honeypot="" className="absolute -start-[9999px] h-px w-px overflow-hidden">
+    <div aria-hidden="true" data-honeypot="" className="absolute h-px w-px overflow-hidden whitespace-nowrap [clip-path:inset(50%)]">
       <label>
         {label}
         <input

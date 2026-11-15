@@ -54,11 +54,27 @@ describe('HoneypotField', () => {
     React.createElement(HoneypotField, { label: 'Leave this field empty', value: '', onChange: () => undefined })
   );
 
-  it('is off-screen, out of the tab order and out of the accessibility tree', () => {
-    expect(markup).toMatch(/^<div aria-hidden="true" data-honeypot="" class="[^"]*absolute[^"]*-start-\[9999px\][^"]*overflow-hidden[^"]*">/);
+  const wrapperClasses = (/^<div aria-hidden="true" data-honeypot="" class="([^"]*)">/.exec(markup)?.[1] ?? '').split(' ');
+
+  it('is hidden by clipping to a 1px box, out of the tab order and out of the accessibility tree', () => {
+    expect(markup).toMatch(/^<div aria-hidden="true" data-honeypot="" class="[^"]*">/);
+    for (const required of ['absolute', 'h-px', 'w-px', 'overflow-hidden', 'whitespace-nowrap', '[clip-path:inset(50%)]']) {
+      expect(wrapperClasses, required).toContain(required);
+    }
     expect(markup).toContain('tabindex="-1"');
     expect(markup).toContain('autoComplete="off"');
     expect(markup).toContain('type="text"');
+  });
+
+  it('never pushes itself off the page, which would add scrollable overflow (left to right or right to left)', () => {
+    // No inset or margin utilities at all, and no negative or huge arbitrary offsets.
+    expect(wrapperClasses.filter((name) => /^-?(inset|start|end|left|right|top|bottom|m[trblxyse]?)(-|\[|$)/.test(name) || /\[-?\d{3,}px\]/.test(name))).toEqual([]);
+  });
+
+  it('stays visible to bots: it is neither display:none, visibility:hidden, hidden nor type=hidden', () => {
+    expect(wrapperClasses.filter((name) => ['hidden', 'invisible', 'collapse', 'sr-only'].includes(name) || /^(hidden|invisible)$/.test(name))).toEqual([]);
+    expect(markup).not.toContain('type="hidden"');
+    expect(markup).not.toMatch(/\shidden(=|\s|>)/);
   });
 
   it('is named by the shared token-free field name and has no id', () => {
