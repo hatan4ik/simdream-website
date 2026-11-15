@@ -176,6 +176,13 @@ Use a different port for an additional local server:
 npm run dev -- --port 3001
 ```
 
+#### Testing from a phone, another device or a tunnel
+`next dev` serves its HMR and dev assets only to loopback origins (`127.0.0.1`, `localhost`, `[::1]`). A page opened from a Wi-Fi LAN address (`192.168.x.x`, `10.x.x.x`), a `.local` name or a tunnel (ngrok, Cloudflare Tunnel, Tailscale, localtunnel) hydrates nothing until you opt in, because `next dev` listens on all interfaces. Add the flag to `.env.local`, or set it for one run, and restart the dev server:
+```bash
+DEV_ALLOW_REMOTE_ORIGINS=true npm run dev
+```
+Only the exact value `true` counts. It opens the dev server to every device on that network and to anyone who learns a tunnel URL, so leave it off on shared or public networks and never set it in a deployment (`next start` ignores it). The origin list lives in `lib/config/allowed-dev-origins.mjs`.
+
 ---
 
 ## Local demo accounts

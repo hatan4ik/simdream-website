@@ -1,55 +1,13 @@
-import os from 'node:os';
-
-function collectAllowedDevOrigins() {
-  const origins = new Set([
-    '127.0.0.1',
-    '127.*.*.*',
-    '192.168.*.*',
-    '10.*.*.*',
-    '172.*.*.*',
-    '100.*.*.*',
-    '*.local',
-    '**.local',
-    '**.ngrok-free.app',
-    '**.ngrok-free.dev',
-    '**.ngrok.io',
-    '**.ngrok.app',
-    '**.trycloudflare.com',
-    '**.loca.lt',
-    '**.ts.net',
-    'simdream.co.il',
-    '**.simdream.co.il',
-  ]);
-
-  try {
-    const hostname = os.hostname();
-    if (hostname) {
-      origins.add(hostname);
-      origins.add(hostname.toLowerCase());
-    }
-    const interfaces = os.networkInterfaces();
-    for (const entries of Object.values(interfaces)) {
-      for (const entry of entries ?? []) {
-        if (entry && entry.address && entry.family === 'IPv4') {
-          origins.add(entry.address);
-        }
-      }
-    }
-  } catch {
-    // Ignore restricted OS interface lookups
-  }
-
-  return Array.from(origins);
-}
+import { collectAllowedDevOrigins } from './lib/config/allowed-dev-origins.mjs';
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  // `next dev` starts on localhost by default, while developers and mobile test
-  // devices (iPhone Safari, Samsung/Android browsers) often open the server over
-  // 127.0.0.1, Wi-Fi LAN IPs (192.168.x.x / 10.x.x.x), mDNS (.local), or tunnels.
   // Next 16 blocks non-allowlisted origins for HMR/dev assets, which prevents the
-  // client bundle from hydrating interactive buttons.
+  // client bundle from hydrating interactive buttons. Only loopback is allowed by
+  // default; opening the dev server to a phone (iPhone Safari, Samsung/Android
+  // browsers), a Wi-Fi LAN IP, mDNS (.local) or a tunnel is opt-in with
+  // DEV_ALLOW_REMOTE_ORIGINS=true (see lib/config/allowed-dev-origins.mjs).
   allowedDevOrigins: collectAllowedDevOrigins(),
   experimental: {
     // Next 16's React debug channel blocks `await initialServerResponse` in
