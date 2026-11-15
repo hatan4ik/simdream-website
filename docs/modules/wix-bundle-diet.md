@@ -125,9 +125,14 @@ Not run: firefox, webkit and the mobile projects, `npm run test:all`, Lighthouse
 2. **`lib/data/blog-posts.json` is bundled twice (2 x 489 K = 0.93 MiB)**: once for the pages (`blog`, `post/[slug]`) and once for the
    route handlers (`sitemap`, `llms.txt`, `/api/blog` through `lib/wix/blog.ts`). 469 K of each copy is article bodies, which the
    sitemap and `llms.txt` do not need. A bodies-free index for those three importers would remove one copy (about 0.45 MiB).
-3. **Byte-identical chunks (0.62 MiB in 8 groups)**: the same zod chunk four times (4 x 110 K), a 229 K chunk twice, and
-   smaller ones. They are emitted by Turbopack under different names for different route groups and bundled by esbuild as is.
-   The fix would live in the OpenNext or Turbopack layer (or a post-pass on `handler.mjs`), not in application source; not tried.
+3. **Byte-identical chunks (0.62 MiB in 8 groups)**: at this workstream's measurement (`bf59afa`) the same zod chunk four
+   times (4 x 110 K), a 229 K chunk twice, and smaller ones. They are emitted by Turbopack under different names for different
+   route groups and bundled by esbuild as is. The zod count moves with the route graph: section 7 counts five copies on `main`
+   `1285490` and on the security branch's head, and four after its fix (section 7 reads each chunk's `bytesInOutput`, section 1
+   sums source-map segments per module, so compare the counts, not the sizes). A general fix would live in the OpenNext or
+   Turbopack layer (or a post-pass on `handler.mjs`), not tried. One such duplicate, however, **was** removed from application
+   source: section 7 merged the birthday routes' second chunk, and the zod copy that came with it, by moving one import. The other
+   groups have not been tried that way.
 4. **`lib/data/experience-routes.ts` in the route group (85 K)**: `lib/sendgrid.ts` and `lib/booking/checkout-service.ts` import
    `findOnRequestWorldRoute`, which drags the six-language route copy into every route handler. A server registry of ids,
    minutes and titles would cut most of it.
@@ -205,8 +210,11 @@ from the source maps):
 `lib_wix_20m83yf1k3uaa._.js` (pricing provider, capabilities) and `lib_wix_0jn2p008diyfi._.js` (claim), byte-identical
 except for the source-map comment, and gave the claim route its own zod copy as well. The claim route had started
 importing `birthday-claim-request` (a module `birthday-pricing-server` imports) before `birthday-pricing-server`; the other
-two routes reach the group through `birthday-pricing-server` first. Turbopack derives a chunk's name from the way a route
-reaches its modules, so a different traversal gives identical content a second name, and esbuild bundles every name.
+two routes reach the group through `birthday-pricing-server` first. In these builds (Next.js 16.4.5 with Turbopack), a
+chunk's name followed the way a route reaches its modules, so a different traversal gave identical content a second name,
+and esbuild bundles every name. That is **observed Turbopack behaviour, inferred from these builds, not a documented
+contract**: re-measure this chunk and the zod copy count after every Next.js or Turbopack upgrade, because the import-order
+fix below and the guard test that keeps it rely on it.
 
 **Change (one import moved, -192,176 B).** The claim route imports `birthday-pricing-server` before its other birthday
 modules. The three routes now load one birthday chunk (`lib_wix_birthday-pricing-server_ts_0e-i6xz4w0r-r._.js`, 12,716 B in

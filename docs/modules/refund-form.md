@@ -119,7 +119,7 @@ local store: they are `unverified`, the form says so honestly, and the request c
 
 `POST /api/refund-requests` (Node runtime). Order of checks: same-origin (`Origin` must match the request,
 the configured app URL or the proxy host; `Sec-Fetch-Site: cross-site` is refused) then JSON content type and
-16 KB body cap (415, 413, 400) then zod (`refund-schema.ts`; a filled honeypot `website` is a 400, nothing
+16 KB body cap (415, 413, 400) then zod (`refund-schema.ts`; a filled honeypot `follow_up_note` (`HONEYPOT_FIELD` in `lib/security/honeypot.ts`) is a 400, nothing
 stored, nothing sent) then rate limit (per IP 8 per hour, per email 4 per hour; 429 + `Retry-After`). The
 service then re-verifies the order, recomputes the outcome with the **server clock and the order's own dates**
 (the browser's estimate is never trusted), draws `RF-XXXXXX` (32-character alphabet without 0, O, 1, I) and

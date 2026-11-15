@@ -188,7 +188,7 @@ Before advertising this offer or connecting live payments, execute and record ea
 | Claim issued for one email and phone, booking created with another email and phone | standard price; no birthday reduction |
 | Claim issued for the pilot, booking created with the same email (any letter case) | registry price minus exactly 15% (confirms Wix passes `contactDetails` to the provider) |
 | Sixth claim request for one email within an hour (on the Wix Worker the fallback counts per instance) | the claim request answers 429; the booking page shows the "could not be verified" message |
-| Off-grid start (5 minutes after a grid departure, booked straight through Wix Create Booking), with and without a claim | booking cannot be priced (`off-grid-departure`); it never reaches payment |
+| Off-grid start (5 minutes after a grid departure, booked straight through Wix Create Booking), with and without a claim | booking cannot be priced (`off-grid-departure`); it never reaches payment; afterwards the refused booking no longer holds the Wix slot: Wix availability offers the off-grid start and the grid departure it overlaps again, without a staff action. If the slot stays held, record for how long, because an unpriceable booking then blocks real customers |
 | Birthday price with a native Gift Card | gift-card credit applies to the reduced balance |
 | Birthday price with a promo coupon | UI refuses combination; Wix service coupon scope must also prevent it |
 | Non-birthday normal booking | original price, duration and email service name unchanged |

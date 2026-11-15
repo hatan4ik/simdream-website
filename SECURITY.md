@@ -36,7 +36,7 @@ The limits that count attempts per client (`/api/contact`, `/api/ground-school/i
 Every other forwarding header on the request is ignored, also when the chosen one is missing.
 
 - `x-forwarded-for` is a list that each proxy appends to, so only its right end can be trusted: the address used is the entry `RATE_LIMIT_TRUSTED_PROXY_HOPS` places from the right (an integer from 1 to 5; default 1, the rightmost entry, which the nearest proxy appended). A list with fewer entries than that did not pass through the trusted proxies and resolves to `unknown-client`. The other three headers carry one address and are read whole, never split.
-- A value that is not 3 to 64 hex digits, dots and colons (a host name, a bracketed address, a list in a single-value header) resolves to `unknown-client`. Those requests share one bucket per limit; the checkout throttle gives that bucket a looser limit so a missing header cannot lock every customer out.
+- A value that is not 3 to 64 hex digits, dots and colons (a host name, a bracketed address, a list in a single-value header) resolves to `unknown-client`. Those requests share one bucket per limit. The checkout throttle (`lib/booking/checkout-throttle.ts`) and the birthday-claim throttle (`lib/wix/birthday-claim-throttle.ts`) give that shared bucket a looser limit, 60 per 10 minutes instead of 10, so one visitor without a usable address does not shut out the others at the first refusal; the bucket can still be exhausted, and then every request without a usable address is refused until its window ends. The contact, Ground School and workshop limits, and every other per-client limit listed above, have no looser bucket: there `unknown-client` gets the same limit as one address.
 - Both variables are read on every request, because the OpenNext Worker copies its bindings into `process.env` only when it serves its first request.
 
 **Set `RATE_LIMIT_CLIENT_IP_HEADER` to the header your edge overwrites.** What each vendor documents (read 2026-11-15):
@@ -83,3 +83,15 @@ The repository's notes (AGENTS.md section 1.7, GENESIS.md) state that the Wix si
 - [ ] The request body size and duration limits at the edge.
 - [ ] Whether Wix logs request headers or visitor addresses, and for how long.
 - [ ] That the site's environment variables (Supabase, Stripe, tokens) are stored as secrets and never served to the browser.
+
+## Known limits of the unpaid-hold rule
+
+The unpaid-hold rule (`lib/booking/checkout-hold-policy.ts`, AGENTS.md section 6 item 10) keys on the checkout email, and that email is not verified. Someone who knows a customer's email and the departure they hold can therefore:
+
+1. learn from the response texts that the customer holds that departure (the 409 "You already have an unpaid reservation for this departure…", or "This departure is already paid…" after its stored expiry), or holds two unpaid reservations (the 429 of the two-hold cap);
+2. receive that hold's Stripe payment-page URL, by sending a request that matches it (same package, date, start, add-ons and payable total while the session is open);
+3. use up that email's checkout allowance (`checkout-init-email`, 6 per 30 minutes), which keeps the customer out of checkout for that time.
+
+Probing is bounded by the same limits (per email, per departure and per client, `lib/booking/checkout-throttle.ts`). A hold token bound to the browser that started the checkout would remove all three; it is not built.
+
+A pending card booking is released by Stripe's `checkout.session.expired` webhook. A hold whose webhook never arrives keeps its slot, and it now also counts toward the email's two-hold cap. A retry of the same departure can still release it once its stored expiry has passed and Stripe reports the session `expired`, but a hold without a stored session (one made before migration 013, or one whose session could not be stored) waits for the webhook alone. The Stripe endpoint must therefore receive `checkout.session.expired` ([README, "Stripe Webhook Setup"](README.md#stripe-webhook-setup-production)).

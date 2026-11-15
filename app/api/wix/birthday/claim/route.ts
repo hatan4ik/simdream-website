@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 // First among the birthday modules, so this route shares the other birthday routes' server chunk
 // instead of adding a second copy to the Wix worker (tests/unit/worker-bundle-rules.test.ts).
+// Import sorters and "organize imports" must not move it below the other birthday imports.
 import { getWixBirthdayPricingProviderConfig, issueWixBirthdayPricingClaim } from '@/lib/wix/birthday-pricing-server';
 import { readJsonBody } from '@/lib/http/read-json-body';
 import { parseWixBirthdayClaimRequest } from '@/lib/wix/birthday-claim-request';

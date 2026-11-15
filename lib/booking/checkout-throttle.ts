@@ -25,7 +25,10 @@ const THIRTY_MINUTES = 30 * 60;
 /** rateLimitClientAddress() answers this when no usable forwarding header is present. */
 const UNKNOWN_CLIENT = 'unknown-client';
 const LIMIT_PER_ADDRESS = 10;
-/** Every request without an address shares one bucket, so a missing ingress header cannot lock all customers out. */
+/**
+ * Every request without an address shares one bucket, so it gets a looser limit: one such visitor does not shut out the
+ * others at once. The bucket can still be exhausted (SECURITY.md, "Client address for rate limiting").
+ */
 const LIMIT_PER_UNKNOWN_CLIENT = 60;
 const LIMIT_PER_EMAIL = 6;
 const LIMIT_PER_DEPARTURE = 8;
