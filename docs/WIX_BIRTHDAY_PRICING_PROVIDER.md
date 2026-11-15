@@ -63,7 +63,9 @@ without a valid email is `invalid-request`, 400) and takes the phone when the fo
 phone in its `972…` and its `0…` form) and applies the claim only when the email or the phone matches. When the booking
 has no `contactDetails`, or they match neither, the booking is priced at the standard price with no discount: never
 refused, never discounted. A claim issued before this change carries no identity keys and keeps working until it
-expires (10 minutes).
+expires (10 minutes). The issuer can no longer mint such a claim (`identityKeys` is required for a birthday claim, in
+the types and at run time), so the provider's acceptance of key-less claims can be removed one release after this
+change ships.
 
 **Every claim carries an expiry and a purpose.** The signed payload always holds its expiry (`e`, 10 minutes after
 issue) and its promotion kind (`k`; a birthday claim omits it and the absence means `birthday`, so the kind is covered
@@ -74,6 +76,14 @@ another service or another Israel flight date.
 **Issuance is rate limited** (`lib/wix/birthday-claim-throttle.ts`), counted on every valid request before a claim is
 issued, eligible or not. Over a limit the route answers 429 with `Retry-After` (the longest refused wait) and
 `Cache-Control: no-store`; the booking page then shows its existing "Birthday pricing could not be verified" message.
+The route reads at most 8 KiB of `application/json` (413 and 415 otherwise, `lib/http/read-json-body.ts`).
+
+The booking page does not spend that budget per Wix draft. A claim depends only on the package, flight date, birthday
+and contact, so `lib/booking/client/wix-birthday-claim.ts` keeps the last one in memory (never in browser storage or a
+URL) and reuses it for every new draft (a changed departure on the same date, notes, an applied code) until one of those
+inputs changes or the claim is 5 minutes old on the browser's clock, which leaves it at least 5 of its 10 minutes
+whatever the clock skew. An email the route would refuse is caught before any request and shown as the page's existing
+contact-details message.
 
 | Rule | Durable limiter (`consumeRateLimit()`) | In-process fallback |
 | --- | --- | --- |
@@ -100,6 +110,11 @@ its own counts, so it bounds a burst against one instance, not the whole site. A
   booking, bounded only by the issuance limits above.
 - **Rotating contacts.** Someone willing to type a different email for every request is bounded only by the address
   rule, and on the fallback that rule is loose and per instance.
+- **Someone else can use up a customer's claims.** Issuance is unauthenticated, so anyone who knows a person's email can
+  spend that email's 5 claims per hour and block that person's Wix birthday checkout for up to an hour: per Worker
+  instance on the in-process fallback, everywhere on the durable limiter. Today a 429 fails the Wix checkout with the
+  "could not be verified" message. The owner may decide instead that a refused claim books at the standard price; that
+  is a product decision, not made here.
 
 ## Preconditions
 

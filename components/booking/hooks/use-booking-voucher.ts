@@ -8,6 +8,7 @@ import {
   applyGiftCardToDraft,
   formatBookingTemplate,
   removeAppliedCodeFromDraft,
+  WixBirthdayClaimContactError,
   type WixCheckoutCodeKind,
 } from '@/lib/booking/client';
 import type { WixCheckoutDraftHandle } from './use-wix-checkout-draft';
@@ -212,11 +213,17 @@ export function useBookingVoucher(args: UseBookingVoucherArgs) {
         sessionStorage.setItem(CACHED_VOUCHER_STORAGE_KEY, code);
       } catch {}
     } catch (err: unknown) {
+      // A birthday price needs a usable pilot email before the Wix cart exists: say so, not "code failed".
+      const needsPilotDetails = err instanceof WixBirthdayClaimContactError;
       setVoucherError(
         canUseWixNativeCheckout
           ? wixCheckoutCodeKind === 'gift-card'
-            ? copy.wixGiftCardVerifyFailed
-            : copy.wixCouponVerifyFailed
+            ? needsPilotDetails
+              ? copy.wixGiftCardNeedsPilotDetails
+              : copy.wixGiftCardVerifyFailed
+            : needsPilotDetails
+              ? copy.wixCouponNeedsPilotDetails
+              : copy.wixCouponVerifyFailed
           : extractErrorMessage(err, copy.voucherVerifyFailed)
       );
       setVoucherDiscount(0);

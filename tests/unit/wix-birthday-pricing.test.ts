@@ -2,9 +2,13 @@ import { describe, expect, it, vi } from 'vitest';
 import { SignJWT, exportSPKI, generateKeyPair } from 'jose';
 import {
   createWixBirthdayPricingClaim,
+  issuePromotionClaim,
   verifyPromotionClaim,
   verifyWixBirthdayPricingClaim,
+  type CreateWixBirthdayPricingClaimInput,
+  type IssuePromotionClaimInput,
 } from '@/lib/wix/birthday-pricing-claim';
+import { birthdayClaimIdentityKeys } from '@/lib/wix/birthday-claim-identity';
 import { verifiedWixBirthdayPricingBooking } from '@/lib/wix/birthday-pricing-provider-auth';
 import {
   calculateWixBirthdayBookingPrice,
@@ -21,6 +25,7 @@ import { isOnStrictWixGrid } from '@/lib/wix/booking-grid-policy';
 import { wixGridEnforcement, wixGridEnforcementReport } from '@/lib/wix/booking-grid-enforcement';
 import { SIMULATOR_PACKAGES } from '@/lib/db/seed-data';
 import { minutesToTime } from '@/lib/scheduler/kantorovich-engine';
+import { signLegacyUnboundBirthdayClaimForTests } from '../support/legacy-birthday-claim';
 
 // Only the grid-agreement test reads these: Wix itself stays out of the unit suite.
 const wix = vi.hoisted(() => ({ listWixServices: vi.fn(), listWixAvailability: vi.fn() }));
@@ -50,6 +55,8 @@ const PILOT_CONTACT: WixPricingContactDetails = {
   email: PILOT.email.trim(),
   phone: normalizeWixBookingPhone(PILOT.phone),
 };
+/** The identity keys the issuer derives for PILOT: a claim built with them is bound to PILOT_CONTACT. */
+const pilotIdentityKeys = () => birthdayClaimIdentityKeys({ email: PILOT.email, phone: PILOT.phone }, SECRET);
 
 describe('Wix birthday pricing claim', () => {
   it('is short lived, tamper evident, and contains no birth year', async () => {
@@ -59,6 +66,7 @@ describe('Wix birthday pricing claim', () => {
       flightDate: '2026-11-13',
       birthdayMonth: 11,
       birthdayDay: 25,
+      identityKeys: await pilotIdentityKeys(),
       secret: SECRET,
       now: NOW,
     });
@@ -122,6 +130,7 @@ describe('Wix Bookings birthday price calculator', () => {
       flightDate: '2026-11-14',
       birthdayMonth: 11,
       birthdayDay: 14,
+      identityKeys: await pilotIdentityKeys(),
       secret: SECRET,
       now: NOW,
     });
@@ -136,6 +145,7 @@ describe('Wix Bookings birthday price calculator', () => {
             },
           },
           additionalFields: [{ id: CONFIG.claimFieldId, value: token }],
+          contactDetails: PILOT_CONTACT,
         },
         { config: CONFIG, now: NOW }
       )
@@ -149,6 +159,7 @@ describe('Wix Bookings birthday price calculator', () => {
       flightDate: '2026-11-13',
       birthdayMonth: 11,
       birthdayDay: 25,
+      identityKeys: await pilotIdentityKeys(),
       secret: SECRET,
       now: NOW,
     });
@@ -163,10 +174,30 @@ describe('Wix Bookings birthday price calculator', () => {
             },
           },
           additionalFields: [{ id: CONFIG.claimFieldId, value: token }],
+          contactDetails: PILOT_CONTACT,
         },
         { config: CONFIG, now: NOW }
       )
     ).resolves.toEqual({ ok: false, code: 'invalid-birthday-claim' });
+  });
+
+  it('refuses to mint a birthday claim that is not bound to a contact', async () => {
+    const selection = {
+      packageId: 'pkg-captain-60',
+      serviceId: wixServiceIdFor('pkg-captain-60')!,
+      flightDate: '2026-11-13',
+      birthdayMonth: 11,
+      birthdayDay: 25,
+      secret: SECRET,
+      now: NOW,
+    };
+    for (const identityKeys of [[], ['']]) {
+      await expect(createWixBirthdayPricingClaim({ ...selection, identityKeys })).rejects.toThrow(RangeError);
+      await expect(issuePromotionClaim({ ...selection, promoKind: 'birthday', identityKeys })).rejects.toThrow(RangeError);
+    }
+    // A caller that slips past the types (plain JavaScript) is refused as well.
+    await expect(createWixBirthdayPricingClaim(selection as unknown as CreateWixBirthdayPricingClaimInput)).rejects.toThrow(RangeError);
+    await expect(issuePromotionClaim(selection as unknown as IssuePromotionClaimInput)).rejects.toThrow(RangeError);
   });
 });
 
@@ -247,12 +278,11 @@ describe('Wix birthday claim is bound to the pilot contact it was issued for', (
   });
 
   it('keeps discounting a claim issued before identity binding until it expires', async () => {
-    const legacy = await createWixBirthdayPricingClaim({
+    const legacy = await signLegacyUnboundBirthdayClaimForTests({
       packageId: 'pkg-captain-60',
       serviceId: CAPTAIN_60,
       flightDate: '2026-11-13',
-      birthdayMonth: 11,
-      birthdayDay: 25,
+      birthdayMonthDay: '11-25',
       secret: SECRET,
       now: NOW,
     });
@@ -322,24 +352,33 @@ describe('Wix pricing provider reads the flight date and tariff on the Israel cl
   // Read as Honolulu time it would be Monday 22:45 (prime time), as Kiritimati time Tuesday 22:45.
   const INSTANT = '2026-11-10T08:45:00.000Z';
 
-  async function odysseyClaim(flightDate: string) {
+  async function odysseyClaim(flightDate: string, birthdayMonth = 11) {
     const token = await createWixBirthdayPricingClaim({
       packageId: 'pkg-ultimate-90',
       serviceId: ODYSSEY_90,
       flightDate,
-      birthdayMonth: 11,
+      birthdayMonth,
       birthdayDay: 25,
+      identityKeys: await pilotIdentityKeys(),
       secret: SECRET,
       now: NOW,
     });
     return [{ id: CONFIG.claimFieldId, value: token }];
   }
 
+  function odysseyAt(startDate: string | undefined, additionalFields?: Array<{ id: string; value: string }>) {
+    return {
+      bookedEntity: { slot: { serviceId: ODYSSEY_90, ...(startDate === undefined ? {} : { startDate }) } },
+      contactDetails: PILOT_CONTACT,
+      ...(additionalFields ? { additionalFields } : {}),
+    };
+  }
+
   it('gives the same instant the same flight date and price whatever timezone label the booking carries', async () => {
     const sameDayClaim = await odysseyClaim('2026-11-10');
     const dayBeforeClaim = await odysseyClaim('2026-11-09');
     for (const timezone of ['Asia/Jerusalem', 'UTC', 'Pacific/Honolulu', 'Pacific/Kiritimati']) {
-      const booking = { bookedEntity: { slot: { serviceId: ODYSSEY_90, startDate: INSTANT, timezone } } };
+      const booking = { bookedEntity: { slot: { serviceId: ODYSSEY_90, startDate: INSTANT, timezone } }, contactDetails: PILOT_CONTACT };
       await expect(calculateWixBirthdayBookingPrice(booking, { config: CONFIG, now: NOW }), timezone).resolves.toEqual({
         ok: true,
         calculatedPrice: 850,
@@ -353,6 +392,58 @@ describe('Wix pricing provider reads the flight date and tariff on the Israel cl
         calculateWixBirthdayBookingPrice({ ...booking, additionalFields: dayBeforeClaim }, { config: CONFIG, now: NOW }),
         timezone
       ).resolves.toEqual({ ok: false, code: 'invalid-birthday-claim' });
+    }
+  });
+
+  it('prices a weekday departure from 18:00 on at the prime-time tariff, and one before 18:00 at the day tariff', async () => {
+    // Tuesday 2026-11-10 in Israel (UTC+2): 17:45 is the last daytime departure of the 90-minute grid, 19:30 the next.
+    await expect(calculateWixBirthdayBookingPrice(odysseyAt('2026-11-10T15:45:00.000Z'), { config: CONFIG, now: NOW })).resolves.toEqual({
+      ok: true,
+      calculatedPrice: 850,
+      birthdayApplied: false,
+    });
+    await expect(calculateWixBirthdayBookingPrice(odysseyAt('2026-11-10T17:30:00.000Z'), { config: CONFIG, now: NOW })).resolves.toEqual({
+      ok: true,
+      calculatedPrice: 950,
+      birthdayApplied: false,
+    });
+  });
+
+  it('prices a Saturday daytime departure at the prime-time tariff', async () => {
+    // Saturday 2026-11-14 at 10:45 in Israel.
+    await expect(calculateWixBirthdayBookingPrice(odysseyAt('2026-11-14T08:45:00.000Z'), { config: CONFIG, now: NOW })).resolves.toEqual({
+      ok: true,
+      calculatedPrice: 950,
+      birthdayApplied: false,
+    });
+  });
+
+  it('reads a summer-time (UTC+3) instant on the Israel clock', async () => {
+    // Tuesday 2026-07-14: 07:45Z is 10:45 in Israel summer time (on the grid); read at UTC+2 it would be 09:45 (off it).
+    for (const startDate of ['2026-07-14T07:45:00.000Z', '2026-07-14T10:45:00+03:00']) {
+      await expect(calculateWixBirthdayBookingPrice(odysseyAt(startDate), { config: CONFIG, now: NOW }), startDate).resolves.toEqual({
+        ok: true,
+        calculatedPrice: 850,
+        birthdayApplied: false,
+      });
+    }
+    await expect(
+      calculateWixBirthdayBookingPrice(odysseyAt('2026-07-14T07:45:00.000Z', await odysseyClaim('2026-07-14', 7)), { config: CONFIG, now: NOW })
+    ).resolves.toEqual({ ok: true, calculatedPrice: 722, birthdayApplied: true });
+    // 16:30Z is 19:30 in Israel summer time: prime time.
+    await expect(calculateWixBirthdayBookingPrice(odysseyAt('2026-07-14T16:30:00.000Z'), { config: CONFIG, now: NOW })).resolves.toEqual({
+      ok: true,
+      calculatedPrice: 950,
+      birthdayApplied: false,
+    });
+  });
+
+  it('refuses a missing or unparseable startDate with invalid-flight-date', async () => {
+    for (const startDate of [undefined, '', 'not-a-date', '2026-13-45T10:00:00Z']) {
+      await expect(calculateWixBookingPrice(odysseyAt(startDate), { config: CONFIG, now: NOW }), String(startDate)).resolves.toEqual({
+        ok: false,
+        code: 'invalid-flight-date',
+      });
     }
   });
 });

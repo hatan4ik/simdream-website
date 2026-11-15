@@ -175,7 +175,8 @@ export async function calculateWixBookingPrice(
   }
 
   // A bound claim prices only its own contact's booking. A claim without keys (issued before
-  // identity binding) still applies until it expires.
+  // identity binding) still applies until it expires. The issuer can no longer mint one, and none
+  // outlives 10 minutes, so this legacy acceptance can be removed one release after binding ships.
   if (claim.identityKeys && claim.identityKeys.length > 0) {
     const contactDetails = booking.contactDetails;
     const matched = contactDetails

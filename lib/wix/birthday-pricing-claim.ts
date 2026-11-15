@@ -10,7 +10,8 @@ export type PromotionDiscountPercent = 0 | 5 | 7 | 10 | 15;
  * pricing provider. We deliberately never place a full birth date in that
  * field. Instead the Next.js server validates it once, drops the year, and
  * signs this narrow claim. The provider can then bind it to the Wix service,
- * selected flight date, and optional customer identity keys before returning a price.
+ * selected flight date, and the customer's identity keys (required on every new
+ * birthday claim) before returning a price.
  */
 export interface WixBirthdayPricingClaimPayload {
   v: 1;
@@ -34,23 +35,30 @@ export interface CreateWixBirthdayPricingClaimInput {
   now?: Date;
   /** Ten minutes is enough to create the visitor cart, without leaving a reusable promotion token around. */
   ttlSeconds?: number;
-  identityKeys?: readonly string[];
+  /**
+   * Required: the pilot contact's keys (`birthdayClaimIdentityKeys()`), at least one non-empty. A
+   * birthday claim without them would price anyone's booking, so the issuer refuses to mint one.
+   */
+  identityKeys: readonly string[];
 }
 
-export interface IssuePromotionClaimInput {
+interface PromotionClaimFields {
   packageId: string;
   serviceId: string;
   flightDate: string;
-  promoKind?: PromotionKind;
   discountPercent?: PromotionDiscountPercent;
   birthdayMonth?: number;
   birthdayDay?: number;
-  identityKeys?: readonly string[];
   secret: string;
   now?: Date;
   /** Ten minutes is enough to create the visitor cart, without leaving a reusable promotion token around. */
   ttlSeconds?: number;
 }
+
+/** A birthday claim (the default kind) must carry identity keys; a loyalty or prepaid claim may. */
+export type IssuePromotionClaimInput =
+  | (PromotionClaimFields & { promoKind?: 'birthday'; identityKeys: readonly string[] })
+  | (PromotionClaimFields & { promoKind: 'loyalty' | 'prepaid'; identityKeys?: readonly string[] });
 
 export interface VerifiedPromotionClaim {
   v: 1;
@@ -169,15 +177,19 @@ export async function issuePromotionClaim(input: IssuePromotionClaimInput): Prom
   const discountPercent = resolveDefaultDiscount(promoKind, input.discountPercent);
   const nowSeconds = Math.floor((input.now ?? new Date()).getTime() / 1_000);
 
+  const normalizedIdentityKeys = input.identityKeys?.filter((key) => key.length > 0);
   let b: string | undefined;
   if (promoKind === 'birthday') {
     if (input.birthdayMonth === undefined || input.birthdayDay === undefined) {
       throw new RangeError('Birthday promotion claim requires birthdayMonth and birthdayDay.');
     }
+    // Checked at run time too, for callers the types do not reach: an unbound claim is transferable.
+    if (!normalizedIdentityKeys || normalizedIdentityKeys.length === 0) {
+      throw new RangeError('Birthday promotion claim must be bound to the pilot contact (identityKeys).');
+    }
     b = monthDay(input.birthdayMonth, input.birthdayDay);
   }
 
-  const normalizedIdentityKeys = input.identityKeys?.filter((key) => key.length > 0);
   const payload: WixBirthdayPricingClaimPayload = {
     v: 1,
     p: input.packageId,

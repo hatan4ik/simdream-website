@@ -47,6 +47,7 @@ describe('unified promotion claim contract', () => {
       flightDate: '2026-11-13',
       birthdayMonth: 11,
       birthdayDay: 25,
+      identityKeys: ['pilot-identity-key'],
       secret: SECRET,
       now: NOW,
     });
@@ -56,6 +57,7 @@ describe('unified promotion claim contract', () => {
       flightDate: '2026-11-13',
       birthdayMonth: 11,
       birthdayDay: 25,
+      identityKeys: ['pilot-identity-key'],
       secret: SECRET,
       now: NOW,
     });

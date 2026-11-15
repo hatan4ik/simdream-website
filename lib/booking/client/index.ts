@@ -85,6 +85,7 @@ export {
 export {
   requestWixBirthdayPricingClaim,
   wixBirthdayClaimRequestBody,
+  WixBirthdayClaimContactError,
   type WixBirthdayClaimPilot,
   type WixBirthdayClaimRequestInput,
 } from './wix-birthday-claim';

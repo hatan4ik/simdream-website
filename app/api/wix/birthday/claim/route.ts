@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { readJsonBody } from '@/lib/http/read-json-body';
 import { parseWixBirthdayClaimRequest } from '@/lib/wix/birthday-claim-request';
 import { throttleBirthdayClaim } from '@/lib/wix/birthday-claim-throttle';
 import { getWixBirthdayPricingProviderConfig, issueWixBirthdayPricingClaim } from '@/lib/wix/birthday-pricing-server';
@@ -7,6 +8,8 @@ import { getWixBirthdayPricingProviderConfig, issueWixBirthdayPricingClaim } fro
 export const dynamic = 'force-dynamic';
 
 const INVALID_REQUEST_MESSAGE = 'Use a valid birthday, flight selection and email.';
+/** The browser sends a few hundred bytes of JSON; anything far larger is refused unread. */
+const MAX_BODY_BYTES = 8 * 1024;
 
 /**
  * Issues the opaque proof consumed by the Wix pricing provider, bound to the pilot's email (and
@@ -19,7 +22,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Birthday pricing is temporarily unavailable.' }, { status: 503 });
   }
 
-  const claimRequest = parseWixBirthdayClaimRequest(await request.json().catch(() => null));
+  const body = await readJsonBody(request, { maxBytes: MAX_BODY_BYTES, requireJsonContentType: true });
+  if (!body.ok) return body.response;
+  const claimRequest = parseWixBirthdayClaimRequest(body.body);
   if (!claimRequest) return NextResponse.json({ error: INVALID_REQUEST_MESSAGE }, { status: 400 });
 
   const refusal = await throttleBirthdayClaim(request, claimRequest.email);

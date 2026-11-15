@@ -15,6 +15,7 @@ import {
   recordNoteOnWixDraft,
   startLocalCheckout,
   startWixSubscriptionCheckout,
+  WixBirthdayClaimContactError,
   type WixSubscriptionBookingCopy,
 } from '@/lib/booking/client';
 import type { PilotDetails } from './use-pilot-details';
@@ -194,7 +195,12 @@ export function useBookingCheckout(args: UseBookingCheckoutArgs) {
       // fetch rejects with a TypeError on network loss; never show the raw "Failed to fetch".
       const offline = err instanceof TypeError || (typeof navigator !== 'undefined' && !navigator.onLine);
       setBookingError(
-        offline ? copy.offlineError : extractErrorMessage(err, copy.reservationCreateFailed)
+        offline
+          ? copy.offlineError
+          : // A birthday price needs a usable pilot email: point at the contact fields.
+            err instanceof WixBirthdayClaimContactError
+            ? copy.errorFillFields
+            : extractErrorMessage(err, copy.reservationCreateFailed)
       );
       setIsSubmitting(false);
     }
