@@ -64,6 +64,16 @@ export function formatBlockingCheckoutViolations(violations: readonly unknown[] 
   return parts.length > 0 ? parts.join('; ') : null;
 }
 
+/** Returns the user-facing error message when Cart V2 calculate reports blocking violations, or null. */
+export function blockingCheckoutViolationMessage(violations: readonly unknown[] | undefined): string | null {
+  if (!hasBlockingCheckoutViolations(violations)) return null;
+  const details = formatBlockingCheckoutViolations(violations);
+  console.error('Wix Cart calculate blocking violations', violations);
+  return details
+    ? `Wix could not validate this checkout (${details}). Please choose another option or time.`
+    : 'Wix could not validate this checkout. Please choose another time.';
+}
+
 /**
  * Creates a Cart V2 cart containing the Wix Bookings reservation and any mapped
  * Wix Stores add-on products (`quantity: 1`, `appId: WIX_STORES_APP_ID`).

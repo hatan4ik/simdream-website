@@ -1,11 +1,7 @@
 'use client';
 
 import { wixBirthdayPricingAdditionalFields, type WixBirthdayPricingClaimField } from './booking-additional-fields';
-import {
-  createWixCartForBooking,
-  formatBlockingCheckoutViolations,
-  hasBlockingCheckoutViolations,
-} from './booking-cart-create';
+import { blockingCheckoutViolationMessage, createWixCartForBooking } from './booking-cart-create';
 
 export { createWixCartForBooking };
 
@@ -208,15 +204,8 @@ function wixMoneyAmount(value: unknown): number | null {
  * other promotions before the hosted checkout opens.
  */
 function priceFromCalculation(calculation: WixCartCalculationResponse): WixCartPrice {
-  if (hasBlockingCheckoutViolations(calculation.summary?.violations)) {
-    const details = formatBlockingCheckoutViolations(calculation.summary?.violations);
-    console.error('Wix Cart calculate blocking violations', calculation.summary?.violations);
-    throw new WixBookingCheckoutClientError(
-      details
-        ? `Wix could not validate this checkout (${details}). Please choose another option or time.`
-        : 'Wix could not validate this checkout. Please choose another time.'
-    );
-  }
+  const violationMessage = blockingCheckoutViolationMessage(calculation.summary?.violations);
+  if (violationMessage) throw new WixBookingCheckoutClientError(violationMessage);
   // Wix represents a zero cart-level discount either as `0` or, for some
   // booking configurations, by omitting the optional field entirely.
   const discountIls = wixMoneyAmount(calculation.summary?.priceSummary?.discount?.amount) ?? 0;
