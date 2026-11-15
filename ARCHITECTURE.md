@@ -18,7 +18,7 @@ flowchart TD
     end
 
     subgraph RoutingLayer["Edge Routing & Next.js 16 App Router"]
-        CanonicalRedirects["Canonical 301 Permanent Redirects<br/>/simulator, /training ➔ /pro"]
+        CanonicalRedirects["Configured 301 Permanent Redirects<br/>/simulator, /training ➔ /pro • /aerophobia ➔ /fear-of-flying<br/>/book-online ➔ /book • legacy gift voucher ➔ /vouchers<br/>/cooperation ➔ /workshops • /pricing-plans/list ➔ /subscriptions<br/>/blog/:slug ➔ /post/:slug"]
         PublicPages["Public Pages<br/>/ • /about • /pro • /experiences • /book • /book/success • /offers<br/>/subscriptions • /subscriptions/thank-you • /workshops • /vouchers • /ground-school<br/>/contact • /rules • /privacy-policy • /refund • /blog • /post/[...segments]"]
         MemberPages["Member Area<br/>/dashboard • /login • /wix/members/callback<br/>legacy /auth/callback • /auth/reset-password"]
         AdminPages["Admin Dispatch Command Center<br/>/admin (Bookings, Vouchers, Workshops, Schedule Efficiency)"]
@@ -29,7 +29,7 @@ flowchart TD
         KantorovichEngine["Tiled Interval Scheduler Engine<br/>lib/scheduler/kantorovich-engine.ts"]
         MissionCalc["Mission Calculator<br/>Flight time + Addons + Voucher Manifest"]
         WixPlansResolver["Wix Pricing Plans Resolver<br/>lib/wix/plans.ts (Price & Pattern Matching)"]
-        ReviewsCache["Google Reviews Snapshot<br/>stored twice a day (06:00/17:00 Israel); no Google call per page view; no local fallback claims"]
+        ReviewsCache["Google Reviews Snapshot<br/>stored twice a day (06:00/17:00 Israel); without one, one Google read per server/window; last-known aggregate only when unavailable"]
     end
 
     subgraph APILayer["Next.js Route Handlers (24 route files)"]
@@ -44,7 +44,7 @@ flowchart TD
     subgraph PersistenceLayer["Persistence & External Services"]
         SupabaseDB[("Supabase PostgreSQL (Production)<br/>Row-Level Security & Exclusion Constraints")]
         InMemoryFallback[("In-Memory Store Fallback<br/>Local Dev & Non-500 Demo Resilience (ALLOW_IN_MEMORY_STORE)")]
-        StripeService["Stripe Hosted Checkout<br/>Card payment flow & Webhooks"]
+        StripeService["Legacy Stripe Hosted Checkout<br/>Card payment flow & Webhooks"]
         WixHeadless["Wix Headless Platform (@wix/sdk)<br/>Members • Calendar sessions • Bookings • Pricing Plans • Hosted Checkout"]
         GooglePlaces["Google Places + Cloud Translation<br/>Stored snapshot; process-window fallback; aggregate-only cold fallback"]
     end
@@ -70,7 +70,7 @@ flowchart TD
 
     KantorovichEngine --> SupabaseDB
     KantorovichEngine -.->|If unconfigured| InMemoryFallback
-    BookingAPIs --> StripeService
+    BookingAPIs -->|legacy mode: Wix adapter disabled| StripeService
     StripeService --> BookingAPIs
     SubscriptionAPIs --> WixHeadless
     BookingAPIs -.->|Optional shadow reads| WixHeadless
@@ -124,7 +124,7 @@ flowchart TD
     subgraph RecreationalFlow["Full 3-Step Storefront Flow (Recreational / Consumer)"]
         DetectPackage -->|category = 'recreational'| RecConfig["Display Full Catalog (30m, 45m, 60m, 90m)<br/>User Selects Pilot Level"]
         RecConfig --> Step1Rec["Step 1: Date & Slot Selection<br/>(Live Runway Capacity Bar)"]
-        Step1Rec --> Step2Rec["Step 2: Cockpit Add-ons & Combos<br/>(Cold & Dark, 7 World Trios, Extra Cockpit Guest)"]
+        Step1Rec --> Step2Rec["Step 2: Cockpit Add-ons & Combos<br/>(Cold & Dark, 8 World Trios, Extra Cockpit Guest)"]
         Step2Rec --> Step3Rec["Step 3: Pilot Manifest & Checkout<br/>(Voucher Reapply & Manifest Summary)"]
     end
 
@@ -134,7 +134,7 @@ flowchart TD
         SubAction --> SubCheckout(["POST /api/subscriptions/checkout"])
     end
 
-    Step3Pro --> SubmitCheckout(["POST /api/checkout (Stripe)"])
+    Step3Pro --> SubmitCheckout(["Checkout handoff<br/>Wix native when enabled; legacy /api/checkout otherwise"])
     Step3Rec --> SubmitCheckout
     SubCheckout --> WixRedirectFlow(["Wix Pricing Plans Hosted Checkout (@wix/redirects)"])
 ```
@@ -186,7 +186,9 @@ flowchart LR
 
 ---
 
-## 4. Payment & Checkout Lifecycle Sequence Diagram
+## 4. Legacy Supabase/Stripe Payment & Checkout Lifecycle Sequence Diagram
+
+This diagram applies only while `WIX_AVAILABILITY_ADAPTER_ENABLED` is disabled. When Wix authority is enabled, the browser revalidates the selected slot through `POST /api/wix/bookings/checkout`, creates the native Wix booking and Cart V2 draft, and opens Wix-hosted checkout; the local `POST /api/checkout` writer returns `409` rather than creating a competing reservation.
 
 ```mermaid
 sequenceDiagram
@@ -208,13 +210,13 @@ sequenceDiagram
 
     alt Fully Funded Voucher Applied
         Server->>DB: Mark Voucher Redeemed & Create Confirmed Booking
-        Server-->>Browser: HTTP 200 { success: true, bookingReference: "SD-..." }
+        Server-->>Browser: HTTP 201 { success: true, bookingReference: "SD-..." }
         Browser-->>Customer: Redirect to /book/success
     else Card Checkout
         Server->>DB: Create Pending Booking with UUID
         Server->>Stripe: Create Stripe Checkout Session (metadata: booking_id, slot_id)
         Stripe-->>Server: Checkout URL (stripe.com/pay/cs_test_...)
-        Server-->>Browser: HTTP 200 { checkoutUrl: "https://checkout.stripe.com/..." }
+        Server-->>Browser: HTTP 201 { checkoutUrl: "https://checkout.stripe.com/..." }
         deactivate Server
         Browser-->>Customer: Redirect to Stripe Hosted Checkout
         Customer->>Stripe: Completes Card Payment
