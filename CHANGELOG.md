@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.29.3](https://github.com/hatan4ik/simdream-website/compare/v1.29.2...v1.29.3) (2026-11-15)
+
+
+### Bug Fixes
+
+* **wix,booking,vouchers:** prefill customer info, birthDate, IL country, and inherit across pages ([#228](https://github.com/hatan4ik/simdream-website/issues/228)) ([50fa5d7](https://github.com/hatan4ik/simdream-website/commit/50fa5d714395f60a1b24c73c00f8e8fbb7162b52))
+
 ## [1.29.2](https://github.com/hatan4ik/simdream-website/compare/v1.29.1...v1.29.2) (2026-11-15)
 
 
