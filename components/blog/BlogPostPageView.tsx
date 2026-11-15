@@ -17,6 +17,7 @@ import {
   buildBlogPostingJsonLd,
 } from '@/lib/seo/blog-structured-data';
 import { blogPostPath } from '@/lib/seo/site-routes';
+import { serializeJsonLd } from '@/lib/seo/structured-data';
 import type { SupportedLanguage } from '@/lib/i18n/translations';
 import { isSupportedLanguage } from '@/lib/i18n/language-preference';
 import { BlogContentRenderer } from './BlogContentRenderer';
@@ -112,11 +113,11 @@ export function BlogPostPageView({ post }: BlogPostPageViewProps) {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(blogPostingJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(blogPostingJsonLd) }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbJsonLd) }}
       />
 
       <BlogPostLanguageSync
