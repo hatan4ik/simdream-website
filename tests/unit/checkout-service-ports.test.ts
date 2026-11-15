@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { createCheckoutService, CheckoutError } from '@/lib/booking/checkout-service';
 import {
   SlotReservationConflictError,
@@ -18,7 +18,9 @@ const SESSION: CardCheckoutSession = {
   sessionId: 'session-1',
   expiresAt: '2099-01-01T00:30:00.000Z',
 };
-const HOLD_CAP = 'You already have unpaid reservations in progress. Complete or cancel one first.';
+const HOLD_CAP =
+  'You already have unpaid reservations in progress. Complete one of those payments, or wait up to 30 minutes for one to expire.';
+const CHECKOUT_NOT_STORED = 'Hosted checkout not stored on its hold; checkout continues without resume.';
 const HOLD_IN_PROGRESS =
   'You already have an unpaid reservation for this departure. Complete that payment, or wait until it expires to change it.';
 const ALREADY_PAID = 'This departure is already paid. Your confirmation is on its way.';
@@ -187,33 +189,28 @@ test('checkout service stores the created hosted checkout on the pending booking
   expect(attached).toEqual([['booking-1', SESSION]]);
 });
 
-test('checkout service expires the new hosted checkout and releases the hold when it cannot be stored', async () => {
+test('checkout service still sends the pilot to the new hosted checkout when it cannot be stored with the hold', async () => {
   const { dependencies, calls } = recordingDependencies([]);
-  dependencies.repository.attachHostedCheckout = async () => {
-    throw new Error('storage unavailable');
+  const attach = dependencies.repository.attachHostedCheckout;
+  dependencies.repository.attachHostedCheckout = async (...args) => {
+    await attach(...args);
+    // An error that carries request data, so the test proves the service never logs the error itself.
+    throw new Error('column "stripe_checkout_url" does not exist for pilot@example.test');
   };
+  const log = vi.spyOn(console, 'error').mockImplementation(() => undefined);
 
-  await expect(createCheckoutService(dependencies).startBookingCheckout(checkoutRequest(), bookingInput())).rejects.toThrow(
-    'storage unavailable'
-  );
+  const result = await createCheckoutService(dependencies).startBookingCheckout(checkoutRequest(), bookingInput());
 
-  expect(calls.slice(-2)).toEqual(['expireHostedCheckout:session-2', 'cancelPendingBooking:booking-1']);
-});
-
-test('checkout service still releases the hold and reports the original failure when the new checkout cannot be expired', async () => {
-  const { dependencies, calls } = recordingDependencies([]);
-  dependencies.repository.attachHostedCheckout = async () => {
-    throw new Error('storage unavailable');
-  };
-  dependencies.cardCheckout.expireHostedCheckout = async () => {
-    throw new Error('provider unavailable');
-  };
-
-  await expect(createCheckoutService(dependencies).startBookingCheckout(checkoutRequest(), bookingInput())).rejects.toThrow(
-    'storage unavailable'
-  );
-
-  expect(calls.at(-1)).toBe('cancelPendingBooking:booking-1');
+  expect(result).toEqual({ kind: 'stripe', url: SESSION.url, sessionId: 'session-2' });
+  // The hold stays pending and its checkout open: neither is released nor expired.
+  expect(calls).toEqual([
+    'listUnpaidPendingBookings:pilot@example.test',
+    'assertBookableStart:2099-11-10',
+    'createBooking',
+    'createHostedCheckout',
+    'attachHostedCheckout:booking-1',
+  ]);
+  expect(log.mock.calls).toEqual([[CHECKOUT_NOT_STORED]]);
 });
 
 test('checkout service releases the hold without contacting the provider again when no hosted checkout was created', async () => {
@@ -250,6 +247,8 @@ test.each([
   ['a stored checkout without its URL', { stripeCheckoutUrl: undefined }, {}],
   ['a stored checkout without its expiry', { stripeCheckoutExpiresAt: undefined }, {}],
   ['no stored checkout at all', { stripeCheckoutSessionId: undefined, stripeCheckoutUrl: undefined, stripeCheckoutExpiresAt: undefined }, {}],
+  // An unreadable expiry proves nothing about the checkout, so it is never taken as "expired".
+  ['a stored expiry that is not a time', { stripeCheckoutExpiresAt: 'not-a-time' }, {}],
 ])(
   'checkout service releases nothing and answers 409 for a retry of a live hold with %s',
   async (_label, holdChanges: Partial<Booking>, retry: Record<string, unknown>) => {
@@ -294,6 +293,19 @@ test('checkout service never releases a hold whose checkout the provider reports
   await expect(createCheckoutService(dependencies).startBookingCheckout(checkoutRequest(), bookingInput())).rejects.toMatchObject({
     name: CheckoutError.name,
     message: ALREADY_PAID,
+    status: 409,
+  });
+  expect(calls).toEqual(['listUnpaidPendingBookings:pilot@example.test', 'expireHostedCheckout:session-1']);
+});
+
+test('checkout service keeps a hold whose checkout the provider reports in a state it does not know', async () => {
+  const hold = await storedHold({}, { ...SESSION, expiresAt: CLOCK.toISOString() });
+  // A future provider state: only the exact word "expired" may release a hold.
+  const { dependencies, calls } = recordingDependencies([hold], 'refunded' as unknown as HostedCheckoutFinalState);
+
+  await expect(createCheckoutService(dependencies).startBookingCheckout(checkoutRequest(), bookingInput())).rejects.toMatchObject({
+    name: CheckoutError.name,
+    message: HOLD_IN_PROGRESS,
     status: 409,
   });
   expect(calls).toEqual(['listUnpaidPendingBookings:pilot@example.test', 'expireHostedCheckout:session-1']);

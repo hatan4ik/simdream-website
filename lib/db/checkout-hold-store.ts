@@ -24,6 +24,15 @@ function isUnpaidHold(booking: Booking): boolean {
   return booking.status === 'pending' && booking.paymentStatus === 'pending';
 }
 
+/**
+ * A card checkout's hold. The card checkout records every booking it creates as `stripe` (a voucher
+ * booking is `voucher` and paid at once), so a pending booking entered another way, such as `desk`,
+ * never counts toward a pilot's unpaid holds.
+ */
+function isUnpaidCardHold(booking: Booking): boolean {
+  return isUnpaidHold(booking) && booking.paymentMethod === 'stripe';
+}
+
 /** True when bookings live in Supabase; throws when production has no storage (mirrors the order store). */
 function persistent(): boolean {
   if (!isProduction) return false;
@@ -32,9 +41,12 @@ function persistent(): boolean {
   throw new PersistenceError('Persistent storage is not configured.');
 }
 
-/** The unpaid holds of one pilot email; the store compares the email normalized. */
+/**
+ * The unpaid card holds of one pilot email; the store compares the email normalized. The lookup selects
+ * every column, so on a database without migration 013 it still reads, with no stored checkout.
+ */
 export async function listUnpaidPendingBookings(pilotEmail: string): Promise<Booking[]> {
-  return (await store.getBookingsByEmail(pilotEmail)).filter(isUnpaidHold);
+  return (await store.getBookingsByEmail(pilotEmail)).filter(isUnpaidCardHold);
 }
 
 /** Stores the hosted checkout on a booking that is still an unpaid hold; any other booking is left untouched. */

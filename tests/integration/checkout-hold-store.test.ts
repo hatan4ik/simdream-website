@@ -48,12 +48,14 @@ describe('unpaid holds in the in-memory store', () => {
     return { app, holds, create };
   }
 
-  it('lists only the unpaid pending bookings of one normalized email', async () => {
+  it('lists only the unpaid pending card bookings of one normalized email', async () => {
     const { holds, create } = await memoryHolds();
     const pending = await create({ startTime: '09:00' });
     await create({ startTime: '10:00', status: 'confirmed', paymentStatus: 'paid' });
     await create({ startTime: '11:00', status: 'cancelled' });
     await create({ startTime: '12:00', pilotEmail: 'someone.else@holds.test' });
+    // Pending and unpaid, but entered at the desk: not a card checkout's hold.
+    await create({ startTime: '13:00', paymentMethod: 'desk' });
 
     const listed = await holds.listUnpaidPendingBookings('  Hold.Owner@HOLDS.test ');
 
@@ -123,6 +125,7 @@ describe('unpaid holds in Postgres', () => {
       pendingRow({ status: 'confirmed', payment_status: 'paid' }),
       pendingRow({ status: 'cancelled' }),
       pendingRow({ pilot_email: 'someone.else@holds.test' }),
+      pendingRow({ payment_method: 'desk' }),
     ]);
 
     const listed = await holds.listUnpaidPendingBookings('Hold.Owner@holds.test');
@@ -134,6 +137,24 @@ describe('unpaid holds in Postgres', () => {
       stripeCheckoutUrl: CHECKOUT.url,
       stripeCheckoutExpiresAt: '2026-11-01T06:30:00+00:00',
     });
+  });
+
+  it('reads a hold from a database that does not have the migration 013 columns yet', async () => {
+    // The listing selects `*`, so Postgres returns the columns that exist and never names the missing ones.
+    const unmigrated = pendingRow();
+    for (const column of ['stripe_checkout_session_id', 'stripe_checkout_url', 'stripe_checkout_expires_at']) {
+      expect(unmigrated).not.toHaveProperty(column);
+    }
+    const { holds } = await postgresHolds([unmigrated]);
+
+    const [hold] = await holds.listUnpaidPendingBookings(PILOT);
+
+    expect(hold).toMatchObject({ id: unmigrated.id, status: 'pending', paymentStatus: 'pending' });
+    expect([hold.stripeCheckoutSessionId, hold.stripeCheckoutUrl, hold.stripeCheckoutExpiresAt]).toEqual([
+      undefined,
+      undefined,
+      undefined,
+    ]);
   });
 
   it('reports a failed write as unavailable storage and logs only the database error code', async () => {

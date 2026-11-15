@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { bookingCheckoutBody, loadApp, type TestApp } from '../support/app';
 import { checkoutSessionEvent } from '../support/stripe';
 import {
@@ -21,7 +21,9 @@ import { readJson } from '../support/http';
 
 const DAY = EMPTY_DAY.sunday;
 const PILOT = 'returning.pilot@holds.test';
-const HOLD_CAP = 'You already have unpaid reservations in progress. Complete or cancel one first.';
+const HOLD_CAP =
+  'You already have unpaid reservations in progress. Complete one of those payments, or wait up to 30 minutes for one to expire.';
+const CHECKOUT_NOT_STORED = 'Hosted checkout not stored on its hold; checkout continues without resume.';
 const SLOT_TAKEN = 'The selected departure slot is no longer available.';
 const HOLD_IN_PROGRESS =
   'You already have an unpaid reservation for this departure. Complete that payment, or wait until it expires to change it.';
@@ -58,6 +60,44 @@ describe('POST /api/checkout: stored hosted checkout', () => {
     const desk = await readJson(await GET(adminRequest(`/api/bookings?id=${hold.id}`)));
     expect(desk.status).toBe(200);
     expectContract(bookingContract, desk.body);
+  });
+
+  describe('when the hosted checkout cannot be stored (for example before migration 013)', () => {
+    afterEach(() => {
+      vi.doUnmock('@/lib/db/checkout-hold-store');
+    });
+
+    it('still sends the pilot to Stripe, keeps the hold pending, and logs one fixed line', async () => {
+      // The Supabase adapter's refusal of a write to columns that do not exist yet.
+      vi.doMock('@/lib/db/checkout-hold-store', async (importOriginal) => ({
+        ...(await importOriginal<typeof import('@/lib/db/checkout-hold-store')>()),
+        attachHostedCheckout: async () => {
+          throw new (await import('@/lib/db/store')).PersistenceError('Persistent storage operation failed.');
+        },
+      }));
+      const app = await loadApp({ stripe: 'mocked' });
+      const log = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+      const startTime = await openStart(app);
+
+      const { response, session } = await startCardCheckout(app, { startTime });
+
+      expect(response.status).toBe(201);
+      expect(session?.url).toBe(`https://checkout.stripe.com/c/pay/${session?.sessionId}`);
+      const [hold] = await unpaidHolds(app);
+      expect(hold).toMatchObject({ startTime, status: 'pending', paymentStatus: 'pending' });
+      expect(hold.stripeCheckoutSessionId).toBeUndefined();
+      expect(app.expiredCheckoutSessions).toEqual([]);
+      expect(log.mock.calls).toEqual([[CHECKOUT_NOT_STORED]]);
+
+      // Without a stored checkout nothing can be verified, so the same pilot's retry waits for Stripe's expiry.
+      const retry = await startCardCheckout(app, { startTime });
+
+      expect(retry.response.status).toBe(409);
+      expect(expectContract(errorBody, retry.response.body).error).toBe(HOLD_IN_PROGRESS);
+      expect(await unpaidHolds(app)).toEqual([hold]);
+      expect(app.checkoutSessions).toHaveLength(1);
+      expect(app.expiredCheckoutSessions).toEqual([]);
+    });
   });
 });
 
@@ -102,6 +142,41 @@ describe('POST /api/checkout: concurrent unpaid holds per email', () => {
     await deliverWebhook(app, checkoutSessionEvent('checkout.session.completed', { metadata: { bookingId: paid.id } }));
     const afterPayment = await startCardCheckout(app, { startTime: await openStart(app) });
     expect(afterPayment.response.status).toBe(201);
+  });
+
+  it('does not count pending bookings that are not card checkouts', async () => {
+    const app = await loadApp({ stripe: 'mocked' });
+    // Bookings the desk entered by hand for this pilot: pending and unpaid, but never a card checkout's hold.
+    for (const [startTime, endTime] of [['09:00', '09:30'], ['12:00', '12:30']]) {
+      await app.store.createBooking({
+        packageId: 'pkg-discovery-30',
+        packageTitle: 'Discovery Flight',
+        durationMinutes: 30,
+        bookingDate: EMPTY_DAY.saturday,
+        startTime,
+        endTime,
+        pilotName: 'Returning Pilot',
+        pilotEmail: PILOT,
+        pilotPhone: '+972501234567',
+        experienceLevel: 'beginner',
+        addons: [],
+        subtotalIls: 450,
+        discountIls: 0,
+        totalIls: 450,
+        status: 'pending',
+        paymentStatus: 'pending',
+        paymentMethod: 'desk',
+      });
+    }
+
+    const first = await startCardCheckout(app, { startTime: await openStart(app) });
+    const second = await startCardCheckout(app, { startTime: await openStart(app) });
+    const third = await startCardCheckout(app, { startTime: await openStart(app) });
+
+    expect([first.response.status, second.response.status]).toEqual([201, 201]);
+    // The two card holds still reach the cap.
+    expect(third.response.status).toBe(429);
+    expect(expectContract(errorBody, third.response.body).error).toBe(HOLD_CAP);
   });
 });
 

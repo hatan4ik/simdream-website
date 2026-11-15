@@ -32,7 +32,10 @@ export interface CheckoutRepository {
   createBooking(draft: BookingDraft): Promise<Booking>;
   updateBookingStatus(id: string, status: Booking['status']): Promise<Booking | undefined>;
   cancelPendingBooking(id: string): Promise<Booking | undefined>;
-  /** Unpaid card holds (`status` and `paymentStatus` both `pending`) of one pilot email, compared normalized. */
+  /**
+   * Unpaid card holds (`status` and `paymentStatus` both `pending`, `paymentMethod` `stripe`) of one
+   * pilot email, compared normalized.
+   */
   listUnpaidPendingBookings(pilotEmail: string): Promise<Booking[]>;
   /** Remembers the hosted checkout of a still-unpaid pending booking, so a retry can resume it. */
   attachHostedCheckout(bookingId: string, session: CardCheckoutSession): Promise<void>;

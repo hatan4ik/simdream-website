@@ -27,6 +27,9 @@ export { CheckoutError };
 type BookingCheckoutInput = z.infer<typeof bookingCheckoutSchema>;
 type MissionSlot = NonNullable<CalculateMissionManifestInput['slot']>;
 
+/** Fixed and data-free: the failure itself may carry storage details, so it is never logged. */
+const HOSTED_CHECKOUT_NOT_STORED_LOG = 'Hosted checkout not stored on its hold; checkout continues without resume.';
+
 type BookingCheckoutOutcome =
   | { kind: 'resumed'; session: CardCheckoutSession }
   | { kind: 'created'; booking: Booking; isVoucherPayment: boolean };
@@ -248,7 +251,7 @@ export function createCheckoutService(dependencies: CheckoutDependencies) {
         };
       }
 
-      let session: CardCheckoutSession | undefined;
+      let session: CardCheckoutSession;
       try {
         session = await dependencies.cardCheckout.createHostedCheckout({
           title: 'Sim Dream: ' + booking.packageTitle + ' (' + booking.durationMinutes + ' min)',
@@ -259,15 +262,19 @@ export function createCheckoutService(dependencies: CheckoutDependencies) {
           successUrl,
           cancelUrl: origin + '/book?cancelled=true',
         });
-        // Stored with the hold, so the same pilot's retry can resume this checkout (checkout-hold-policy.ts).
-        await dependencies.repository.attachHostedCheckout(booking.id, session);
-        return stripeRedirect(session);
       } catch (error) {
-        // A released hold never keeps a payable checkout; the original failure is what the caller sees.
-        if (session) await dependencies.cardCheckout.expireHostedCheckout(session.sessionId).catch(() => undefined);
         await dependencies.repository.cancelPendingBooking(booking.id);
         throw error;
       }
+
+      // Stored with the hold, so the same pilot's retry can resume this checkout (checkout-hold-policy.ts).
+      // Best effort: a hold without a stored checkout answers its retries 409 until Stripe's expiry releases it.
+      try {
+        await dependencies.repository.attachHostedCheckout(booking.id, session);
+      } catch {
+        console.error(HOSTED_CHECKOUT_NOT_STORED_LOG);
+      }
+      return stripeRedirect(session);
     },
 
     async startVoucherCheckout(request: Request, input: z.infer<typeof voucherCheckoutSchema>) {
