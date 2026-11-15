@@ -204,7 +204,7 @@ sequenceDiagram
     actor Admin as Admin Dispatch Board
 
     Customer->>Browser: Selects Package, Slot, Pilot Manifest & Clicks Checkout
-    Browser->>Server: POST /api/checkout (IDs only: packageId, slotId, addonIds)
+    Browser->>Server: POST /api/checkout (selection, manifest, and consent inputs; no price, duration, or discount authority)
 
     activate Server
     Server->>DB: Fetch authoritative package price, slot capacity & existing bookings

@@ -3,6 +3,8 @@
 > **Status:** Draft proof of concept (POC), prepared 2026-11-11.
 >
 > This document authorizes **no** provisioning, installation, deployment, secret creation, workflow disablement, tag, release, or Wix mutation. It describes a safe evaluation path only. GitHub Actions, the current Wix delivery workflow, the staging site, and the live site remain unchanged.
+>
+> **Repository reconciliation — 2026-11-15:** This POC is still unimplemented. The repository has no `Jenkinsfile`, `dagger.json`, `Taskfile`, or `justfile`; its active automation remains the tracked GitHub Actions workflows under `.github/workflows/`. This file is a future evaluation design, not the current CI/CD runbook or a deployment authorization.
 
 ## 1. Decision in one sentence
 
