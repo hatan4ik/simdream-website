@@ -16,6 +16,7 @@ import {
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
+import { HoneypotField } from '@/components/ui/HoneypotField';
 import { CorporateGoal } from '@/types';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { useCustomerContactSeed } from '@/lib/customer/customer-draft';
@@ -32,6 +33,8 @@ export default function WorkshopsPage() {
     targetDate: '',
     primaryGoal: 'high_stress_decision_making' as CorporateGoal,
     message: '',
+    /** Honeypot: stays empty for a person; the server drops a lead that fills it. */
+    website: '',
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -202,6 +205,13 @@ export default function WorkshopsPage() {
                 <span>{errorMessage}</span>
               </div>
             )}
+
+            <HoneypotField
+              label={t.workshops.honeypotLabel}
+              name="workshop_company_site"
+              value={formData.website}
+              onChange={(website) => setFormData((current) => ({ ...current, website }))}
+            />
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="space-y-2">

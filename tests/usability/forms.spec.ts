@@ -56,8 +56,10 @@ const FORMS: readonly FormUnderTest[] = [
   },
 ];
 
+/** The controls a person can reach. A honeypot sits inside an aria-hidden region on purpose, so it is not one of them. */
 function visibleControls(page: Page): Locator {
-  return page.locator('input:not([type="hidden"]):visible, select:visible, textarea:visible');
+  const reachable = ':not([aria-hidden="true"] *)';
+  return page.locator(`input:not([type="hidden"])${reachable}:visible, select${reachable}:visible, textarea${reachable}:visible`);
 }
 
 test.describe('form control labelling', () => {
@@ -228,5 +230,42 @@ test.describe('validation and error feedback', () => {
     await expect(message).toBeVisible();
 
     expect(await isAnnounced(message)).toBe(true);
+  });
+});
+
+test.describe('workshop inquiry honeypot', () => {
+  const TRAP = 'input[name="workshop_company_site"]';
+
+  test('is unreachable and silent for a person, and the form posts it empty', async ({ page }) => {
+    let posted: Record<string, unknown> | undefined;
+    await page.route(
+      (url) => url.pathname === '/api/workshops',
+      (route) => {
+        if (route.request().method() !== 'POST') return route.fallback();
+        posted = route.request().postDataJSON() as Record<string, unknown>;
+        return route.fulfill({ status: 201, json: { id: '00000000-0000-4000-8000-000000000000', status: 'new' } });
+      }
+    );
+    await gotoSettled(page, '/workshops');
+    const trap = page.locator(TRAP);
+
+    // Out of the tab order and out of the accessibility tree, so neither keyboard nor screen reader meets it.
+    await expect(trap).toHaveAttribute('tabindex', '-1');
+    expect(await trap.evaluate((field) => field.closest('[aria-hidden="true"]') !== null)).toBe(true);
+    await expect(page.getByRole('textbox', { name: /leave this field empty/i })).toHaveCount(0);
+    // Far off-screen on the start side (left in LTR, right in RTL), so a sighted visitor never sees it or any text with it.
+    const box = await trap.boundingBox();
+    const viewportWidth = page.viewportSize()?.width ?? 0;
+    if (!box) throw new Error('The honeypot has no layout box to measure.');
+    expect(box.x + box.width <= 0 || box.x >= viewportWidth).toBe(true);
+
+    await page.getByPlaceholder('e.g. Acme Cyber Technologies').fill('QA Flight Ops');
+    await page.getByPlaceholder('e.g. Sarah Levi, VP HR').fill('Noa Tester');
+    await page.getByPlaceholder('sharon@company.com').fill('noa.tester@example.com');
+    await page.getByPlaceholder('+972-54-000-0000').fill('054-555-0104');
+    await page.getByRole('button', { name: 'Submit Workshop Inquiry' }).click();
+
+    await expect(page.getByText('Inquiry Received Successfully!')).toBeVisible();
+    expect(posted).toMatchObject({ companyName: 'QA Flight Ops', website: '' });
   });
 });

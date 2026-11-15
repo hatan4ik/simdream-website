@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:a9cb14eb2ed6aa57bfbb9fa69f24b217345714381c1778f585d999b09ef3eba3 -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:391199f3f5928c707e9380269709db39cd865cdc1ee8327614daec7835c7f0c9 -->
 
 ## Verification contract
 
@@ -342,7 +342,7 @@ Add 3 curated one-click combos. Localize every package and add-on in all six lan
 | `/api/webhooks/stripe` | POST | Stripe signature | Payment state machine |
 | `/api/bookings` | GET / POST / PATCH | GET `?ref=` public narrow projection, else admin; POST 405 | Booking lookup and admin changes |
 | `/api/vouchers` | GET / POST / PATCH | GET admin; POST public verify; PATCH admin redeem | Vouchers |
-| `/api/workshops` | GET / POST / PATCH | POST public; else admin | Corporate leads |
+| `/api/workshops` | GET / POST / PATCH | POST public; else admin | Corporate leads. The public POST answers in this order: body read through `readJsonBody()` (`lib/http/read-json-body.ts`, 8 KiB cap on the bytes that arrive, 413 / 400), same-origin (`rejectCrossOrigin()`, 403), honeypot (`website`, a filled trap gets the same 201 `{ id, status }` and stores nothing), schema (400), then `workshop-inquiry-ip` 5 per hour per client address (429 with `Retry-After`; limiter unavailable 503, `no-store`) |
 | `/api/reviews` | GET / POST | GET public (stored snapshot, 1 min shared freshness, never a Google call); POST admin sync | Google reviews |
 | `/api/reviews/refresh` | POST | `REVIEWS_REFRESH_TOKEN` Bearer only (503 unconfigured, 401 otherwise) | Reads the newest Google reviews for all six languages and replaces the stored snapshot; called twice a day by the snapshot workflow |
 | `/api/my-bookings`, `/api/my-bookings/[ref]/receipt` | GET | member | History and receipts |
@@ -625,7 +625,7 @@ components/
   scheduler/ AmazonFlightStorefront KantorovichCalendarScheduler
   reviews/ReviewMeta               # header dropdown only; no page carousel
   about/AboutExperienceView  pro/ProSessionsView  fear-of-flying/FearOfFlyingView  vouchers/ VoucherSenderFields GiftCardDesignPicker  blog/BlogCard BlogContentRenderer BlogConversionCta BlogIndexView BlogPostLanguageSync BlogPostPageView  legal/ PrivacyPolicyContentView RulesContentView
-  seo/ StructuredDataJsonLd FaqPageJsonLd  ui/ Button Card Badge
+  seo/ StructuredDataJsonLd FaqPageJsonLd  ui/ Button Card Badge HoneypotField
 lib/
   scheduler/ kantorovich-engine mission-calculator package-presentation tiled-interval-optimizer israel-clock booking-horizon
   booking/checkout-service checkout-error checkout-ports checkout-composition checkout-runtime checkout-throttle checkout-hold-policy
@@ -633,7 +633,7 @@ lib/
   catalog/gift-voucher-packages  data/experience-routes subscription-passes subscription-page-copy blog-posts blog-categories blog-authors blog-seo blog-short-slugs blog-legacy-slugs  db/ store checkout-hold-store schema.sql seed-data supabase-admin migrations/
   auth/ admin-guard request-auth member-ownership safe-redirect auth-context
   customer/ customer-draft
-  security/rate-limit client-address constant-time
+  security/rate-limit client-address constant-time same-origin honeypot  http/read-json-body
   i18n/ translations language-context language-preference locale-routing calendar-presentation booking-blueprint-copy wix-subscription-booking-copy
   config/ facility-info server-env use-live-facility-status
   theme/ui-theme-context  ui/ use-client-value use-modal-focus  seo/ seo-config structured-data site-routes llms-txt blog-structured-data blog-post-metadata

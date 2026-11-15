@@ -26,7 +26,7 @@ If a credential reaches Git history, a public issue, an action log, or any other
 
 ## Client address for rate limiting
 
-The limits that count attempts per client (`/api/contact`, `/api/ground-school/inquiries`, voucher-code checks on `/api/vouchers`, failed admin Basic auth, checkout initialization on `/api/checkout`, `/api/refund-requests` and its lookup) key on the address `rateLimitClientAddress()` (`lib/security/rate-limit.ts`) resolves through `resolveClientAddress()` (`lib/security/client-address.ts`). The address is hashed together with the limit's scope before it is stored, and it is never logged.
+The limits that count attempts per client (`/api/contact`, `/api/ground-school/inquiries`, `/api/workshops`, voucher-code checks on `/api/vouchers`, failed admin Basic auth, checkout initialization on `/api/checkout`, `/api/refund-requests` and its lookup) key on the address `rateLimitClientAddress()` (`lib/security/rate-limit.ts`) resolves through `resolveClientAddress()` (`lib/security/client-address.ts`). The address is hashed together with the limit's scope before it is stored, and it is never logged.
 
 **Trust model.** A forwarding header is a claim made by whoever sent the request. It names the client only when the edge in front of the application overwrites it, or appends to it, on every request, and the application cannot tell on its own which headers its edge controls. The deployer therefore names that header, and the server reads exactly one header, never "the first one that happens to be present":
 
@@ -62,6 +62,7 @@ Getting it wrong has two failure modes. A header the edge does not overwrite, or
 - Durable per-scope attempt counters that answer 503 when their storage is unavailable: `lib/security/rate-limit.ts` (`consumeRateLimit()`, migration `005`), keyed by `lib/security/client-address.ts`.
 - Dispatch inquiries, five per hour per client, JSON only, 8 KiB at most: `app/api/contact/route.ts`.
 - Ground School enrollment requests, five per hour per client: `app/api/ground-school/inquiries/route.ts`.
+- Corporate workshop inquiries, five per hour per client, an 8 KiB body cap on the bytes that arrive, cross-origin refusal and a honeypot field that a script fills and a person never meets (a filled trap gets the same 201 and stores nothing): `app/api/workshops/route.ts`, `lib/http/read-json-body.ts`, `lib/security/same-origin.ts`, `lib/security/honeypot.ts`, `components/ui/HoneypotField.tsx`.
 - Voucher-code checks, per client and per code: `app/api/vouchers/route.ts`.
 - Admin Basic auth, failed attempts per client and per user name, credentials compared in constant time: `lib/auth/admin-guard.ts`, `lib/security/constant-time.ts`.
 - Checkout initialization per client, email and departure, and the unpaid-hold rules: `lib/booking/checkout-throttle.ts`, `lib/booking/checkout-hold-policy.ts`.
