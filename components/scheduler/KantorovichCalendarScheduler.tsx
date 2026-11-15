@@ -27,7 +27,7 @@ import { useModalFocus } from '@/lib/ui/use-modal-focus';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { type Language, type LocalizedRecord } from '@/lib/i18n/translations';
 import { formatCalendarDate, formatCalendarDayNumber } from '@/lib/i18n/calendar-presentation';
-import { SLOT_PERIODS } from '@/lib/scheduler/availability-view-model';
+import { SLOT_PERIODS, type DurationAvailability } from '@/lib/scheduler/availability-view-model';
 import { addMinutesToTime, packagePriceForSlot } from '@/lib/scheduler/mission-calculator';
 import { getPackageFormulaBadge } from '@/lib/scheduler/package-presentation';
 import { BOOKING_BLUEPRINT_COPY } from '@/lib/i18n/booking-blueprint-copy';
@@ -44,7 +44,7 @@ interface KantorovichCalendarSchedulerProps {
   selectedSlot: FlightSlot | null;
   onSelectSlot: (slot: FlightSlot) => void;
   efficiencyReport: PublicCapacityReport | null;
-  durationAvailability?: Record<number, { availableCount: number; minPriceIls: number }>;
+  durationAvailability?: DurationAvailability;
   loading: boolean;
   /** The availability request failed: show the error and a retry, never a sold-out day (REL-10). */
   slotsLoadFailed?: boolean;

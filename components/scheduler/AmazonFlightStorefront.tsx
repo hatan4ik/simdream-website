@@ -41,7 +41,7 @@ import { useModalFocus } from '@/lib/ui/use-modal-focus';
 import { useLanguage } from '@/lib/i18n/language-context';
 import type { Language, LocalizedRecord } from '@/lib/i18n/translations';
 import { formatCalendarDate, formatCalendarDayNumber } from '@/lib/i18n/calendar-presentation';
-import { SLOT_PERIODS } from '@/lib/scheduler/availability-view-model';
+import { SLOT_PERIODS, type DurationAvailability } from '@/lib/scheduler/availability-view-model';
 import { canAddonFitInSlot, sanitizePackageTitle } from '@/lib/scheduler/mission-calculator';
 import { getPackageFormulaBadge } from '@/lib/scheduler/package-presentation';
 import { BOOKING_BLUEPRINT_COPY } from '@/lib/i18n/booking-blueprint-copy';
@@ -57,7 +57,7 @@ interface AmazonFlightStorefrontProps {
   slots: FlightSlot[];
   selectedSlot: FlightSlot | null;
   onSelectSlot: (slot: FlightSlot) => void;
-  durationAvailability: Record<number, { availableCount: number; minPriceIls: number }>;
+  durationAvailability: DurationAvailability;
   loadingSlots: boolean;
   /** The last slots request failed; show a load error with a retry instead of a sold-out day. */
   slotsLoadFailed?: boolean;
