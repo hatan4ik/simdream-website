@@ -10,6 +10,14 @@
 
 ## Product changes by version
 
+### [v1.29.4](https://github.com/hatan4ik/simdream-website/releases/tag/v1.29.4) — 2026-11-15
+
+#### Bug Fixes
+
+- **security:** throttle checkout, bind Wix pricing and claims, and protect public forms (#238) (e126fb5)
+
+Deployment evidence: [GitHub Release](https://github.com/hatan4ik/simdream-website/releases/tag/v1.29.4).
+
 ### [v1.29.3](https://github.com/hatan4ik/simdream-website/releases/tag/v1.29.3) — 2026-11-15
 
 #### Bug Fixes
