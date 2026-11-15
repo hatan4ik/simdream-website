@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:1133d23525e33a88085e2b7aa713cb13d8f78e23e709a5ac473e36a0dc6eefa0 -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:11f2a2c8303a22be403e72e69e15e08f33e6ee36b3103fedb92c167dfc9e43d2 -->
 
 ## Verification contract
 
@@ -280,6 +280,7 @@ Add 3 curated one-click combos. Localize every package and add-on in all six lan
   - `KantorovichCalendarScheduler` (guided wizard).
 - Both call one hook, `useSchedulerViewModel` (`components/scheduler/hooks/`), over the pure view-model in `lib/scheduler/availability-view-model.ts`, and keep only their own markup and copy: `countOpenSlots()` and `groupOpenSlotsByPeriod()` (open slots only, morning before 15:00, afternoon before 18:00, then evening), `listPackageOptions()` (every bookable package or duration of the day with its 0-slot state, open-slot count and from-price; the wizard lists one option per duration and selects by duration, the storefront one card per package and selects by id), `zeroSlotAlternatives()` (the other options with open departures that day) and `nextDayRecovery()` (the next day, disabled past the booking horizon). The hook also holds the week/month switch and the browsed month.
 - `BookingWeekPager` and `BookingMonthPager` are their shared, six-language navigation boundaries. The week pager shifts the selected Israel date by exactly seven days and the month pager by one month; both prevent travel before today and past the one-year booking horizon (the next control is disabled, days past the horizon are disabled, and a short note explains the limit), and both offer a **Today** button that returns to today's date once the view has moved away from it. Only directional chevrons flip for RTL (not text).
+- Both render one `PackageInclusionsDialog` for a package's inclusions (the caller's `useModalFocus()` traps and restores focus); the two differ only in the overlay, panel and select-button class strings they pass.
 - The calendar defaults to a **localized week view**, with the month grid retained as an explicit toggle. Weeks start on Sunday for he, ar and en, and on Monday for ru and fr. RTL arrows are flipped.
 - `/book` renders a localized initialization state until the browser supplies the live **Israel** date; it never places a fictional date in server HTML. Do not read the device clock in calendar render paths: a visitor west of UTC must never get a date-shift or React hydration mismatch.
 - **Never hide packages or durations** with zero open slots. Show them with a "0 slots open today" badge and keep the user's selection.
@@ -625,7 +626,7 @@ app/
 components/
   brand/BrandLogo.tsx            # BrandLogo (airplane + wordmark), BrandMark (airplane)
   layout/  Navbar Footer LanguageSelector UiThemeSwitcher CockpitToneSwitcher LiveMetarBar SkipLink navbar/ (modular navigation and locale href)
-  scheduler/ AmazonFlightStorefront KantorovichCalendarScheduler hooks/use-scheduler-view-model
+  scheduler/ AmazonFlightStorefront KantorovichCalendarScheduler PackageInclusionsDialog hooks/use-scheduler-view-model
   reviews/ReviewMeta               # header dropdown only; no page carousel
   about/AboutExperienceView  pro/ProSessionsView  fear-of-flying/FearOfFlyingView  vouchers/ VoucherSenderFields GiftCardDesignPicker  blog/BlogCard BlogContentRenderer BlogConversionCta BlogIndexView BlogPostLanguageSync BlogPostPageView  legal/ PrivacyPolicyContentView RulesContentView
   seo/ StructuredDataJsonLd FaqPageJsonLd  ui/ Button Card Badge HoneypotField

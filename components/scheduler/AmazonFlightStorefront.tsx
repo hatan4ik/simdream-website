@@ -27,6 +27,7 @@ import { Badge } from '@/components/ui/Badge';
 import { StorefrontVoucherBox } from '@/components/booking/StorefrontVoucherBox';
 import { BookingMonthPager } from '@/components/scheduler/BookingMonthPager';
 import { BookingWeekPager } from '@/components/scheduler/BookingWeekPager';
+import { PackageInclusionsDialog } from '@/components/scheduler/PackageInclusionsDialog';
 import { useSchedulerViewModel } from '@/components/scheduler/hooks';
 import {
   FlightSlot,
@@ -1482,136 +1483,17 @@ export function AmazonFlightStorefront({
           MISSION BLUEPRINT / WHAT'S INCLUDED INTERACTIVE MODAL DIALOG
          ===================================================================== */}
       {blueprintPackage && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="blueprint-modal-title"
-          className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 px-safe-area-4 pb-safe-area-4"
-          onClick={() => setBlueprintPackage(null)}
-        >
-          <div
-            ref={blueprintPanelRef}
-            tabIndex={-1}
-            className="relative max-w-2xl w-full rounded-2xl border-2 border-sky-500/40 bg-slate-900 shadow-2xl p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto focus:outline-none"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Header */}
-            <div className="flex items-start justify-between gap-4 border-b border-slate-800 pb-4">
-              <div>
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-sky-500/15 border border-sky-500/30 text-sky-300 text-xs font-mono font-bold">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                  <span>{bpCopy.badge}</span>
-                </div>
-                <h3 id="blueprint-modal-title" className="text-xl sm:text-2xl font-black text-white mt-1">
-                  {blueprintPackage.title}
-                </h3>
-                <p className="text-xs sm:text-sm text-slate-300 font-mono mt-0.5">
-                  <strong className="text-amber-400">{bpCopy.duration(blueprintPackage.durationMinutes)}</strong> • {formatCurrency(blueprintPackage.priceIls)}
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setBlueprintPackage(null)}
-                aria-label={bpCopy.closeDialogLabel}
-                className="p-1.5 rounded-lg border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Inclusions Breakdown */}
-            <div className="space-y-4 text-xs sm:text-sm">
-              <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-3">
-                <h4 className="font-bold text-white flex items-center gap-2 text-sm">
-                  <Plane className="w-4 h-4 text-sky-400" />
-                  <span>{bpCopy.missionArch}</span>
-                </h4>
-                <ul className="space-y-2 text-slate-300">
-                  <li className="flex items-start gap-2">
-                    <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                    <span>
-                      <strong className="text-white">{bpCopy.handsOnPic}</strong>{' '}
-                      {bpCopy.handsOnDesc(blueprintPackage.durationMinutes)}
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                    <span>
-                      <strong className="text-white">{bpCopy.takeoffTitle}</strong>{' '}
-                      {bpCopy.takeoffDesc}
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                    <span>
-                      <strong className="text-white">{bpCopy.worldTitle}</strong>{' '}
-                      {blueprintPackage.durationMinutes === 60
-                        ? bpCopy.world60
-                        : blueprintPackage.durationMinutes === 90
-                        ? bpCopy.world90
-                        : blueprintPackage.category === 'training'
-                        ? bpCopy.worldPro
-                        : bpCopy.worldBasic}
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                    <span>
-                      <strong className="text-white">{bpCopy.observersTitle}</strong>{' '}
-                      {bpCopy.observersDesc}
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                    <span>
-                      <strong className="text-white">{bpCopy.guidanceTitle}</strong>{' '}
-                      {bpCopy.guidanceDesc}
-                    </span>
-                  </li>
-                </ul>
-              </div>
-
-              {/* Package Features List */}
-              <div className="space-y-2">
-                <p className="text-[11px] font-mono uppercase text-slate-400 font-bold">
-                  {bpCopy.highlightsTitle}
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-300">
-                  {blueprintPackage.features.map((feat, idx) => (
-                    <div key={idx} className="flex items-start gap-2 p-2 rounded-lg bg-slate-950/40 border border-slate-800/80">
-                      <span className="w-1.5 h-1.5 rounded-full bg-sky-400 shrink-0 mt-1.5" />
-                      <span>{feat}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Modal Footer CTAs */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-800">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => setBlueprintPackage(null)}
-                className="w-full sm:w-auto text-slate-400 hover:text-white"
-              >
-                {bpCopy.closeBtn}
-              </Button>
-              <Button
-                type="button"
-                onClick={() => {
-                  onSelectPackage(blueprintPackage);
-                  setBlueprintPackage(null);
-                }}
-                className="w-full sm:w-auto font-black bg-amber-400 hover:bg-amber-300 text-slate-950 px-6"
-              >
-                <span>{bpCopy.selectBtn(formatCurrency(blueprintPackage.priceIls))}</span>
-                <ChevronRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
-              </Button>
-            </div>
-          </div>
-        </div>
+        <PackageInclusionsDialog
+          pkg={blueprintPackage}
+          copy={bpCopy}
+          isRTL={isRTL}
+          panelRef={blueprintPanelRef}
+          onClose={() => setBlueprintPackage(null)}
+          onSelect={onSelectPackage}
+          overlayClassName="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 px-safe-area-4 pb-safe-area-4"
+          panelClassName="relative max-w-2xl w-full rounded-2xl border-2 border-sky-500/40 bg-slate-900 shadow-2xl p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto focus:outline-none"
+          selectButtonClassName="w-full sm:w-auto font-black bg-amber-400 hover:bg-amber-300 text-slate-950 px-6"
+        />
       )}
     </div>
   );
