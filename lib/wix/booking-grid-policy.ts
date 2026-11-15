@@ -8,8 +8,9 @@ import { generateKantorovichSlots } from '@/lib/scheduler/kantorovich-engine';
  * The one rule that binds a Wix-created booking to the local zero-waste grid (AGENTS.md §4).
  *
  * The browser creates Wix bookings itself, so a caller can ask Wix for any start Wix offers.
- * `resolveWixBookingCheckout` (before the browser books) and the Wix Bookings Pricing provider
- * (when Wix prices the booking) both call `isOnStrictWixGrid`, so the two can never drift.
+ * `resolveWixBookingCheckout` (before the browser books, `isOnStrictWixGrid`) and the Wix Bookings
+ * Pricing provider (when Wix prices the booking, `strictWixGridDepartureFor`) both read the same
+ * open grid departure, so the two can never drift.
  * The grid is the empty-day grid: no bookings and no clock. Wix guards its own capacity, and
  * the resolver alone closes departures that have already left.
  */
@@ -25,9 +26,13 @@ export function strictWixGridSlots(packageId: string, flightDate: string): Fligh
   return pkg ? generateKantorovichSlots(flightDate, pkg.durationMinutes, []) : [];
 }
 
+function openStrictGridSlot(packageId: string, flightDate: string, startTime: string): FlightSlot | undefined {
+  return strictWixGridSlots(packageId, flightDate).find((slot) => slot.available && slot.startTime === startTime);
+}
+
 /** True when `startTime` (HH:MM, Israel wall clock) is an open departure of that grid on `flightDate`. */
 export function isOnStrictWixGrid(packageId: string, flightDate: string, startTime: string): boolean {
-  return strictWixGridSlots(packageId, flightDate).some((slot) => slot.available && slot.startTime === startTime);
+  return openStrictGridSlot(packageId, flightDate, startTime) !== undefined;
 }
 
 /** The Israel flight date and HH:MM of an RFC 3339 instant; null without an explicit offset or off a whole minute. */
@@ -51,11 +56,22 @@ function israelDepartureOf(instant: string): { flightDate: string; startTime: st
   };
 }
 
+/** An open departure of the strict grid, placed on the Israel wall clock. */
+export interface StrictWixGridDeparture {
+  flightDate: string;
+  startTime: string;
+  /** The scheduler's own tariff decision for this departure: Saturday, or 18:00 onward. */
+  isPrimeTime: boolean;
+}
+
 /**
- * The pricing provider's check for a Wix slot `startDate` (an RFC 3339 instant). The Israel time
- * comes from the instant itself, never from the booking's `timezone` label, which the browser sets.
+ * The pricing provider's reading of a Wix slot `startDate` (an RFC 3339 instant): the open grid
+ * departure it lands on, or null when it lands on none. The Israel date and time, and so the flight
+ * date and the tariff, come from the instant itself, never from the booking's `timezone` label,
+ * which the browser sets.
  */
-export function isWixSlotStartOnStrictGrid(packageId: string, startDate: string | undefined): boolean {
+export function strictWixGridDepartureFor(packageId: string, startDate: string | undefined): StrictWixGridDeparture | null {
   const departure = startDate ? israelDepartureOf(startDate) : null;
-  return departure !== null && isOnStrictWixGrid(packageId, departure.flightDate, departure.startTime);
+  const slot = departure ? openStrictGridSlot(packageId, departure.flightDate, departure.startTime) : undefined;
+  return departure && slot ? { ...departure, isPrimeTime: slot.isPrimeTime } : null;
 }

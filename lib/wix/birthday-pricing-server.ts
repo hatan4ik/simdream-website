@@ -1,6 +1,5 @@
 import 'server-only';
 
-import { z } from 'zod';
 import {
   applyBirthdayDiscount,
   isBirthdayDiscountApplicablePackage,
@@ -18,7 +17,9 @@ import {
   type VerifiedPromotionClaim,
 } from './birthday-pricing-claim';
 import { getWixBirthdayPricingProviderConfig, type WixBirthdayPricingProviderConfig } from './birthday-pricing-config';
-import { isWixSlotStartOnStrictGrid } from './booking-grid-policy';
+import { birthdayClaimIdentityKeys, contactMatchesIdentityKeys, type WixPricingContactDetails } from './birthday-claim-identity';
+import { parseWixBirthdayClaimRequest } from './birthday-claim-request';
+import { strictWixGridDepartureFor } from './booking-grid-policy';
 
 // The configuration lives in its own module so `npm run wix:readiness` can read it outside Next.
 export {
@@ -27,38 +28,36 @@ export {
   WIX_BIRTHDAY_CLAIM_FIELD_ID_ENV,
   type WixBirthdayPricingProviderConfig,
 } from './birthday-pricing-config';
-
-const issueClaimSchema = z.object({
-  packageId: z.string().min(1),
-  birthDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  flightDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-});
+export type { WixPricingContactDetails } from './birthday-claim-identity';
 
 export type WixBirthdayPricingClaimIssue =
   | { ok: false; reason: 'invalid-request' | 'invalid-birthday' }
   | { ok: true; applied: false }
   | { ok: true; applied: true; fieldId: string; token: string };
 
-/** Validates a birthday once, then drops the year before issuing the Wix-only proof. */
+/**
+ * Validates a birthday once, then drops the year before issuing the Wix-only proof. The proof is
+ * bound to the pilot's email (and phone, when given): a request without a valid email is refused.
+ */
 export async function issueWixBirthdayPricingClaim(
   unknownInput: unknown,
   options: { config?: WixBirthdayPricingProviderConfig | null; now?: Date; today?: string } = {}
 ): Promise<WixBirthdayPricingClaimIssue> {
-  const input = issueClaimSchema.safeParse(unknownInput);
-  if (!input.success) return { ok: false, reason: 'invalid-request' };
+  const input = parseWixBirthdayClaimRequest(unknownInput);
+  if (!input) return { ok: false, reason: 'invalid-request' };
   const config = options.config === undefined ? getWixBirthdayPricingProviderConfig() : options.config;
   if (!config) throw new Error('Wix birthday pricing is not configured.');
 
-  const pkg = SIMULATOR_PACKAGES.find((candidate) => candidate.id === input.data.packageId);
-  const serviceId = wixServiceIdFor(input.data.packageId);
+  const pkg = SIMULATOR_PACKAGES.find((candidate) => candidate.id === input.packageId);
+  const serviceId = wixServiceIdFor(input.packageId);
   if (!pkg || !serviceId) return { ok: false, reason: 'invalid-request' };
 
   // This is the same decision the local Stripe checkout uses, except that the
   // caller is an approved Wix pricing provider rather than the unavailable
   // visitor-only Wix path.
   const birthday = resolveBookingBirthday({
-    birthDate: input.data.birthDate,
-    flightDate: input.data.flightDate,
+    birthDate: input.birthDate,
+    flightDate: input.flightDate,
     packageId: pkg.id,
     subtotalIls: pkg.priceIls,
     today: options.today ?? israelToday(),
@@ -69,9 +68,10 @@ export async function issueWixBirthdayPricingClaim(
   const token = await createWixBirthdayPricingClaim({
     packageId: pkg.id,
     serviceId,
-    flightDate: input.data.flightDate,
+    flightDate: input.flightDate,
     birthdayMonth: birthday.birthday.month,
     birthdayDay: birthday.birthday.day,
+    identityKeys: await birthdayClaimIdentityKeys({ email: input.email, phone: input.phone }, config.claimSecret),
     secret: config.claimSecret,
     now: options.now,
   });
@@ -81,14 +81,6 @@ export async function issueWixBirthdayPricingClaim(
     fieldId: config.claimFieldId,
     token,
   };
-}
-
-export interface WixPricingContactDetails {
-  email?: string;
-  phone?: string;
-  firstName?: string;
-  lastName?: string;
-  fullName?: string;
 }
 
 export interface WixPricingProviderBooking {
@@ -132,103 +124,6 @@ export type WixPromotionPricingDecision =
     }
   | { ok: false; code: WixPricingRejectionCode };
 
-function bookingDateTimeParts(
-  startDate: string,
-  timeZone: string | undefined
-): { flightDate: string; isPrimeTime: boolean } | null {
-  const parsed = new Date(startDate);
-  if (!Number.isFinite(parsed.getTime())) return null;
-  try {
-    const parts = new Intl.DateTimeFormat('en-US', {
-      timeZone: timeZone || 'Asia/Jerusalem',
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      hourCycle: 'h23',
-      weekday: 'short',
-    }).formatToParts(parsed);
-    const get = (type: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === type)?.value;
-    const year = get('year');
-    const month = get('month');
-    const day = get('day');
-    const hour = get('hour');
-    const weekday = get('weekday');
-    if (!year || !month || !day || !hour || !weekday) return null;
-    return {
-      flightDate: `${year}-${month}-${day}`,
-      // This mirrors the scheduler: all Saturday departures and 18:00 onward
-      // use the package's configured prime-time tariff.
-      isPrimeTime: weekday === 'Sat' || Number(hour) >= 18,
-    };
-  } catch {
-    return null;
-  }
-}
-
-function normalizedContactCandidates(contactDetails: WixPricingContactDetails): string[] {
-  const candidates = new Set<string>();
-  const email = contactDetails.email?.trim().toLowerCase();
-  if (email) {
-    candidates.add(email);
-    candidates.add(`email:${email}`);
-  }
-  const rawPhone = contactDetails.phone?.trim();
-  if (rawPhone) {
-    const digits = rawPhone.replace(/\D/g, '');
-    if (digits) {
-      candidates.add(digits);
-      candidates.add(`phone:${digits}`);
-      if (digits.startsWith('972') && digits.length >= 11) {
-        const local = `0${digits.slice(3)}`;
-        candidates.add(local);
-        candidates.add(`phone:${local}`);
-      } else if (digits.startsWith('0') && digits.length === 10) {
-        const intl = `972${digits.slice(1)}`;
-        candidates.add(intl);
-        candidates.add(`phone:${intl}`);
-      }
-    }
-  }
-  return [...candidates];
-}
-
-async function hmacSha256Digests(secret: string, value: string): Promise<[string, string]> {
-  const encoder = new TextEncoder();
-  const key = await crypto.subtle.importKey(
-    'raw',
-    encoder.encode(secret),
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign']
-  );
-  const sig = new Uint8Array(await crypto.subtle.sign('HMAC', key, encoder.encode(value)));
-  let hex = '';
-  let binary = '';
-  for (const byte of sig) {
-    hex += byte.toString(16).padStart(2, '0');
-    binary += String.fromCharCode(byte);
-  }
-  const base64url = btoa(binary).replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');
-  return [hex, base64url];
-}
-
-async function defaultVerifyIdentity(
-  contactDetails: WixPricingContactDetails,
-  identityKeys: readonly string[],
-  secret: string
-): Promise<boolean> {
-  const candidates = normalizedContactCandidates(contactDetails);
-  if (candidates.length === 0) return false;
-  const keySet = new Set(identityKeys);
-  for (const candidate of candidates) {
-    if (keySet.has(candidate)) return true;
-    const [hex, b64] = await hmacSha256Digests(secret, candidate);
-    if (keySet.has(hex) || keySet.has(b64)) return true;
-  }
-  return false;
-}
-
 function claimMatchesBooking(
   claim: VerifiedPromotionClaim,
   packageId: string,
@@ -240,8 +135,9 @@ function claimMatchesBooking(
 
 /**
  * Evaluates a Wix booking against any supported promotion claim (`birthday`, `loyalty`, `prepaid`).
- * Falls back to standard registry price if `identityKeys` fails contact verification or if a
- * loyalty/birthday claim is used on an ineligible package.
+ * A claim that carries `identityKeys` is bound to that contact: the booking keeps the standard
+ * registry price when its `contactDetails` are missing or match none of the keys. A loyalty or
+ * birthday claim on an ineligible package keeps the standard price too.
  */
 export async function calculateWixBookingPrice(
   booking: WixPricingProviderBooking,
@@ -255,11 +151,13 @@ export async function calculateWixBookingPrice(
   const pkg = packageId ? SIMULATOR_PACKAGES.find((candidate) => candidate.id === packageId) : undefined;
   if (!slot || !serviceId || !packageId || !pkg) return { ok: false, code: 'unsupported-service' };
 
-  const bookingTime = slot.startDate ? bookingDateTimeParts(slot.startDate, slot.timezone) : null;
-  if (!bookingTime) return { ok: false, code: 'invalid-flight-date' };
+  if (!slot.startDate || !Number.isFinite(Date.parse(slot.startDate))) return { ok: false, code: 'invalid-flight-date' };
   // The browser creates the Wix booking, so only this check binds it to the local grid, claim or not.
-  if (!isWixSlotStartOnStrictGrid(packageId, slot.startDate)) return { ok: false, code: 'off-grid-departure' };
-  const basePriceIls = packagePriceForSlot(pkg, bookingTime.isPrimeTime);
+  // The flight date and the tariff are read on the Israel clock from the instant, never from the
+  // booking's `timezone` label, which the browser sets.
+  const departure = strictWixGridDepartureFor(packageId, slot.startDate);
+  if (!departure) return { ok: false, code: 'off-grid-departure' };
+  const basePriceIls = packagePriceForSlot(pkg, departure.isPrimeTime);
   const value = booking.additionalFields?.find(
     (field) => (field.id ?? field._id) === config.claimFieldId
   )?.value;
@@ -272,14 +170,19 @@ export async function calculateWixBookingPrice(
   }
 
   const claim = await verifyPromotionClaim(value, config.claimSecret, options.now);
-  if (!claim || !claimMatchesBooking(claim, packageId, serviceId, bookingTime.flightDate)) {
+  if (!claim || !claimMatchesBooking(claim, packageId, serviceId, departure.flightDate)) {
     return { ok: false, code: 'invalid-birthday-claim' };
   }
 
-  if (claim.identityKeys && claim.identityKeys.length > 0 && booking.contactDetails) {
-    const matched = options.verifyIdentity
-      ? await options.verifyIdentity(booking.contactDetails, claim.identityKeys)
-      : await defaultVerifyIdentity(booking.contactDetails, claim.identityKeys, config.claimSecret);
+  // A bound claim prices only its own contact's booking. A claim without keys (issued before
+  // identity binding) still applies until it expires.
+  if (claim.identityKeys && claim.identityKeys.length > 0) {
+    const contactDetails = booking.contactDetails;
+    const matched = contactDetails
+      ? options.verifyIdentity
+        ? await options.verifyIdentity(contactDetails, claim.identityKeys)
+        : await contactMatchesIdentityKeys(contactDetails, claim.identityKeys, config.claimSecret)
+      : false;
     if (!matched) {
       return {
         ok: true,

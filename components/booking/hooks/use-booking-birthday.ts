@@ -8,7 +8,9 @@ import {
   birthdayDateBounds,
   birthdayStatusKind,
   evaluateBirthdayField,
+  requestWixBirthdayPricingClaim,
   resolveBirthdayPathMode,
+  type WixBirthdayClaimPilot,
 } from '@/lib/booking/client';
 
 interface UseBookingBirthdayArgs {
@@ -121,28 +123,18 @@ export function useBookingBirthday(args: UseBookingBirthdayArgs) {
 
   /**
    * Exchanges a qualifying browser-only birth date for an opaque, short-lived
-   * claim. The full date is never written to Wix and the provider is still the
+   * claim bound to the pilot's email and phone, the contact the Wix booking then
+   * carries. The full date is never written to Wix and the provider is still the
    * only party allowed to calculate the final amount.
    */
-  const createWixBirthdayPricingClaim = async (): Promise<{ fieldId: string; token: string } | null> => {
+  const createWixBirthdayPricingClaim = async (
+    pilot: WixBirthdayClaimPilot
+  ): Promise<{ fieldId: string; token: string } | null> => {
     if (mode !== 'wix-pricing' || !state.applied) return null;
-    const response = await fetch('/api/wix/birthday/claim', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ packageId, birthDate: value, flightDate }),
-    });
-    const data: unknown = await response.json().catch(() => null);
-    if (
-      !response.ok ||
-      !data ||
-      typeof data !== 'object' ||
-      (data as { applied?: unknown }).applied !== true ||
-      typeof (data as { fieldId?: unknown }).fieldId !== 'string' ||
-      typeof (data as { token?: unknown }).token !== 'string'
-    ) {
-      throw new Error(copy.pricingUnavailable);
-    }
-    return { fieldId: (data as { fieldId: string }).fieldId, token: (data as { token: string }).token };
+    return requestWixBirthdayPricingClaim(
+      { packageId, birthDate: value, flightDate, pilotEmail: pilot.email, pilotPhone: pilot.phone },
+      copy.pricingUnavailable
+    );
   };
 
   return {
