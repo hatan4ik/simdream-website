@@ -18,7 +18,10 @@ function checkRefreshToken(request: Request): TokenCheck {
   if (!hasUsableValue(expected) || expected.length < MIN_REFRESH_TOKEN_LENGTH) return 'not_configured';
   const header = request.headers.get('authorization') ?? '';
   const presented = header.startsWith('Bearer ') ? header.slice('Bearer '.length).trim() : '';
-  return presented && constantTimeEqual(presented, expected) ? 'authorized' : 'unauthorized';
+  // Always compare, even when nothing was presented, so every caller takes the same path; the
+  // length check is what keeps an empty token from ever being accepted.
+  const matches = constantTimeEqual(presented, expected);
+  return presented.length > 0 && matches ? 'authorized' : 'unauthorized';
 }
 
 /**
