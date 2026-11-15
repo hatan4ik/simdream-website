@@ -10,6 +10,14 @@
 
 ## Product changes by version
 
+### [v1.29.2](https://github.com/hatan4ik/simdream-website/releases/tag/v1.29.2) — 2026-11-15
+
+#### Bug Fixes
+
+- **booking:** validate add-on duration in Wix checkout and surface real Cart V2 violations (#226) (5bd19e5)
+
+Deployment evidence: [GitHub Release](https://github.com/hatan4ik/simdream-website/releases/tag/v1.29.2).
+
 ### [v1.29.1](https://github.com/hatan4ik/simdream-website/releases/tag/v1.29.1) — 2026-11-15
 
 #### Bug Fixes
