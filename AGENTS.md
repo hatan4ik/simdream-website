@@ -191,7 +191,7 @@ The platform supports 7 languages with zero cross-language contamination:
    - In [`lib/db/supabase-admin.ts`](lib/db/supabase-admin.ts) and [`lib/db/store.ts`](lib/db/store.ts), check `isProduction && Boolean(getSupabaseAdmin())`.
    - If Supabase environment variables are missing during local development or testing, fallback gracefully to in-memory store and demo seed data without crashing `/api/slots` with HTTP 500. Local dev server can run with `npm run start:local` (`ALLOW_IN_MEMORY_STORE=true`).
 3. **Server-Authoritative Pricing & Durations**:
-   - The client submits only IDs (`packageId`, `slotId`, `addonIds`).
+   - The client submits validated selection inputs (`packageId`, `bookingDate`, `startTime`, `addonIds`, and optional route or voucher) plus the required pilot manifest and consents. It never submits a price, duration, end time, or discount authority.
    - The server resolves all prices, durations, end times, and discounts from authoritative registries.
 4. **Stripe Webhook Authority**:
    - For card-funded local bookings, only a signature-verified Stripe webhook (`checkout.session.completed`) marks a booking paid and confirms its reservation. A fully funded, already-paid gift voucher is redeemed atomically and confirms its voucher-funded booking inline. Client redirect to `/book/success` never confirms a card payment.

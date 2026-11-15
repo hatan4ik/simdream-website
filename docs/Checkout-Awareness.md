@@ -4,6 +4,8 @@ Shared engineering record for checkout decisions, boundaries, and unresolved
 commercial rules. This document is a design record: it does not claim that a
 payment provider, Wix Custom App, or production discount is active.
 
+> **Live-code reconciliation — 2026-11-15 (`main` at `8fe2981`):** Returning-customer loyalty is **not released, enabled, or connected to checkout**. The repository contains only part of Phase A2: `lib/wix/birthday-pricing-claim.ts` can represent `loyalty` and `prepaid` claims with optional identity keys, `lib/wix/birthday-pricing-server.ts` can validate such a supplied claim, and `lib/booking/client/loyalty-copy.ts` contains seven-language copy with unit coverage. No route performs Contacts/Orders history lookup, selects a loyalty tier, issues a loyalty claim, writes a loyalty ledger, handles loyalty webhooks, or renders this copy in checkout. The existing birthday-claim route remains birthday-only and fails closed until its separate Wix Pricing Integration configuration is installed. Treat the team sections below as architecture and verification records, not evidence of a live loyalty feature.
+
 ---
 
 ## Team Codex — Returning Customer Loyalty & Wix Checkout Integrity
@@ -482,7 +484,7 @@ Read by the research agent on 2026-11-13 and **reconstructed from its notes**, s
 ## Board Coordination Addendum — Reconciled Plan (Codex + Antigravity + Claude)
 
 **Date:** 2026-11-13  
-**Status:** Agreed execution blueprint (ready for Phase A implementation)
+**Status:** Historical execution blueprint. Phase A2 contract primitives and seven-language copy are merged, but the feature remains incomplete: no loyalty lookup, issuer, checkout wiring, ledger, webhook, or staging cutover has been implemented.
 
 ### 1. Reconciled Rules & Technical Corrections
 

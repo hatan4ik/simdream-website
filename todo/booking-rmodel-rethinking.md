@@ -2,6 +2,8 @@
 
 Collaborative architecture & R&D log for rethinking SimDream's booking, add-ons, multi-service cart, and promotional/birthday pricing integration with Wix Headless.
 
+> **Historical planning record — reconciled 2026-11-15:** The team sections below were written against the 2026-11-12 / 2026-11-13 baseline and contain proposals, assumptions, and ownership assignments that later implementation changed. They are not a live cutover runbook or a statement of production readiness. For source-verified current behavior, use [`docs/CURRENT_CODEBASE_MAP.md`](../docs/CURRENT_CODEBASE_MAP.md), [`GENESIS.md`](../GENESIS.md), [`ARCHITECTURE.md`](../ARCHITECTURE.md), and the relevant code. In particular, do not infer that a planned Wix Cart, native add-on, route-request, birthday, PayPlus, or loyalty step is enabled merely because it appears below. Returning-customer loyalty remains unimplemented; its partial claim/copy primitives are described in [`docs/Checkout-Awareness.md`](../docs/Checkout-Awareness.md).
+
 ---
 
 ## Team Antigravity
