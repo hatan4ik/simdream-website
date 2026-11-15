@@ -61,7 +61,14 @@ export interface CreateCheckoutParams {
   cancelUrl: string;
 }
 
-export async function createCheckoutSession(params: CreateCheckoutParams): Promise<{ url: string; sessionId: string }> {
+export interface HostedCheckoutSession {
+  url: string;
+  sessionId: string;
+  /** When Stripe stops accepting payment on this session (ISO time). */
+  expiresAt: string;
+}
+
+export async function createCheckoutSession(params: CreateCheckoutParams): Promise<HostedCheckoutSession> {
   if (!isPaymentsConfigured || !stripe) {
     throw new Error(PAYMENTS_DISABLED_MESSAGE);
   }
@@ -101,5 +108,25 @@ export async function createCheckoutSession(params: CreateCheckoutParams): Promi
   return {
     url: session.url,
     sessionId: session.id,
+    expiresAt: new Date(session.expires_at * 1000).toISOString(),
   };
+}
+
+/**
+ * Closes an open Checkout Session so it can no longer be paid, and reports how it ended. A session
+ * that is already expired or complete is left as it is: Stripe refuses to expire it, and its status
+ * says which. Any other failure (including a session that is still open) throws the original error.
+ */
+export async function expireCheckoutSession(sessionId: string): Promise<'expired' | 'complete'> {
+  if (!isPaymentsConfigured || !stripe) {
+    throw new Error(PAYMENTS_DISABLED_MESSAGE);
+  }
+  try {
+    await stripe.checkout.sessions.expire(sessionId);
+    return 'expired';
+  } catch (error) {
+    const current = await stripe.checkout.sessions.retrieve(sessionId).catch(() => null);
+    if (current?.status === 'expired' || current?.status === 'complete') return current.status;
+    throw error;
+  }
 }

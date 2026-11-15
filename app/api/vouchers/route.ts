@@ -1,8 +1,14 @@
 import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth/admin-guard';
 import { store } from '@/lib/db/store';
+import { readJsonBody } from '@/lib/http/read-json-body';
 import { adminVoucherRedemptionSchema, validationError, voucherVerificationSchema } from '@/lib/validation';
 import { consumeRateLimit, rateLimitClientAddress, rateLimitHeaders, RateLimitUnavailableError } from '@/lib/security/rate-limit';
+
+/** A verification is one code, well under 1 KiB. */
+const VERIFY_MAX_BODY_BYTES = 16 * 1024;
+/** Admin requests come from an authenticated operator, so they get a looser cap. */
+const ADMIN_MAX_BODY_BYTES = 64 * 1024;
 
 function publicVoucherView(voucher: { code: string; currentBalanceIls: number; expiryDate: string }) {
   return { code: voucher.code, currentBalanceIls: voucher.currentBalanceIls, expiryDate: voucher.expiryDate };
@@ -22,13 +28,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON request body.' }, { status: 400 });
-  }
-  const parsed = voucherVerificationSchema.safeParse(body);
+  const read = await readJsonBody(request, { maxBytes: VERIFY_MAX_BODY_BYTES });
+  if (!read.ok) return read.response;
+  const parsed = voucherVerificationSchema.safeParse(read.body);
   if (!parsed.success) return NextResponse.json(validationError(parsed.error), { status: 400 });
 
   try {
@@ -75,13 +77,9 @@ export async function PATCH(request: Request) {
   const denied = await requireAdmin(request);
   if (denied) return denied;
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON request body.' }, { status: 400 });
-  }
-  const parsed = adminVoucherRedemptionSchema.safeParse(body);
+  const read = await readJsonBody(request, { maxBytes: ADMIN_MAX_BODY_BYTES });
+  if (!read.ok) return read.response;
+  const parsed = adminVoucherRedemptionSchema.safeParse(read.body);
   if (!parsed.success) return NextResponse.json(validationError(parsed.error), { status: 400 });
 
   try {

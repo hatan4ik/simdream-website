@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs';
+import { existsSync, statSync } from 'node:fs';
 import path from 'node:path';
 import ts from 'typescript';
 import { REPO_ROOT, parseSource, sourceFiles, walk } from './source';
@@ -16,7 +16,12 @@ export interface ImportEdge {
 
 export const rel = (file: string) => path.relative(REPO_ROOT, file).split(path.sep).join('/');
 
-function resolveSpecifier(from: string, specifier: string): string | null {
+/**
+ * The source file a specifier names, or `null` for a package import (left to node_modules) and for an
+ * existing non-source asset such as `./globals.css` or `../../wix.config.json`. A relative or `@/`
+ * specifier that names nothing throws: skipping it would hide every import behind it from the walk.
+ */
+export function resolveSpecifier(from: string, specifier: string): string | null {
   const base = specifier.startsWith('@/')
     ? path.join(REPO_ROOT, specifier.slice(2))
     : specifier.startsWith('.')
@@ -26,7 +31,8 @@ function resolveSpecifier(from: string, specifier: string): string | null {
   for (const candidate of [`${base}.ts`, `${base}.tsx`, path.join(base, 'index.ts'), path.join(base, 'index.tsx'), base]) {
     if (/\.tsx?$/.test(candidate) && existsSync(candidate)) return candidate;
   }
-  return null;
+  if (existsSync(base) && statSync(base).isFile()) return null;
+  throw new Error(`${rel(from)}: cannot resolve import '${specifier}'; the import walk would skip everything behind it`);
 }
 
 /** True when this `import()` sits in `dynamic(loader, { ssr: false })`. */
@@ -46,32 +52,34 @@ function isDynamicSsrFalse(call: ts.CallExpression): boolean {
   );
 }
 
+/** The import edges of one file. `source` defaults to the file on disk; a test may pass planted text. */
+export function importEdgesOf(file: string, source: ts.SourceFile = parseSource(file)): ImportEdge[] {
+  const edges: ImportEdge[] = [];
+  walk(source, (node) => {
+    if ((ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) && node.moduleSpecifier && ts.isStringLiteral(node.moduleSpecifier)) {
+      const to = resolveSpecifier(file, node.moduleSpecifier.text);
+      if (!to) return;
+      let typeOnly = false;
+      if (ts.isImportDeclaration(node) && node.importClause) {
+        const clause = node.importClause;
+        const named = clause.namedBindings && ts.isNamedImports(clause.namedBindings) ? clause.namedBindings.elements : null;
+        typeOnly = clause.isTypeOnly || (!clause.name && named !== null && named.length > 0 && named.every((element) => element.isTypeOnly));
+      }
+      if (ts.isExportDeclaration(node) && node.isTypeOnly) typeOnly = true;
+      edges.push({ from: file, to, typeOnly, dynamicSsrFalse: false, dynamicImport: false });
+    } else if (ts.isCallExpression(node) && node.expression.kind === ts.SyntaxKind.ImportKeyword) {
+      const argument = node.arguments[0];
+      if (!argument || !ts.isStringLiteral(argument)) return;
+      const to = resolveSpecifier(file, argument.text);
+      if (!to) return;
+      const ssrFalse = isDynamicSsrFalse(node);
+      edges.push({ from: file, to, typeOnly: false, dynamicSsrFalse: ssrFalse, dynamicImport: !ssrFalse });
+    }
+  });
+  return edges;
+}
+
 /** Every import edge between source files under `directories` (app, components, lib by default). */
 export function importEdges(directories: string[] = ['app', 'components', 'lib']): ImportEdge[] {
-  const edges: ImportEdge[] = [];
-  for (const file of sourceFiles(...directories)) {
-    const source = parseSource(file);
-    walk(source, (node) => {
-      if ((ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) && node.moduleSpecifier && ts.isStringLiteral(node.moduleSpecifier)) {
-        const to = resolveSpecifier(file, node.moduleSpecifier.text);
-        if (!to) return;
-        let typeOnly = false;
-        if (ts.isImportDeclaration(node) && node.importClause) {
-          const clause = node.importClause;
-          const named = clause.namedBindings && ts.isNamedImports(clause.namedBindings) ? clause.namedBindings.elements : null;
-          typeOnly = clause.isTypeOnly || (!clause.name && named !== null && named.length > 0 && named.every((element) => element.isTypeOnly));
-        }
-        if (ts.isExportDeclaration(node) && node.isTypeOnly) typeOnly = true;
-        edges.push({ from: file, to, typeOnly, dynamicSsrFalse: false, dynamicImport: false });
-      } else if (ts.isCallExpression(node) && node.expression.kind === ts.SyntaxKind.ImportKeyword) {
-        const argument = node.arguments[0];
-        if (!argument || !ts.isStringLiteral(argument)) return;
-        const to = resolveSpecifier(file, argument.text);
-        if (!to) return;
-        const ssrFalse = isDynamicSsrFalse(node);
-        edges.push({ from: file, to, typeOnly: false, dynamicSsrFalse: ssrFalse, dynamicImport: !ssrFalse });
-      }
-    });
-  }
-  return edges;
+  return sourceFiles(...directories).flatMap((file) => importEdgesOf(file));
 }

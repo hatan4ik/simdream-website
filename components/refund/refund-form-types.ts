@@ -1,4 +1,5 @@
 import type { FieldErrorCode, RefundProductKind, RefundReason } from '@/lib/refund';
+import { HONEYPOT_FIELD } from '@/lib/security/honeypot';
 
 export type RefundStep = 1 | 2 | 3;
 
@@ -15,7 +16,7 @@ export interface RefundFormValues {
   acceptedTruth: boolean;
   acceptedRules: boolean;
   /** Honeypot: stays empty for a person. */
-  website: string;
+  [HONEYPOT_FIELD]: string;
 }
 
 export type FormErrors = Partial<Record<keyof RefundFormValues, FieldErrorCode>>;
@@ -64,5 +65,5 @@ export const EMPTY_VALUES: RefundFormValues = {
   message: '',
   acceptedTruth: false,
   acceptedRules: false,
-  website: '',
+  [HONEYPOT_FIELD]: '',
 };

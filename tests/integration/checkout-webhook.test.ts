@@ -512,6 +512,8 @@ describe('Gift voucher purchase lifecycle', () => {
         fc.constantFrom(50, 100, 200, 300, 500, 700, 1000),
         fc.dictionary(injectedKey, injectedValue, { minKeys: 1 }),
         async (amountIls, injected) => {
+          // Every run is an independent purchase by the same buyer.
+          await app.resetRateLimits();
           const sessionsBefore = app.checkoutSessions.length;
 
           const response = await postCheckout(app, { ...voucherCheckoutBody({ amountIls }), ...injected });

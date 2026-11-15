@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { loadApp } from '../support/app';
 import { adminRequest } from './api-helpers';
 import { apiRequest, readJson } from '../support/http';
+import { HONEYPOT_FIELD } from '@/lib/security/honeypot';
 
 /**
  * The refund API's failure answers: what a customer or a staff member sees when storage or email is
@@ -23,7 +24,7 @@ const REQUEST = {
   message: 'I cannot make it that evening.',
   acceptedTruth: true,
   acceptedRules: true,
-  website: '',
+  [HONEYPOT_FIELD]: '',
 };
 
 type ServerModule = typeof import('@/lib/refund/server');

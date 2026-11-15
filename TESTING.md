@@ -32,6 +32,7 @@ No secrets, Stripe account or Supabase project are needed. Every test runs in a 
 | Command | What it runs |
 | --- | --- |
 | `npm run lint` | Strict TypeScript check plus deterministic rejection of unsafe `any` escapes and TypeScript suppression directives in application source. |
+| `npm run check:unused-exports` | Report-only, compiler-backed list of the `lib/` and `components/` exports no other file imports (through barrels, `import type`, `import()` and `app/` included), in about 6 s; `-- --max <n>` exits 1 when more than `n` are listed. Not yet a CI gate. |
 | `npm run test:all` | Typecheck and type hygiene, Vitest with coverage, sandboxed build, e2e on Chromium, a11y, usability, security-web, resilience, visual and load. Writes `test-results/quality-report.md`. |
 | `npm run test:quick` | Typecheck/type hygiene and Vitest only: seconds, no build, no browser |
 | `npm run test:full` | `test:all` on all five browser projects, plus Lighthouse |

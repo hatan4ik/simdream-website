@@ -1,5 +1,17 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { apiRequest, readJson } from '../support/http';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { apiRequest, readJson, TEST_ORIGIN } from '../support/http';
+import type { RateLimitRule } from '@/lib/security/rate-limit';
+
+// The route's own limiter, spied on so a test can make its store unavailable.
+const limiter = vi.hoisted(() => ({
+  consume: vi.fn(),
+  actual: null as null | typeof import('@/lib/security/rate-limit'),
+}));
+vi.mock('@/lib/security/rate-limit', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/security/rate-limit')>();
+  limiter.actual = actual;
+  return { ...actual, consumeRateLimit: limiter.consume };
+});
 
 const pricing = vi.hoisted(() => ({
   getConfig: vi.fn(),
@@ -28,6 +40,19 @@ vi.mock('@/lib/discounts/birthday', () => ({
 import { POST as issueClaim } from '@/app/api/wix/birthday/claim/route';
 import { POST as calculatePrice } from '@/app/api/wix/birthday-pricing/v1/calculate-price/route';
 import { GET as capabilities } from '@/app/api/offers/capabilities/route';
+import { z } from 'zod';
+import {
+  createWixBirthdayClaimRequester,
+  isWixBirthdayClaimEmail,
+  requestWixBirthdayPricingClaim,
+  WIX_BIRTHDAY_CLAIM_EMAIL_PATTERN,
+  WIX_BIRTHDAY_CLAIM_REUSE_MS,
+  WixBirthdayClaimContactError,
+} from '@/lib/booking/client/wix-birthday-claim';
+import { parseWixBirthdayClaimRequest } from '@/lib/wix/birthday-claim-request';
+import { RateLimitUnavailableError } from '@/lib/security/rate-limit';
+import { resetBirthdayClaimFallbackForTests } from '@/lib/wix/birthday-claim-throttle';
+import { createFixedWindowLimiter } from '@/lib/wix/birthday-claim-fallback-limiter';
 
 const config = {
   claimFieldId: 'a4722fd-b7a0-4df0-b01d-b9b81f01bd11',
@@ -36,12 +61,34 @@ const config = {
   providerPublicKey: '-----BEGIN PUBLIC KEY-----\nkey\n-----END PUBLIC KEY-----',
 };
 
+const SELECTION = { packageId: 'pkg-captain-60', birthDate: '1990-11-25', flightDate: '2026-11-13' };
+const CLAIM_REQUEST = { ...SELECTION, email: '  Captain@Example.com ', phone: '050-123 4567' };
+const ISSUED = { ok: true, applied: true, fieldId: config.claimFieldId, token: 'opaque-proof' };
+
+function claimRequest(body: unknown = CLAIM_REQUEST, address: string | null = '203.0.113.7'): Request {
+  return apiRequest('/api/wix/birthday/claim', { body, headers: address ? { 'x-forwarded-for': address } : {} });
+}
+
+async function claimStatuses(requests: Request[]): Promise<number[]> {
+  const statuses: number[] = [];
+  for (const request of requests) statuses.push((await issueClaim(request)).status);
+  return statuses;
+}
+
 beforeEach(() => {
   vi.resetAllMocks();
+  limiter.consume.mockImplementation((rule: RateLimitRule) => limiter.actual!.consumeRateLimit(rule));
+  limiter.actual!.resetInMemoryRateLimitsForTests();
+  resetBirthdayClaimFallbackForTests();
   pricing.getConfig.mockReturnValue(config);
+  pricing.issueClaim.mockResolvedValue(ISSUED);
   pricing.wixAvailability.mockReturnValue(false);
   pricing.providerEnabled.mockReturnValue(false);
   pricing.enforceable.mockReturnValue(true);
+});
+
+afterEach(() => {
+  vi.unstubAllGlobals();
 });
 
 describe('POST /api/wix/birthday/claim', () => {
@@ -51,34 +98,282 @@ describe('POST /api/wix/birthday/claim', () => {
     expect(response).toMatchObject({ status: 503, body: { error: 'Birthday pricing is temporarily unavailable.' } });
   });
 
-  it('rejects malformed or ineligible requests without leaking a birthday', async () => {
-    pricing.issueClaim.mockResolvedValue({ ok: false, reason: 'invalid-request' });
-    const response = await readJson<{ error: string }>(
-      await issueClaim(apiRequest('/api/wix/birthday/claim', { rawBody: '{' }))
-    );
-    expect(response).toMatchObject({ status: 400, body: { error: 'Use a valid birthday and flight selection.' } });
-    expect(pricing.issueClaim).toHaveBeenCalledWith(null, { config });
+  it('refuses a body that is not JSON, too large or malformed before issuing or counting anything', async () => {
+    const refusals: Array<[Request, number, string]> = [
+      [apiRequest('/api/wix/birthday/claim', { rawBody: JSON.stringify(CLAIM_REQUEST) }), 415, 'Send the request as application/json.'],
+      [
+        apiRequest('/api/wix/birthday/claim', { rawBody: JSON.stringify(CLAIM_REQUEST), headers: { 'content-type': 'text/plain' } }),
+        415,
+        'Send the request as application/json.',
+      ],
+      [claimRequest({ ...CLAIM_REQUEST, padding: 'x'.repeat(8 * 1024) }), 413, 'Request body is too large.'],
+      [apiRequest('/api/wix/birthday/claim', { rawBody: '{', headers: { 'content-type': 'application/json' } }), 400, 'Invalid JSON request body.'],
+    ];
+    for (const [request, status, error] of refusals) {
+      const response = await readJson<{ error: string }>(await issueClaim(request));
+      expect(response).toMatchObject({ status, body: { error } });
+      expect(response.headers.get('cache-control')).toBe('no-store');
+    }
+    expect(pricing.issueClaim).not.toHaveBeenCalled();
+    expect(limiter.consume).not.toHaveBeenCalled();
+  });
+
+  it('rejects a request without a valid email or selection before issuing or counting anything', async () => {
+    const { email: _email, ...withoutEmail } = CLAIM_REQUEST;
+    for (const request of [
+      claimRequest(withoutEmail),
+      claimRequest({ ...CLAIM_REQUEST, email: 'not-an-email' }),
+      claimRequest({ ...CLAIM_REQUEST, packageId: '' }),
+    ]) {
+      const response = await readJson<{ error: string }>(await issueClaim(request));
+      expect(response).toMatchObject({ status: 400, body: { error: 'Use a valid birthday, flight selection and email.' } });
+    }
+    expect(pricing.issueClaim).not.toHaveBeenCalled();
+    expect(limiter.consume).not.toHaveBeenCalled();
+  });
+
+  it('hands the issuer the normalized email and the phone, and refuses an ineligible request', async () => {
+    pricing.issueClaim.mockResolvedValueOnce({ ok: false, reason: 'invalid-birthday' });
+    const response = await readJson<{ error: string }>(await issueClaim(claimRequest()));
+    expect(response).toMatchObject({ status: 400, body: { error: 'Use a valid birthday, flight selection and email.' } });
+    expect(pricing.issueClaim).toHaveBeenCalledWith({ ...SELECTION, email: 'captain@example.com', phone: '050-123 4567' }, { config });
   });
 
   it('returns only the opaque field proof when eligible', async () => {
-    pricing.issueClaim.mockResolvedValue({ ok: true, applied: true, fieldId: config.claimFieldId, token: 'opaque-proof' });
-    const response = await readJson<{ applied: boolean; fieldId: string; token: string }>(
-      await issueClaim(apiRequest('/api/wix/birthday/claim', { body: { birthDate: '1990-11-25' } }))
-    );
+    const response = await readJson<{ applied: boolean; fieldId: string; token: string }>(await issueClaim(claimRequest()));
     expect(response).toMatchObject({ status: 200, body: { applied: true, fieldId: config.claimFieldId, token: 'opaque-proof' } });
     expect(JSON.stringify(response.body)).not.toContain('1990');
   });
 
   it('answers applied false for a valid but non-qualifying date and 503 on an issuer outage', async () => {
     pricing.issueClaim.mockResolvedValueOnce({ ok: true, applied: false }).mockRejectedValueOnce(new Error('unavailable'));
-    await expect(readJson(await issueClaim(apiRequest('/api/wix/birthday/claim', { body: {} })))).resolves.toMatchObject({
-      status: 200,
-      body: { applied: false },
-    });
-    await expect(readJson(await issueClaim(apiRequest('/api/wix/birthday/claim', { body: {} })))).resolves.toMatchObject({
+    await expect(readJson(await issueClaim(claimRequest()))).resolves.toMatchObject({ status: 200, body: { applied: false } });
+    await expect(readJson(await issueClaim(claimRequest()))).resolves.toMatchObject({
       status: 503,
       body: { error: 'Birthday pricing is temporarily unavailable.' },
     });
+  });
+});
+
+describe('POST /api/wix/birthday/claim issuance limits', () => {
+  // A fixed clock 30 seconds into a window, so no test straddles a window boundary.
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-11-15T12:00:30.000Z'));
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('refuses the 11th issuance from one address in ten minutes with 429 and Retry-After', async () => {
+    const requests = Array.from({ length: 11 }, (_, index) => claimRequest({ ...CLAIM_REQUEST, email: `pilot${index}@example.com` }));
+    const statuses = await claimStatuses(requests.slice(0, 10));
+    expect(statuses).toEqual(Array(10).fill(200));
+
+    const refused = await readJson<{ error: string }>(await issueClaim(requests[10]!));
+    expect(refused).toMatchObject({ status: 429, body: { error: 'Too many birthday pricing requests. Please wait and try again.' } });
+    expect(refused.headers.get('retry-after')).toBe('570');
+    expect(refused.headers.get('cache-control')).toBe('no-store');
+    expect(pricing.issueClaim).toHaveBeenCalledTimes(10);
+    // Another address is unaffected.
+    expect((await issueClaim(claimRequest({ ...CLAIM_REQUEST, email: 'pilot10@example.com' }, '198.51.100.9'))).status).toBe(200);
+  });
+
+  it('refuses the 6th issuance for one email in an hour, from any address and in any letter case', async () => {
+    const emails = ['captain@example.com', ' CAPTAIN@example.com', 'Captain@Example.com ', 'captain@EXAMPLE.com', 'captain@example.com'];
+    const statuses = await claimStatuses(emails.map((email, index) => claimRequest({ ...CLAIM_REQUEST, email }, `203.0.113.${index + 1}`)));
+    expect(statuses).toEqual(Array(5).fill(200));
+    const refused = await issueClaim(claimRequest(CLAIM_REQUEST, '203.0.113.99'));
+    expect(refused.status).toBe(429);
+    expect(refused.headers.get('retry-after')).toBe('3570');
+    expect(pricing.issueClaim).toHaveBeenCalledTimes(5);
+  });
+
+  it('gives requests without a client address one shared, looser bucket', async () => {
+    const requests = Array.from({ length: 61 }, (_, index) => claimRequest({ ...CLAIM_REQUEST, email: `pilot${index}@example.com` }, null));
+    expect(await claimStatuses(requests.slice(0, 60))).toEqual(Array(60).fill(200));
+    expect((await issueClaim(requests[60]!)).status).toBe(429);
+  });
+
+  it('keeps issuing on a bounded in-process limit when the limiter store is unavailable', async () => {
+    limiter.consume.mockRejectedValue(new RateLimitUnavailableError());
+    await expect(readJson(await issueClaim(claimRequest()))).resolves.toMatchObject({ status: 200, body: { applied: true } });
+
+    // Per email: still 5 per hour, so the 6th issuance for the same email is refused.
+    const sameEmail = Array.from({ length: 5 }, (_, index) => claimRequest(CLAIM_REQUEST, `198.51.100.${index + 1}`));
+    expect(await claimStatuses(sameEmail)).toEqual([200, 200, 200, 200, 429]);
+
+    // Per address: 60 per 10 minutes, because the Wix Worker cannot yet trust the address.
+    const sameAddress = Array.from({ length: 60 }, (_, index) => claimRequest({ ...CLAIM_REQUEST, email: `pilot${index}@example.com` }, '192.0.2.1'));
+    expect(await claimStatuses(sameAddress)).toEqual(Array(60).fill(200));
+    const refused = await issueClaim(claimRequest({ ...CLAIM_REQUEST, email: 'pilot60@example.com' }, '192.0.2.1'));
+    expect(refused.status).toBe(429);
+    expect(refused.headers.get('retry-after')).toBe('570');
+  });
+
+  it('fails closed with 503 and logs no request data when the limiter fails unexpectedly', async () => {
+    limiter.consume.mockRejectedValue(new Error('driver exploded'));
+    const log = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const response = await readJson<{ error: string }>(await issueClaim(claimRequest()));
+    expect(response).toMatchObject({ status: 503, body: { error: 'Birthday pricing is temporarily unavailable.' } });
+    expect(response.headers.get('cache-control')).toBe('no-store');
+    expect(pricing.issueClaim).not.toHaveBeenCalled();
+    expect(log).toHaveBeenCalledTimes(1);
+    const logged = JSON.stringify(log.mock.calls[0], Object.getOwnPropertyNames(new Error()));
+    for (const secret of ['203.0.113.7', 'captain@example.com', 'Captain@Example.com', '050-123 4567', '1990-11-25']) {
+      expect(logged).not.toContain(secret);
+    }
+  });
+});
+
+describe('the in-process fallback limiter', () => {
+  const rule = (subject: string): RateLimitRule => ({ scope: 'birthday-claim-identity', subject, limit: 1, windowSeconds: 60 });
+
+  it('counts per subject in fixed windows', async () => {
+    let now = Date.UTC(2026, 10, 15, 12, 0, 0);
+    const fallback = createFixedWindowLimiter({ maxBuckets: 10, now: () => now });
+    await expect(fallback.consume(rule('a'))).resolves.toEqual({ allowed: true, retryAfterSeconds: 60 });
+    await expect(fallback.consume(rule('a'))).resolves.toEqual({ allowed: false, retryAfterSeconds: 60 });
+    await expect(fallback.consume(rule('b'))).resolves.toMatchObject({ allowed: true });
+    now += 60_000;
+    await expect(fallback.consume(rule('a'))).resolves.toMatchObject({ allowed: true });
+  });
+
+  it('never tracks more subjects than its cap, dropping expired windows first and then the oldest', async () => {
+    let now = Date.UTC(2026, 10, 15, 12, 0, 0);
+    const fallback = createFixedWindowLimiter({ maxBuckets: 2, now: () => now });
+    await fallback.consume(rule('a'));
+    await fallback.consume(rule('b'));
+    await fallback.consume(rule('c'));
+    expect(fallback.size()).toBe(2);
+    // 'c' is still counted; 'a' was the oldest and was dropped, so it starts a fresh count.
+    await expect(fallback.consume(rule('c'))).resolves.toMatchObject({ allowed: false });
+    await expect(fallback.consume(rule('a'))).resolves.toMatchObject({ allowed: true });
+    await expect(fallback.consume(rule('a'))).resolves.toMatchObject({ allowed: false });
+    expect(fallback.size()).toBe(2);
+
+    // Once both windows have closed, a new subject replaces both expired buckets.
+    now += 60_000;
+    await fallback.consume({ ...rule('d'), windowSeconds: 3_600 });
+    expect(fallback.size()).toBe(1);
+    await fallback.consume({ ...rule('e'), windowSeconds: 3_600 });
+    expect(fallback.size()).toBe(2);
+    fallback.clear();
+    expect(fallback.size()).toBe(0);
+  });
+});
+
+describe('browser birthday claim request', () => {
+  const FIELD = { fieldId: config.claimFieldId, token: 'opaque-proof' };
+  const INPUT = { ...SELECTION, pilotEmail: ' Captain@Example.com ', pilotPhone: '050-123 4567' };
+
+  function issuingFetch() {
+    const fetchMock = vi.fn(async (_input: string, _init?: RequestInit) => Response.json({ applied: true, ...FIELD }));
+    vi.stubGlobal('fetch', fetchMock);
+    return fetchMock;
+  }
+
+  it('sends the normalized email and the phone, which the route hands to the issuer', async () => {
+    const fetchMock = vi.fn((input: string, init?: RequestInit) => issueClaim(new Request(new URL(input, TEST_ORIGIN), init)));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(
+      requestWixBirthdayPricingClaim({ ...SELECTION, pilotEmail: ' Captain@Example.com ', pilotPhone: ' 050-123 4567 ' }, 'pricing failed')
+    ).resolves.toEqual({ fieldId: config.claimFieldId, token: 'opaque-proof' });
+    expect(fetchMock).toHaveBeenCalledWith('/api/wix/birthday/claim', expect.objectContaining({ method: 'POST' }));
+    expect(pricing.issueClaim).toHaveBeenCalledWith({ ...SELECTION, email: 'captain@example.com', phone: '050-123 4567' }, { config });
+  });
+
+  it('throws the given message unless a claim was issued, and keeps no failed answer', async () => {
+    const requester = createWixBirthdayClaimRequester();
+    for (const response of [
+      Response.json({ error: 'Too many birthday pricing requests. Please wait and try again.' }, { status: 429 }),
+      Response.json({ applied: false }),
+      new Response('not json', { status: 200 }),
+    ]) {
+      vi.stubGlobal('fetch', vi.fn(async () => response));
+      await expect(requester.request({ ...SELECTION, pilotEmail: 'a@example.com' }, 'pricing failed')).rejects.toThrow('pricing failed');
+    }
+    // None of those answers was kept: the next request asks again and gets the claim.
+    const fetchMock = issuingFetch();
+    await expect(requester.request({ ...SELECTION, pilotEmail: 'a@example.com' }, 'pricing failed')).resolves.toEqual(FIELD);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('asks once for many drafts while the package, flight date, birthday and contact are unchanged', async () => {
+    const fetchMock = issuingFetch();
+    const requester = createWixBirthdayClaimRequester({ now: () => 0 });
+    // Five drafts (a changed slot, notes or applied code), with the email typed in other letter cases.
+    const results = await Promise.all(
+      ['  Captain@Example.com ', 'captain@example.com', 'CAPTAIN@EXAMPLE.COM', 'Captain@example.com', 'captain@Example.com'].map((pilotEmail) =>
+        requester.request({ ...INPUT, pilotEmail }, 'pricing failed')
+      )
+    );
+    expect(results).toEqual(Array(5).fill(FIELD));
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    // Each changed input asks for a new claim.
+    const changes = [
+      { pilotEmail: 'other@example.com' },
+      { pilotPhone: '052-765 4321' },
+      { birthDate: '1990-11-26' },
+      { packageId: 'pkg-ultimate-90' },
+      { flightDate: '2026-11-14' },
+    ];
+    for (const [index, change] of changes.entries()) {
+      await requester.request({ ...INPUT, ...change }, 'pricing failed');
+      expect(fetchMock, JSON.stringify(change)).toHaveBeenCalledTimes(index + 2);
+    }
+    const bodies = fetchMock.mock.calls.map(([, init]) => JSON.parse(String(init?.body)) as Record<string, string>);
+    expect(bodies[1]).toMatchObject({ email: 'other@example.com' });
+  });
+
+  it('asks again once the kept claim is no longer comfortably unexpired', async () => {
+    const fetchMock = issuingFetch();
+    let now = 1_000_000;
+    const requester = createWixBirthdayClaimRequester({ now: () => now });
+    expect(WIX_BIRTHDAY_CLAIM_REUSE_MS).toBeLessThanOrEqual(5 * 60 * 1_000);
+
+    await requester.request(INPUT, 'pricing failed');
+    now += WIX_BIRTHDAY_CLAIM_REUSE_MS - 1;
+    await requester.request(INPUT, 'pricing failed');
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    now += 1;
+    await requester.request(INPUT, 'pricing failed');
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('refuses to ask for a claim with an email the route would refuse', async () => {
+    const fetchMock = issuingFetch();
+    const requester = createWixBirthdayClaimRequester();
+    for (const pilotEmail of ['', '   ', 'not-an-email', 'pilot@localhost']) {
+      await expect(requester.request({ ...INPUT, pilotEmail }, 'pricing failed')).rejects.toBeInstanceOf(WixBirthdayClaimContactError);
+    }
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('checks the email by the same rule as the claim route', () => {
+    // The route validates with zod's email(); the browser carries the same pattern.
+    expect(WIX_BIRTHDAY_CLAIM_EMAIL_PATTERN.source).toBe(z.regexes.email.source);
+    const samples = [
+      'captain@example.com',
+      '  Captain@Example.com ',
+      'first.last+tag@sub.example.co.il',
+      "o'neil@example.org",
+      'pilot@localhost',
+      'a@b',
+      'a@b.c',
+      '.lead@example.com',
+      'two..dots@example.com',
+      'no-at-sign',
+      'space in@example.com',
+      `${'a'.repeat(243)}@example.com`,
+      `${'a'.repeat(242)}@example.com`,
+      '',
+    ];
+    for (const email of samples) {
+      expect(isWixBirthdayClaimEmail(email), email).toBe(parseWixBirthdayClaimRequest({ ...SELECTION, email }) !== null);
+    }
   });
 });
 
@@ -100,6 +395,16 @@ describe('POST /api/wix/birthday-pricing/v1/calculate-price', () => {
     );
     expect(response).toMatchObject({ status: 200, body: { calculatedPrice: 807 } });
     expect(pricing.calculate).toHaveBeenCalledWith(booking, { config });
+  });
+
+  it('refuses an off-grid departure with the same error as any booking it cannot price', async () => {
+    pricing.verifyBooking.mockResolvedValue({ bookedEntity: { slot: { serviceId: 'service' } } });
+    pricing.calculate.mockResolvedValue({ ok: false, code: 'off-grid-departure' });
+    const response = await readJson<{ error: string; calculatedPrice?: number }>(
+      await calculatePrice(apiRequest('/api/wix/birthday-pricing/v1/calculate-price', { rawBody: 'signed-wix-jwt' }))
+    );
+    expect(response).toMatchObject({ status: 400, body: { error: 'Wix booking could not be priced.' } });
+    expect(response.body.calculatedPrice).toBeUndefined();
   });
 
   it('fails closed for an unsupported booking, a calculator outage, or missing config', async () => {

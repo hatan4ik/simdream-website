@@ -83,6 +83,13 @@ export {
   type BirthdayStatusKind,
 } from './birthday-field';
 export {
+  requestWixBirthdayPricingClaim,
+  wixBirthdayClaimRequestBody,
+  WixBirthdayClaimContactError,
+  type WixBirthdayClaimPilot,
+  type WixBirthdayClaimRequestInput,
+} from './wix-birthday-claim';
+export {
   buildCheckoutExtraPayload,
   buildConsentPayload,
   firstMissingConsent,

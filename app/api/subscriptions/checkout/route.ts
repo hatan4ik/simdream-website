@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { findSubscriptionPass, type SubscriptionPassId } from '@/lib/data/subscription-passes';
+import { readJsonBody } from '@/lib/http/read-json-body';
 import { createPlanCheckoutUrl, resolveWixPlanId } from '@/lib/wix';
 import { PRIMARY_WIX_LANGUAGE, isSupportedLanguage, localizeInternalHref } from '@/lib/i18n/locale-routing';
 import type { Language } from '@/lib/i18n/translations';
 
 export const dynamic = 'force-dynamic';
+
+/** The JSON body names one plan, a language and a flag: well under 1 KiB. */
+const SUBSCRIPTION_CHECKOUT_MAX_BODY_BYTES = 16 * 1024;
 
 async function handleCheckout(req: NextRequest) {
   let planId = '';
@@ -14,10 +18,15 @@ async function handleCheckout(req: NextRequest) {
   if (req.method === 'POST') {
     const contentType = req.headers.get('content-type') || '';
     if (contentType.includes('application/json')) {
-      const body = await req.json().catch(() => ({}));
+      const read = await readJsonBody(req, { maxBytes: SUBSCRIPTION_CHECKOUT_MAX_BODY_BYTES });
+      // Only an oversized body is refused: malformed JSON still counts as empty, so the query
+      // parameters below can name the plan. The cast keeps the old reading exactly, including its
+      // TypeError on a JSON `null` body.
+      if (!read.ok && read.response.status !== 400) return read.response;
+      const body = (read.ok ? read.body : {}) as Record<string, unknown>;
       planId = String(body.planId || body.passId || '');
       wixMemberCheckout = body.wixMemberCheckout === true;
-      if (isSupportedLanguage(body.language)) language = body.language;
+      if (typeof body.language === 'string' && isSupportedLanguage(body.language)) language = body.language;
     } else if (contentType.includes('application/x-www-form-urlencoded')) {
       const formData = await req.formData().catch(() => null);
       if (formData) {

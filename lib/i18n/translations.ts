@@ -529,6 +529,7 @@ const baseTranslations = {
       additionalNotesPlaceholder: 'Tell us about your team dynamics, leadership goals, or preferred schedule...',
       submitInquiry: 'Submit Workshop Inquiry',
       submitting: 'Submitting Inquiry...',
+      honeypotLabel: 'Leave this field empty',
     },
     vouchers: {
       giftTeaserBadge: 'LOOKING FOR AN UNFORGETTABLE GIFT?',
@@ -1381,6 +1382,7 @@ const baseTranslations = {
       additionalNotesPlaceholder: 'ספרו לנו על הצוות, מטרות ההנהלה או העדפות לוחות זמנים...',
       submitInquiry: 'שליחת פנייה לתיאום סדנה',
       submitting: 'שולח פנייה...',
+      honeypotLabel: 'יש להשאיר שדה זה ריק',
     },
     vouchers: {
       giftTeaserBadge: 'מחפשים מתנה בלתי נשכחת?',
@@ -2228,6 +2230,7 @@ const baseTranslations = {
       additionalNotesPlaceholder: 'Расскажите о вашей команде, задачах выезда или удобном графике...',
       submitInquiry: 'Отправить заявку на тренинг',
       submitting: 'Отправка заявки...',
+      honeypotLabel: 'Оставьте это поле пустым',
     },
     vouchers: {
       giftTeaserBadge: 'ИЩЕТЕ НЕЗАБЫВАЕМЫЙ ПОДАРОК?',
@@ -3081,6 +3084,7 @@ const baseTranslations = {
       additionalNotesPlaceholder: 'Partagez avec nous les enjeux de votre équipe ou vos contraintes d’agenda...',
       submitInquiry: 'Transmettre la demande de devis',
       submitting: 'Envoi en cours...',
+      honeypotLabel: 'Laissez ce champ vide',
     },
     vouchers: {
       giftTeaserBadge: 'VOUS CHERCHEZ UN CADEAU UNIQUE ?',
@@ -3940,6 +3944,7 @@ const baseTranslations = {
       additionalNotesPlaceholder: 'حدثنا عن طبيعة فريقك وتطلعات الإدارة والمواعيد المفضلة...',
       submitInquiry: 'إرسال طلب ورشة العمل',
       submitting: 'جاري الإرسال...',
+      honeypotLabel: 'اتركوا هذا الحقل فارغًا',
     },
     vouchers: {
       giftTeaserBadge: 'هل تبحث عن هدية لا تُنسى؟',
@@ -4403,6 +4408,10 @@ const spanishTranslations = {
     deliveryModeLabel: 'Método de entrega',
     deliveryDirectTitle: 'Enviar directamente al destinatario y una copia para ti',
     deliveryPrintTitle: 'Enviarme solo a mí para imprimir o compartir',
+  },
+  workshops: {
+    ...baseTranslations.en.workshops,
+    honeypotLabel: 'Deje este campo vacío',
   },
   contact: {
     ...baseTranslations.en.contact,

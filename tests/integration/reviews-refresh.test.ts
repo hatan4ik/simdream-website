@@ -66,6 +66,84 @@ describe('POST /api/reviews/refresh', () => {
     expect(fetchSpy, 'one Google read per window, shared across page views').toHaveBeenCalledTimes(callsAfterWindowRead);
   });
 
+  describe('token comparison', () => {
+    /** Wraps the real comparison so a test can see every call and, optionally, force its answer. */
+    async function spyOnComparison(force?: boolean) {
+      const calls: Array<[string, string]> = [];
+      vi.doMock('@/lib/security/constant-time', async (importOriginal) => {
+        const actual = await importOriginal<typeof import('@/lib/security/constant-time')>();
+        return {
+          ...actual,
+          constantTimeEqual: (a: string, b: string) => {
+            calls.push([a, b]);
+            return force ?? actual.constantTimeEqual(a, b);
+          },
+        };
+      });
+      return calls;
+    }
+
+    const WRONG_TOKEN = 'x'.repeat(TEST_REVIEWS_REFRESH_TOKEN.length);
+    /** What a caller can present; `presented` is what the route is expected to compare. */
+    const CALLERS = [
+      { name: 'a missing Authorization header', headers: {}, presented: '' },
+      { name: 'an empty Bearer value', headers: { authorization: 'Bearer ' }, presented: '' },
+      { name: 'a wrong token', headers: bearer(WRONG_TOKEN), presented: WRONG_TOKEN },
+    ];
+
+    it('compares in constant time for a missing header, an empty Bearer value and a wrong token alike, answering the same 401', async () => {
+      const fetchSpy = stubGoogle();
+      const app = await loadApp(CONFIGURED);
+      const calls = await spyOnComparison();
+      try {
+        const { POST } = await app.routes.reviewsRefresh();
+        const answers: Array<{ status: number; body: string; challenge: string | null; cache: string | null }> = [];
+
+        for (const caller of CALLERS) {
+          calls.length = 0;
+          const response = await POST(apiRequest('/api/reviews/refresh', { method: 'POST', headers: caller.headers }));
+          answers.push({
+            status: response.status,
+            body: await response.text(),
+            challenge: response.headers.get('www-authenticate'),
+            cache: response.headers.get('cache-control'),
+          });
+          expect(calls, `comparison for ${caller.name}`).toEqual([[caller.presented, TEST_REVIEWS_REFRESH_TOKEN]]);
+        }
+
+        expect(answers.map((answer) => answer.status)).toEqual([401, 401, 401]);
+        expect(answers[0]).toEqual({
+          status: 401,
+          body: JSON.stringify({ error: 'Review refresh authentication required' }),
+          challenge: 'Bearer realm="Sim Dream reviews refresh"',
+          cache: 'no-store',
+        });
+        expect(answers[1]).toEqual(answers[0]);
+        expect(answers[2]).toEqual(answers[0]);
+        expect(fetchSpy, 'a refused refresh never reaches Google').not.toHaveBeenCalled();
+      } finally {
+        vi.doUnmock('@/lib/security/constant-time');
+      }
+    });
+
+    it('never authorizes an empty presented token, whatever the comparison answers', async () => {
+      const fetchSpy = stubGoogle();
+      const app = await loadApp(CONFIGURED);
+      await spyOnComparison(true);
+      try {
+        const { POST } = await app.routes.reviewsRefresh();
+
+        for (const caller of CALLERS.filter((entry) => entry.presented === '')) {
+          const response = await POST(apiRequest('/api/reviews/refresh', { method: 'POST', headers: caller.headers }));
+          expect(response.status, caller.name).toBe(401);
+        }
+        expect(fetchSpy).not.toHaveBeenCalled();
+      } finally {
+        vi.doUnmock('@/lib/security/constant-time');
+      }
+    });
+  });
+
   it('is disabled (503) until REVIEWS_REFRESH_TOKEN is configured, and refuses a short token', async () => {
     const fetchSpy = stubGoogle();
     for (const token of ['', 'short-token']) {

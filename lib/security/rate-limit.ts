@@ -2,6 +2,7 @@ import 'server-only';
 
 import { hasUsableValue, isProduction } from '@/lib/config/server-env';
 import { requireSupabaseAdmin } from '@/lib/db/supabase-admin';
+import { resolveClientAddress } from '@/lib/security/client-address';
 
 export interface RateLimitRule {
   /** Stable, internal identifier for one independently limited operation. */
@@ -84,14 +85,12 @@ function consumeInMemory(key: string, rule: RateLimitRule, now = Date.now()): Ra
 }
 
 /**
- * Resolves a request address only for rate limiting. The stored key is hashed before
+ * Resolves a request address only for rate limiting, from the one header the deployment trusts
+ * (lib/security/client-address.ts), or 'unknown-client'. The stored key is hashed before
  * persistence, so the database never receives raw IP addresses or voucher codes.
  */
 export function rateLimitClientAddress(request: Request): string {
-  const forwarded = request.headers.get('x-vercel-forwarded-for') ?? request.headers.get('x-forwarded-for');
-  const candidate = forwarded?.split(',')[0]?.trim();
-  if (candidate && /^[0-9a-f:.]{3,64}$/i.test(candidate)) return candidate.toLowerCase();
-  return 'unknown-client';
+  return resolveClientAddress(request.headers);
 }
 
 /**

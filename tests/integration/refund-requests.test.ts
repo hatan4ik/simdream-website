@@ -3,6 +3,7 @@ import { loadApp, type TestApp } from '../support/app';
 import { adminRequest } from './api-helpers';
 import { apiRequest, readJson } from '../support/http';
 import { MAIL_ENV } from '../reliability/helpers';
+import { HONEYPOT_FIELD } from '@/lib/security/honeypot';
 
 /**
  * POST /api/refund-requests and /lookup: validation, honeypot, the order check that must not leak,
@@ -26,7 +27,7 @@ function submission(overrides: Record<string, unknown> = {}) {
     message: 'I cannot make it that evening.',
     acceptedTruth: true,
     acceptedRules: true,
-    website: '',
+    [HONEYPOT_FIELD]: '',
     ...overrides,
   };
 }
@@ -171,10 +172,10 @@ describe('POST /api/refund-requests', () => {
       await loadApp();
       const api = await routes();
 
-      const response = await api.post(submission({ website: 'https://spam.example' }));
+      const response = await api.post(submission({ [HONEYPOT_FIELD]: 'https://spam.example' }));
 
       expect(response.status).toBe(400);
-      expect(Object.keys(response.body.fields as object)).toEqual(['website']);
+      expect(Object.keys(response.body.fields as object)).toEqual([HONEYPOT_FIELD]);
       expect(await api.stored()).toEqual([]);
     });
 

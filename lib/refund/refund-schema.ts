@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { isSupportedLanguage } from '@/lib/i18n/language-preference';
+import { HONEYPOT_FIELD } from '@/lib/security/honeypot';
 import {
   REFUND_FIELD_LIMITS as L,
   checkEmail,
@@ -63,7 +64,7 @@ export const refundSubmissionSchema = z
     acceptedTruth: z.literal(true, 'Confirm that the information is true.'),
     acceptedRules: z.literal(true, 'Confirm that you accept the refund rules.'),
     /** Honeypot: a person never sees this field, so any value means a script filled the form. */
-    website: z.string().max(0, 'Invalid value.').optional(),
+    [HONEYPOT_FIELD]: z.string().max(0, 'Invalid value.').optional(),
   })
   .superRefine((value, context) => {
     if (!reasonFitsProduct(value.productKind, value.reason)) {

@@ -16,9 +16,11 @@ import {
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
+import { HoneypotField } from '@/components/ui/HoneypotField';
 import { CorporateGoal } from '@/types';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { useCustomerContactSeed } from '@/lib/customer/customer-draft';
+import { HONEYPOT_FIELD } from '@/lib/security/honeypot';
 
 export default function WorkshopsPage() {
   const { t, isRTL } = useLanguage();
@@ -32,6 +34,8 @@ export default function WorkshopsPage() {
     targetDate: '',
     primaryGoal: 'high_stress_decision_making' as CorporateGoal,
     message: '',
+    /** Honeypot: stays empty for a person; the server drops a lead that fills it. */
+    [HONEYPOT_FIELD]: '',
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -350,6 +354,12 @@ export default function WorkshopsPage() {
                 className="w-full rounded-lg bg-slate-950 border border-slate-800 p-3 text-sm text-white focus:outline-none focus:border-sky-500"
               />
             </div>
+
+            <HoneypotField
+              label={t.workshops.honeypotLabel}
+              value={formData[HONEYPOT_FIELD]}
+              onChange={(value) => setFormData((current) => ({ ...current, [HONEYPOT_FIELD]: value }))}
+            />
 
             <Button
               type="submit"

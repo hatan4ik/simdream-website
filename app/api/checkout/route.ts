@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { CheckoutError } from '@/lib/booking/checkout-service';
 import { startBookingCheckout, startVoucherCheckout } from '@/lib/booking/checkout-runtime';
+import { throttleCheckout } from '@/lib/booking/checkout-throttle';
+import { readJsonBody } from '@/lib/http/read-json-body';
 import { isPaymentsConfigured, requirePaymentsEnabled } from '@/lib/stripe';
 import { checkoutRequestSchema, validationError } from '@/lib/validation';
 import {
@@ -13,15 +15,15 @@ import { SIMULATOR_PACKAGES } from '@/lib/db/seed-data';
 
 export const runtime = 'nodejs';
 
-export async function POST(request: Request) {
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON request body.' }, { status: 400 });
-  }
+/** The largest real checkout (every text field at its limit, non-Latin script) is under 10 KiB. */
+const CHECKOUT_MAX_BODY_BYTES = 16 * 1024;
 
-  const parsed = checkoutRequestSchema.safeParse(body);
+export async function POST(request: Request) {
+  // Refused before the throttle, like any body that fails validation: it spends no allowance.
+  const read = await readJsonBody(request, { maxBytes: CHECKOUT_MAX_BODY_BYTES });
+  if (!read.ok) return read.response;
+
+  const parsed = checkoutRequestSchema.safeParse(read.body);
   if (!parsed.success) {
     return NextResponse.json(validationError(parsed.error), { status: 400 });
   }
@@ -51,6 +53,13 @@ export async function POST(request: Request) {
     if (paymentsDisabled) return paymentsDisabled;
   }
 
+  // Every local checkout (card, voucher-funded, gift voucher) is throttled before a record exists.
+  // The Wix Gift Cards path is not: that deployment has no durable limiter store.
+  if (!isWixGiftCardCheckout) {
+    const throttled = await throttleCheckout(request, parsed.data);
+    if (throttled) return throttled;
+  }
+
   try {
     const result =
       parsed.data.kind === 'booking'
@@ -77,7 +86,9 @@ export async function POST(request: Request) {
     return NextResponse.json(result, { status: 201 });
   } catch (error) {
     if (error instanceof CheckoutError) {
-      return NextResponse.json({ error: error.message }, { status: error.status });
+      // A refusal for too many unpaid holds is about this customer's state: never cache it.
+      const headers = error.status === 429 ? { 'Cache-Control': 'no-store' } : undefined;
+      return NextResponse.json({ error: error.message }, { status: error.status, headers });
     }
     console.error('Checkout initialization failed', error);
     return NextResponse.json({ error: 'Unable to start checkout. Please try again.' }, { status: 503 });

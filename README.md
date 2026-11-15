@@ -176,6 +176,13 @@ Use a different port for an additional local server:
 npm run dev -- --port 3001
 ```
 
+#### Testing from a phone, another device or a tunnel
+`next dev` serves its HMR and dev assets only to loopback origins (`127.0.0.1`, `localhost`, `[::1]`). A page opened from a Wi-Fi LAN address (`192.168.x.x`, `10.x.x.x`), a `.local` name or a tunnel (ngrok, Cloudflare Tunnel, Tailscale, localtunnel) hydrates nothing until you opt in, because `next dev` listens on all interfaces. Add the flag to `.env.local`, or set it for one run, and restart the dev server:
+```bash
+DEV_ALLOW_REMOTE_ORIGINS=true npm run dev
+```
+Only the exact value `true` counts. It does not change what the server binds to: `next dev` listens on all interfaces with or without it. It widens which browser origins the dev-only assets and endpoints accept (Next's `allowedDevOrigins`, matched on the hostname of the request's `Origin`, or `Referer` when there is none): besides loopback it adds the LAN ranges, `.local` names, the tunnel domains above, this machine's own host name and addresses, and `simdream.co.il`. A page served from any of those origins, on any device on that network or for anyone who learns a tunnel URL, can then use the dev endpoints, so leave it off on shared or public networks and never set it in a deployment (`next start` ignores it). The origin list lives in `lib/config/allowed-dev-origins.mjs`.
+
 ---
 
 ## Local demo accounts
@@ -190,7 +197,9 @@ To run the production build on your machine without Supabase, use `npm run start
 
 1. Create a project at [supabase.com](https://supabase.com).
 2. Open the **SQL Editor** in your Supabase dashboard.
-3. For a new project, apply [`lib/db/schema.sql`](lib/db/schema.sql), then review and apply any migrations not already represented by that schema. For an existing project, take a reviewed backup first and apply [`001_production_hardening.sql`](lib/db/migrations/001_production_hardening.sql) through [`012_booking_consent_birthday.sql`](lib/db/migrations/012_booking_consent_birthday.sql) in numeric order. Migration 001 intentionally rejects unresolved overlapping bookings; 002 adds member ownership and the `auth.users` profile trigger; 005 provides durable, privacy-preserving abuse controls; 010 adds the RLS-protected Ground School coordinator-request table; 011 adds refund-request persistence; and 012 stores booking consent and birthday-discount facts.
+3. For a new project, apply [`lib/db/schema.sql`](lib/db/schema.sql), then review and apply any migrations not already represented by that schema. For an existing project, take a reviewed backup first and apply [`001_production_hardening.sql`](lib/db/migrations/001_production_hardening.sql) through [`013_booking_hosted_checkout.sql`](lib/db/migrations/013_booking_hosted_checkout.sql) in numeric order. Migration 001 intentionally rejects unresolved overlapping bookings; 002 adds member ownership and the `auth.users` profile trigger; 005 provides durable, privacy-preserving abuse controls; 010 adds the RLS-protected Ground School coordinator-request table; 011 adds refund-request persistence; 012 stores booking consent and birthday-discount facts; and 013 adds the hosted Stripe Checkout columns of an unpaid card hold.
+
+   **Apply [`013_booking_hosted_checkout.sql`](lib/db/migrations/013_booking_hosted_checkout.sql) before deploying the release that contains it.** Without it card checkout still works: the customer still reaches Stripe, the booking is held as before, and the server logs that the hosted checkout could not be stored (the database error code and one fixed line, no customer data). But a pilot who returns and submits the same departure again cannot resume that payment page: until Stripe expires the session (30 minutes) and its webhook releases the hold, the retry answers 409 "You already have an unpaid reservation for this departure…".
 4. In **Project Settings &rarr; API**, copy your project URL, anon key, and service role key into `.env.local`.
 5. To elevate an account to Administrator:
    ```sql

@@ -2,7 +2,6 @@ import 'server-only';
 
 import { NextResponse } from 'next/server';
 import { FACILITY_INFO } from '@/lib/config/facility-info';
-import { hasUsableValue } from '@/lib/config/server-env';
 import {
   consumeRateLimit,
   rateLimitClientAddress,
@@ -11,6 +10,10 @@ import {
   type RateLimitDecision,
   type RateLimitRule,
 } from '@/lib/security/rate-limit';
+import { rejectCrossOrigin } from '@/lib/security/same-origin';
+
+// The same-origin check is shared with the other public forms (lib/security/same-origin.ts).
+export { rejectCrossOrigin };
 
 /**
  * Guards shared by the two refund API routes: same-origin, body size and type, and throttling.
@@ -23,46 +26,6 @@ const NO_STORE = { 'Cache-Control': 'no-store' };
 export function refundDeskContact() {
   const { email, phoneInternational, whatsappHref } = FACILITY_INFO.contact;
   return { email, phone: phoneInternational, whatsapp: whatsappHref };
-}
-
-/**
- * Origins this deployment answers on (the request URL, the configured public URL, and the Host
- * the browser used behind a proxy). A cross-site page cannot forge Host or Origin.
- */
-function receivingOrigins(request: Request): Set<string> {
-  const requestUrl = new URL(request.url);
-  const origins = new Set([requestUrl.origin]);
-  const configured = process.env.NEXT_PUBLIC_APP_URL;
-  if (hasUsableValue(configured)) {
-    try {
-      origins.add(new URL(configured).origin);
-    } catch {
-      // A malformed configured URL adds no origin.
-    }
-  }
-  const host = (request.headers.get('x-forwarded-host') ?? request.headers.get('host'))?.split(',')[0].trim();
-  const protocol = (request.headers.get('x-forwarded-proto')?.split(',')[0].trim() || requestUrl.protocol.replace(':', '')).toLowerCase();
-  if (host && /^[A-Za-z0-9.\-[\]:]+$/.test(host) && (protocol === 'http' || protocol === 'https')) {
-    try {
-      origins.add(new URL(`${protocol}://${host}`).origin);
-    } catch {
-      // An unparseable host adds no origin.
-    }
-  }
-  return origins;
-}
-
-/** A browser always sends Origin on a cross-site POST; a script without one (curl) is not a CSRF vector. */
-export function rejectCrossOrigin(request: Request): NextResponse | null {
-  const denied = () => NextResponse.json({ error: 'Cross-origin requests are not allowed.' }, { status: 403, headers: NO_STORE });
-  if (request.headers.get('sec-fetch-site') === 'cross-site') return denied();
-  const origin = request.headers.get('origin');
-  if (!origin) return null;
-  try {
-    return receivingOrigins(request).has(new URL(origin).origin) ? null : denied();
-  } catch {
-    return denied();
-  }
 }
 
 /** Reads a small JSON body, or returns the error response to send. */

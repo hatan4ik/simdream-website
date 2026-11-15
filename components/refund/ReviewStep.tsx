@@ -1,7 +1,9 @@
 import React from 'react';
 import Link from 'next/link';
 import { REFUND_POLICY, formatSessionDate, type RefundCopy } from '@/lib/refund';
+import { HoneypotField } from '@/components/ui/HoneypotField';
 import type { Language } from '@/lib/i18n/translations';
+import { HONEYPOT_FIELD } from '@/lib/security/honeypot';
 import type { RefundForm } from './use-refund-form';
 
 interface ReviewStepProps {
@@ -104,20 +106,11 @@ export function ReviewStep({ form, copy, language, idBase }: ReviewStepProps) {
         )}
       </div>
 
-      {/* Honeypot: off-screen, out of the tab order and hidden from assistive technology. */}
-      <div aria-hidden="true" className="absolute -start-[9999px] h-px w-px overflow-hidden">
-        <label>
-          {copy.review.honeypotLabel}
-          <input
-            type="text"
-            name="refund_company_site"
-            tabIndex={-1}
-            autoComplete="off"
-            value={values.website}
-            onChange={(event) => setField('website', event.target.value)}
-          />
-        </label>
-      </div>
+      <HoneypotField
+        label={copy.review.honeypotLabel}
+        value={values[HONEYPOT_FIELD]}
+        onChange={(value) => setField(HONEYPOT_FIELD, value)}
+      />
     </div>
   );
 }

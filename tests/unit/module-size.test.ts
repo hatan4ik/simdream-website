@@ -28,19 +28,21 @@ const DATA_FILES: Readonly<Record<string, string>> = {
 
 /** Current offenders and the line count they may not exceed. Lower an entry when the file shrinks; delete it at 400 or less. */
 const SIZE_ALLOWLIST: Readonly<Record<string, number>> = {
-  'components/scheduler/AmazonFlightStorefront.tsx': 1924,
-  'app/(public)/contact/page.tsx': 1126,
-  'components/pro/ProSessionsView.tsx': 1100,
-  'app/(public)/vouchers/page.tsx': 1078,
-  'components/scheduler/KantorovichCalendarScheduler.tsx': 941,
-  // 1005: Ground School inquiries (#114) landed on main after this ratchet was written (+78 lines of class methods).
+  'components/scheduler/AmazonFlightStorefront.tsx': 1500,
+  'app/(public)/contact/page.tsx': 918,
+  'components/pro/ProSessionsView.tsx': 481,
+  'app/(public)/vouchers/page.tsx': 1058,
+  'components/scheduler/KantorovichCalendarScheduler.tsx': 740,
+  // Ground School inquiries (#114) landed on main after this ratchet was written (+78 lines of class methods).
   // They move out with the store split planned in docs/MODULARITY.md; then lower this number.
-  'lib/db/store.ts': 1005,
+  'lib/db/store.ts': 999,
   'lib/scheduler/kantorovich-engine.ts': 781,
   'lib/wix/backend-blueprint.ts': 732,
   'app/admin/page.tsx': 553,
-  'lib/wix/booking-checkout-client.ts': 537,
   'app/(public)/subscriptions/page.tsx': 492,
+  // Lowered from 537 when its Cart V2 transport moved to lib/wix/cart-v2-shared.ts; what is left is
+  // booking-flow logic (Wix price interpretation, DST-safe time conversion), not transport.
+  'lib/wix/booking-checkout-client.ts': 482,
   'lib/auth/auth-context.tsx': 454,
 };
 

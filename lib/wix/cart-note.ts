@@ -1,6 +1,7 @@
 'use client';
 
 import type { WixBrowserClient } from './booking-checkout-client';
+import { wixCartUrl } from './cart-v2-shared';
 
 /**
  * Sets the visitor-owned Wix cart's `note` through Cart V2 Update Cart
@@ -16,7 +17,7 @@ export async function setWixCartNote(
   note: string,
   failureMessage: string
 ): Promise<void> {
-  const response = await client.fetchWithAuth(`https://www.wixapis.com/ecom/v2/carts/${cartId}`, {
+  const response = await client.fetchWithAuth(wixCartUrl(cartId), {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ cart: { id: cartId, note } }),

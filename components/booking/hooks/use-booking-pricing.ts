@@ -2,7 +2,7 @@
 
 import type { FlightAddon, FlightSlot, SimulatorPackage } from '@/types';
 import type { WorldRoute } from '@/lib/data/experience-routes';
-import { buildWixMissionNotes, presentManifestWithDraft } from '@/lib/booking/client';
+import { buildWixMissionNotes, presentManifestWithDraft, type WixBirthdayClaimPilot } from '@/lib/booking/client';
 import type { translations } from '@/lib/i18n/translations';
 import type { PilotDetails } from './use-pilot-details';
 import { useBookingManifest } from './use-booking-manifest';
@@ -29,8 +29,8 @@ interface UseBookingPricingArgs {
     discountIls: number;
     /** Browser-memory birth date used only to invalidate an old Wix draft. */
     value: string;
-    /** Server issue step for the opaque Wix pricing-provider claim. */
-    createWixBirthdayPricingClaim: () => Promise<{ fieldId: string; token: string } | null>;
+    /** Server issue step for the opaque Wix pricing-provider claim, bound to the pilot's contact. */
+    createWixBirthdayPricingClaim: (pilot: WixBirthdayClaimPilot) => Promise<{ fieldId: string; token: string } | null>;
   };
   copy: (typeof translations)['en']['booking'];
 }

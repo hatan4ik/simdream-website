@@ -2,6 +2,16 @@
 
 import { wixBirthdayPricingAdditionalFields, type WixBirthdayPricingClaimField } from './booking-additional-fields';
 import { blockingCheckoutViolationMessage, createWixCartForBooking } from './booking-cart-create';
+import {
+  isHttpsCheckoutUrl,
+  postWixJson,
+  wixCartUrl,
+  wixErrorFields,
+  type WixCartCalculationResponse,
+  type WixCartCouponResponse,
+  type WixCartGiftCardResponse,
+  type WixCheckoutUrlResponse,
+} from './cart-v2-shared';
 import { wixAddonProductIdFor } from './catalog';
 import {
   normalizeWixPhone,
@@ -14,8 +24,6 @@ export { createWixCartForBooking };
 
 const WIX_TIME_SLOT_GET_URL = 'https://www.wixapis.com/_api/service-availability/v2/time-slots/get';
 const WIX_CREATE_BOOKING_URL = 'https://www.wixapis.com/bookings/v2/bookings';
-const WIX_CREATE_CART_URL = 'https://www.wixapis.com/ecom/v2/carts';
-const WIX_BOOKINGS_APP_ID = '13d21c63-b5ec-5912-8397-c3a5ddb27a97';
 
 export interface WixBrowserClient { fetchWithAuth(input: RequestInfo | URL, init?: RequestInit): Promise<Response>; }
 
@@ -93,68 +101,12 @@ interface WixBookingResponse {
   booking?: { id?: string };
 }
 
-interface WixCartResponse {
-  cart?: { id?: string };
-}
-
-interface WixCartCalculationResponse {
-  summary?: {
-    violations?: unknown[];
-    priceSummary?: {
-      discount?: { amount?: string };
-      total?: { amount?: string };
-    };
-    paymentSummary?: {
-      giftCards?: Array<{
-        giftCardId?: string;
-        redeemAmount?: { amount?: string };
-      }>;
-      /** The authoritative payable remainder after native Gift Card credit. */
-      totalAfterGiftCards?: { amount?: string };
-      payNow?: { amount?: string };
-    };
-  };
-}
-
-interface WixCouponResponse {
-  cart?: {
-    coupons?: Array<{ id?: string; _id?: string; code?: string }>;
-  };
-}
-
-interface WixGiftCardResponse {
-  cart?: {
-    paymentInfo?: {
-      giftCards?: Array<{
-        id?: string;
-        _id?: string;
-        obfuscatedCode?: string;
-      }>;
-    };
-  };
-}
-
-interface WixCheckoutUrlResponse {
-  checkoutUrl?: string;
-}
-
-function errorDetail(payload: unknown): string | null {
-  if (!payload || typeof payload !== 'object') return null;
-  const candidate = payload as { message?: unknown; details?: { applicationError?: { description?: unknown } } };
-  if (typeof candidate.message === 'string') return candidate.message;
-  const nested = candidate.details?.applicationError?.description;
-  return typeof nested === 'string' ? nested : null;
-}
-
 async function wixPost<T>(client: WixBrowserClient, url: string, body: unknown): Promise<T> {
-  const response = await client.fetchWithAuth(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  const payload: unknown = await response.json().catch(() => null);
+  const { response, payload } = await postWixJson((input, init) => client.fetchWithAuth(input, init), url, body);
   if (!response.ok) {
-    const detail = errorDetail(payload)?.toLowerCase() ?? '';
+    // Wix's top-level `message` (even an empty one) wins over `details.applicationError.description`.
+    const fields = wixErrorFields(payload);
+    const detail = (fields?.message ?? fields?.description)?.toLowerCase() ?? '';
     if (detail.includes('availability') || detail.includes('slot') || detail.includes('taken')) {
       throw new WixBookingCheckoutClientError('That departure is no longer available. Please choose another time.');
     }
@@ -179,6 +131,11 @@ async function wixUpdateCartCustomerInfo(
   if (!response.ok) {
     throw new WixBookingCheckoutClientError('We could not securely prepare your checkout. Please try again.');
   }
+}
+
+/** Calculate Cart with `refreshCart: true`: Wix's price for the cart as it now stands. */
+function calculateWixCart(client: WixBrowserClient, cartId: string): Promise<WixCartCalculationResponse> {
+  return wixPost<WixCartCalculationResponse>(client, wixCartUrl(cartId, 'calculate'), { refreshCart: true });
 }
 
 function wixMoneyAmount(value: unknown): number | null {
@@ -404,9 +361,7 @@ export async function prepareWixBookingCheckout(
     });
   }
 
-  const calculation = await wixPost<WixCartCalculationResponse>(client, `${WIX_CREATE_CART_URL}/${cartId}/calculate`, {
-    refreshCart: true,
-  });
+  const calculation = await calculateWixCart(client, cartId);
   return { cartId, price: priceFromCalculation(calculation) };
 }
 
@@ -420,9 +375,9 @@ export async function applyWixCoupon(
   const code = couponCode.trim();
   if (!code) throw new WixBookingCheckoutClientError('Enter a coupon code before applying it.');
 
-  let coupon: WixCouponResponse;
+  let coupon: WixCartCouponResponse;
   try {
-    coupon = await wixPost<WixCouponResponse>(client, `${WIX_CREATE_CART_URL}/${cartId}/add-coupon`, {
+    coupon = await wixPost<WixCartCouponResponse>(client, wixCartUrl(cartId, 'add-coupon'), {
       coupon: { code },
     });
   } catch {
@@ -433,9 +388,7 @@ export async function applyWixCoupon(
   const couponId = appliedCoupon?.id ?? appliedCoupon?._id;
   if (!couponId) throw new WixBookingCheckoutClientError('Wix could not apply this coupon.');
 
-  const calculation = await wixPost<WixCartCalculationResponse>(client, `${WIX_CREATE_CART_URL}/${cartId}/calculate`, {
-    refreshCart: true,
-  });
+  const calculation = await calculateWixCart(client, cartId);
   return { couponId, price: priceAfterCoupon(calculation, previousTotalIls) };
 }
 
@@ -445,10 +398,8 @@ export async function removeWixCoupon(
   cartId: string,
   couponId: string
 ): Promise<WixCartPrice> {
-  await wixPost<WixCouponResponse>(client, `${WIX_CREATE_CART_URL}/${cartId}/remove-coupon`, { couponId });
-  const calculation = await wixPost<WixCartCalculationResponse>(client, `${WIX_CREATE_CART_URL}/${cartId}/calculate`, {
-    refreshCart: true,
-  });
+  await wixPost<WixCartCouponResponse>(client, wixCartUrl(cartId, 'remove-coupon'), { couponId });
+  const calculation = await calculateWixCart(client, cartId);
   return priceFromCalculation(calculation);
 }
 
@@ -465,9 +416,9 @@ export async function applyWixGiftCard(
   const code = giftCardCode.trim();
   if (!code) throw new WixBookingCheckoutClientError('Enter a Gift Card code before applying it.');
 
-  let giftCard: WixGiftCardResponse;
+  let giftCard: WixCartGiftCardResponse;
   try {
-    giftCard = await wixPost<WixGiftCardResponse>(client, `${WIX_CREATE_CART_URL}/${cartId}/add-gift-card`, {
+    giftCard = await wixPost<WixCartGiftCardResponse>(client, wixCartUrl(cartId, 'add-gift-card'), {
       giftCard: { code },
     });
   } catch {
@@ -480,9 +431,7 @@ export async function applyWixGiftCard(
     throw new WixBookingCheckoutClientError('Wix could not apply this Gift Card.');
   }
 
-  const calculation = await wixPost<WixCartCalculationResponse>(client, `${WIX_CREATE_CART_URL}/${cartId}/calculate`, {
-    refreshCart: true,
-  });
+  const calculation = await calculateWixCart(client, cartId);
   const price = priceAfterGiftCard(calculation);
   if (price.giftCardAppliedIls === undefined || price.giftCardAppliedIls <= 0) {
     await removeWixGiftCard(client, cartId, giftCardId);
@@ -498,19 +447,18 @@ export async function removeWixGiftCard(
   cartId: string,
   giftCardId: string
 ): Promise<WixCartPrice> {
-  await wixPost<WixGiftCardResponse>(client, `${WIX_CREATE_CART_URL}/${cartId}/remove-gift-card`, { giftCardId });
-  const calculation = await wixPost<WixCartCalculationResponse>(client, `${WIX_CREATE_CART_URL}/${cartId}/calculate`, {
-    refreshCart: true,
-  });
+  await wixPost<WixCartGiftCardResponse>(client, wixCartUrl(cartId, 'remove-gift-card'), { giftCardId });
+  const calculation = await calculateWixCart(client, cartId);
   return priceFromCalculation(calculation);
 }
 
 /** Cart V2 has no documented locale/return field; redirect sessions carry `preferences.additionalQueryParameters.lang`. */
 export async function getWixBookingCheckoutUrl(client: WixBrowserClient, cartId: string): Promise<{ checkoutUrl: string }> {
-  const checkout = await wixPost<WixCheckoutUrlResponse>(client, `${WIX_CREATE_CART_URL}/${cartId}/get-checkout-url`, {});
+  const checkout = await wixPost<WixCheckoutUrlResponse>(client, wixCartUrl(cartId, 'get-checkout-url'), {});
   if (!checkout.checkoutUrl) throw new WixBookingCheckoutClientError('Wix did not return a checkout page. Please try again.');
   try {
-    if (new URL(checkout.checkoutUrl).protocol !== 'https:') throw new Error('insecure checkout URL');
+    // An unparseable URL throws inside the check and is reported as insecure too.
+    if (!isHttpsCheckoutUrl(checkout.checkoutUrl)) throw new Error('insecure checkout URL');
   } catch {
     throw new WixBookingCheckoutClientError('Wix did not return a secure checkout page. Please try again.');
   }

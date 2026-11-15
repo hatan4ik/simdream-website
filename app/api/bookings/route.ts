@@ -1,10 +1,13 @@
 import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth/admin-guard';
 import { BookingConflictError, RecordNotFoundError, store } from '@/lib/db/store';
+import { readJsonBody } from '@/lib/http/read-json-body';
 import { adminBookingPatchSchema, validationError } from '@/lib/validation';
 import { Booking } from '@/types';
 
 const BOOKING_REFERENCE_PATTERN = /^SD-737-[A-Z2-9]{16}$/;
+/** An admin status or time change is a few hundred bytes. */
+const BOOKING_PATCH_MAX_BODY_BYTES = 16 * 1024;
 
 function publicBookingView(booking: Booking) {
   return {
@@ -76,13 +79,9 @@ export async function PATCH(request: Request) {
   const denied = await requireAdmin(request);
   if (denied) return denied;
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON request body.' }, { status: 400 });
-  }
-  const parsed = adminBookingPatchSchema.safeParse(body);
+  const read = await readJsonBody(request, { maxBytes: BOOKING_PATCH_MAX_BODY_BYTES });
+  if (!read.ok) return read.response;
+  const parsed = adminBookingPatchSchema.safeParse(read.body);
   if (!parsed.success) return NextResponse.json(validationError(parsed.error), { status: 400 });
 
   try {

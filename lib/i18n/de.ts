@@ -536,6 +536,7 @@ export const germanTranslations = {
     additionalNotesPlaceholder: 'Erzählen Sie uns von Ihrer Teamdynamik, Ihren Zielen oder Wunschterminen...',
     submitInquiry: 'Workshop-Anfrage senden',
     submitting: 'Anfrage wird gesendet...',
+    honeypotLabel: 'Dieses Feld leer lassen',
   },
   vouchers: {
     giftTeaserBadge: 'AUF DER SUCHE NACH EINEM UNVERGESSLICHEN GESCHENK?',

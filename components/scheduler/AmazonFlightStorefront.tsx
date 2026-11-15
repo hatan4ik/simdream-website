@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import {
   Calendar as CalendarIcon,
   Clock,
@@ -27,6 +27,8 @@ import { Badge } from '@/components/ui/Badge';
 import { StorefrontVoucherBox } from '@/components/booking/StorefrontVoucherBox';
 import { BookingMonthPager } from '@/components/scheduler/BookingMonthPager';
 import { BookingWeekPager } from '@/components/scheduler/BookingWeekPager';
+import { PackageInclusionsDialog } from '@/components/scheduler/PackageInclusionsDialog';
+import { useSchedulerViewModel } from '@/components/scheduler/hooks';
 import {
   FlightSlot,
   SimulatorPackage,
@@ -35,21 +37,13 @@ import {
   MissionManifestCalculation,
   SlotBlockPeriod,
 } from '@/types';
-import { addDaysToYmd, formatCurrency } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 import { useModalFocus } from '@/lib/ui/use-modal-focus';
 import { useLanguage } from '@/lib/i18n/language-context';
 import type { Language, LocalizedRecord } from '@/lib/i18n/translations';
-import {
-  calendarMonthCells,
-  calendarWeekDays,
-  calendarWeekdayNames,
-  formatCalendarDate,
-  formatCalendarDayNumber,
-  formatCalendarMonth,
-  monthStartForYmd,
-} from '@/lib/i18n/calendar-presentation';
-import { isBeyondBookingHorizon, maxBookableDate } from '@/lib/scheduler/booking-horizon';
-import { canAddonFitInSlot, packageFromPriceIls, sanitizePackageTitle } from '@/lib/scheduler/mission-calculator';
+import { formatCalendarDate, formatCalendarDayNumber } from '@/lib/i18n/calendar-presentation';
+import { SLOT_PERIODS, type DurationAvailability } from '@/lib/scheduler/availability-view-model';
+import { canAddonFitInSlot, sanitizePackageTitle } from '@/lib/scheduler/mission-calculator';
 import { getPackageFormulaBadge } from '@/lib/scheduler/package-presentation';
 import { BOOKING_BLUEPRINT_COPY } from '@/lib/i18n/booking-blueprint-copy';
 
@@ -64,7 +58,7 @@ interface AmazonFlightStorefrontProps {
   slots: FlightSlot[];
   selectedSlot: FlightSlot | null;
   onSelectSlot: (slot: FlightSlot) => void;
-  durationAvailability: Record<number, { availableCount: number; minPriceIls: number }>;
+  durationAvailability: DurationAvailability;
   loadingSlots: boolean;
   /** The last slots request failed; show a load error with a retry instead of a sold-out day. */
   slotsLoadFailed?: boolean;
@@ -220,34 +214,41 @@ export function AmazonFlightStorefront({
         ? calendarCopy.reviewFlightDetails
         : calendarCopy.customizeFlight;
   const [addonFilter, setAddonFilter] = useState<AddonFilterTab>('all');
-  const [calendarMode, setCalendarMode] = useState<'week' | 'month'>('week');
   const [blueprintPackage, setBlueprintPackage] = useState<SimulatorPackage | null>(null);
   const blueprintPanelRef = useModalFocus<HTMLDivElement>(blueprintPackage !== null, () => setBlueprintPackage(null));
-
-  // A manually browsed month is an override. Otherwise derive from the selected day so
-  // the calendar cannot briefly keep an SSR placeholder month while the booking date is live.
-  const [viewMonthOverride, setViewMonthOverride] = useState<Date | null>(null);
-  const viewMonthDate = viewMonthOverride ?? monthStartForYmd(selectedDate);
   const slotsContainerRef = useRef<HTMLDivElement>(null);
   const packagesSectionRef = useRef<HTMLElement>(null);
   const buyBoxFormRef = useRef<HTMLFormElement>(null);
 
-  useEffect(() => {
-    setViewMonthOverride(null);
-  }, [selectedDate]);
-
-  const weekDays = useMemo(() => calendarWeekDays(selectedDate, language), [language, selectedDate]);
-  const maxDate = maxBookableDate(calendarTodayYmd);
-  const weekdayNames = useMemo(() => calendarWeekdayNames(language), [language]);
-  const monthGridDays = useMemo(
-    () => calendarMonthCells(viewMonthDate, language, calendarTodayYmd),
-    [calendarTodayYmd, language, viewMonthDate]
-  );
-
-  const selectCalendarDate = (date: string) => {
-    setViewMonthOverride(null);
-    onSelectDate(date);
-  };
+  // Availability, calendar and zero-slot recovery are shared with the guided wizard (AGENTS.md §4.4).
+  // One card per package: a sold-out package stays listed (rule 1), the selection stays the visitor's
+  // (rule 2), and the departure grid lists open slots only, grouped Morning, Afternoon, Evening (rule 3).
+  const {
+    calendarMode,
+    setCalendarMode,
+    viewMonthDate,
+    browseMonth,
+    weekDays,
+    maxDate,
+    weekdayNames,
+    monthGridDays,
+    selectDate: selectCalendarDate,
+    openSlotCount: availableSlotCount,
+    slotsByPeriod: groupedSlots,
+    packageOptions: visiblePackages,
+    zeroSlotAlternatives,
+    nextDay,
+  } = useSchedulerViewModel({
+    selectedDate,
+    calendarTodayYmd,
+    language,
+    onSelectDate,
+    slots,
+    packages,
+    selectedPackage,
+    durationAvailability,
+    layout: 'per-package',
+  });
 
   const scrollToSlotsPanel = () => {
     slotsContainerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -260,40 +261,6 @@ export function AmazonFlightStorefront({
   const scrollToBuyBox = () => {
     buyBoxFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
-
-  // Filter packages that are available on the selected date
-  const nonCorporatePackages = useMemo(
-    () => packages.filter((p) => p.category !== 'corporate'),
-    [packages]
-  );
-
-  const visiblePackages = useMemo(() => {
-    return nonCorporatePackages;
-  }, [nonCorporatePackages]);
-
-  const availableSlotCount = useMemo(() => slots.filter((s) => s.available).length, [slots]);
-
-  // Group open slots by Morning, Afternoon, Evening. Booked and internally locked slots are not
-  // listed at all: the visitor only ever sees departures they can actually pick.
-  const groupedSlots = useMemo(() => {
-    const visible = slots.filter((s) => s.available);
-    const groups: Record<'morning' | 'afternoon' | 'evening', FlightSlot[]> = {
-      morning: [],
-      afternoon: [],
-      evening: [],
-    };
-    for (const slot of visible) {
-      const hour = parseInt(slot.startTime.split(':')[0], 10);
-      if (hour < 15) {
-        groups.morning.push(slot);
-      } else if (hour < 18) {
-        groups.afternoon.push(slot);
-      } else {
-        groups.evening.push(slot);
-      }
-    }
-    return groups;
-  }, [slots]);
 
   // Categorized Add-ons
   const filteredAddons = useMemo(() => {
@@ -479,7 +446,7 @@ export function AmazonFlightStorefront({
                 isRTL={isRTL}
                 previousLabel={calendarCopy.previousMonth}
                 nextLabel={calendarCopy.nextMonth}
-                onChangeMonth={setViewMonthOverride}
+                onChangeMonth={browseMonth}
                 onToday={() => selectCalendarDate(calendarTodayYmd)}
               />
               <div className="overflow-x-auto pb-1 [-webkit-overflow-scrolling:touch]">
@@ -582,8 +549,8 @@ export function AmazonFlightStorefront({
                     type="button"
                     variant="outline"
                     size="sm"
-                    disabled={isBeyondBookingHorizon(addDaysToYmd(selectedDate, 1), calendarTodayYmd)}
-                    onClick={() => selectCalendarDate(addDaysToYmd(selectedDate, 1))}
+                    disabled={nextDay.beyondHorizon}
+                    onClick={() => selectCalendarDate(nextDay.date)}
                     className="font-mono text-xs text-sky-400 border-sky-500/40 hover:bg-sky-500/10"
                   >
                     {calendarCopy.checkNextDay}
@@ -605,35 +572,25 @@ export function AmazonFlightStorefront({
                 </div>
 
                 <div className="flex flex-wrap justify-center gap-2 pt-1">
-                  {packages
-                    .filter(
-                      (p) =>
-                        p.category !== 'corporate' &&
-                        p.id !== selectedPackage.id &&
-                        (durationAvailability[p.durationMinutes]?.availableCount ?? 0) > 0
-                    )
-                    .map((altPkg) => (
-                      <Button
-                        key={altPkg.id}
-                        type="button"
-                        variant="secondary"
-                        size="sm"
-                        onClick={() => onSelectPackage(altPkg)}
-                        className="font-mono text-xs"
-                      >
-                        {calendarCopy.tryFlight(
-                          altPkg.durationMinutes,
-                          formatCurrency(packageFromPriceIls(altPkg, durationAvailability[altPkg.durationMinutes]?.minPriceIls))
-                        )}
-                      </Button>
-                    ))}
+                  {zeroSlotAlternatives.map(({ pkg: altPkg, fromPriceIls }) => (
+                    <Button
+                      key={altPkg.id}
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => onSelectPackage(altPkg)}
+                      className="font-mono text-xs"
+                    >
+                      {calendarCopy.tryFlight(altPkg.durationMinutes, formatCurrency(fromPriceIls))}
+                    </Button>
+                  ))}
 
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
-                    disabled={isBeyondBookingHorizon(addDaysToYmd(selectedDate, 1), calendarTodayYmd)}
-                    onClick={() => selectCalendarDate(addDaysToYmd(selectedDate, 1))}
+                    disabled={nextDay.beyondHorizon}
+                    onClick={() => selectCalendarDate(nextDay.date)}
                     className="font-mono text-xs text-sky-400 border-sky-500/40 hover:bg-sky-500/10"
                   >
                     {calendarCopy.checkNextDay}
@@ -642,7 +599,7 @@ export function AmazonFlightStorefront({
               </div>
             ) : (
               <div className="space-y-3">
-                {(['morning', 'afternoon', 'evening'] as const).map((period) => {
+                {SLOT_PERIODS.map((period) => {
                   const periodSlots = groupedSlots[period];
                   if (periodSlots.length === 0) return null;
                   const periodLabel = calendarCopy[period];
@@ -751,12 +708,8 @@ export function AmazonFlightStorefront({
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {visiblePackages.map((pkg) => {
-              const isSelected = pkg.id === selectedPackage.id;
-              const availInfo = durationAvailability[pkg.durationMinutes];
-              const slotCount = availInfo ? availInfo.availableCount : (pkg.id === selectedPackage.id ? slots.filter((s) => s.available).length : 0);
-              const isAvailable = availInfo ? availInfo.availableCount > 0 : true;
-              const displayPrice = packageFromPriceIls(pkg, availInfo?.minPriceIls);
+            {visiblePackages.map(({ pkg, isSelected, isSoldOut, openSlotCount: slotCount, fromPriceIls: displayPrice }) => {
+              const isAvailable = !isSoldOut;
               const cleanTitle = sanitizePackageTitle(pkg.title);
               const formulaBadge = getPackageFormulaBadge(pkg.durationMinutes, pkg.category, language);
 
@@ -1530,136 +1483,17 @@ export function AmazonFlightStorefront({
           MISSION BLUEPRINT / WHAT'S INCLUDED INTERACTIVE MODAL DIALOG
          ===================================================================== */}
       {blueprintPackage && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="blueprint-modal-title"
-          className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 px-safe-area-4 pb-safe-area-4"
-          onClick={() => setBlueprintPackage(null)}
-        >
-          <div
-            ref={blueprintPanelRef}
-            tabIndex={-1}
-            className="relative max-w-2xl w-full rounded-2xl border-2 border-sky-500/40 bg-slate-900 shadow-2xl p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto focus:outline-none"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Header */}
-            <div className="flex items-start justify-between gap-4 border-b border-slate-800 pb-4">
-              <div>
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-sky-500/15 border border-sky-500/30 text-sky-300 text-xs font-mono font-bold">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                  <span>{bpCopy.badge}</span>
-                </div>
-                <h3 id="blueprint-modal-title" className="text-xl sm:text-2xl font-black text-white mt-1">
-                  {blueprintPackage.title}
-                </h3>
-                <p className="text-xs sm:text-sm text-slate-300 font-mono mt-0.5">
-                  <strong className="text-amber-400">{bpCopy.duration(blueprintPackage.durationMinutes)}</strong> • {formatCurrency(blueprintPackage.priceIls)}
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setBlueprintPackage(null)}
-                aria-label={bpCopy.closeDialogLabel}
-                className="p-1.5 rounded-lg border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Inclusions Breakdown */}
-            <div className="space-y-4 text-xs sm:text-sm">
-              <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-3">
-                <h4 className="font-bold text-white flex items-center gap-2 text-sm">
-                  <Plane className="w-4 h-4 text-sky-400" />
-                  <span>{bpCopy.missionArch}</span>
-                </h4>
-                <ul className="space-y-2 text-slate-300">
-                  <li className="flex items-start gap-2">
-                    <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                    <span>
-                      <strong className="text-white">{bpCopy.handsOnPic}</strong>{' '}
-                      {bpCopy.handsOnDesc(blueprintPackage.durationMinutes)}
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                    <span>
-                      <strong className="text-white">{bpCopy.takeoffTitle}</strong>{' '}
-                      {bpCopy.takeoffDesc}
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                    <span>
-                      <strong className="text-white">{bpCopy.worldTitle}</strong>{' '}
-                      {blueprintPackage.durationMinutes === 60
-                        ? bpCopy.world60
-                        : blueprintPackage.durationMinutes === 90
-                        ? bpCopy.world90
-                        : blueprintPackage.category === 'training'
-                        ? bpCopy.worldPro
-                        : bpCopy.worldBasic}
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                    <span>
-                      <strong className="text-white">{bpCopy.observersTitle}</strong>{' '}
-                      {bpCopy.observersDesc}
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                    <span>
-                      <strong className="text-white">{bpCopy.guidanceTitle}</strong>{' '}
-                      {bpCopy.guidanceDesc}
-                    </span>
-                  </li>
-                </ul>
-              </div>
-
-              {/* Package Features List */}
-              <div className="space-y-2">
-                <p className="text-[11px] font-mono uppercase text-slate-400 font-bold">
-                  {bpCopy.highlightsTitle}
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-300">
-                  {blueprintPackage.features.map((feat, idx) => (
-                    <div key={idx} className="flex items-start gap-2 p-2 rounded-lg bg-slate-950/40 border border-slate-800/80">
-                      <span className="w-1.5 h-1.5 rounded-full bg-sky-400 shrink-0 mt-1.5" />
-                      <span>{feat}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Modal Footer CTAs */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-800">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => setBlueprintPackage(null)}
-                className="w-full sm:w-auto text-slate-400 hover:text-white"
-              >
-                {bpCopy.closeBtn}
-              </Button>
-              <Button
-                type="button"
-                onClick={() => {
-                  onSelectPackage(blueprintPackage);
-                  setBlueprintPackage(null);
-                }}
-                className="w-full sm:w-auto font-black bg-amber-400 hover:bg-amber-300 text-slate-950 px-6"
-              >
-                <span>{bpCopy.selectBtn(formatCurrency(blueprintPackage.priceIls))}</span>
-                <ChevronRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
-              </Button>
-            </div>
-          </div>
-        </div>
+        <PackageInclusionsDialog
+          pkg={blueprintPackage}
+          copy={bpCopy}
+          isRTL={isRTL}
+          panelRef={blueprintPanelRef}
+          onClose={() => setBlueprintPackage(null)}
+          onSelect={onSelectPackage}
+          overlayClassName="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 px-safe-area-4 pb-safe-area-4"
+          panelClassName="relative max-w-2xl w-full rounded-2xl border-2 border-sky-500/40 bg-slate-900 shadow-2xl p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto focus:outline-none"
+          selectButtonClassName="w-full sm:w-auto font-black bg-amber-400 hover:bg-amber-300 text-slate-950 px-6"
+        />
       )}
     </div>
   );

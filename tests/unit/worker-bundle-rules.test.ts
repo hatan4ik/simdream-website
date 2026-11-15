@@ -4,7 +4,7 @@ import ts from 'typescript';
 import { describe, expect, it } from 'vitest';
 import { LANGUAGE_CODES } from '@/lib/i18n/language-preference';
 import { LANGUAGES } from '@/lib/i18n/translations';
-import { importEdges, rel } from './_support/import-graph';
+import { importEdges, importEdgesOf, rel } from './_support/import-graph';
 import { REPO_ROOT, parseSource, sourceFiles } from './_support/source';
 
 /**
@@ -104,4 +104,57 @@ describe('non-Hebrew copy stays out of the server graph', () => {
       .map((edge) => `${relative(edge.from)} -> ${relative(edge.to)}`);
     expect(importers).toEqual([]);
   });
+});
+
+/**
+ * The Wix birthday routes (claim, pricing provider, offer capabilities) share one server chunk holding
+ * `lib/wix/birthday-pricing-server.ts` and the `lib/wix/birthday-*` modules it imports, and one copy of
+ * zod. Turbopack emits identical chunks under different names when routes reach the same modules in a
+ * different order, and esbuild then bundles each name: measured 2026-11-15, the claim route importing
+ * `birthday-claim-request` before `birthday-pricing-server` gave it its own copy of the birthday chunk
+ * and of zod; moving that import removed 192,176 B from the worker (docs/modules/wix-bundle-diet.md,
+ * section 7). So a route reaches those modules through `birthday-pricing-server` first: no import
+ * before it may reach them.
+ */
+describe('the Wix birthday routes reach their shared modules through birthday-pricing-server first', () => {
+  const server = path.join(REPO_ROOT, 'lib/wix/birthday-pricing-server.ts');
+  const valueEdgesOf = (file: string) =>
+    importEdgesOf(file).filter((edge) => !edge.typeOnly && !edge.dynamicImport && !edge.dynamicSsrFalse);
+  const reachCache = new Map<string, Set<string>>();
+  const reachable = (file: string): Set<string> => {
+    const known = reachCache.get(file);
+    if (known) return known;
+    const reached = new Set<string>([file]);
+    reachCache.set(file, reached);
+    for (const edge of valueEdgesOf(file)) for (const target of reachable(edge.to)) reached.add(target);
+    return reached;
+  };
+  const shared = [...reachable(server)].filter((file) => /^lib\/wix\/birthday-[a-z-]+\.ts$/.test(relative(file)));
+  const routes = sourceFiles('app').filter(
+    (file) => /\/route\.ts$/.test(file) && valueEdgesOf(file).some((edge) => edge.to === server)
+  );
+
+  it('finds the shared modules and the routes that import them', () => {
+    expect(shared.map(relative)).toEqual(expect.arrayContaining(['lib/wix/birthday-pricing-server.ts', 'lib/wix/birthday-claim-request.ts']));
+    expect(routes.map(relative)).toEqual(
+      expect.arrayContaining([
+        'app/api/offers/capabilities/route.ts',
+        'app/api/wix/birthday-pricing/v1/calculate-price/route.ts',
+        'app/api/wix/birthday/claim/route.ts',
+      ])
+    );
+  });
+
+  it.each(routes.map((file) => [relative(file), file] as const))(
+    '%s imports nothing before birthday-pricing-server that reaches a lib/wix/birthday-* module',
+    (_name, file) => {
+      const edges = valueEdgesOf(file);
+      const serverAt = edges.findIndex((edge) => edge.to === server);
+      const early = edges
+        .slice(0, serverAt)
+        .filter((edge) => shared.some((module) => reachable(edge.to).has(module)))
+        .map((edge) => relative(edge.to));
+      expect(early).toEqual([]);
+    }
+  );
 });

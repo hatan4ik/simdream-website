@@ -116,9 +116,11 @@ The repository now contains the provider endpoint and frontend handoff. It prese
 duration—there is no duplicate "15% off" service—and Wix becomes the price authority at checkout.
 
 1. The browser validates the mandatory birthday locally only for presentation. For an eligible flight it calls
-   `POST /api/wix/birthday/claim`. The trusted server validates the existing policy, then issues a 10-minute HMAC claim
-   containing only package ID, Wix service ID, Israel flight date, birthday month/day and expiry. It does **not** return or
-   store a birth year.
+   `POST /api/wix/birthday/claim` with the pilot's email and phone. The trusted server validates the existing policy,
+   then issues a 10-minute HMAC claim containing only package ID, Wix service ID, Israel flight date, birthday
+   month/day, expiry and keyed digests (HMAC-SHA-256) of the email and phone, never the contact itself. It does **not**
+   return or store a birth year. The provider applies the claim only to a booking whose `contactDetails` match one of
+   those digests ([identity binding](../WIX_BIRTHDAY_PRICING_PROVIDER.md#identity-binding-and-issuance-limits)).
 2. `prepareWixBookingCheckout()` sends that opaque token in a configured Bookings `additionalFields` field when creating
    the native booking. No full date of birth is submitted to Wix.
 3. Wix calls `POST {DEPLOYMENT-URI}/v1/calculate-price` after it creates the booking. The route accepts only a signed

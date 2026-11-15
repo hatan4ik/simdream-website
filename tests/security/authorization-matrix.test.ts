@@ -21,6 +21,7 @@ import {
 /**
  * Intended access policy per route and method:
  * - public: anyone, whatever credentials they present
+ * - public-same-origin: anyone, but a request a browser sends from another site is refused with 403 (CSRF defence of a public form)
  * - admin: HTTP Basic admin only; authenticated cross-origin mutations are refused (CSRF)
  * - member: verified-member Bearer token; an unverified email is refused with 403
  * - verified-member: verified-member Bearer token; anything else is 401
@@ -28,7 +29,7 @@ import {
  * - refresh-token: no caller identity grants access; only the REVIEWS_REFRESH_TOKEN Bearer does
  * - method-not-allowed: nobody
  */
-type Policy = 'public' | 'admin' | 'member' | 'verified-member' | 'stripe-signature' | 'refresh-token' | 'method-not-allowed';
+type Policy = 'public' | 'public-same-origin' | 'admin' | 'member' | 'verified-member' | 'stripe-signature' | 'refresh-token' | 'method-not-allowed';
 type RouteName = keyof TestApp['routes'];
 type Method = 'GET' | 'POST' | 'PATCH';
 
@@ -191,7 +192,7 @@ const ROUTES: RouteCase[] = [
     label: 'POST /api/workshops (inquiry)',
     route: 'workshops',
     method: 'POST',
-    policy: 'public',
+    policy: 'public-same-origin',
     allowedStatus: 201,
     path: () => '/api/workshops',
     body: () => ({
@@ -253,6 +254,9 @@ function expectedOutcome(route: RouteCase, identity: Identity): Outcome {
   switch (route.policy) {
     case 'public':
       return { allowed: true };
+    case 'public-same-origin':
+      // The one identity that carries a foreign Origin; the others send none, as a script or the site itself does.
+      return identity === 'admin from a cross-origin page' ? { allowed: false, status: 403 } : { allowed: true };
     case 'method-not-allowed':
       return { allowed: false, status: 405 };
     case 'stripe-signature':

@@ -74,6 +74,10 @@ CREATE TABLE IF NOT EXISTS public.bookings (
   payment_status TEXT NOT NULL DEFAULT 'pending' CHECK (payment_status IN ('pending', 'paid', 'refunded')),
   payment_method TEXT NOT NULL DEFAULT 'stripe' CHECK (payment_method IN ('stripe', 'voucher', 'desk')),
   stripe_payment_intent TEXT UNIQUE,
+  -- The hosted checkout of an unpaid card hold, so the same pilot's retry resumes it (migration 013).
+  stripe_checkout_session_id TEXT,
+  stripe_checkout_url TEXT,
+  stripe_checkout_expires_at TIMESTAMPTZ,
   notes TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   CHECK (discount_ils <= subtotal_ils),
@@ -112,6 +116,8 @@ CREATE TABLE IF NOT EXISTS public.bookings (
 CREATE INDEX IF NOT EXISTS bookings_pilot_email_idx ON public.bookings (lower(pilot_email));
 CREATE INDEX IF NOT EXISTS bookings_date_idx ON public.bookings (booking_date, start_time);
 CREATE INDEX IF NOT EXISTS bookings_user_id_idx ON public.bookings (user_id);
+CREATE UNIQUE INDEX IF NOT EXISTS bookings_stripe_checkout_session_unique
+  ON public.bookings (stripe_checkout_session_id) WHERE stripe_checkout_session_id IS NOT NULL;
 
 -- Auth users are the source of member identity. New profiles always receive
 -- the least-privilege customer role; the application never derives roles from

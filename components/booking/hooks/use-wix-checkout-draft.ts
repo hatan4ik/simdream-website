@@ -6,6 +6,7 @@ import {
   buildWixCheckoutDraftKey,
   pickActiveWixCheckoutDraft,
   prepareWixCheckoutDraft,
+  type WixBirthdayClaimPilot,
   type WixCheckoutDraftState,
 } from '@/lib/booking/client';
 
@@ -20,8 +21,8 @@ interface UseWixCheckoutDraftArgs {
   birthdayValue: string;
   addonIds?: readonly string[];
   requestedRouteId?: string;
-  /** Gets a short-lived server proof right before Wix creates the booking. */
-  createBirthdayPricingClaim?: () => Promise<{ fieldId: string; token: string } | null>;
+  /** Gets a short-lived server proof, bound to the booking's pilot contact, right before Wix creates the booking. */
+  createBirthdayPricingClaim?: (pilot: WixBirthdayClaimPilot) => Promise<{ fieldId: string; token: string } | null>;
   messages: { errorSelectSlot: string; paymentStartFailed: string };
 }
 
@@ -64,7 +65,8 @@ export function useWixCheckoutDraft(args: UseWixCheckoutDraftArgs) {
 
   const prepareDraft = async (): Promise<WixCheckoutDraftState> => {
     if (!selectedSlot) throw new Error(messages.errorSelectSlot);
-    const birthdayPricingClaim = await createBirthdayPricingClaim?.();
+    // The claim is bound to the same email and phone the Wix booking below carries.
+    const birthdayPricingClaim = await createBirthdayPricingClaim?.({ email: pilotEmail, phone: pilotPhone });
     const prepared = await prepareWixCheckoutDraft({
       inputKey: draftKey,
       packageId,

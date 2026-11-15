@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth/admin-guard';
 import { store } from '@/lib/db/store';
+import { readJsonBody } from '@/lib/http/read-json-body';
 import { optimizeTiledCapacity } from '@/lib/scheduler/tiled-interval-optimizer';
 import { adminScheduleOptimizationSchema, validationError } from '@/lib/validation';
+
+/** Eight draft requests are under 2 KiB; an authenticated operator gets a looser cap. */
+const OPTIMIZATION_MAX_BODY_BYTES = 64 * 1024;
 
 /**
  * Admin-only optimizer preview. It is intentionally read-only: existing
@@ -12,14 +16,10 @@ export async function POST(request: Request) {
   const denied = await requireAdmin(request);
   if (denied) return denied;
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON request body.' }, { status: 400 });
-  }
+  const read = await readJsonBody(request, { maxBytes: OPTIMIZATION_MAX_BODY_BYTES });
+  if (!read.ok) return read.response;
 
-  const parsed = adminScheduleOptimizationSchema.safeParse(body);
+  const parsed = adminScheduleOptimizationSchema.safeParse(read.body);
   if (!parsed.success) return NextResponse.json(validationError(parsed.error), { status: 400 });
 
   try {

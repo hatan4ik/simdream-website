@@ -4,6 +4,8 @@
  * It verifies the public visitor connection, SimDream-to-Wix Bookings catalog
  * parity and Pricing Plans resolvability. It never creates, changes or deletes
  * a Wix record, never prints credentials, and never enables a checkout path.
+ * It also prints which component binds Wix bookings to the local scheduling
+ * grid, worked out from the environment alone.
  *
  *   npm run wix:readiness
  */
@@ -16,7 +18,17 @@ const PLAN_ENV_KEYS = [
   'WIX_PLAN_ID_AIRLINE_10X90',
 ] as const;
 
-loadWixLocalEnv(['NEXT_PUBLIC_WIX_CLIENT_ID', 'WIX_SITE_ID', ...PLAN_ENV_KEYS]);
+// Read for the scheduling-grid line only: their presence is checked, their values never printed.
+const GRID_ENFORCEMENT_ENV_KEYS = [
+  'WIX_AVAILABILITY_ADAPTER_ENABLED',
+  'WIX_BIRTHDAY_PRICING_PROVIDER_ENABLED',
+  'WIX_BIRTHDAY_CLAIM_FIELD_ID',
+  'WIX_BIRTHDAY_CLAIM_SECRET',
+  'WIX_BIRTHDAY_PRICING_PROVIDER_APP_ID',
+  'WIX_BIRTHDAY_PRICING_PROVIDER_PUBLIC_KEY',
+] as const;
+
+loadWixLocalEnv(['NEXT_PUBLIC_WIX_CLIENT_ID', 'WIX_SITE_ID', ...PLAN_ENV_KEYS, ...GRID_ENFORCEMENT_ENV_KEYS]);
 
 // The Wix catalog module reads its optional plan-id mapping at module load.
 // Import it only after .env.local has been read, so this command behaves the
@@ -24,11 +36,12 @@ loadWixLocalEnv(['NEXT_PUBLIC_WIX_CLIENT_ID', 'WIX_SITE_ID', ...PLAN_ENV_KEYS]);
 const [
   { SUBSCRIPTION_PASSES },
   { listWixServices, reconcileCatalog, sharedWixResourceTypeIds },
-  { isWixConfigured },
+  { isWixAvailabilityAdapterEnabled, isWixConfigured },
   { unmappedPackageIds, WIX_SERVICE_IDS },
   { resolveWixPlanId },
   { listWixGiftCardProducts, reconcileGiftCardProduct },
   { assessWixReadiness },
+  { wixGridEnforcement, wixGridEnforcementReport },
 ] = await Promise.all([
   import('../lib/data/subscription-passes'),
   import('../lib/wix/bookings'),
@@ -37,7 +50,17 @@ const [
   import('../lib/wix/plans'),
   import('../lib/wix/gift-cards'),
   import('../lib/wix/readiness'),
+  import('../lib/wix/booking-grid-enforcement'),
 ]);
+
+// Who binds Wix-created bookings to the local grid, from this environment alone: no Wix request,
+// and informational only, so it never changes the exit code (docs/WIX_BIRTHDAY_PRICING_PROVIDER.md).
+const gridEnforcement = wixGridEnforcementReport({
+  enforcement: wixGridEnforcement(),
+  availabilityAdapterEnabled: isWixAvailabilityAdapterEnabled(),
+});
+console.log(gridEnforcement.line);
+if (gridEnforcement.warning) console.warn(gridEnforcement.warning);
 
 if (!isWixConfigured()) {
   console.error('Wix readiness: NEXT_PUBLIC_WIX_CLIENT_ID is not configured. No Wix request was made.');

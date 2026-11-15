@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Calendar as CalendarIcon,
   Clock,
@@ -9,33 +9,25 @@ import {
   Check,
   Users,
   Award,
-  Plane,
-  X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { BookingMonthPager } from '@/components/scheduler/BookingMonthPager';
 import { BookingWeekPager } from '@/components/scheduler/BookingWeekPager';
+import { PackageInclusionsDialog } from '@/components/scheduler/PackageInclusionsDialog';
+import { useSchedulerViewModel } from '@/components/scheduler/hooks';
 import {
   FlightSlot,
   SimulatorPackage,
   PublicCapacityReport,
   SlotBlockPeriod,
 } from '@/types';
-import { addDaysToYmd, formatCurrency } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 import { useModalFocus } from '@/lib/ui/use-modal-focus';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { type Language, type LocalizedRecord } from '@/lib/i18n/translations';
-import {
-  calendarMonthCells,
-  calendarWeekDays,
-  calendarWeekdayNames,
-  formatCalendarDate,
-  formatCalendarDayNumber,
-  formatCalendarMonth,
-  monthStartForYmd,
-} from '@/lib/i18n/calendar-presentation';
-import { isBeyondBookingHorizon, maxBookableDate } from '@/lib/scheduler/booking-horizon';
-import { addMinutesToTime, packageFromPriceIls, packagePriceForSlot } from '@/lib/scheduler/mission-calculator';
+import { formatCalendarDate, formatCalendarDayNumber } from '@/lib/i18n/calendar-presentation';
+import { SLOT_PERIODS, type DurationAvailability } from '@/lib/scheduler/availability-view-model';
+import { addMinutesToTime, packagePriceForSlot } from '@/lib/scheduler/mission-calculator';
 import { getPackageFormulaBadge } from '@/lib/scheduler/package-presentation';
 import { BOOKING_BLUEPRINT_COPY } from '@/lib/i18n/booking-blueprint-copy';
 
@@ -51,7 +43,7 @@ interface KantorovichCalendarSchedulerProps {
   selectedSlot: FlightSlot | null;
   onSelectSlot: (slot: FlightSlot) => void;
   efficiencyReport: PublicCapacityReport | null;
-  durationAvailability?: Record<number, { availableCount: number; minPriceIls: number }>;
+  durationAvailability?: DurationAvailability;
   loading: boolean;
   /** The availability request failed: show the error and a retry, never a sold-out day (REL-10). */
   slotsLoadFailed?: boolean;
@@ -291,92 +283,48 @@ export function KantorovichCalendarScheduler({
   const copy = CLEAN_COPY[language] || CLEAN_COPY.en;
   const bpCopy = BOOKING_BLUEPRINT_COPY[language] || BOOKING_BLUEPRINT_COPY.en;
 
-  const [calendarMode, setCalendarMode] = useState<'week' | 'month'>('week');
   const [blueprintModalPackage, setBlueprintModalPackage] = useState<SimulatorPackage | null>(null);
   const blueprintPanelRef = useModalFocus<HTMLDivElement>(blueprintModalPackage !== null, () =>
     setBlueprintModalPackage(null)
   );
-
-  // Keep only a manually browsed month in state. The normal month derives from the
-  // selected day so a post-hydration date update cannot leave a stale placeholder month.
-  const [viewMonthOverride, setViewMonthOverride] = useState<Date | null>(null);
-  const viewMonthDate = viewMonthOverride ?? monthStartForYmd(selectedDate);
   const slotsSectionRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    setViewMonthOverride(null);
-  }, [selectedDate]);
+  // Availability, calendar and zero-slot recovery are shared with the storefront (AGENTS.md §4.4).
+  // One option per duration; every duration stays visible (rule 1), so the 45m promo on a Saturday
+  // shows its "0 slots" badge instead of disappearing. Recovery offers only durations of this scope
+  // with open departures that day (rule 3).
+  const {
+    calendarMode,
+    setCalendarMode,
+    viewMonthDate,
+    browseMonth,
+    weekDays,
+    maxDate,
+    weekdayNames,
+    monthGridDays,
+    selectDate: handleSelectDate,
+    openSlotCount,
+    slotsByPeriod,
+    packageOptions: durationOptions,
+    zeroSlotAlternatives: alternativeDurations,
+    nextDay,
+  } = useSchedulerViewModel({
+    selectedDate,
+    calendarTodayYmd,
+    language,
+    onSelectDate,
+    slots,
+    packages,
+    selectedPackage,
+    durationAvailability,
+    layout: 'per-duration',
+  });
 
-  // Deduplicate packages by duration
-  const durationOptions = useMemo(() => {
-    const nonCorp = packages.filter((p) => p.category !== 'corporate');
-    const byDuration = new Map<number, SimulatorPackage>();
-    for (const pkg of nonCorp) {
-      // Every duration stays visible (AGENTS.md §4 rule 1); the 45m promo on a Saturday shows
-      // its "0 slots" badge from durationAvailability instead of disappearing.
-      const existing = byDuration.get(pkg.durationMinutes);
-      if (!existing || pkg.id === selectedPackage.id) {
-        byDuration.set(pkg.durationMinutes, pkg);
-      }
-    }
-    return Array.from(byDuration.values()).sort(
-      (a, b) => a.durationMinutes - b.durationMinutes
-    );
-  }, [packages, selectedPackage.id]);
-
-  const weekDays = useMemo(() => calendarWeekDays(selectedDate, language), [language, selectedDate]);
-  const maxDate = maxBookableDate(calendarTodayYmd);
-  const weekdayNames = useMemo(() => calendarWeekdayNames(language), [language]);
-  const monthGridDays = useMemo(
-    () => calendarMonthCells(viewMonthDate, language, calendarTodayYmd),
-    [calendarTodayYmd, language, viewMonthDate]
+  // Open slots only (booked and internally locked slots are never listed), in Morning, Afternoon
+  // and Evening groups; an empty group is not shown.
+  const cleanPeriodGroups = SLOT_PERIODS.map((id) => ({ id, label: copy[id], items: slotsByPeriod[id] })).filter(
+    (g) => g.items.length > 0
   );
-
-  // Group open slots into Morning, Afternoon, Evening. Booked and internal anti-gap locked
-  // slots are not listed at all, so the visitor only sees departures they can pick.
-  const cleanPeriodGroups = useMemo(() => {
-    const visible = slots.filter((s) => s.available);
-
-    const morning: FlightSlot[] = [];
-    const afternoon: FlightSlot[] = [];
-    const evening: FlightSlot[] = [];
-
-    for (const slot of visible) {
-      const hour = parseInt(slot.startTime.split(':')[0], 10);
-      if (hour < 15) {
-        morning.push(slot);
-      } else if (hour < 18) {
-        afternoon.push(slot);
-      } else {
-        evening.push(slot);
-      }
-    }
-
-    return [
-      { id: 'morning', label: copy.morning, items: morning },
-      { id: 'afternoon', label: copy.afternoon, items: afternoon },
-      { id: 'evening', label: copy.evening, items: evening },
-    ].filter((g) => g.items.length > 0);
-  }, [slots, copy.morning, copy.afternoon, copy.evening]);
-
-  const openSlotCount = useMemo(
-    () => slots.filter((s) => s.available).length,
-    [slots]
-  );
-
-  // Zero-slot recovery offers only durations that exist in this booking's scope and
-  // have open departures on the selected day (AGENTS.md §4 rule 3), so a tap never
-  // lands on a missing package or another sold-out duration.
-  const alternativeDurations = durationOptions.filter(
-    (pkg) =>
-      pkg.durationMinutes !== selectedPackage.durationMinutes &&
-      (durationAvailability?.[pkg.durationMinutes]?.availableCount ?? 0) > 0
-  );
-
-  const handleSelectDate = (date: string) => {
-    setViewMonthOverride(null);
-    onSelectDate(date);
-  };
 
   return (
     <div className="space-y-6 select-none" style={{ touchAction: 'manipulation' }}>
@@ -475,7 +423,7 @@ export function KantorovichCalendarScheduler({
               isRTL={isRTL}
               previousLabel={copy.previousMonth}
               nextLabel={copy.nextMonth}
-              onChangeMonth={setViewMonthOverride}
+              onChangeMonth={browseMonth}
               onToday={() => handleSelectDate(calendarTodayYmd)}
             />
 
@@ -556,11 +504,7 @@ export function KantorovichCalendarScheduler({
 
         {/* Responsive Touch-Friendly Duration Grid */}
         <div className="grid grid-cols-2 sm:grid-flow-col sm:auto-cols-fr gap-2 sm:gap-2.5">
-          {durationOptions.map((pkg) => {
-            const isSelected = pkg.durationMinutes === selectedPackage.durationMinutes;
-            const durInfo = durationAvailability?.[pkg.durationMinutes];
-            const isZeroAvailable = durInfo && durInfo.availableCount === 0;
-            const effectivePrice = packageFromPriceIls(pkg, durInfo?.minPriceIls);
+          {durationOptions.map(({ pkg, isSelected, isSoldOut: isZeroAvailable, fromPriceIls: effectivePrice }) => {
             return (
               <button
                 key={pkg.id}
@@ -664,8 +608,8 @@ export function KantorovichCalendarScheduler({
                 variant="outline"
                 size="sm"
                 className="border-sky-500/50 text-sky-300 hover:bg-sky-500/10"
-                disabled={isBeyondBookingHorizon(addDaysToYmd(selectedDate, 1), calendarTodayYmd)}
-                onClick={() => handleSelectDate(addDaysToYmd(selectedDate, 1))}
+                disabled={nextDay.beyondHorizon}
+                onClick={() => handleSelectDate(nextDay.date)}
               >
                 {copy.checkNextDay}
               </Button>
@@ -680,14 +624,14 @@ export function KantorovichCalendarScheduler({
                 variant="outline"
                 size="sm"
                 className="border-sky-500/50 text-sky-300 hover:bg-sky-500/10"
-                disabled={isBeyondBookingHorizon(addDaysToYmd(selectedDate, 1), calendarTodayYmd)}
+                disabled={nextDay.beyondHorizon}
                 onClick={() => {
-                  handleSelectDate(addDaysToYmd(selectedDate, 1));
+                  handleSelectDate(nextDay.date);
                 }}
               >
                 {copy.checkNextDay}
               </Button>
-              {alternativeDurations.map((pkg) => (
+              {alternativeDurations.map(({ pkg }) => (
                 <Button
                   key={pkg.id}
                   type="button"
@@ -779,136 +723,17 @@ export function KantorovichCalendarScheduler({
           MISSION BLUEPRINT / WHAT'S INCLUDED INTERACTIVE MODAL DIALOG
          ===================================================================== */}
       {blueprintModalPackage && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="blueprint-modal-title"
-          className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 px-safe-area-4 pb-safe-area-4 animate-in fade-in"
-          onClick={() => setBlueprintModalPackage(null)}
-        >
-          <div
-            ref={blueprintPanelRef}
-            tabIndex={-1}
-            className="relative max-w-2xl w-full rounded-2xl border-2 border-sky-500/40 bg-slate-900 shadow-2xl p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto text-left rtl:text-right focus:outline-none"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Header */}
-            <div className="flex items-start justify-between gap-4 border-b border-slate-800 pb-4">
-              <div>
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-sky-500/15 border border-sky-500/30 text-sky-300 text-xs font-mono font-bold">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                  <span>{bpCopy.badge}</span>
-                </div>
-                <h3 id="blueprint-modal-title" className="text-xl sm:text-2xl font-black text-white mt-1">
-                  {blueprintModalPackage.title}
-                </h3>
-                <p className="text-xs sm:text-sm text-slate-300 font-mono mt-0.5">
-                  <strong className="text-amber-400">{bpCopy.duration(blueprintModalPackage.durationMinutes)}</strong> • {formatCurrency(blueprintModalPackage.priceIls)}
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setBlueprintModalPackage(null)}
-                aria-label={bpCopy.closeDialogLabel}
-                className="p-1.5 rounded-lg border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Inclusions Breakdown */}
-            <div className="space-y-4 text-xs sm:text-sm">
-              <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-3">
-                <h4 className="font-bold text-white flex items-center gap-2 text-sm">
-                  <Plane className="w-4 h-4 text-sky-400" />
-                  <span>{bpCopy.missionArch}</span>
-                </h4>
-                <ul className="space-y-2 text-slate-300">
-                  <li className="flex items-start gap-2">
-                    <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                    <span>
-                      <strong className="text-white">{bpCopy.handsOnPic}</strong>{' '}
-                      {bpCopy.handsOnDesc(blueprintModalPackage.durationMinutes)}
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                    <span>
-                      <strong className="text-white">{bpCopy.takeoffTitle}</strong>{' '}
-                      {bpCopy.takeoffDesc}
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                    <span>
-                      <strong className="text-white">{bpCopy.worldTitle}</strong>{' '}
-                      {blueprintModalPackage.durationMinutes === 60
-                        ? bpCopy.world60
-                        : blueprintModalPackage.durationMinutes === 90
-                        ? bpCopy.world90
-                        : blueprintModalPackage.category === 'training'
-                        ? bpCopy.worldPro
-                        : bpCopy.worldBasic}
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                    <span>
-                      <strong className="text-white">{bpCopy.observersTitle}</strong>{' '}
-                      {bpCopy.observersDesc}
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                    <span>
-                      <strong className="text-white">{bpCopy.guidanceTitle}</strong>{' '}
-                      {bpCopy.guidanceDesc}
-                    </span>
-                  </li>
-                </ul>
-              </div>
-
-              {/* Package Features List */}
-              <div className="space-y-2">
-                <p className="text-[11px] font-mono uppercase text-slate-400 font-bold">
-                  {bpCopy.highlightsTitle}
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-300">
-                  {blueprintModalPackage.features.map((feat, idx) => (
-                    <div key={idx} className="flex items-start gap-2 p-2 rounded-lg bg-slate-950/40 border border-slate-800/80">
-                      <span className="w-1.5 h-1.5 rounded-full bg-sky-400 shrink-0 mt-1.5" />
-                      <span>{feat}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Modal Footer CTAs */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-800">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => setBlueprintModalPackage(null)}
-                className="w-full sm:w-auto text-slate-400 hover:text-white"
-              >
-                {bpCopy.closeBtn}
-              </Button>
-              <Button
-                type="button"
-                onClick={() => {
-                  onSelectPackage(blueprintModalPackage);
-                  setBlueprintModalPackage(null);
-                }}
-                className="w-full sm:w-auto font-black bg-sky-500 hover:bg-sky-400 text-slate-950 px-6 shadow-glow"
-              >
-                <span>{bpCopy.selectBtn(formatCurrency(blueprintModalPackage.priceIls))}</span>
-                <ChevronRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
-              </Button>
-            </div>
-          </div>
-        </div>
+        <PackageInclusionsDialog
+          pkg={blueprintModalPackage}
+          copy={bpCopy}
+          isRTL={isRTL}
+          panelRef={blueprintPanelRef}
+          onClose={() => setBlueprintModalPackage(null)}
+          onSelect={onSelectPackage}
+          overlayClassName="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 px-safe-area-4 pb-safe-area-4 animate-in fade-in"
+          panelClassName="relative max-w-2xl w-full rounded-2xl border-2 border-sky-500/40 bg-slate-900 shadow-2xl p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto text-left rtl:text-right focus:outline-none"
+          selectButtonClassName="w-full sm:w-auto font-black bg-sky-500 hover:bg-sky-400 text-slate-950 px-6 shadow-glow"
+        />
       )}
     </div>
   );

@@ -1,5 +1,5 @@
 import type { Locator, Page } from '@playwright/test';
-import { expect } from '../support/e2e';
+import { expect, preferLanguage } from '../support/e2e';
 import {
   checkoutButton,
   fillStorefrontManifest,
@@ -11,7 +11,9 @@ import {
   storefrontVoucher,
 } from './support/booking';
 import { test } from './support/fixtures';
-import { gotoSettled, isolateFromThirdParties } from './support/page';
+import { HONEYPOT_FIELD } from '../../lib/security/honeypot';
+import { measureHorizontalOverflow } from './support/geometry';
+import { freezeCssMotion, gotoSettled, isolateFromThirdParties } from './support/page';
 
 test.use({ reducedMotion: 'reduce', video: 'off' });
 test.describe.configure({ timeout: 90_000 });
@@ -56,8 +58,10 @@ const FORMS: readonly FormUnderTest[] = [
   },
 ];
 
+/** The controls a person can reach. A honeypot (`[data-honeypot]`) is hidden from people and assistive technology on purpose, so it is not one of them. */
 function visibleControls(page: Page): Locator {
-  return page.locator('input:not([type="hidden"]):visible, select:visible, textarea:visible');
+  const reachable = ':not([data-honeypot] *)';
+  return page.locator(`input:not([type="hidden"])${reachable}:visible, select${reachable}:visible, textarea${reachable}:visible`);
 }
 
 test.describe('form control labelling', () => {
@@ -229,4 +233,88 @@ test.describe('validation and error feedback', () => {
 
     expect(await isAnnounced(message)).toBe(true);
   });
+});
+
+test.describe('workshop inquiry honeypot', () => {
+  const TRAP = '[data-honeypot] input';
+
+  test('is unreachable and silent for a person, and the form posts it empty', async ({ page }) => {
+    let posted: Record<string, unknown> | undefined;
+    await page.route(
+      (url) => url.pathname === '/api/workshops',
+      (route) => {
+        if (route.request().method() !== 'POST') return route.fallback();
+        posted = route.request().postDataJSON() as Record<string, unknown>;
+        return route.fulfill({ status: 201, json: { id: '00000000-0000-4000-8000-000000000000', status: 'new' } });
+      }
+    );
+    await gotoSettled(page, '/workshops');
+    const trap = page.locator(TRAP);
+
+    // Out of the tab order and out of the accessibility tree, so neither keyboard nor screen reader meets it.
+    await expect(page.locator('[data-honeypot]')).toHaveCount(1);
+    await expect(trap).toHaveAttribute('name', HONEYPOT_FIELD);
+    await expect(trap).toHaveAttribute('tabindex', '-1');
+    await expect(trap).toHaveAttribute('autocomplete', 'off');
+    for (const attribute of ['data-1p-ignore', 'data-lpignore', 'data-bwignore']) await expect(trap).toHaveAttribute(attribute, 'true');
+    await expect(trap).toHaveAttribute('data-form-type', 'other');
+    expect(await trap.evaluate((field) => field.closest('[aria-hidden="true"]') !== null)).toBe(true);
+    await expect(page.getByRole('textbox', { name: /leave this field empty/i })).toHaveCount(0);
+    // Hidden by clipping a 1px box (no negative or huge offsets, which would stick out of the viewport), and still rendered:
+    // not display:none, visibility:hidden or type=hidden, which bots skip.
+    const wrapper = page.locator('[data-honeypot]');
+    const box = await wrapper.boundingBox();
+    if (!box) throw new Error('The honeypot has no layout box to measure.');
+    expect(box.width).toBeLessThanOrEqual(1);
+    expect(box.height).toBeLessThanOrEqual(1);
+    const style = await wrapper.evaluate((element) => {
+      const computed = getComputedStyle(element);
+      return { position: computed.position, clipPath: computed.clipPath, display: computed.display, visibility: computed.visibility };
+    });
+    expect(style).toEqual({ position: 'absolute', clipPath: 'inset(50%)', display: 'block', visibility: 'visible' });
+    await expect(trap).not.toHaveAttribute('type', 'hidden');
+
+    // At the end of the form, after the free-text notes and before the submit button, never beside a field of a recognisable type.
+    const order = await page.evaluate((selector) => {
+      const before = (a: Element, b: Element) => Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
+      const notes = document.querySelector('textarea');
+      const submit = document.querySelector('button[type="submit"]');
+      const field = document.querySelector(selector);
+      if (!notes || !submit || !field) return null;
+      return { afterNotes: before(notes, field), beforeSubmit: before(field, submit) };
+    }, TRAP);
+    expect(order).toEqual({ afterNotes: true, beforeSubmit: true });
+
+    await page.getByPlaceholder('e.g. Acme Cyber Technologies').fill('QA Flight Ops');
+    await page.getByPlaceholder('e.g. Sarah Levi, VP HR').fill('Noa Tester');
+    await page.getByPlaceholder('sharon@company.com').fill('noa.tester@example.com');
+    await page.getByPlaceholder('+972-54-000-0000').fill('054-555-0104');
+    await page.getByRole('button', { name: 'Submit Workshop Inquiry' }).click();
+
+    await expect(page.getByText('Inquiry Received Successfully!')).toBeVisible();
+    expect(posted).toMatchObject({ companyName: 'QA Flight Ops', [HONEYPOT_FIELD]: '' });
+  });
+});
+
+test.describe('workshop inquiry honeypot layout', () => {
+  /** The trap is hidden by clipping, never by pushing it out of the page: nothing may stick out of the viewport. */
+  for (const { language, dir } of [
+    { language: 'en', dir: 'ltr' },
+    { language: 'he', dir: 'rtl' },
+  ] as const) {
+    test(`adds no horizontal overflow to /workshops at 320px (${language}, ${dir})`, async ({ page }) => {
+      await page.setViewportSize({ width: 320, height: 800 });
+      await preferLanguage(page, language);
+      await gotoSettled(page, '/workshops');
+      await freezeCssMotion(page);
+      await expect(page.locator('html')).toHaveAttribute('dir', dir);
+      await expect(page.locator('[data-honeypot]')).toHaveCount(1);
+
+      expect(await measureHorizontalOverflow(page)).toEqual({ documentWidth: 320, viewportWidth: 320, offenders: [] });
+      const trap = await page.locator('[data-honeypot]').boundingBox();
+      if (!trap) throw new Error('The honeypot has no layout box to measure.');
+      expect(trap.x).toBeGreaterThanOrEqual(-1);
+      expect(trap.x + trap.width).toBeLessThanOrEqual(321);
+    });
+  }
 });
