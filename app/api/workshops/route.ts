@@ -14,6 +14,8 @@ import { adminWorkshopPatchSchema, validationError, workshopInquirySchema } from
 
 /** A real inquiry is a few hundred bytes; anything past this is not a form submission. */
 const WORKSHOP_MAX_BODY_BYTES = 8 * 1024;
+/** Admin requests come from an authenticated operator, so they get a looser cap. */
+const ADMIN_MAX_BODY_BYTES = 64 * 1024;
 const NO_STORE = { 'Cache-Control': 'no-store' };
 
 function inquiryAccepted(id: string, status: string) {
@@ -86,13 +88,9 @@ export async function POST(request: Request) {
 export async function PATCH(request: Request) {
   const denied = await requireAdmin(request);
   if (denied) return denied;
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON request body.' }, { status: 400 });
-  }
-  const parsed = adminWorkshopPatchSchema.safeParse(body);
+  const read = await readJsonBody(request, { maxBytes: ADMIN_MAX_BODY_BYTES });
+  if (!read.ok) return read.response;
+  const parsed = adminWorkshopPatchSchema.safeParse(read.body);
   if (!parsed.success) return NextResponse.json(validationError(parsed.error), { status: 400 });
 
   try {

@@ -1,13 +1,19 @@
 import { NextResponse } from 'next/server';
+import { readJsonBody } from '@/lib/http/read-json-body';
 import {
   resolveWixBookingCheckout,
   WixBookingUnavailableError,
   wixBookingCheckoutSchema,
 } from '@/lib/wix/booking-checkout';
 
+/** A package, a departure and up to 20 add-on ids: about 2 KiB at most. */
+const WIX_BOOKING_CHECKOUT_MAX_BODY_BYTES = 16 * 1024;
+
 export async function POST(request: Request) {
-  const body: unknown = await request.json().catch(() => null);
-  const input = wixBookingCheckoutSchema.safeParse(body);
+  const read = await readJsonBody(request, { maxBytes: WIX_BOOKING_CHECKOUT_MAX_BODY_BYTES });
+  // Only an oversized body is refused here: malformed JSON still gets the schema's 400 below.
+  if (!read.ok && read.response.status !== 400) return read.response;
+  const input = wixBookingCheckoutSchema.safeParse(read.ok ? read.body : null);
   if (!input.success) {
     return NextResponse.json({ error: 'Use a valid package, date, and departure time.' }, { status: 400 });
   }

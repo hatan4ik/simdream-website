@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { bookingCheckoutBody, loadApp, voucherCheckoutBody, type TestApp } from '../support/app';
+import { apiRequest } from '../support/http';
 import { EMPTY_DAY, findSlotWhere, postCheckout } from './api-helpers';
 import { errorBody, expectContract, stripeCheckoutStarted } from './contracts';
 
@@ -84,6 +85,24 @@ describe('POST /api/checkout: per-address throttle', () => {
       600
     );
     expect(app.checkoutSessions).toHaveLength(6);
+  });
+
+  it('spends no allowance on a body it refuses before validation, oversized or malformed', async () => {
+    const app = await loadApp({ stripe: 'mocked' });
+    const { POST } = await app.routes.checkout();
+    const send = async (rawBody: string) =>
+      (await POST(apiRequest('/api/checkout', { rawBody, headers: { 'content-type': 'application/json', ...from('203.0.113.40') } }))).status;
+    const oversized = JSON.stringify({ ...voucherCheckoutBody(), padding: 'x'.repeat(16 * 1024) });
+
+    // Eleven of each would exhaust the ten-per-address allowance if either kind were counted.
+    for (let attempt = 1; attempt <= 11; attempt += 1) {
+      expect(await send(oversized)).toBe(413);
+      expect(await send('{"kind":')).toBe(400);
+    }
+
+    const accepted = await postCheckout(app, voucherCheckoutBody(), from('203.0.113.40'));
+    expect(accepted.status).toBe(201);
+    expect(app.checkoutSessions).toHaveLength(1);
   });
 
   it('gives requests without a usable client address one shared, larger bucket', async () => {

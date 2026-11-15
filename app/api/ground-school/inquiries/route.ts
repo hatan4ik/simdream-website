@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth/admin-guard';
 import { store } from '@/lib/db/store';
+import { readJsonBody } from '@/lib/http/read-json-body';
 import {
   adminGroundSchoolInquiryPatchSchema,
   groundSchoolInquirySchema,
@@ -12,6 +13,11 @@ import {
   rateLimitHeaders,
   RateLimitUnavailableError,
 } from '@/lib/security/rate-limit';
+
+/** A full request (every field at its limit, non-Latin script) is under 7 KiB. */
+const INQUIRY_MAX_BODY_BYTES = 16 * 1024;
+/** Admin requests come from an authenticated operator, so they get a looser cap. */
+const ADMIN_MAX_BODY_BYTES = 64 * 1024;
 
 /** Private dispatch view; public callers can only submit a new request. */
 export async function GET(request: Request) {
@@ -33,14 +39,10 @@ export async function GET(request: Request) {
  * It is separately throttled because it contains contact information.
  */
 export async function POST(request: Request) {
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON request body.' }, { status: 400 });
-  }
+  const read = await readJsonBody(request, { maxBytes: INQUIRY_MAX_BODY_BYTES });
+  if (!read.ok) return read.response;
 
-  const parsed = groundSchoolInquirySchema.safeParse(body);
+  const parsed = groundSchoolInquirySchema.safeParse(read.body);
   if (!parsed.success) return NextResponse.json(validationError(parsed.error), { status: 400 });
 
   try {
@@ -78,14 +80,10 @@ export async function PATCH(request: Request) {
   const denied = await requireAdmin(request);
   if (denied) return denied;
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON request body.' }, { status: 400 });
-  }
+  const read = await readJsonBody(request, { maxBytes: ADMIN_MAX_BODY_BYTES });
+  if (!read.ok) return read.response;
 
-  const parsed = adminGroundSchoolInquiryPatchSchema.safeParse(body);
+  const parsed = adminGroundSchoolInquiryPatchSchema.safeParse(read.body);
   if (!parsed.success) return NextResponse.json(validationError(parsed.error), { status: 400 });
 
   try {

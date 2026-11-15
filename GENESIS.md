@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:d71659c29df7fec8ba0812530192619eac6f4a1589a1b6354f6633fa9fc32936 -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:bba562864056e904e8efa0eca2d4acda5468cf22b03c9484dd6718b769b9f3a9 -->
 
 ## Verification contract
 
@@ -351,6 +351,8 @@ Add 3 curated one-click combos. Localize every package and add-on in all six lan
 | `/api/admin/schedule-efficiency` | GET | admin | Full day report |
 | `/api/admin/schedule-optimization` | POST | admin | Dry-run optimization preview |
 | `/api/blog` | GET | public | Localized blog articles catalog query by ?lang= |
+
+Every other JSON body is read through `readJsonBody()` too, with an explicit cap on the bytes that arrive: 16 KiB for `/api/checkout`, the public `/api/vouchers` and `/api/ground-school/inquiries` POSTs, `/api/subscriptions/checkout`, `/api/wix/bookings/checkout` and the admin `/api/bookings` PATCH; 64 KiB for the other admin handlers, which read it only after `requireAdmin()`. Over the cap is 413 `no-store`, answered before the checkout throttle, so it spends no allowance; malformed JSON keeps each route's own answer. The contact form and the refund guard keep their own readers, and the Stripe webhook reads the raw body for its signature.
 
 #### Frontend platform
 
