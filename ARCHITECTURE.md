@@ -155,6 +155,7 @@ flowchart LR
         B60["60 min Flight ➔ 75 min Block"]
         B90["90 min Flight ➔ 105 min Block"]
         B120["120 min Flight ➔ 150 min Block"]
+        B240["240 min Workshop ➔ 255 min Block"]
     end
 
     subgraph ValidationEngine["3. Dynamic Programming Tile Engine"]
