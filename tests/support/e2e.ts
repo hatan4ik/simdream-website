@@ -35,8 +35,9 @@ export const PUBLIC_ROUTES = [
  * Keep this exception deliberately narrow: only the Playwright loopback host,
  * a Next `_rsc` request and WebKit's exact cancellation wording are accepted.
  */
-function isCancelledLocalRscPrefetch(message: string): boolean {
-  return /^\/127\.0\.0\.1:\d+\/[^\s?]*\?_rsc=[^\s]+ due to access control checks\.$/.test(message);
+export function isCancelledLocalRscPrefetch(message: string): boolean {
+  const match = /^\/127\.0\.0\.1:\d+\/[^\s?]*\?([^\s]+) due to access control checks\.$/.exec(message);
+  return match !== null && new URLSearchParams(match[1]).has('_rsc');
 }
 
 /**
