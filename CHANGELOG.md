@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.29.4](https://github.com/hatan4ik/simdream-website/compare/v1.29.3...v1.29.4) (2026-11-15)
+
+
+### Bug Fixes
+
+* **security:** throttle checkout, bind Wix pricing and claims, and protect public forms ([#238](https://github.com/hatan4ik/simdream-website/issues/238)) ([e126fb5](https://github.com/hatan4ik/simdream-website/commit/e126fb593357f5acc2603f818dc89c1da743decf))
+
 ## [1.29.3](https://github.com/hatan4ik/simdream-website/compare/v1.29.2...v1.29.3) (2026-11-15)
 
 
