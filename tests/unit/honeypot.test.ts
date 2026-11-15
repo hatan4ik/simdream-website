@@ -91,7 +91,9 @@ describe('HoneypotField', () => {
 
   it('starts empty and adds no copy outside its own hidden label', () => {
     expect(markup).toContain('value=""');
-    expect(markup.replace(/<[^>]+>/g, '')).toBe('Leave this field empty');
+    // Collect the text between tags (the only visible copy); this reads the markup, it does not sanitize it.
+    const textNodes = [...markup.matchAll(/>([^<]+)</g)].map((match) => match[1]);
+    expect(textNodes).toEqual(['Leave this field empty']);
   });
 });
 
