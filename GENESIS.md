@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:a882eaca418180689f005a8045b55ba79c049bac753bf4c3faec080453306df9 -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:36f016350047ae763e22ee2fe0c9c242bb84478b631f8ff16f34042cc8d87e7b -->
 
 ## Verification contract
 
@@ -78,7 +78,7 @@ Browser (7 languages, 3 themes)
                                         ├─ lib/security/rate-limit.ts (durable abuse controls)
                                         ├─ lib/stripe.ts ──── Stripe Checkout + webhook verification
                                         ├─ lib/sendgrid.ts ── transactional email
-                                        └─ lib/reviews/* ──── stored Google reviews snapshot, refreshed twice a day (06:00/17:00 Israel); no Google call per page view
+                                        └─ lib/reviews/* ──── stored Google reviews snapshot, refreshed twice a day (06:00/17:00 Israel); without one, one Google read per process/window
 ```
 
 - **Entry points**: `app/layout.tsx` (providers: language, theme, auth; one sticky site chrome wrapping the utility bar and navbar, skip link, single `<main>`, footer), `proxy.ts` (admin guard), `app/api/**/route.ts` (24 route modules), `app/sitemap.ts`, `app/robots.ts`.
@@ -163,16 +163,16 @@ You are a senior full-stack engineer building a production website end to end. B
 
 ### PROJECT TYPE & CONTEXT
 
-Build **simdream.co.il**, the booking and marketing platform for **Sim Dream LTD**, which operates one full-size **Boeing 737 MAX 8 flight simulator** at Gershon Shatz St 36, Tel Aviv-Yafo, Israel. Customers are recreational flyers and gift buyers, airline pilot candidates preparing for assessments, fearful flyers, and corporate teams. The platform sells timed simulator sessions, gift vouchers and corporate workshops, schedules them on the single simulator without double booking, takes card payments through Stripe, gives members a purchase history, and gives staff a dispatch back office. It must run in **seven languages** (Hebrew and Arabic right-to-left; English, Russian, French, Spanish and German left-to-right) and offer **three visual themes**.
+Build **simdream.co.il**, the booking and marketing platform for **Sim Dream LTD**, which operates one full-size **Boeing 737 MAX 8 flight simulator** at Gershon Shatz St 36, Tel Aviv-Yafo, Israel. Customers are recreational flyers and gift buyers, airline pilot candidates preparing for assessments, fearful flyers, and corporate teams. The platform sells timed simulator sessions, gift vouchers and corporate workshops, schedules them on the single simulator without double booking, takes cards through Wix Hosted Checkout when Wix is the active authority or through the legacy Stripe path otherwise, gives members a purchase history, and gives staff a dispatch back office. It must run in **seven languages** (Hebrew and Arabic right-to-left; English, Russian, French, Spanish and German left-to-right) and offer **three visual themes**.
 
 ### TECH STACK DIRECTIVES
 
 - **Next.js 16** App Router with Turbopack, **React 19**, **TypeScript** strict. Use `proxy.ts` (not middleware) for request guards. Read `node_modules/next/dist/docs/` before using any Next.js API, because version 16 has breaking changes.
 - **Tailwind CSS 4** with brand colour tokens in an `@theme` block in `app/globals.css`.
 - **zod 4** for all request validation.
-- **Supabase** (Postgres + Auth) as the production database and member identity provider, accessed server-side with the service-role key only.
+- **Supabase** (Postgres plus legacy Auth) for the local/legacy persistence path, accessed server-side with the service-role key only. Wix Members is the primary member identity when Wix authority is enabled.
 - **WhatsApp** is the persistent human contact route (`+972 55 507 1307`). Do not add a second chat widget to the Headless frontend without an approved customer-support ownership and data-retention decision.
-- **Stripe** Checkout (hosted) and a signature-verified webhook. **SendGrid** for email. **Google Places API** for attributable reviews: the browser calls the same-origin review route, which serves a stored snapshot that a token-protected refresh route rewrites twice a day (06:00 and 17:00 Israel time) from the legacy Place Details service with `reviews_sort=newest`; the server protects the key, no page view reaches Google, and the header dropdown is simply absent when no snapshot exists.
+- **Wix Headless** Bookings, Cart V2 and hosted checkout when `WIX_AVAILABILITY_ADAPTER_ENABLED=true`; the local checkout writer must refuse a competing reservation in that mode. **Stripe** Checkout (hosted) and a signature-verified webhook are the legacy local payment path. **SendGrid** delivers email. **Google Places API** supplies attributable reviews: the browser calls the same-origin review route, which serves a stored snapshot that a token-protected refresh route rewrites twice a day (06:00 and 17:00 Israel time) from the legacy Place Details service with `reviews_sort=newest`; without a stored snapshot, the server performs at most one shared Google read per process per Israel window. The server protects the key; no page view causes an independent Google read; with no key or a cold-process read failure, the dropdown has no review texts and the utility bar uses only the labelled last-known aggregate.
 - Testing: **Vitest** (+ coverage, **fast-check**), **Playwright** (+ **axe-core**), **autocannon**, **Lighthouse CI**.
 - Node 24.22.1 or newer. Build the existing self-managed target normally, or use `npm run wix:build` followed by `npm run wix:release` to host the Next.js frontend on Wix-managed Headless. CI on **GitHub Actions**.
 - Environment variables (document them in `.env.example`, never commit values): `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `ADMIN_USER`, `ADMIN_PASSWORD` (≥16 chars in production), `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `SENDGRID_API_KEY`, `NEXT_PUBLIC_SUPPORT_EMAIL`, `GOOGLE_PLACES_API_KEY`, optional `GOOGLE_TRANSLATE_API_KEY`, `REVIEWS_REFRESH_TOKEN` (32+ random characters shared by the GitHub secret and the Wix site), the demo-only opt-in `ALLOW_IN_MEMORY_STORE`, the two public Wix Headless identifiers `NEXT_PUBLIC_WIX_CLIENT_ID` and `WIX_SITE_ID`, server-only Wix plan mappings `WIX_PLAN_ID_FOUNDATIONS_5X60`, `WIX_PLAN_ID_ADVANCED_5X90`, `WIX_PLAN_ID_ATPL_10X60`, `WIX_PLAN_ID_AIRLINE_10X90`, `WIX_PLAN_ID_PRO_3X90`, and `WIX_PLAN_ID_PRO_5X60`, default-off `WIX_SHADOW_READS_ENABLED` and `WIX_AVAILABILITY_ADAPTER_ENABLED`, and public consent controls `NEXT_PUBLIC_CONSENT_CATEGORIES_IN_USE` and `NEXT_PUBLIC_CONSENT_WIX_SYNC`. The availability flag permits Wix availability intersection and the browser visitor session creates eligible Wix bookings/carts; it never uses a server booking credential. Public identifiers may be in `wix.config.json`; secrets never are. `WIX_ADMIN_API_KEY` and `WIX_PROVISION_ALLOW_APPLY` are operator-only values and intentionally do not belong in `.env.example`.
@@ -231,10 +231,10 @@ Build **simdream.co.il**, the booking and marketing platform for **Sim Dream LTD
 | `pkg-fear-of-flying-90` | fear_of_flying | 60 min | 690 | Legacy id; the session is 60 minutes |
 | `pkg-corporate-crm` | corporate | 240 min | 4,500 | Workshop |
 
-Seed 13 add-ons in three groups:
+Seed 11 add-ons in three groups:
 
 - procedure and weather modules, such as Cold & Dark startup (+20 min, ₪200) and Crosswind/IFR (+15 min, ₪250);
-- 3-airport "world trio" route modules (+40 min, ₪450 each), each naming its three airports with ICAO codes;
+- eight 3-airport "world trio" route modules (one +25 min and seven +40 min, ₪450 each), each naming its three airports with ICAO codes;
 - guest upgrades: extra jumpseat passenger.
 
 Add 3 curated one-click combos. Localize every package and add-on in all seven languages. Keep **one server-side catalog authority**: the catalog API and checkout must read prices and durations from the same source.
@@ -302,7 +302,7 @@ Add 3 curated one-click combos. Localize every package and add-on in all seven l
 
 #### Checkout and payments
 
-- `POST /api/checkout` takes a zod discriminated union (`kind: 'booking' | 'voucher'`). For bookings the server:
+- There are two mutually exclusive authorities. With `WIX_AVAILABILITY_ADAPTER_ENABLED=true`, the browser revalidates the selected mapped slot through `POST /api/wix/bookings/checkout`, creates the native Wix Booking and Cart V2 draft, and opens Wix-hosted checkout; `POST /api/checkout` answers `409` for a booking so it cannot create a competing local reservation. With the adapter disabled, `POST /api/checkout` takes a zod discriminated union (`kind: 'booking' | 'voucher'`). For those local bookings the server:
   1. re-validates date, package, slot, add-ons and capacity;
   2. recomputes the price;
   3. applies any voucher atomically;
@@ -355,7 +355,7 @@ Add 3 curated one-click combos. Localize every package and add-on in all seven l
 | `/api/bookings` | GET / POST / PATCH | GET `?ref=` public narrow projection, else admin; POST 405 | Booking lookup and admin changes |
 | `/api/vouchers` | GET / POST / PATCH | GET admin; POST public verify; PATCH admin redeem | Vouchers |
 | `/api/workshops` | GET / POST / PATCH | POST public; else admin | Corporate leads |
-| `/api/reviews` | GET / POST | GET public (stored snapshot, 1 min shared freshness, never a Google call); POST admin sync | Google reviews |
+| `/api/reviews` | GET / POST | GET public (stored snapshot with a 1 min shared memo; without a stored snapshot, one Google read per process per Israel 06:00/17:00 window); POST admin sync | Google reviews |
 | `/api/reviews/refresh` | POST | `REVIEWS_REFRESH_TOKEN` Bearer only (503 unconfigured, 401 otherwise) | Reads the newest Google reviews for all seven languages and replaces the stored snapshot; called twice a day by the snapshot workflow |
 | `/api/refund-requests/lookup` | POST | public, same-origin/rate-limited | Verifies a reference and email, returning only the minimum refund-review projection |
 | `/api/refund-requests` | POST / GET | POST public, same-origin/honeypot/rate-limited; GET admin | Stores a refund request for staff review; never approves or pays a refund |
@@ -745,12 +745,12 @@ AGENTS.md  ARCHITECTURE.md  README.md  TESTING.md  KANTOROVICH_SCHEDULER_SPEC.md
   - all seven languages with no mixed scripts or missing keys;
   - all three themes with the official logo and no off-brand colours;
   - iPhone SE (320 px) to iPad landscape and Android phones/tablets with no horizontal overflow, 48 px controls and ≥12 px text.
-- Production without Supabase or Stripe fails closed (503), never with fake data.
+- The legacy local writer fails closed (503) in production without Supabase or Stripe, never with fake data. A Wix-authoritative booking must likewise never fall through to an in-memory local reservation.
 - Before launch, verify the providers, which no build or test can prove:
   - migrations 001–012 are applied and `ALLOW_IN_MEMORY_STORE` is absent in production;
   - `REVIEWS_REFRESH_TOKEN` is set identically as a GitHub repository secret and on the Wix site, and one manual run of the Google reviews snapshot workflow stored a snapshot;
-  - Google, Facebook and Apple are enabled in Supabase Auth with callback URLs for the deployed origin;
-  - the Stripe keys are set and the webhook receives `checkout.session.completed`, `checkout.session.expired` and `checkout.session.async_payment_failed`;
+  - Wix Members has the enabled login providers and callback URLs for the deployed origin; legacy Supabase Auth providers are configured only where that fallback remains deployed;
+  - the active payment authority is verified: Wix payment configuration and an end-to-end Wix Booking → Cart → hosted-checkout test in Wix mode, or Stripe keys plus `checkout.session.completed`, `checkout.session.expired` and `checkout.session.async_payment_failed` in legacy mode;
   - the SendGrid sender is verified;
   - a test booking, signed webhook, member claim, history read and receipt all work in a non-production environment.
 

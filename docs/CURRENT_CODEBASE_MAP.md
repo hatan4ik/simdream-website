@@ -2,7 +2,7 @@
 
 **Start here when you need to understand the website.** This is a plain-English ownership map, not a second Genesis document. [`GENESIS.md`](../GENESIS.md) remains the canonical reconstruction blueprint; this page tells a human where a feature lives and which system is responsible for it.
 
-**Source reviewed:** `origin/main` at `6f18866` (2026-11-15). It describes code in this repository. It does **not** prove that a Wix setting, payment provider, or database secret is enabled in a deployed environment.
+**Source reviewed:** `origin/main` at `e6c66668326a` (2026-11-15), with this reconciliation cross-checking the same code baseline. It describes code in this repository. It does **not** prove that a Wix setting, payment provider, or database secret is enabled in a deployed environment.
 
 ## The 30-second answer
 
