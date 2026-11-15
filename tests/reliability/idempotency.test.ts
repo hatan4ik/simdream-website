@@ -175,6 +175,7 @@ describe('Stripe webhook replays', () => {
       recipientEmail: 'replay-recipient@example.test',
       senderName: 'Replay Sender',
       senderEmail: 'replay-sender@example.test',
+      senderPhone: '+972501234567',
       personalMessage: '',
     });
     expect(started.status).toBe(201);

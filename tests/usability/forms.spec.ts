@@ -183,6 +183,7 @@ test.describe('validation and error feedback', () => {
     await page.getByPlaceholder('e.g. Danielle Cohen').fill('Gift Sender');
     await page.getByPlaceholder('aviad@example.com').fill('gift.recipient@example.com');
     await page.getByPlaceholder('danielle@example.com').fill('gift.sender@example.com');
+    await page.getByPlaceholder('+972-54-123-4567').fill('054-555-0102');
     const response = page.waitForResponse((candidate) => new URL(candidate.url()).pathname === '/api/checkout');
 
     await page.getByRole('button', { name: /^Proceed to Secure Checkout/ }).click();
@@ -197,6 +198,7 @@ test.describe('validation and error feedback', () => {
     await page.getByPlaceholder('e.g. Aviad Stern').fill('Gift Recipient');
     await page.getByPlaceholder('e.g. Danielle Cohen').fill('Gift Sender');
     await page.getByPlaceholder('danielle@example.com').fill('gift.sender@example.com');
+    await page.getByPlaceholder('+972-54-123-4567').fill('054-555-0102');
     const response = page.waitForResponse((candidate) => new URL(candidate.url()).pathname === '/api/checkout');
 
     await page.getByRole('button', { name: /^Proceed to Secure Checkout/ }).click();

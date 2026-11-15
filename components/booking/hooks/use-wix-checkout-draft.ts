@@ -73,6 +73,7 @@ export function useWixCheckoutDraft(args: UseWixCheckoutDraftArgs) {
       pilotName,
       pilotEmail,
       pilotPhone,
+      pilotBirthDate: birthdayValue || undefined,
       notes,
       addonIds,
       birthdayPricingClaim,

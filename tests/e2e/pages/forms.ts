@@ -12,6 +12,7 @@ export interface VoucherOrder {
   recipientEmail: string;
   senderName: string;
   senderEmail: string;
+  senderPhone: string;
 }
 
 export class GiftVoucherPage {
@@ -43,6 +44,10 @@ export class GiftVoucherPage {
     return this.page.getByPlaceholder('danielle@example.com');
   }
 
+  senderPhone(): Locator {
+    return this.page.getByPlaceholder('+972-54-123-4567');
+  }
+
   submit(): Locator {
     return this.page.getByRole('button', { name: /^Proceed to Secure Checkout/ });
   }
@@ -52,6 +57,7 @@ export class GiftVoucherPage {
     await this.recipientEmail().fill(order.recipientEmail);
     await this.senderName().fill(order.senderName);
     await this.senderEmail().fill(order.senderEmail);
+    await this.senderPhone().fill(order.senderPhone);
   }
 }
 

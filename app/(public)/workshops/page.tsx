@@ -18,6 +18,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
 import { CorporateGoal } from '@/types';
 import { useLanguage } from '@/lib/i18n/language-context';
+import { useCustomerContactSeed } from '@/lib/customer/customer-draft';
 
 export default function WorkshopsPage() {
   const { t, isRTL } = useLanguage();
@@ -36,6 +37,15 @@ export default function WorkshopsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  const { updateCustomerDraft } = useCustomerContactSeed((contact) => {
+    setFormData((current) => ({
+      ...current,
+      contactName: current.contactName || contact.fullName,
+      email: current.email || contact.email,
+      phone: current.phone || contact.phone,
+    }));
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -221,7 +231,11 @@ export default function WorkshopsPage() {
                   type="text"
                   required
                   value={formData.contactName}
-                  onChange={(e) => setFormData({ ...formData, contactName: e.target.value })}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setFormData((current) => ({ ...current, contactName: value }));
+                    updateCustomerDraft({ fullName: value });
+                  }}
                   placeholder={t.workshops.contactPlaceholder}
                   className="w-full rounded-lg bg-slate-950 border border-slate-800 px-4 py-2.5 text-sm text-white focus:outline-none focus:border-sky-500"
                 />
@@ -238,7 +252,11 @@ export default function WorkshopsPage() {
                     type="email"
                     required
                     value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setFormData((current) => ({ ...current, email: value }));
+                      updateCustomerDraft({ email: value });
+                    }}
                     placeholder="sharon@company.com"
                     className="w-full rounded-lg bg-slate-950 border border-slate-800 px-10 py-2.5 text-sm text-white focus:outline-none focus:border-sky-500"
                   />
@@ -256,7 +274,11 @@ export default function WorkshopsPage() {
                     type="tel"
                     required
                     value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setFormData((current) => ({ ...current, phone: value }));
+                      updateCustomerDraft({ phone: value });
+                    }}
                     placeholder="+972-54-000-0000"
                     dir="ltr"
                     className="w-full rounded-lg bg-slate-950 border border-slate-800 px-10 py-2.5 text-sm text-white focus:outline-none focus:border-sky-500 text-left rtl:text-right"

@@ -27,6 +27,8 @@ import {
 import { formatCurrency } from '@/lib/utils';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { getLocalizedPackages } from '@/lib/i18n/translations';
+import { useCustomerContactSeed } from '@/lib/customer/customer-draft';
+import { VoucherSenderFields } from '@/components/vouchers/VoucherSenderFields';
 import {
   DEFAULT_GIFT_CERTIFICATE_AMOUNT,
   giftCertificateAmount,
@@ -97,7 +99,14 @@ export default function GiftVouchersPage() {
   const [recipientEmail, setRecipientEmail] = useState('');
   const [senderName, setSenderName] = useState('');
   const [senderEmail, setSenderEmail] = useState('');
+  const [senderPhone, setSenderPhone] = useState('');
   const [personalMessage, setPersonalMessage] = useState(t.vouchers.defaultMessage);
+
+  const { draft: customerDraft, updateCustomerDraft } = useCustomerContactSeed((contact) => {
+    setSenderName((current) => current || contact.fullName);
+    setSenderEmail((current) => current || contact.email);
+    setSenderPhone((current) => current || contact.phone);
+  });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
@@ -182,6 +191,8 @@ export default function GiftVouchersPage() {
         recipientEmail: deliveryMethod === 'print' ? '' : recipientEmail,
         senderName,
         senderEmail,
+        senderPhone,
+        ...( /^\d{4}-\d{2}-\d{2}$/.test(customerDraft.birthDate) ? { senderBirthDate: customerDraft.birthDate } : {} ),
         personalMessage,
       };
 
@@ -838,46 +849,15 @@ export default function GiftVouchersPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="voucher-sender-name" className="block text-xs font-medium text-slate-300 mb-1.5">
-                    {t.vouchers.senderNameLabel}
-                  </label>
-                  <input
-                    id="voucher-sender-name"
-                    name="senderName"
-                    type="text"
-                    required
-                    autoComplete="name"
-                    value={senderName}
-                    onChange={(e) => setSenderName(e.target.value)}
-                    onBlur={syncAriaInvalid}
-                    placeholder={t.vouchers.senderNamePlaceholder}
-                    className="w-full max-sm:min-h-11 px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-sm focus:outline-none focus:border-sky-500"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="voucher-sender-email" className="block text-xs font-medium text-slate-300 mb-1.5">
-                    {t.vouchers.senderEmailLabel}
-                  </label>
-                  <input
-                    id="voucher-sender-email"
-                    name="senderEmail"
-                    type="email"
-                    required
-                    autoComplete="email"
-                    autoCorrect="off"
-                    autoCapitalize="off"
-                    spellCheck={false}
-                    value={senderEmail}
-                    onChange={(e) => setSenderEmail(e.target.value)}
-                    onBlur={syncAriaInvalid}
-                    placeholder={t.vouchers.senderEmailPlaceholder}
-                    className="w-full max-sm:min-h-11 px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-sm focus:outline-none focus:border-sky-500"
-                    dir="ltr"
-                  />
-                </div>
-              </div>
+              <VoucherSenderFields
+                senderName={senderName}
+                onSenderNameChange={(value) => { setSenderName(value); updateCustomerDraft({ fullName: value }); }}
+                senderEmail={senderEmail}
+                onSenderEmailChange={(value) => { setSenderEmail(value); updateCustomerDraft({ email: value }); }}
+                senderPhone={senderPhone}
+                onSenderPhoneChange={(value) => { setSenderPhone(value); updateCustomerDraft({ phone: value }); }}
+                onFieldBlur={syncAriaInvalid}
+              />
 
               {/* Occasion Quick-Templates + Personal Message */}
               <div>

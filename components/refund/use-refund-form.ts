@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCustomerContactSeed } from '@/lib/customer/customer-draft';
 import {
   REFUND_REASONS_BY_KIND,
   checkEmail,
@@ -74,6 +75,15 @@ export function useRefundForm(language: string) {
   const [now, setNow] = useState<Date | null>(null);
   const requestId = useRef<string | null>(null);
 
+  const { updateCustomerDraft } = useCustomerContactSeed((contact) => {
+    setValues((current) => ({
+      ...current,
+      name: current.name || contact.fullName,
+      email: current.email || contact.email,
+      phone: current.phone || contact.phone,
+    }));
+  });
+
   // The clock is read in the browser only (pages are prerendered); it refreshes so the 24-hour line moves.
   useEffect(() => {
     setNow(new Date());
@@ -101,8 +111,11 @@ export function useRefundForm(language: string) {
       if (field === 'productKind' && next.reason && !reasonFitsProduct(next.productKind, next.reason)) next.reason = '';
       return next;
     });
+    if (field === 'name') updateCustomerDraft({ fullName: String(value) });
+    else if (field === 'email') updateCustomerDraft({ email: String(value) });
+    else if (field === 'phone') updateCustomerDraft({ phone: String(value) });
     if (field === 'orderReference' || field === 'email' || field === 'productKind') setVerification({ state: 'idle' });
-  }, []);
+  }, [updateCustomerDraft]);
 
   const verified: VerifiedOrder | null = verification.state === 'verified' ? verification.order : null;
 

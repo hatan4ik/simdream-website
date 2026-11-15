@@ -26,6 +26,7 @@ import {
   type GroundSchoolPathway,
 } from '@/lib/data/ground-school';
 import { useLanguage } from '@/lib/i18n/language-context';
+import { useCustomerContactSeed } from '@/lib/customer/customer-draft';
 import type { Language } from '@/lib/i18n/translations';
 
 type FormState = {
@@ -82,8 +83,20 @@ export function GroundSchoolView() {
   const [submitted, setSubmitted] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
+  const { updateCustomerDraft } = useCustomerContactSeed((contact) => {
+    setForm((current) => ({
+      ...current,
+      fullName: current.fullName || contact.fullName,
+      email: current.email || contact.email,
+      phone: current.phone || contact.phone,
+    }));
+  });
+
   const update = <Key extends keyof FormState>(key: Key, value: FormState[Key]) => {
     setForm((current) => ({ ...current, [key]: value }));
+    if (key === 'fullName' || key === 'email' || key === 'phone') {
+      updateCustomerDraft({ [key]: String(value) });
+    }
   };
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {

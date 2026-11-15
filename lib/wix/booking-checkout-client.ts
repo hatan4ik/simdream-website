@@ -2,6 +2,13 @@
 
 import { wixBirthdayPricingAdditionalFields, type WixBirthdayPricingClaimField } from './booking-additional-fields';
 import { blockingCheckoutViolationMessage, createWixCartForBooking } from './booking-cart-create';
+import { wixAddonProductIdFor } from './catalog';
+import {
+  normalizeWixPhone,
+  patchWixCartCustomerInfo,
+  patchWixCheckoutShippingContact,
+  splitWixContactName,
+} from './checkout-prefill';
 
 export { createWixCartForBooking };
 
@@ -42,6 +49,7 @@ export interface StartWixBookingCheckoutInput extends WixNativeCheckoutCandidate
   pilotName: string;
   pilotEmail: string;
   pilotPhone: string;
+  pilotBirthDate?: string;
   notes?: string;
   couponCode?: string;
   birthdayPricingClaim?: WixBirthdayPricingClaimField;
@@ -165,28 +173,9 @@ async function wixPost<T>(client: WixBrowserClient, url: string, body: unknown):
 async function wixUpdateCartCustomerInfo(
   client: WixBrowserClient,
   cartId: string,
-  customerInfo: { firstName: string; lastName: string; email: string; phone: string }
+  customerInfo: { firstName: string; lastName: string; email: string; phone: string; birthDate?: string }
 ): Promise<void> {
-  const response = await client.fetchWithAuth(`${WIX_CREATE_CART_URL}/${cartId}`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    // Cart V2 requires the ID both in the URL and the partial cart payload.
-    // Do not pass a contact ID from the browser: Wix resolves or creates the
-    // matching contact from the same visitor-owned cart context.
-    body: JSON.stringify({
-      cart: {
-        id: cartId,
-        customerInfo,
-        paymentInfo: {
-          billingContact: {
-            firstName: customerInfo.firstName,
-            lastName: customerInfo.lastName,
-            phone: customerInfo.phone,
-          },
-        },
-      },
-    }),
-  });
+  const response = await patchWixCartCustomerInfo((req, init) => client.fetchWithAuth(req, init), cartId, customerInfo);
   if (!response.ok) {
     throw new WixBookingCheckoutClientError('We could not securely prepare your checkout. Please try again.');
   }
@@ -299,19 +288,20 @@ export function wixLocalDateTimeToIso(localDateTime: string, timeZone: string): 
 }
 
 function splitPilotName(fullName: string): { firstName: string; lastName: string } {
-  const parts = fullName.trim().split(/\s+/).filter(Boolean);
-  if (parts.length < 2) {
+  const name = splitWixContactName(fullName, true);
+  if (!name) {
     throw new WixBookingCheckoutClientError('Please enter your first and last name for the Wix booking form.');
   }
-  return { firstName: parts[0], lastName: parts.slice(1).join(' ') };
+  return name;
 }
 
 /** Wix Bookings requires E.164; retain international numbers and normalize Israeli local numbers. */
 export function normalizeWixBookingPhone(value: string): string {
-  const compact = value.trim().replace(/[\s()\-]/g, '');
-  if (/^\+[1-9]\d{7,14}$/.test(compact)) return compact;
-  if (/^0\d{8,9}$/.test(compact)) return `+972${compact.slice(1)}`;
-  throw new WixBookingCheckoutClientError('Enter a phone number with a country code, for example +972…');
+  const normalized = normalizeWixPhone(value);
+  if (!normalized) {
+    throw new WixBookingCheckoutClientError('Enter a phone number with a country code, for example +972…');
+  }
+  return normalized;
 }
 
 function paymentOption(options: WixNativeCheckoutCandidate['paymentOptions']): 'ONLINE' | 'OFFLINE' {
@@ -400,7 +390,19 @@ export async function prepareWixBookingCheckout(
   // The booking form and the cart are separate Wix business objects. Without
   // this Cart V2 update, the hosted checkout cannot inherit the already
   // supplied customer details and presents an avoidable duplicate form.
-  await wixUpdateCartCustomerInfo(client, cartId, customerInfo);
+  await wixUpdateCartCustomerInfo(client, cartId, {
+    ...customerInfo,
+    birthDate: input.pilotBirthDate,
+  });
+
+  const hasShippableAddon = (input.addonIds ?? []).some((addonId) => wixAddonProductIdFor(addonId) !== null);
+  if (hasShippableAddon) {
+    await patchWixCheckoutShippingContact((req, init) => client.fetchWithAuth(req, init), cartId, {
+      firstName: customerInfo.firstName,
+      lastName: customerInfo.lastName,
+      phone: customerInfo.phone,
+    });
+  }
 
   const calculation = await wixPost<WixCartCalculationResponse>(client, `${WIX_CREATE_CART_URL}/${cartId}/calculate`, {
     refreshCart: true,

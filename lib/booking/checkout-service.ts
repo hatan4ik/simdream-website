@@ -15,18 +15,11 @@ import {
 import { memberIdForBooking } from '@/lib/auth/member-ownership';
 import { bookingCheckoutSchema, voucherCheckoutSchema } from '@/lib/validation';
 import { resolveCheckoutExtras } from './checkout-extras';
+import { CheckoutError } from './checkout-error';
 import { SlotReservationConflictError, type CheckoutDependencies } from './checkout-ports';
 import { z } from 'zod';
 
-export class CheckoutError extends Error {
-  constructor(
-    message: string,
-    public readonly status = 400
-  ) {
-    super(message);
-    this.name = 'CheckoutError';
-  }
-}
+export { CheckoutError };
 
 function validVoucherForAmount(voucher: GiftVoucher | undefined, amount: number, now: Date): GiftVoucher {
   if (!voucher || voucher.paymentStatus !== 'paid' || voucher.isRedeemed) {

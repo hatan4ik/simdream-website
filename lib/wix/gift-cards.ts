@@ -1,6 +1,8 @@
 import { z } from 'zod';
+import { CheckoutError } from '@/lib/booking/checkout-error';
 import { giftCertificateAmount, giftCertificatePackageById } from '@/lib/catalog/gift-voucher-packages';
 import { GIFT_CARD_DESIGNS, getGiftCardDesign, type GiftCardDesignId } from '@/lib/catalog/gift-card-designs';
+import { normalizeWixPhone, patchWixCartCustomerInfo, splitWixContactName } from './checkout-prefill';
 import { getWixClient, wixPost } from './client';
 import { isWixConfigured } from './config';
 import {
@@ -97,6 +99,8 @@ export interface WixGiftCardCheckoutInput {
   recipientEmail?: string;
   senderName: string;
   senderEmail: string;
+  senderPhone: string;
+  senderBirthDate?: string;
   personalMessage?: string;
   packageId?: string;
   giftCardDesignId?: GiftCardDesignId;
@@ -108,13 +112,6 @@ export interface WixGiftCardCheckoutResult {
   cartId: string;
   variantId: string | null;
   amountIls: number;
-}
-
-function splitSenderName(fullName: string): { firstName: string; lastName: string } {
-  const parts = fullName.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return { firstName: 'SimDream', lastName: 'Guest' };
-  if (parts.length === 1) return { firstName: parts[0]!, lastName: parts[0]! };
-  return { firstName: parts[0]!, lastName: parts.slice(1).join(' ') };
 }
 
 /**
@@ -172,6 +169,11 @@ export async function createWixGiftCardCheckout(
     throw new Error('Select a valid flight package for this gift certificate.');
   }
 
+  const senderPhone = normalizeWixPhone(input.senderPhone);
+  if (!senderPhone) {
+    throw new CheckoutError('Enter a phone number with a country code, for example +972…');
+  }
+
   const resolvedAmountIls = matchedPkg ? giftCertificateAmount(matchedPkg) : input.amountIls;
   const { productId, variantId } = await resolveWixGiftCardVariant({
     amountIls: resolvedAmountIls,
@@ -208,28 +210,24 @@ export async function createWixGiftCardCheckout(
     throw new Error('Wix did not create a gift card checkout cart.');
   }
 
-  const sender = splitSenderName(input.senderName);
+  const sender = splitWixContactName(input.senderName) ?? { firstName: 'SimDream', lastName: 'Guest' };
+  const client = getWixClient();
   try {
-    await getWixClient().fetchWithAuth(`${WIX_CREATE_CART_URL}/${cartId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        cart: {
-          id: cartId,
-          customerInfo: {
-            firstName: sender.firstName,
-            lastName: sender.lastName,
-            email: input.senderEmail.trim(),
-          },
-          paymentInfo: {
-            billingContact: {
-              firstName: sender.firstName,
-              lastName: sender.lastName,
-            },
-          },
-        },
-      }),
-    });
+    const patchResponse = await patchWixCartCustomerInfo(
+      (req, init) => client.fetchWithAuth(req, init),
+      cartId,
+      {
+        firstName: sender.firstName,
+        lastName: sender.lastName,
+        email: input.senderEmail.trim(),
+        phone: senderPhone,
+        birthDate: input.senderBirthDate,
+      }
+    );
+    if (!patchResponse.ok) {
+      const detail = await patchResponse.text().catch(() => '');
+      console.warn('[wix:gift-cards] Non-fatal customerInfo prefill error:', patchResponse.status, detail.slice(0, 200));
+    }
   } catch (err) {
     console.warn('[wix:gift-cards] Non-fatal customerInfo prefill error:', err);
   }

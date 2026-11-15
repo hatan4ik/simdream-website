@@ -21,6 +21,7 @@ export interface PrepareWixDraftInput {
   pilotName: string;
   pilotEmail: string;
   pilotPhone: string;
+  pilotBirthDate?: string;
   notes: string;
   addonIds?: readonly string[];
   /** A short-lived server-signed birthday proof, never a birth date. */
@@ -54,6 +55,7 @@ export async function prepareWixCheckoutDraft(input: PrepareWixDraftInput): Prom
     pilotName: input.pilotName,
     pilotEmail: input.pilotEmail,
     pilotPhone: input.pilotPhone,
+    pilotBirthDate: input.pilotBirthDate,
     notes: input.notes,
     addonIds: input.addonIds,
     birthdayPricingClaim: input.birthdayPricingClaim ?? undefined,

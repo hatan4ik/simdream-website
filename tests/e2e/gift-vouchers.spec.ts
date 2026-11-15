@@ -8,6 +8,7 @@ const ORDER: VoucherOrder = {
   recipientEmail: 'aviad.journey@example.com',
   senderName: 'Danielle Journey',
   senderEmail: 'danielle.journey@example.com',
+  senderPhone: '+972541234567',
 };
 
 test.describe('gift vouchers', () => {
