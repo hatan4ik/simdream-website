@@ -1,6 +1,6 @@
 import type { Language } from '@/lib/i18n/translations';
 
-/** The site's six languages, which are also the languages review texts can be requested in. */
+/** The site's seven languages, which are also the languages review texts can be requested in. */
 export const REVIEW_LANGUAGES = ['he', 'en', 'ru', 'fr', 'ar', 'es', 'de'] as const satisfies readonly Language[];
 
 export type ReviewLanguage = (typeof REVIEW_LANGUAGES)[number];

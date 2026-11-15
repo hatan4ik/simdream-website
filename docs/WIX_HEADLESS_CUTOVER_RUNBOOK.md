@@ -1,12 +1,12 @@
 # Wix Headless Cutover Runbook
 
-This runbook prepares the current SimDream **self-managed Next.js frontend** to use the existing Wix Headless site as a business backend. It does not replace the frontend design or enable a payment provider by itself. On the confirmed staging site, Wix-native guest/member checkout is active for mapped one-service base flights.
+This runbook prepares the current SimDream **self-managed Next.js frontend** to use the configured Wix Headless target as a business backend. It does not replace the frontend design or enable a payment provider by itself. The repository implements Wix-native guest/member checkout for mapped one-service base flights, but account configuration and a paid staging purchase must verify activation separately.
 
 With `WIX_AVAILABILITY_ADAPTER_ENABLED=true`, Wix Bookings is the calendar authority: `/api/slots` intersects the duration-aware zero-waste grid with Wix availability, the browser revalidates and creates the Wix booking before hosted checkout, and `POST /api/checkout` refuses a competing local booking. Local Supabase/Stripe checkout remains available only while that adapter is disabled or for domains not yet represented natively in Wix.
 
 ## 1. Safety boundary
 
-- Keep the SimDream React/Next.js product, scheduling, six-language UX, and guest-first experience.
+- Keep the SimDream React/Next.js product, scheduling, seven-language UX, and guest-first experience.
 - Use Wix native Bookings, Members, Pricing Plans, dashboard operations, hosted checkout, and PayPlus configuration where they fit.
 - Never put a Wix client secret, API key, PayPlus credential, or privileged Wix token in the browser, repository, `.env.example`, or application logs.
 - A guest must always be able to start a one-off booking without registration. Member identity may grant access to the matching customer's orders; it must never expose purchases by an unauthenticated email lookup.
@@ -28,7 +28,7 @@ It uses the public Wix visitor client and exits non-zero when any of these gates
 | --- | --- | --- |
 | Headless connection | `NEXT_PUBLIC_WIX_CLIENT_ID` is configured and public service reads succeed | The frontend cannot safely use Wix without a visitor session. |
 | Bookings parity and capacity | Every local package is mapped, its Wix service name, base duration, and base price match, and every mapped service requires the same physical Boeing 737 resource type | A customer must never be shown one offer and reserve another, and a booking of one duration must block every other duration from using the physical simulator. |
-| Subscription-plan resolvability | Each of the four local subscriptions resolves to one public Wix Pricing Plan | A checkout redirect must target an explicit, published plan. |
+| Subscription-plan resolvability | Each of the six local subscriptions resolves to one public Wix Pricing Plan | A checkout redirect must target an explicit, published plan. |
 | Gift Card variant parity | The live Wix Gift Card product (`07209324-1536-4ca3-aad2-d8782d04398a`) carries all 7 signature design tiers (`50`, `100`, `200`, `300`, `500`, `700`, `1000` ILS) with their mapped variant UUIDs | Voucher checkout (`POST /api/checkout`) relies on exact preset variant UUIDs to display the buyer's chosen card artwork on Wix Checkout. |
 
 The command performs no write: it does not publish a service or plan, create a checkout session, charge a card, alter availability, or turn on a feature flag. A non-zero result is an intentional stop signal, not a runtime outage.
@@ -47,6 +47,8 @@ Copy the names below into the appropriate deployment environment only. Values ar
 | `WIX_PLAN_ID_ADVANCED_5X90` | Trusted server environment | Immutable Wix plan ID for Advanced Captain. |
 | `WIX_PLAN_ID_ATPL_10X60` | Trusted server environment | Immutable Wix plan ID for ATPL Concepts. |
 | `WIX_PLAN_ID_AIRLINE_10X90` | Trusted server environment | Immutable Wix plan ID for Airline Readiness. |
+| `WIX_PLAN_ID_PRO_3X90` | Trusted server environment | Immutable Wix plan ID for the 3 × 90 PRO track. |
+| `WIX_PLAN_ID_PRO_5X60` | Trusted server environment | Immutable Wix plan ID for the 5 × 60 PRO track. |
 | `WIX_SHADOW_READS_ENABLED` | Frontend/server environment | Optional diagnostic switch. Default is `false`. |
 | `WIX_AVAILABILITY_ADAPTER_ENABLED` | Frontend/server environment | Optional calendar-read switch. It intersects Kantorovich slots with Wix Bookings availability; default is `false` outside staging. |
 | Wix client secret, API key, privileged token | Wix or server-side secret manager only | Required only for approved privileged operations; never a browser value. |
@@ -58,17 +60,17 @@ Plan IDs are not treated as credentials, but they remain server-side so checkout
 
 Complete these steps in a **staging Headless site** first. Do not test against production customer capacity or live payment details.
 
-### Bookings catalogue — provisioned in staging
+### Bookings catalogue — code-mapped; verify in staging
 
-1. All nine services already exist on **SimDream-Staging**, and their IDs are mapped in `lib/wix/catalog.ts`. Do not create duplicates.
-2. A single native Boeing 737 simulator resource type is required by every service. The 45-minute ₪490 Discounted Promotion is enforced by the headless availability and checkout resolver on Sunday–Tuesday before 18:00, then intersected with Wix's live availability; this restriction never creates a second hardware capacity pool or changes shared staff hours.
-3. The operational hours, ILS price, base duration and turnaround buffer are configured and live-checked. `npm run wix:smoke` reports future bookable 60-minute slots and the shared capacity resource; `npm run wix:readiness` blocks a pilot if the shared capacity pool or catalog alignment drifts.
+1. The registry maps all nine local packages to Wix service IDs for **SimDream-Staging**. Confirm the services exist and those immutable IDs still point to the intended entities before any enablement; do not create duplicates.
+2. A single native Boeing 737 simulator resource type must be required by every service. The 45-minute ₪490 Discounted Promotion is enforced by the headless availability and checkout resolver on Sunday–Tuesday before 18:00, then intersected with Wix's live availability; this restriction must not create a second hardware capacity pool or change shared staff hours.
+3. Verify the operational hours, ILS price, base duration and turnaround buffer with live reads. `npm run wix:smoke` reports future bookable 60-minute slots and the shared capacity resource; `npm run wix:readiness` blocks a pilot if the shared capacity pool or catalog alignment drifts.
 4. Correct any subsequent mismatch through an approved product decision. The known simulator offers remain defined locally; never silently change price or duration only in Wix.
 5. Keep the duration-aware adapter aligned with the package reservation map: 30m → 45m, 45m → 60m, 60m → 75m, 90m → 105m, 120m → 150m. Wix may return a broader appointment raster, but it may only veto—not invent—customer-visible starts. Do not enable an unmapped add-on or route through a local fallback while Wix owns the calendar.
 
 ### Pricing Plans subscriptions
 
-The six public, purchasable **single-payment, 12-month** plans below are configured in staging (the four consumer tracks already; the two PRO tracks once created) and linked to their eligible native Bookings service. Do not describe a plan as recurring unless its renewal, price, cancellation policy, and PayPlus recurring-payment support have separately been approved.
+The source defines the six public, purchasable **single-payment, 12-month** plans below. Confirm plan creation/publication and their eligible native Bookings-service benefits in staging before presenting them as purchasable. Do not describe a plan as recurring unless its renewal, price, cancellation policy, and PayPlus recurring-payment support have separately been approved.
 
 | Local ID | Customer-facing plan | Sessions | Price (ILS) | Base package |
 | --- | --- | ---:| ---:| --- |
@@ -79,17 +81,17 @@ The six public, purchasable **single-payment, 12-month** plans below are configu
 | `pro-interview-3x90` | Airline Interview Prep · 3 × 90 PRO (sold on `/pro` only; not yet created in staging) | 3 × 90 min | 2,565 | Airline Interview Prep 90 PRO |
 | `pro-interview-5x60` | Airline Interview Prep · 5 × 60 PRO (sold on `/pro` only; not yet created in staging) | 5 × 60 min | 4,165 | Airline Interview Prep 60 PRO |
 
-For every plan, publish the six-language customer terms and make these limitations explicit: simulator education is not logged flight time, a licence, type rating, airline assessment credit, or employment guarantee. Training topics may include Cold & Dark, Crosswind/IFR, and Extreme Airports only as instructor-led themes until an entitlement decision states whether they consume time or price separately.
+For every plan, publish the seven-language customer terms and make these limitations explicit: simulator education is not logged flight time, a licence, type rating, airline assessment credit, or employment guarantee. Training topics may include Cold & Dark, Crosswind/IFR, and Extreme Airports only as instructor-led themes until an entitlement decision states whether they consume time or price separately.
 
-`npm run wix:readiness` resolves the four consumer plans; the two PRO plans resolve once they are created in staging (`WIX_PLAN_ID_PRO_3X90`, `WIX_PLAN_ID_PRO_5X60`) and fall back to Dispatch until then. Before production, set the six immutable plan IDs in the trusted server environment rather than relying on dynamic title/price lookup, then re-run the readiness gate.
+`npm run wix:readiness` resolves all six plans, including both PRO mappings (`WIX_PLAN_ID_PRO_3X90`, `WIX_PLAN_ID_PRO_5X60`); an unresolved plan falls back to Dispatch in the customer flow. Before production, set the six immutable plan IDs in the trusted server environment rather than relying on dynamic title/price lookup, then re-run the readiness gate.
 
 ### Headless redirect and payment settings
 
-1. The staging OAuth app now allow-lists the exact hosted callback and preview wildcard for `/wix/members/callback`. For a new production origin, add its exact HTTPS callback before enabling member login; origin allow-listing alone is insufficient.
+1. The staging OAuth app must allow-list the exact hosted callback and preview wildcard for `/wix/members/callback`. For a new production origin, add its exact HTTPS callback before enabling member login; origin allow-listing alone is insufficient.
 2. Permit the hosted-checkout return domain for the current frontend. Use the deployed origin—not a path, wildcard, unrelated domain, or development URL in production.
 3. **Required blocker:** Configure an approved PayPlus provider inside Wix using merchant sandbox/test configuration. The staging site currently has no connected provider, and no published PayPlus App Market listing was discoverable through Wix's supported search API. Complete a non-charging or test-card payment, cancellation, and failure recovery path before live credentials are considered.
-4. Wix Members is installed and the hosted callback is registered. Subscription purchase and usage are member-gated; active plans now link to a duration-matched `/book?subscription=wix` flow. It resolves a live strict-grid slot and opens member-bound Wix-hosted Bookings checkout; Wix verifies the benefit and consumes the credit. One-off booking remains guest-first. Verify hosted sign-in/register, plan purchase, covered-session checkout, cancellation, and member-order updates after each release.
-5. The Wix availability adapter is implemented and enabled for staging. It can operate without copying a Supabase secret into the worker; it marks Wix as the authoritative calendar and blocks the local booking writer. Mapped base flights use native Wix reservation and hosted checkout. Map add-ons and on-request routes natively before enabling them in this mode.
+4. Verify Wix Members is installed and the hosted callback is registered. Subscription purchase and usage are member-gated; active plans can link to a duration-matched `/book?subscription=wix` flow. It resolves a live strict-grid slot and opens member-bound Wix-hosted Bookings checkout; Wix verifies the benefit and consumes the credit. One-off booking remains guest-first. Verify hosted sign-in/register, plan purchase, covered-session checkout, cancellation, and member-order updates after each release.
+5. The Wix availability adapter is implemented in source; enable it only on the intended staging worker after its live validation. It can operate without copying a Supabase secret into the worker; it marks Wix as the authoritative calendar and blocks the local booking writer. Mapped base flights use native Wix reservation and hosted checkout. The source supports mapped Store add-ons and route notes; verify every native entity and customer-facing checkout result before enabling it in this mode.
 6. The Headless frontend intentionally has no Wix AI Site-Chat integration. Its persistent contact route is the official WhatsApp action (`+972 55 507 1307`), rendered from `FACILITY_INFO.contact.whatsappHref`. Do not install or configure a separate chat widget for this customer journey.
 
 ## 5. Staged cutover sequence
@@ -98,7 +100,7 @@ For every plan, publish the six-language customer terms and make these limitatio
 | --- | --- | --- | --- |
 | 0 — Baseline | No operational Wix writes | Current Supabase/Stripe checkout succeeds and existing tests pass | No action. |
 | 1 — Read-only parity | Run readiness and, if approved, enable shadow reads in staging | `npm run wix:readiness` reports catalog alignment; no PII in observer logs | Set `WIX_SHADOW_READS_ENABLED=false`. |
-| 2 — Booking pilot | Implement a Wix `CheckoutGateway` through `lib/booking/checkout-ports.ts` for one aligned non-production service | Guest happy path, failure, duplicate callback, staff-dashboard visibility, and trusted confirmation tests | Route the pilot back to the current Stripe gateway; do not delete Wix records. |
+| 2 — Booking pilot | Enable the existing browser-side Wix Bookings + Cart V2 flow for one aligned non-production service | Guest happy path, failure, duplicate callback, staff-dashboard visibility, and trusted confirmation tests | Disable the adapter and route the pilot back to the current Stripe gateway; do not delete Wix records. |
 | 3 — Subscription redirect | Allow the existing subscription endpoint to redirect only to four resolved published plans | Hosted checkout success/cancel return plus server-side verified plan/order state | Keep Dispatch fallback; remove plan ID mapping or disable the pilot selection. |
 | 4 — Entitlement ledger | Add an idempotent, server-side credit and expiry ledger before reservation | Each eligible reservation consumes exactly one approved credit; cancellation/expiry/duplicate events do not double-credit | Stop consumption, reconcile confirmed Wix orders, then repair with audited adjustments. |
 | 5 — Production cutover | Make Wix the declared canonical writer for explicitly approved domains only | Staging acceptance, monitoring owner, backup, data map, and business sign-off | Route traffic to the last verified frontend release and reconcile records; never delete live orders. |
@@ -111,13 +113,13 @@ No stage authorises a permanent dual write. One booking domain has one canonical
 - `npm run lint`, `npm run test:quick`, and `npm run build` pass for the deployment commit.
 - One guest booking and one member booking are tested end-to-end without using live customer data.
 - Staff can find the booking/order in the Wix Dashboard and the frontend renders the correct authoritative pending, paid, cancelled, or failed state.
-- The booking flow is verified in Hebrew, English, Russian, French, and Arabic; Hebrew/Arabic remain RTL while telemetry stays LTR.
+- The booking flow is verified in Hebrew, English, Russian, French, Arabic, Spanish, and German; Hebrew/Arabic remain RTL while telemetry stays LTR.
 - A documented failure, cancellation, timeout, duplicated-event, and rollback path exists.
 - A business owner confirms payment settings, plan terms, refunds/cancellation policy, support ownership, and monitoring response.
 
 ## 7. What remains intentionally inactive
 
-- The staging Bookings, resources, operating hours, Pricing Plans, and plan-to-service benefits are configured; no production-site Wix data was changed.
+- The repository holds mappings and a provisioning blueprint for Bookings, resources, operating hours, Pricing Plans, and plan-to-service benefits; their Wix account state must be confirmed through the read-only gates and dashboard evidence before activation. No production-site Wix data is written by this repository.
 - It does not add a Wix booking writer, migrate historical Supabase/Stripe records, or change the current checkout authority.
 - It does not activate PayPlus or hold its credentials, because no payment provider is currently connected.
 - It does not claim that a plan purchase automatically creates usable flight credits. That requires the entitlement ledger in Stage 4.
@@ -135,7 +137,7 @@ unverifiable customer flows.
   customer's explicit `simdream_lang` choice remains the only override and is
   persisted in browser local storage, not a public cookie. A bounded
   pre-hydration guard keeps the Hebrew server fallback off-screen until a saved
-  language commits. Verify all six languages after every release.
+  language commits. Verify all seven languages after every release.
 - `/book` must never render a fabricated date. The calendar waits for the
   browser's Israel clock and shows its localized initializing state until the
   date is known; the raw page HTML must not contain `2099`.
@@ -245,7 +247,7 @@ to prove a pre-production flow.
 
 ## 9. Disaster Recovery & Protected Wix-as-Code Provisioning (`npm run wix:provision`)
 
-All Wix backend definitions (9 Bookings services, turnaround buffers, shared Boeing 737 simulator resource pool, 4 Pricing Plans, and 17 Gift Card preset variants including the 7 signature design media bindings) are codified in [`lib/wix/backend-blueprint.ts`](../lib/wix/backend-blueprint.ts) and audited by [`scripts/wix-provision.ts`](../scripts/wix-provision.ts).
+All Wix backend definitions (9 Bookings services, turnaround buffers, shared Boeing 737 simulator resource pool, 6 Pricing Plans, and 17 Gift Card preset variants including the 7 signature design media bindings) are codified in [`lib/wix/backend-blueprint.ts`](../lib/wix/backend-blueprint.ts) and audited by [`scripts/wix-provision.ts`](../scripts/wix-provision.ts).
 
 ### Why Accidental Backend Recreation Is Dangerous (Risks of Running a Restore by Mistake)
 
@@ -260,7 +262,7 @@ To prevent any accidental backend recreation, `evaluateWixProvisionSafetyGate()`
 
 1. **Lock 1 — Read-Only Default (`--dry-run`)**: Running `npm run wix:provision` (or `npm run wix:provision -- --dry-run`) performs **zero writes**. It queries the public visitor APIs and prints the reconciliation diff (`in_sync`, `create`, `update`).
 2. **Lock 2 — Forbidden Site Denylist (`forbidden-site-id`)**: Hard-blocks the retired site ID `4c5e1c7a-163c-48ce-8278-cdc42e4deed4` and any missing `WIX_SITE_ID`.
-3. **Lock 3 — Already-Provisioned Circuit Breaker (`already-provisioned`)**: If `planWixBackendProvisioning()` finds that the target Wix site already has all 9 services, the shared simulator resource pool, all 4 Pricing Plans, and all 7 signature Gift Card variants in sync (`alreadyFullyProvisioned === true`), `--apply` is **unconditionally blocked** even if all flags and keys are supplied.
+3. **Lock 3 — Already-Provisioned Circuit Breaker (`already-provisioned`)**: If `planWixBackendProvisioning()` finds that the target Wix site already has all 9 services, the shared simulator resource pool, all 6 Pricing Plans, and all 7 signature Gift Card variants in sync (`alreadyFullyProvisioned === true`), `--apply` is **unconditionally blocked** even if all flags and keys are supplied.
 4. **Lock 4 — Explicit Site Confirmation (`missing-site-confirmation`)**: Requires `--confirm-site-id=<exact-WIX_SITE_ID>` on the command line.
 5. **Lock 5 — Environment Interlock & Ephemeral Admin Key (`missing-apply-interlock` / `missing-admin-api-key`)**: Requires both `WIX_PROVISION_ALLOW_APPLY=true` and an ephemeral `WIX_ADMIN_API_KEY` in the shell environment (never stored in `.env*` or committed to Git).
 
