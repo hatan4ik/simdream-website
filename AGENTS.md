@@ -184,7 +184,8 @@ The platform supports 7 languages with zero cross-language contamination:
 ## 6. Runtime Database & Security Architecture
 
 1. **Fail-Closed in Production**:
-   - Live checkout and persistence require valid Supabase and Stripe secrets.
+   - The legacy local checkout writer and its persistence require valid Supabase credentials; a card-funded local checkout additionally requires valid Stripe secrets and a verified Stripe webhook.
+   - Wix-authoritative checkout is a separate boundary: it requires the enabled Wix adapter plus live Wix Bookings, Cart V2, and hosted-payment configuration. It never falls back to the local writer or to in-memory persistence.
    - Never fallback to in-memory orders in production.
 2. **Graceful Local In-Memory Fallback**:
    - In [`lib/db/supabase-admin.ts`](lib/db/supabase-admin.ts) and [`lib/db/store.ts`](lib/db/store.ts), check `isProduction && Boolean(getSupabaseAdmin())`.
