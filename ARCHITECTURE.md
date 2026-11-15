@@ -19,7 +19,7 @@ flowchart TD
 
     subgraph RoutingLayer["Edge Routing & Next.js 16 App Router"]
         CanonicalRedirects["Configured 301 Permanent Redirects<br/>/simulator, /training ➔ /pro • /aerophobia ➔ /fear-of-flying<br/>/book-online ➔ /book • legacy gift voucher ➔ /vouchers<br/>/cooperation ➔ /workshops • /pricing-plans/list ➔ /subscriptions<br/>/blog/:slug ➔ /post/:slug"]
-        PublicPages["Public Pages<br/>/ • /about • /pro • /experiences • /book • /book/success • /offers<br/>/subscriptions • /subscriptions/thank-you • /workshops • /vouchers • /ground-school<br/>/contact • /rules • /privacy-policy • /refund • /blog • /post/[...segments]"]
+        PublicPages["Public Pages<br/>/ • /about • /pro • /experiences • /book • /book/success • /offers<br/>/subscriptions • /subscriptions/thank-you • /workshops • /vouchers • /ground-school<br/>/contact • /rules • /privacy-policy • /refund • /fear-of-flying • /blog • /post/[...segments]"]
         MemberPages["Member Area<br/>/dashboard • /login • /wix/members/callback<br/>legacy /auth/callback • /auth/reset-password"]
         AdminPages["Admin Dispatch Command Center<br/>/admin (Bookings, Vouchers, Workshops, Schedule Efficiency)"]
     end
@@ -36,9 +36,10 @@ flowchart TD
         BookingAPIs["Booking & Capacity APIs<br/>GET /api/slots • GET /api/packages<br/>POST /api/checkout • POST /api/webhooks/stripe"]
         SubscriptionAPIs["Subscription Checkout API<br/>POST & GET /api/subscriptions/checkout"]
         MemberAPIs["Member Profile & Receipts<br/>GET /api/my-bookings • GET /api/my-bookings/[ref]/receipt<br/>POST /api/membership/bootstrap"]
-        OperationsAPIs["Operational & Customer APIs<br/>/api/bookings • /api/vouchers • /api/workshops • /api/contact<br/>/api/ground-school/inquiries • /api/refund-requests • /api/reviews"]
+        ContentAPIs["Content & Offers APIs<br/>GET /api/blog • GET /api/offers/capabilities"]
+        OperationsAPIs["Operational & Customer APIs<br/>GET/POST/PATCH /api/bookings • GET/POST/PATCH /api/vouchers • GET/POST/PATCH /api/workshops<br/>POST /api/contact • GET/POST/PATCH /api/ground-school/inquiries<br/>GET/POST /api/refund-requests • POST /api/refund-requests/lookup<br/>GET/POST /api/reviews • POST /api/reviews/refresh"]
         AdminAPIs["Admin Optimization<br/>GET /api/admin/schedule-efficiency • POST /api/admin/schedule-optimization"]
-        WixAPIs["Wix Pricing & Booking APIs<br/>POST /api/wix/bookings/checkout<br/>POST /api/wix/birthday/claim • calculate-price"]
+        WixAPIs["Wix Pricing & Booking APIs<br/>POST /api/wix/bookings/checkout • POST /api/wix/birthday/claim<br/>POST /api/wix/birthday-pricing/v1/calculate-price"]
     end
 
     subgraph PersistenceLayer["Persistence & External Services"]
@@ -61,6 +62,7 @@ flowchart TD
 
     StorefrontUI --> BookingAPIs
     SubPortalUI --> SubscriptionAPIs
+    PublicPages --> ContentAPIs
 
     BookingAPIs --> KantorovichEngine
     BookingAPIs --> MissionCalc
@@ -100,7 +102,7 @@ The observer is strictly optional and non-blocking: disabled is the default; Wix
 
 Flight tracks are single-payment, 12-month commercial packages: four consumer tracks (`flight-foundations-5x60`, `advanced-captain-5x90`, `atpl-concepts-10x60`, `airline-readiness-10x90`, sold on `/subscriptions`) and two PRO tracks (`pro-interview-3x90`, `pro-interview-5x60`, sold on `/pro#pro-tracks` only). Checkout does not run through the one-off simulator slot booking engine:
 1. `POST /api/subscriptions/checkout` receives the validated subscription pass ID.
-2. `lib/wix/plans.ts` resolves the matching Wix Pricing Plan (checking `WIX_PLAN_IDS` environment overrides first, followed by dynamic scanning of live public plans by price and title pattern).
+2. `lib/wix/plans.ts` resolves the matching Wix Pricing Plan (checking the static `WIX_PLAN_IDS` map, populated by the six individual `WIX_PLAN_ID_*` environment variables, then dynamically scanning live public plans by price and title pattern).
 3. `createPlanCheckoutUrl()` calls `@wix/redirects` `client.redirects.createRedirectSession({ paidPlansCheckout: { planId } })` with `thankYouPageUrl: /subscriptions/thank-you` and `postFlowUrl: /subscriptions`.
 4. If a plan is not yet published in Wix, the API gracefully falls back to Captain Dispatch (`/contact?subject=subscription&plan=...&notice=dispatch_assisted`) rather than failing closed with HTTP 500.
 
