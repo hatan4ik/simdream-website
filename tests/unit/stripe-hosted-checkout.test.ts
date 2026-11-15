@@ -57,20 +57,20 @@ describe('createCheckoutSession', () => {
 });
 
 describe('expireCheckoutSession', () => {
-  it('expires an open session', async () => {
+  it('expires an open session and reports it expired', async () => {
     const { expireCheckoutSession } = await loadStripe();
     sessions.expire.mockResolvedValue({ id: 'cs_test_1', status: 'expired' });
 
-    await expect(expireCheckoutSession('cs_test_1')).resolves.toBeUndefined();
+    await expect(expireCheckoutSession('cs_test_1')).resolves.toBe('expired');
     expect(sessions.expire).toHaveBeenCalledWith('cs_test_1');
   });
 
-  it.each(['expired', 'complete'])('leaves a session that is already %s as it is', async (status) => {
+  it.each(['expired', 'complete'])('leaves a session that is already %s as it is and reports that state', async (status) => {
     const { expireCheckoutSession } = await loadStripe();
     sessions.expire.mockRejectedValue(new Error('This Checkout Session is not open.'));
     sessions.retrieve.mockResolvedValue({ id: 'cs_test_1', status });
 
-    await expect(expireCheckoutSession('cs_test_1')).resolves.toBeUndefined();
+    await expect(expireCheckoutSession('cs_test_1')).resolves.toBe(status);
     expect(sessions.retrieve).toHaveBeenCalledWith('cs_test_1');
   });
 

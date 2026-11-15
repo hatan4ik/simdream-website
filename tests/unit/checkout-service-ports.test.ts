@@ -6,6 +6,7 @@ import {
   type CardCheckoutCommand,
   type CardCheckoutSession,
   type CheckoutDependencies,
+  type HostedCheckoutFinalState,
 } from '@/lib/booking/checkout-ports';
 import { bookingCheckoutSchema } from '@/lib/validation';
 import type { Booking } from '@/types';
@@ -18,6 +19,9 @@ const SESSION: CardCheckoutSession = {
   expiresAt: '2099-01-01T00:30:00.000Z',
 };
 const HOLD_CAP = 'You already have unpaid reservations in progress. Complete or cancel one first.';
+const HOLD_IN_PROGRESS =
+  'You already have an unpaid reservation for this departure. Complete that payment, or wait until it expires to change it.';
+const ALREADY_PAID = 'This departure is already paid. Your confirmation is on its way.';
 
 function checkoutDependencies(): CheckoutDependencies {
   return {
@@ -65,7 +69,7 @@ function checkoutDependencies(): CheckoutDependencies {
     },
     cardCheckout: {
       createHostedCheckout: async () => SESSION,
-      expireHostedCheckout: async () => undefined,
+      expireHostedCheckout: async () => 'expired',
     },
     identity: {
       getAuthenticatedMember: async () => null,
@@ -118,8 +122,11 @@ async function storedHold(overrides: Record<string, unknown> = {}, session: Part
   };
 }
 
-/** Records every port call in order, so a test can assert what happened and in which sequence. */
-function recordingDependencies(holds: Booking[]) {
+/**
+ * Records every port call in order, so a test can assert what happened and in which sequence.
+ * `expireOutcome` is what the provider reports when asked to expire a hosted checkout (or the error it throws).
+ */
+function recordingDependencies(holds: Booking[], expireOutcome: HostedCheckoutFinalState | Error = 'expired') {
   const dependencies = checkoutDependencies();
   const calls: string[] = [];
   const { repository, cardCheckout } = dependencies;
@@ -135,7 +142,10 @@ function recordingDependencies(holds: Booking[]) {
   repository.cancelPendingBooking = record('cancelPendingBooking', repository.cancelPendingBooking);
   repository.attachHostedCheckout = record('attachHostedCheckout', repository.attachHostedCheckout);
   cardCheckout.createHostedCheckout = record('createHostedCheckout', async () => ({ ...SESSION, sessionId: 'session-2' }));
-  cardCheckout.expireHostedCheckout = record('expireHostedCheckout', cardCheckout.expireHostedCheckout);
+  cardCheckout.expireHostedCheckout = record('expireHostedCheckout', async () => {
+    if (expireOutcome instanceof Error) throw expireOutcome;
+    return expireOutcome;
+  });
   return { dependencies, calls };
 }
 
@@ -234,8 +244,30 @@ test("checkout service resumes the open hosted checkout of the pilot's own hold 
   expect(calls).toEqual(['listUnpaidPendingBookings:pilot@example.test']);
 });
 
-test('checkout service replaces a hold that differs: it expires the stored checkout before cancelling the hold', async () => {
-  const hold = await storedHold();
+test.each([
+  ['different add-ons', {}, { addons: ['addon-extra-seat'] }],
+  ['a different payable total', { totalIls: 449 }, {}],
+  ['a stored checkout without its URL', { stripeCheckoutUrl: undefined }, {}],
+  ['a stored checkout without its expiry', { stripeCheckoutExpiresAt: undefined }, {}],
+  ['no stored checkout at all', { stripeCheckoutSessionId: undefined, stripeCheckoutUrl: undefined, stripeCheckoutExpiresAt: undefined }, {}],
+])(
+  'checkout service releases nothing and answers 409 for a retry of a live hold with %s',
+  async (_label, holdChanges: Partial<Booking>, retry: Record<string, unknown>) => {
+    const hold = { ...(await storedHold()), ...holdChanges };
+    const { dependencies, calls } = recordingDependencies([hold]);
+
+    await expect(createCheckoutService(dependencies).startBookingCheckout(checkoutRequest(), bookingInput(retry))).rejects.toMatchObject({
+      name: CheckoutError.name,
+      message: HOLD_IN_PROGRESS,
+      status: 409,
+    });
+    // An unverified email must never release someone's live hold or expire their open payment page.
+    expect(calls).toEqual(['listUnpaidPendingBookings:pilot@example.test']);
+  }
+);
+
+test('checkout service releases a hold whose checkout the provider reports expired, then checks out anew', async () => {
+  const hold = await storedHold({}, { ...SESSION, expiresAt: CLOCK.toISOString() });
   const { dependencies, calls } = recordingDependencies([hold]);
 
   const result = await createCheckoutService(dependencies).startBookingCheckout(
@@ -255,50 +287,37 @@ test('checkout service replaces a hold that differs: it expires the stored check
   ]);
 });
 
-test('checkout service replaces a hold whose payable total differs, even with the same add-ons', async () => {
-  const hold = { ...(await storedHold()), totalIls: 449 };
-  const { dependencies, calls } = recordingDependencies([hold]);
+test('checkout service never releases a hold whose checkout the provider reports already paid', async () => {
+  const hold = await storedHold({}, { ...SESSION, expiresAt: CLOCK.toISOString() });
+  const { dependencies, calls } = recordingDependencies([hold], 'complete');
 
-  await createCheckoutService(dependencies).startBookingCheckout(checkoutRequest(), bookingInput());
-
-  expect(calls.slice(1, 3)).toEqual(['expireHostedCheckout:session-1', 'cancelPendingBooking:hold-1']);
+  await expect(createCheckoutService(dependencies).startBookingCheckout(checkoutRequest(), bookingInput())).rejects.toMatchObject({
+    name: CheckoutError.name,
+    message: ALREADY_PAID,
+    status: 409,
+  });
+  expect(calls).toEqual(['listUnpaidPendingBookings:pilot@example.test', 'expireHostedCheckout:session-1']);
 });
 
-test.each([
-  ['expired', { ...SESSION, expiresAt: CLOCK.toISOString() }],
-  ['missing its URL', { ...SESSION, url: undefined }],
-  ['missing its expiry', { ...SESSION, expiresAt: undefined }],
-])('checkout service replaces a hold whose stored checkout is %s', async (_label, session) => {
-  const hold = await storedHold({}, session);
-  const { dependencies, calls } = recordingDependencies([hold]);
+test('checkout service keeps a hold whose expired checkout the provider cannot confirm, and reports the failure', async () => {
+  const hold = await storedHold({}, { ...SESSION, expiresAt: CLOCK.toISOString() });
+  const { dependencies, calls } = recordingDependencies([hold], new Error('provider unavailable'));
 
-  await createCheckoutService(dependencies).startBookingCheckout(checkoutRequest(), bookingInput());
-
-  expect(calls.slice(1, 3)).toEqual(['expireHostedCheckout:session-1', 'cancelPendingBooking:hold-1']);
+  await expect(createCheckoutService(dependencies).startBookingCheckout(checkoutRequest(), bookingInput())).rejects.toThrow(
+    'provider unavailable'
+  );
+  expect(calls).toEqual(['listUnpaidPendingBookings:pilot@example.test', 'expireHostedCheckout:session-1']);
 });
 
 test('checkout service keeps the hold when a retry of its departure is refused by the pricing rules', async () => {
-  const hold = await storedHold();
+  const hold = await storedHold({}, { ...SESSION, expiresAt: CLOCK.toISOString() });
   const { dependencies, calls } = recordingDependencies([hold]);
 
-  // Changed add-ons would replace the hold, but a pilot younger than the minimum age is refused first.
+  // The expired checkout would release the hold, but a pilot younger than the minimum age is refused first.
   await expect(
-    createCheckoutService(dependencies).startBookingCheckout(
-      checkoutRequest(),
-      bookingInput({ addons: ['addon-extra-seat'], pilotBirthDate: '2095-01-01' })
-    )
+    createCheckoutService(dependencies).startBookingCheckout(checkoutRequest(), bookingInput({ pilotBirthDate: '2095-01-01' }))
   ).rejects.toMatchObject({ name: CheckoutError.name, status: 400 });
   expect(calls).toEqual(['listUnpaidPendingBookings:pilot@example.test']);
-});
-
-test('checkout service cancels a hold that never stored a hosted checkout without calling the provider', async () => {
-  const hold = await storedHold({}, {});
-  const { dependencies, calls } = recordingDependencies([hold]);
-
-  await createCheckoutService(dependencies).startBookingCheckout(checkoutRequest(), bookingInput());
-
-  expect(calls.slice(1, 2)).toEqual(['cancelPendingBooking:hold-1']);
-  expect(calls.filter((call) => call.startsWith('expireHostedCheckout'))).toEqual([]);
 });
 
 test('checkout service refuses a third unpaid hold for one email with a 429 before reading the slot', async () => {

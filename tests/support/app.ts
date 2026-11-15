@@ -47,6 +47,8 @@ export async function loadApp(options: LoadAppOptions = {}) {
 
   const checkoutSessions: CreateCheckoutParams[] = [];
   const expiredCheckoutSessions: string[] = [];
+  /** What the Stripe mock reports when asked to expire a session; an Error simulates an outage. */
+  const stripeControls: { expireOutcome: 'expired' | 'complete' | Error } = { expireOutcome: 'expired' };
   if (options.stripe === 'mocked') {
     vi.doMock('@/lib/stripe', async (importOriginal) => {
       const actual = await importOriginal<typeof import('@/lib/stripe')>();
@@ -62,6 +64,8 @@ export async function loadApp(options: LoadAppOptions = {}) {
         }),
         expireCheckoutSession: vi.fn(async (sessionId: string) => {
           expiredCheckoutSessions.push(sessionId);
+          if (stripeControls.expireOutcome instanceof Error) throw stripeControls.expireOutcome;
+          return stripeControls.expireOutcome;
         }),
       };
     });
@@ -91,6 +95,8 @@ export async function loadApp(options: LoadAppOptions = {}) {
     checkoutSessions,
     /** Checkout Session ids the server asked the Stripe mock to expire, in call order. */
     expiredCheckoutSessions,
+    /** Set `expireOutcome` to what Stripe reports for the next expire calls ('expired' by default). */
+    stripeControls,
     /**
      * Clears this app's in-memory rate-limit counters, as a freshly loaded app starts. Each loadApp()
      * already begins with empty counters; call this between the runs of a property test that repeats

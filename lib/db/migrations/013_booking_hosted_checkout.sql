@@ -2,10 +2,11 @@
 -- Apply after 012_booking_consent_birthday.sql and a reviewed production backup. Idempotent.
 --
 -- A pilot who returns from Stripe and submits the same departure again resumes this checkout instead of
--- being refused by their own hold; a retry that differs expires it first, then releases the hold
--- (lib/booking/checkout-hold-policy.ts). Written only while status and payment_status are both 'pending'
--- (lib/db/checkout-hold-store.ts). Additive: three nullable columns and a partial unique index, no data
--- rewrite; bookings made before this migration keep NULL here and are simply replaced on a retry.
+-- being refused by their own hold; once the stored expiry has passed and Stripe confirms the session
+-- expired, a retry releases the hold (lib/booking/checkout-hold-policy.ts). Written only while status and
+-- payment_status are both 'pending' (lib/db/checkout-hold-store.ts). Additive: three nullable columns and a
+-- partial unique index, no data rewrite; bookings made before this migration keep NULL here, so a retry of
+-- them answers 409 until Stripe's own expiry webhook releases them.
 
 BEGIN;
 

@@ -138,8 +138,8 @@ async function createBookingFromRequest(
 
   const isVoucherPayment = Boolean(input.voucherCode);
   const now = dependencies.clock.now();
-  // A card checkout holds the departure unpaid: the same pilot's retry resumes or replaces their
-  // own hold (never a 409 against themselves), and one email may not stack up holds.
+  // A card checkout holds the departure unpaid: the same pilot's retry resumes their open hold or
+  // replaces one whose checkout has expired, and one email may not stack up holds (checkout-hold-policy.ts).
   if (!isVoucherPayment) {
     const resumed = await resolveUnpaidHold(dependencies, {
       pilotEmail: input.pilotEmail,

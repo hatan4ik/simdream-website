@@ -60,10 +60,16 @@ export interface CardCheckoutSession {
   expiresAt: string;
 }
 
+/** How a hosted checkout ended: `expired` can no longer be paid, `complete` was paid. */
+export type HostedCheckoutFinalState = 'expired' | 'complete';
+
 export interface CardCheckoutGateway {
   createHostedCheckout(command: CardCheckoutCommand): Promise<CardCheckoutSession>;
-  /** Closes an open hosted checkout so it can no longer be paid; one already expired or completed is left as it is. */
-  expireHostedCheckout(sessionId: string): Promise<void>;
+  /**
+   * Closes an open hosted checkout so it can no longer be paid, and reports its final state. One that
+   * already expired or completed is left as it is and reported as such; any other failure throws.
+   */
+  expireHostedCheckout(sessionId: string): Promise<HostedCheckoutFinalState>;
 }
 
 export interface CheckoutIdentityGateway {
