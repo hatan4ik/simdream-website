@@ -240,7 +240,7 @@ sequenceDiagram
     participant API as Next.js API (/api/subscriptions/checkout)
     participant WixClient as Wix Client (lib/wix/plans.ts)
     participant Wix as Wix Headless (Pricing Plans V3)
-    participant PayPlus as Hosted Payment / PayPlus
+    participant Payment as Wix-hosted checkout / configured payment provider
     participant Return as Browser (/subscriptions/thank-you)
 
     Customer->>Browser: Selects Subscription (e.g. 5x90 Advanced Captain) & Clicks "Buy Subscription"
@@ -255,8 +255,8 @@ sequenceDiagram
     API-->>Browser: HTTP 200 { checkoutUrl: "https://...wix-site-host.com/..." }
     deactivate API
     Browser-->>Customer: Redirects customer to hosted payment page
-    Customer->>PayPlus: Completes subscription payment
-    PayPlus-->>Return: Redirects to /subscriptions/thank-you?planOrderId=...
+    Customer->>Payment: Completes payment with the provider configured in Wix
+    Payment-->>Return: Redirects to /subscriptions/thank-you?planOrderId=...
     Return-->>Customer: Renders confetti & next steps to schedule sessions
 ```
 ---

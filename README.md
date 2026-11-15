@@ -49,7 +49,7 @@ Production-grade website, multi-step booking engine, Amazon-style flight storefr
    - **Core Reservation Mapping (Under the Hood)**: capacity is reserved through the server's canonical duration map (`30m -> 45m`, `45m -> 60m`, `60m -> 75m`, `90m -> 105m`, `120m -> 150m`); integrations must not infer the buffer themselves.
    - **Tariff Matrix & Peak-Time Rules**:
      - `30 min Discovery Flight` (`45m` block): `₪450` (Guided takeoff, hands-on flight and landing; customizable in Step 2).
-     - `45 min Promo` (`60m` block): `₪490` (`₪8.17/min` — strictly Daytime `< 18:00`, automatically hidden in Evening Prime-Time & Saturdays).
+     - `45 min Promo` (`60m` block): `₪490` (`₪8.17/min` — available Sunday–Tuesday before 18:00; outside that window it remains visible with zero available slots rather than disappearing).
      - `60 min Standard` (`75m` block): `₪690` (`₪9.20/min` — base anchor slot).
      - `90 min Long` (`105m` block): `₪850` Daytime (`₪8.10/min`) / `₪950` Evening Prime-Time (`>= 18:00` & Saturdays, `₪9.05/min`).
      - `120 min Pro` (`150m` double block): `₪1,590`.
@@ -80,7 +80,7 @@ Production-grade website, multi-step booking engine, Amazon-style flight storefr
    - Dynamic inquiry submission pipeline directly feeding the Admin Dispatch board.
 
 6. **Gift Voucher System (`/vouchers`)**:
-   - Customizable digital boarding pass gift certificates (`voucherType: 'flight_certificate'`, package tiers `₪450`, `₪690`, `₪850`, `₪1,590`; no custom amount) with live visual preview.
+   - Customizable digital boarding pass gift certificates (`voucherType: 'flight_certificate'`, package tiers `₪450`, `₪690`, `₪950`, `₪1,590`; no custom amount). The 90-minute certificate uses its prime-time-safe `₪950` amount, so it covers every valid departure.
    - Flexible **Gift Cards** (`voucherType: 'gift_card'`) skip the package value picker and offer the 7 fixed preset denominations (`GIFT_CARD_AMOUNTS_ILS`: `₪50`, `₪100`, `₪200`, `₪300`, `₪500`, `₪700`, `₪1,000`) followed by "Personalized Gift Card Details". Each card colour is mapped 1:1 to one balance (`skyline` ₪50, `ivory` ₪100, `moonlight` ₪200, `aurora` ₪300, `sunset` ₪500, `dusk` ₪700, `pearl` ₪1,000) and its live Wix Gift Card `variantId` and `wixMediaId` (`lib/catalog/gift-card-designs.ts`, `lib/wix/gift-cards.ts`).
    - Cryptographically generated, high-entropy redeemable flight codes valid for 12 months with online and counter redemption.
 
@@ -120,13 +120,13 @@ Production-grade website, multi-step booking engine, Amazon-style flight storefr
     - **Legal Compliance Pages**: Integrated flight simulator safety regulations ([`/rules`](app/(public)/rules/page.tsx)) and privacy policies ([`/privacy-policy`](app/(public)/privacy-policy/page.tsx)).
 
 13. **Dedicated Annual Flight Subscriptions Portal ([`/subscriptions`](app/(public)/subscriptions/page.tsx)) & Wix Pricing Plans Checkout**:
-    - **Customer-Centric Google-Style Learning Portal**: Dedicated 6-language hub (`he`, `en`, `ru`, `fr`, `ar`, `es`) designed to communicate the value of structured captain-led progression over 12 months with savings up to ₪2,550.
+    - **Customer-Centric Learning Portal**: Dedicated 7-language hub (`he`, `en`, `ru`, `fr`, `ar`, `es`, `de`) designed to communicate the value of structured captain-led progression over 12 months with savings up to ₪2,550.
     - **4 Structured Subscription Tracks**:
       - **Flight Foundations 5 × 60 min** (`₪2,750`): Cockpit orientation, FMS logic, crosswind and ILS foundations.
       - **Advanced Captain 5 × 90 min** (`₪3,390`): SOP rationale, instruments, abnormal situations, and captain judgement.
-      - **ATPL Concepts 10 × 60 min** (`₪4,850`): Systems, planning, FMC, IFR, CRM and TEM educational simulator coaching.
-      - **Airline Readiness 10 × 90 min** (`₪5,950`): Raw-data flying, QRH checklists, two-pilot line-oriented missions.
-    - **Educational Integrity**: Strict Boeing flight deck and ICAO procedures; clear disclosure that ATPL concepts represent educational coaching (not flight hours or airline employment credit).
+      - **Flight Deck Mastery & Systems 10 × 60 min** (`₪4,850`): Systems, planning, navigation, CRM and practical cockpit decision-making.
+      - **Captains' Course 10 × 90 min** (`₪5,950`): A complete captain-led progression from planning to a full mission debrief.
+    - **Educational Integrity**: Strict Boeing flight deck and ICAO procedures; clear disclosure that Flight Deck Mastery & Systems and Captains' Course are educational coaching, not flight hours or airline employment credit.
     - **Direct Wix Pricing Plans Checkout (`/api/subscriptions/checkout`)**:
       - 1-click **"Buy Subscription" / "רכישת מנוי"** action generating hosted checkout redirect sessions via `@wix/redirects` (`createRedirectSession({ paidPlansCheckout })`).
       - Dynamic plan resolution matching public Wix Pricing Plans by price or session pattern, with graceful fallback to Captain Dispatch.
