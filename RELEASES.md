@@ -10,6 +10,14 @@
 
 ## Product changes by version
 
+### [v1.29.1](https://github.com/hatan4ik/simdream-website/releases/tag/v1.29.1) — 2026-11-15
+
+#### Bug Fixes
+
+- **booking:** price wix-pricing birthday preview on subtotalIls with Option B live (#224) (a5f931c)
+
+Deployment evidence: [GitHub Release](https://github.com/hatan4ik/simdream-website/releases/tag/v1.29.1).
+
 ### [v1.29.0](https://github.com/hatan4ik/simdream-website/releases/tag/v1.29.0) — 2026-11-14
 
 #### Features

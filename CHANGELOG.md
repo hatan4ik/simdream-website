@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.29.1](https://github.com/hatan4ik/simdream-website/compare/v1.29.0...v1.29.1) (2026-11-15)
+
+
+### Bug Fixes
+
+* **booking:** price wix-pricing birthday preview on subtotalIls with Option B live ([#224](https://github.com/hatan4ik/simdream-website/issues/224)) ([a5f931c](https://github.com/hatan4ik/simdream-website/commit/a5f931cf055deb07bfbc9151b832a86e7e3058fe))
+
 ## [1.29.0](https://github.com/hatan4ik/simdream-website/compare/v1.28.6...v1.29.0) (2026-11-14)
 
 
