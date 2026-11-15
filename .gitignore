@@ -41,6 +41,9 @@ service-account.json
 # deployment
 .vercel
 
+# local Foundry deployment state (generated per machine)
+/.foundry/.deployment.json
+
 # local tooling caches
 .eslintcache
 .swc/
