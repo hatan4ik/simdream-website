@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { loadApp, type TestApp } from '../support/app';
 import { apiRequest, readJson } from '../support/http';
+import { HONEYPOT_FIELD } from '@/lib/security/honeypot';
 import { adminRequest, PRIVATE_NO_STORE } from './api-helpers';
 import { corporateInquiry, errorBody, expectContract, validationErrorBody, workshopCreated } from './contracts';
 
@@ -70,7 +71,9 @@ describe('POST /api/workshops (public inquiry)', () => {
     const app = await loadApp();
     const { POST } = await app.routes.workshops();
 
-    const response = await readJson(await POST(apiRequest('/api/workshops', { method: 'POST', rawBody: '{' })));
+    const response = await readJson(
+      await POST(apiRequest('/api/workshops', { method: 'POST', rawBody: '{', headers: { 'content-type': 'application/json' } }))
+    );
 
     expect(response.status).toBe(400);
     expect(expectContract(errorBody, response.body).error).toBe('Invalid JSON request body.');
@@ -115,11 +118,27 @@ describe('POST /api/workshops abuse protection', () => {
     const app = await loadApp();
     const before = (await app.store.getCorporateInquiries()).length;
 
-    const response = await submitRaw(app, { rawBody: '{"companyName":' });
+    const response = await submitRaw(app, { rawBody: '{"companyName":', headers: { 'content-type': 'application/json' } });
 
     expect(response.status).toBe(400);
     expect(response.headers.get('cache-control')).toBe('no-store');
     expect(expectContract(errorBody, response.body).error).toBe('Invalid JSON request body.');
+    expect((await app.store.getCorporateInquiries()).length).toBe(before);
+  });
+
+  it.each<{ name: string; headers: Record<string, string> }>([
+    { name: 'no content type', headers: {} },
+    { name: 'text/plain', headers: { 'content-type': 'text/plain' } },
+    { name: 'a form encoding', headers: { 'content-type': 'application/x-www-form-urlencoded' } },
+  ])('answers 415 no-store to a body sent with $name, and stores nothing', async ({ headers }) => {
+    const app = await loadApp();
+    const before = (await app.store.getCorporateInquiries()).length;
+
+    const response = await submitRaw(app, { rawBody: JSON.stringify(inquiryBody()), headers });
+
+    expect(response.status).toBe(415);
+    expect(response.headers.get('cache-control')).toBe('no-store');
+    expect(expectContract(errorBody, response.body).error).toBe('Send the request as application/json.');
     expect((await app.store.getCorporateInquiries()).length).toBe(before);
   });
 
@@ -158,7 +177,7 @@ describe('POST /api/workshops abuse protection', () => {
     const storedBefore = await app.store.getCorporateInquiries();
 
     const trapped = await submitRaw(app, {
-      body: inquiryBody({ companyName: 'Trapped Bot Ltd', website: 'https://spam.example' }),
+      body: inquiryBody({ companyName: 'Trapped Bot Ltd', [HONEYPOT_FIELD]: 'https://spam.example' }),
     });
 
     expect(trapped.status).toBe(real.status);
@@ -175,7 +194,7 @@ describe('POST /api/workshops abuse protection', () => {
   it('does not spend the client allowance on a trapped submission', async () => {
     const app = await loadApp();
     for (let attempt = 0; attempt < 10; attempt += 1) {
-      expect((await submitRaw(app, { body: inquiryBody({ website: 'https://spam.example' }) })).status).toBe(201);
+      expect((await submitRaw(app, { body: inquiryBody({ [HONEYPOT_FIELD]: 'https://spam.example' }) })).status).toBe(201);
     }
 
     for (let attempt = 0; attempt < 5; attempt += 1) {
@@ -185,15 +204,15 @@ describe('POST /api/workshops abuse protection', () => {
   });
 
   it.each([
-    { name: 'a non-empty string', website: 'x' },
-    { name: 'a number', website: 7 },
-    { name: 'an object', website: { href: 'https://spam.example' } },
-    { name: 'a space', website: ' ' },
-  ])('treats $name in the honeypot field as a bot', async ({ website }) => {
+    { name: 'a non-empty string', value: 'x' },
+    { name: 'a number', value: 7 },
+    { name: 'an object', value: { href: 'https://spam.example' } },
+    { name: 'a space', value: ' ' },
+  ])('treats $name in the honeypot field as a bot', async ({ value }) => {
     const app = await loadApp();
     const before = (await app.store.getCorporateInquiries()).length;
 
-    const response = await submitRaw(app, { body: inquiryBody({ website }) });
+    const response = await submitRaw(app, { body: inquiryBody({ [HONEYPOT_FIELD]: value }) });
 
     expect(response.status).toBe(201);
     expect((await app.store.getCorporateInquiries()).length).toBe(before);
@@ -202,13 +221,13 @@ describe('POST /api/workshops abuse protection', () => {
   it('takes an empty or missing honeypot field as a person, and never stores it', async () => {
     const app = await loadApp();
 
-    const withEmpty = await submitRaw(app, { body: inquiryBody({ website: '' }) });
-    const withNull = await submitRaw(app, { body: inquiryBody({ website: null, email: 'null@probe.test' }) });
+    const withEmpty = await submitRaw(app, { body: inquiryBody({ [HONEYPOT_FIELD]: '' }) });
+    const withNull = await submitRaw(app, { body: inquiryBody({ [HONEYPOT_FIELD]: null, email: 'null@probe.test' }) });
 
     expect([withEmpty.status, withNull.status]).toEqual([201, 201]);
     const stored = (await app.store.getCorporateInquiries()).find((inquiry) => inquiry.id === (withEmpty.body as { id: string }).id);
     expect(stored).toBeDefined();
-    expect(stored).not.toHaveProperty('website');
+    expect(stored).not.toHaveProperty(HONEYPOT_FIELD);
   });
 
   it('validates the schema before it spends any of the client allowance', async () => {
@@ -234,6 +253,61 @@ describe('POST /api/workshops abuse protection', () => {
     expect(response.headers.get('cache-control')).toBe('no-store');
     expect(expectContract(errorBody, response.body).error).toMatch(/too many/i);
     expect((await app.store.getCorporateInquiries()).length).toBe(before);
+  });
+
+  it('logs one fixed line when the honeypot trips and nothing from the request', async () => {
+    const app = await loadApp();
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const log = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+    const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    await submitRaw(app, {
+      body: inquiryBody({ companyName: 'Leaky Trap Ltd', email: 'leaky@probe.test', [HONEYPOT_FIELD]: 'https://spam.example/secret' }),
+      headers: { 'x-forwarded-for': '203.0.113.77' },
+    });
+
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn).toHaveBeenCalledWith('Workshop inquiry honeypot tripped.');
+    expect(log).not.toHaveBeenCalled();
+    expect(error).not.toHaveBeenCalled();
+    const everything = JSON.stringify([...warn.mock.calls, ...log.mock.calls, ...error.mock.calls]);
+    for (const secret of ['Leaky Trap', 'leaky@probe.test', 'spam.example', '203.0.113.77', '+972501112233']) {
+      expect(everything).not.toContain(secret);
+    }
+  });
+
+  it('does not log anything for a real submission', async () => {
+    const app = await loadApp();
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+    await submitRaw(app, { body: inquiryBody() });
+
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  it('answers 503 no-store when the store fails and logs a fixed line without the submitted data', async () => {
+    const app = await loadApp();
+    vi.doMock('@/lib/db/store', () => ({
+      store: {
+        createCorporateInquiry: vi.fn().mockRejectedValue(new Error('insert failed for dana@probe.test +972501112233 Contract Probe Ltd')),
+      },
+    }));
+    const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    try {
+      const response = await submitRaw(app, { body: inquiryBody() });
+
+      expect(response.status).toBe(503);
+      expect(response.headers.get('cache-control')).toBe('no-store');
+      expect(expectContract(errorBody, response.body).error).toBe('Unable to submit your inquiry right now.');
+      expect(error).toHaveBeenCalledTimes(1);
+      expect(error).toHaveBeenCalledWith('Corporate inquiry creation failed.');
+      const logged = JSON.stringify(error.mock.calls);
+      for (const secret of ['dana@probe.test', '+972501112233', 'Contract Probe', 'insert failed']) {
+        expect(logged).not.toContain(secret);
+      }
+    } finally {
+      vi.doUnmock('@/lib/db/store');
+    }
   });
 
   it('keeps the allowance per client address', async () => {

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useCustomerContactSeed } from '@/lib/customer/customer-draft';
+import { HONEYPOT_FIELD } from '@/lib/security/honeypot';
 import {
   REFUND_REASONS_BY_KIND,
   checkEmail,
@@ -231,7 +232,7 @@ export function useRefundForm(language: string) {
           message: values.message.trim() || undefined,
           acceptedTruth: true,
           acceptedRules: true,
-          website: values.website,
+          [HONEYPOT_FIELD]: values[HONEYPOT_FIELD],
         }),
       });
       const body = (await response.json().catch(() => null)) as Record<string, unknown> | null;

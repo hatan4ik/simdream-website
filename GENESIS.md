@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:9365bfd89a7082e031bce8b955af95bc4de1537885b7bb5e448393f56e34dfa5 -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:11f08af74fbdd84c8411815b0790c046275defefa9fedd0ffd44e741df1bc5fc -->
 
 ## Verification contract
 
@@ -342,7 +342,7 @@ Add 3 curated one-click combos. Localize every package and add-on in all six lan
 | `/api/webhooks/stripe` | POST | Stripe signature | Payment state machine |
 | `/api/bookings` | GET / POST / PATCH | GET `?ref=` public narrow projection, else admin; POST 405 | Booking lookup and admin changes |
 | `/api/vouchers` | GET / POST / PATCH | GET admin; POST public verify; PATCH admin redeem | Vouchers |
-| `/api/workshops` | GET / POST / PATCH | POST public; else admin | Corporate leads. The public POST answers in this order: body read through `readJsonBody()` (`lib/http/read-json-body.ts`, 8 KiB cap on the bytes that arrive, 413 / 400), same-origin (`rejectCrossOrigin()`, 403), honeypot (`website`, a filled trap gets the same 201 `{ id, status }` and stores nothing), schema (400), then `workshop-inquiry-ip` 5 per hour per client address (429 with `Retry-After`; limiter unavailable 503, `no-store`) |
+| `/api/workshops` | GET / POST / PATCH | POST public; else admin | Corporate leads. The public POST answers in this order: body read through `readJsonBody()` (`lib/http/read-json-body.ts`, `application/json` required, 8 KiB cap on the bytes that arrive, 415 / 413 / 400), same-origin (`rejectCrossOrigin()`, 403), honeypot (`HONEYPOT_FIELD` in `lib/security/honeypot.ts`, a name with no autofill word, rendered by `components/ui/HoneypotField.tsx` at the end of the form; a filled trap gets the same 201 `{ id, status }`, stores nothing and logs one fixed data-free warning), schema (400), then `workshop-inquiry-ip` 5 per hour per client address (429 with `Retry-After`; limiter unavailable 503, `no-store`) |
 | `/api/reviews` | GET / POST | GET public (stored snapshot, 1 min shared freshness, never a Google call); POST admin sync | Google reviews |
 | `/api/reviews/refresh` | POST | `REVIEWS_REFRESH_TOKEN` Bearer only (503 unconfigured, 401 otherwise) | Reads the newest Google reviews for all six languages and replaces the stored snapshot; called twice a day by the snapshot workflow |
 | `/api/my-bookings`, `/api/my-bookings/[ref]/receipt` | GET | member | History and receipts |

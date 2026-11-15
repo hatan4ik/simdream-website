@@ -39,14 +39,18 @@ export async function GET(request: Request) {
  * and a person's typo never spends their allowance.
  */
 export async function POST(request: Request) {
-  const read = await readJsonBody(request, { maxBytes: WORKSHOP_MAX_BODY_BYTES });
+  const read = await readJsonBody(request, { maxBytes: WORKSHOP_MAX_BODY_BYTES, requireJsonContentType: true });
   if (!read.ok) return read.response;
 
   const crossOrigin = rejectCrossOrigin(request);
   if (crossOrigin) return crossOrigin;
 
   // A script that filled the hidden field gets the answer a real lead gets, so it learns nothing.
-  if (isHoneypotFilled(read.body)) return inquiryAccepted(crypto.randomUUID(), 'new');
+  // One fixed, data-free line makes a false positive (a browser that filled it) observable.
+  if (isHoneypotFilled(read.body)) {
+    console.warn('Workshop inquiry honeypot tripped.');
+    return inquiryAccepted(crypto.randomUUID(), 'new');
+  }
 
   const parsed = workshopInquirySchema.safeParse(read.body);
   if (!parsed.success) return NextResponse.json(validationError(parsed.error), { status: 400, headers: NO_STORE });
@@ -72,9 +76,10 @@ export async function POST(request: Request) {
   try {
     const inquiry = await store.createCorporateInquiry(parsed.data);
     return inquiryAccepted(inquiry.id, inquiry.status);
-  } catch (error) {
-    console.error('Corporate inquiry creation failed', error);
-    return NextResponse.json({ error: 'Unable to submit your inquiry right now.' }, { status: 503 });
+  } catch {
+    // Fixed text only: the store's error can carry the submitted email or phone.
+    console.error('Corporate inquiry creation failed.');
+    return NextResponse.json({ error: 'Unable to submit your inquiry right now.' }, { status: 503, headers: NO_STORE });
   }
 }
 

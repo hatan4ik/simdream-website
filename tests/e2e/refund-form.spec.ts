@@ -196,7 +196,7 @@ test.describe('refund request form', () => {
     await fillOrder(page, { reference: 'WIX-5', email: 'dana@example.com', sessionDate: israelDate(10) });
     await toReview(page);
     await declare(page);
-    await page.locator('input[name="refund_company_site"]').fill('https://spam.example', { force: true });
+    await page.locator('[data-honeypot] input').fill('https://spam.example', { force: true });
 
     await page.getByRole('button', { name: 'Send request' }).click();
 

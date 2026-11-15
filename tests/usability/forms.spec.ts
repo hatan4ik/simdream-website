@@ -11,6 +11,7 @@ import {
   storefrontVoucher,
 } from './support/booking';
 import { test } from './support/fixtures';
+import { HONEYPOT_FIELD } from '../../lib/security/honeypot';
 import { gotoSettled, isolateFromThirdParties } from './support/page';
 
 test.use({ reducedMotion: 'reduce', video: 'off' });
@@ -56,9 +57,9 @@ const FORMS: readonly FormUnderTest[] = [
   },
 ];
 
-/** The controls a person can reach. A honeypot sits inside an aria-hidden region on purpose, so it is not one of them. */
+/** The controls a person can reach. A honeypot (`[data-honeypot]`) is hidden from people and assistive technology on purpose, so it is not one of them. */
 function visibleControls(page: Page): Locator {
-  const reachable = ':not([aria-hidden="true"] *)';
+  const reachable = ':not([data-honeypot] *)';
   return page.locator(`input:not([type="hidden"])${reachable}:visible, select${reachable}:visible, textarea${reachable}:visible`);
 }
 
@@ -234,7 +235,7 @@ test.describe('validation and error feedback', () => {
 });
 
 test.describe('workshop inquiry honeypot', () => {
-  const TRAP = 'input[name="workshop_company_site"]';
+  const TRAP = '[data-honeypot] input';
 
   test('is unreachable and silent for a person, and the form posts it empty', async ({ page }) => {
     let posted: Record<string, unknown> | undefined;
@@ -250,7 +251,12 @@ test.describe('workshop inquiry honeypot', () => {
     const trap = page.locator(TRAP);
 
     // Out of the tab order and out of the accessibility tree, so neither keyboard nor screen reader meets it.
+    await expect(page.locator('[data-honeypot]')).toHaveCount(1);
+    await expect(trap).toHaveAttribute('name', HONEYPOT_FIELD);
     await expect(trap).toHaveAttribute('tabindex', '-1');
+    await expect(trap).toHaveAttribute('autocomplete', 'off');
+    for (const attribute of ['data-1p-ignore', 'data-lpignore', 'data-bwignore']) await expect(trap).toHaveAttribute(attribute, 'true');
+    await expect(trap).toHaveAttribute('data-form-type', 'other');
     expect(await trap.evaluate((field) => field.closest('[aria-hidden="true"]') !== null)).toBe(true);
     await expect(page.getByRole('textbox', { name: /leave this field empty/i })).toHaveCount(0);
     // Far off-screen on the start side (left in LTR, right in RTL), so a sighted visitor never sees it or any text with it.
@@ -259,6 +265,17 @@ test.describe('workshop inquiry honeypot', () => {
     if (!box) throw new Error('The honeypot has no layout box to measure.');
     expect(box.x + box.width <= 0 || box.x >= viewportWidth).toBe(true);
 
+    // At the end of the form, after the free-text notes and before the submit button, never beside a field of a recognisable type.
+    const order = await page.evaluate((selector) => {
+      const before = (a: Element, b: Element) => Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
+      const notes = document.querySelector('textarea');
+      const submit = document.querySelector('button[type="submit"]');
+      const field = document.querySelector(selector);
+      if (!notes || !submit || !field) return null;
+      return { afterNotes: before(notes, field), beforeSubmit: before(field, submit) };
+    }, TRAP);
+    expect(order).toEqual({ afterNotes: true, beforeSubmit: true });
+
     await page.getByPlaceholder('e.g. Acme Cyber Technologies').fill('QA Flight Ops');
     await page.getByPlaceholder('e.g. Sarah Levi, VP HR').fill('Noa Tester');
     await page.getByPlaceholder('sharon@company.com').fill('noa.tester@example.com');
@@ -266,6 +283,6 @@ test.describe('workshop inquiry honeypot', () => {
     await page.getByRole('button', { name: 'Submit Workshop Inquiry' }).click();
 
     await expect(page.getByText('Inquiry Received Successfully!')).toBeVisible();
-    expect(posted).toMatchObject({ companyName: 'QA Flight Ops', website: '' });
+    expect(posted).toMatchObject({ companyName: 'QA Flight Ops', [HONEYPOT_FIELD]: '' });
   });
 });
