@@ -47,6 +47,7 @@ async function openVoucherForm(page: Page, baseURL: string | undefined) {
   await page.getByPlaceholder('e.g. Danielle Cohen').fill('Resilience Sender');
   await page.getByPlaceholder('aviad@example.com').fill('recipient.resilience@example.test');
   await page.getByPlaceholder('danielle@example.com').fill('sender.resilience@example.test');
+  await page.getByPlaceholder('+972-54-123-4567').fill('054-555-0102');
 }
 
 const voucherPurchaseButton = (page: Page) => page.getByRole('button', { name: /Proceed to Secure Checkout/ });

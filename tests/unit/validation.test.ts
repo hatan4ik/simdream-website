@@ -85,9 +85,10 @@ const validVoucherArb = fc.record(
     recipientEmail: emailArb,
     senderName: text(120),
     senderEmail: emailArb,
+    senderPhone: digits(6, 32),
     personalMessage: fc.string({ maxLength: 1_500 }),
   },
-  { requiredKeys: ['kind', 'amountIls', 'recipientName', 'recipientEmail', 'senderName', 'senderEmail'] }
+  { requiredKeys: ['kind', 'amountIls', 'recipientName', 'recipientEmail', 'senderName', 'senderEmail', 'senderPhone'] }
 );
 
 describe('bookingCheckoutSchema', () => {
@@ -202,6 +203,8 @@ describe('voucherCheckoutSchema', () => {
     ['recipientEmail', 'recipient'],
     ['senderName', '  '],
     ['senderEmail', 'sender@@example.test'],
+    ['senderPhone', '12345'],
+    ['senderPhone', '1'.repeat(33)],
     ['personalMessage', 'm'.repeat(1_501)],
   ])('rejects %s = %j and names that field', (field, value) => {
     const fields = failedFields(checkoutRequestSchema, voucherCheckoutBody({ [field]: value }));
@@ -212,6 +215,8 @@ describe('voucherCheckoutSchema', () => {
     ['amountIls', 100],
     // The highest preset Gift Card balance; the schema maximum is reachable only with a certificate package.
     ['amountIls', 1000],
+    ['senderPhone', '123456'],
+    ['senderPhone', '1'.repeat(32)],
     ['personalMessage', 'm'.repeat(1_500)],
   ])('accepts the boundary value %s = %j', (field, value) => {
     expect(failedFields(voucherCheckoutSchema, voucherCheckoutBody({ [field]: value }))).toEqual([]);

@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useId, useMemo, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useState } from 'react';
 import { getBirthdayCheckoutCopy, getBirthdayErrorText, getBirthdayPackageEligibility } from '@/lib/discounts/birthday';
+import { useCustomerDraft } from '@/lib/customer/customer-draft';
 import { useLanguage } from '@/lib/i18n/language-context';
 import {
   birthdayDateBounds,
@@ -39,8 +40,22 @@ export function useBookingBirthday(args: UseBookingBirthdayArgs) {
     isWixSubscriptionRedemption,
   } = args;
   const { language } = useLanguage();
+  const { draft: customerDraft, updateCustomerDraft } = useCustomerDraft();
   const id = `${useId()}-pilot-birthday`;
-  const [value, setValue] = useState('');
+  const [value, setValueState] = useState('');
+
+  useEffect(() => {
+    if (!customerDraft.birthDate) return;
+    setValueState((current) => current || customerDraft.birthDate);
+  }, [customerDraft.birthDate]);
+
+  const setValue = useCallback(
+    (nextValue: string) => {
+      setValueState(nextValue);
+      updateCustomerDraft({ birthDate: /^\d{4}-\d{2}-\d{2}$/.test(nextValue) ? nextValue : '' });
+    },
+    [updateCustomerDraft]
+  );
   const [blurred, setBlurred] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [wixBirthdayPricingProviderEnabled, setWixBirthdayPricingProviderEnabled] = useState(false);

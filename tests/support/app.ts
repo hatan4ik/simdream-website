@@ -152,6 +152,7 @@ export function voucherCheckoutBody(overrides: Record<string, unknown> = {}) {
     recipientEmail: 'recipient@example.test',
     senderName: 'Gift Sender',
     senderEmail: 'sender@example.test',
+    senderPhone: '+972501234567',
     personalMessage: 'Enjoy the flight',
     ...overrides,
   };

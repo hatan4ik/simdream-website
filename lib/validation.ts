@@ -20,6 +20,7 @@ const time = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Use HH:mm.');
 // Shekel amounts with agora (0.01) precision; finer amounts would leave unspendable dust.
 const money = z.number().finite().nonnegative().max(100_000).multipleOf(0.01, 'Use at most two decimal places.');
 const safeText = (max: number) => z.string().trim().min(1).max(max);
+const phone = z.string().trim().min(6).max(32);
 const giftCardDesignIds = GIFT_CARD_DESIGNS.map((design) => design.id) as unknown as [
   GiftCardDesignId,
   ...GiftCardDesignId[],
@@ -46,7 +47,7 @@ export const bookingCheckoutSchema = z.object({
   startTime: time,
   pilotName: safeText(120),
   pilotEmail: z.string().trim().email().max(254),
-  pilotPhone: z.string().trim().min(6).max(32),
+  pilotPhone: phone,
   experienceLevel: z.enum(['beginner', 'enthusiast', 'student_pilot', 'atpl']),
   addons: z.array(z.string().trim().min(1).max(80)).max(16).default([]),
   requestedRouteId: z.string().trim().regex(/^route-[a-z0-9-]{1,80}$/).optional(),
@@ -68,6 +69,8 @@ export const voucherCheckoutSchema = z.object({
   ),
   senderName: safeText(120),
   senderEmail: z.string().trim().email().max(254),
+  senderPhone: phone,
+  senderBirthDate: isoDate.optional(),
   personalMessage: z.string().trim().max(1_500).default(''),
   packageId: z.string().trim().max(80).optional(),
   packageTitle: z.string().trim().max(160).optional(),

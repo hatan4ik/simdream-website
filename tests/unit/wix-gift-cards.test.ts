@@ -82,6 +82,7 @@ describe('Wix Gift Cards catalog & checkout integration', () => {
       recipientEmail: 'aviad@example.com',
       senderName: 'Danielle Cohen',
       senderEmail: 'danielle@example.com',
+      senderPhone: '+972-54-123-4567',
       personalMessage: 'Happy Birthday Captain!',
     });
 
@@ -112,6 +113,44 @@ describe('Wix Gift Cards catalog & checkout integration', () => {
         },
       ],
     });
+
+    expect(fetchWithAuthMock).toHaveBeenCalledWith(
+      'https://www.wixapis.com/ecom/v2/carts/cart-500-sunset',
+      expect.objectContaining({
+        method: 'PATCH',
+      })
+    );
+    const patchBody = JSON.parse(String((fetchWithAuthMock.mock.calls[0]?.[1] as { body: string }).body));
+    expect(patchBody).toEqual({
+      cart: {
+        id: 'cart-500-sunset',
+        customerInfo: {
+          firstName: 'Danielle',
+          lastName: 'Cohen',
+          email: 'danielle@example.com',
+          phone: '+972541234567',
+        },
+        deliveryInfo: {
+          address: {
+            country: 'IL',
+            subdivision: '',
+            postalCode: '',
+          },
+        },
+        paymentInfo: {
+          billingContact: {
+            firstName: 'Danielle',
+            lastName: 'Cohen',
+            phone: '+972541234567',
+          },
+          billingAddress: {
+            country: 'IL',
+            subdivision: '',
+            postalCode: '',
+          },
+        },
+      },
+    });
   });
 
   it('uses customAmount and falls back to senderEmail when recipientEmail is omitted (print mode)', async () => {
@@ -123,8 +162,9 @@ describe('Wix Gift Cards catalog & checkout integration', () => {
         checkoutUrl: 'https://headless-ciwstxzqhgf-hatan4ik-1408.wix-site-host.com/checkout?checkoutId=cart-custom-400',
       });
 
+    const fetchWithAuthMock = vi.fn().mockResolvedValue({ ok: true });
     vi.spyOn(clientModule, 'getWixClient').mockReturnValue({
-      fetchWithAuth: vi.fn().mockResolvedValue({ ok: true }),
+      fetchWithAuth: fetchWithAuthMock,
     } as unknown as ReturnType<typeof clientModule.getWixClient>);
 
     const result = await createWixGiftCardCheckout({
@@ -133,6 +173,7 @@ describe('Wix Gift Cards catalog & checkout integration', () => {
       recipientEmail: '',
       senderName: 'Danielle Cohen',
       senderEmail: 'danielle@example.com',
+      senderPhone: '054-123-4567',
       personalMessage: '',
     });
 
@@ -156,6 +197,10 @@ describe('Wix Gift Cards catalog & checkout integration', () => {
         },
       ],
     });
+
+    const patchBody = JSON.parse(String((fetchWithAuthMock.mock.calls[0]?.[1] as { body: string }).body));
+    expect(patchBody.cart.customerInfo.phone).toBe('+972541234567');
+    expect(patchBody.cart.paymentInfo.billingContact.phone).toBe('+972541234567');
   });
 
   it('routes POST /api/checkout voucher requests to Wix Gift Cards when Stripe is not configured', async () => {
@@ -181,6 +226,7 @@ describe('Wix Gift Cards catalog & checkout integration', () => {
           recipientEmail: 'aviad@example.com',
           senderName: 'Danielle Cohen',
           senderEmail: 'danielle@example.com',
+          senderPhone: '+972541234567',
           personalMessage: 'Clear skies!',
         }),
       })
@@ -192,6 +238,115 @@ describe('Wix Gift Cards catalog & checkout integration', () => {
       cartId: 'cart-route-300',
       variantId: WIX_GIFT_CARD_VARIANT_IDS[300],
       amountIls: 300,
+    });
+  });
+
+  it('rejects an invalid senderPhone with a 400 CheckoutError before calling Wix', async () => {
+    const wixPostSpy = vi.spyOn(clientModule, 'wixPost');
+
+    await expect(
+      createWixGiftCardCheckout({
+        amountIls: 300,
+        giftCardDesignId: 'sunset',
+        recipientName: 'Aviad Stern',
+        recipientEmail: 'aviad@example.com',
+        senderName: 'Danielle Cohen',
+        senderEmail: 'danielle@example.com',
+        senderPhone: '12345',
+        personalMessage: '',
+      })
+    ).rejects.toMatchObject({
+      status: 400,
+    });
+
+    expect(wixPostSpy).not.toHaveBeenCalled();
+  });
+
+  it('warns without failing checkout when the cart prefill PATCH returns non-ok', async () => {
+    vi.spyOn(clientModule, 'wixPost')
+      .mockResolvedValueOnce({ giftCardProducts: [] })
+      .mockResolvedValueOnce({ cart: { id: 'cart-warn-500' } })
+      .mockResolvedValueOnce({
+        checkoutUrl: 'https://headless-ciwstxzqhgf-hatan4ik-1408.wix-site-host.com/checkout?checkoutId=cart-warn-500',
+      });
+    vi.spyOn(clientModule, 'getWixClient').mockReturnValue({
+      fetchWithAuth: vi.fn().mockResolvedValue({
+        ok: false,
+        status: 500,
+        text: async () => 'upstream error',
+      }),
+    } as unknown as ReturnType<typeof clientModule.getWixClient>);
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    const result = await createWixGiftCardCheckout({
+      amountIls: 500,
+      giftCardDesignId: 'sunset',
+      recipientName: 'Aviad Stern',
+      recipientEmail: 'aviad@example.com',
+      senderName: 'Danielle Cohen',
+      senderEmail: 'danielle@example.com',
+      senderPhone: '+972541234567',
+      personalMessage: '',
+    });
+
+    expect(result.cartId).toBe('cart-warn-500');
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('[wix:gift-cards] Non-fatal customerInfo prefill error'),
+      500,
+      'upstream error'
+    );
+  });
+
+  it('forwards optional senderBirthDate to Wix _user_fields and falls back without it on rejection', async () => {
+    vi.spyOn(clientModule, 'wixPost')
+      .mockResolvedValueOnce({ giftCardProducts: [] })
+      .mockResolvedValueOnce({ cart: { id: 'cart-bday-500' } })
+      .mockResolvedValueOnce({
+        checkoutUrl: 'https://headless-ciwstxzqhgf-hatan4ik-1408.wix-site-host.com/checkout?checkoutId=cart-bday-500',
+      });
+    const fetchWithAuthMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 400,
+        text: async () => 'unknown extended field',
+      })
+      .mockResolvedValueOnce({ ok: true });
+    vi.spyOn(clientModule, 'getWixClient').mockReturnValue({
+      fetchWithAuth: fetchWithAuthMock,
+    } as unknown as ReturnType<typeof clientModule.getWixClient>);
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    await createWixGiftCardCheckout({
+      amountIls: 500,
+      giftCardDesignId: 'sunset',
+      recipientName: 'Aviad Stern',
+      recipientEmail: 'aviad@example.com',
+      senderName: 'Danielle Cohen',
+      senderEmail: 'danielle@example.com',
+      senderPhone: '054-765-4321',
+      senderBirthDate: '1990-05-15',
+      personalMessage: '',
+    });
+
+    expect(fetchWithAuthMock).toHaveBeenCalledTimes(2);
+    const firstPatch = JSON.parse(String((fetchWithAuthMock.mock.calls[0]?.[1] as { body: string }).body));
+    expect(firstPatch.cart.extendedFields).toEqual({
+      namespaces: {
+        _user_fields: {
+          form_field: '1990-05-15',
+        },
+      },
+    });
+    expect(firstPatch.cart.paymentInfo.billingAddress.country).toBe('IL');
+
+    const fallbackPatch = JSON.parse(String((fetchWithAuthMock.mock.calls[1]?.[1] as { body: string }).body));
+    expect(fallbackPatch.cart.extendedFields).toBeUndefined();
+    expect(fallbackPatch.cart.customerInfo.email).toBe('danielle@example.com');
+    expect(fallbackPatch.cart.paymentInfo.billingAddress).toEqual({
+      country: 'IL',
+      subdivision: '',
+      postalCode: '',
     });
   });
 });

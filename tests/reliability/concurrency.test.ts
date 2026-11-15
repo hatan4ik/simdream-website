@@ -148,6 +148,7 @@ describe('concurrent webhook deliveries', () => {
       recipientEmail: 'concurrent-recipient@example.test',
       senderName: 'Concurrent Sender',
       senderEmail: 'concurrent-sender@example.test',
+      senderPhone: '+972501234567',
       personalMessage: '',
     });
     expect(started.status).toBe(201);

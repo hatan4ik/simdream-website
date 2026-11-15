@@ -563,6 +563,8 @@ export const germanTranslations = {
     senderNamePlaceholder: 'z. B. Danielle Cohen',
     senderEmailLabel: 'Ihre E-Mail (für Bestätigung & PDF-Beleg) *',
     senderEmailPlaceholder: 'danielle@example.com',
+    senderPhoneLabel: 'Ihre Telefonnummer *',
+    senderPhonePlaceholder: '+972-54-123-4567',
     greetingLabel: 'Persönliche Grußbotschaft (max. 200 Zeichen)',
     defaultMessage:
       'Alles Gute zum Geburtstag, Aviad! Viel Freude beim Steuern der Boeing 737 MAX in Tel Aviv!',

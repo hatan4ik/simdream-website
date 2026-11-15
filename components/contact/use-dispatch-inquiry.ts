@@ -1,6 +1,7 @@
 'use client';
 
 import { type FormEvent, useState } from 'react';
+import { useCustomerContactSeed } from '@/lib/customer/customer-draft';
 
 export interface DispatchInquiryFormData {
   name: string;
@@ -25,9 +26,21 @@ export function useDispatchInquiryForm(deliveryError: string) {
   const [isSuccess, setIsSuccess] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
+  const { updateCustomerDraft } = useCustomerContactSeed((contact) => {
+    setFormData((current) => ({
+      ...current,
+      name: current.name || contact.fullName,
+      email: current.email || contact.email,
+      phone: current.phone || contact.phone,
+    }));
+  });
+
   const updateFormData = <Field extends keyof DispatchInquiryFormData>(field: Field, value: DispatchInquiryFormData[Field]) => {
     setFormError(null);
     setFormData((current) => ({ ...current, [field]: value }));
+    if (field === 'name') updateCustomerDraft({ fullName: String(value) });
+    else if (field === 'email') updateCustomerDraft({ email: String(value) });
+    else if (field === 'phone') updateCustomerDraft({ phone: String(value) });
   };
 
   const handleSubmit = async (event: FormEvent) => {

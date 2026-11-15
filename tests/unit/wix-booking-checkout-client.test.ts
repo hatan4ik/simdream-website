@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   applyWixCoupon,
   applyWixGiftCard,
@@ -386,6 +386,7 @@ describe('Wix native booking checkout client', () => {
       response({ booking: { id: 'booking-456' } }),
       response({ cart: { id: 'cart-456' } }),
       response({ cart: { id: 'cart-456' } }),
+      response({ checkout: { id: 'cart-456' } }),
       calculation('0', '940'),
     ];
     const prepareClient: WixBrowserClient = {
@@ -420,6 +421,72 @@ describe('Wix native booking checkout client', () => {
             catalogReference: { appId: WIX_STORES_APP_ID, catalogItemId: WIX_ADDON_PRODUCT_IDS['addon-cold-dark'] },
           },
         ],
+      },
+    });
+    expect(prepareCalls[3]).toEqual({
+      url: 'https://www.wixapis.com/ecom/v2/carts/cart-456',
+      body: {
+        cart: {
+          id: 'cart-456',
+          customerInfo: {
+            email: 'pilot@example.test',
+            firstName: 'Avi',
+            lastName: 'Pilot',
+            phone: '+972547773074',
+          },
+          deliveryInfo: {
+            address: {
+              country: 'IL',
+              subdivision: '',
+              postalCode: '',
+            },
+          },
+          paymentInfo: {
+            billingContact: {
+              firstName: 'Avi',
+              lastName: 'Pilot',
+              phone: '+972547773074',
+            },
+            billingAddress: {
+              country: 'IL',
+              subdivision: '',
+              postalCode: '',
+            },
+          },
+        },
+      },
+    });
+    expect(prepareCalls[4]).toEqual({
+      url: 'https://www.wixapis.com/ecom/v1/checkouts/cart-456',
+      body: {
+        checkout: {
+          billingInfo: {
+            address: {
+              country: 'IL',
+              subdivision: '',
+              postalCode: '',
+            },
+            contactDetails: {
+              firstName: 'Avi',
+              lastName: 'Pilot',
+              phone: '+972547773074',
+            },
+          },
+          shippingInfo: {
+            shippingDestination: {
+              address: {
+                country: 'IL',
+                subdivision: '',
+                postalCode: '',
+              },
+              contactDetails: {
+                firstName: 'Avi',
+                lastName: 'Pilot',
+                phone: '+972547773074',
+              },
+            },
+          },
+        },
       },
     });
   });
@@ -477,6 +544,7 @@ describe('Wix native booking checkout client', () => {
         if (url.endsWith('/bookings')) return response({ booking: { id: 'booking-1' } });
         if (url.endsWith('/carts')) return response({ cart: { id: 'cart-1' } });
         if (url.endsWith('/carts/cart-1')) return response({ cart: { id: 'cart-1' } });
+        if (url.endsWith('/checkouts/cart-1')) return response({ checkout: { id: 'cart-1' } });
         if (url.endsWith('/carts/cart-1/calculate')) {
           return response({
             summary: {
@@ -503,6 +571,47 @@ describe('Wix native booking checkout client', () => {
     expect(draft).toEqual({ cartId: 'cart-1', price: { discountIls: 0, totalIls: 890 } });
   });
 
+  it('continues booking checkout when shipping contactDetails prefill fails', async () => {
+    const baseInput = {
+      ...CANDIDATE,
+      pilotName: 'Avi Cohen',
+      pilotEmail: 'avi@example.com',
+      pilotPhone: '0501234567',
+    };
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const client: WixBrowserClient = {
+      fetchWithAuth: async (input) => {
+        const url = String(input);
+        if (url.endsWith('/time-slots/get')) return response({ timeSlot: { ...CANDIDATE.slotAvailability } });
+        if (url.endsWith('/bookings')) return response({ booking: { id: 'booking-1' } });
+        if (url.endsWith('/carts')) return response({ cart: { id: 'cart-1' } });
+        if (url.endsWith('/carts/cart-1')) return response({ cart: { id: 'cart-1' } });
+        if (url.endsWith('/checkouts/cart-1')) return response({ message: 'unavailable' }, 500);
+        if (url.endsWith('/carts/cart-1/calculate')) {
+          return response({
+            summary: {
+              violations: [{ scope: 'DELIVERY', code: 'MISSING_DELIVERY_METHOD' }],
+              priceSummary: { discount: { amount: '0' }, total: { amount: '890.00' } },
+            },
+          });
+        }
+        throw new Error(`Unexpected URL ${url}`);
+      },
+    };
+
+    const draft = await prepareWixBookingCheckout(client, {
+      ...baseInput,
+      addonIds: ['addon-cold-dark'],
+    });
+    expect(draft).toEqual({ cartId: 'cart-1', price: { discountIls: 0, totalIls: 890 } });
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('[wix:checkout-prefill] Non-fatal shipping contactDetails prefill error'),
+      500,
+      expect.any(String)
+    );
+    warnSpy.mockRestore();
+  });
+
   it('rejects non-delivery cart calculation violations', async () => {
     const baseInput = {
       ...CANDIDATE,
@@ -517,6 +626,7 @@ describe('Wix native booking checkout client', () => {
         if (url.endsWith('/bookings')) return response({ booking: { id: 'booking-1' } });
         if (url.endsWith('/carts')) return response({ cart: { id: 'cart-1' } });
         if (url.endsWith('/carts/cart-1')) return response({ cart: { id: 'cart-1' } });
+        if (url.endsWith('/checkouts/cart-1')) return response({ checkout: { id: 'cart-1' } });
         if (url.endsWith('/carts/cart-1/calculate')) {
           return response({
             summary: {
@@ -532,5 +642,59 @@ describe('Wix native booking checkout client', () => {
     await expect(prepareWixBookingCheckout(client, baseInput)).rejects.toThrow(
       'Wix could not validate this checkout (BOOKING/SLOT_NOT_AVAILABLE). Please choose another option or time.'
     );
+  });
+
+  it('forwards valid pilotBirthDate into Wix _user_fields.form_field while omitting invalid dates', async () => {
+    const patchBodies: Array<Record<string, unknown>> = [];
+    const clientFor = (pilotBirthDate: string): WixBrowserClient => ({
+      fetchWithAuth: async (input, init) => {
+        const url = String(input);
+        if (url.endsWith('/time-slots/get')) return response({ timeSlot: { ...CANDIDATE.slotAvailability } });
+        if (url.endsWith('/bookings')) return response({ booking: { id: 'booking-bday' } });
+        if (url.endsWith('/carts')) return response({ cart: { id: 'cart-bday' } });
+        if (url.endsWith('/carts/cart-bday')) {
+          patchBodies.push(JSON.parse(String(init?.body)));
+          return response({ cart: { id: 'cart-bday' } });
+        }
+        if (url.endsWith('/carts/cart-bday/calculate')) {
+          return response({ summary: { violations: [], priceSummary: { discount: { amount: '0' }, total: { amount: '890.00' } } } });
+        }
+        if (url.endsWith('/carts/cart-bday/get-checkout-url')) {
+          return response({ checkoutUrl: 'https://headless-ciwstxzqhgf-hatan4ik-1408.wix-site-host.com/checkout' });
+        }
+        throw new Error(`Unexpected URL ${url}`);
+      },
+    });
+
+    await prepareWixBookingCheckout(clientFor('1990-05-15'), {
+      ...CANDIDATE,
+      pilotName: 'Avi Cohen',
+      pilotEmail: 'avi@example.com',
+      pilotPhone: '054-765-4321',
+      pilotBirthDate: '1990-05-15',
+    });
+
+    await prepareWixBookingCheckout(clientFor('2025-02-29'), {
+      ...CANDIDATE,
+      pilotName: 'Avi Cohen',
+      pilotEmail: 'avi@example.com',
+      pilotPhone: '054-765-4321',
+      pilotBirthDate: '2025-02-29',
+    });
+
+    expect(patchBodies[0]).toMatchObject({
+      cart: {
+        deliveryInfo: { address: { country: 'IL', subdivision: '', postalCode: '' } },
+        paymentInfo: { billingAddress: { country: 'IL', subdivision: '', postalCode: '' } },
+        extendedFields: {
+          namespaces: {
+            _user_fields: {
+              form_field: '1990-05-15',
+            },
+          },
+        },
+      },
+    });
+    expect((patchBodies[1] as { cart: Record<string, unknown> }).cart.extendedFields).toBeUndefined();
   });
 });
