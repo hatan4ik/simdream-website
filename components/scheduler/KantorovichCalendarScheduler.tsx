@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Calendar as CalendarIcon,
   Clock,
@@ -15,27 +15,20 @@ import {
 import { Button } from '@/components/ui/Button';
 import { BookingMonthPager } from '@/components/scheduler/BookingMonthPager';
 import { BookingWeekPager } from '@/components/scheduler/BookingWeekPager';
+import { useSchedulerViewModel } from '@/components/scheduler/hooks';
 import {
   FlightSlot,
   SimulatorPackage,
   PublicCapacityReport,
   SlotBlockPeriod,
 } from '@/types';
-import { addDaysToYmd, formatCurrency } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 import { useModalFocus } from '@/lib/ui/use-modal-focus';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { type Language, type LocalizedRecord } from '@/lib/i18n/translations';
-import {
-  calendarMonthCells,
-  calendarWeekDays,
-  calendarWeekdayNames,
-  formatCalendarDate,
-  formatCalendarDayNumber,
-  formatCalendarMonth,
-  monthStartForYmd,
-} from '@/lib/i18n/calendar-presentation';
-import { isBeyondBookingHorizon, maxBookableDate } from '@/lib/scheduler/booking-horizon';
-import { addMinutesToTime, packageFromPriceIls, packagePriceForSlot } from '@/lib/scheduler/mission-calculator';
+import { formatCalendarDate, formatCalendarDayNumber } from '@/lib/i18n/calendar-presentation';
+import { SLOT_PERIODS } from '@/lib/scheduler/availability-view-model';
+import { addMinutesToTime, packagePriceForSlot } from '@/lib/scheduler/mission-calculator';
 import { getPackageFormulaBadge } from '@/lib/scheduler/package-presentation';
 import { BOOKING_BLUEPRINT_COPY } from '@/lib/i18n/booking-blueprint-copy';
 
@@ -291,92 +284,48 @@ export function KantorovichCalendarScheduler({
   const copy = CLEAN_COPY[language] || CLEAN_COPY.en;
   const bpCopy = BOOKING_BLUEPRINT_COPY[language] || BOOKING_BLUEPRINT_COPY.en;
 
-  const [calendarMode, setCalendarMode] = useState<'week' | 'month'>('week');
   const [blueprintModalPackage, setBlueprintModalPackage] = useState<SimulatorPackage | null>(null);
   const blueprintPanelRef = useModalFocus<HTMLDivElement>(blueprintModalPackage !== null, () =>
     setBlueprintModalPackage(null)
   );
-
-  // Keep only a manually browsed month in state. The normal month derives from the
-  // selected day so a post-hydration date update cannot leave a stale placeholder month.
-  const [viewMonthOverride, setViewMonthOverride] = useState<Date | null>(null);
-  const viewMonthDate = viewMonthOverride ?? monthStartForYmd(selectedDate);
   const slotsSectionRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    setViewMonthOverride(null);
-  }, [selectedDate]);
+  // Availability, calendar and zero-slot recovery are shared with the storefront (AGENTS.md §4.4).
+  // One option per duration; every duration stays visible (rule 1), so the 45m promo on a Saturday
+  // shows its "0 slots" badge instead of disappearing. Recovery offers only durations of this scope
+  // with open departures that day (rule 3).
+  const {
+    calendarMode,
+    setCalendarMode,
+    viewMonthDate,
+    browseMonth,
+    weekDays,
+    maxDate,
+    weekdayNames,
+    monthGridDays,
+    selectDate: handleSelectDate,
+    openSlotCount,
+    slotsByPeriod,
+    packageOptions: durationOptions,
+    zeroSlotAlternatives: alternativeDurations,
+    nextDay,
+  } = useSchedulerViewModel({
+    selectedDate,
+    calendarTodayYmd,
+    language,
+    onSelectDate,
+    slots,
+    packages,
+    selectedPackage,
+    durationAvailability,
+    layout: 'per-duration',
+  });
 
-  // Deduplicate packages by duration
-  const durationOptions = useMemo(() => {
-    const nonCorp = packages.filter((p) => p.category !== 'corporate');
-    const byDuration = new Map<number, SimulatorPackage>();
-    for (const pkg of nonCorp) {
-      // Every duration stays visible (AGENTS.md §4 rule 1); the 45m promo on a Saturday shows
-      // its "0 slots" badge from durationAvailability instead of disappearing.
-      const existing = byDuration.get(pkg.durationMinutes);
-      if (!existing || pkg.id === selectedPackage.id) {
-        byDuration.set(pkg.durationMinutes, pkg);
-      }
-    }
-    return Array.from(byDuration.values()).sort(
-      (a, b) => a.durationMinutes - b.durationMinutes
-    );
-  }, [packages, selectedPackage.id]);
-
-  const weekDays = useMemo(() => calendarWeekDays(selectedDate, language), [language, selectedDate]);
-  const maxDate = maxBookableDate(calendarTodayYmd);
-  const weekdayNames = useMemo(() => calendarWeekdayNames(language), [language]);
-  const monthGridDays = useMemo(
-    () => calendarMonthCells(viewMonthDate, language, calendarTodayYmd),
-    [calendarTodayYmd, language, viewMonthDate]
+  // Open slots only (booked and internally locked slots are never listed), in Morning, Afternoon
+  // and Evening groups; an empty group is not shown.
+  const cleanPeriodGroups = SLOT_PERIODS.map((id) => ({ id, label: copy[id], items: slotsByPeriod[id] })).filter(
+    (g) => g.items.length > 0
   );
-
-  // Group open slots into Morning, Afternoon, Evening. Booked and internal anti-gap locked
-  // slots are not listed at all, so the visitor only sees departures they can pick.
-  const cleanPeriodGroups = useMemo(() => {
-    const visible = slots.filter((s) => s.available);
-
-    const morning: FlightSlot[] = [];
-    const afternoon: FlightSlot[] = [];
-    const evening: FlightSlot[] = [];
-
-    for (const slot of visible) {
-      const hour = parseInt(slot.startTime.split(':')[0], 10);
-      if (hour < 15) {
-        morning.push(slot);
-      } else if (hour < 18) {
-        afternoon.push(slot);
-      } else {
-        evening.push(slot);
-      }
-    }
-
-    return [
-      { id: 'morning', label: copy.morning, items: morning },
-      { id: 'afternoon', label: copy.afternoon, items: afternoon },
-      { id: 'evening', label: copy.evening, items: evening },
-    ].filter((g) => g.items.length > 0);
-  }, [slots, copy.morning, copy.afternoon, copy.evening]);
-
-  const openSlotCount = useMemo(
-    () => slots.filter((s) => s.available).length,
-    [slots]
-  );
-
-  // Zero-slot recovery offers only durations that exist in this booking's scope and
-  // have open departures on the selected day (AGENTS.md §4 rule 3), so a tap never
-  // lands on a missing package or another sold-out duration.
-  const alternativeDurations = durationOptions.filter(
-    (pkg) =>
-      pkg.durationMinutes !== selectedPackage.durationMinutes &&
-      (durationAvailability?.[pkg.durationMinutes]?.availableCount ?? 0) > 0
-  );
-
-  const handleSelectDate = (date: string) => {
-    setViewMonthOverride(null);
-    onSelectDate(date);
-  };
 
   return (
     <div className="space-y-6 select-none" style={{ touchAction: 'manipulation' }}>
@@ -475,7 +424,7 @@ export function KantorovichCalendarScheduler({
               isRTL={isRTL}
               previousLabel={copy.previousMonth}
               nextLabel={copy.nextMonth}
-              onChangeMonth={setViewMonthOverride}
+              onChangeMonth={browseMonth}
               onToday={() => handleSelectDate(calendarTodayYmd)}
             />
 
@@ -556,11 +505,7 @@ export function KantorovichCalendarScheduler({
 
         {/* Responsive Touch-Friendly Duration Grid */}
         <div className="grid grid-cols-2 sm:grid-flow-col sm:auto-cols-fr gap-2 sm:gap-2.5">
-          {durationOptions.map((pkg) => {
-            const isSelected = pkg.durationMinutes === selectedPackage.durationMinutes;
-            const durInfo = durationAvailability?.[pkg.durationMinutes];
-            const isZeroAvailable = durInfo && durInfo.availableCount === 0;
-            const effectivePrice = packageFromPriceIls(pkg, durInfo?.minPriceIls);
+          {durationOptions.map(({ pkg, isSelected, isSoldOut: isZeroAvailable, fromPriceIls: effectivePrice }) => {
             return (
               <button
                 key={pkg.id}
@@ -664,8 +609,8 @@ export function KantorovichCalendarScheduler({
                 variant="outline"
                 size="sm"
                 className="border-sky-500/50 text-sky-300 hover:bg-sky-500/10"
-                disabled={isBeyondBookingHorizon(addDaysToYmd(selectedDate, 1), calendarTodayYmd)}
-                onClick={() => handleSelectDate(addDaysToYmd(selectedDate, 1))}
+                disabled={nextDay.beyondHorizon}
+                onClick={() => handleSelectDate(nextDay.date)}
               >
                 {copy.checkNextDay}
               </Button>
@@ -680,14 +625,14 @@ export function KantorovichCalendarScheduler({
                 variant="outline"
                 size="sm"
                 className="border-sky-500/50 text-sky-300 hover:bg-sky-500/10"
-                disabled={isBeyondBookingHorizon(addDaysToYmd(selectedDate, 1), calendarTodayYmd)}
+                disabled={nextDay.beyondHorizon}
                 onClick={() => {
-                  handleSelectDate(addDaysToYmd(selectedDate, 1));
+                  handleSelectDate(nextDay.date);
                 }}
               >
                 {copy.checkNextDay}
               </Button>
-              {alternativeDurations.map((pkg) => (
+              {alternativeDurations.map(({ pkg }) => (
                 <Button
                   key={pkg.id}
                   type="button"

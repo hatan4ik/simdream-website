@@ -28,11 +28,11 @@ const DATA_FILES: Readonly<Record<string, string>> = {
 
 /** Current offenders and the line count they may not exceed. Lower an entry when the file shrinks; delete it at 400 or less. */
 const SIZE_ALLOWLIST: Readonly<Record<string, number>> = {
-  'components/scheduler/AmazonFlightStorefront.tsx': 1924,
+  'components/scheduler/AmazonFlightStorefront.tsx': 1618,
   'app/(public)/contact/page.tsx': 1126,
   'components/pro/ProSessionsView.tsx': 1100,
   'app/(public)/vouchers/page.tsx': 1078,
-  'components/scheduler/KantorovichCalendarScheduler.tsx': 941,
+  'components/scheduler/KantorovichCalendarScheduler.tsx': 860,
   // Ground School inquiries (#114) landed on main after this ratchet was written (+78 lines of class methods).
   // They move out with the store split planned in docs/MODULARITY.md; then lower this number.
   'lib/db/store.ts': 999,

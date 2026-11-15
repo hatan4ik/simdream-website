@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:52f7811e487b3035739d5852d7bf26a8dfd5543e1b5c500e20c4c61366aa2d9c -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:bcb143ff58f075f0a300fe8a42b204a995e10c8995561092462f4569596ecb6e -->
 
 ## Verification contract
 
@@ -278,6 +278,7 @@ Add 3 curated one-click combos. Localize every package and add-on in all six lan
 - Two interfaces over **identical** availability and recovery logic:
   - `AmazonFlightStorefront` (one page, sticky buy box);
   - `KantorovichCalendarScheduler` (guided wizard).
+- Both call one hook, `useSchedulerViewModel` (`components/scheduler/hooks/`), over the pure view-model in `lib/scheduler/availability-view-model.ts`, and keep only their own markup and copy: `countOpenSlots()` and `groupOpenSlotsByPeriod()` (open slots only, morning before 15:00, afternoon before 18:00, then evening), `listPackageOptions()` (every bookable package or duration of the day with its 0-slot state, open-slot count and from-price; the wizard lists one option per duration and selects by duration, the storefront one card per package and selects by id), `zeroSlotAlternatives()` (the other options with open departures that day) and `nextDayRecovery()` (the next day, disabled past the booking horizon). The hook also holds the week/month switch and the browsed month.
 - `BookingWeekPager` and `BookingMonthPager` are their shared, six-language navigation boundaries. The week pager shifts the selected Israel date by exactly seven days and the month pager by one month; both prevent travel before today and past the one-year booking horizon (the next control is disabled, days past the horizon are disabled, and a short note explains the limit), and both offer a **Today** button that returns to today's date once the view has moved away from it. Only directional chevrons flip for RTL (not text).
 - The calendar defaults to a **localized week view**, with the month grid retained as an explicit toggle. Weeks start on Sunday for he, ar and en, and on Monday for ru and fr. RTL arrows are flipped.
 - `/book` renders a localized initialization state until the browser supplies the live **Israel** date; it never places a fictional date in server HTML. Do not read the device clock in calendar render paths: a visitor west of UTC must never get a date-shift or React hydration mismatch.
@@ -622,12 +623,12 @@ app/
 components/
   brand/BrandLogo.tsx            # BrandLogo (airplane + wordmark), BrandMark (airplane)
   layout/  Navbar Footer LanguageSelector UiThemeSwitcher CockpitToneSwitcher LiveMetarBar SkipLink navbar/ (modular navigation and locale href)
-  scheduler/ AmazonFlightStorefront KantorovichCalendarScheduler
+  scheduler/ AmazonFlightStorefront KantorovichCalendarScheduler hooks/use-scheduler-view-model
   reviews/ReviewMeta               # header dropdown only; no page carousel
   about/AboutExperienceView  pro/ProSessionsView  fear-of-flying/FearOfFlyingView  vouchers/ VoucherSenderFields GiftCardDesignPicker  blog/BlogCard BlogContentRenderer BlogConversionCta BlogIndexView BlogPostLanguageSync BlogPostPageView  legal/ PrivacyPolicyContentView RulesContentView
   seo/ StructuredDataJsonLd FaqPageJsonLd  ui/ Button Card Badge HoneypotField
 lib/
-  scheduler/ kantorovich-engine mission-calculator package-presentation tiled-interval-optimizer israel-clock booking-horizon
+  scheduler/ kantorovich-engine mission-calculator package-presentation tiled-interval-optimizer israel-clock booking-horizon availability-view-model
   booking/checkout-service checkout-error checkout-ports checkout-composition checkout-runtime checkout-throttle checkout-hold-policy
   wix/ client config catalog bookings availability-adapter booking-checkout booking-grid-policy booking-grid-enforcement booking-cart-create booking-checkout-client checkout-prefill subscription-redemption subscription-booking checkout-shadow member-client backend-blueprint gift-cards plans readiness blog birthday-pricing-config birthday-pricing-server birthday-claim-request birthday-claim-identity birthday-claim-throttle birthday-claim-fallback-limiter
   catalog/gift-voucher-packages  data/experience-routes subscription-passes subscription-page-copy blog-posts blog-categories blog-authors blog-seo blog-short-slugs blog-legacy-slugs  db/ store checkout-hold-store schema.sql seed-data supabase-admin migrations/
