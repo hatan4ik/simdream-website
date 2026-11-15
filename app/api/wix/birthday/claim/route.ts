@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
+// First among the birthday modules, so this route shares the other birthday routes' server chunk
+// instead of adding a second copy to the Wix worker (tests/unit/worker-bundle-rules.test.ts).
+import { getWixBirthdayPricingProviderConfig, issueWixBirthdayPricingClaim } from '@/lib/wix/birthday-pricing-server';
 import { readJsonBody } from '@/lib/http/read-json-body';
 import { parseWixBirthdayClaimRequest } from '@/lib/wix/birthday-claim-request';
 import { throttleBirthdayClaim } from '@/lib/wix/birthday-claim-throttle';
-import { getWixBirthdayPricingProviderConfig, issueWixBirthdayPricingClaim } from '@/lib/wix/birthday-pricing-server';
 
 // Configuration is server-only and can change independently of a code build.
 export const dynamic = 'force-dynamic';

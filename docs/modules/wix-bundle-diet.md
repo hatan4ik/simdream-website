@@ -170,6 +170,69 @@ and in the quality-gates or bundle paragraph:
 
 **docs/MODULARITY.md** rule 6 ("Bundle") is updated in this branch to say the same.
 
+## 7. Branch `fix/security-hardening-20261115` (2026-11-15)
+
+The security branch pushed the worker over the budget. UTF-8 `worker.js` after `npm run wix:build`:
+
+| Build | Worker | Against the 14,680,064 B budget |
+| --- | --- | --- |
+| Branch base `c145c11` | 14,659,402 B | 20,662 B under |
+| `main` `1285490` | 14,659,552 B | 20,512 B under |
+| Branch at `2dc4e44` | 14,707,703 B | 27,639 B over |
+| Branch head `01e7ca5` | 14,716,912 to 14,717,062 B (two builds) | 36,848 to 36,998 B over (+57,360 to +57,510 B on `main`) |
+| After the fix below | **14,524,736 B = 13.85 MiB** (two builds, with and without the route comment) | **155,328 B under; 134,816 B below `main`** |
+
+Rebuilding the same commit varies by about 150 B. In the server handler (`handler.mjs`, esbuild input bytes) the head
+was 40,262 B above `main`; the worker grows by about 1.4 times the handler delta because wrangler re-prints the minified
+code.
+
+**What the branch added** (per module: bytes in the worker input and number of chunks holding a copy, `main` -> head,
+from the source maps):
+
+| Module | `main` | Head | Note |
+| --- | --- | --- | --- |
+| `lib/wix/birthday-pricing-server.ts`, `-pricing-claim`, `-pricing-config`, `-claim-identity`, `-claim-request` | 8,952 B, 1 chunk | 2 x 9,215 B | one chunk emitted twice, see below |
+| `lib/security/same-origin.ts` | - | 4,235 B / 5 | new; copied into per-route leftover chunks |
+| `lib/http/read-json-body.ts` | - | 4,181 B / 4 | new; same |
+| `lib/auth/member-ownership.ts` | 183 B / 1 | 1,641 B / 9 | the birthday modules import `normalizeMemberEmail`, so it left the `lib/db/store` chunk and split the leftover chunks of the store routes (one more copy of `gift-card-designs` + `utils`, 3,930 B) |
+| `lib/security/client-address.ts`, `honeypot.ts`, `components/ui/HoneypotField.tsx` | - | 1,457 / 2, 622 / 5, 946 / 2 | new |
+| checkout hold and throttle (`checkout-hold-policy`, `checkout-throttle`, `checkout-hold-store`, `checkout-service`, `stripe`) | | +3,996 B in one chunk | new code, one copy |
+| `birthday-claim-throttle` + `-fallback-limiter`, `booking-grid-policy`, `cart-v2-shared` | | +1,928, +959, 1,203 / 3 B | new code |
+| scheduler view-model refactor (`PackageInclusionsDialog`, `use-scheduler-view-model`, both booking interfaces) | | -2,176 B | the `/book` SSR chunk got smaller |
+
+**Cause of the largest item.** `/api/wix/birthday/claim`, `/api/wix/birthday-pricing/v1/calculate-price` and
+`/api/offers/capabilities` load the same `lib/wix/birthday-*` modules. Turbopack emitted them twice, as
+`lib_wix_20m83yf1k3uaa._.js` (pricing provider, capabilities) and `lib_wix_0jn2p008diyfi._.js` (claim), byte-identical
+except for the source-map comment, and gave the claim route its own zod copy as well. The claim route had started
+importing `birthday-claim-request` (a module `birthday-pricing-server` imports) before `birthday-pricing-server`; the other
+two routes reach the group through `birthday-pricing-server` first. Turbopack derives a chunk's name from the way a route
+reaches its modules, so a different traversal gives identical content a second name, and esbuild bundles every name.
+
+**Change (one import moved, -192,176 B).** The claim route imports `birthday-pricing-server` before its other birthday
+modules. The three routes now load one birthday chunk (`lib_wix_birthday-pricing-server_ts_0e-i6xz4w0r-r._.js`, 12,716 B in
+the worker, was 2 x 12,926 B) and the zod copy the pricing provider and capabilities already shared with `/api/blog`, so
+the zod copies in the worker go from 5 (on `main` and on the head) to 4 (one copy is 178,747 B plus 334 B of chunk-switch
+cases). Handler: -128,713 B against the head. The security checks are untouched; only the module evaluation order of that
+route changed, and no module in its graph does more at load time than build zod schemas, seed data, `Map`s and its limiter.
+A probe of the built routes (`.next/standalone`, throwaway provider key: wrong content type, bad JSON, oversized body,
+missing email, no birthday, a claim, an unsigned and a signed pricing call with and without the claim, another contact, an
+off-grid start, the per-email limit) gave the same 18 answers before and after; only the 429's `Retry-After` differs,
+which counts down the clock window. `tests/unit/worker-bundle-rules.test.ts` now fails when a route that imports
+`birthday-pricing-server` reaches a `lib/wix/birthday-*` module through an earlier import.
+
+**Left as measured.** Against `main` the branch still adds about 30.6 KB of handler input: new code that exists once,
+plus copies of the small shared helpers above (`same-origin`, `read-json-body`, `honeypot`, `client-address`, and
+`member-ownership` with the extra `gift-card-designs` + `utils` copy, about 13 KB together, so at most about 18 KB of
+worker). Removing those copies means moving security helpers between modules, and a helper that several routes use
+keeps some copies anyway; not done. The remaining zod copies are separate
+groups (`/api/wix/bookings/checkout`, `/api/subscriptions/checkout`, the eleven routes that use `lib/validation.ts`) and
+may respond to the same treatment; not tried.
+
+Method note: per-file source-map sums misattribute bytes inside scope-hoisted chunks (a data table's bytes can land on a
+neighbouring module), so compare builds chunk by chunk too: each chunk's exact size is its `bytesInOutput` in
+`handler.mjs.meta.json`, its modules are the `sources` of its map, and the entries that load it are the
+`server/chunks/...` strings in each `route.js` and `page.js`.
+
 ## Appendix: attribution script
 
 Run after `npm run wix:build` (it needs `.next/server/**/*.map` and `.open-next/.../handler.mjs.meta.json`): `node attrib.mjs <worktree> [topN]`.
