@@ -54,7 +54,7 @@ flowchart TD
 - **Page Component**: [`app/dashboard/page.tsx`](app/dashboard/page.tsx)
   - Client component (`'use client'`).
   - Consumes `useAuth()` and `useLanguage()`.
-  - Date filtering respects Israeli calendar time (`todayInIsrael()`, timezone: `Asia/Jerusalem`).
+  - Date filtering respects Israeli calendar time (`israelToday()` from `lib/scheduler/israel-clock.ts`, timezone: `Asia/Jerusalem`).
 
 ### B. Data Model & State Machine
 ```typescript
@@ -67,7 +67,7 @@ interface DashboardState {
 }
 
 // Derived states via useMemo:
-// 1. upcomingBookings: bookingDate >= todayInIsrael() && status !== 'cancelled' && status !== 'completed'
+// 1. upcomingBookings: bookingDate >= israelToday() && status !== 'cancelled' && status !== 'completed'
 // 2. historyBookings: !upcoming && sorted descending by date/time
 // 3. paidSpend: sum of totalIls for bookings where paymentStatus === 'paid'
 ```

@@ -1,6 +1,9 @@
 import fc from 'fast-check';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { FlightSlot } from '@/types';
+import { getLiveFacilityStatus } from '@/lib/config/facility-info';
+import { israelDateOf, israelTimeOf } from '@/lib/refund/israel-time';
+import { REFUND_POLICY } from '@/lib/refund/refund-policy';
 import { closeDepartedSlots, generateKantorovichSlots, timeToMinutes } from '@/lib/scheduler/kantorovich-engine';
 import { hasDeparted, israelMinutesNow, israelToday } from '@/lib/scheduler/israel-clock';
 import { ENGINE_DURATIONS, WEEKDAY_DATES, makeBooking } from './_support/scheduler';
@@ -49,6 +52,23 @@ const shiftDate = (date: string, days: number) =>
 const localDate = (instant: Date) =>
   `${instant.getFullYear()}-${String(instant.getMonth() + 1).padStart(2, '0')}-${String(instant.getDate()).padStart(2, '0')}`;
 
+/**
+ * Israel midnight, and the minute before it, on both sides of each daylight-saving change: DST
+ * ends at 02:00 on Sunday 25 Oct 2026 (UTC+3 → UTC+2) and starts at 02:00 on Friday 26 Mar 2027.
+ */
+const MIDNIGHT_AROUND_DST: readonly [label: string, iso: string, date: string, minutes: number][] = [
+  ['23:59 on the summer evening before the fall-back', '2026-10-24T20:59:00Z', '2026-10-24', 23 * 60 + 59],
+  ['midnight opening the fall-back day (IDT)', '2026-10-24T21:00:00Z', '2026-10-25', 0],
+  ['23:59 on the fall-back day (IST)', '2026-10-25T21:59:00Z', '2026-10-25', 23 * 60 + 59],
+  ['midnight after the fall-back day (IST)', '2026-10-25T22:00:00Z', '2026-10-26', 0],
+  ['23:59 on the winter evening before the spring-forward', '2027-03-25T21:59:00Z', '2027-03-25', 23 * 60 + 59],
+  ['midnight opening the spring-forward day (IST)', '2027-03-25T22:00:00Z', '2027-03-26', 0],
+  ['23:59 on the spring-forward day (IDT)', '2027-03-26T20:59:00Z', '2027-03-26', 23 * 60 + 59],
+  ['midnight after the spring-forward day (IDT)', '2027-03-26T21:00:00Z', '2027-03-27', 0],
+];
+
+const TZ_ZONES = ['UTC', 'America/Los_Angeles', 'Pacific/Kiritimati'] as const;
+
 describe('israelToday and israelMinutesNow', () => {
   const INSTANTS: readonly [label: string, iso: string, date: string, minutes: number][] = [
     ['a winter midday', '2026-11-01T10:30:00Z', '2026-11-01', 12 * 60 + 30],
@@ -58,6 +78,7 @@ describe('israelToday and israelMinutesNow', () => {
     ['the first 01:30 of the fall-back (IDT)', '2026-10-24T22:30:00Z', '2026-10-25', 90],
     ['the repeated 01:30 of the fall-back (IST)', '2026-10-24T23:30:00Z', '2026-10-25', 90],
     ['the first minute after the spring-forward gap', '2027-03-26T00:00:00Z', '2027-03-26', 3 * 60],
+    ...MIDNIGHT_AROUND_DST,
   ];
 
   // Each zone pairs with an instant where its local calendar date differs from Israel's.
@@ -98,6 +119,102 @@ describe('israelToday and israelMinutesNow', () => {
     vi.useFakeTimers({ now: new Date('2026-11-05T16:45:00Z'), toFake: ['Date'] });
     expect(israelToday()).toBe('2026-11-05');
     expect(israelMinutesNow()).toBe(18 * 60 + 45);
+  });
+});
+
+/**
+ * The hand-rolled Israel-clock helpers the shared utility replaced, kept verbatim (with the instant
+ * passed in) as references: each one agrees with `israelToday()` / `israelMinutesNow()` on every
+ * instant checked, which is what let its caller switch to the shared clock.
+ */
+const REPLACED_HELPERS = {
+  /** app/dashboard/page.tsx `todayInIsrael()` */
+  dashboardToday(now: Date): string {
+    const parts = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Jerusalem',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).formatToParts(now);
+    const value = (type: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === type)?.value || '';
+    return `${value('year')}-${value('month')}-${value('day')}`;
+  },
+  /** lib/config/facility-info.ts `getLiveFacilityStatus()`: the minute of the Israel day */
+  facilityMinutes(now: Date): number {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Asia/Jerusalem',
+      weekday: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    }).formatToParts(now);
+    const hour = parseInt(parts.find((p) => p.type === 'hour')?.value || '12', 10) % 24;
+    const minute = parseInt(parts.find((p) => p.type === 'minute')?.value || '00', 10);
+    return hour * 60 + minute;
+  },
+  /** lib/reviews/snapshot-window.ts `israelParts()` */
+  snapshotParts(now: Date): { day: string; hour: number } {
+    const parts = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Jerusalem',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      hourCycle: 'h23',
+    }).formatToParts(now);
+    const read = (type: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === type)?.value ?? '';
+    return { day: `${read('year')}-${read('month')}-${read('day')}`, hour: Number(read('hour')) };
+  },
+};
+
+describe.each(TZ_ZONES)('replaced Israel-clock helpers equal the shared clock with the server clock in %s', (zone) => {
+  beforeEach(() => {
+    vi.stubEnv('TZ', zone);
+  });
+
+  const expectSame = (instant: Date) => {
+    const minutes = israelMinutesNow(instant);
+    expect(REPLACED_HELPERS.dashboardToday(instant)).toBe(israelToday(instant));
+    expect(REPLACED_HELPERS.facilityMinutes(instant)).toBe(minutes);
+    expect(REPLACED_HELPERS.snapshotParts(instant)).toEqual({ day: israelToday(instant), hour: Math.floor(minutes / 60) });
+  };
+
+  it.each(MIDNIGHT_AROUND_DST)('at %s', (_label, iso) => expectSame(new Date(iso)));
+
+  it('for arbitrary instants', () => {
+    fc.assert(fc.property(instantArb, (instant) => expectSame(instant)), { numRuns: 300 });
+  });
+});
+
+describe.each(TZ_ZONES)('callers of the shared clock with the server clock in %s', (zone) => {
+  beforeEach(() => {
+    vi.stubEnv('TZ', zone);
+  });
+
+  it.each(MIDNIGHT_AROUND_DST)('show the Israel time and opening state at %s', (_label, iso, _date, minutes) => {
+    const status = getLiveFacilityStatus(new Date(iso));
+    expect(status.israelTimeFormatted).toBe(hhmm(minutes));
+    // Open 09:00 to 24:00 every day, so midnight and 23:59 sit on either side of the close.
+    expect(status.isOpen).toBe(minutes >= 9 * 60);
+  });
+
+  it('show the fixed-offset Israel time on the facility status for arbitrary instants', () => {
+    fc.assert(
+      fc.property(instantArb, (instant) => {
+        expect(getLiveFacilityStatus(instant).israelTimeFormatted).toBe(israelWallClock(instant).time);
+      }),
+      { numRuns: 300 }
+    );
+  });
+
+  it('keep the refund wall clock (lib/refund/israel-time.ts, not replaced) in step with the shared clock', () => {
+    expect(REFUND_POLICY.timeZone).toBe('Asia/Jerusalem');
+    const expectSame = (instant: Date) => {
+      expect(israelDateOf(instant)).toBe(israelToday(instant));
+      expect(israelTimeOf(instant)).toBe(hhmm(israelMinutesNow(instant)));
+    };
+    for (const [, iso] of MIDNIGHT_AROUND_DST) expectSame(new Date(iso));
+    fc.assert(fc.property(instantArb, expectSame), { numRuns: 300 });
   });
 });
 

@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:bba562864056e904e8efa0eca2d4acda5468cf22b03c9484dd6718b769b9f3a9 -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:67585b70a000ee67d2510297c541cc3038aa9a517c461a194706eb0d40d48575 -->
 
 ## Verification contract
 
@@ -265,7 +265,7 @@ Add 3 curated one-click combos. Localize every package and add-on in all six lan
 - **Departed slots**: `closeDepartedSlots()` closes any departure at or before the current **Israel** minute (`lib/scheduler/israel-clock.ts`, using `Intl` with `Asia/Jerusalem`, DST-correct), whatever the server time zone.
 - **Pricing**: `packagePriceForSlot()` applies prime-time pricing. `calculateMissionManifest()` totals the package and add-ons and rejects add-ons that would run past the next booking or the window close.
 - **Building blocks** (keep these as small, separately tested functions):
-  - time: `timeToMinutes()`, `minutesToTime()`, `addMinutesToTime()`, and the Israel clock's `israelToday()`, `israelMinutesNow()`, `hasDeparted()`;
+  - time: `timeToMinutes()`, `minutesToTime()`, `addMinutesToTime()`, and the Israel clock's `israelToday()`, `israelMinutesNow()`, `hasDeparted()`; the member dashboard, the live facility status and the reviews snapshot window read Israel's date and minute from that clock rather than formatting `Asia/Jerusalem` themselves, and `tests/unit/israel-clock.test.ts` holds its DST and midnight cases;
   - booking horizon (`lib/scheduler/booking-horizon.ts`): `maxBookableDate()` is the same calendar date one year after today's Israel date (a leap day rolls back to 28 February), `isBeyondBookingHorizon()` and `clampToBookingHorizon()` apply it; the checkout service and `GET /api/slots` reject a later date with HTTP 400, so the limit never depends on the browser;
   - days and capacity: `getDayOperatingConfig()`, `is45MinutePromoDay()`, `longestMissionWithin()`, `canTileIntervalZeroWaste()`, `getKantorovichPricing()`;
   - packages and add-ons: `packageAllowsAddons()`, `packageFromPriceIls()`, `sanitizePackageTitle()`, `canAddonFitInSlot()`, `pruneAddonsExceedingSlot()`;

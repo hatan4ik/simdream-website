@@ -20,6 +20,7 @@ import { useAuth } from '@/lib/auth/auth-context';
 import { useLanguage, type Language } from '@/lib/i18n/language-context';
 import { getLocalizedPackages, type LocalizedRecord } from '@/lib/i18n/translations';
 import { EXPERIENCE_ROUTES_COPY, findOnRequestWorldRoute } from '@/lib/data/experience-routes';
+import { israelToday } from '@/lib/scheduler/israel-clock';
 import { sanitizePackageTitle } from '@/lib/scheduler/mission-calculator';
 import { isSupabaseConfigured, supabase } from '@/lib/supabaseClient';
 import { getWixMemberAccessToken, isWixBrowserClientConfigured } from '@/lib/wix/member-client';
@@ -93,17 +94,6 @@ function formatMissionDate(ymd: string, language: Language): string {
     month: 'short',
     year: 'numeric',
   }).format(localDate);
-}
-
-function todayInIsrael(): string {
-  const parts = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Asia/Jerusalem',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).formatToParts(new Date());
-  const value = (type: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === type)?.value || '';
-  return `${value('year')}-${value('month')}-${value('day')}`;
 }
 
 function bookingStatusKey(booking: Booking): BookingStatusKey {
@@ -200,7 +190,7 @@ export default function DashboardPage() {
   }, [user?.id]);
 
   const { upcomingBookings, historyBookings, paidSpend } = useMemo(() => {
-    const today = todayInIsrael();
+    const today = israelToday();
     const upcoming = bookings
       .filter((booking) => booking.bookingDate >= today && booking.status !== 'cancelled' && booking.status !== 'completed')
       .sort((a, b) => `${a.bookingDate}${a.startTime}`.localeCompare(`${b.bookingDate}${b.startTime}`));

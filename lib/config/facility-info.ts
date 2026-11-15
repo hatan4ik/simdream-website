@@ -3,6 +3,8 @@
  * Synchronized with Google Business Profile (Place ID: ChIJAyYTsyJLHRURRrWPGuNnmn4)
  */
 
+import { israelMinutesNow } from '@/lib/scheduler/israel-clock';
+
 export const FACILITY_INFO = {
   brandName: 'SimDream Flight Center',
   legalNameHe: 'מערכות הדמיה סימולטורים (ישראל) סיםדרים בע״מ',
@@ -79,21 +81,9 @@ export interface LiveFacilityStatus {
  */
 export function getLiveFacilityStatus(now: Date = new Date()): LiveFacilityStatus {
   try {
-    const formatter = new Intl.DateTimeFormat('en-US', {
-      timeZone: 'Asia/Jerusalem',
-      weekday: 'short',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false,
-    });
-
-    const parts = formatter.formatToParts(now);
-    const hourStr = parts.find((p) => p.type === 'hour')?.value || '12';
-    const minuteStr = parts.find((p) => p.type === 'minute')?.value || '00';
-
-    const hour = parseInt(hourStr, 10) % 24;
-    const minute = parseInt(minuteStr, 10);
-    const currentMin = hour * 60 + minute;
+    const currentMin = israelMinutesNow(now);
+    const hour = Math.floor(currentMin / 60);
+    const minute = currentMin % 60;
     const israelTimeFormatted = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
 
     const { open: openLabel, close: closeLabel, openMin, closeMin } = FACILITY_INFO.hours.daily;
