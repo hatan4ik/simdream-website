@@ -530,7 +530,7 @@ describe('Wix native booking checkout client', () => {
     };
 
     await expect(prepareWixBookingCheckout(client, baseInput)).rejects.toThrow(
-      'Wix could not validate this checkout. Please choose another time.'
+      'Wix could not validate this checkout (BOOKING/SLOT_NOT_AVAILABLE). Please choose another option or time.'
     );
   });
 });
