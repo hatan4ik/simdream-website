@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.29.8](https://github.com/hatan4ik/simdream-website/compare/v1.29.7...v1.29.8) (2026-11-16)
+
+
+### Bug Fixes
+
+* **booking,a11y:** keep focused and scrolled controls clear of sticky bars ([#245](https://github.com/hatan4ik/simdream-website/issues/245)) ([1d849fd](https://github.com/hatan4ik/simdream-website/commit/1d849fd9255b29517ee699a6bc301dcfc7829101))
+* **booking,ci:** align chrome scroll offsets and eliminate release PR cancellation race ([#248](https://github.com/hatan4ik/simdream-website/issues/248)) ([989a0f5](https://github.com/hatan4ik/simdream-website/commit/989a0f581b3042ab892088ede2e6fefd01818bfc))
+
 ## [1.29.7](https://github.com/hatan4ik/simdream-website/compare/v1.29.6...v1.29.7) (2026-11-16)
 
 
