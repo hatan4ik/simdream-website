@@ -697,4 +697,88 @@ describe('Wix native booking checkout client', () => {
     });
     expect((patchBodies[1] as { cart: Record<string, unknown> }).cart.extendedFields).toBeUndefined();
   });
+
+  it('rejects an email without a TLD before creating a Wix booking', async () => {
+    const calls: string[] = [];
+    const client: WixBrowserClient = {
+      fetchWithAuth: async (input) => {
+        const url = String(input);
+        calls.push(url);
+        if (url.endsWith('/time-slots/get')) return response({ timeSlot: { ...CANDIDATE.slotAvailability } });
+        throw new Error(`Unexpected Wix request after invalid email: ${url}`);
+      },
+    };
+
+    await expect(
+      prepareWixBookingCheckout(client, {
+        ...CANDIDATE,
+        pilotName: 'Avi Cohen',
+        pilotEmail: 'test@gmail',
+        pilotPhone: '0501234567',
+      })
+    ).rejects.toThrow('Enter a valid email address');
+
+    expect(calls).toEqual(['https://www.wixapis.com/_api/service-availability/v2/time-slots/get']);
+  });
+
+  it('surfaces Wix error status, code, and message from wixPost instead of hiding behind a generic failure', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const client: WixBrowserClient = {
+      fetchWithAuth: async (input) => {
+        const url = String(input);
+        if (url.endsWith('/time-slots/get')) return response({ timeSlot: { ...CANDIDATE.slotAvailability } });
+        if (url.endsWith('/bookings')) {
+          return response(
+            {
+              message: 'Validation failed: must match format "email"',
+              details: { applicationError: { code: 'FORMAT_ERROR', description: 'email must match email format' } },
+            },
+            400
+          );
+        }
+        throw new Error(`Unexpected URL ${url}`);
+      },
+    };
+
+    await expect(
+      prepareWixBookingCheckout(client, {
+        ...CANDIDATE,
+        pilotName: 'Avi Cohen',
+        pilotEmail: 'avi@example.com',
+        pilotPhone: '0501234567',
+      })
+    ).rejects.toThrow(
+      'We could not open Wix checkout (400): FORMAT_ERROR — Validation failed: must match format "email" — email must match email format'
+    );
+    expect(errorSpy).toHaveBeenCalledWith(
+      'Wix checkout request failed',
+      expect.objectContaining({
+        url: 'https://www.wixapis.com/bookings/v2/bookings',
+        status: 400,
+      })
+    );
+    errorSpy.mockRestore();
+  });
+
+  it('falls back cleanly when a wixPost error response has no JSON body', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const client: WixBrowserClient = {
+      fetchWithAuth: async (input) => {
+        const url = String(input);
+        if (url.endsWith('/time-slots/get')) return response({ timeSlot: { ...CANDIDATE.slotAvailability } });
+        if (url.endsWith('/bookings')) return new Response('<html>Bad Gateway</html>', { status: 502 });
+        throw new Error(`Unexpected URL ${url}`);
+      },
+    };
+
+    await expect(
+      prepareWixBookingCheckout(client, {
+        ...CANDIDATE,
+        pilotName: 'Avi Cohen',
+        pilotEmail: 'avi@example.com',
+        pilotPhone: '0501234567',
+      })
+    ).rejects.toThrow('We could not open Wix checkout. Please try again.');
+    errorSpy.mockRestore();
+  });
 });

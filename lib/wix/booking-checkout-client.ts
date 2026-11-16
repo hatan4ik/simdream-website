@@ -5,8 +5,9 @@ import { blockingCheckoutViolationMessage, createWixCartForBooking } from './boo
 import {
   isHttpsCheckoutUrl,
   postWixJson,
+  readWixResponseError,
+  resolveWixPostFailureMessage,
   wixCartUrl,
-  wixErrorFields,
   type WixCartCalculationResponse,
   type WixCartCouponResponse,
   type WixCartGiftCardResponse,
@@ -14,6 +15,7 @@ import {
 } from './cart-v2-shared';
 import { wixAddonProductIdFor } from './catalog';
 import {
+  normalizeWixEmail,
   normalizeWixPhone,
   patchWixCartCustomerInfo,
   patchWixCheckoutShippingContact,
@@ -104,13 +106,7 @@ interface WixBookingResponse {
 async function wixPost<T>(client: WixBrowserClient, url: string, body: unknown): Promise<T> {
   const { response, payload } = await postWixJson((input, init) => client.fetchWithAuth(input, init), url, body);
   if (!response.ok) {
-    // Wix's top-level `message` (even an empty one) wins over `details.applicationError.description`.
-    const fields = wixErrorFields(payload);
-    const detail = (fields?.message ?? fields?.description)?.toLowerCase() ?? '';
-    if (detail.includes('availability') || detail.includes('slot') || detail.includes('taken')) {
-      throw new WixBookingCheckoutClientError('That departure is no longer available. Please choose another time.');
-    }
-    throw new WixBookingCheckoutClientError('We could not open Wix checkout. Please try again.');
+    throw new WixBookingCheckoutClientError(resolveWixPostFailureMessage(url, response.status, payload));
   }
   return payload as T;
 }
@@ -129,7 +125,9 @@ async function wixUpdateCartCustomerInfo(
 ): Promise<void> {
   const response = await patchWixCartCustomerInfo((req, init) => client.fetchWithAuth(req, init), cartId, customerInfo);
   if (!response.ok) {
-    throw new WixBookingCheckoutClientError('We could not securely prepare your checkout. Please try again.');
+    throw new WixBookingCheckoutClientError(
+      await readWixResponseError(response, 'We could not securely prepare your checkout')
+    );
   }
 }
 
@@ -244,22 +242,20 @@ export function wixLocalDateTimeToIso(localDateTime: string, timeZone: string): 
   return new Date(timestamp).toISOString();
 }
 
-function splitPilotName(fullName: string): { firstName: string; lastName: string } {
-  const name = splitWixContactName(fullName, true);
-  if (!name) {
-    throw new WixBookingCheckoutClientError('Please enter your first and last name for the Wix booking form.');
-  }
-  return name;
+function requirePresent<T>(value: T | null, message: string): T {
+  if (!value) throw new WixBookingCheckoutClientError(message);
+  return value;
 }
 
 /** Wix Bookings requires E.164; retain international numbers and normalize Israeli local numbers. */
-export function normalizeWixBookingPhone(value: string): string {
-  const normalized = normalizeWixPhone(value);
-  if (!normalized) {
-    throw new WixBookingCheckoutClientError('Enter a phone number with a country code, for example +972…');
-  }
-  return normalized;
-}
+export const normalizeWixBookingPhone = (value: string): string =>
+  requirePresent(normalizeWixPhone(value), 'Enter a phone number with a country code, for example +972…');
+
+const splitPilotName = (fullName: string) =>
+  requirePresent(splitWixContactName(fullName, true), 'Please enter your first and last name for the Wix booking form.');
+
+const normalizeWixBookingEmail = (value: string) =>
+  requirePresent(normalizeWixEmail(value), 'Enter a valid email address (for example name@example.com) for the Wix booking form.');
 
 function paymentOption(options: WixNativeCheckoutCandidate['paymentOptions']): 'ONLINE' | 'OFFLINE' {
   if (options.online) return 'ONLINE';
@@ -305,7 +301,7 @@ export async function prepareWixBookingCheckout(
   const customerInfo = {
     firstName: name.firstName,
     lastName: name.lastName,
-    email: input.pilotEmail.trim(),
+    email: normalizeWixBookingEmail(input.pilotEmail),
     phone: normalizeWixBookingPhone(input.pilotPhone),
   };
   const formSubmission: Record<string, string> = {

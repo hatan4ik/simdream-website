@@ -99,6 +99,45 @@ export function wixErrorFields(payload: unknown): WixErrorFields | null {
 }
 
 /**
+ * Formats a non-OK Wix REST error into `<prefix> (<status>): <parts>` when the response
+ * carries error text, or returns `fallback` when empty / non-JSON.
+ */
+export function formatWixErrorMessage(prefix: string, status: number, payload: unknown, fallback: string): string {
+  const fields = wixErrorFields(payload);
+  if (!fields) return fallback;
+  const trim = (value: string | null) => (value && value.trim().length > 0 ? value.trim() : null);
+  const code = trim(fields.code);
+  const message = trim(fields.message);
+  const description = trim(fields.description);
+  const parts = [code, message, description && description !== message ? description : null].filter(
+    (part): part is string => part !== null
+  );
+  if (parts.length === 0) return fallback;
+  return `${prefix} (${status}): ${parts.join(' — ')}`;
+}
+
+/**
+ * Classifies and formats a non-OK Wix POST error so slot availability conflicts stay
+ * user-friendly while all other REST failures surface status, code, and message.
+ */
+export function resolveWixPostFailureMessage(url: string, status: number, payload: unknown): string {
+  const fields = wixErrorFields(payload);
+  const detail = (fields?.message ?? fields?.description)?.toLowerCase() ?? '';
+  console.error('Wix checkout request failed', { url, status, fields });
+  if (detail.includes('availability') || detail.includes('slot') || detail.includes('taken')) {
+    return 'That departure is no longer available. Please choose another time.';
+  }
+  return formatWixErrorMessage('We could not open Wix checkout', status, payload, 'We could not open Wix checkout. Please try again.');
+}
+
+/** Reads and formats a non-OK Wix cart/checkout PATCH error response. */
+export async function readWixResponseError(response: Response, prefix: string): Promise<string> {
+  const errorPayload = await response.json().catch(() => null);
+  console.error('Wix checkout request failed', { url: response.url, status: response.status, errorPayload });
+  return formatWixErrorMessage(prefix, response.status, errorPayload, `${prefix}. Please try again.`);
+}
+
+/**
  * The hosted checkout opens only over HTTPS. A value that is not a URL at all makes the URL parser throw
  * its TypeError here; each adapter decides how to report that.
  */

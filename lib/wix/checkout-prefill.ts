@@ -40,6 +40,16 @@ function validIsoBirthDate(value: string | undefined): string | null {
   return isCalendarDate ? trimmed : null;
 }
 
+/** Matches `zod`'s `email()` rule and Wix Bookings' email format requirement (`user@domain.tld`, <= 254 chars). */
+export const WIX_EMAIL_PATTERN =
+  /^(?:[A-Za-z0-9_'+\-]+\.)*[A-Za-z0-9_'+\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$/;
+
+/** Trim and validate an email address against Wix Bookings' email format requirement. */
+export function normalizeWixEmail(value: string): string | null {
+  const trimmed = value.trim();
+  return trimmed.length <= 254 && WIX_EMAIL_PATTERN.test(trimmed) ? trimmed : null;
+}
+
 /** Normalize international E.164 or local Israeli phone numbers to E.164 for Wix APIs. */
 export function normalizeWixPhone(value: string): string | null {
   const compact = value.trim().replace(/[\s()\-]/g, '');

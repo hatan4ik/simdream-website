@@ -1,5 +1,6 @@
 import { normalizeMemberEmail } from '@/lib/auth/member-ownership';
 import type { WixBirthdayPricingClaimField } from '@/lib/wix/booking-additional-fields';
+import { WIX_EMAIL_PATTERN, normalizeWixEmail } from '@/lib/wix/checkout-prefill';
 
 /**
  * Browser side of `POST /api/wix/birthday/claim`. The server binds the claim it issues to the
@@ -34,12 +35,10 @@ export interface WixBirthdayClaimPilot {
 export const WIX_BIRTHDAY_CLAIM_REUSE_MS = 5 * 60 * 1_000;
 
 /** The email rule the claim route enforces: zod's `email()` pattern, at most 254 characters after trimming. */
-export const WIX_BIRTHDAY_CLAIM_EMAIL_PATTERN =
-  /^(?:[A-Za-z0-9_'+\-]+\.)*[A-Za-z0-9_'+\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$/;
+export const WIX_BIRTHDAY_CLAIM_EMAIL_PATTERN = WIX_EMAIL_PATTERN;
 
 export function isWixBirthdayClaimEmail(email: string): boolean {
-  const trimmed = email.trim();
-  return trimmed.length <= 254 && WIX_BIRTHDAY_CLAIM_EMAIL_PATTERN.test(trimmed);
+  return normalizeWixEmail(email) !== null;
 }
 
 /** The pilot's email would be refused by the claim route: the page shows its contact-details message. */

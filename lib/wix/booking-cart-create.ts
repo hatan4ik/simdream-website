@@ -4,10 +4,10 @@ import { WIX_STORES_APP_ID, wixAddonProductIdFor } from './catalog';
 import {
   WIX_BOOKINGS_APP_ID,
   WIX_CART_V2_URL,
+  formatWixErrorMessage,
   postWixJson,
   wixCatalogLineItem,
   wixCreateCartBody,
-  wixErrorFields,
   type WixCartCreateResponse,
 } from './cart-v2-shared';
 
@@ -15,19 +15,6 @@ const FALLBACK_CART_CREATE_ERROR = 'Wix did not create a checkout cart. Please t
 
 function nonEmptyString(value: unknown): string | null {
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
-}
-
-function formatWixCartCreateError(status: number, payload: unknown): string {
-  const fields = wixErrorFields(payload);
-  if (!fields) return FALLBACK_CART_CREATE_ERROR;
-  const code = nonEmptyString(fields.code);
-  const message = nonEmptyString(fields.message);
-  const description = nonEmptyString(fields.description);
-  const parts = [code, message, description && description !== message ? description : null].filter(
-    (part): part is string => part !== null
-  );
-  if (parts.length === 0) return FALLBACK_CART_CREATE_ERROR;
-  return `Wix did not create a checkout cart (${status}): ${parts.join(' — ')}`;
 }
 
 function blockingCheckoutViolations(violations: readonly unknown[] | undefined): unknown[] {
@@ -90,7 +77,7 @@ export async function createWixCartForBooking(
   );
   const cart = (payload as WixCartCreateResponse | null)?.cart;
   if (!response.ok || !cart?.id) {
-    throw new Error(formatWixCartCreateError(response.status, payload));
+    throw new Error(formatWixErrorMessage('Wix did not create a checkout cart', response.status, payload, FALLBACK_CART_CREATE_ERROR));
   }
   return cart.id;
 }
