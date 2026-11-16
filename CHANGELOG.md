@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.29.10](https://github.com/hatan4ik/simdream-website/compare/v1.29.9...v1.29.10) (2026-11-16)
+
+
+### Bug Fixes
+
+* **booking:** keep Express Shop buy-box and consent controls clear of cookie banner ([#252](https://github.com/hatan4ik/simdream-website/issues/252)) ([eaf2ce2](https://github.com/hatan4ik/simdream-website/commit/eaf2ce2cc4b2eb5df4cec84a715817b442f1be9e))
+
 ## [1.29.9](https://github.com/hatan4ik/simdream-website/compare/v1.29.8...v1.29.9) (2026-11-16)
 
 
