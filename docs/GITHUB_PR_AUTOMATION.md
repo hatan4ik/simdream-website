@@ -49,11 +49,14 @@ The utility bar shows `LAST_KNOWN_GOOGLE_RATING` whenever `/api/reviews` has no 
 Mondays 05:17 UTC (or Actions → Refresh Google rating → Run workflow)
    │  Places API (New), field mask rating,userRatingCount  (the only source; no scraping)
    ├─ key missing → notice, stop            numbers unchanged → stop (no commit, no PR, no CI)
-   └─ changed → force-update branch automation/google-rating (one commit, a 1–2 line JSON diff)
+   └─ changed → npm ci --ignore-scripts, npm run llms:generate (public/llms.txt prints the same numbers)
+              → force-update branch automation/google-rating (one commit: the JSON and public/llms.txt)
                 → one rolling PR "fix(reviews): refresh Google rating to 5.0 (423 reviews)"
                 → the workflow approves that PR's own pull_request runs
    you: merge the PR → Verify on main → Release Please patch PR → merge it → approve `wix-production`
 ```
+
+`public/llms.txt` is regenerated in the same commit because it prints the grade and the count and `tests/unit/llms-txt.test.ts` fails any pull request whose committed file differs from a regeneration (a JSON-only commit failed Vitest on PR #244). The test also checks that this workflow runs the generator and stages both files.
 
 Properties: a re-run with the same numbers on the same `main` tip rebuilds the identical commit (author, dates and parent are fixed), so the push is a no-op and starts no checks. A re-run after `main` moved rebases the open PR onto the new tip. A bad key, an HTTP error or an implausible payload (grade outside 0–5, a non-integer or zero count) fails the run and changes nothing. The JSON is excluded from the Genesis fingerprint (`VOLATILE_DATA` in `scripts/check-genesis-coverage.ts`) and the specs read it instead of pinning it, so a refresh PR touches one file and fails no check because of its numbers.
 
