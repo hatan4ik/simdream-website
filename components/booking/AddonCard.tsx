@@ -27,7 +27,7 @@ export function AddonCard({ formId, addon, isChecked, exceedsSlotWindow, maxSlot
   return (
     <div
       onClick={() => !exceedsSlotWindow && onToggle()}
-      className={`scroll-mb-28 p-5 rounded-xl border transition-all flex flex-col justify-between ${
+      className={`scroll-mb-56 p-5 rounded-xl border transition-all flex flex-col justify-between ${
         exceedsSlotWindow
           ? 'border-slate-800/50 bg-slate-950/40 cursor-not-allowed'
           : isChecked
@@ -83,7 +83,7 @@ export function AddonCard({ formId, addon, isChecked, exceedsSlotWindow, maxSlot
           // Deliberately not a <label htmlFor>: a forwarded label click plus the card click would toggle twice.
           onChange={() => !exceedsSlotWindow && onToggle()}
           onClick={(event) => event.stopPropagation()}
-          className="scroll-mb-28 rounded border-slate-700 text-sky-500 focus:ring-sky-400 disabled:opacity-40"
+          className="scroll-mb-56 relative z-10 size-5 shrink-0 cursor-pointer accent-sky-500 rounded border-slate-700 text-sky-500 focus:ring-sky-400 disabled:opacity-40"
         />
       </div>
     </div>

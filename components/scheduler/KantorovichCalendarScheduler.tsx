@@ -388,7 +388,7 @@ export function KantorovichCalendarScheduler({
                     aria-pressed={isSelected}
                     disabled={maxDate !== '' && day.dateStr > maxDate}
                     onClick={() => handleSelectDate(day.dateStr)}
-                    className={`scroll-mb-24 snap-start shrink-0 min-w-[68px] sm:min-w-0 min-h-[72px] p-2.5 rounded-xl border text-center transition-all flex flex-col items-center justify-center disabled:cursor-not-allowed disabled:opacity-35 ${
+                    className={`scroll-mb-56 snap-start shrink-0 min-w-[68px] sm:min-w-0 min-h-[72px] p-2.5 rounded-xl border text-center transition-all flex flex-col items-center justify-center disabled:cursor-not-allowed disabled:opacity-35 ${
                       isSelected
                         ? 'border-sky-400 bg-sky-500/20 text-white ring-2 ring-sky-400 shadow-glow'
                         : 'border-slate-800 bg-slate-950/70 text-slate-300 hover:border-slate-700'
@@ -448,7 +448,7 @@ export function KantorovichCalendarScheduler({
                       aria-pressed={isSelected}
                       disabled={cell.isPast || cell.isBeyondHorizon}
                       onClick={() => handleSelectDate(cell.dateStr)}
-                      className={`scroll-mb-24 min-h-[48px] min-w-[48px] h-12 w-12 rounded-xl border text-center font-semibold text-sm transition-colors flex items-center justify-center touch-manipulation select-none ${
+                      className={`scroll-mb-56 min-h-[48px] min-w-[48px] h-12 w-12 rounded-xl border text-center font-semibold text-sm transition-colors flex items-center justify-center touch-manipulation select-none ${
                         cell.isPast || cell.isBeyondHorizon
                           ? 'opacity-25 border-transparent text-slate-600 cursor-not-allowed'
                           : isSelected
@@ -667,7 +667,7 @@ export function KantorovichCalendarScheduler({
                         key={slot.id}
                         type="button"
                         onClick={() => onSelectSlot(slot)}
-                        className={`scroll-mb-24 relative min-h-[64px] px-3.5 py-3 rounded-xl border text-left transition-all flex flex-col justify-center ${
+                        className={`scroll-mb-56 relative min-h-[64px] px-3.5 py-3 rounded-xl border text-left transition-all flex flex-col justify-center ${
                           isSelected
                             ? 'border-sky-400 bg-sky-500/20 ring-2 ring-sky-400 shadow-glow'
                             : isRecommended
