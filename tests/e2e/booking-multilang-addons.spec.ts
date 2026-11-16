@@ -42,20 +42,28 @@ function pickTime(startTimes: readonly string[], position: 'first' | 'middle' | 
 
 /** Verifies a control scrolled via standard CSSOM `scrollIntoView({ behavior: 'instant', block: 'nearest' })` clears both `<header>` and sticky bottom bars. */
 async function assertClearOfStickyChrome(locator: Locator, label: string): Promise<void> {
-  await locator.evaluate((element) =>
-    element.scrollIntoView({ behavior: 'instant', block: 'nearest', inline: 'nearest' })
-  );
+  await locator.waitFor({ state: 'visible' });
+  await locator.evaluate(async (element) => {
+    element.scrollIntoView({ behavior: 'instant', block: 'nearest', inline: 'nearest' });
+    await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+    element.scrollIntoView({ behavior: 'instant', block: 'nearest', inline: 'nearest' });
+  });
   const metrics = await locator.evaluate((element) => {
     const rect = element.getBoundingClientRect();
     const header = document.querySelector('header[data-site-chrome]');
     const headerBottom = header ? header.getBoundingClientRect().bottom : 0;
-    const stickyBottomTops = [...document.querySelectorAll('.sticky')]
+    const stickyBottomTops = [
+      ...document.querySelectorAll('.sticky'),
+      ...document.querySelectorAll('[data-consent-banner]'),
+    ]
       .filter((el) => {
         const style = getComputedStyle(el);
+        const box = el.getBoundingClientRect();
         return (
           style.display !== 'none' &&
-          style.position === 'sticky' &&
-          el.getBoundingClientRect().top > window.innerHeight * 0.4 &&
+          box.height > 0 &&
+          (style.position === 'sticky' || style.position === 'fixed') &&
+          box.top > window.innerHeight * 0.4 &&
           parseFloat(style.bottom) >= 0
         );
       })
@@ -221,8 +229,10 @@ test.describe('multilingual multi-addon booking matrix (CI guard)', () => {
         await slotButtonByTime(page, startTimes[startTimes.length - 1]!).click();
       }
 
+      await assertClearOfStickyChrome(page.locator('#storefront-pilot-name'), `storefront-${lang}-pilot-name`);
       await page.locator('#storefront-pilot-name').fill('Nat Nat');
       await page.locator('#storefront-pilot-email').fill(`nat.${lang}.shop@example.com`);
+      await assertClearOfStickyChrome(page.locator('#storefront-pilot-phone'), `storefront-${lang}-pilot-phone`);
       await page.locator('#storefront-pilot-phone').fill('+972547773074');
       await completeBookingExtras(page);
 

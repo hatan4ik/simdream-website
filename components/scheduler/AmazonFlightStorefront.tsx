@@ -1150,7 +1150,7 @@ export function AmazonFlightStorefront({
       {/* =====================================================================
           RIGHT 4 COLUMNS: STICKY AMAZON "BUY BOX" & EXPRESS PILOT CHECKOUT
          ===================================================================== */}
-      <div className="lg:col-span-4 min-w-0 lg:sticky lg:top-[var(--site-chrome-offset)] lg:max-h-[calc(100dvh-var(--site-chrome-offset)-1rem)] lg:overflow-y-auto lg:overscroll-contain lg:scroll-pt-4 space-y-5">
+      <div className="lg:col-span-4 min-w-0 lg:sticky lg:top-[var(--site-chrome-offset)] lg:max-h-[calc(100dvh-var(--site-chrome-offset)-var(--consent-banner-offset,0px)-1rem)] lg:overflow-y-auto lg:overscroll-contain lg:scroll-pt-4 lg:scroll-pb-4 space-y-5">
         <form
           ref={buyBoxFormRef}
           id="storefront-buy-box"
@@ -1308,7 +1308,7 @@ export function AmazonFlightStorefront({
                 value={pilotName}
                 onChange={(e) => onChangePilotName(e.target.value)}
                 placeholder={t.booking.pilotNamePlaceholder}
-                className="max-lg:scroll-mb-24 min-h-12 w-full rounded-lg bg-slate-950 border border-slate-700 px-3 py-2.5 text-base text-white focus:outline-none focus:border-amber-400"
+                className="max-lg:scroll-mb-[calc(var(--consent-banner-offset,0px)+6rem)] lg:scroll-mb-[calc(var(--consent-banner-offset,0px)+1.5rem)] min-h-12 w-full rounded-lg bg-slate-950 border border-slate-700 px-3 py-2.5 text-base text-white focus:outline-none focus:border-amber-400"
               />
             </div>
 
@@ -1332,7 +1332,7 @@ export function AmazonFlightStorefront({
                 value={pilotEmail}
                 onChange={(e) => onChangePilotEmail(e.target.value)}
                 placeholder="captain@example.com"
-                className="max-lg:scroll-mb-24 min-h-12 w-full rounded-lg bg-slate-950 border border-slate-700 px-3 py-2.5 text-base text-white focus:outline-none focus:border-amber-400"
+                className="max-lg:scroll-mb-[calc(var(--consent-banner-offset,0px)+6rem)] lg:scroll-mb-[calc(var(--consent-banner-offset,0px)+1.5rem)] min-h-12 w-full rounded-lg bg-slate-950 border border-slate-700 px-3 py-2.5 text-base text-white focus:outline-none focus:border-amber-400"
                 />
               </div>
 
@@ -1353,7 +1353,7 @@ export function AmazonFlightStorefront({
                   onChange={(e) => onChangePilotPhone(e.target.value)}
                 placeholder="055-507-1307"
                 dir="ltr"
-                className="max-lg:scroll-mb-24 min-h-12 w-full rounded-lg bg-slate-950 border border-slate-700 px-3 py-2.5 text-base text-white focus:outline-none focus:border-amber-400 text-left rtl:text-right"
+                className="max-lg:scroll-mb-[calc(var(--consent-banner-offset,0px)+6rem)] lg:scroll-mb-[calc(var(--consent-banner-offset,0px)+1.5rem)] min-h-12 w-full rounded-lg bg-slate-950 border border-slate-700 px-3 py-2.5 text-base text-white focus:outline-none focus:border-amber-400 text-left rtl:text-right"
                 />
               </div>
             </div>
@@ -1388,7 +1388,7 @@ export function AmazonFlightStorefront({
                         value={opt.value}
                         checked={active}
                         onChange={() => onChangeExperienceLevel(opt.value)}
-                        className="max-lg:scroll-mb-24 size-6 shrink-0 accent-amber-400"
+                        className="max-lg:scroll-mb-[calc(var(--consent-banner-offset,0px)+6rem)] lg:scroll-mb-[calc(var(--consent-banner-offset,0px)+1.5rem)] size-6 shrink-0 accent-amber-400"
                       />
                       <span className="truncate">{opt.label}</span>
                     </label>
@@ -1427,7 +1427,7 @@ export function AmazonFlightStorefront({
                 value={notes}
                 onChange={(e) => onChangeNotes(e.target.value)}
                 placeholder={t.booking.specialRequestsPlaceholder}
-                className="max-lg:scroll-mb-24 w-full rounded-lg bg-slate-950 border border-slate-800 p-2.5 text-base sm:text-sm text-white focus:outline-none focus:border-amber-400"
+                className="max-lg:scroll-mb-[calc(var(--consent-banner-offset,0px)+6rem)] lg:scroll-mb-[calc(var(--consent-banner-offset,0px)+1.5rem)] w-full rounded-lg bg-slate-950 border border-slate-800 p-2.5 text-base sm:text-sm text-white focus:outline-none focus:border-amber-400"
               />
             </div>
           </fieldset>
