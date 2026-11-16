@@ -38,6 +38,22 @@ export function Navbar() {
   const offersLabel = getOffersNavLabel(language);
   const navigationGroups = buildNavigationGroups(t, offersLabel);
 
+  React.useEffect(() => {
+    const header = document.querySelector<HTMLElement>('header[data-site-chrome]');
+    if (!header) return;
+    const sync = () => {
+      const height = Math.ceil(header.getBoundingClientRect().height);
+      if (height > 0) {
+        document.documentElement.style.setProperty('--site-chrome-offset', `${height + 8}px`);
+      }
+    };
+    sync();
+    if (typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(sync);
+    observer.observe(header);
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <nav
       ref={menus.navbarRef}
