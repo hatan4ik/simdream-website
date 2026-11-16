@@ -90,5 +90,7 @@ describe('release ledger', () => {
     expect(wixReleaseWorkflow).toContain('release-publication.md');
     expect(releasePleaseWorkflow).toContain('Generate the release ledger in the release candidate');
     expect(releasePleaseWorkflow).toContain('npm run releases:generate');
+    expect(releasePleaseWorkflow).toContain('PR mergeability preflight');
+    expect(releasePleaseWorkflow).toContain('force-cancel');
   });
 });

@@ -80,11 +80,12 @@ jobs:
           git add RELEASES.md
           git commit -m 'chore(main): generate release ledger'
           git push origin HEAD:"$release_branch"
-      # GitHub marks this GITHUB_TOKEN-generated pull-request workflow
-      # `action_required` before it starts any jobs. Approve that one
-      # PR-attached run instead of dispatching a detached duplicate, so branch
-      # protection sees the fast inherited-release verification on the PR.
-      - name: Approve the generated release candidate Verify run
+      # GitHub marks GITHUB_TOKEN-generated pull-request workflows
+      # `action_required` before they start. Cancel stale runs from earlier commits
+      # on the release branch (so a delayed manual approval can never trigger the
+      # shared PR concurrency group to cancel HEAD), then approve both `Verify`
+      # and `PR mergeability preflight` for the final ledger commit.
+      - name: Approve the generated release candidate Verify and preflight runs
         if: steps.verified-tip.outputs.current == 'true' && steps.release.outputs.prs_created == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
@@ -97,17 +98,44 @@ jobs:
             *) echo "Unexpected Release Please branch: $release_branch" >&2; exit 1 ;;
           esac
           release_sha="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/${release_branch}" --jq '.object.sha')"
+
+          stale_ids="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?event=pull_request&branch=${release_branch}&per_page=50" \
+            --jq "[.workflow_runs[] | select(.head_sha != \"${release_sha}\" and (.status != \"completed\" or .conclusion == \"action_required\")) | .id] | .[]")"
+          for stale_id in $stale_ids; do
+            gh api --method POST "repos/${GITHUB_REPOSITORY}/actions/runs/${stale_id}/cancel" > /dev/null 2>&1 \
+              || gh api --method POST "repos/${GITHUB_REPOSITORY}/actions/runs/${stale_id}/force-cancel" > /dev/null 2>&1 \
+              || true
+            echo "Cancelled superseded release candidate run ${stale_id}."
+          done
+
+          approved_verify=false
+          approved_preflight=false
           for attempt in $(seq 1 20); do
-            run_id="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?event=pull_request&status=completed&head_sha=${release_sha}&per_page=100" \
-              --jq '[.workflow_runs[] | select(.name == "Verify" and .conclusion == "action_required") | .id][0] // empty')"
-            if test -n "$run_id"; then
-              gh api --method POST "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/approve" > /dev/null
-              echo "Approved PR-attached Verify run ${run_id}."
+            runs_json="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?event=pull_request&head_sha=${release_sha}&per_page=50")"
+            action_ids="$(jq -r '[.workflow_runs[] | select((.name == "Verify" or .name == "PR mergeability preflight" or .name == "CodeQL") and .conclusion == "action_required") | "\(.id):\(.name)"] | .[]' <<< "$runs_json")"
+            while IFS= read -r entry; do
+              test -n "$entry" || continue
+              run_id="${entry%%:*}"
+              run_name="${entry#*:}"
+              gh api --method POST "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/approve" > /dev/null || true
+              echo "Approved PR-attached ${run_name} run ${run_id}."
+            done <<< "$action_ids"
+
+            verify_state="$(jq -r '[.workflow_runs[] | select(.name == "Verify") | (.conclusion // .status)][0] // ""' <<< "$runs_json")"
+            preflight_state="$(jq -r '[.workflow_runs[] | select(.name == "PR mergeability preflight") | (.conclusion // .status)][0] // ""' <<< "$runs_json")"
+            if test -n "$verify_state" && test "$verify_state" != 'action_required'; then
+              approved_verify=true
+            fi
+            if test -n "$preflight_state" && test "$preflight_state" != 'action_required'; then
+              approved_preflight=true
+            fi
+            if test "$approved_verify" = 'true' && test "$approved_preflight" = 'true'; then
               exit 0
             fi
             sleep 3
           done
-          echo 'Generated release candidate Verify run never entered action_required.' >&2
+          test "$approved_verify" = 'true' && exit 0
+          echo 'Generated release candidate Verify run never left action_required.' >&2
           exit 1
       # Tags created with GITHUB_TOKEN do not emit a push workflow. GitHub
       # explicitly permits repository_dispatch to start a separate workflow,

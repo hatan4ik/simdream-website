@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { STEP_DATE_SLOT, STEP_PILOT, normalizeStep } from '@/lib/booking/client';
 
 /**
@@ -9,10 +9,18 @@ import { STEP_DATE_SLOT, STEP_PILOT, normalizeStep } from '@/lib/booking/client'
  */
 export function useBookingStep(isNoiseFreeBooking: boolean) {
   const [currentStep, setCurrentStep] = useState<number>(STEP_DATE_SLOT);
+  const previousStepRef = useRef<number>(STEP_DATE_SLOT);
 
   useEffect(() => {
     const normalized = normalizeStep(currentStep, isNoiseFreeBooking);
-    if (normalized !== currentStep) setCurrentStep(STEP_PILOT);
+    if (normalized !== currentStep) {
+      setCurrentStep(STEP_PILOT);
+      return;
+    }
+    if (previousStepRef.current !== currentStep) {
+      previousStepRef.current = currentStep;
+      window.scrollTo({ top: 0, behavior: 'auto' });
+    }
   }, [isNoiseFreeBooking, currentStep]);
 
   return { currentStep, setCurrentStep };

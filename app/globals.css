@@ -182,9 +182,13 @@ html[data-ui="brand"] {
   --brand-navy: #136c91;
 }
 
-/* Keeps focused or anchored content clear of the sticky navbar and utility bar (WCAG 2.4.11). */
+/* Keeps focused or anchored content clear of the sticky navbar and utility bar (WCAG 2.4.11).
+   Brand & Cockpit header = 45px utility bar + 81px navbar (126px); Studio navbar slims to 48px. */
+:root {
+  --site-chrome-offset: 8.25rem;
+}
 html {
-  scroll-padding-top: 7rem;
+  scroll-padding-top: var(--site-chrome-offset, 8.25rem);
 }
 
 /* Honour reduced-motion preferences for every animation and transition (WCAG 2.3.3). */
@@ -1044,6 +1048,7 @@ html[data-ui="brand"] ::-webkit-scrollbar-thumb:hover {
 /* Type scale: every rem-based utility grows ~6% (16 → 17px), as apple.com's body copy. */
 html[data-look="studio"] {
   font-size: 17px;
+  --site-chrome-offset: 6rem;
   -webkit-font-smoothing: antialiased;
 }
 html[data-look="studio"] body {
