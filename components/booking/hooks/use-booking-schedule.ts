@@ -97,12 +97,6 @@ export function useBookingSchedule({ selectedPackage, requiredMissionMinutes }: 
         if (payload?.efficiency) {
           setEfficiencyReport(payload.efficiency);
         }
-
-        // Prefer a smart pairing or an open departure which can accommodate
-        // the entire selected mission.
-        setSelectedSlot((prev) =>
-          selectDepartureAfterLoad(slotList, { selectedDate, previous: prev, requiredMissionMinutes })
-        );
       } catch (err) {
         if (controller.signal.aborted) return;
         // Show a load error with a retry, never an empty "sold out" day.
@@ -116,7 +110,15 @@ export function useBookingSchedule({ selectedPackage, requiredMissionMinutes }: 
     }
     fetchSlots();
     return () => controller.abort();
-  }, [browserIsraelToday, requiredMissionMinutes, selectedDate, selectedPackage, slotsReloadKey]);
+  }, [browserIsraelToday, selectedDate, selectedPackage, slotsReloadKey]);
+
+  // Reconcile the selected departure synchronously whenever the loaded slot list
+  // or chosen add-ons (requiredMissionMinutes) change, avoiding redundant slot fetches.
+  useEffect(() => {
+    setSelectedSlot((prev) =>
+      selectDepartureAfterLoad(availableSlots, { selectedDate, previous: prev, requiredMissionMinutes })
+    );
+  }, [availableSlots, requiredMissionMinutes, selectedDate]);
 
   // Both storefronts consume the same manifest-compatible departures. This
   // keeps a selected route or add-on visible rather than offering a departure
