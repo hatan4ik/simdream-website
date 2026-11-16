@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.29.9](https://github.com/hatan4ik/simdream-website/compare/v1.29.8...v1.29.9) (2026-11-16)
+
+
+### Bug Fixes
+
+* **booking:** harden multi-addon scroll clearance, slot reconciliation, es translations, and CI guard ([#250](https://github.com/hatan4ik/simdream-website/issues/250)) ([7a7d5cd](https://github.com/hatan4ik/simdream-website/commit/7a7d5cd6b30e760535948baffe262c1e6dc1f8c7))
+
 ## [1.29.8](https://github.com/hatan4ik/simdream-website/compare/v1.29.7...v1.29.8) (2026-11-16)
 
 
