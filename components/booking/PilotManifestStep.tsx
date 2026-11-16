@@ -86,7 +86,7 @@ export function PilotManifestStep({
         extraFields={extraFields}
       />
 
-      <div className="lg:col-span-5 space-y-6 sticky top-28">
+      <div className="lg:col-span-5 space-y-6 sticky top-[var(--site-chrome-offset)]">
         <OrderSummary
           manifest={manifest}
           selectedDate={selectedDate}

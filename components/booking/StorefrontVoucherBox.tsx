@@ -99,7 +99,7 @@ export function StorefrontVoucherBox({
               value={voucherCode}
               onChange={(e) => onChangeVoucherCode(e.target.value)}
               dir="ltr"
-              className="flex-1 min-w-0 rounded-lg bg-slate-950 border border-slate-700 px-3 py-2 text-base sm:text-sm text-white uppercase font-mono focus:outline-none focus:border-amber-400"
+              className="max-lg:scroll-mb-24 flex-1 min-w-0 rounded-lg bg-slate-950 border border-slate-700 px-3 py-2 text-base sm:text-sm text-white uppercase font-mono focus:outline-none focus:border-amber-400"
             />
             <Button
               type="button"
