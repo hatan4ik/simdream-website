@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.29.6](https://github.com/hatan4ik/simdream-website/compare/v1.29.5...v1.29.6) (2026-11-16)
+
+
+### Bug Fixes
+
+* **wix,csp,auth:** allow edge.wixapis.com, recover stale session 403s, and keep error HTTP statuses ([#242](https://github.com/hatan4ik/simdream-website/issues/242)) ([ce9000d](https://github.com/hatan4ik/simdream-website/commit/ce9000d6874408119b49aab698f086fd83f5ed55))
+
 ## [1.29.5](https://github.com/hatan4ik/simdream-website/compare/v1.29.4...v1.29.5) (2026-11-16)
 
 
