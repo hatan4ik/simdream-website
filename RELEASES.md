@@ -10,6 +10,14 @@
 
 ## Product changes by version
 
+### [v1.29.10](https://github.com/hatan4ik/simdream-website/releases/tag/v1.29.10) — 2026-11-16
+
+#### Bug Fixes
+
+- **booking:** keep Express Shop buy-box and consent controls clear of cookie banner (#252) (eaf2ce2)
+
+Deployment evidence: [GitHub Release](https://github.com/hatan4ik/simdream-website/releases/tag/v1.29.10).
+
 ### [v1.29.9](https://github.com/hatan4ik/simdream-website/releases/tag/v1.29.9) — 2026-11-16
 
 #### Bug Fixes
