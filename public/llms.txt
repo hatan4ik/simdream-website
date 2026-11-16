@@ -11,7 +11,7 @@
 - **Neighborhood**: Montefiore Quarter (Near Yehudit Light Rail & HaShalom Train)
 - **GPS Coordinates**: `32.0687375, 34.79071`
 - **Google Maps Place ID**: `ChIJAyYTsyJLHRURRrWPGuNnmn4` (https://maps.app.goo.gl/DDvRhUhyPgnR8Pmc9)
-- **Google Rating (last known)**: 5.0 / 5.0 from 424 Google reviews. This is the last-known aggregate recorded in `lib/reviews/last-known-rating.json`, refreshed weekly from the official Google Places API; the live figure is on the Google profile: https://search.google.com/local/reviews?placeid=ChIJAyYTsyJLHRURRrWPGuNnmn4
+- **Google Rating (last known)**: 5.0 / 5.0 from 433 Google reviews. This is the last-known aggregate recorded in `lib/reviews/last-known-rating.json`, refreshed weekly from the official Google Places API; the live figure is on the Google profile: https://search.google.com/local/reviews?placeid=ChIJAyYTsyJLHRURRrWPGuNnmn4
 - **Phone & WhatsApp**: `055-507-1307` (`+972-55-507-1307`, https://wa.me/972555071307)
 - **Email**: `desk@simdream.co.il`
 - **Websites**: https://www.simdream.co.il | https://simdream.aero
