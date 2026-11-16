@@ -182,9 +182,9 @@ html[data-ui="brand"] {
   --brand-navy: #136c91;
 }
 
-/* Keeps focused or anchored content clear of the sticky navbar (WCAG 2.4.11). */
+/* Keeps focused or anchored content clear of the sticky navbar and utility bar (WCAG 2.4.11). */
 html {
-  scroll-padding-top: 6rem;
+  scroll-padding-top: 7rem;
 }
 
 /* Honour reduced-motion preferences for every animation and transition (WCAG 2.3.3). */

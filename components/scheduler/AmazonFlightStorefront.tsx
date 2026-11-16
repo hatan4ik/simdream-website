@@ -1150,7 +1150,7 @@ export function AmazonFlightStorefront({
       {/* =====================================================================
           RIGHT 4 COLUMNS: STICKY AMAZON "BUY BOX" & EXPRESS PILOT CHECKOUT
          ===================================================================== */}
-      <div className="lg:col-span-4 min-w-0 lg:sticky lg:top-24 lg:max-h-[calc(100dvh-7rem)] lg:overflow-y-auto lg:overscroll-contain space-y-5">
+      <div className="lg:col-span-4 min-w-0 lg:sticky lg:top-24 lg:max-h-[calc(100dvh-7rem)] lg:overflow-y-auto lg:overscroll-contain lg:scroll-pt-10 space-y-5">
         <form
           ref={buyBoxFormRef}
           id="storefront-buy-box"
