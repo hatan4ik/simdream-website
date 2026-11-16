@@ -52,7 +52,7 @@ export function ConsentAgreement({
       data-consent-agreement={kind}
       data-consent-state={checked ? 'checked' : error ? 'error' : 'idle'}
       className={cn(
-        'max-lg:scroll-mb-24 rounded-xl border p-3.5 space-y-2.5 transition-colors',
+        'max-lg:scroll-mb-[calc(var(--consent-banner-offset,0px)+6rem)] lg:scroll-mb-[var(--consent-banner-offset,0px)] rounded-xl border p-3.5 space-y-2.5 transition-colors',
         checked
           ? 'border-emerald-500/40 bg-emerald-500/10'
           : error
@@ -70,7 +70,7 @@ export function ConsentAgreement({
           aria-describedby={described}
           aria-invalid={error ? true : undefined}
           aria-required="true"
-          className="max-lg:scroll-mb-24 mt-0.5 size-6 shrink-0 cursor-pointer accent-sky-500"
+          className="max-lg:scroll-mb-[calc(var(--consent-banner-offset,0px)+6rem)] lg:scroll-mb-[var(--consent-banner-offset,0px)] mt-0.5 size-6 shrink-0 cursor-pointer accent-sky-500"
         />
         <span className="text-sm font-semibold leading-snug text-white">{label}</span>
       </label>
