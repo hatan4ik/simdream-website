@@ -19,10 +19,10 @@ function createContentSecurityPolicy(nonce: string): string {
     "img-src 'self' data: blob: https://lh3.googleusercontent.com https://static.wixstatic.com",
     "font-src 'self' data:",
     // The browser-side Wix Headless client mints its anonymous visitor token
-    // and calls Bookings/Cart V2 at this API origin. Keep this explicit instead
-    // of allowing a broad third-party wildcard: guest checkout, native coupons
-    // and Wix member ownership all need the same visitor session.
-    `connect-src 'self'${development ? ' ws: wss:' : ''} https://*.supabase.co wss://*.supabase.co https://www.wixapis.com`,
+    // and calls Bookings/Cart V2 at www.wixapis.com, while @wix/members calls
+    // edge.wixapis.com for the signed-in member profile. Keep both explicit instead
+    // of allowing a broad third-party wildcard.
+    `connect-src 'self'${development ? ' ws: wss:' : ''} https://*.supabase.co wss://*.supabase.co https://www.wixapis.com https://edge.wixapis.com`,
     'frame-src https://www.google.com https://maps.google.com',
     "object-src 'none'",
     "base-uri 'self'",

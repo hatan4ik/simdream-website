@@ -760,9 +760,9 @@ describe('Wix native booking checkout client', () => {
     errorSpy.mockRestore();
   });
 
-  it('falls back cleanly when a wixPost error response has no JSON body', async () => {
+  it('surfaces HTTP status when a wixPost error response has no JSON body or an empty envelope', async () => {
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    const client: WixBrowserClient = {
+    const htmlClient: WixBrowserClient = {
       fetchWithAuth: async (input) => {
         const url = String(input);
         if (url.endsWith('/time-slots/get')) return response({ timeSlot: { ...CANDIDATE.slotAvailability } });
@@ -772,13 +772,33 @@ describe('Wix native booking checkout client', () => {
     };
 
     await expect(
-      prepareWixBookingCheckout(client, {
+      prepareWixBookingCheckout(htmlClient, {
         ...CANDIDATE,
         pilotName: 'Avi Cohen',
         pilotEmail: 'avi@example.com',
         pilotPhone: '0501234567',
       })
-    ).rejects.toThrow('We could not open Wix checkout. Please try again.');
+    ).rejects.toThrow('We could not open Wix checkout (502). Please try again.');
+
+    const emptyEnvelopeClient: WixBrowserClient = {
+      fetchWithAuth: async (input) => {
+        const url = String(input);
+        if (url.endsWith('/time-slots/get')) return response({ message: '', details: {} }, 403);
+        throw new Error(`Unexpected URL ${url}`);
+      },
+    };
+
+    await expect(
+      prepareWixBookingCheckout(emptyEnvelopeClient, {
+        ...CANDIDATE,
+        pilotName: 'Nat Nat',
+        pilotEmail: 'hatan4ik@gmail.com',
+        pilotPhone: '0547773074',
+      })
+    ).rejects.toMatchObject({
+      message: 'We could not open Wix checkout (403). Please try again.',
+      status: 403,
+    });
     errorSpy.mockRestore();
   });
 });

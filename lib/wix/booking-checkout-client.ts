@@ -66,7 +66,11 @@ export interface StartWixBookingCheckoutInput extends WixNativeCheckoutCandidate
   addonIds?: readonly string[];
 }
 
-export class WixBookingCheckoutClientError extends Error {}
+export class WixBookingCheckoutClientError extends Error {
+  constructor(message: string, readonly status?: number) {
+    super(message);
+  }
+}
 
 export interface WixCartPrice {
   /** Wix's calculated cart discount. React never derives this amount itself. */
@@ -106,7 +110,7 @@ interface WixBookingResponse {
 async function wixPost<T>(client: WixBrowserClient, url: string, body: unknown): Promise<T> {
   const { response, payload } = await postWixJson((input, init) => client.fetchWithAuth(input, init), url, body);
   if (!response.ok) {
-    throw new WixBookingCheckoutClientError(resolveWixPostFailureMessage(url, response.status, payload));
+    throw new WixBookingCheckoutClientError(resolveWixPostFailureMessage(url, response.status, payload), response.status);
   }
   return payload as T;
 }
