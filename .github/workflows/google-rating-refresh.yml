@@ -19,13 +19,13 @@ jobs:
     name: Open or update the rolling rating PR
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     env:
       BRANCH: automation/google-rating
-      GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - name: Pull the rating from the Places API and propose it
+      - name: Pull the rating from the Places API
+        id: rating
         env:
           GOOGLE_PLACES_API_KEY: ${{ secrets.GOOGLE_PLACES_API_KEY }}
         run: |
@@ -37,19 +37,41 @@ jobs:
           summary="$(printf '%.1f (%d reviews)' "$grade" "$count")"
           printf '%s\n' "$json" > lib/reviews/last-known-rating.json
           git diff --quiet && { echo "Google rating unchanged: $summary"; exit 0; } # no commit, no PR, no CI
+          echo "title=fix(reviews): refresh Google rating to $summary" >> "$GITHUB_OUTPUT"
 
-          title="fix(reviews): refresh Google rating to $summary"
+      # public/llms.txt prints the same two numbers, and tests/unit/llms-txt.test.ts fails a pull request whose
+      # committed file differs from a regeneration, so it is rebuilt here and committed with the JSON. These
+      # steps run only when the rating changed, with neither the Places key nor GH_TOKEN in their environment;
+      # --ignore-scripts keeps dependency install scripts from running in this write-permission job.
+      - if: steps.rating.outputs.title != ''
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24
+          cache: npm
+      - if: steps.rating.outputs.title != ''
+        run: npm ci --ignore-scripts
+      - name: Regenerate public/llms.txt from the new rating
+        if: steps.rating.outputs.title != ''
+        run: npm run llms:generate
+
+      - name: Propose the change in the rolling pull request
+        if: steps.rating.outputs.title != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          title: ${{ steps.rating.outputs.title }}
+        run: |
+          set -euo pipefail
           echo "$title"
 
           # Same main tip + same numbers = same commit SHA, so a re-run pushes nothing and starts no checks.
           git switch -C "$BRANCH"
-          git add lib/reviews/last-known-rating.json
+          git add lib/reviews/last-known-rating.json public/llms.txt
           tip_date="$(git log -1 --format=%cI)"
           export GIT_AUTHOR_DATE="$tip_date" GIT_COMMITTER_DATE="$tip_date"
           git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -qm "$title"
           git push --force origin "$BRANCH"
 
-          body='Weekly refresh of the last-known Google rating (Places API (New), fields rating and userRatingCount). Only lib/reviews/last-known-rating.json changes. Merge it yourself: an auto-merge by github-actions never starts Verify on main, so Release Please would not see it.'
+          body='Weekly refresh of the last-known Google rating (Places API (New), fields rating and userRatingCount). Only lib/reviews/last-known-rating.json and public/llms.txt, which is regenerated from it, change. Merge it yourself: an auto-merge by github-actions never starts Verify on main, so Release Please would not see it.'
           pr="$(gh pr create --base main --head "$BRANCH" --title "$title" --body "$body" || gh pr edit "$BRANCH" --title "$title" --body "$body")"
           echo "$title: $pr" | tee -a "$GITHUB_STEP_SUMMARY"
 

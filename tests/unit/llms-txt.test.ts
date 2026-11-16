@@ -41,6 +41,17 @@ describe('public/llms.txt is generated from the registries', () => {
     expect(generated).not.toContain('390+');
   });
 
+  // The weekly refresh rewrites the JSON this file prints. A pull request that carried the JSON alone
+  // failed the first test above (PR #244), so the workflow must regenerate and commit both together.
+  it('is regenerated and committed by the weekly rating refresh together with the JSON', () => {
+    const workflow = readFileSync(path.join(REPO_ROOT, '.github/workflows/google-rating-refresh.yml'), 'utf8');
+    const generateAt = workflow.indexOf(LLMS_TXT_GENERATE_COMMAND);
+    const stage = workflow.match(/^\s*git add (.+)$/m);
+    expect(generateAt, `the workflow runs ${LLMS_TXT_GENERATE_COMMAND}`).toBeGreaterThan(-1);
+    expect(stage?.[1].split(/\s+/).sort()).toEqual(['lib/reviews/last-known-rating.json', LLMS_TXT_PUBLIC_PATH].sort());
+    expect(generateAt, 'the file is regenerated before it is staged').toBeLessThan(stage?.index ?? -1);
+  });
+
   it('prints the contact and address exactly as the facility config', () => {
     const { address, contact } = FACILITY_INFO;
     expect(generated).toContain(`${address.streetEn}, ${address.cityEn}`);
