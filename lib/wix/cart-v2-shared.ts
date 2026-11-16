@@ -127,14 +127,16 @@ export function resolveWixPostFailureMessage(url: string, status: number, payloa
   if (detail.includes('availability') || detail.includes('slot') || detail.includes('taken')) {
     return 'That departure is no longer available. Please choose another time.';
   }
-  return formatWixErrorMessage('We could not open Wix checkout', status, payload, 'We could not open Wix checkout. Please try again.');
+  const fallback = status >= 400 ? `We could not open Wix checkout (${status}). Please try again.` : 'We could not open Wix checkout. Please try again.';
+  return formatWixErrorMessage('We could not open Wix checkout', status, payload, fallback);
 }
 
 /** Reads and formats a non-OK Wix cart/checkout PATCH error response. */
 export async function readWixResponseError(response: Response, prefix: string): Promise<string> {
   const errorPayload = await response.json().catch(() => null);
   console.error('Wix checkout request failed', { url: response.url, status: response.status, errorPayload });
-  return formatWixErrorMessage(prefix, response.status, errorPayload, `${prefix}. Please try again.`);
+  const fallback = response.status >= 400 ? `${prefix} (${response.status}). Please try again.` : `${prefix}. Please try again.`;
+  return formatWixErrorMessage(prefix, response.status, errorPayload, fallback);
 }
 
 /**

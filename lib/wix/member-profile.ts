@@ -1,3 +1,5 @@
+import type { UserProfile } from '@/types';
+
 /**
  * Safe, shared projection of Wix's current-member response.
  *
@@ -69,5 +71,25 @@ export function readWixMemberProfile(member: unknown): WixMemberProfile | null {
     fullName,
     phone: firstString(value.contact?.phones),
     createdAt: dateValue(value._createdDate) ?? dateValue(value.createdDate),
+  };
+}
+
+/**
+ * Converts only verified data returned by Wix's authenticated `getCurrentMember`
+ * call; query-string or client-provided profile data never establishes a user.
+ */
+export function userProfileFromWixMember(member: unknown): UserProfile | null {
+  const wixMember = readWixMemberProfile(member);
+  if (!wixMember) return null;
+  const email = wixMember.email || '';
+  return {
+    id: wixMember.id,
+    email,
+    fullName: wixMember.fullName || email.split('@')[0],
+    phone: wixMember.phone,
+    role: 'user',
+    totalHours: 0,
+    totalFlights: 0,
+    createdAt: wixMember.createdAt || new Date().toISOString(),
   };
 }

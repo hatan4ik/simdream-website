@@ -86,6 +86,17 @@ export function clearWixMemberSession(): void {
   cachedClient?.auth.setTokens(EMPTY_TOKENS);
 }
 
+/** Clears the stored Wix session when Wix itself rejects it with 401 or 403. */
+export function clearIfWixSessionRejected(err: unknown): void {
+  const status =
+    typeof err === 'object' && err !== null && 'details' in err
+      ? (err as { details?: { httpStatus?: unknown } }).details?.httpStatus
+      : undefined;
+  if (status === 401 || status === 403) {
+    clearWixMemberSession();
+  }
+}
+
 export function wixMemberOAuthStorageKey(): string {
   return MEMBER_OAUTH_DATA_KEY;
 }

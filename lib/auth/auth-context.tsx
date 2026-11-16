@@ -6,6 +6,7 @@ import type { UserProfile } from '@/types';
 import { DEMO_USERS } from '../db/seed-data';
 import { isSupabaseConfigured, supabase } from '../supabaseClient';
 import {
+  clearIfWixSessionRejected,
   clearWixMemberSession,
   getWixMemberAccessToken,
   getWixMemberClient,
@@ -14,7 +15,7 @@ import {
   WIX_MEMBER_SESSION_CHANGED_EVENT,
   wixMemberOAuthStorageKey,
 } from '@/lib/wix/member-client';
-import { readWixMemberProfile } from '@/lib/wix/member-profile';
+import { userProfileFromWixMember } from '@/lib/wix/member-profile';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -143,27 +144,6 @@ function profileFromUser(
   };
 }
 
-/**
- * Wix is the primary customer identity provider for the hosted frontend.
- * Convert only verified data returned by Wix's authenticated `getCurrentMember`
- * call; query-string or client-provided profile data never establishes a user.
- */
-function profileFromWixMember(member: unknown): UserProfile | null {
-  const wixMember = readWixMemberProfile(member);
-  if (!wixMember) return null;
-  const email = wixMember.email || '';
-  return {
-    id: wixMember.id,
-    email,
-    fullName: wixMember.fullName || email.split('@')[0],
-    phone: wixMember.phone,
-    role: 'user',
-    totalHours: 0,
-    totalFlights: 0,
-    createdAt: wixMember.createdAt || new Date().toISOString(),
-  };
-}
-
 async function getProfileForAuthenticatedUser(user: User): Promise<UserProfile> {
   if (!supabase) return profileFromUser(user);
   const { data } = await supabase
@@ -202,7 +182,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return null;
       }
       const result = await client.members.getCurrentMember({ fieldsets: ['FULL'] });
-      const profile = profileFromWixMember(result.member);
+      const profile = userProfileFromWixMember(result.member);
       if (!profile) {
         setUser(null);
         return null;
@@ -213,7 +193,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // erase a valid Wix browser identity from the Flight Deck.
       void bootstrapMember(accessToken).catch(() => undefined);
       return profile;
-    } catch {
+    } catch (err: unknown) {
+      clearIfWixSessionRejected(err);
       setUser(null);
       return null;
     }

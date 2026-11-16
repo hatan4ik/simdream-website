@@ -1,4 +1,5 @@
 import {
+  WixBookingCheckoutClientError,
   applyWixCoupon,
   applyWixGiftCard,
   getWixBookingCheckoutUrl,
@@ -8,7 +9,7 @@ import {
   type WixNativeCheckoutCandidate,
 } from '@/lib/wix/booking-checkout-client';
 import { setWixCartNote } from '@/lib/wix/cart-note';
-import { getWixMemberClient } from '@/lib/wix/member-client';
+import { clearWixMemberSession, getWixMemberClient, notifyWixMemberSessionChanged } from '@/lib/wix/member-client';
 import type { WixCheckoutDraftState } from './wix-checkout-draft';
 
 /** Browser-side operations on the visitor-owned, unpaid Wix cart ("draft") behind a native checkout. */
@@ -47,7 +48,7 @@ export async function prepareWixCheckoutDraft(input: PrepareWixDraftInput): Prom
     throw new Error(wixSlot.error || input.paymentStartFailed);
   }
 
-  const prepared = await prepareWixBookingCheckout(getWixMemberClient(), {
+  const checkoutInput = {
     slotAvailability: wixSlot.slotAvailability,
     timeZone: wixSlot.timeZone,
     location: wixSlot.location,
@@ -59,7 +60,20 @@ export async function prepareWixCheckoutDraft(input: PrepareWixDraftInput): Prom
     notes: input.notes,
     addonIds: input.addonIds,
     birthdayPricingClaim: input.birthdayPricingClaim ?? undefined,
-  });
+  };
+  let prepared;
+  try {
+    prepared = await prepareWixBookingCheckout(getWixMemberClient(), checkoutInput);
+  } catch (err) {
+    // Recover once when stale/revoked tab-scoped Wix tokens trigger 401/403 before checkout.
+    if (err instanceof WixBookingCheckoutClientError && (err.status === 401 || err.status === 403)) {
+      clearWixMemberSession();
+      notifyWixMemberSessionChanged();
+      prepared = await prepareWixBookingCheckout(getWixMemberClient(), checkoutInput);
+    } else {
+      throw err;
+    }
+  }
   return {
     inputKey: input.inputKey,
     cartId: prepared.cartId,
