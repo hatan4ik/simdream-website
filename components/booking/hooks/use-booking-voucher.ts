@@ -79,11 +79,21 @@ export function useBookingVoucher(args: UseBookingVoucherArgs) {
   // not carried into the newly-priced cart.
   useEffect(() => {
     if (!canUseWixNativeCheckout || !birthdayDiscountApplied || wixCheckoutCodeKind !== 'coupon') return;
+    const hadCouponInputOrApplied = Boolean(voucherCode.trim()) || Boolean(activeDraft?.couponId);
     setWixCheckoutCodeKind('gift-card');
     setVoucherCode('');
     setVoucherSuccess('');
-    setVoucherError(copy.wixBirthdayCouponNotCombinable);
-  }, [canUseWixNativeCheckout, birthdayDiscountApplied, wixCheckoutCodeKind, copy.wixBirthdayCouponNotCombinable]);
+    if (hadCouponInputOrApplied) {
+      setVoucherError(copy.wixBirthdayCouponNotCombinable);
+    }
+  }, [
+    canUseWixNativeCheckout,
+    birthdayDiscountApplied,
+    wixCheckoutCodeKind,
+    voucherCode,
+    activeDraft?.couponId,
+    copy.wixBirthdayCouponNotCombinable,
+  ]);
 
   useEffect(() => {
     try {
