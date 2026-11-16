@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.29.5](https://github.com/hatan4ik/simdream-website/compare/v1.29.4...v1.29.5) (2026-11-16)
+
+
+### Bug Fixes
+
+* **wix,booking:** surface checkout API errors, validate email format, and avoid false birthday coupon alert ([#240](https://github.com/hatan4ik/simdream-website/issues/240)) ([d4a7790](https://github.com/hatan4ik/simdream-website/commit/d4a7790052c06aa35195df4a1ad26852a83b7f19))
+
 ## [1.29.4](https://github.com/hatan4ik/simdream-website/compare/v1.29.3...v1.29.4) (2026-11-15)
 
 
