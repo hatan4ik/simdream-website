@@ -10,6 +10,15 @@
 
 ## Product changes by version
 
+### [v1.29.8](https://github.com/hatan4ik/simdream-website/releases/tag/v1.29.8) — 2026-11-16
+
+#### Bug Fixes
+
+- **booking,a11y:** keep focused and scrolled controls clear of sticky bars (#245) (1d849fd)
+- **booking,ci:** align chrome scroll offsets and eliminate release PR cancellation race (#248) (989a0f5)
+
+Deployment evidence: [GitHub Release](https://github.com/hatan4ik/simdream-website/releases/tag/v1.29.8).
+
 ### [v1.29.7](https://github.com/hatan4ik/simdream-website/releases/tag/v1.29.7) — 2026-11-16
 
 #### Bug Fixes
