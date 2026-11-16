@@ -32,6 +32,7 @@ export function ConsentCategoryRow({ title, description, kind, checked = false, 
             <input
               type="checkbox"
               role="switch"
+              {...({ switch: '' } as React.InputHTMLAttributes<HTMLInputElement>)}
               checked={checked}
               onChange={(event) => onChange?.(event.target.checked)}
               aria-label={title}

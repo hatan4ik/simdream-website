@@ -81,7 +81,7 @@ function releaseUrl(repository: string, version: string): string {
 }
 
 export function renderReleaseLedger(releases: ReleaseChange[], repository = DEFAULT_REPOSITORY): string {
-  const ordered = [...releases].sort((left, right) => compareVersionsDescending(left.version, right.version));
+  const ordered = releases.toSorted((left, right) => compareVersionsDescending(left.version, right.version));
   const releaseSections = ordered
     .map((release) => {
       const changes = release.sections

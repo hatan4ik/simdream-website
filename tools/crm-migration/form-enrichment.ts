@@ -122,7 +122,7 @@ export function applyFormAnswers(
   for (const [contactId, answers] of [...othersByContact.entries()].sort(([a], [b]) => a.localeCompare(b))) {
     const byName = new Map<string, Answer[]>();
     for (const answer of answers) {
-      const key = [...answer.tokens].sort().join(' ');
+      const key = answer.tokens.toSorted().join(' ');
       (byName.get(key) ?? byName.set(key, []).get(key)!).push(answer);
     }
     for (const [key, group] of [...byName.entries()].sort(([a], [b]) => a.localeCompare(b))) {

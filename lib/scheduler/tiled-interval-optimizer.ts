@@ -226,8 +226,8 @@ export function optimizeTiledCapacity(input: CapacityOptimizationInput): Capacit
 
   search(0, [], 0);
 
-  const recommendations = [...best.candidates]
-    .sort((a, b) => a.start - b.start)
+  const recommendations = best.candidates
+    .toSorted((a, b) => a.start - b.start)
     .map(({ start: _start, end: _end, ...recommendation }) => recommendation);
   const selectedRequestIds = new Set(recommendations.map((recommendation) => recommendation.requestId));
 

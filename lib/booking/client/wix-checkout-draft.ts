@@ -44,7 +44,7 @@ export function buildWixCheckoutDraftKey(inputs: WixCheckoutDraftInputs): string
     inputs.pilotPhone.trim(),
     inputs.notes.trim(),
     inputs.birthdayValue,
-    [...(inputs.addonIds ?? [])].sort().join(','),
+    (inputs.addonIds ?? []).toSorted().join(','),
     inputs.requestedRouteId ?? '',
   ].join('\u001f');
 }

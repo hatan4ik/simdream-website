@@ -14,7 +14,7 @@ export const BLOG_POSTS: readonly BlogPost[] = blogPostsData as BlogPost[];
 
 /** Returns all published blog posts in reverse-chronological order. */
 export function getAllBlogPosts(): readonly BlogPost[] {
-  return [...BLOG_POSTS].sort((a, b) => b.datePublished.localeCompare(a.datePublished));
+  return BLOG_POSTS.toSorted((a, b) => b.datePublished.localeCompare(a.datePublished));
 }
 
 /** Finds a blog post by its raw or URI-encoded slug. */
