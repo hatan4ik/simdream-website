@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.29.8](https://github.com/hatan4ik/simdream-website/compare/v1.29.7...v1.29.8) (2026-11-16)
+
+
+### Bug Fixes
+
+* **booking,a11y:** keep focused and scrolled controls clear of sticky bars ([#245](https://github.com/hatan4ik/simdream-website/issues/245)) ([1d849fd](https://github.com/hatan4ik/simdream-website/commit/1d849fd9255b29517ee699a6bc301dcfc7829101))
+
 ## [1.29.7](https://github.com/hatan4ik/simdream-website/compare/v1.29.6...v1.29.7) (2026-11-16)
 
 
