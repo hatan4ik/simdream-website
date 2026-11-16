@@ -10,6 +10,14 @@
 
 ## Product changes by version
 
+### [v1.29.9](https://github.com/hatan4ik/simdream-website/releases/tag/v1.29.9) — 2026-11-16
+
+#### Bug Fixes
+
+- **booking:** harden multi-addon scroll clearance, slot reconciliation, es translations, and CI guard (#250) (7a7d5cd)
+
+Deployment evidence: [GitHub Release](https://github.com/hatan4ik/simdream-website/releases/tag/v1.29.9).
+
 ### [v1.29.8](https://github.com/hatan4ik/simdream-website/releases/tag/v1.29.8) — 2026-11-16
 
 #### Bug Fixes
