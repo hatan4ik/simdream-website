@@ -448,14 +448,6 @@ html[data-ui="cockpit"]:is([data-cockpit-tone="cobalt"], [data-cockpit-tone="squ
   --tw-ring-offset-color: var(--cockpit-chrome) !important;
 }
 
-html[data-ui="cockpit"]:is([data-cockpit-tone="cobalt"], [data-cockpit-tone="squadron"])::-webkit-scrollbar-track {
-  background: var(--cockpit-canvas);
-}
-
-html[data-ui="cockpit"]:is([data-cockpit-tone="cobalt"], [data-cockpit-tone="squadron"])::-webkit-scrollbar-thumb {
-  background: var(--cockpit-border-strong);
-}
-
 /* Cobalt-Navy WCAG 2.1 AA contrast lifts (for #1B335E wells & translucent badges) */
 html[data-ui="cockpit"][data-cockpit-tone="cobalt"] .text-slate-400,
 html[data-ui="cockpit"][data-cockpit-tone="cobalt"] .text-slate-500,
@@ -1011,30 +1003,46 @@ html[data-ui="brand"] select:focus {
   outline: 2px solid rgba(26, 135, 180, 0.2) !important;
 }
 
-/* Smooth custom scrollbars */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-::-webkit-scrollbar-track {
-  background: #070b14;
-}
-::-webkit-scrollbar-thumb {
-  background: #1e293b;
-  border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #1a87b4;
+/* Smooth custom scrollbars (standard CSS Scrollbars Level 1 + legacy WebKit fallback) */
+html {
+  --scrollbar-thumb: #475569;
+  --scrollbar-track: #070b14;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
 
-html[data-ui="brand"] ::-webkit-scrollbar-track {
-  background: #f1f5f9 !important;
+html[data-ui="cockpit"]:is([data-cockpit-tone="cobalt"], [data-cockpit-tone="squadron"]) {
+  --scrollbar-thumb: var(--cockpit-border-strong);
+  --scrollbar-track: var(--cockpit-canvas);
 }
-html[data-ui="brand"] ::-webkit-scrollbar-thumb {
-  background: #cbd5e1 !important;
+
+html[data-ui="brand"] {
+  --scrollbar-thumb: #64748b;
+  --scrollbar-track: #f1f5f9;
 }
-html[data-ui="brand"] ::-webkit-scrollbar-thumb:hover {
-  background: #1a87b4 !important;
+
+@supports not (scrollbar-color: auto) {
+  html {
+    scrollbar-width: auto;
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #1a87b4;
+  }
 }
 
 /* ==========================================================================

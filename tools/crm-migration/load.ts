@@ -170,7 +170,7 @@ async function startLabelJob(http: WixHttp, name: string, key: string, ids: stri
     } catch (error) {
       if (!isLabelNotReady(error)) throw error;
       const pause = LABEL_NOT_READY_PAUSES_MS[attempt];
-      if (pause === undefined) throw new Error(`Wix still does not accept the new label "${name}" after ${attempt} retries: ${error.message}`);
+      if (pause === undefined) throw new Error(`Wix still does not accept the new label "${name}" after ${attempt} retries: ${error.message}`, { cause: error });
       await sleep(pause);
     }
   }
@@ -278,7 +278,7 @@ async function loadOrders(
   log: (message: string) => void,
   summary: LoadSummary,
 ): Promise<void> {
-  const todo = [...orders].sort(byPurchase).filter((order) => !state.orders[order.id]).slice(0, options.limit ?? Number.POSITIVE_INFINITY);
+  const todo = orders.toSorted(byPurchase).filter((order) => !state.orders[order.id]).slice(0, options.limit ?? Number.POSITIVE_INFINITY);
   let first = true;
   for (const [index, order] of todo.entries()) {
     const person = order.buyerInfo?.contactId ? contactToPerson[order.buyerInfo.contactId] : undefined;

@@ -135,7 +135,7 @@ export function sortNewestFirst<T extends { publishedAt: string; rating: number;
     const parsed = Date.parse(review.publishedAt);
     return Number.isFinite(parsed) ? parsed : 0;
   };
-  return [...reviews].sort((a, b) => time(b) - time(a) || b.rating - a.rating || b.characterCount - a.characterCount);
+  return reviews.toSorted((a, b) => time(b) - time(a) || b.rating - a.rating || b.characterCount - a.characterCount);
 }
 
 function placeDetailsUrl(key: string, params: Record<string, string>): string {

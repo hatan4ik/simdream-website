@@ -87,7 +87,7 @@ function hasNameConflict(members: readonly Facts[]): boolean {
 
 /** Survivor first: most orders, then a site member, then reachable by email, then most recently active, then oldest. */
 function rank(members: readonly Facts[]): Facts[] {
-  return [...members].sort((a, b) => {
+  return members.toSorted((a, b) => {
     if (a.orderCount !== b.orderCount) return b.orderCount - a.orderCount;
     const memberA = a.contact.memberInfo?.memberId ? 1 : 0;
     const memberB = b.contact.memberInfo?.memberId ? 1 : 0;

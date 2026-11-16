@@ -87,8 +87,15 @@ export default function ResetPasswordPage() {
 
         {ready && (
           <form onSubmit={submit} className="space-y-4">
+            <label htmlFor="new-password" className="sr-only">
+              {copy.newPasswordPlaceholder}
+            </label>
             <input
+              id="new-password"
+              name="new-password"
               type="password"
+              autoComplete="new-password"
+              enterKeyHint="next"
               required
               minLength={12}
               value={password}
@@ -96,8 +103,15 @@ export default function ResetPasswordPage() {
               placeholder={copy.newPasswordPlaceholder}
               className="w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2.5 text-sm text-white focus:outline-none focus:border-sky-500"
             />
+            <label htmlFor="confirm-password" className="sr-only">
+              {copy.confirmPasswordPlaceholder}
+            </label>
             <input
+              id="confirm-password"
+              name="confirm-password"
               type="password"
+              autoComplete="new-password"
+              enterKeyHint="done"
               required
               minLength={12}
               value={confirmPassword}
