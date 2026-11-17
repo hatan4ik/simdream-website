@@ -10,6 +10,14 @@
 
 ## Product changes by version
 
+### [v1.29.15](https://github.com/hatan4ik/simdream-website/releases/tag/v1.29.15) — 2026-11-17
+
+#### Bug Fixes
+
+- **theme:** follow the active theme for native UI and the Clean Studio scrollbar (#262) (13e49ea)
+
+Deployment evidence: [GitHub Release](https://github.com/hatan4ik/simdream-website/releases/tag/v1.29.15).
+
 ### [v1.29.14](https://github.com/hatan4ik/simdream-website/releases/tag/v1.29.14) — 2026-11-17
 
 #### Bug Fixes
