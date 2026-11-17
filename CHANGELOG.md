@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.29.17](https://github.com/hatan4ik/simdream-website/compare/v1.29.16...v1.29.17) (2026-11-17)
+
+
+### Bug Fixes
+
+* **wix:** reserve add-on time in Wix and offer the next session 15 minutes after a booking ([#269](https://github.com/hatan4ik/simdream-website/issues/269)) ([9998590](https://github.com/hatan4ik/simdream-website/commit/9998590d5990ca73ea3cb35897781a626af6b190))
+
 ## [1.29.16](https://github.com/hatan4ik/simdream-website/compare/v1.29.15...v1.29.16) (2026-11-17)
 
 
