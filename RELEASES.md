@@ -10,6 +10,14 @@
 
 ## Product changes by version
 
+### [v1.29.12](https://github.com/hatan4ik/simdream-website/releases/tag/v1.29.12) — 2026-11-17
+
+#### Bug Fixes
+
+- **booking,vouchers:** allow combining Wix Coupon and Gift Card + add /vouchers Gift Card & Coupon verification + staging suite (#256) (23f4fc2)
+
+Deployment evidence: [GitHub Release](https://github.com/hatan4ik/simdream-website/releases/tag/v1.29.12).
+
 ### [v1.29.11](https://github.com/hatan4ik/simdream-website/releases/tag/v1.29.11) — 2026-11-17
 
 #### Bug Fixes
