@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.29.13](https://github.com/hatan4ik/simdream-website/compare/v1.29.12...v1.29.13) (2026-11-17)
+
+
+### Bug Fixes
+
+* **vouchers,booking:** validate 100-OFF (100% off services) and 15-OFF (15% off) with active status and discount details ([#258](https://github.com/hatan4ik/simdream-website/issues/258)) ([9d02c68](https://github.com/hatan4ik/simdream-website/commit/9d02c68dbd96b762149e5380a4f631142d9d5677))
+
 ## [1.29.12](https://github.com/hatan4ik/simdream-website/compare/v1.29.11...v1.29.12) (2026-11-17)
 
 
