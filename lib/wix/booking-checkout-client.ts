@@ -89,6 +89,7 @@ export interface WixBookingCheckoutDraft {
 export interface WixAppliedCoupon {
   couponId: string;
   price: WixCartPrice;
+  percentageOff?: number;
 }
 
 /** A Wix-managed stored-value Gift Card applied to the visitor-owned cart. */
@@ -376,7 +377,14 @@ export async function applyWixCoupon(
   if (!couponId) throw new WixBookingCheckoutClientError('Wix could not apply this coupon.');
 
   const calculation = await calculateWixCart(client, cartId);
-  return { couponId, price: priceAfterCoupon(calculation, previousTotalIls) };
+  const tcCoupon =
+    calculation.cart?.tcAppliedDiscounts?.find((d) => d.coupon?.id === couponId)?.coupon ??
+    coupon.cart?.tcAppliedDiscounts?.find((d) => d.coupon?.id === couponId)?.coupon ??
+    calculation.cart?.tcAppliedDiscounts?.[0]?.coupon ??
+    coupon.cart?.tcAppliedDiscounts?.[0]?.coupon;
+  const pct = tcCoupon?.percentage ? Number(tcCoupon.percentage) : NaN;
+  const percentageOff = Number.isFinite(pct) && pct > 0 ? pct : undefined;
+  return { couponId, price: priceAfterCoupon(calculation, previousTotalIls), ...(percentageOff ? { percentageOff } : {}) };
 }
 
 /** Removes an applied coupon, then returns Wix's recalculated original total. */

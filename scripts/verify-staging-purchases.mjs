@@ -22,8 +22,8 @@ if (/simdream\.co\.il/i.test(BASE_URL)) {
   process.exit(2);
 }
 
-const COUPON_PRIMARY = 'OFF-100';
-const COUPON_STAGING_FALLBACK = '15-OFF';
+const COUPON_PRIMARY = '100-OFF';
+const COUPON_SECONDARY = '15-OFF';
 const GIFT_CARD_CODE = '8AQMJWNT1V5RK98D';
 
 const ADDON_COLD = 'Boeing 737 Cold & Dark Cockpit Startup';
@@ -219,8 +219,7 @@ async function submitAndWait(page) {
 }
 
 /**
- * Helper to apply Coupon (`OFF-100`, falling back to `15-OFF` if `OFF-100` is not yet configured in
- * the staging Wix dashboard) on the current booking form.
+ * Helper to apply Coupon (`100-OFF` = 100% off services or `15-OFF` = 15% off) on the current booking form.
  */
 async function applyCouponOnForm(page, preferredCode = COUPON_PRIMARY) {
   const selector = page.locator('[data-booking-code-type-selector]').first();
@@ -234,20 +233,7 @@ async function applyCouponOnForm(page, preferredCode = COUPON_PRIMARY) {
   const applyBtn = input.locator('..').locator('button').last();
 
   await input.fill(preferredCode);
-  const addCouponRespPromise = page
-    .waitForResponse((r) => r.url().includes('/add-coupon'), { timeout: 25_000 })
-    .catch(() => null);
   await applyBtn.click();
-  const addCouponResp = await addCouponRespPromise;
-
-  if (addCouponResp && addCouponResp.status() === 400 && preferredCode === COUPON_PRIMARY) {
-    // OFF-100 is not yet provisioned in SimDream-Staging's dashboard; verify the clean error alert,
-    // then apply staging's active 15-OFF coupon so the combined Coupon + Gift Card flow completes.
-    await page.locator('[role="alert"]').first().waitFor({ state: 'visible', timeout: 10_000 });
-    await input.fill(COUPON_STAGING_FALLBACK);
-    await applyBtn.click();
-  }
-
   await page.locator('[data-applied-code-kind="coupon"]').first().waitFor({ state: 'visible', timeout: 25_000 });
 }
 
@@ -272,7 +258,7 @@ async function applyGiftCardOnForm(page, giftCardCode = GIFT_CARD_CODE) {
 
 async function runCouponAndGiftCardSuite() {
   console.log('\n================================================================================');
-  console.log('SUITE 0: COUPON (OFF-100) + GIFT CARD (8AQMJWNT1V5RK98D) COMBINABILITY MATRIX');
+  console.log('SUITE 0: COUPON (100-OFF / 15-OFF) + GIFT CARD (8AQMJWNT1V5RK98D) COMBINABILITY MATRIX');
   console.log('================================================================================');
 
   const browser = await chromium.launch({ headless: true });
@@ -305,9 +291,9 @@ async function runCouponAndGiftCardSuite() {
     await context.close();
   }
 
-  // CG1: Guided Wizard — Apply Coupon (OFF-100 / 15-OFF) FIRST, verify Gift Card option stays visible, then apply Gift Card 8AQMJWNT1V5RK98D
+  // CG1: Guided Wizard — Apply Coupon 100-OFF (100% off service = -₪690) FIRST, verify Gift Card option stays visible, then apply Gift Card 8AQMJWNT1V5RK98D to cover the ₪650 add-ons
   await runCase(
-    'CG1. Guided Wizard (/en/book): Apply Coupon (OFF-100) -> Gift Card option stays visible -> Apply Gift Card (8AQMJWNT1V5RK98D) -> Checkout',
+    'CG1. Guided Wizard (/en/book): Apply Coupon (100-OFF = 100% off service) -> Gift Card option stays visible -> Apply Gift Card (8AQMJWNT1V5RK98D) -> Checkout',
     async (page) => {
       await page.goto(`${BASE_URL}/en/book?package=captains-command-60`, { waitUntil: 'domcontentloaded' });
       await waitReady(page);
@@ -322,27 +308,27 @@ async function runCouponAndGiftCardSuite() {
       });
 
       await applyCouponOnForm(page, COUPON_PRIMARY);
-      // Verify the Gift Card selector and input did NOT disappear after applying the coupon!
+      // Verify the Gift Card selector and input did NOT disappear after applying 100-OFF!
       const selectorVisible = await page.locator('[data-booking-code-type-selector]').first().isVisible();
       if (!selectorVisible) {
-        throw new Error('Code type selector disappeared after applying Coupon!');
+        throw new Error('Code type selector disappeared after applying Coupon 100-OFF!');
       }
 
       await applyGiftCardOnForm(page, GIFT_CARD_CODE);
-      // Verify BOTH applied badges (coupon + gift-card) are visible simultaneously!
-      const couponBadge = await page.locator('[data-applied-code-kind="coupon"]').isVisible();
+      // Verify BOTH applied badges (coupon 100-OFF + gift-card) are visible simultaneously!
+      const couponBadgeText = await page.locator('[data-applied-code-kind="coupon"]').innerText();
       const giftCardBadge = await page.locator('[data-applied-code-kind="gift-card"]').isVisible();
-      if (!couponBadge || !giftCardBadge) {
-        throw new Error(`Expected both coupon (${couponBadge}) and gift-card (${giftCardBadge}) badges to be visible`);
+      if (!couponBadgeText.includes('100-OFF') || !giftCardBadge) {
+        throw new Error(`Expected both 100-OFF (${couponBadgeText}) and gift-card (${giftCardBadge}) badges to be visible`);
       }
 
       await submitAndWait(page);
     }
   );
 
-  // CG2: Guided Wizard — Apply Gift Card (8AQMJWNT1V5RK98D) FIRST, verify Coupon option stays visible, then apply Coupon (OFF-100 / 15-OFF)
+  // CG2: Guided Wizard — Apply Gift Card (8AQMJWNT1V5RK98D) FIRST, verify Coupon option stays visible, then apply Coupon 15-OFF (15% off)
   await runCase(
-    'CG2. Guided Wizard (/book HE): Apply Gift Card (8AQMJWNT1V5RK98D) -> Coupon option stays visible -> Apply Coupon (OFF-100) -> Checkout',
+    'CG2. Guided Wizard (/book HE): Apply Gift Card (8AQMJWNT1V5RK98D) -> Coupon option stays visible -> Apply Coupon (15-OFF = 15% off) -> Checkout',
     async (page) => {
       await page.goto(`${BASE_URL}/book?package=captains-command-60`, { waitUntil: 'domcontentloaded' });
       await waitReady(page);
@@ -363,7 +349,7 @@ async function runCouponAndGiftCardSuite() {
         throw new Error('Code type selector disappeared after applying Gift Card!');
       }
 
-      await applyCouponOnForm(page, COUPON_PRIMARY);
+      await applyCouponOnForm(page, COUPON_SECONDARY);
       const couponBadge = await page.locator('[data-applied-code-kind="coupon"]').isVisible();
       const giftCardBadge = await page.locator('[data-applied-code-kind="gift-card"]').isVisible();
       if (!couponBadge || !giftCardBadge) {
@@ -374,16 +360,19 @@ async function runCouponAndGiftCardSuite() {
     }
   );
 
-  // CG3: Express Shop (1-Page) — Apply Coupon (OFF-100) + Gift Card (8AQMJWNT1V5RK98D) together
+  // CG3: Express Shop (1-Page) — Apply Coupon (100-OFF) + Gift Card (8AQMJWNT1V5RK98D) together
   await runCase(
-    'CG3. Express Shop (/en/book?view=storefront): Apply Coupon (OFF-100) + Gift Card (8AQMJWNT1V5RK98D) -> Checkout',
+    'CG3. Express Shop (/en/book): Apply Coupon (100-OFF = 100% off service) + Gift Card (8AQMJWNT1V5RK98D) -> Checkout',
     async (page) => {
-      await page.goto(`${BASE_URL}/en/book?package=captains-command-60&view=storefront`, {
+      await page.goto(`${BASE_URL}/en/book?package=captains-command-60`, {
         waitUntil: 'domcontentloaded',
       });
       await waitReady(page);
-      await page.locator('[data-addon-card="addon-cold-dark"] button').first().click();
+      await page.locator('[data-booking-view="storefront"]').click();
       await pickSlot(page, { index: 3 });
+      const addonCard = page.locator('[data-addon-card="addon-cold-dark"]');
+      await addonCard.scrollIntoViewIfNeeded();
+      await addonCard.locator('button').last().click();
 
       await fillPilotLangAgnostic(page, {
         email: 'nat-cg3@gmail.com',
@@ -431,24 +420,41 @@ async function runCouponAndGiftCardSuite() {
     }
   );
 
-  // CG5: /vouchers Bottom Balance & Code Verification Drawer — Verify Gift Card 8AQMJWNT1V5RK98D and Coupon 15-OFF
+  // CG5: /vouchers Bottom Balance & Code Verification Drawer — Verify Gift Card 8AQMJWNT1V5RK98D, Coupon 100-OFF (100% OFF), and Coupon 15-OFF (15% OFF)
   await runCase(
-    'CG5. /vouchers Bottom Verification Drawer: Verify Gift Card (8AQMJWNT1V5RK98D) balance & Coupon (15-OFF / OFF-100)',
+    'CG5. /vouchers Bottom Verification Drawer: Verify Gift Card (8AQMJWNT1V5RK98D), Coupon (100-OFF = 100% OFF), and Coupon (15-OFF = 15% OFF)',
     async (page) => {
       await page.goto(`${BASE_URL}/en/vouchers?check=1`, { waitUntil: 'domcontentloaded' });
       const drawer = page.locator('[data-voucher-balance-drawer]');
       await drawer.scrollIntoViewIfNeeded();
+      await page.waitForTimeout(800);
       const input = drawer.locator('#voucher-balance-code');
       if (!(await input.isVisible())) {
         await drawer.locator('button[aria-expanded]').click();
+        await input.waitFor({ state: 'visible', timeout: 10_000 });
       }
+
       await input.fill(GIFT_CARD_CODE);
       await drawer.locator('button[type="submit"]').click();
       await drawer.locator('[data-verified-voucher-kind="wix-gift-card"]').waitFor({ state: 'visible', timeout: 25_000 });
 
-      await input.fill(COUPON_STAGING_FALLBACK);
+      await input.fill(COUPON_PRIMARY);
       await drawer.locator('button[type="submit"]').click();
-      await drawer.locator('[data-verified-voucher-kind="wix-coupon"]').waitFor({ state: 'visible', timeout: 25_000 });
+      const c100 = drawer.locator('[data-verified-voucher-kind="wix-coupon"]');
+      await c100.waitFor({ state: 'visible', timeout: 25_000 });
+      const text100 = await c100.innerText();
+      if (!text100.includes('100-OFF') || !text100.includes('100% OFF')) {
+        throw new Error(`Expected 100-OFF to report 100% OFF on /vouchers, got: ${text100}`);
+      }
+
+      await input.fill(COUPON_SECONDARY);
+      await drawer.locator('button[type="submit"]').click();
+      await page.waitForTimeout(1000);
+      await c100.waitFor({ state: 'visible', timeout: 25_000 });
+      const text15 = await c100.innerText();
+      if (!text15.includes('15-OFF') || !text15.includes('15% OFF')) {
+        throw new Error(`Expected 15-OFF to report 15% OFF on /vouchers, got: ${text15}`);
+      }
     },
     { expectCheckout: false }
   );
@@ -465,7 +471,7 @@ async function runCouponAndGiftCardSuite() {
 export {
   BASE_URL,
   COUPON_PRIMARY,
-  COUPON_STAGING_FALLBACK,
+  COUPON_SECONDARY,
   GIFT_CARD_CODE,
   ADDON_COLD,
   ADDON_EU,

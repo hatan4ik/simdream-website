@@ -149,7 +149,9 @@ export function useBookingVoucher(args: UseBookingVoucherArgs) {
     }
     setVoucherSuccess(
       formatBookingTemplate(copy.wixCouponApplied, {
-        amount: formatCurrency(application.discountIls),
+        amount: application.percentageOff
+          ? `${application.percentageOff}% (${formatCurrency(application.discountIls)})`
+          : formatCurrency(application.discountIls),
         total: formatCurrency(application.totalIls),
       })
     );
@@ -318,6 +320,7 @@ export function useBookingVoucher(args: UseBookingVoucherArgs) {
     isCouponApplied,
     appliedCouponCode: activeDraft?.couponCode,
     appliedCouponDiscountIls: activeDraft?.couponDiscountIls ?? 0,
+    appliedCouponPercentageOff: activeDraft?.couponPercentageOff,
     isNativeGiftCardApplied,
     appliedGiftCardCode: activeDraft?.giftCardObfuscatedCode,
     appliedGiftCardCreditIls: activeDraft?.giftCardCreditIls ?? 0,

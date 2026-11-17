@@ -86,7 +86,10 @@ export function StorefrontVoucherBox({
               <div className="space-y-0.5">
                 <p className="text-xs font-mono font-bold text-emerald-400 flex items-center gap-1">
                   <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                  <span>{voucher.appliedCouponCode}</span>
+                  <span>
+                    {voucher.appliedCouponCode}
+                    {voucher.appliedCouponPercentageOff ? ` (${voucher.appliedCouponPercentageOff}% OFF)` : ''}
+                  </span>
                 </p>
                 <p className="text-[11px] font-mono text-emerald-300">
                   -{formatCurrency(voucher.appliedCouponDiscountIls)} ({t.booking.discountApplied})
