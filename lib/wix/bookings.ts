@@ -182,6 +182,11 @@ export interface AvailabilityWindow {
   toLocalDate: string;
   /** Asks Wix to return assignable physical resources for the selected service slot. */
   includeResourceTypeIds?: string[];
+  /**
+   * Native Wix Bookings add-on ids. Wix then returns each slot as long as the service
+   * plus every add-on's duration, so the slot is the whole operational period.
+   */
+  addOnIds?: readonly string[];
 }
 
 /** Bookable appointment slots for one service, as Wix computes them from staff hours. */
@@ -206,6 +211,8 @@ export async function listWixAvailability(window: AvailabilityWindow): Promise<{
       ...(window.includeResourceTypeIds?.length
         ? { includeResourceTypeIds: window.includeResourceTypeIds }
         : {}),
+      // Wix advises passing only `addOnIds` and omitting `durationInMinutes`: it adds the durations itself.
+      ...(window.addOnIds?.length ? { customerChoices: { addOnIds: window.addOnIds } } : {}),
       cursorPaging: { limit: 1000, ...(cursor ? { cursor } : {}) },
     });
     const parsed = listTimeSlotsResponse.parse(data);

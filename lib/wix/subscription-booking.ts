@@ -28,7 +28,8 @@ export async function resolveWixSubscriptionBookingCheckout(input: WixSubscripti
   timeZone: string;
 }> {
   try {
-    const checkout = await resolveWixBookingCheckout(input);
+    // Hosted subscription checkout books the base slot, so add-ons stay a preflight check here.
+    const checkout = await resolveWixBookingCheckout(input, { nativeAddOns: false });
     return { slotAvailability: checkout.slotAvailability, timeZone: checkout.timeZone };
   } catch (error) {
     if (error instanceof WixBookingUnavailableError) {
