@@ -10,6 +10,12 @@ import { listWixAvailability, listWixServices, wixResourceTypeIdsForService, typ
 import { isOnStrictWixGrid, strictWixGridSlots } from './booking-grid-policy';
 import { wixServiceIdFor } from './catalog';
 import { isWixConfigured, WIX_TIME_ZONE } from './config';
+import {
+  wixAvailabilityAddOnIds,
+  wixBookedAddOnsFor,
+  wixNativeAddonIdsFor,
+  type WixBookedAddOn,
+} from './native-addons';
 
 const startTimeSchema = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/);
 
@@ -32,6 +38,7 @@ export interface WixBookingLocation {
 }
 
 export interface WixBookingCheckoutSlot {
+  /** The slot to book. With duration add-ons it already spans the whole mission, as Wix calculated it. */
   slotAvailability: WixTimeSlot;
   timeZone: string;
   location: WixBookingLocation;
@@ -39,6 +46,20 @@ export interface WixBookingCheckoutSlot {
     online: boolean;
     inPerson: boolean;
   };
+  /** Sent as `bookedAddOns` on Create Booking, so Wix records the add-ons on the booking itself. */
+  bookedAddOns: WixBookedAddOn[];
+  /** Sent as `customerChoices.addOnIds` when Wix revalidates the slot (duration add-ons only). */
+  availabilityAddOnIds: string[];
+  /** SimDream add-on ids Wix books natively; the cart must not add their Stores product again. */
+  nativeAddonIds: string[];
+}
+
+export interface ResolveWixBookingCheckoutOptions {
+  /**
+   * Book add-ons as native Wix Bookings add-ons (default). A subscription redemption opens Wix's
+   * hosted checkout with the base slot only, so it keeps the preflight check and passes `false`.
+   */
+  nativeAddOns?: boolean;
 }
 
 export class WixBookingUnavailableError extends Error {}
@@ -54,6 +75,15 @@ function packageDuration(packageId: string): number {
   const pkg = SIMULATOR_PACKAGES.find((candidate) => candidate.id === packageId);
   if (!pkg) throw new Error(`No SimDream package maps to Wix booking package ${packageId}.`);
   return pkg.durationMinutes;
+}
+
+function localDateTimeMs(localDateTime: string): number {
+  const withSeconds = /T\d{2}:\d{2}$/.test(localDateTime) ? `${localDateTime}:00` : localDateTime;
+  return Date.parse(`${withSeconds}Z`);
+}
+
+function slotMinutes(slot: WixTimeSlot): number {
+  return Math.round((localDateTimeMs(slot.localEndDate) - localDateTimeMs(slot.localStartDate)) / 60_000);
 }
 
 function matchesLocalStart(slot: WixTimeSlot, bookingDate: string, startTime: string): boolean {
@@ -75,8 +105,12 @@ function wixLocationForCheckout(service: Awaited<ReturnType<typeof listWixServic
  * Booking and cart creation remain in the browser's own Wix visitor session so guests,
  * members, native coupons, and Wix order ownership all stay attached to one identity.
  */
-export async function resolveWixBookingCheckout(input: WixBookingCheckoutInput): Promise<WixBookingCheckoutSlot> {
+export async function resolveWixBookingCheckout(
+  input: WixBookingCheckoutInput,
+  options: ResolveWixBookingCheckoutOptions = {}
+): Promise<WixBookingCheckoutSlot> {
   if (!isWixConfigured()) throw new Error('Wix Bookings is not configured.');
+  const useNativeAddOns = options.nativeAddOns !== false;
 
   const durationMinutes = packageDuration(input.packageId);
   const requiredMissionMinutes = computeRequiredMissionMinutes(durationMinutes, input.addonIds ?? [], FLIGHT_ADDONS);
@@ -94,16 +128,23 @@ export async function resolveWixBookingCheckout(input: WixBookingCheckoutInput):
   const location = wixLocationForCheckout(service);
   if (!location) throw new Error(`Wix service ${serviceId} has no supported bookable location.`);
 
-  const extendedTier = extendedWixDurationTier(requiredMissionMinutes, durationMinutes);
-  const [availability, strictGrid, extendedSlots] = await Promise.all([
-    listWixAvailability({
-      serviceId,
-      fromLocalDate: `${input.bookingDate}T00:00:00`,
-      toLocalDate: `${input.bookingDate}T23:59:59`,
-      includeResourceTypeIds: wixResourceTypeIdsForService(service),
-    }),
+  const bookedAddOns = useNativeAddOns ? wixBookedAddOnsFor(input.packageId, input.addonIds) : [];
+  const availabilityAddOnIds = useNativeAddOns ? wixAvailabilityAddOnIds(input.packageId, input.addonIds) : [];
+  const nativeAddonIds = useNativeAddOns ? wixNativeAddonIdsFor(input.packageId, input.addonIds) : [];
+  const resourceTypeIds = wixResourceTypeIdsForService(service);
+  const dayWindow = { serviceId, fromLocalDate: `${input.bookingDate}T00:00:00`, toLocalDate: `${input.bookingDate}T23:59:59` };
+
+  // With native duration add-ons Wix itself lengthens the slot, so that one query replaces the
+  // fixed-tier preflight probe, which is kept only for flows that book the base slot.
+  const extendedTier =
+    availabilityAddOnIds.length > 0 ? null : extendedWixDurationTier(requiredMissionMinutes, durationMinutes);
+  const [availability, strictGrid, extendedSlots, nativeExtended] = await Promise.all([
+    listWixAvailability({ ...dayWindow, includeResourceTypeIds: resourceTypeIds }),
     Promise.resolve(closeDepartedSlots(strictWixGridSlots(input.packageId, input.bookingDate), new Date())),
     extendedTier ? listWixBookableSlotsForDuration(input.bookingDate, extendedTier) : Promise.resolve(null),
+    availabilityAddOnIds.length > 0
+      ? listWixAvailability({ ...dayWindow, includeResourceTypeIds: resourceTypeIds, addOnIds: availabilityAddOnIds })
+      : Promise.resolve(null),
   ]);
 
   const intersectedGrid = intersectKantorovichSlotsWithWix(strictGrid, availability.timeSlots);
@@ -128,8 +169,30 @@ export async function resolveWixBookingCheckout(input: WixBookingCheckoutInput):
     }
   }
 
+  let slotAvailability = wixSlot;
+  if (nativeExtended) {
+    const extendedWixSlot = nativeExtended.timeSlots.find(
+      (slot) => slot.bookable !== false && matchesLocalStart(slot, input.bookingDate, input.startTime)
+    );
+    if (!extendedWixSlot) {
+      throw new WixBookingUnavailableError('The requested Wix booking slot cannot accommodate the selected add-on duration.');
+    }
+    // The registry and the Wix add-ons both own minutes. If they disagree, booking either figure would
+    // mis-block the simulator, so refuse and let the mismatch surface instead of guessing.
+    const wixMinutes = slotMinutes(extendedWixSlot);
+    if (wixMinutes !== requiredMissionMinutes) {
+      throw new Error(
+        `Wix add-on duration mismatch for ${input.packageId}: Wix books ${wixMinutes} minutes, SimDream expects ${requiredMissionMinutes}.`
+      );
+    }
+    slotAvailability = extendedWixSlot;
+  }
+
   return {
-    slotAvailability: wixSlot,
+    slotAvailability,
+    bookedAddOns,
+    availabilityAddOnIds,
+    nativeAddonIds,
     timeZone: availability.timeZone || WIX_TIME_ZONE,
     location,
     paymentOptions: {

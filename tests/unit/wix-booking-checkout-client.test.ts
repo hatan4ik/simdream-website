@@ -802,3 +802,82 @@ describe('Wix native booking checkout client', () => {
     errorSpy.mockRestore();
   });
 });
+
+describe('Wix native booking checkout with native add-ons', () => {
+  const COLD_DARK_WIX_ID = '3f25e6d1-1c6b-4f6a-825e-10daf5603a02';
+  const MISSION_GROUP_ID = 'eda87110-b97d-4381-95af-0f703a463a3f';
+  const EXTENDED_SLOT = { ...CANDIDATE.slotAvailability, localEndDate: '2026-11-09T11:20:00' };
+
+  function recordingClient(): { client: WixBrowserClient; calls: Array<{ url: string; body: any }> } {
+    const calls: Array<{ url: string; body: any }> = [];
+    const client: WixBrowserClient = {
+      fetchWithAuth: async (input, init) => {
+        const url = String(input);
+        calls.push({ url, body: init?.body ? JSON.parse(String(init.body)) : null });
+        if (url.endsWith('/time-slots/get')) return response({ timeSlot: { bookable: true, scheduleId: 'schedule-id' } });
+        if (url.endsWith('/bookings')) return response({ booking: { id: 'booking-1' } });
+        if (url.endsWith('/carts')) return response({ cart: { id: 'cart-1' } });
+        if (url.endsWith('/carts/cart-1')) return response({ cart: { id: 'cart-1' } });
+        if (url.endsWith('/checkouts/cart-1')) return response({ checkout: { id: 'cart-1' } });
+        if (url.endsWith('/carts/cart-1/calculate')) return calculation('0', '890.00');
+        throw new Error(`Unexpected URL ${url}`);
+      },
+    };
+    return { client, calls };
+  }
+
+  const baseInput = {
+    ...CANDIDATE,
+    pilotName: 'Avi Cohen',
+    pilotEmail: 'avi@example.com',
+    pilotPhone: '0501234567',
+  };
+
+  it('revalidates the extended slot with the add-ons, then books the full period with bookedAddOns', async () => {
+    const { client, calls } = recordingClient();
+
+    await prepareWixBookingCheckout(client, {
+      ...baseInput,
+      slotAvailability: EXTENDED_SLOT,
+      addonIds: ['addon-cold-dark'],
+      bookedAddOns: [{ id: COLD_DARK_WIX_ID, groupId: MISSION_GROUP_ID }],
+      availabilityAddOnIds: [COLD_DARK_WIX_ID],
+      nativeAddonIds: ['addon-cold-dark'],
+    });
+
+    const revalidation = calls.find((call) => call.url.endsWith('/time-slots/get'));
+    expect(revalidation?.body).toMatchObject({
+      localEndDate: '2026-11-09T11:20:00',
+      customerChoices: { addOnIds: [COLD_DARK_WIX_ID] },
+    });
+    const booking = calls.find((call) => call.url.endsWith('/bookings'))?.body.booking;
+    expect(booking.bookedAddOns).toEqual([{ id: COLD_DARK_WIX_ID, groupId: MISSION_GROUP_ID }]);
+    expect(booking.bookedEntity.slot.endDate).toBe('2026-11-09T09:20:00.000Z');
+  });
+
+  it('does not add the Stores product of an add-on Wix now books natively, so it is charged once', async () => {
+    const { client, calls } = recordingClient();
+
+    await prepareWixBookingCheckout(client, {
+      ...baseInput,
+      slotAvailability: EXTENDED_SLOT,
+      addonIds: ['addon-cold-dark', 'addon-extra-seat'],
+      bookedAddOns: [{ id: COLD_DARK_WIX_ID, groupId: MISSION_GROUP_ID }],
+      availabilityAddOnIds: [COLD_DARK_WIX_ID],
+      nativeAddonIds: ['addon-cold-dark'],
+    });
+
+    const cart = calls.find((call) => call.url.endsWith('/ecom/v2/carts'))?.body;
+    const catalogItemIds = cart.catalogItems.map((item: any) => item.catalogReference.catalogItemId);
+    expect(catalogItemIds).toEqual(['booking-1', WIX_ADDON_PRODUCT_IDS['addon-extra-seat']]);
+  });
+
+  it('sends no customerChoices and no bookedAddOns when the booking has no native add-ons', async () => {
+    const { client, calls } = recordingClient();
+
+    await prepareWixBookingCheckout(client, baseInput);
+
+    expect(calls.find((call) => call.url.endsWith('/time-slots/get'))?.body.customerChoices).toBeUndefined();
+    expect(calls.find((call) => call.url.endsWith('/bookings'))?.body.booking.bookedAddOns).toBeUndefined();
+  });
+});
