@@ -54,7 +54,9 @@ export function PilotManifestForm({
           </label>
           <input
             id={`${formId}-pilot-name`}
+            name="pilotName"
             type="text"
+            autoComplete="name"
             required={!isWixSubscriptionRedemption}
             value={pilotName}
             onChange={(e) => setPilotName(e.target.value)}
@@ -69,7 +71,12 @@ export function PilotManifestForm({
           </label>
           <input
             id={`${formId}-pilot-email`}
+            name="pilotEmail"
             type="email"
+            autoComplete="email"
+            autoCorrect="off"
+            autoCapitalize="off"
+            spellCheck={false}
             required={!isWixSubscriptionRedemption}
             value={pilotEmail}
             onChange={(e) => setPilotEmail(e.target.value)}
@@ -84,7 +91,9 @@ export function PilotManifestForm({
           </label>
           <input
             id={`${formId}-pilot-phone`}
+            name="pilotPhone"
             type="tel"
+            autoComplete="tel"
             required={!isWixSubscriptionRedemption}
             value={pilotPhone}
             onChange={(e) => setPilotPhone(e.target.value)}

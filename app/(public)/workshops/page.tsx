@@ -216,7 +216,9 @@ export default function WorkshopsPage() {
                   <Building2 className="w-4 h-4 text-slate-500 absolute left-3 rtl:left-auto rtl:right-3 top-3.5" />
                   <input
                     id={`${fieldId}-company`}
+                    name="companyName"
                     type="text"
+                    autoComplete="organization"
                     required
                     value={formData.companyName}
                     onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
@@ -232,7 +234,9 @@ export default function WorkshopsPage() {
                 </label>
                 <input
                   id={`${fieldId}-contact`}
+                  name="contactName"
                   type="text"
+                  autoComplete="name"
                   required
                   value={formData.contactName}
                   onChange={(e) => {
@@ -253,7 +257,12 @@ export default function WorkshopsPage() {
                   <Mail className="w-4 h-4 text-slate-500 absolute left-3 rtl:left-auto rtl:right-3 top-3.5" />
                   <input
                     id={`${fieldId}-email`}
+                    name="email"
                     type="email"
+                    autoComplete="email"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    spellCheck={false}
                     required
                     value={formData.email}
                     onChange={(e) => {
@@ -275,7 +284,9 @@ export default function WorkshopsPage() {
                   <Phone className="w-4 h-4 text-slate-500 absolute left-3 rtl:left-auto rtl:right-3 top-3.5" />
                   <input
                     id={`${fieldId}-phone`}
+                    name="phone"
                     type="tel"
+                    autoComplete="tel"
                     required
                     value={formData.phone}
                     onChange={(e) => {
