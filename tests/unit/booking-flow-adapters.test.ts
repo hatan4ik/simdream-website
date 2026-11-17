@@ -360,6 +360,29 @@ describe('Wix checkout cart operations', () => {
       giftCardCreditIls: undefined,
     });
 
+    wix.removeWixGiftCard.mockResolvedValue({ totalIls: 400 });
+    const clearedGiftCardWithCoupon = await removeAppliedCodeFromDraft({
+      ...DRAFT,
+      codeKind: 'gift-card',
+      couponId: 'c1',
+      couponCode: 'OFF-100',
+      couponDiscountIls: 100,
+      giftCardId: 'g1',
+      giftCardObfuscatedCode: '****K98D',
+      giftCardCreditIls: 400,
+    }, 'gift-card');
+    expect(clearedGiftCardWithCoupon.codeKind).toBe('coupon');
+
+    wix.removeWixCoupon.mockResolvedValue({ totalIls: 500 });
+    const clearedOnlyCoupon = await removeAppliedCodeFromDraft({
+      ...DRAFT,
+      codeKind: 'coupon',
+      couponId: 'c1',
+      couponCode: 'OFF-100',
+      couponDiscountIls: 100,
+    });
+    expect(clearedOnlyCoupon.codeKind).toBeUndefined();
+
     wix.removeWixCoupon.mockResolvedValue({ totalIls: 500 });
     const clearedCoupon = await removeAppliedCodeFromDraft({
       ...DRAFT,

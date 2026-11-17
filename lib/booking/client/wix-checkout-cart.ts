@@ -99,9 +99,7 @@ export async function applyCouponToDraft(draft: WixCheckoutDraftState, code: str
       draft: {
         ...draft,
         totalIls: originalPrice.totalIls,
-        ...(originalPrice.giftCardAppliedIls !== undefined
-          ? { giftCardCreditIls: originalPrice.giftCardAppliedIls }
-          : {}),
+        giftCardCreditIls: originalPrice.giftCardAppliedIls ?? draft.giftCardCreditIls,
       },
     };
   }
@@ -114,9 +112,7 @@ export async function applyCouponToDraft(draft: WixCheckoutDraftState, code: str
       couponId: applied.couponId,
       couponCode: code,
       couponDiscountIls: applied.price.discountIls,
-      ...(applied.price.giftCardAppliedIls !== undefined
-        ? { giftCardCreditIls: applied.price.giftCardAppliedIls }
-        : {}),
+      giftCardCreditIls: applied.price.giftCardAppliedIls ?? draft.giftCardCreditIls,
       totalIls: applied.price.totalIls,
     },
     discountIls: applied.price.discountIls,
@@ -173,9 +169,7 @@ export async function removeAppliedCodeFromDraft(
     couponId: undefined,
     couponCode: undefined,
     couponDiscountIls: undefined,
-    ...(draft.giftCardId && price.giftCardAppliedIls !== undefined
-      ? { giftCardCreditIls: price.giftCardAppliedIls }
-      : {}),
+    giftCardCreditIls: price.giftCardAppliedIls ?? draft.giftCardCreditIls,
   };
 }
 
