@@ -10,6 +10,14 @@
 
 ## Product changes by version
 
+### [v1.29.14](https://github.com/hatan4ik/simdream-website/releases/tag/v1.29.14) — 2026-11-17
+
+#### Bug Fixes
+
+- **forms:** announce name, email and phone to browser autofill (#261) (905efec)
+
+Deployment evidence: [GitHub Release](https://github.com/hatan4ik/simdream-website/releases/tag/v1.29.14).
+
 ### [v1.29.13](https://github.com/hatan4ik/simdream-website/releases/tag/v1.29.13) — 2026-11-17
 
 #### Bug Fixes
