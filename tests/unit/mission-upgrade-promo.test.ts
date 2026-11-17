@@ -4,13 +4,18 @@ import { getLocalizedAddons, getLocalizedPackages, type Language } from '@/lib/i
 import { getUpgradePromoCopy, resolveAddonToggle } from '@/lib/booking/client';
 import { getKantorovichPricing, timeToMinutes } from '@/lib/scheduler/kantorovich-engine';
 import { calculateMissionManifest, pruneAddonsExceedingSlot } from '@/lib/scheduler/mission-calculator';
+import { getPackageFormulaBadge } from '@/lib/scheduler/package-presentation';
 import {
   GRAND_120_ANCHOR_ILS,
   GRAND_120_PACKAGE_ID,
   GRAND_120_PRICE_ILS,
   MAX_MISSION_ADDONS,
+  computeEffectiveMissionDuration,
+  countSelectedMissionAddons,
+  isMissionAddonCapReached,
   previewAddonUpgrade,
   resolveMissionUpgradePromo,
+  resolveUpgradedDurationMinutes,
 } from '@/lib/scheduler/mission-upgrade-promo';
 
 const ALL_LANGUAGES: Language[] = ['he', 'en', 'ru', 'fr', 'ar', 'es', 'de'];
@@ -272,8 +277,90 @@ describe('7-language copy friction removal & promo copy completeness', () => {
     const copy = getUpgradePromoCopy(lang);
     expect(copy.promoUpgradeBadge(90).trim().length).toBeGreaterThan(0);
     expect(copy.percentOffTierBadge(15, 120).trim().length).toBeGreaterThan(0);
+    expect(copy.saveAmount('₪212').trim().length).toBeGreaterThan(0);
     expect(copy.maxUpgradesReached.trim().length).toBeGreaterThan(0);
     expect(copy.includedInPromo.trim().length).toBeGreaterThan(0);
+    expect(copy.promoUpgradedTitle(90).trim().length).toBeGreaterThan(0);
     expect(copy.grandOdysseyBanner(15).trim().length).toBeGreaterThan(0);
+    expect(copy.promoBundledNote(1, 90).trim().length).toBeGreaterThan(0);
+    expect(copy.promoBundledNote(2, 120).trim().length).toBeGreaterThan(0);
+    expect(copy.promoFooterBadge(90, 5).trim().length).toBeGreaterThan(0);
+    expect(copy.promoFooterBadge(120, 15).trim().length).toBeGreaterThan(0);
+    expect(copy.storefrontAddonsSubtitle.trim().length).toBeGreaterThan(0);
+  });
+
+  it('covers edge branches across upgrade promo engine, addon toggle, and fallback copy', () => {
+    // Fallback language & 120m formula badge
+    expect(getUpgradePromoCopy('unknown' as Language).includedInPromo).toBe('Included');
+    expect(getPackageFormulaBadge(120, 'recreational', 'en').text).toContain('2-Hour');
+    expect(getPackageFormulaBadge(120, 'recreational', 'es').text).toContain('2 horas');
+
+    // Duplicate & unknown add-on ids are ignored cleanly
+    expect(countSelectedMissionAddons(['addon-cold-dark', 'addon-cold-dark', 'missing-id'], FLIGHT_ADDONS)).toBe(1);
+    expect(isMissionAddonCapReached(['addon-cold-dark'], FLIGHT_ADDONS)).toBe(false);
+    expect(isMissionAddonCapReached(['addon-cold-dark', 'addon-xwind-ifr'], FLIGHT_ADDONS)).toBe(true);
+
+    // Duration ladder & additive fallback for non-recreational
+    expect(resolveUpgradedDurationMinutes(60, 0)).toBe(60);
+    expect(resolveUpgradedDurationMinutes(30, 1)).toBe(60);
+    expect(resolveUpgradedDurationMinutes(45, 1)).toBe(90);
+    expect(resolveUpgradedDurationMinutes(90, 1)).toBe(120);
+    expect(resolveUpgradedDurationMinutes(30, 2)).toBe(120);
+    expect(computeEffectiveMissionDuration(60, ['addon-cold-dark'], FLIGHT_ADDONS, 'recreational')).toBe(90);
+    expect(computeEffectiveMissionDuration(60, ['addon-cold-dark', 'missing'], FLIGHT_ADDONS, 'training')).toBe(90);
+
+    // Non-recreational package with prime-time & add-ons stays non-promo
+    const trainingPromo = resolveMissionUpgradePromo({
+      pkg: { ...pkgById('pkg-pro-60'), primeTimePriceIls: 1050 },
+      isPrimeTime: true,
+      selectedAddonIds: ['addon-cold-dark', 'addon-cold-dark', 'missing-id'],
+      availableAddons: FLIGHT_ADDONS,
+    });
+    expect(trainingPromo.isPromoActive).toBe(false);
+    expect(trainingPromo.promoSubtotalIls).toBe(1050 + 200);
+
+    // Preview when already checked & when slot cannot fit upgraded duration
+    const checkedPreview = previewAddonUpgrade({
+      pkg: pkgById('pkg-captain-60'),
+      selectedAddonIds: ['addon-cold-dark'],
+      candidateAddon: addonById('addon-cold-dark'),
+      availableAddons: FLIGHT_ADDONS,
+      maxSlotMinutes: 60,
+    });
+    expect(checkedPreview.isChecked).toBe(true);
+    expect(checkedPreview.fitsSlot).toBe(true);
+
+    const tightSlotPreview = previewAddonUpgrade({
+      pkg: pkgById('pkg-captain-60'),
+      selectedAddonIds: [],
+      candidateAddon: addonById('addon-cold-dark'),
+      availableAddons: FLIGHT_ADDONS,
+      maxSlotMinutes: 60,
+    });
+    expect(tightSlotPreview.fitsSlot).toBe(false);
+
+    // resolveAddonToggle: recreational no-fit and removing an existing addon
+    expect(
+      resolveAddonToggle({
+        addonId: 'addon-cold-dark',
+        selectedAddonIds: [],
+        addons: FLIGHT_ADDONS,
+        baseDurationMinutes: 60,
+        packageCategory: 'recreational',
+        totalDurationMinutes: 60,
+        maxSlotMinutes: 60,
+      })
+    ).toEqual({ kind: 'no-fit' });
+    expect(
+      resolveAddonToggle({
+        addonId: 'addon-cold-dark',
+        selectedAddonIds: ['addon-cold-dark'],
+        addons: FLIGHT_ADDONS,
+        baseDurationMinutes: 60,
+        packageCategory: 'recreational',
+        totalDurationMinutes: 90,
+        maxSlotMinutes: 90,
+      })
+    ).toEqual({ kind: 'set', ids: [] });
   });
 });

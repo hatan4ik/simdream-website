@@ -571,6 +571,27 @@ describe('POST /api/checkout: catalogue and schedule rules', () => {
     expect(app.checkoutSessions).toHaveLength(0);
   });
 
+  it('rejects more than two mission add-ons with 400 while allowing Extra Seat alongside two mission upgrades', async () => {
+    const app = await loadApp({ stripe: 'mocked' });
+    const slot = await findSlotWhere(app, DAY, 120, (candidate) => candidate.available, 'open');
+
+    const tooMany = await postCheckout(
+      app,
+      bookingCheckoutBody({
+        packageId: 'pkg-captain-60',
+        bookingDate: DAY,
+        startTime: slot.startTime,
+        addons: ['addon-cold-dark', 'addon-xwind-ifr', 'addon-classical-eu'],
+      })
+    );
+
+    expect(tooMany.status).toBe(400);
+    expect(expectContract(errorBody, tooMany.body).error).toBe(
+      'You can select at most 2 mission upgrades per flight session.'
+    );
+    expect(app.checkoutSessions).toHaveLength(0);
+  });
+
   it('prices a duplicated add-on only once', async () => {
     const app = await loadApp({ stripe: 'mocked' });
     const slot = await findSlotWhere(app, DAY, 30, (candidate) => candidate.available, 'open');

@@ -112,7 +112,7 @@ export function AddonsStep({
               ) : null}
               {selectedSlot && (
                 <span className="text-slate-400" dir="ltr">
-                  • {selectedSlot.startTime}–{effectiveEndTime}
+                  {' '}• {selectedSlot.startTime}–{effectiveEndTime}
                 </span>
               )}
             </div>
