@@ -324,7 +324,7 @@ flowchart TD
 
     subgraph Stage1["1. Static & Fast Unit Verification (Vitest)"]
         Typecheck["TypeScript Strict Check<br/>(tsc --noEmit)"]
-        UnitTests["Vitest Unit Projects (53 Suites, 1460+ Tests)<br/>- Scheduling math & mission manifests<br/>- i18n key parity & unicode purity<br/>- Member auth ownership contracts<br/>- Wix catalog & plans resolution"]
+        UnitTests["Vitest Projects (167 Suites, 3,400+ Tests)<br/>- Scheduling math & mission manifests<br/>- i18n key parity & unicode purity<br/>- Member auth ownership contracts<br/>- Wix catalog & plans resolution"]
     end
 
     subgraph Stage2["2. Build & Artifact Verification"]
