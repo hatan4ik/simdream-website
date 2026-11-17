@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS public.refund_requests (
   order_date DATE,
   package_title TEXT CHECK (package_title IS NULL OR length(package_title) <= 200),
   message TEXT CHECK (message IS NULL OR length(message) <= 1000),
-  language TEXT NOT NULL CHECK (language IN ('he', 'en', 'ru', 'fr', 'ar', 'es')),
+  language TEXT NOT NULL CHECK (language IN ('he', 'en', 'ru', 'fr', 'ar', 'es', 'de')),
   priority TEXT NOT NULL CHECK (priority IN ('urgent', 'high', 'normal', 'low')),
   evaluation JSONB NOT NULL,
   submitted_at TIMESTAMPTZ NOT NULL DEFAULT now(),
