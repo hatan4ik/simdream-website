@@ -43,7 +43,7 @@ When `WIX_AVAILABILITY_ADAPTER_ENABLED=true`, Wix is the appointment authority a
 | Customer contact | Persistent WhatsApp action | `components/layout/WhatsAppAction.tsx` | Builds the official WhatsApp destination | No | Built; Wix AI Site-Chat/SmartChat is not in the frontend, dependencies or smoke tooling |
 | Package catalogue | Flight durations, prices, add-ons and PRO tiers | Shows registry values | Validates IDs and calculates mission | Maps eligible packages to Wix services/products | Built; Wix mappings need live reconciliation |
 | Calendar | Week/month picker and open departure slots | Yes | Applies opening hours, turnaround and zero-waste rules | Supplies live bookable availability in Wix mode | Built; Wix live availability needs staging proof |
-| Recreational add-ons | Route, mission and cockpit choices | Yes | Prevents illegal/over-capacity selections | Adds mapped products to a Wix Cart | Code built; requires mapped Wix products |
+| Recreational add-ons | Route, mission and cockpit choices | Yes | Prevents illegal/over-capacity selections | Books native Wix Bookings add-ons (`bookedAddOns`) on a Wix-extended slot; priced by Wix as booking modifiers | Built; staging booking verified; production services need the same add-on groups |
 | Booking checkout | “Secure checkout” handoff | Starts Wix visitor session/cart or legacy redirect | Revalidates slot and blocks unsafe path | Creates native Booking, Cart and hosted checkout | Code built; successful paid Wix E2E test still needed |
 | Card payment | Hosted payment page | Redirect only | Legacy Stripe session/webhook handling | Wix payment provider/hosted checkout | Configuration-dependent |
 | Gift certificate/card | Voucher purchase and balance check | Gift selection UI | Legacy voucher validation/redemption | Native Wix Gift Card checkout in Wix mode | Both paths exist; choose one per deployment |
@@ -88,7 +88,7 @@ The success page is never proof of payment. In legacy mode, the Stripe webhook i
 | Wix area | Repository bridge | What it does |
 | --- | --- | --- |
 | Headless site configuration | `wix.config.json`, `lib/wix/config.ts` | Targets the **SimDream-Staging** headless metasite `317b0c6d-6608-499a-bb3c-b1c37650e460`. This repo must not write to the live Editor site. |
-| Service catalogue mapping | `lib/wix/catalog.ts` | Maps SimDream packages to Wix Bookings service IDs, and add-ons to Wix Stores products. |
+| Service catalogue mapping | `lib/wix/catalog.ts` | Maps SimDream packages to Wix Bookings service IDs; `lib/wix/native-addons.ts` maps add-ons to native Wix Bookings add-on and group IDs (Stores products only for an add-on with no native mapping). |
 | Live availability | `lib/wix/bookings.ts`, `lib/wix/availability-adapter.ts` | Reads Wix slot availability, then intersects it with the local safety scheduler. |
 | Native booking/cart | `lib/wix/booking-checkout*.ts`, `lib/wix/booking-cart-create.ts` | Validates selection, creates a visitor-owned booking/cart and opens Wix hosted checkout. |
 | Members | `lib/wix/member-*.ts` | Handles member identity and displays that member's Wix Calendar appointments. |
@@ -101,7 +101,7 @@ The success page is never proof of payment. In legacy mode, the Stripe webhook i
 
 | Required action | Why it matters |
 | --- | --- |
-| Create/publish all Booking services and add-on Store products with the exact mappings | Cart add-ons and package selection cannot work against missing or unpublished Wix records. |
+| Create/publish all Booking services and their native add-on groups with the exact mappings | Add-on booking and package selection cannot work against missing or unpublished Wix records. |
 | Turn on Wix Cart and configure a real payment provider | Native cart code cannot collect a payment until Wix itself is configured to do so. |
 | Configure Bookings business/staff calendar and test slot creation | This is how Wix knows capacity and prevents real-life conflicts. |
 | Configure Wix Members and member-area permissions | Enables reliable identity and customer-specific history. |

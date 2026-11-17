@@ -9,6 +9,8 @@ import {
 } from '@/lib/scheduler/kantorovich-engine';
 import { wixServiceIdFor } from './catalog';
 import { listWixAvailability, type WixTimeSlot } from './bookings';
+import { isWixBirthdayPricingProviderEnabled } from './birthday-pricing-config';
+import { wixBlockedBookings } from './wix-blocked-bookings';
 
 const AVAILABILITY_PACKAGE_BY_DURATION: Readonly<Record<number, string>> = {
   30: 'pkg-discovery-30',
@@ -98,6 +100,12 @@ export async function getWixBackedKantorovichSlots(
   wixTimeSlots?: readonly WixTimeSlot[]
 ): Promise<FlightSlot[]> {
   const resolvedWixTimeSlots = wixTimeSlots ?? (await listWixBookableSlotsForDuration(date, durationMinutes));
-  const generated = closeDepartedSlots(generateKantorovichSlots(date, durationMinutes, []), new Date());
-  return intersectKantorovichSlotsWithWix(generated, resolvedWixTimeSlots);
+  // The Bookings Pricing provider accepts only fixed-grid starts, so while it is active nothing else may be
+  // offered. Otherwise the engine re-anchors on the bookings Wix reports and sells any gap a customer can use.
+  // A day with nothing booked stays exactly the fixed grid.
+  const blocked = isWixBirthdayPricingProviderEnabled()
+    ? []
+    : wixBlockedBookings(date, durationMinutes, resolvedWixTimeSlots.flatMap((slot) => wixSlotStartTime(slot.localStartDate) ?? []));
+  const generated = generateKantorovichSlots(date, durationMinutes, blocked, { minSellableGaps: blocked.length > 0 });
+  return intersectKantorovichSlotsWithWix(closeDepartedSlots(generated, new Date()), resolvedWixTimeSlots);
 }

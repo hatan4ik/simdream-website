@@ -36,7 +36,7 @@ const SIZE_ALLOWLIST: Readonly<Record<string, number>> = {
   // Ground School inquiries (#114) landed on main after this ratchet was written (+78 lines of class methods).
   // They move out with the store split planned in docs/MODULARITY.md; then lower this number.
   'lib/db/store.ts': 999,
-  'lib/scheduler/kantorovich-engine.ts': 781,
+  'lib/scheduler/kantorovich-engine.ts': 750,
   'lib/wix/backend-blueprint.ts': 732,
   'app/admin/page.tsx': 553,
   'app/(public)/subscriptions/page.tsx': 492,

@@ -14,6 +14,7 @@ import {
   type WixCheckoutUrlResponse,
 } from './cart-v2-shared';
 import { wixAddonProductIdFor } from './catalog';
+import { wixBookedAddOnsField, wixCartAddonIds, wixCustomerChoicesField, type WixNativeAddOnFields } from './native-addons';
 import {
   normalizeWixEmail,
   normalizeWixPhone,
@@ -45,7 +46,7 @@ export interface WixNativeCheckoutLocation {
   locationType: 'BUSINESS' | 'CUSTOMER' | 'CUSTOM';
 }
 
-export interface WixNativeCheckoutCandidate {
+export interface WixNativeCheckoutCandidate extends WixNativeAddOnFields {
   slotAvailability: WixNativeCheckoutSlot;
   timeZone: string;
   location: WixNativeCheckoutLocation;
@@ -283,6 +284,7 @@ export async function prepareWixBookingCheckout(
     localEndDate: slot.localEndDate,
     timeZone: input.timeZone,
     location: input.location,
+    ...wixCustomerChoicesField(input),
   });
   const liveSlot = revalidated.timeSlot;
   if (!liveSlot?.bookable || !liveSlot.scheduleId) {
@@ -322,6 +324,7 @@ export async function prepareWixBookingCheckout(
       },
       totalParticipants: 1,
       selectedPaymentOption: paymentOption(input.paymentOptions),
+      ...wixBookedAddOnsField(input),
       ...wixBirthdayPricingAdditionalFields(input.birthdayPricingClaim, customerInfo),
     },
     ...(input.birthdayPricingClaim ? {} : { formSubmission }),
@@ -330,7 +333,8 @@ export async function prepareWixBookingCheckout(
   const bookingId = booking.booking?.id;
   if (!bookingId) throw new WixBookingCheckoutClientError('Wix did not create the flight reservation. Please try again.');
 
-  const cartId = await createWixCartForBooking(client, bookingId, input.addonIds);
+  const cartAddonIds = wixCartAddonIds(input.addonIds, input);
+  const cartId = await createWixCartForBooking(client, bookingId, cartAddonIds);
 
   // The booking form and the cart are separate Wix business objects. Without
   // this Cart V2 update, the hosted checkout cannot inherit the already
@@ -340,7 +344,7 @@ export async function prepareWixBookingCheckout(
     birthDate: input.pilotBirthDate,
   });
 
-  const hasShippableAddon = (input.addonIds ?? []).some((addonId) => wixAddonProductIdFor(addonId) !== null);
+  const hasShippableAddon = cartAddonIds.some((addonId) => wixAddonProductIdFor(addonId) !== null);
   if (hasShippableAddon) {
     await patchWixCheckoutShippingContact((req, init) => client.fetchWithAuth(req, init), cartId, {
       firstName: customerInfo.firstName,

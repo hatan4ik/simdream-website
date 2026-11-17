@@ -6,7 +6,6 @@ import { toPublicCapacityReport } from '@/lib/scheduler/kantorovich-engine';
 import { isoDate } from '@/lib/validation';
 import {
   getWixBackedKantorovichSlots,
-  intersectKantorovichSlotsWithWix,
   isWixAvailabilityAdapterEnabled,
   listWixBookableSlotsForDuration,
 } from '@/lib/wix';
@@ -23,22 +22,18 @@ function availabilitySummary(slots: Awaited<ReturnType<typeof store.getAvailable
 }
 
 async function getWixAdaptedSlots(date: string, duration: number) {
-  const [wixResult, localResult] = await Promise.allSettled([
-    listWixBookableSlotsForDuration(date, duration),
-    store.getAvailableSlots(date, duration),
-  ]);
-
-  if (wixResult.status === 'fulfilled' && localResult.status === 'fulfilled') {
-    return intersectKantorovichSlotsWithWix(localResult.value, wixResult.value);
+  // Wix owns the bookings in this mode, so its answer decides; the engine re-anchors on what Wix reports.
+  // The local calendar is only a fallback while Wix cannot be reached.
+  try {
+    const wixSlots = await listWixBookableSlotsForDuration(date, duration);
+    return await getWixBackedKantorovichSlots(date, duration, wixSlots);
+  } catch (wixError) {
+    try {
+      return await store.getAvailableSlots(date, duration);
+    } catch {
+      throw wixError;
+    }
   }
-
-  if (wixResult.status === 'fulfilled') {
-    return getWixBackedKantorovichSlots(date, duration, wixResult.value);
-  }
-
-  if (localResult.status === 'fulfilled') return localResult.value;
-
-  throw wixResult.reason instanceof Error ? wixResult.reason : localResult.reason;
 }
 
 async function getWixAdaptedResponse(date: string, duration: number, includeEfficiency: boolean) {
