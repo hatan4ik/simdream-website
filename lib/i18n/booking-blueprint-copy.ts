@@ -12,6 +12,7 @@ export interface BookingBlueprintCopy {
   worldTitle: string;
   world60: string;
   world90: string;
+  world120: string;
   worldPro: string;
   worldBasic: string;
   observersTitle: string;
@@ -38,6 +39,7 @@ export const BOOKING_BLUEPRINT_COPY: LocalizedRecord<BookingBlueprintCopy> = {
     worldTitle: 'World routes and scenarios:',
     world60: 'Includes a Takeoff & Landing exercise and one World Trio theme of your choice: three iconic airports, Mediterranean islands, or the Innsbruck Alps.',
     world90: 'Includes a Takeoff & Landing exercise, up to two World Trio themes (4–6 international landings), and a Cold & Dark start or V1 engine-out scenario. Two pilots can take turns.',
+    world120: 'Full 2-hour flagship odyssey combining Takeoff & Landing with up to two World Trio themes or Cold & Dark startup and IFR storm approaches. Ideal for one Captain or two pilots sharing controls.',
     worldPro: 'Raw-data manual flying (FD OFF), steep 45° turns, V1-cut engine failure, single-engine ILS, and QRH checklist drills.',
     worldBasic: 'A focused takeoff-and-landing session at one international airport, such as Ben Gurion (LLBG).',
     observersTitle: 'Cockpit observers:',
@@ -61,6 +63,7 @@ export const BOOKING_BLUEPRINT_COPY: LocalizedRecord<BookingBlueprintCopy> = {
     worldTitle: 'מסלולים ותרחישים בעולם:',
     world60: 'כולל תרגול המראה ונחיתה ושלישיית שדות תעופה עולמית אחת לבחירתכם: שלושה שדות איקוניים, איי הים התיכון או האלפים באינסברוק.',
     world90: 'כולל תרגול המראה ונחיתה, עד שתי שלישיות עולמיות (4–6 נחיתות בינלאומיות) ובחירה בין התנעת Cold & Dark לתרחיש כשל מנוע V1. שני טייסים יכולים לחלוק את ההגאים.',
+    world120: 'משימת דגל של שעתיים המשלבת המראה ונחיתה עם עד שתי שלישיות עולמיות או התנעת Cold & Dark וגישות מכשירים בסערה. אידאלי לקברניט יחיד או לשני טייסים מתחלפים.',
     worldPro: 'הטסה ידנית ללא Flight Director (Raw Data), פניות 45°, תרגול כשל מנוע V1 Cut, גישת ILS במנוע בודד ונוהלי QRH.',
     worldBasic: 'סשן ממוקד של המראה ונחיתה בשדה תעופה בינלאומי אחד, כגון נתב״ג (LLBG).',
     observersTitle: 'מלווים בקוקפיט:',
@@ -84,6 +87,7 @@ export const BOOKING_BLUEPRINT_COPY: LocalizedRecord<BookingBlueprintCopy> = {
     worldTitle: 'Мировые маршруты и сценарии:',
     world60: 'Включает упражнение «Взлёт и посадка» и одну тему World Trio на выбор: три знаковых аэропорта, средиземноморские острова или Альпы Инсбрука.',
     world90: 'Включает «Взлёт и посадка», до двух тем World Trio (4–6 международных посадок) и запуск Cold & Dark или отказ двигателя на V1. Два пилота могут меняться у штурвала.',
+    world120: 'Флагманская 2-часовая одиссея: взлёт и посадка, до двух тем World Trio или запуск Cold & Dark и штормовые заходы IFR. Идеально для одного пилота или двоих участников.',
     worldPro: 'Ручное пилотирование Raw Data (FD OFF), виражи 45°, отказ двигателя V1 Cut, заход ILS на одном двигателе и работа по QRH.',
     worldBasic: 'Сфокусированная сессия взлёта и посадки в одном международном аэропорту, например Бен-Гурион (LLBG).',
     observersTitle: 'Наблюдатели в кабине:',
@@ -107,6 +111,7 @@ export const BOOKING_BLUEPRINT_COPY: LocalizedRecord<BookingBlueprintCopy> = {
     worldTitle: 'Routes et scénarios du monde :',
     world60: 'Comprend un exercice décollage et atterrissage et un thème World Trio au choix : trois aéroports emblématiques, les îles méditerranéennes ou les Alpes d’Innsbruck.',
     world90: 'Comprend un exercice décollage et atterrissage, jusqu’à deux thèmes World Trio (4 à 6 atterrissages internationaux), et un démarrage Cold & Dark ou une panne moteur à V1. Deux pilotes peuvent alterner.',
+    world120: 'Odyssée phare de 2 heures combinant décollage et atterrissage avec jusqu’à deux thèmes World Trio ou démarrage Cold & Dark et approches IFR en tempête. Idéal pour un ou deux pilotes.',
     worldPro: 'Pilotage manuel Raw Data (FD OFF), virages à 45°, panne moteur V1 Cut, ILS monomoteur et exercices de checklist QRH.',
     worldBasic: 'Une session ciblée de décollage et atterrissage sur un seul aéroport international, tel que Ben Gourion (LLBG).',
     observersTitle: 'Accompagnateurs dans le cockpit :',
@@ -130,6 +135,7 @@ export const BOOKING_BLUEPRINT_COPY: LocalizedRecord<BookingBlueprintCopy> = {
     worldTitle: 'المسارات والسيناريوهات العالمية:',
     world60: 'يتضمن تمرين الإقلاع والهبوط وموضوع World Trio واحداً من اختيارك: ثلاثة مطارات بارزة أو جزر المتوسط أو جبال الألب في إنسبروك.',
     world90: 'يتضمن تمرين الإقلاع والهبوط وما يصل إلى موضوعين من World Trio (4–6 عمليات هبوط دولية) وتشغيل Cold & Dark أو سيناريو عطل محرك عند V1. يمكن لطيارين تبادل التحكم.',
+    world120: 'ملحمة رائدة لمدة ساعتين تجمع بين الإقلاع والهبوط وما يصل إلى باقتين من World Trio أو تشغيل Cold & Dark واقترابات العواصف الآلية. مثالية لقبطان واحد أو طيارين.',
     worldPro: 'طيران يدوي كامل Raw Data (FD OFF)، وانعطافات حادة 45°، وعطل محرك V1 Cut، واقتراب ILS بمحرك واحد، وتدريبات قائمة QRH.',
     worldBasic: 'جلسة مركزة للإقلاع والهبوط في مطار دولي واحد، مثل بن غوريون (LLBG).',
     observersTitle: 'مرافقون في قمرة القيادة:',
@@ -156,6 +162,8 @@ export const BOOKING_BLUEPRINT_COPY: LocalizedRecord<BookingBlueprintCopy> = {
       'Enthält das Start- & Landetraining sowie 1 World-Trio-Thema Ihrer Wahl: drei legendäre Flughäfen, Mittelmeerinseln oder die Alpen in Innsbruck.',
     world90:
       'Enthält das Start- & Landetraining sowie bis zu 2 World-Trio-Themen (4–6 internationale Landungen) plus Cold & Dark Startup oder V1-Triebwerksausfall. Zwei Piloten können sich am Steuer abwechseln.',
+    world120:
+      'Unsere 2-Stunden-Flaggschiff-Odyssee: Start & Landung kombiniert mit bis zu 2 World-Trio-Themen oder Cold-&-Dark-Start und IFR-Sturmanflügen. Ideal für einen oder zwei Piloten.',
     worldPro:
       'Komplettes manuelles Fliegen nach Raw Data (FD OFF), 45°-Steilkurven, V1-Cut-Triebwerksausfall, Einmotoren-ILS-Anflug und QRH-Checklistenarbeit.',
     worldBasic: 'Fokussierte Start- und Landesession an einem internationalen Flughafen wie Ben Gurion (LLBG).',
@@ -169,5 +177,29 @@ export const BOOKING_BLUEPRINT_COPY: LocalizedRecord<BookingBlueprintCopy> = {
     closeBtn: 'Details schließen',
     closeDialogLabel: 'Paketdetails schließen',
     selectBtn: (price) => `Dieses Paket wählen (${price})`,
+  },
+  es: {
+    whatIncludedBtn: 'Ver qué incluye',
+    badge: 'PLAN DE VUELO OFICIAL • CONTENIDO DE LA SESIÓN',
+    missionArch: 'Tu misión en cabina, paso a paso',
+    duration: (minutes) => `Sesión de vuelo de ${minutes} minutos`,
+    handsOnPic: 'Al mando como piloto comandante:',
+    handsOnDesc: (minutes) => `${minutes} minutos en el asiento del capitán o copiloto con respuesta real de los mandos en una cabina auténtica.`,
+    takeoffTitle: 'Bases de despegue y aterrizaje:',
+    takeoffDesc: 'Despegue guiado, navegación en ascenso, circuito visual y aterrizaje manual.',
+    worldTitle: 'Rutas mundiales y escenarios:',
+    world60: 'Incluye ejercicio de despegue y aterrizaje y un tema World Trio a tu elección: tres aeropuertos emblemáticos, islas del Mediterráneo o los Alpes de Innsbruck.',
+    world90: 'Incluye ejercicio de despegue y aterrizaje, hasta dos temas World Trio (4–6 aterrizajes internacionales) y arranque Cold & Dark o fallo de motor en V1. Dos pilotos pueden alternarse.',
+    world120: 'Nuestra odisea insignia de 2 horas: despegue y aterrizaje con hasta dos temas World Trio o arranque Cold & Dark y aproximaciones IFR en tormenta. Ideal para uno o dos pilotos.',
+    worldPro: 'Vuelo manual Raw Data (FD OFF), virajes de 45°, fallo de motor V1 Cut, ILS monomotor y listas de comprobación QRH.',
+    worldBasic: 'Una sesión enfocada en despegue y aterrizaje en un aeropuerto internacional como Ben Gurión (LLBG).',
+    observersTitle: 'Acompañantes en cabina:',
+    observersDesc: 'Hasta 2 acompañantes pueden sentarse en los asientos de cabina sin coste adicional. Fotos y vídeo bienvenidos.',
+    guidanceTitle: 'Guía de un piloto de aerolínea:',
+    guidanceDesc: 'Briefing individual previo y acompañamiento activo en cabina por un piloto comercial.',
+    highlightsTitle: 'Lo que incluye el paquete',
+    closeBtn: 'Cerrar detalles',
+    closeDialogLabel: 'Cerrar detalles del paquete',
+    selectBtn: (price) => `Elegir este paquete (${price})`,
   },
 };

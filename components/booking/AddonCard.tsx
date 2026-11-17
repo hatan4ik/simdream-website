@@ -1,7 +1,8 @@
 'use client';
 
 import type { FlightAddon } from '@/types';
-import { formatBookingTemplate } from '@/lib/booking/client';
+import type { AddonUpgradePreview } from '@/lib/scheduler/mission-upgrade-promo';
+import { formatBookingTemplate, getUpgradePromoCopy } from '@/lib/booking/client';
 import { formatCurrency } from '@/lib/utils';
 import { useLanguage } from '@/lib/i18n/language-context';
 
@@ -12,23 +13,48 @@ interface AddonCardProps {
   isChecked: boolean;
   /** Adding it would overflow the selected departure's continuous window. */
   exceedsSlotWindow: boolean;
+  /** True when 2 mission add-ons are already selected and this is an unselected 3rd mission add-on. */
+  maxUpgradesReached?: boolean;
+  /** Promotional tier upgrade preview computed by `previewAddonUpgrade`. */
+  upgradePreview?: AddonUpgradePreview;
+  /** True when an active promotional tier bump-up bundles this checked mission add-on. */
+  isBundledInActivePromo?: boolean;
   maxSlotMinutes: number;
   /** Start time of the selected departure, for the "does not fit" message. */
   startTime: string;
   onToggle: () => void;
 }
 
-/** One cockpit upgrade: its name, price and minutes, and a checkbox that is the real control. */
-export function AddonCard({ formId, addon, isChecked, exceedsSlotWindow, maxSlotMinutes, startTime, onToggle }: AddonCardProps) {
-  const { t } = useLanguage();
+/** One cockpit upgrade: its name, price and minutes, promotional upgrade callout, and checkbox. */
+export function AddonCard({
+  formId,
+  addon,
+  isChecked,
+  exceedsSlotWindow,
+  maxUpgradesReached = false,
+  upgradePreview,
+  isBundledInActivePromo = false,
+  maxSlotMinutes,
+  startTime,
+  onToggle,
+}: AddonCardProps) {
+  const { t, language } = useLanguage();
+  const promoCopy = getUpgradePromoCopy(language);
   const addonMin = addon.durationMinutes || 0;
   const isMissionModule = addonMin > 0;
+  const isDisabled = exceedsSlotWindow || maxUpgradesReached;
+  const showPromoCallout =
+    !isChecked &&
+    !isDisabled &&
+    isMissionModule &&
+    Boolean(upgradePreview?.previewPromo.isPromoActive && upgradePreview.previewPromo.savingsIls > 0);
+  const promo = upgradePreview?.previewPromo;
 
   return (
     <div
-      onClick={() => !exceedsSlotWindow && onToggle()}
+      onClick={() => !isDisabled && onToggle()}
       className={`scroll-mb-56 p-5 rounded-xl border transition-all flex flex-col justify-between ${
-        exceedsSlotWindow
+        isDisabled
           ? 'border-slate-800/50 bg-slate-950/40 cursor-not-allowed'
           : isChecked
           ? 'border-sky-400 bg-sky-500/10 shadow-glow cursor-pointer'
@@ -48,16 +74,46 @@ export function AddonCard({ formId, addon, isChecked, exceedsSlotWindow, maxSlot
                 +{addonMin} {t.booking.minutesShort}
               </span>
             )}
-            <span className="text-sm font-mono font-black text-emerald-400 px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20">
-              +{formatCurrency(addon.priceIls)}
-            </span>
+            {isChecked && isBundledInActivePromo ? (
+              <span className="text-xs font-mono font-black text-emerald-400 px-2 py-0.5 rounded-md bg-emerald-500/15 border border-emerald-500/30">
+                {promoCopy.includedInPromo}
+              </span>
+            ) : (
+              <span className="text-sm font-mono font-black text-emerald-400 px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20">
+                +{formatCurrency(addon.priceIls)}
+              </span>
+            )}
           </div>
         </div>
         <p className="text-xs text-slate-300 leading-relaxed">{addon.description}</p>
+        {showPromoCallout && promo && (
+          <div
+            data-addon-promo-callout={addon.id}
+            className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1.5 text-[11px] font-mono"
+          >
+            <span className="font-bold text-emerald-400">
+              {promo.discountPercent >= 15
+                ? promoCopy.percentOffTierBadge(promo.discountPercent, promo.effectiveDurationMinutes)
+                : promoCopy.promoUpgradeBadge(promo.effectiveDurationMinutes)}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="line-through text-slate-400">
+                {formatCurrency(promo.strikeOutAnchorSubtotalIls)}
+              </span>
+              <span className="font-black text-emerald-400">
+                {formatCurrency(promo.promoSubtotalIls)}
+              </span>
+            </span>
+          </div>
+        )}
       </div>
 
-      <div className="pt-4 mt-2 border-t border-slate-800/70 flex items-center justify-between text-xs font-mono">
-        {exceedsSlotWindow ? (
+      <div className="pt-4 mt-2 border-t border-slate-800/70 flex items-center justify-between gap-2 text-xs font-mono">
+        {maxUpgradesReached ? (
+          <span className="text-amber-300 text-[11px] leading-snug">
+            {promoCopy.maxUpgradesReached}
+          </span>
+        ) : exceedsSlotWindow ? (
           <span className="text-amber-400 text-[11px]">
             {formatBookingTemplate(t.booking.addonDoesNotFit, {
               minutes: addonMin,
@@ -77,11 +133,8 @@ export function AddonCard({ formId, addon, isChecked, exceedsSlotWindow, maxSlot
           type="checkbox"
           aria-labelledby={`${formId}-addon-${addon.id}-name`}
           checked={isChecked}
-          disabled={exceedsSlotWindow}
-          // The checkbox is the real control (keyboard, switch access, screen readers). The
-          // card's onClick remains for pointer users; stopping propagation here keeps one toggle.
-          // Deliberately not a <label htmlFor>: a forwarded label click plus the card click would toggle twice.
-          onChange={() => !exceedsSlotWindow && onToggle()}
+          disabled={isDisabled}
+          onChange={() => !isDisabled && onToggle()}
           onClick={(event) => event.stopPropagation()}
           className="scroll-mb-56 relative z-10 size-5 shrink-0 cursor-pointer accent-sky-500 rounded border-slate-700 text-sky-500 focus:ring-sky-400 disabled:opacity-40"
         />

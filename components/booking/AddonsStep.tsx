@@ -1,9 +1,10 @@
 'use client';
 
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import type { FlightAddon, FlightSlot, MissionManifestCalculation } from '@/types';
+import type { FlightAddon, FlightSlot, MissionManifestCalculation, SimulatorPackage } from '@/types';
 import { Button } from '@/components/ui/Button';
-import { formatBookingTemplate } from '@/lib/booking/client';
+import { formatBookingTemplate, getUpgradePromoCopy } from '@/lib/booking/client';
+import { previewAddonUpgrade } from '@/lib/scheduler/mission-upgrade-promo';
 import { formatCurrency } from '@/lib/utils';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { AddonCard } from './AddonCard';
@@ -11,6 +12,7 @@ import { AddonCard } from './AddonCard';
 interface AddonsStepProps {
   /** Unique prefix for element ids (the page's `useId()`). */
   formId: string;
+  activePackage: SimulatorPackage;
   addons: FlightAddon[];
   selectedAddonIds: string[];
   selectedSlot: FlightSlot | null;
@@ -23,6 +25,7 @@ interface AddonsStepProps {
 /** STEP 2: flight add-ons. Skipped in noise-free PRO and Fear of Flying sessions. */
 export function AddonsStep({
   formId,
+  activePackage,
   addons,
   selectedAddonIds,
   selectedSlot,
@@ -31,7 +34,8 @@ export function AddonsStep({
   onBack,
   onContinue,
 }: AddonsStepProps) {
-  const { t, isRTL } = useLanguage();
+  const { t, language, isRTL } = useLanguage();
+  const promoCopy = getUpgradePromoCopy(language);
   const {
     baseDurationMinutes: baseDuration,
     addonsDurationMinutes: addonsDuration,
@@ -39,6 +43,7 @@ export function AddonsStep({
     effectiveEndTime,
     maxAvailableMinutes: maxSlotMinutes,
     subtotalIls: subtotal,
+    upgradePromo,
   } = manifest;
 
   return (
@@ -52,10 +57,19 @@ export function AddonsStep({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {addons.map((addon) => {
-          const isChecked = selectedAddonIds.includes(addon.id);
-          const addonMin = addon.durationMinutes || 0;
-          const exceedsSlotWindow =
-            !isChecked && addonMin > 0 && totalDurationMinutes + addonMin > maxSlotMinutes;
+          const preview = previewAddonUpgrade({
+            pkg: activePackage,
+            isPrimeTime: selectedSlot?.isPrimeTime,
+            selectedAddonIds,
+            candidateAddon: addon,
+            availableAddons: addons,
+            maxSlotMinutes,
+          });
+          const isChecked = preview.isChecked;
+          const exceedsSlotWindow = !isChecked && !preview.fitsSlot;
+          const isBundledInActivePromo = Boolean(
+            upgradePromo?.isPromoActive && upgradePromo.bundledMissionAddonIds.includes(addon.id)
+          );
 
           return (
             <AddonCard
@@ -64,6 +78,9 @@ export function AddonsStep({
               addon={addon}
               isChecked={isChecked}
               exceedsSlotWindow={exceedsSlotWindow}
+              maxUpgradesReached={preview.wouldExceedCap}
+              upgradePreview={preview}
+              isBundledInActivePromo={isBundledInActivePromo}
               maxSlotMinutes={maxSlotMinutes}
               startTime={selectedSlot?.startTime ?? ''}
               onToggle={() => onToggleAddon(addon.id)}
@@ -80,23 +97,34 @@ export function AddonsStep({
 
         <div className="flex items-center gap-4">
           <div className="text-right rtl:text-left">
-            <div className="text-[11px] font-mono text-slate-300">
+            <div className="text-[11px] font-mono text-slate-300 flex flex-wrap items-center justify-end gap-1.5">
               <span className="text-sky-400 font-bold">
                 {totalDurationMinutes} {t.booking.minutesShort}
               </span>
-              {addonsDuration > 0 && (
-                <span className="text-slate-400">
-                  {' '}({formatBookingTemplate(t.booking.baseAndAddons, { base: baseDuration, addons: addonsDuration })})
+              {upgradePromo?.isPromoActive ? (
+                <span className="px-1.5 py-0.5 rounded bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold">
+                  {promoCopy.promoFooterBadge(upgradePromo.effectiveDurationMinutes, upgradePromo.discountPercent)}
                 </span>
-              )}
+              ) : addonsDuration > 0 ? (
+                <span className="text-slate-400">
+                  ({formatBookingTemplate(t.booking.baseAndAddons, { base: baseDuration, addons: addonsDuration })})
+                </span>
+              ) : null}
               {selectedSlot && (
                 <span className="text-slate-400" dir="ltr">
-                  {' '}• {selectedSlot.startTime}–{effectiveEndTime}
+                  • {selectedSlot.startTime}–{effectiveEndTime}
                 </span>
               )}
             </div>
-            <div className="text-sm sm:text-base font-mono font-black text-emerald-400">
-              {formatCurrency(subtotal)}
+            <div className="flex items-baseline justify-end gap-2 font-mono">
+              {upgradePromo?.isPromoActive && upgradePromo.savingsIls > 0 && (
+                <span className="text-xs line-through text-slate-400">
+                  {formatCurrency(upgradePromo.strikeOutAnchorSubtotalIls)}
+                </span>
+              )}
+              <span className="text-sm sm:text-base font-black text-emerald-400">
+                {formatCurrency(subtotal)}
+              </span>
             </div>
           </div>
 

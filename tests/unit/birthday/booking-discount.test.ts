@@ -44,11 +44,11 @@ describe('resolveBookingBirthday: arithmetic', () => {
     expect(resolveBookingBirthday(base({ subtotalIls }))).toMatchObject({ discountIls: 141, totalIls: 799 });
   });
 
-  it('prices the Saturday prime-time subtotal it is given, not the list price', () => {
-    const subtotalIls = pkg('pkg-ultimate-90').primeTimePriceIls!; // 950
+  it('prices the subtotal it is given, not just the base package price', () => {
+    const subtotalIls = pkg('pkg-ultimate-90').priceIls + 90; // 940 (90m + Extra Seat)
     expect(resolveBookingBirthday(base({ packageId: 'pkg-ultimate-90', subtotalIls }))).toMatchObject({
-      discountIls: 143, // 142.5 rounds half up
-      totalIls: 807,
+      discountIls: 141,
+      totalIls: 799,
     });
   });
 });

@@ -316,10 +316,11 @@ describe('POST /api/checkout: the birthday discount', () => {
       app,
       DAY,
       60,
-      (candidate) => candidate.available && (candidate.maxAvailableMinutes ?? 0) >= 75,
-      'an open slot with room for the add-on'
+      (candidate) => candidate.available && (candidate.maxAvailableMinutes ?? 0) >= 90,
+      'an open slot with room for the 90m promo upgrade'
     );
-    const subtotal = slot.dynamicPriceIls + 250;
+    // Captain 60 + X-Wind/IFR bumps up to the 90m promotional tier (₪850).
+    const subtotal = 850;
 
     const response = await postCheckout(
       app,

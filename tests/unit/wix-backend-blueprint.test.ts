@@ -20,7 +20,7 @@ function makeAlignedLiveState(): {
   giftCardProducts: WixGiftCardProduct[];
 } {
   const services: WixService[] = WIX_BACKEND_BLUEPRINT.bookingsServices.map((spec) => ({
-    id: spec.expectedServiceId,
+    id: spec.expectedServiceId || `live-${spec.packageId}`,
     name: spec.title,
     type: 'APPOINTMENT',
     hidden: false,
@@ -88,11 +88,11 @@ function makeAlignedLiveState(): {
 }
 
 describe('Wix-as-Code Backend Blueprint & Multi-Lock Provisioning Protection', () => {
-  it('codifies all 9 Bookings services, 6 Pricing Plans, and 17 Gift Card preset variants', () => {
+  it('codifies all 10 Bookings services, 6 Pricing Plans, and 17 Gift Card preset variants', () => {
     expect(WIX_BACKEND_BLUEPRINT.site.canonicalStagingSiteId).toBe(
       CANONICAL_STAGING_WIX_SITE_ID
     );
-    expect(WIX_BACKEND_BLUEPRINT.bookingsServices).toHaveLength(9);
+    expect(WIX_BACKEND_BLUEPRINT.bookingsServices).toHaveLength(10);
     expect(WIX_BACKEND_BLUEPRINT.pricingPlans).toHaveLength(6);
     expect(WIX_BACKEND_BLUEPRINT.giftCardProduct.signatureVariants).toHaveLength(7);
     expect(WIX_BACKEND_BLUEPRINT.giftCardProduct.allPresetVariants).toHaveLength(17);
@@ -106,6 +106,15 @@ describe('Wix-as-Code Backend Blueprint & Multi-Lock Provisioning Protection', (
       turnaroundBufferMinutes: 15,
       priceIls: 950,
     });
+    const grand120 = WIX_BACKEND_BLUEPRINT.bookingsServices.find(
+      (s) => s.packageId === 'pkg-grand-120'
+    );
+    expect(grand120).toMatchObject({
+      durationMinutes: 120,
+      reservedMinutes: 150,
+      turnaroundBufferMinutes: 30,
+      priceIls: 1200,
+    });
   });
 
   it('detects 100% alignment when live Wix state matches the blueprint', () => {
@@ -115,7 +124,7 @@ describe('Wix-as-Code Backend Blueprint & Multi-Lock Provisioning Protection', (
     expect(plan.alreadyFullyProvisioned).toBe(true);
     expect(plan.sharedCapacityResourceAligned).toBe(true);
     expect(plan.summary).toEqual({
-      inSyncCount: 22,
+      inSyncCount: 23,
       createCount: 0,
       updateCount: 0,
     });
@@ -133,7 +142,7 @@ describe('Wix-as-Code Backend Blueprint & Multi-Lock Provisioning Protection', (
     expect(plan.sharedCapacityResourceAligned).toBe(false);
     expect(plan.summary).toEqual({
       inSyncCount: 0,
-      createCount: 22,
+      createCount: 23,
       updateCount: 0,
     });
   });

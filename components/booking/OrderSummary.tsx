@@ -4,9 +4,10 @@ import type { ReactNode } from 'react';
 import { X } from 'lucide-react';
 import type { FlightAddon, FlightSlot, MissionManifestCalculation } from '@/types';
 import { Badge } from '@/components/ui/Badge';
-import { formatBookingTemplate } from '@/lib/booking/client';
+import { formatBookingTemplate, getUpgradePromoCopy } from '@/lib/booking/client';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { useLanguage } from '@/lib/i18n/language-context';
+import { PromoBanner } from './PromoBanner';
 
 interface OrderSummaryProps {
   manifest: MissionManifestCalculation;
@@ -48,7 +49,8 @@ export function OrderSummary({
   redeem,
   children,
 }: OrderSummaryProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const promoCopy = getUpgradePromoCopy(language);
   const {
     cleanPackageTitle,
     baseDurationMinutes: baseDuration,
@@ -56,7 +58,11 @@ export function OrderSummary({
     totalDurationMinutes,
     effectiveEndTime,
     basePriceIls: basePrice,
+    upgradePromo,
   } = manifest;
+  const isPromoActive = Boolean(upgradePromo?.isPromoActive);
+  const tierDisplayPrice = isPromoActive && upgradePromo ? upgradePromo.effectiveTierPriceIls : basePrice;
+  const tierDisplayDuration = isPromoActive && upgradePromo ? upgradePromo.effectiveDurationMinutes : baseDuration;
 
   return (
     <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 space-y-5 shadow-2xl">
@@ -67,13 +73,15 @@ export function OrderSummary({
           <span className="text-xs font-mono font-bold text-sky-400 px-2 py-0.5 rounded bg-sky-500/15 border border-sky-500/30">
             {totalDurationMinutes} {t.booking.minSessions}
           </span>
-          {addonsDuration > 0 && (
+          {!isPromoActive && addonsDuration > 0 && (
             <span className="text-[11px] font-mono text-slate-400">
               {formatBookingTemplate(t.booking.baseAndAddons, { base: baseDuration, addons: addonsDuration })}
             </span>
           )}
         </div>
       </div>
+
+      {upgradePromo?.isPromoActive && <PromoBanner promo={upgradePromo} />}
 
       <div className="space-y-2 text-xs font-mono text-slate-300">
         <div className="flex justify-between">
@@ -97,16 +105,17 @@ export function OrderSummary({
           <div className="flex items-center gap-2 min-w-0">
             <span className="truncate font-semibold">{t.booking.baseFlight}</span>
             <span className="text-[11px] font-mono text-sky-400 px-1.5 py-0.5 rounded bg-sky-500/10 border border-sky-500/20 shrink-0">
-              {baseDuration} {t.booking.minutesShort}
+              {tierDisplayDuration} {t.booking.minutesShort}
             </span>
           </div>
-          <span className="font-mono font-bold shrink-0">{formatCurrency(basePrice)}</span>
+          <span className="font-mono font-bold shrink-0">{formatCurrency(tierDisplayPrice)}</span>
         </div>
 
         {selectedAddonIds.map((addonId) => {
           const addon = addons.find((a) => a.id === addonId);
           if (!addon) return null;
           const addonMin = addon.durationMinutes || 0;
+          const isBundled = Boolean(isPromoActive && upgradePromo?.bundledMissionAddonIds.includes(addonId));
           return (
             <div key={addonId} className="flex items-start justify-between gap-2 text-slate-300">
               <div className="flex flex-wrap items-center gap-1.5 min-w-0">
@@ -118,9 +127,20 @@ export function OrderSummary({
                 )}
               </div>
               <div className="flex items-center gap-1.5 shrink-0">
-                <span className="font-mono text-emerald-400 font-semibold">
-                  {formatCurrency(addon.priceIls)}
-                </span>
+                {isBundled ? (
+                  <>
+                    <span className="font-mono line-through text-slate-400 text-[11px]">
+                      {formatCurrency(addon.priceIls)}
+                    </span>
+                    <span className="font-mono text-emerald-400 font-bold">
+                      {promoCopy.includedInPromo}
+                    </span>
+                  </>
+                ) : (
+                  <span className="font-mono text-emerald-400 font-semibold">
+                    {formatCurrency(addon.priceIls)}
+                  </span>
+                )}
                 {onRemoveAddon && (
                   <button
                     type="button"
@@ -157,9 +177,16 @@ export function OrderSummary({
 
           <div className="flex justify-between items-baseline">
             <span className="text-sm font-bold text-white">{t.booking.totalAmount}</span>
-            <span className="text-2xl font-black text-emerald-400 font-mono">
-              {formatCurrency(totalIls)}
-            </span>
+            <div className="flex items-baseline gap-2 font-mono">
+              {isPromoActive && upgradePromo && upgradePromo.savingsIls > 0 && (
+                <span className="text-sm line-through text-slate-400">
+                  {formatCurrency(upgradePromo.strikeOutAnchorSubtotalIls)}
+                </span>
+              )}
+              <span className="text-2xl font-black text-emerald-400">
+                {formatCurrency(totalIls)}
+              </span>
+            </div>
           </div>
         </div>
       </div>

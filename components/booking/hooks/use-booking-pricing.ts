@@ -1,8 +1,9 @@
 'use client';
 
-import type { FlightAddon, FlightSlot, SimulatorPackage } from '@/types';
+import type { FlightAddon, FlightSlot, MissionUpgradePromo, SimulatorPackage } from '@/types';
 import type { WorldRoute } from '@/lib/data/experience-routes';
 import { buildWixMissionNotes, presentManifestWithDraft, type WixBirthdayClaimPilot } from '@/lib/booking/client';
+import { wixServiceIdFor } from '@/lib/wix/catalog';
 import type { translations } from '@/lib/i18n/translations';
 import type { PilotDetails } from './use-pilot-details';
 import { useBookingManifest } from './use-booking-manifest';
@@ -24,6 +25,8 @@ interface UseBookingPricingArgs {
   canUseWixNativeCheckout: boolean;
   /** Registry subtotal before any voucher or discount (`useBookingManifest(input, 0).subtotalIls`). */
   subtotalIls: number;
+  /** Active promotional tier bump-up from the manifest, when 1–2 mission add-ons upgrade the tier. */
+  upgradePromo?: MissionUpgradePromo;
   /** The birthday discount in whole shekels (0 on every path that cannot apply it). */
   birthday: {
     discountIls: number;
@@ -41,11 +44,23 @@ interface UseBookingPricingArgs {
  * `displayTotalAmount` is the Wix cart's own calculated total while a Wix draft is active.
  */
 export function useBookingPricing(args: UseBookingPricingArgs) {
-  const { manifestInput, selectedDate, pilot, activeRequestedRoute, subtotalIls, birthday, copy } = args;
-  const { activePackage, selectedSlot, selectedAddons } = manifestInput;
-  const bookingNotes = buildWixMissionNotes(pilot.notes, selectedAddons, activeRequestedRoute);
+  const { manifestInput, selectedDate, pilot, activeRequestedRoute, subtotalIls, upgradePromo, birthday, copy } = args;
+  const { activePackage, selectedSlot, selectedAddons, scopedAddons } = manifestInput;
+  const useUpgradedWixPackage = Boolean(
+    upgradePromo?.isPromoActive && wixServiceIdFor(upgradePromo.effectivePackageId)
+  );
+  const wixPackageId = useUpgradedWixPackage && upgradePromo ? upgradePromo.effectivePackageId : activePackage.id;
+  const wixPaidAddonIds =
+    useUpgradedWixPackage && upgradePromo ? upgradePromo.standalonePaidAddonIds : selectedAddons;
+  const bookingNotes = buildWixMissionNotes(
+    pilot.notes,
+    selectedAddons,
+    activeRequestedRoute,
+    scopedAddons,
+    upgradePromo?.isPromoActive ? upgradePromo.effectiveDurationMinutes : undefined
+  );
   const wixDraft = useWixCheckoutDraft({
-    packageId: activePackage.id,
+    packageId: wixPackageId,
     selectedDate,
     selectedSlot,
     pilotName: pilot.pilotName,
@@ -53,7 +68,7 @@ export function useBookingPricing(args: UseBookingPricingArgs) {
     pilotPhone: pilot.pilotPhone,
     notes: bookingNotes,
     birthdayValue: birthday.value,
-    addonIds: selectedAddons,
+    addonIds: wixPaidAddonIds,
     requestedRouteId: activeRequestedRoute?.id,
     createBirthdayPricingClaim: birthday.createWixBirthdayPricingClaim,
     messages: { errorSelectSlot: copy.errorSelectSlot, paymentStartFailed: copy.paymentStartFailed },

@@ -101,8 +101,14 @@ export function useBookingSelection({ searchParams, intent, localizedPackages, l
   // select and render only departures that can accommodate the base flight plus
   // every chosen add-on. The server remains the final pricing/capacity authority.
   const requiredMissionMinutes = useMemo(
-    () => computeRequiredMissionMinutes(activePackage.durationMinutes, selectedAddons, scopedAddons),
-    [activePackage.durationMinutes, scopedAddons, selectedAddons]
+    () =>
+      computeRequiredMissionMinutes(
+        activePackage.durationMinutes,
+        selectedAddons,
+        scopedAddons,
+        activePackage.category
+      ),
+    [activePackage.category, activePackage.durationMinutes, scopedAddons, selectedAddons]
   );
 
   // Keep a deep link shareable across in-app navigation, but apply a given URL intent only once

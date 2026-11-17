@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import type { FlightAddon, FlightSlot } from '@/types';
+import type { FlightAddon, FlightSlot, PackageCategory } from '@/types';
 import { pruneAddonsExceedingSlot } from '@/lib/scheduler/mission-calculator';
 import { resolveAddonToggle } from '@/lib/booking/client';
 
@@ -11,6 +11,7 @@ interface UseAddonControlsArgs {
   localizedAddons: FlightAddon[];
   scopedAddons: FlightAddon[];
   selectedSlot: FlightSlot | null;
+  packageCategory: PackageCategory;
   baseDurationMinutes: number;
   totalDurationMinutes: number;
   maxSlotMinutes: number;
@@ -21,7 +22,7 @@ interface UseAddonControlsArgs {
 /**
  * Add-on actions shared by the wizard's add-ons step and the storefront. Also guards the selection:
  * when the visitor moves to a tighter departure, add-ons that no longer fit its continuous window
- * are dropped (Smart Window Guard).
+ * or exceed the 2-mission-addon promotional cap are dropped (Smart Window Guard).
  */
 export function useAddonControls(args: UseAddonControlsArgs) {
   const {
@@ -30,6 +31,7 @@ export function useAddonControls(args: UseAddonControlsArgs) {
     localizedAddons,
     scopedAddons,
     selectedSlot,
+    packageCategory,
     baseDurationMinutes,
     totalDurationMinutes,
     maxSlotMinutes,
@@ -43,12 +45,13 @@ export function useAddonControls(args: UseAddonControlsArgs) {
       selectedAddons,
       scopedAddons,
       baseDurationMinutes,
-      selectedSlot.maxAvailableMinutes ?? 180
+      selectedSlot.maxAvailableMinutes ?? 180,
+      packageCategory
     );
     if (pruned.length !== selectedAddons.length) {
       setSelectedAddons(pruned);
     }
-  }, [selectedSlot, baseDurationMinutes, scopedAddons]);
+  }, [selectedSlot, baseDurationMinutes, packageCategory, scopedAddons]);
 
   const toggleAddon = (addonId: string) => {
     const result = resolveAddonToggle({
@@ -57,16 +60,20 @@ export function useAddonControls(args: UseAddonControlsArgs) {
       addons: localizedAddons,
       wixBookingsAuthoritative,
       isWixSubscriptionRedemption,
+      baseDurationMinutes,
+      packageCategory,
       totalDurationMinutes,
       maxSlotMinutes,
     });
     if (result.kind === 'set') setSelectedAddons(result.ids);
-    // 'no-fit': the add-on would overflow the selected slot window, so nothing changes.
+    // 'no-fit' / 'max-mission-addons': nothing changes.
   };
 
-  /** Replaces the selection, dropping whatever the selected departure's window cannot hold. */
+  /** Replaces the selection, dropping whatever exceeds the 2-mission cap or selected departure window. */
   const setAddons = (ids: string[]) =>
-    setSelectedAddons(pruneAddonsExceedingSlot(ids, scopedAddons, baseDurationMinutes, maxSlotMinutes));
+    setSelectedAddons(
+      pruneAddonsExceedingSlot(ids, scopedAddons, baseDurationMinutes, maxSlotMinutes, packageCategory)
+    );
 
   return { toggleAddon, setAddons };
 }

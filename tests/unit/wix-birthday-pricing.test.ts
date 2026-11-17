@@ -108,7 +108,7 @@ describe('Wix Bookings birthday price calculator', () => {
     ).resolves.toEqual({ ok: true, calculatedPrice: 586, birthdayApplied: true });
   });
 
-  it('keeps the normal price with no claim and uses the Saturday prime-time tariff before discounting', async () => {
+  it('keeps the normal price with no claim and uses the flat ₪850 90-minute tariff before discounting', async () => {
     await expect(
       calculateWixBirthdayBookingPrice(
         {
@@ -122,7 +122,7 @@ describe('Wix Bookings birthday price calculator', () => {
         },
         { config: CONFIG, now: NOW }
       )
-    ).resolves.toEqual({ ok: true, calculatedPrice: 950, birthdayApplied: false });
+    ).resolves.toEqual({ ok: true, calculatedPrice: 850, birthdayApplied: false });
 
     const token = await createWixBirthdayPricingClaim({
       packageId: 'pkg-ultimate-90',
@@ -149,7 +149,7 @@ describe('Wix Bookings birthday price calculator', () => {
         },
         { config: CONFIG, now: NOW }
       )
-    ).resolves.toEqual({ ok: true, calculatedPrice: 807, birthdayApplied: true });
+    ).resolves.toEqual({ ok: true, calculatedPrice: 722, birthdayApplied: true });
   });
 
   it('fails closed when a claim is bound to a different flight date or service', async () => {
@@ -395,7 +395,7 @@ describe('Wix pricing provider reads the flight date and tariff on the Israel cl
     }
   });
 
-  it('prices a weekday departure from 18:00 on at the prime-time tariff, and one before 18:00 at the day tariff', async () => {
+  it('prices weekday departures before and from 18:00 on at the flat ₪850 90-minute tariff', async () => {
     // Tuesday 2026-11-10 in Israel (UTC+2): 17:45 is the last daytime departure of the 90-minute grid, 19:30 the next.
     await expect(calculateWixBirthdayBookingPrice(odysseyAt('2026-11-10T15:45:00.000Z'), { config: CONFIG, now: NOW })).resolves.toEqual({
       ok: true,
@@ -404,16 +404,16 @@ describe('Wix pricing provider reads the flight date and tariff on the Israel cl
     });
     await expect(calculateWixBirthdayBookingPrice(odysseyAt('2026-11-10T17:30:00.000Z'), { config: CONFIG, now: NOW })).resolves.toEqual({
       ok: true,
-      calculatedPrice: 950,
+      calculatedPrice: 850,
       birthdayApplied: false,
     });
   });
 
-  it('prices a Saturday daytime departure at the prime-time tariff', async () => {
+  it('prices a Saturday daytime departure at the flat ₪850 90-minute tariff', async () => {
     // Saturday 2026-11-14 at 10:45 in Israel.
     await expect(calculateWixBirthdayBookingPrice(odysseyAt('2026-11-14T08:45:00.000Z'), { config: CONFIG, now: NOW })).resolves.toEqual({
       ok: true,
-      calculatedPrice: 950,
+      calculatedPrice: 850,
       birthdayApplied: false,
     });
   });
@@ -430,10 +430,10 @@ describe('Wix pricing provider reads the flight date and tariff on the Israel cl
     await expect(
       calculateWixBirthdayBookingPrice(odysseyAt('2026-07-14T07:45:00.000Z', await odysseyClaim('2026-07-14', 7)), { config: CONFIG, now: NOW })
     ).resolves.toEqual({ ok: true, calculatedPrice: 722, birthdayApplied: true });
-    // 16:30Z is 19:30 in Israel summer time: prime time.
+    // 16:30Z is 19:30 in Israel summer time (on the grid, flat ₪850).
     await expect(calculateWixBirthdayBookingPrice(odysseyAt('2026-07-14T16:30:00.000Z'), { config: CONFIG, now: NOW })).resolves.toEqual({
       ok: true,
-      calculatedPrice: 950,
+      calculatedPrice: 850,
       birthdayApplied: false,
     });
   });
@@ -483,12 +483,14 @@ describe('Wix pricing provider binds every priced booking to the local zero-wast
     return [{ id: claim.fieldId, value: claim.token }];
   }
 
+  const MAPPED_PACKAGES = SIMULATOR_PACKAGES.filter((pkg) => Boolean(wixServiceIdFor(pkg.id)));
+
   it('covers every mapped package', () => {
-    expect(Object.keys(SECOND_DEPARTURE).sort()).toEqual(SIMULATOR_PACKAGES.map((pkg) => pkg.id).sort());
+    expect(Object.keys(SECOND_DEPARTURE).sort()).toEqual(MAPPED_PACKAGES.map((pkg) => pkg.id).sort());
   });
 
   it('prices an on-grid start of every package duration exactly as before, claim or no claim', async () => {
-    for (const pkg of SIMULATOR_PACKAGES) {
+    for (const pkg of MAPPED_PACKAGES) {
       await expect(
         calculateWixBirthdayBookingPrice(slotAt(pkg.id, israelTime(SECOND_DEPARTURE[pkg.id])), { config: CONFIG, now: NOW })
       ).resolves.toEqual({ ok: true, calculatedPrice: pkg.priceIls, birthdayApplied: false });
@@ -502,7 +504,7 @@ describe('Wix pricing provider binds every priced booking to the local zero-wast
   });
 
   it('rejects a start 5 minutes after a grid departure with off-grid-departure, with or without a valid claim', async () => {
-    for (const pkg of SIMULATOR_PACKAGES) {
+    for (const pkg of MAPPED_PACKAGES) {
       await expect(
         calculateWixBookingPrice(slotAt(pkg.id, israelTime(SECOND_DEPARTURE[pkg.id], 5)), { config: CONFIG, now: NOW })
       ).resolves.toEqual({ ok: false, code: 'off-grid-departure' });
@@ -603,7 +605,7 @@ describe('Strict Wix booking grid policy', () => {
       })),
     });
 
-    for (const pkg of SIMULATOR_PACKAGES) {
+    for (const pkg of SIMULATOR_PACKAGES.filter((candidate) => Boolean(wixServiceIdFor(candidate.id)))) {
       const resolved: string[] = [];
       for (const startTime of EVERY_FIVE_MINUTES) {
         try {

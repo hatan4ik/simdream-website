@@ -15,6 +15,7 @@ import {
   WIX_GIFT_CARD_VARIANT_IDS,
   WIX_PLAN_IDS,
   WIX_SERVICE_IDS,
+  wixServiceIdFor,
 } from './catalog';
 import { WIX_TIME_ZONE } from './config';
 import {
@@ -120,7 +121,7 @@ export interface WixBackendBlueprint {
 const SERVICE_BLUEPRINTS: readonly WixServiceBlueprintSpec[] = SIMULATOR_PACKAGES.map((pkg) => {
   const reservedMinutes = getReservedMinutesForFlight(pkg.durationMinutes);
   const turnaroundBufferMinutes = Math.max(0, reservedMinutes - pkg.durationMinutes);
-  const expectedServiceId = WIX_SERVICE_IDS[pkg.id] ?? '';
+  const expectedServiceId = wixServiceIdFor(pkg.id) ?? '';
 
   return {
     packageId: pkg.id,
@@ -132,7 +133,7 @@ const SERVICE_BLUEPRINTS: readonly WixServiceBlueprintSpec[] = SIMULATOR_PACKAGE
     reservedMinutes,
     turnaroundBufferMinutes,
     priceIls: pkg.priceIls,
-    primeTimePriceIls: pkg.id === 'pkg-ultimate-90' ? 950 : pkg.priceIls,
+    primeTimePriceIls: pkg.primeTimePriceIls ?? pkg.priceIls,
     type: 'APPOINTMENT',
     daytimePromoWindow:
       pkg.id === 'pkg-promo-45'
@@ -141,8 +142,7 @@ const SERVICE_BLUEPRINTS: readonly WixServiceBlueprintSpec[] = SIMULATOR_PACKAGE
   };
 });
 
-const PRICING_PLAN_BLUEPRINTS: readonly WixPricingPlanBlueprintSpec[] = SUBSCRIPTION_PASSES.map(
-  (pass) => ({
+const PRICING_PLAN_BLUEPRINTS: readonly WixPricingPlanBlueprintSpec[] = SUBSCRIPTION_PASSES.map((pass) => ({
     passId: pass.id,
     expectedPlanId: WIX_PLAN_IDS[pass.id] ?? null,
     name: pass.copy.en.title,
@@ -320,7 +320,7 @@ export function planWixBackendProvisioning(
 
       const packageDrifts = mismatchesByPackage.get(spec.packageId) ?? [];
       const nonMissingDrifts = packageDrifts.filter((entry) => !entry.startsWith('missing'));
-      if (matched.id !== spec.expectedServiceId) {
+      if (spec.expectedServiceId && matched.id !== spec.expectedServiceId) {
         nonMissingDrifts.push(`serviceId (expected ${spec.expectedServiceId}, got ${matched.id})`);
       }
 
@@ -459,10 +459,11 @@ export function planWixBackendProvisioning(
       };
     });
 
-  const sharedCapacityResourceTypeIds = sharedWixResourceTypeIds(
-    liveState.services,
-    WIX_BACKEND_BLUEPRINT.bookingsServices.map((s) => s.expectedServiceId)
-  );
+  const matchedServiceIds = serviceItems.map((item) => item.matchedWixId).filter((id): id is string => Boolean(id));
+  const sharedCapacityResourceTypeIds =
+    matchedServiceIds.length === WIX_BACKEND_BLUEPRINT.bookingsServices.length
+      ? sharedWixResourceTypeIds(liveState.services, matchedServiceIds)
+      : [];
   const sharedCapacityResourceAligned = sharedCapacityResourceTypeIds.length > 0;
 
   const allItems = [...serviceItems, ...planItems, ...giftCardItems];
@@ -562,8 +563,7 @@ export function evaluateWixProvisionSafetyGate(
     return {
       allowedToMutate: false,
       blockerCode: 'already-provisioned',
-      reason:
-        'Target Wix site is already 100% provisioned and aligned (9/9 services, shared simulator resource pool, 4/4 plans, 7/7 gift card variants). Refusing to recreate or mutate live backend entities.',
+      reason: 'Target Wix site is already 100% provisioned and aligned. Refusing to recreate or mutate live backend entities.',
     };
   }
 

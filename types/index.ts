@@ -150,6 +150,21 @@ export interface MissionManifestAddonItem {
   priceIls: number;
 }
 
+export interface MissionUpgradePromo {
+  isPromoActive: boolean;
+  missionAddonCount: number;
+  effectivePackageId: string;
+  effectiveDurationMinutes: number;
+  effectiveTierPriceIls: number;
+  nonMissionAddonsPriceIls: number;
+  promoSubtotalIls: number;
+  strikeOutAnchorSubtotalIls: number;
+  savingsIls: number;
+  discountPercent: number;
+  bundledMissionAddonIds: string[];
+  standalonePaidAddonIds: string[];
+}
+
 export interface MissionManifestCalculation {
   cleanPackageTitle: string;
   baseDurationMinutes: number;
@@ -164,6 +179,7 @@ export interface MissionManifestCalculation {
   discountIls: number;
   totalIls: number;
   selectedAddonItems: MissionManifestAddonItem[];
+  upgradePromo?: MissionUpgradePromo;
 }
 
 export type BookingStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled';

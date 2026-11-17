@@ -215,11 +215,20 @@ describe('POST /api/checkout: voucher-funded bookings', () => {
       app,
       DAY,
       60,
-      (candidate) => candidate.available && (candidate.maxAvailableMinutes ?? 0) >= 60 + addonMinutes(app, addons),
-      'open with room for Cold & Dark'
+      (candidate) => candidate.available && (candidate.maxAvailableMinutes ?? 0) >= 90,
+      'open with room for 90m promo upgrade (Cold & Dark)'
     );
-    // Captain 60 plus Cold & Dark is priced to equal the seed voucher's full balance.
-    expect(slot.dynamicPriceIls + addonPrice(app, addons)).toBe(SEED_FULL_VOUCHER.balanceIls);
+    // Captain 60 + Cold & Dark bumps up to the 90m promotional tier (₪850).
+    const exactVoucher = await app.store.createPendingVoucher({
+      initialValueIls: 850,
+      recipientName: 'Exact Pilot',
+      recipientEmail: 'exact@pilots.test',
+      senderName: 'Giver',
+      senderEmail: 'giver@pilots.test',
+      personalMessage: 'Exact cover',
+      expiryDate: '2027-11-01T00:00:00.000Z',
+    });
+    await app.store.activateVoucherIfPending(exactVoucher.id, 'cs_test_exact_cover');
 
     const response = await postCheckout(
       app,
@@ -228,18 +237,18 @@ describe('POST /api/checkout: voucher-funded bookings', () => {
         bookingDate: DAY,
         startTime: slot.startTime,
         addons,
-        voucherCode: SEED_FULL_VOUCHER.code,
+        voucherCode: exactVoucher.code,
       })
     );
 
     expect(response.status).toBe(201);
-    expect(await app.store.getVoucherByCode(SEED_FULL_VOUCHER.code)).toMatchObject({
+    expect(await app.store.getVoucherByCode(exactVoucher.code)).toMatchObject({
       currentBalanceIls: 0,
       isRedeemed: true,
     });
     const { POST } = await app.routes.vouchers();
     const verification = await readJson(
-      await POST(apiRequest('/api/vouchers', { body: { action: 'verify', code: SEED_FULL_VOUCHER.code } }))
+      await POST(apiRequest('/api/vouchers', { body: { action: 'verify', code: exactVoucher.code } }))
     );
     expect(verification.status).toBe(400);
     expectContract(voucherRedeemed, verification.body);
@@ -327,14 +336,12 @@ describe('POST /api/checkout: card bookings', () => {
       app,
       DAY,
       90,
-      (candidate) => candidate.available && candidate.isPrimeTime && (candidate.maxAvailableMinutes ?? 0) >= 90 + addonMinutes(app, addons),
-      'an open prime-time slot with room for the add-ons'
+      (candidate) => candidate.available && candidate.isPrimeTime && (candidate.maxAvailableMinutes ?? 0) >= 120,
+      'an open prime-time slot with room for the 120m promo upgrade'
     );
-    const catalogue = app.seed.SIMULATOR_PACKAGES.find((pkg) => pkg.id === 'pkg-ultimate-90');
-    // The evening tariff differs from the catalogue price, proving the slot price is used.
-    expect(slot.dynamicPriceIls).not.toBe(catalogue?.priceIls);
-    const expectedTotal = slot.dynamicPriceIls + addonPrice(app, addons);
-    const expectedMinutes = 90 + addonMinutes(app, addons);
+    // 90m + 1 mission add-on (X-Wind/IFR) bumps up to the 120m Grand Odyssey (₪1,200) + Extra Seat (₪90).
+    const expectedTotal = 1290;
+    const expectedMinutes = 120;
 
     const response = await postCheckout(
       app,

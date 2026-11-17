@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, type FormEvent } from 'react';
-import type { FlightSlot, PilotExperienceLevel, SimulatorPackage } from '@/types';
+import type { FlightAddon, FlightSlot, MissionUpgradePromo, PilotExperienceLevel, SimulatorPackage } from '@/types';
 import type { WorldRoute } from '@/lib/data/experience-routes';
 import type { translations } from '@/lib/i18n/translations';
 import type { Language } from '@/lib/i18n/translations';
@@ -31,6 +31,8 @@ interface UseBookingCheckoutArgs {
   pilot: PilotDetails;
   experienceLevel: PilotExperienceLevel;
   selectedAddons: string[];
+  addons?: readonly FlightAddon[];
+  upgradePromo?: MissionUpgradePromo;
   activeRequestedRoute: WorldRoute | undefined;
   isWixSubscriptionRedemption: boolean;
   canUseWixNativeCheckout: boolean;
@@ -80,6 +82,8 @@ export function useBookingCheckout(args: UseBookingCheckoutArgs) {
     pilot,
     experienceLevel,
     selectedAddons,
+    addons,
+    upgradePromo,
     activeRequestedRoute,
     isWixSubscriptionRedemption,
     canUseWixNativeCheckout,
@@ -165,7 +169,13 @@ export function useBookingCheckout(args: UseBookingCheckoutArgs) {
           return;
         }
         const draft = await wixDraft.ensureDraft();
-        const note = appendWixMissionSummaryToNote(wixCartNote?.(), selectedAddons, activeRequestedRoute);
+        const note = appendWixMissionSummaryToNote(
+          wixCartNote?.(),
+          selectedAddons,
+          activeRequestedRoute,
+          addons,
+          upgradePromo?.isPromoActive ? upgradePromo.effectiveDurationMinutes : undefined
+        );
         if (note) await recordNoteOnWixDraft(draft, note, copy.paymentStartFailed);
         window.location.assign(await getWixCheckoutUrl(draft));
         return;

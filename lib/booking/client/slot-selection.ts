@@ -1,4 +1,5 @@
-import type { FlightAddon, FlightSlot, PublicCapacityReport } from '@/types';
+import type { FlightAddon, FlightSlot, PackageCategory, PublicCapacityReport } from '@/types';
+import { computeEffectiveMissionDuration } from '@/lib/scheduler/mission-upgrade-promo';
 
 /** What `GET /api/slots` answers (an older shape was a bare array of slots). */
 export interface SlotsApiPayload {
@@ -14,19 +15,14 @@ export function extractSlotList(data: SlotsApiPayload | FlightSlot[] | null | un
   return Array.isArray(data?.slots) ? data.slots : [];
 }
 
-/** Base flight minutes plus the minutes of every selected add-on that the catalog knows. */
+/** Effective mission minutes for the package and selected add-ons (tiered for recreational bookings). */
 export function computeRequiredMissionMinutes(
   baseDurationMinutes: number,
   selectedAddonIds: readonly string[],
-  addons: readonly Pick<FlightAddon, 'id' | 'durationMinutes'>[]
+  addons: readonly Pick<FlightAddon, 'id' | 'durationMinutes'>[],
+  category?: PackageCategory
 ): number {
-  return (
-    baseDurationMinutes +
-    selectedAddonIds.reduce(
-      (total, addonId) => total + (addons.find((addon) => addon.id === addonId)?.durationMinutes ?? 0),
-      0
-    )
-  );
+  return computeEffectiveMissionDuration(baseDurationMinutes, selectedAddonIds, addons, category);
 }
 
 /**

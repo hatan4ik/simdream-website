@@ -1,7 +1,7 @@
 import type { SimulatorPackage } from '@/types';
 import type { Language, LocalizedRecord } from '@/lib/i18n/translations';
 
-type FormulaKey = 'training' | 'fear_of_flying' | '30' | '45' | '60' | '90' | 'default';
+type FormulaKey = 'training' | 'fear_of_flying' | '30' | '45' | '60' | '90' | '120' | 'default';
 
 export interface PackageFormulaBadge {
   text: string;
@@ -16,6 +16,7 @@ const PACKAGE_FORMULA_COPY: LocalizedRecord<Record<FormulaKey, string>> = {
     45: '🌤️ Daytime Flight • 2 Landings (until 18:00)',
     60: '⭐ Takeoff/Landing + 1 World Trio (3 Airports Included)',
     90: '⚡ Takeoff/Landing + 2 World Trios + Emergencies (1–2 Pilots)',
+    120: '👑 Full 2-Hour Odyssey • Up to 2 Trios & Cockpit Modules',
     default: '✈️ Boeing 737 Flight Session',
   },
   he: {
@@ -25,6 +26,7 @@ const PACKAGE_FORMULA_COPY: LocalizedRecord<Record<FormulaKey, string>> = {
     45: '🌤️ מבצע יום • 2 נחיתות (עד 18:00)',
     60: '⭐ המראה/נחיתה + שלישיית שדות תעופה עולמית (3 יעדים)',
     90: '⚡ המראה/נחיתה + 2 שלישיות Trio + תקלות (1–2 טייסים)',
+    120: '👑 אודיסיאת שעתיים מלאה • עד 2 שלישיות ומודולי קוקפיט',
     default: '✈️ סשן טיסה בבואינג 737',
   },
   ru: {
@@ -34,6 +36,7 @@ const PACKAGE_FORMULA_COPY: LocalizedRecord<Record<FormulaKey, string>> = {
     45: '🌤️ Дневной полет • 2 посадки (до 18:00)',
     60: '⭐ Взлет/посадка + 1 World Trio (3 аэропорта мира)',
     90: '⚡ Взлет/посадка + 2 World Trios + особые случаи (1–2 пилота)',
+    120: '👑 Полные 2 часа • До 2 World Trios и модули кабины',
     default: '✈️ Полетная сессия Boeing 737',
   },
   fr: {
@@ -43,6 +46,7 @@ const PACKAGE_FORMULA_COPY: LocalizedRecord<Record<FormulaKey, string>> = {
     45: '🌤️ Vol journée • 2 atterrissages (jusqu’à 18h00)',
     60: '⭐ Décollage/atterrissage + 1 trio mondial (3 aéroports)',
     90: '⚡ Décollage/atterrissage + 2 trios mondiaux + pannes (1–2 pilotes)',
+    120: '👑 Odyssée 2 heures • Jusqu’à 2 trios et modules cockpit',
     default: '✈️ Session de vol Boeing 737',
   },
   ar: {
@@ -52,7 +56,18 @@ const PACKAGE_FORMULA_COPY: LocalizedRecord<Record<FormulaKey, string>> = {
     45: '🌤️ رحلة نهارية • هبوطان كاملان (حتى 18:00)',
     60: '⭐ إقلاع/هبوط + باقة ثلاثية مطارات عالمية (3 مطارات)',
     90: '⚡ إقلاع/هبوط + باقتان ثلاثيتان + طوارئ (طيار أو طياران)',
+    120: '👑 ملحمة ساعتين كاملة • حتى باقتين ثلاثيتين ووحدات القمرة',
     default: '✈️ جلسة طيران بوينغ 737',
+  },
+  es: {
+    training: '🎯 Selección Aerolínea • Raw Data y Fallo V1',
+    fear_of_flying: '🕊️ Coaching de miedo a volar • Ritmo tranquilo',
+    30: '🛫 Despegue guiado, vuelo manual y aterrizaje',
+    45: '🌤️ Vuelo diurno • 2 aterrizajes (hasta 18:00)',
+    60: '⭐ Despegue/aterrizaje + 1 Trío mundial (3 aeropuertos)',
+    90: '⚡ Despegue/aterrizaje + 2 Tríos + emergencias (1–2 pilotos)',
+    120: '👑 Odisea de 2 horas • Hasta 2 Tríos y módulos de cabina',
+    default: '✈️ Sesión de vuelo Boeing 737',
   },
   de: {
     training: '🎯 Airline-Checkride • Raw Data & V1-Ausfall',
@@ -61,6 +76,7 @@ const PACKAGE_FORMULA_COPY: LocalizedRecord<Record<FormulaKey, string>> = {
     45: '🌤️ Tagesflug • 2 Landungen (bis 18:00)',
     60: '⭐ Start/Landung + 1 Welt-Trio (3 Flughäfen inklusive)',
     90: '⚡ Start/Landung + 2 Welt-Trios + Notfälle (1–2 Piloten)',
+    120: '👑 Volle 2-Stunden-Odyssee • Bis zu 2 Trios & Cockpit-Module',
     default: '✈️ Boeing 737 Flugsession',
   },
 };
@@ -72,14 +88,15 @@ const PACKAGE_FORMULA_CLASSES: Record<FormulaKey, string> = {
   45: 'bg-amber-500/15 text-amber-300 border-amber-500/30',
   60: 'bg-amber-500/20 text-amber-300 border-amber-500/40 font-bold',
   90: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 font-bold',
+  120: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 font-bold',
   default: 'bg-slate-800 text-slate-300 border-slate-700',
 };
 
 function formulaKeyFor(durationMinutes: number, category: SimulatorPackage['category']): FormulaKey {
   if (category === 'training') return 'training';
   if (category === 'fear_of_flying') return 'fear_of_flying';
-  if (durationMinutes === 30 || durationMinutes === 45 || durationMinutes === 60 || durationMinutes === 90) {
-    return String(durationMinutes) as Extract<FormulaKey, '30' | '45' | '60' | '90'>;
+  if (durationMinutes === 30 || durationMinutes === 45 || durationMinutes === 60 || durationMinutes === 90 || durationMinutes === 120) {
+    return String(durationMinutes) as Extract<FormulaKey, '30' | '45' | '60' | '90' | '120'>;
   }
   return 'default';
 }

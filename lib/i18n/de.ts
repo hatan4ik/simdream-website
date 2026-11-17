@@ -192,7 +192,6 @@ export const germanTranslations = {
         'Erweitern Sie Ihre Mission in Schritt 2 mit Cockpit- & Routen-Upgrades',
         '1 Gast/Beobachter auf dem Cockpit-Jumpseat',
         '1-zu-1-Begleitung durch einen Verkehrspiloten als Instruktor',
-        'Persönliche Erinnerungs-Flugurkunde',
       ],
     },
     'pkg-captain-60': {
@@ -209,7 +208,6 @@ export const germanTranslations = {
         'Individuelles Echtzeit-Wetter, Sonnenuntergang & Seitenwind-Herausforderungen',
         'Einweisung in Autopilot, Flight Director & FMC-Navigation inklusive',
         'Bis zu 2 Beobachter auf den Cockpit-Jumpseats KOSTENLOS inklusive',
-        'Personalisierte Kapitäns-Flugurkunde',
       ],
     },
     'pkg-ultimate-90': {
@@ -223,9 +221,24 @@ export const germanTranslations = {
         'Enthält: Start- & Landetraining + 2 Welt-Trios (4–6 Landungen)',
         '90 Minuten Cockpit-Zeit – allein fliegen ODER Kapitänszeit zu zweit teilen',
         'Inklusive Cold & Dark Cockpit-Start ODER V1-Triebwerksausfall-Szenarien',
-        'Tagestarif ₪850 (bis 18:00) | Abend & Wochenende ₪950',
         'Schlechtwetter, Scherwind & anspruchsvolle Instrumentenanflüge meistern',
         'Bis zu 2 Gäste auf den Jumpseats KOSTENLOS inklusive',
+        'Persönliches Kapitäns-Debriefing nach dem Flug',
+      ],
+    },
+    'pkg-grand-120': {
+      title: 'Große Kapitäns-Odyssee (120 Min.)',
+      badge: 'Grand 120 Min. • 15% Preisvorteil',
+      shortDesc:
+        'Volle 2-Stunden-Mission in der Boeing 737 mit bis zu 2 Weltflughafen-Trios oder Cockpit-Modulen, Live-Wetter & bis zu 2 kostenlosen Gästen.',
+      description:
+        'Unsere 2-stündige Flaggschiff-Mission für Privatkunden – ideal für 1 begeisterten Piloten ODER 2 Teilnehmer, die sich am Kapitänssitz abwechseln. Genießen Sie 120 Minuten aktive Flugzeit mit Start & Landung, bis zu 2 Weltflughafen-Trios oder Cold-&-Dark-Start und IFR-Sturmanflügen unter Begleitung eines aktiven Kapitäns und bis zu 2 kostenlosen Gästen.',
+      features: [
+        '120 Minuten (volle 2 Stunden) aktive Cockpit-Zeit als Pilot-in-Command',
+        'Enthält Start & Landung + bis zu 2 Welt-Trios oder Cockpit-Module',
+        'Cold-&-Dark-Start, Live-METAR-Seitenwind, IFR-Anflüge & Notfälle',
+        'Ideal für 1 engagierten Kapitän ODER 2 Teilnehmer am Steuer',
+        'Bis zu 2 Beobachter auf den Cockpit-Jumpseats KOSTENLOS inklusive',
         'Persönliches Kapitäns-Debriefing nach dem Flug',
       ],
     },

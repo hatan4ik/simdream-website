@@ -43,6 +43,7 @@ const DISCOVERY_30 = packageById('pkg-discovery-30');
 const PROMO_45 = packageById('pkg-promo-45');
 const CAPTAIN_60 = packageById('pkg-captain-60');
 const ULTIMATE_90 = packageById('pkg-ultimate-90');
+const GRAND_120 = packageById('pkg-grand-120');
 const OPENING_HOURS = `Sun-Sat ${FACILITY_INFO.hours.daily.open}-${FACILITY_INFO.hours.daily.close}`;
 
 const COMMON_GEO_AND_BUSINESS_META: Record<string, string> = {
@@ -92,7 +93,7 @@ export const PAGE_SEO_DEFINITIONS: Record<SeoPageKey, PageSeoDefinition> = {
     path: '/book',
     title: 'Book Your Flight Simulator Session Online | Sim Dream Tel Aviv (הזמנת טיסה)',
     description:
-      'Instant online booking for the Sim Dream Boeing 737 flight simulator in Tel Aviv (Gershon Shatz 36). Choose 30, 45, 60, or 90-minute flights, add iconic world airport bundles, and get instant flight dispatch confirmation.',
+      'Instant online booking for the Sim Dream Boeing 737 flight simulator in Tel Aviv (Gershon Shatz 36). Choose 30, 45, 60, 90, or 120-minute flights, add iconic world airport bundles, and get instant flight dispatch confirmation.',
     keywords: [
       ...COMMON_KEYWORDS,
       'book flight simulator Tel Aviv',
@@ -107,7 +108,7 @@ export const PAGE_SEO_DEFINITIONS: Record<SeoPageKey, PageSeoDefinition> = {
     description:
       `Compare Boeing 737 flight simulator packages in Tel Aviv: ${DISCOVERY_30.durationMinutes}-min Discovery Flight (${ils(DISCOVERY_30.priceIls)}), ` +
       `${PROMO_45.durationMinutes}-min Daytime Flight (${ils(PROMO_45.priceIls)}), ${CAPTAIN_60.durationMinutes}-min Captain’s Experience (${ils(CAPTAIN_60.priceIls)}), ` +
-      `${ULTIMATE_90.durationMinutes}-min Ultimate Aviator (${ils(ULTIMATE_90.priceIls)} daytime / ${ils(ULTIMATE_90.primeTimePriceIls ?? ULTIMATE_90.priceIls)} prime time), ` +
+      `${ULTIMATE_90.durationMinutes}-min Ultimate Aviator (${ils(ULTIMATE_90.priceIls)}), ${GRAND_120.durationMinutes}-min Grand Captain’s Odyssey (${ils(GRAND_120.priceIls)}), ` +
       'Fearless Flying therapy, and global airport bundles.',
     keywords: [
       ...COMMON_KEYWORDS,
