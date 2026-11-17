@@ -50,6 +50,10 @@ This means the customer-visible cadence is duration-true: a 30-minute flight res
 
 The engine may mark a slot as a smart recommendation where it completes a 150-minute constructor pattern. This is a recommendation, not a promise of globally optimal revenue.
 
+### Wix mode: the bookings are Wix's
+
+When Wix is the calendar authority the app cannot read the bookings, but Wix's own availability for the service (every 5 minutes) already encodes them: a start is listed only when its flight plus the 15-minute turnaround clears every booking. `wixBlockedBookings()` reads each hole in that list as a reserved interval and the engine runs as for a local booking, with `minSellableGaps`: the zero-waste tiling rule is replaced by "the gap before and after a departure is nothing, or at least the shortest 45-minute reservation". Tiling exactly is impossible once a mission is not a multiple of 15 minutes (60 + Cold & Dark 20 = 80 flight, 95 reserved), and it would hide the rest of the day. A day with no booking uses the strict rule and is exactly the fixed grid. While the Wix Bookings Pricing provider is active it refuses off-grid starts, so only fixed-grid starts are offered.
+
 ### Duration-aware completeness
 
 The engine judges gaps only against **real** capacity boundaries: the operating window and live bookings. Historical display-only 75-minute block boundaries are not scheduling constraints and must never hide an otherwise valid 30m, 45m, 60m, 90m, or 120m departure. `tests/unit/kantorovich-completeness.test.ts` holds the exact zero-waste oracle and requires no dark safe `(day, duration)` pair or free window in its deterministic sample.

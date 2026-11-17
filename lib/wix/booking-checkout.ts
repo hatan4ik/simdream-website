@@ -2,12 +2,10 @@ import 'server-only';
 
 import { z } from 'zod';
 import { FLIGHT_ADDONS, SIMULATOR_PACKAGES } from '@/lib/db/seed-data';
-import { closeDepartedSlots } from '@/lib/scheduler/kantorovich-engine';
 import { computeRequiredMissionMinutes } from '@/lib/booking/client/slot-selection';
 import { isoDate } from '@/lib/validation';
-import { intersectKantorovichSlotsWithWix, listWixBookableSlotsForDuration } from './availability-adapter';
+import { getWixBackedKantorovichSlots, listWixBookableSlotsForDuration } from './availability-adapter';
 import { listWixAvailability, listWixServices, wixResourceTypeIdsForService, type WixTimeSlot } from './bookings';
-import { isOnStrictWixGrid, strictWixGridSlots } from './booking-grid-policy';
 import { wixServiceIdFor } from './catalog';
 import { isWixConfigured, WIX_TIME_ZONE } from './config';
 import {
@@ -116,11 +114,6 @@ export async function resolveWixBookingCheckout(
   const requiredMissionMinutes = computeRequiredMissionMinutes(durationMinutes, input.addonIds ?? [], FLIGHT_ADDONS);
   const serviceId = wixServiceIdFor(input.packageId);
   if (!serviceId) throw new Error(`No Wix service maps to ${input.packageId}.`);
-  // The same grid rule the Wix pricing provider applies when Wix prices the booking.
-  if (!isOnStrictWixGrid(input.packageId, input.bookingDate, input.startTime)) {
-    throw new WixBookingUnavailableError('The requested Wix booking slot is no longer available.');
-  }
-
   const services = await listWixServices();
   const service = services.find((candidate) => candidate.id === serviceId);
   if (!service) throw new Error(`Wix service ${serviceId} could not be read.`);
@@ -138,17 +131,17 @@ export async function resolveWixBookingCheckout(
   // fixed-tier preflight probe, which is kept only for flows that book the base slot.
   const extendedTier =
     availabilityAddOnIds.length > 0 ? null : extendedWixDurationTier(requiredMissionMinutes, durationMinutes);
-  const [availability, strictGrid, extendedSlots, nativeExtended] = await Promise.all([
+  const [availability, extendedSlots, nativeExtended] = await Promise.all([
     listWixAvailability({ ...dayWindow, includeResourceTypeIds: resourceTypeIds }),
-    Promise.resolve(closeDepartedSlots(strictWixGridSlots(input.packageId, input.bookingDate), new Date())),
     extendedTier ? listWixBookableSlotsForDuration(input.bookingDate, extendedTier) : Promise.resolve(null),
     availabilityAddOnIds.length > 0
       ? listWixAvailability({ ...dayWindow, includeResourceTypeIds: resourceTypeIds, addOnIds: availabilityAddOnIds })
       : Promise.resolve(null),
   ]);
 
-  const intersectedGrid = intersectKantorovichSlotsWithWix(strictGrid, availability.timeSlots);
-  const canonicalSlot = intersectedGrid.find((slot) => slot.startTime === input.startTime && slot.available);
+  // The very list the calendar shows, so the checkout accepts exactly the departures a customer could pick.
+  const offeredSlots = await getWixBackedKantorovichSlots(input.bookingDate, durationMinutes, availability.timeSlots);
+  const canonicalSlot = offeredSlots.find((slot) => slot.startTime === input.startTime && slot.available);
   const wixSlot = availability.timeSlots.find(
     (slot) => slot.bookable !== false && matchesLocalStart(slot, input.bookingDate, input.startTime)
   );
