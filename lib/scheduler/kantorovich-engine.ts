@@ -280,6 +280,19 @@ function addBackwardReservedCadenceStarts(
 }
 
 /**
+ * `minSellableGaps` judges the time left before and after a departure by what a customer can still buy
+ * (nothing, or at least the shortest 45-minute reservation) instead of by exact zero-waste tiling. Wix
+ * mode uses it: Wix owns the bookings, and an add-on mission of 80 minutes (95 reserved) can never be
+ * tiled exactly, so the strict rule would hide every later departure of the day.
+ */
+export interface SlotGenerationOptions {
+  minSellableGaps?: boolean;
+}
+
+/** The only fields slot generation reads from a booking: a reserved interval is enough. */
+export type ReservedBooking = Pick<Booking, 'bookingDate' | 'startTime' | 'endTime' | 'durationMinutes' | 'status'>;
+
+/**
  * Generates the smart Kantorovich time-slot grid for a given date and requested flight duration.
  * Incorporates:
  * - T_reserved = T_play + 15 min
@@ -295,7 +308,8 @@ function addBackwardReservedCadenceStarts(
 export function generateKantorovichSlots(
   dateString: string,
   durationMinutes: number,
-  existingBookings: Booking[]
+  existingBookings: readonly ReservedBooking[],
+  options: SlotGenerationOptions = {}
 ): FlightSlot[] {
   const config = getDayOperatingConfig(dateString);
   const reservedDuration = getReservedMinutesForFlight(durationMinutes);
@@ -352,6 +366,23 @@ export function generateKantorovichSlots(
 
     const { period, label } = getBlockMetadata(startMin, config);
     const pricing = getKantorovichPricing(durationMinutes, startMin, config.isSaturday);
+    const closedSlot = (extra: Partial<FlightSlot>): FlightSlot => ({
+      id: `slot-${dateString}-${startTimeStr}`,
+      date: dateString,
+      startTime: startTimeStr,
+      endTime: endTimeStr,
+      reservedEndTime: reservedEndTimeStr,
+      durationMinutes,
+      totalReservedMinutes: reservedDuration,
+      available: false,
+      blockPeriod: period,
+      blockLabel: label,
+      isPrimeTime: pricing.isPrimeTime,
+      dynamicPriceIls: pricing.dynamicPriceIls,
+      basePriceIls: pricing.basePriceIls,
+      yieldPerMinIls: pricing.yieldPerMinIls,
+      ...extra,
+    });
 
     // 1. Check if slot exceeds facility closing time.
     if (reservedEndMin > config.closeMinutes) {
@@ -361,46 +392,18 @@ export function generateKantorovichSlots(
     // 2. The discounted 45-minute promotion only runs Sunday–Tuesday, before 18:00.
     // Keep closed candidate departures in the result for diagnostics and the zero-slots UX.
     if (durationMinutes === 45 && !isPromoDay) {
-      slots.push({
-        id: `slot-${dateString}-${startTimeStr}`,
-        date: dateString,
-        startTime: startTimeStr,
-        endTime: endTimeStr,
-        reservedEndTime: reservedEndTimeStr,
-        durationMinutes,
-        totalReservedMinutes: reservedDuration,
-        available: false,
-        blockPeriod: period,
-        blockLabel: label,
-        isPrimeTime: pricing.isPrimeTime,
-        dynamicPriceIls: pricing.dynamicPriceIls,
-        basePriceIls: pricing.basePriceIls,
-        yieldPerMinIls: pricing.yieldPerMinIls,
+      slots.push(closedSlot({
         disabledReason: 'promo_days_only',
         disabledNote: 'Discounted 45-minute promotion (₪490) is available Sunday–Tuesday only.',
-      });
+      }));
       continue;
     }
 
     if (durationMinutes === 45 && pricing.isPrimeTime) {
-      slots.push({
-        id: `slot-${dateString}-${startTimeStr}`,
-        date: dateString,
-        startTime: startTimeStr,
-        endTime: endTimeStr,
-        reservedEndTime: reservedEndTimeStr,
-        durationMinutes,
-        totalReservedMinutes: reservedDuration,
-        available: false,
-        blockPeriod: period,
-        blockLabel: label,
-        isPrimeTime: true,
-        dynamicPriceIls: pricing.dynamicPriceIls,
-        basePriceIls: pricing.basePriceIls,
-        yieldPerMinIls: pricing.yieldPerMinIls,
+      slots.push(closedSlot({
         disabledReason: 'daytime_only_promo',
         disabledNote: 'Discounted 45-minute promotion (₪490) is available before 18:00 only.',
-      });
+      }));
       continue;
     }
 
@@ -410,24 +413,10 @@ export function generateKantorovichSlots(
     );
 
     if (overlappingBooking) {
-      slots.push({
-        id: `slot-${dateString}-${startTimeStr}`,
-        date: dateString,
-        startTime: startTimeStr,
-        endTime: endTimeStr,
-        reservedEndTime: reservedEndTimeStr,
-        durationMinutes,
-        totalReservedMinutes: reservedDuration,
-        available: false,
-        blockPeriod: period,
-        blockLabel: label,
-        isPrimeTime: pricing.isPrimeTime,
-        dynamicPriceIls: pricing.dynamicPriceIls,
-        basePriceIls: pricing.basePriceIls,
-        yieldPerMinIls: pricing.yieldPerMinIls,
+      slots.push(closedSlot({
         disabledReason: 'booked',
         disabledNote: `Reserved (${minutesToTime(overlappingBooking.startMin)}–${minutesToTime(overlappingBooking.endMin)} incl. 15m prep)`,
-      });
+      }));
       continue;
     }
 
@@ -449,16 +438,10 @@ export function generateKantorovichSlots(
 
     // Judge each gap by where it starts, as evaluateDailyEfficiency does: a daytime departure
     // can still leave a prime-time gap after it, which only prime-time blocks may fill.
-    const validBefore = canTileIntervalZeroWaste(
-      gapBefore,
-      config.isSaturday || prevBoundary >= 18 * 60,
-      isPromoDay
-    );
-    const validAfter = canTileIntervalZeroWaste(
-      gapAfter,
-      config.isSaturday || reservedEndMin >= 18 * 60,
-      isPromoDay
-    );
+    const gapOk = (gap: number, isPrime: boolean) =>
+      options.minSellableGaps ? gap === 0 || gap >= 45 : canTileIntervalZeroWaste(gap, isPrime, isPromoDay);
+    const validBefore = gapOk(gapBefore, config.isSaturday || prevBoundary >= 18 * 60);
+    const validAfter = gapOk(gapAfter, config.isSaturday || reservedEndMin >= 18 * 60);
 
     if (!validBefore || !validAfter) {
       const badGap = !validBefore ? gapBefore : gapAfter;
@@ -467,25 +450,11 @@ export function generateKantorovichSlots(
         : Math.max(prevBoundary, nextBoundary - reservedDuration);
       const suggested = minutesToTime(suggestedStart);
       const suggestedNext = minutesToTime(suggestedStart + reservedDuration);
-      slots.push({
-        id: `slot-${dateString}-${startTimeStr}`,
-        date: dateString,
-        startTime: startTimeStr,
-        endTime: endTimeStr,
-        reservedEndTime: reservedEndTimeStr,
-        durationMinutes,
-        totalReservedMinutes: reservedDuration,
-        available: false,
-        blockPeriod: period,
-        blockLabel: label,
-        isPrimeTime: pricing.isPrimeTime,
-        dynamicPriceIls: pricing.dynamicPriceIls,
-        basePriceIls: pricing.basePriceIls,
-        yieldPerMinIls: pricing.yieldPerMinIls,
+      slots.push(closedSlot({
         disabledReason: 'orphan_gap',
         suggestedAlternativeTime: `${suggested} / ${suggestedNext}`,
         disabledNote: `Zero-Waste Lock: Leaves ${badGap}m dead window. Choose ${suggested} or ${suggestedNext}.`,
-      });
+      }));
       continue;
     }
 

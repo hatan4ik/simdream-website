@@ -63,16 +63,14 @@ describe('Wix subscription booking checkout slot', () => {
     });
   });
 
-  it('refuses a Wix slot outside the strict zero-waste grid', async () => {
+  it('refuses a Wix start that is neither a cadence start nor the first start after a booking', async () => {
     vi.doMock('@/lib/wix/bookings', () => ({
       listWixAvailability: async () => ({
         timeSlots: [
-          {
-            serviceId: 'svc-captain-60',
-            localStartDate: `${BOOKING_DATE}T10:00:00`,
-            localEndDate: `${BOOKING_DATE}T11:00:00`,
-            bookable: true,
-          },
+          // Wix lists every 5 minutes: 10:00 is the first free start after something booked from 09:00,
+          // so 10:05 is neither a cadence start nor an anchor.
+          { serviceId: 'svc-captain-60', localStartDate: `${BOOKING_DATE}T10:00:00`, localEndDate: `${BOOKING_DATE}T11:00:00`, bookable: true },
+          { serviceId: 'svc-captain-60', localStartDate: `${BOOKING_DATE}T10:05:00`, localEndDate: `${BOOKING_DATE}T11:05:00`, bookable: true },
         ],
         timeZone: 'Asia/Jerusalem',
       }),
@@ -92,7 +90,7 @@ describe('Wix subscription booking checkout slot', () => {
     const { resolveWixSubscriptionBookingCheckout, WixSubscriptionBookingUnavailableError } = await import(
       '@/lib/wix/subscription-booking'
     );
-    await expect(resolveWixSubscriptionBookingCheckout({ ...BOOKING_INPUT, startTime: '10:00' })).rejects.toBeInstanceOf(
+    await expect(resolveWixSubscriptionBookingCheckout({ ...BOOKING_INPUT, startTime: '10:05' })).rejects.toBeInstanceOf(
       WixSubscriptionBookingUnavailableError
     );
   });

@@ -29,6 +29,7 @@ the local grid; this provider does.**
   date that a claim must match and the tariff (Saturday or 18:00 onward is prime time, as the grid itself decides). The
   booking's `timezone` label is ignored for all three because the browser sets it. A start without an explicit UTC
   offset, or not on a whole minute, cannot be placed on the grid and is refused too.
+- While this provider is active the calendar and the checkout offer only fixed-grid starts (`getWixBackedKantorovichSlots()` falls back to the empty-day grid), so a start the provider would refuse is never offered. The re-anchored starts that follow a booking (14:20 after a 14:05 end) need this provider extended first.
 - An off-grid start is refused with `off-grid-departure`, claim or no claim, through the same path as an altered claim:
   the endpoint answers 400 and returns no `calculatedPrice`. Wix's Bookings Pricing API documents that Calculate Price
   then fails with `ERROR_CONTACTING_PRICING_PROVIDER` ("the provider may be unavailable or returned an error"), so the

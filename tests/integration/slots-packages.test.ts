@@ -285,14 +285,13 @@ describe('GET /api/slots', () => {
     const localSlots = await app.store.getAvailableSlots(EMPTY_DAY.sunday, 60);
     const onlyFirstDeparture = localSlots.map((slot, index) => ({ ...slot, available: index === 0 && slot.available }));
     wix.list.mockResolvedValue([{ localStartDate: `${EMPTY_DAY.sunday}T10:00:00`, localEndDate: `${EMPTY_DAY.sunday}T11:00:00` }]);
-    wix.intersect.mockReturnValue(onlyFirstDeparture);
+    wix.wixOnly.mockResolvedValue(onlyFirstDeparture);
 
     const response = await slotsResponse(app, `?date=${EMPTY_DAY.sunday}&duration=60`);
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual(onlyFirstDeparture);
-    expect(wix.intersect).toHaveBeenCalledWith(localSlots, expect.any(Array));
-    expect(wix.wixOnly).not.toHaveBeenCalled();
+    expect(wix.wixOnly).toHaveBeenCalledWith(EMPTY_DAY.sunday, 60, expect.any(Array));
   });
 
   it('uses the Wix-backed canonical grid when local persistence is unavailable', async () => {
@@ -328,8 +327,9 @@ describe('GET /api/slots', () => {
   it('retains the verified local efficiency report when both calendars are reachable', async () => {
     const wix = mockWixAvailabilityPort();
     const app = await loadApp();
+    const localSlots = await app.store.getAvailableSlots(EMPTY_DAY.sunday, 60);
     wix.list.mockResolvedValue([{ localStartDate: `${EMPTY_DAY.sunday}T10:00:00`, localEndDate: `${EMPTY_DAY.sunday}T11:00:00` }]);
-    wix.intersect.mockImplementation((localSlots) => localSlots);
+    wix.wixOnly.mockResolvedValue(localSlots);
 
     const response = await slotsResponse(app, `?date=${EMPTY_DAY.sunday}&duration=60&includeEfficiency=true`);
 
