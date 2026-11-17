@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
 import {
   Gift,
   Sparkles,
@@ -16,11 +15,7 @@ import {
   EyeOff,
   Eye,
   Printer,
-  Search,
-  ChevronDown,
-  ChevronUp,
   Users,
-  ArrowRight,
   CheckCircle2,
   AlertCircle,
 } from 'lucide-react';
@@ -29,6 +24,7 @@ import { useLanguage } from '@/lib/i18n/language-context';
 import { getLocalizedPackages } from '@/lib/i18n/translations';
 import { useCustomerContactSeed } from '@/lib/customer/customer-draft';
 import { VoucherSenderFields } from '@/components/vouchers/VoucherSenderFields';
+import { VoucherBalanceCheckDrawer } from '@/components/vouchers/VoucherBalanceCheckDrawer';
 import {
   DEFAULT_GIFT_CERTIFICATE_AMOUNT,
   giftCertificateAmount,
@@ -58,14 +54,6 @@ const GIFT_CARD_PRESETS = GIFT_CARD_DESIGNS.map((design) => design.amountIls);
 const DEFAULT_GIFT_CARD_AMOUNT = 100;
 const POPULAR_GIFT_CARD_AMOUNT = 200;
 const INITIAL_GIFT_CARD_DESIGN_ID = giftCardDesignForAmount(DEFAULT_GIFT_CARD_AMOUNT)?.id ?? DEFAULT_GIFT_CARD_DESIGN_ID;
-
-interface VerifiedVoucherInfo {
-  code: string;
-  initialValueIls: number;
-  currentBalanceIls: number;
-  expiryDate: string;
-  isRedeemed: boolean;
-}
 
 export default function GiftVouchersPage() {
   const { t, isRTL, language } = useLanguage();
@@ -112,13 +100,6 @@ export default function GiftVouchersPage() {
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [returnBanner, setReturnBanner] = useState<'processing' | 'cancelled' | null>(null);
 
-  // Recipient balance check drawer state
-  const [isBalanceOpen, setIsBalanceOpen] = useState(false);
-  const [lookupCode, setLookupCode] = useState('');
-  const [isCheckingBalance, setIsCheckingBalance] = useState(false);
-  const [lookupError, setLookupError] = useState<string | null>(null);
-  const [verifiedVoucher, setVerifiedVoucher] = useState<VerifiedVoucherInfo | null>(null);
-
   useEffect(() => {
     setPersonalMessage(t.vouchers.defaultMessage);
   }, [t.vouchers.defaultMessage]);
@@ -130,9 +111,6 @@ export default function GiftVouchersPage() {
       setReturnBanner('processing');
     } else if (params.get('cancelled') === 'true') {
       setReturnBanner('cancelled');
-    }
-    if (params.get('check') === '1') {
-      setIsBalanceOpen(true);
     }
   }, []);
 
@@ -227,35 +205,6 @@ export default function GiftVouchersPage() {
       );
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  const handleCheckBalance = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const trimmed = lookupCode.trim().toUpperCase();
-    if (!trimmed) return;
-    setIsCheckingBalance(true);
-    setLookupError(null);
-    setVerifiedVoucher(null);
-    try {
-      const res = await fetch('/api/vouchers', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'verify', code: trimmed }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setLookupError(data.error || 'Invalid voucher code.');
-        return;
-      }
-      setVerifiedVoucher(data as VerifiedVoucherInfo);
-      if (typeof window !== 'undefined') {
-        window.sessionStorage.setItem('simdream_cached_voucher', data.code);
-      }
-    } catch {
-      setLookupError('Unable to check voucher balance right now.');
-    } finally {
-      setIsCheckingBalance(false);
     }
   };
 
@@ -942,116 +891,7 @@ export default function GiftVouchersPage() {
         </div>
 
         {/* Recipient Voucher Balance Check & 1-Click Redemption Drawer */}
-        <div className="mt-16 max-w-4xl mx-auto">
-          <div className="rounded-2xl bg-slate-900/70 border border-slate-800 overflow-hidden">
-            <button
-              type="button"
-              onClick={() => setIsBalanceOpen((prev) => !prev)}
-              aria-expanded={isBalanceOpen}
-              className="w-full p-6 flex items-center justify-between gap-4 text-start hover:bg-slate-900 transition-colors"
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-11 h-11 rounded-xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-400 shrink-0">
-                  <Search className="w-5 h-5" />
-                </div>
-                <div>
-                  <span className="text-[11px] font-mono uppercase tracking-widest text-orange-400 font-bold block">
-                    {t.vouchers.balanceCheckBadge}
-                  </span>
-                  <h2 className="text-base sm:text-lg font-bold text-white">{t.vouchers.balanceCheckTitle}</h2>
-                  <p className="text-xs text-slate-400 mt-0.5">{t.vouchers.balanceCheckDesc}</p>
-                </div>
-              </div>
-              <div className="text-slate-400 shrink-0">
-                {isBalanceOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-              </div>
-            </button>
-
-            {isBalanceOpen && (
-              <div className="px-6 pb-6 pt-2 border-t border-slate-800/80 space-y-4">
-                <form onSubmit={handleCheckBalance} className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-end">
-                  <div className="flex-1">
-                    <label htmlFor="voucher-balance-code" className="block text-xs font-medium text-slate-300 mb-1.5">
-                      {t.vouchers.balanceInputLabel}
-                    </label>
-                    <input
-                      id="voucher-balance-code"
-                      name="voucherBalanceCode"
-                      type="text"
-                      required
-                      autoComplete="off"
-                      autoCorrect="off"
-                      autoCapitalize="characters"
-                      spellCheck={false}
-                      value={lookupCode}
-                      onChange={(e) => setLookupCode(e.target.value)}
-                      placeholder={t.vouchers.balanceInputPlaceholder}
-                      className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono text-sm focus:outline-none focus:border-sky-500"
-                      dir="ltr"
-                    />
-                  </div>
-                  <button
-                    type="submit"
-                    disabled={isCheckingBalance}
-                    className="px-6 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-sm transition-colors shrink-0"
-                  >
-                    {isCheckingBalance ? t.vouchers.balanceChecking : t.vouchers.balanceCheckBtn}
-                  </button>
-                </form>
-
-                {lookupError && (
-                  <div
-                    role="alert"
-                    className="rounded-xl bg-red-500/10 border border-red-500/30 px-4 py-3 text-xs text-red-300 font-medium"
-                  >
-                    {lookupError}
-                  </div>
-                )}
-
-                {verifiedVoucher && (
-                  <div
-                    role="status"
-                    aria-live="polite"
-                    className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-                  >
-                    <div className="space-y-1">
-                      <div className="text-xs font-mono font-bold text-emerald-300" dir="ltr">
-                        {verifiedVoucher.code}
-                      </div>
-                      <div className="flex flex-wrap gap-4 text-xs text-slate-300">
-                        <span>
-                          {t.vouchers.balanceAvailable}:{' '}
-                          <strong className="text-white font-mono" dir="ltr">
-                            {formatCurrency(verifiedVoucher.currentBalanceIls)}
-                          </strong>
-                        </span>
-                        <span>
-                          {t.vouchers.balanceInitial}:{' '}
-                          <strong className="text-slate-200 font-mono" dir="ltr">
-                            {formatCurrency(verifiedVoucher.initialValueIls)}
-                          </strong>
-                        </span>
-                        <span>
-                          {t.vouchers.balanceExpires}:{' '}
-                          <strong className="text-slate-200 font-mono" dir="ltr">
-                            {new Date(verifiedVoucher.expiryDate).toLocaleDateString('en-CA')}
-                          </strong>
-                        </span>
-                      </div>
-                    </div>
-                    <Link
-                      href="/book"
-                      className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition-colors shrink-0"
-                    >
-                      <span>{t.vouchers.balanceBookNow}</span>
-                      <ArrowRight className={`w-3.5 h-3.5 ${isRTL ? 'rotate-180' : ''}`} />
-                    </Link>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
+        <VoucherBalanceCheckDrawer />
       </div>
     </div>
   );

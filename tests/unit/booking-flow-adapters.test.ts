@@ -275,8 +275,7 @@ describe('Wix checkout cart operations', () => {
         codeKind: 'coupon',
         couponId: 'c1',
         couponCode: 'SAVE50',
-        giftCardId: undefined,
-        giftCardObfuscatedCode: undefined,
+        couponDiscountIls: 50,
         totalIls: 450,
       },
     });
@@ -290,18 +289,57 @@ describe('Wix checkout cart operations', () => {
     expect(result).toEqual({ kind: 'not-eligible', draft: { ...DRAFT, totalIls: 520 } });
   });
 
-  it('applies a gift card without keeping its bearer code', async () => {
+  it('applies a gift card without keeping its bearer code while preserving an existing coupon on the same cart', async () => {
     wix.applyWixGiftCard.mockResolvedValue({
       giftCardId: 'g1',
       obfuscatedCode: '****1234',
-      price: { totalIls: 100, giftCardAppliedIls: 400, discountIls: 0 },
+      price: { totalIls: 100, giftCardAppliedIls: 400, discountIls: 100 },
     });
-    const result = await applyGiftCardToDraft({ ...DRAFT, couponId: 'c1', couponCode: 'X' }, 'SECRET-CODE');
-    expect(wix.applyWixGiftCard).toHaveBeenCalledWith(wix.client, 'cart-1', 'SECRET-CODE');
+    const result = await applyGiftCardToDraft(
+      { ...DRAFT, couponId: 'c1', couponCode: 'OFF-100', couponDiscountIls: 100 },
+      '8AQMJWNT1V5RK98D'
+    );
+    expect(wix.applyWixGiftCard).toHaveBeenCalledWith(wix.client, 'cart-1', '8AQMJWNT1V5RK98D');
     expect(result.appliedCreditIls).toBe(400);
-    expect(result.draft).toMatchObject({ codeKind: 'gift-card', giftCardId: 'g1', giftCardObfuscatedCode: '****1234', totalIls: 100 });
-    expect(result.draft.couponId).toBeUndefined();
-    expect(JSON.stringify(result)).not.toContain('SECRET-CODE');
+    expect(result.draft).toMatchObject({
+      codeKind: 'gift-card',
+      couponId: 'c1',
+      couponCode: 'OFF-100',
+      couponDiscountIls: 100,
+      giftCardId: 'g1',
+      giftCardObfuscatedCode: '****1234',
+      giftCardCreditIls: 400,
+      totalIls: 100,
+    });
+    expect(JSON.stringify(result)).not.toContain('8AQMJWNT1V5RK98D');
+  });
+
+  it('applies a coupon on top of an already-applied gift card without dropping the gift card', async () => {
+    wix.applyWixCoupon.mockResolvedValue({
+      couponId: 'c1',
+      price: { discountIls: 100, giftCardAppliedIls: 400, totalIls: 100 },
+    });
+    const result = await applyCouponToDraft(
+      { ...DRAFT, totalIls: 200, giftCardId: 'g1', giftCardObfuscatedCode: '****K98D', giftCardCreditIls: 400 },
+      'OFF-100'
+    );
+    expect(wix.applyWixCoupon).toHaveBeenCalledWith(wix.client, 'cart-1', 'OFF-100', 600);
+    expect(result).toEqual({
+      kind: 'applied',
+      discountIls: 100,
+      totalIls: 100,
+      draft: {
+        ...DRAFT,
+        codeKind: 'coupon',
+        couponId: 'c1',
+        couponCode: 'OFF-100',
+        couponDiscountIls: 100,
+        giftCardId: 'g1',
+        giftCardObfuscatedCode: '****K98D',
+        giftCardCreditIls: 400,
+        totalIls: 100,
+      },
+    });
   });
 
   it('treats a gift card with no reported credit as zero credit', async () => {
@@ -309,7 +347,7 @@ describe('Wix checkout cart operations', () => {
     expect((await applyGiftCardToDraft(DRAFT, 'c')).appliedCreditIls).toBe(0);
   });
 
-  it('removes an applied gift card or coupon and resets the draft to the recalculated total', async () => {
+  it('removes an applied gift card or coupon independently and resets the draft to the recalculated total', async () => {
     wix.removeWixGiftCard.mockResolvedValue({ totalIls: 500 });
     const cleared = await removeAppliedCodeFromDraft({ ...DRAFT, codeKind: 'gift-card', giftCardId: 'g1', giftCardObfuscatedCode: '****' });
     expect(wix.removeWixGiftCard).toHaveBeenCalledWith(wix.client, 'cart-1', 'g1');
@@ -317,15 +355,33 @@ describe('Wix checkout cart operations', () => {
       ...DRAFT,
       totalIls: 500,
       codeKind: undefined,
-      couponId: undefined,
-      couponCode: undefined,
       giftCardId: undefined,
       giftCardObfuscatedCode: undefined,
+      giftCardCreditIls: undefined,
     });
 
     wix.removeWixCoupon.mockResolvedValue({ totalIls: 500 });
-    await removeAppliedCodeFromDraft({ ...DRAFT, codeKind: 'coupon', couponId: 'c1', couponCode: 'X' });
+    const clearedCoupon = await removeAppliedCodeFromDraft({
+      ...DRAFT,
+      codeKind: 'coupon',
+      couponId: 'c1',
+      couponCode: 'OFF-100',
+      couponDiscountIls: 100,
+      giftCardId: 'g1',
+      giftCardObfuscatedCode: '****K98D',
+      giftCardCreditIls: 400,
+    }, 'coupon');
     expect(wix.removeWixCoupon).toHaveBeenCalledWith(wix.client, 'cart-1', 'c1');
+    expect(clearedCoupon).toMatchObject({
+      codeKind: 'gift-card',
+      couponId: undefined,
+      couponCode: undefined,
+      couponDiscountIls: undefined,
+      giftCardId: 'g1',
+      giftCardObfuscatedCode: '****K98D',
+      giftCardCreditIls: 400,
+      totalIls: 500,
+    });
   });
 
   it('returns the Wix-hosted payment URL of the draft cart', async () => {

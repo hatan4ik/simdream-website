@@ -272,6 +272,145 @@ test.describe('multilingual multi-addon booking matrix (CI guard)', () => {
       expect(response.status(), `POST /api/checkout for ${path}`).toBe(503);
     }
   });
+
+  test('allows applying both a Coupon (OFF-100) and a Gift Card (8AQMJWNT1V5RK98D) on the same Wix cart without hiding the second option', async ({
+    page,
+    schedule,
+  }) => {
+    const { date, startTimes } = await findMultiAddonDay(schedule, 120);
+    await page.route(
+      (url) => url.pathname === '/api/slots',
+      async (route) => {
+        const response = await route.fetch();
+        const payload = (await response.json()) as Record<string, unknown>;
+        await route.fulfill({ response, json: { ...payload, wixBookingsAuthoritative: true } });
+      }
+    );
+    await page.route('**/api/wix/bookings/checkout', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          slotAvailability: {
+            serviceId: 'svc-60',
+            scheduleId: 'sched-60',
+            localStartDate: `${date}T10:00:00`,
+            localEndDate: `${date}T11:00:00`,
+            bookable: true,
+          },
+          timeZone: 'Asia/Jerusalem',
+          location: { id: 'loc-1', locationType: 'BUSINESS' },
+          paymentOptions: { online: true, inPerson: false },
+        }),
+      });
+    });
+    await page.route('**/oauth2/token', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ access_token: 'visitor-tok', expires_in: 3600, refresh_token: 'ref-tok' }),
+      });
+    });
+    await page.route('**/_api/service-availability/v2/time-slots/get', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ timeSlot: { bookable: true, scheduleId: 'sched-60' } }),
+      });
+    });
+    await page.route('**/bookings/v2/bookings', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ booking: { id: 'booking-cg-1' } }),
+      });
+    });
+
+    let couponApplied = false;
+    let giftCardApplied = false;
+    await page.route('**/ecom/v2/carts**', async (route) => {
+      const url = route.request().url();
+      if (url.endsWith('/carts')) {
+        await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ cart: { id: 'cart-cg-1' } }) });
+        return;
+      }
+      if (url.endsWith('/add-coupon')) {
+        couponApplied = true;
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ cart: { coupons: [{ id: 'coupon-off-100', code: 'OFF-100' }] } }),
+        });
+        return;
+      }
+      if (url.endsWith('/add-gift-card')) {
+        giftCardApplied = true;
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            cart: { paymentInfo: { giftCards: [{ id: 'gc-1', obfuscatedCode: '****K98D' }] } },
+          }),
+        });
+        return;
+      }
+      if (url.endsWith('/calculate')) {
+        const preGcTotal = couponApplied ? '590' : '690';
+        const discount = couponApplied ? '100' : '0';
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            summary: {
+              violations: [],
+              priceSummary: { discount: { amount: discount }, total: { amount: preGcTotal } },
+              ...(giftCardApplied
+                ? {
+                    paymentSummary: {
+                      giftCards: [{ giftCardId: 'gc-1', redeemAmount: { amount: '200' } }],
+                      totalAfterGiftCards: { amount: couponApplied ? '390' : '490' },
+                    },
+                  }
+                : {}),
+            },
+          }),
+        });
+        return;
+      }
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ cart: { id: 'cart-cg-1' } }) });
+    });
+
+    await openLocalizedBook(page, 'en');
+    await clickCalendarDateAndWait(page, date);
+    await slotButtonByTime(page, startTimes[0]!).click();
+    await page.getByRole('button', { name: translations.en.booking.continueToAddons }).click();
+    await page.getByRole('button', { name: translations.en.booking.continueToPilot }).click();
+
+    await page.locator('input[id$="-pilot-name"]:visible').first().fill('Nat Nat');
+    await page.locator('input[type="email"]:visible').first().fill('nat.cg@example.com');
+    await page.locator('input[type="tel"]:visible').first().fill('+972547773074');
+    await completeBookingExtras(page);
+
+    const selector = page.locator('[data-booking-code-type-selector]').first();
+    await expect(selector).toBeVisible();
+    const codeInput = page.locator('input[dir="ltr"][class*="uppercase"]:visible').last();
+
+    // 1. Apply Coupon OFF-100
+    await codeInput.fill('OFF-100');
+    await page.getByRole('button', { name: translations.en.booking.applyCode }).click();
+    await expect(page.locator('[data-applied-code-kind="coupon"]')).toContainText('OFF-100');
+
+    // 2. Verify the Gift Card option did NOT disappear and is now selected for the second code
+    await expect(selector).toBeVisible();
+    await expect(selector.locator('button').nth(1)).toHaveAttribute('aria-pressed', 'true');
+    await expect(codeInput).toBeVisible();
+
+    // 3. Apply Gift Card 8AQMJWNT1V5RK98D on top of OFF-100
+    await codeInput.fill('8AQMJWNT1V5RK98D');
+    await page.getByRole('button', { name: translations.en.booking.applyCode }).click();
+    await expect(page.locator('[data-applied-code-kind="coupon"]')).toContainText('OFF-100');
+    await expect(page.locator('[data-applied-code-kind="gift-card"]')).toContainText('****K98D');
+  });
 });
 
 test.describe('mobile 390x844 multi-addon & RTL sticky clearance (CI guard)', () => {

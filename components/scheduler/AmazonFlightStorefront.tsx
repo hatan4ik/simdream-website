@@ -29,14 +29,8 @@ import { BookingMonthPager } from '@/components/scheduler/BookingMonthPager';
 import { BookingWeekPager } from '@/components/scheduler/BookingWeekPager';
 import { PackageInclusionsDialog } from '@/components/scheduler/PackageInclusionsDialog';
 import { useSchedulerViewModel } from '@/components/scheduler/hooks';
-import {
-  FlightSlot,
-  SimulatorPackage,
-  FlightAddon,
-  PilotExperienceLevel,
-  MissionManifestCalculation,
-  SlotBlockPeriod,
-} from '@/types';
+import type { BookingVoucher } from '@/components/booking/hooks';
+import { FlightSlot, SimulatorPackage, FlightAddon, PilotExperienceLevel, MissionManifestCalculation, SlotBlockPeriod } from '@/types';
 import { formatCurrency } from '@/lib/utils';
 import { useModalFocus } from '@/lib/ui/use-modal-focus';
 import { useLanguage } from '@/lib/i18n/language-context';
@@ -80,6 +74,7 @@ interface AmazonFlightStorefrontProps {
   notes: string;
   onChangeNotes: (val: string) => void;
   // Voucher State
+  voucher?: BookingVoucher;
   voucherCode: string;
   onChangeVoucherCode: (val: string) => void;
   voucherDiscount: number;
@@ -184,6 +179,7 @@ export function AmazonFlightStorefront({
   onChangeExperienceLevel,
   notes,
   onChangeNotes,
+  voucher,
   voucherCode,
   onChangeVoucherCode,
   voucherDiscount,
@@ -1400,6 +1396,7 @@ export function AmazonFlightStorefront({
             {extraFields}
 
             <StorefrontVoucherBox
+              voucher={voucher}
               voucherCode={voucherCode}
               onChangeVoucherCode={onChangeVoucherCode}
               voucherDiscount={voucherDiscount}
@@ -1414,10 +1411,7 @@ export function AmazonFlightStorefront({
 
             {/* Special Notes */}
             <div className="space-y-1 pt-1">
-              <label
-                htmlFor="storefront-notes"
-                className="block text-[11px] font-mono uppercase text-slate-400"
-              >
+              <label htmlFor="storefront-notes" className="block text-[11px] font-mono uppercase text-slate-400">
                 {t.booking.specialRequests}
               </label>
               <textarea

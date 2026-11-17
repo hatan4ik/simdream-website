@@ -31,7 +31,7 @@ const SIZE_ALLOWLIST: Readonly<Record<string, number>> = {
   'components/scheduler/AmazonFlightStorefront.tsx': 1500,
   'app/(public)/contact/page.tsx': 918,
   'components/pro/ProSessionsView.tsx': 481,
-  'app/(public)/vouchers/page.tsx': 1058,
+  'app/(public)/vouchers/page.tsx': 898,
   'components/scheduler/KantorovichCalendarScheduler.tsx': 740,
   // Ground School inquiries (#114) landed on main after this ratchet was written (+78 lines of class methods).
   // They move out with the store split planned in docs/MODULARITY.md; then lower this number.

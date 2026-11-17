@@ -11,9 +11,11 @@ export interface WixCheckoutDraftState {
   codeKind?: WixCheckoutCodeKind;
   couponId?: string;
   couponCode?: string;
+  couponDiscountIls?: number;
   giftCardId?: string;
   /** Wix masks the bearer code; never retain a native Gift Card code after applying it. */
   giftCardObfuscatedCode?: string;
+  giftCardCreditIls?: number;
 }
 
 export interface WixCheckoutDraftInputs {

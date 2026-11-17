@@ -78,6 +78,7 @@ export function BookingStorefrontView({
       onChangeExperienceLevel={selection.handleChangeExperienceLevel}
       notes={pilot.notes}
       onChangeNotes={pilot.setNotes}
+      voucher={voucher}
       voucherCode={voucher.voucherCode}
       onChangeVoucherCode={voucher.setVoucherCode}
       voucherDiscount={voucher.voucherDiscount}
