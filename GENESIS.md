@@ -729,7 +729,7 @@ components/
 lib/
   scheduler/ kantorovich-engine mission-calculator package-presentation tiled-interval-optimizer israel-clock booking-horizon availability-view-model
   booking/checkout-service checkout-error checkout-ports checkout-composition checkout-runtime checkout-throttle checkout-hold-policy
-  wix/ client config catalog bookings availability-adapter booking-checkout booking-grid-policy booking-grid-enforcement booking-cart-create booking-checkout-client cart-v2-shared checkout-prefill subscription-redemption subscription-booking checkout-shadow member-client backend-blueprint gift-cards plans readiness blog birthday-pricing-config birthday-pricing-server birthday-claim-request birthday-claim-identity birthday-claim-throttle birthday-claim-fallback-limiter
+  wix/ client config catalog bookings availability-adapter wix-blocked-bookings native-addons booking-checkout booking-grid-policy booking-grid-enforcement booking-cart-create booking-checkout-client cart-v2-shared checkout-prefill subscription-redemption subscription-booking checkout-shadow member-client backend-blueprint gift-cards plans readiness blog birthday-pricing-config birthday-pricing-server birthday-claim-request birthday-claim-identity birthday-claim-throttle birthday-claim-fallback-limiter
   catalog/gift-voucher-packages  data/experience-routes subscription-passes subscription-page-copy blog-posts blog-categories blog-authors blog-seo blog-short-slugs blog-legacy-slugs  db/ store checkout-hold-store schema.sql seed-data supabase-admin migrations/
   auth/ admin-guard request-auth member-ownership safe-redirect auth-context
   customer/ customer-draft

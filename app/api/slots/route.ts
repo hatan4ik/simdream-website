@@ -4,7 +4,11 @@ import { BOOKING_HORIZON_MESSAGE, isBeyondBookingHorizon } from '@/lib/scheduler
 import { israelToday } from '@/lib/scheduler/israel-clock';
 import { toPublicCapacityReport } from '@/lib/scheduler/kantorovich-engine';
 import { isoDate } from '@/lib/validation';
-import { getWixBackedKantorovichSlots, isWixAvailabilityAdapterEnabled } from '@/lib/wix';
+import {
+  getWixBackedKantorovichSlots,
+  isWixAvailabilityAdapterEnabled,
+  listWixBookableSlotsForDuration,
+} from '@/lib/wix';
 
 const VALID_DURATIONS = new Set([30, 45, 60, 90, 120]);
 const SUPPORTED_DURATIONS = [30, 45, 60, 90, 120] as const;
@@ -21,7 +25,8 @@ async function getWixAdaptedSlots(date: string, duration: number) {
   // Wix owns the bookings in this mode, so its answer decides; the engine re-anchors on what Wix reports.
   // The local calendar is only a fallback while Wix cannot be reached.
   try {
-    return await getWixBackedKantorovichSlots(date, duration);
+    const wixSlots = await listWixBookableSlotsForDuration(date, duration);
+    return await getWixBackedKantorovichSlots(date, duration, wixSlots);
   } catch (wixError) {
     try {
       return await store.getAvailableSlots(date, duration);
