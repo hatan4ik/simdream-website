@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.29.14](https://github.com/hatan4ik/simdream-website/compare/v1.29.13...v1.29.14) (2026-11-17)
+
+
+### Bug Fixes
+
+* **forms:** announce name, email and phone to browser autofill ([#261](https://github.com/hatan4ik/simdream-website/issues/261)) ([905efec](https://github.com/hatan4ik/simdream-website/commit/905efec06b60d0508940db0043ea5f87e1369516))
+
 ## [1.29.13](https://github.com/hatan4ik/simdream-website/compare/v1.29.12...v1.29.13) (2026-11-17)
 
 
