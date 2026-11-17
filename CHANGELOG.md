@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.29.11](https://github.com/hatan4ik/simdream-website/compare/v1.29.10...v1.29.11) (2026-11-17)
+
+
+### Bug Fixes
+
+* **ui:** modernize autofill, scrollbars, switch attribute, and toSorted patterns ([#254](https://github.com/hatan4ik/simdream-website/issues/254)) ([cc64fb4](https://github.com/hatan4ik/simdream-website/commit/cc64fb4a5ecdbd2078fd4ac46f08d6573fb5ff15))
+
 ## [1.29.10](https://github.com/hatan4ik/simdream-website/compare/v1.29.9...v1.29.10) (2026-11-16)
 
 
