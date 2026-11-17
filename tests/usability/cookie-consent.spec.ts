@@ -7,7 +7,7 @@ import { CONSENT_STORAGE_KEY } from '../../lib/consent/config';
 import { NO_SEEDED_CONSENT } from '../support/consent';
 import { expectThemeApplied, LANGUAGES, preferLanguage, preferTheme, RTL_LANGUAGES, type UiTheme } from '../support/e2e';
 import { expect, test } from './support/fixtures';
-import { afterNextPaint, freezeCssMotion, gotoSettled, isolateFromThirdParties } from './support/page';
+import { afterNextPaint, focusIsInDialogOrBrowserUi, freezeCssMotion, gotoSettled, isolateFromThirdParties } from './support/page';
 
 /**
  * Cookie consent, from a blank browser profile. The Playwright config pre-seeds every other test
@@ -23,6 +23,7 @@ test.describe.configure({ timeout: 90_000 });
 
 const banner = (page: Page): Locator => page.locator('[data-consent-banner]');
 const dialog = (page: Page): Locator => page.locator('[data-consent-dialog]');
+
 const storedRecord = (page: Page) =>
   page.evaluate((key) => {
     const raw = window.localStorage.getItem(key);
@@ -158,14 +159,14 @@ test.describe('settings dialog', () => {
     for (const item of CONSENT_COPY.en.storedItems) await expect(panel).toContainText(item.title);
     await expect(panel.getByRole('link', { name: CONSENT_COPY.en.privacyPolicy })).toHaveAttribute('href', '/privacy-policy');
 
-    // Focus stays inside the dialog however long the visitor tabs, in both directions.
+    // Focus never reaches the page behind the dialog however long the visitor tabs, in both directions.
     for (let presses = 0; presses < 12; presses += 1) {
       await page.keyboard.press('Tab');
-      expect(await page.evaluate(() => Boolean(document.activeElement?.closest('[data-consent-dialog]')))).toBe(true);
+      expect(await focusIsInDialogOrBrowserUi(page)).toBe(true);
     }
     for (let presses = 0; presses < 12; presses += 1) {
       await page.keyboard.press('Shift+Tab');
-      expect(await page.evaluate(() => Boolean(document.activeElement?.closest('[data-consent-dialog]')))).toBe(true);
+      expect(await focusIsInDialogOrBrowserUi(page)).toBe(true);
     }
 
     await page.keyboard.press('Escape');

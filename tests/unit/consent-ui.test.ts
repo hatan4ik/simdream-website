@@ -106,8 +106,9 @@ describe('informational notice (nothing optional in use)', () => {
 
   it('lists what is stored, with no switch, and marks analytics and marketing as not used', () => {
     const html = dialog('en');
-    expect(html).toContain('role="dialog"');
-    expect(html).toContain('aria-modal="true"');
+    // A native modal <dialog> already carries the dialog role and modality.
+    expect(html).toContain('<dialog');
+    expect(html).not.toContain('role="dialog"');
     expect(html).toContain('aria-labelledby="consent-dialog-title"');
     expect(html).not.toContain('role="switch"');
     for (const item of CONSENT_COPY.en.storedItems) expect(html).toContain(item.title);

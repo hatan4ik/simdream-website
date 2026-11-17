@@ -4,7 +4,7 @@ import { CONSENT_LINK_LABEL } from '../../components/consent/link-label';
 import { activate } from '../e2e/pages/hydration';
 import { expect, LANGUAGES, preferLanguage, RTL_LANGUAGES } from '../support/e2e';
 import { test } from './support/fixtures';
-import { expectLanguageRendered, gotoSettled, isolateFromThirdParties } from './support/page';
+import { expectLanguageRendered, focusIsInDialogOrBrowserUi, gotoSettled, isolateFromThirdParties } from './support/page';
 
 /**
  * Phones have no footer, so the "Cookie settings" entry lives in the drawer's "About" group
@@ -108,10 +108,10 @@ test.describe('phone menu cookie settings by keyboard', () => {
     await page.keyboard.press('Enter');
     await expect(drawer(page)).toHaveCount(0);
     await expect(page.getByRole('dialog', { name: CONSENT_COPY.en.dialogTitle })).toBeVisible();
-    // Tab stays inside the dialog (the drawer's controls are gone and the page behind is not reachable).
+    // Tab never reaches the page behind the dialog (the drawer's controls are gone and the page is inert).
     for (let presses = 0; presses < 8; presses += 1) {
       await page.keyboard.press('Tab');
-      expect(await page.evaluate(() => Boolean(document.activeElement?.closest('[data-consent-dialog]')))).toBe(true);
+      expect(await focusIsInDialogOrBrowserUi(page)).toBe(true);
     }
     await page.keyboard.press('Escape');
     await expect(page.locator('[data-consent-dialog]')).toHaveCount(0);

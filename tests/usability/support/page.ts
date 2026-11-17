@@ -115,3 +115,14 @@ export async function afterNextPaint(page: Page): Promise<void> {
     () => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())))
   );
 }
+
+/**
+ * A native modal makes the page behind it inert. Tabbing past its last (or before its first) control
+ * hands focus to the browser's own UI, which the document reports as <body>, so focus is either
+ * inside the dialog or on <body>; any other element would be a control of the page behind it.
+ */
+export async function focusIsInDialogOrBrowserUi(page: Page): Promise<boolean> {
+  return page.evaluate(
+    () => document.activeElement === document.body || Boolean(document.activeElement?.closest('[data-consent-dialog]')),
+  );
+}

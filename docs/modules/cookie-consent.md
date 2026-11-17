@@ -229,7 +229,7 @@ run and need attribution.
 * `components/consent/` (UI): `ConsentManager` (single mount, tiny, loads the rest lazily with `ssr: false`), `ConsentBanner`,
   `ConsentDialog`, `ConsentCategoryRow`, `ConsentSettingsLink`, `consent-copy.ts` (six languages), `link-label.ts` (the
   "Cookie settings" label, kept separate so the footer does not load the copy), hooks `use-consent-state.ts`,
-  `use-dialog-focus.ts`, `index.ts` (public entry: `ConsentManager`, `ConsentSettingsLink`, `useConsentCategory`).
+  `index.ts` (public entry: `ConsentManager`, `ConsentSettingsLink`, `useConsentCategory`).
 * Shared files edited, smallest diffs: `app/layout.tsx` (+2 lines: import and `<ConsentManager />` after `<SkipLink />`),
   `components/layout/Footer.tsx` (+2 lines: import and `<ConsentSettingsLink />` in the bottom bar after the Privacy link),
   `app/globals.css` (the `bottom-safe-area-*` utility and two rules, see Layout).
@@ -270,8 +270,9 @@ run and need attribution.
   `padding-bottom` from the same variable (focus and the end of the page stay clear: WCAG 2.2 "Focus Not Obscured"). Unset,
   both are `0px` and nothing changes. The WhatsApp action lives in the header, never at the bottom. Banner height on a phone
   is capped at a third of the viewport (asserted).
-* **Targets and focus:** every banner control is at least 44px tall (asserted at 320px). The dialog is `role="dialog"
-  aria-modal` with a focus trap, Escape, focus return to the opener; the banner is a named non-blocking `region`.
+* **Targets and focus:** every banner control is at least 44px tall (asserted at 320px). The dialog is a native modal
+  `<dialog>` (`useNativeModal()`), so the browser provides the focus trap, Escape and focus return to the opener; the banner
+  is a named non-blocking `region`.
 * **Accessibility:** axe (WCAG 2.x A/AA, zero violations of any impact) on the banner and the dialog in cockpit, brand and
   studio themes and in all six languages.
 
