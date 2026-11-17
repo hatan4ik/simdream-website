@@ -1003,6 +1003,20 @@ html[data-ui="brand"] select:focus {
   outline: 2px solid rgba(26, 135, 180, 0.2) !important;
 }
 
+/* Modal <dialog>: stop scroll gestures over the dialog or its backdrop reaching the page behind it.
+   ::backdrop is not a scroll container until it has overflow, so it needs overflow: hidden to honour
+   overscroll-behavior. Progressive enhancement: where a browser ignores overscroll-behavior on a
+   non-scrolling container the dialog still contains its own overflow, and showModal() already makes
+   the page inert. Never lock the page with overflow or position on html/body (it shifts the layout). */
+dialog:modal {
+  overscroll-behavior: contain;
+}
+
+dialog::backdrop {
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
+
 /* Smooth custom scrollbars (standard CSS Scrollbars Level 1 + legacy WebKit fallback) */
 html {
   --scrollbar-thumb: #475569;

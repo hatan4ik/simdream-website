@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -17,9 +17,9 @@ import {
   type OptionalConsentCategory,
 } from '@/lib/consent';
 import { useLanguage } from '@/lib/i18n/language-context';
+import { MODAL_SHELL, useNativeModal } from '@/lib/ui/use-native-modal';
 import { ConsentCategoryRow } from './ConsentCategoryRow';
 import { CONSENT_COPY } from './consent-copy';
-import { useDialogFocus } from './use-dialog-focus';
 
 /**
  * Preferences dialog: per-category rows with a plain description of what is stored and why.
@@ -31,8 +31,7 @@ export function ConsentDialog({ inUse: inUseOverride }: { /** Test seam; default
   const copy = CONSENT_COPY[language] || CONSENT_COPY.en;
   const mode = consentMode(inUseOverride);
   const inUse = optionalCategoriesInUse(inUseOverride);
-  const panelRef = useRef<HTMLDivElement>(null);
-  useDialogFocus(panelRef, closeConsentSettings);
+  const { dialogRef, requestClose, lightDismiss } = useNativeModal(closeConsentSettings);
 
   // Start from the stored decision so reopening shows what the visitor chose; first time: all off.
   // Only categories the site uses can be on (the store drops the rest), so the toggles never lie.
@@ -47,24 +46,20 @@ export function ConsentDialog({ inUse: inUseOverride }: { /** Test seam; default
 
   const finish = (action: () => void) => {
     action();
-    closeConsentSettings();
+    requestClose();
   };
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
+    // A native modal <dialog> (focus trap, Escape and focus return come from the browser); the dialog
+    // is the full-viewport shell, so a click on it outside the panel dismisses.
+    <dialog
+      ref={dialogRef}
       aria-labelledby="consent-dialog-title"
       data-consent-dialog
-      className="fixed inset-0 z-[80] flex items-end justify-center bg-slate-950/80 p-3 px-safe-area-3 pb-safe-area-3 backdrop-blur-sm sm:items-center"
-      onClick={closeConsentSettings}
+      className={`${MODAL_SHELL} items-end justify-center bg-slate-950/80 p-3 px-safe-area-3 pb-safe-area-3 backdrop-blur-sm sm:items-center`}
+      onClick={lightDismiss}
     >
-      <div
-        ref={panelRef}
-        tabIndex={-1}
-        onClick={(event) => event.stopPropagation()}
-        className="max-h-[90svh] w-full max-w-lg space-y-4 overflow-y-auto overscroll-contain rounded-2xl border border-slate-700 bg-slate-900 p-5 text-start shadow-2xl focus:outline-none"
-      >
+      <div className="max-h-[90svh] w-full max-w-lg space-y-4 overflow-y-auto overscroll-contain rounded-2xl border border-slate-700 bg-slate-900 p-5 text-start shadow-2xl">
         <div className="flex items-start justify-between gap-3">
           <div className="space-y-1.5">
             <h2 id="consent-dialog-title" className="text-lg font-semibold text-white">
@@ -74,7 +69,7 @@ export function ConsentDialog({ inUse: inUseOverride }: { /** Test seam; default
           </div>
           <button
             type="button"
-            onClick={closeConsentSettings}
+            onClick={requestClose}
             aria-label={copy.close}
             className="-m-1 inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-slate-700 text-slate-300 transition-colors hover:bg-slate-800 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
           >
@@ -127,19 +122,19 @@ export function ConsentDialog({ inUse: inUseOverride }: { /** Test seam; default
               </Button>
             </>
           ) : (
-            <Button type="button" onClick={closeConsentSettings} className="w-full sm:w-auto">
+            <Button type="button" onClick={requestClose} className="w-full sm:w-auto">
               {copy.close}
             </Button>
           )}
           <Link
             href="/privacy-policy"
-            onClick={closeConsentSettings}
+            onClick={requestClose}
             className="inline-flex min-h-11 items-center rounded-sm px-2 text-sm text-sky-400 underline underline-offset-2 hover:text-sky-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
           >
             {copy.privacyPolicy}
           </Link>
         </div>
       </div>
-    </div>
+    </dialog>
   );
 }
