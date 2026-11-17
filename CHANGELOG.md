@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.29.16](https://github.com/hatan4ik/simdream-website/compare/v1.29.15...v1.29.16) (2026-11-17)
+
+
+### Bug Fixes
+
+* **forms:** make browser autofill fill the voucher and refund forms, tidy inputs and viewport height ([#266](https://github.com/hatan4ik/simdream-website/issues/266)) ([e1221cb](https://github.com/hatan4ik/simdream-website/commit/e1221cbcce47089b45841b94eba593a517a05003))
+
 ## [1.29.15](https://github.com/hatan4ik/simdream-website/compare/v1.29.14...v1.29.15) (2026-11-17)
 
 
