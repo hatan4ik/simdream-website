@@ -10,7 +10,7 @@ import {
 } from '@/lib/wix/booking-checkout-client';
 import { setWixCartNote } from '@/lib/wix/cart-note';
 import { clearWixMemberSession, getWixMemberClient, notifyWixMemberSessionChanged } from '@/lib/wix/member-client';
-import type { WixCheckoutDraftState } from './wix-checkout-draft';
+import type { WixCheckoutCodeKind, WixCheckoutDraftState } from './wix-checkout-draft';
 
 /** Browser-side operations on the visitor-owned, unpaid Wix cart ("draft") behind a native checkout. */
 
@@ -88,12 +88,20 @@ export type CouponApplication =
 
 /** Applies a native Wix coupon to the draft cart; Wix, not React, calculates the discount. */
 export async function applyCouponToDraft(draft: WixCheckoutDraftState, code: string): Promise<CouponApplication> {
-  const applied = await applyWixCoupon(getWixMemberClient(), draft.cartId, code, draft.totalIls);
+  const preGiftCardTotalIls = draft.totalIls + (draft.giftCardCreditIls ?? 0);
+  const applied = await applyWixCoupon(getWixMemberClient(), draft.cartId, code, preGiftCardTotalIls);
   if (applied.price.discountIls <= 0) {
     // Wix accepts some codes syntactically but calculates a zero discount when
     // the selected service does not meet the coupon's scope/minimum rules.
     const originalPrice = await removeWixCoupon(getWixMemberClient(), draft.cartId, applied.couponId);
-    return { kind: 'not-eligible', draft: { ...draft, totalIls: originalPrice.totalIls } };
+    return {
+      kind: 'not-eligible',
+      draft: {
+        ...draft,
+        totalIls: originalPrice.totalIls,
+        giftCardCreditIls: originalPrice.giftCardAppliedIls ?? draft.giftCardCreditIls,
+      },
+    };
   }
 
   return {
@@ -103,8 +111,8 @@ export async function applyCouponToDraft(draft: WixCheckoutDraftState, code: str
       codeKind: 'coupon',
       couponId: applied.couponId,
       couponCode: code,
-      giftCardId: undefined,
-      giftCardObfuscatedCode: undefined,
+      couponDiscountIls: applied.price.discountIls,
+      giftCardCreditIls: applied.price.giftCardAppliedIls ?? draft.giftCardCreditIls,
       totalIls: applied.price.totalIls,
     },
     discountIls: applied.price.discountIls,
@@ -121,34 +129,47 @@ export interface GiftCardApplication {
 /** Applies a native Wix Gift Card to the draft cart. The bearer code is never kept in the draft. */
 export async function applyGiftCardToDraft(draft: WixCheckoutDraftState, code: string): Promise<GiftCardApplication> {
   const applied = await applyWixGiftCard(getWixMemberClient(), draft.cartId, code);
+  const appliedCreditIls = applied.price.giftCardAppliedIls ?? 0;
   return {
     draft: {
       ...draft,
       codeKind: 'gift-card',
-      couponId: undefined,
-      couponCode: undefined,
       giftCardId: applied.giftCardId,
       giftCardObfuscatedCode: applied.obfuscatedCode,
+      giftCardCreditIls: appliedCreditIls,
       totalIls: applied.price.totalIls,
     },
-    appliedCreditIls: applied.price.giftCardAppliedIls ?? 0,
+    appliedCreditIls,
     totalIls: applied.price.totalIls,
   };
 }
 
 /** Removes the applied coupon or Gift Card from the draft cart and returns the draft at Wix's recalculated total. */
-export async function removeAppliedCodeFromDraft(draft: WixCheckoutDraftState): Promise<WixCheckoutDraftState> {
-  const price = draft.giftCardId
-    ? await removeWixGiftCard(getWixMemberClient(), draft.cartId, draft.giftCardId)
-    : await removeWixCoupon(getWixMemberClient(), draft.cartId, draft.couponId as string);
+export async function removeAppliedCodeFromDraft(
+  draft: WixCheckoutDraftState,
+  kind?: WixCheckoutCodeKind
+): Promise<WixCheckoutDraftState> {
+  const targetKind: WixCheckoutCodeKind = kind ?? (draft.giftCardId ? 'gift-card' : 'coupon');
+  if (targetKind === 'gift-card' && draft.giftCardId) {
+    const price = await removeWixGiftCard(getWixMemberClient(), draft.cartId, draft.giftCardId);
+    return {
+      ...draft,
+      totalIls: price.totalIls,
+      codeKind: draft.couponId ? 'coupon' : undefined,
+      giftCardId: undefined,
+      giftCardObfuscatedCode: undefined,
+      giftCardCreditIls: undefined,
+    };
+  }
+  const price = await removeWixCoupon(getWixMemberClient(), draft.cartId, draft.couponId as string);
   return {
     ...draft,
     totalIls: price.totalIls,
-    codeKind: undefined,
+    codeKind: draft.giftCardId ? 'gift-card' : undefined,
     couponId: undefined,
     couponCode: undefined,
-    giftCardId: undefined,
-    giftCardObfuscatedCode: undefined,
+    couponDiscountIls: undefined,
+    giftCardCreditIls: price.giftCardAppliedIls ?? draft.giftCardCreditIls,
   };
 }
 

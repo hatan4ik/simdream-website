@@ -132,14 +132,21 @@ export function useBookingVoucher(args: UseBookingVoucherArgs) {
     const application = await applyCouponToDraft(current, code);
     if (application.kind === 'not-eligible') {
       setDraft(application.draft);
-      setVoucherDiscount(0);
+      setVoucherDiscount(application.draft.giftCardCreditIls ?? 0);
       setVoucherError(copy.wixCouponNotEligible);
       return;
     }
 
     setDraft(application.draft);
-    setVoucherCode(code);
-    setVoucherDiscount(application.discountIls);
+    const totalDeduction =
+      (application.draft.couponDiscountIls ?? application.discountIls) +
+      (application.draft.giftCardCreditIls ?? 0);
+    setVoucherDiscount(totalDeduction);
+    // Clear the input and switch to Gift Card when the Gift Card slot is still open so the second option never disappears.
+    setVoucherCode('');
+    if (!application.draft.giftCardId) {
+      setWixCheckoutCodeKind('gift-card');
+    }
     setVoucherSuccess(
       formatBookingTemplate(copy.wixCouponApplied, {
         amount: formatCurrency(application.discountIls),
@@ -155,7 +162,14 @@ export function useBookingVoucher(args: UseBookingVoucherArgs) {
     // A native Gift Card is a bearer credential. It must not remain in state,
     // browser storage, a URL, or any rendered booking summary after Wix applies it.
     setVoucherCode('');
-    setVoucherDiscount(application.appliedCreditIls);
+    const totalDeduction =
+      (application.draft.couponDiscountIls ?? 0) +
+      (application.draft.giftCardCreditIls ?? application.appliedCreditIls);
+    setVoucherDiscount(totalDeduction);
+    // Switch to Coupon Code when no coupon is applied yet and Birthday 15% is not active so both can be used.
+    if (!application.draft.couponId && !birthdayDiscountApplied) {
+      setWixCheckoutCodeKind('coupon');
+    }
     setVoucherSuccess(
       formatBookingTemplate(copy.wixGiftCardApplied, {
         amount: formatCurrency(application.appliedCreditIls),
@@ -242,15 +256,22 @@ export function useBookingVoucher(args: UseBookingVoucherArgs) {
     }
   };
 
-  const handleRemoveVoucher = async () => {
+  const handleRemoveVoucher = async (kind?: WixCheckoutCodeKind) => {
     if (activeDraft?.couponId || activeDraft?.giftCardId) {
+      const targetKind: WixCheckoutCodeKind = kind ?? (activeDraft.giftCardId ? 'gift-card' : 'coupon');
       setIsVerifyingVoucher(true);
       setVoucherError('');
       try {
-        setDraft(await removeAppliedCodeFromDraft(activeDraft));
+        const updated = await removeAppliedCodeFromDraft(activeDraft, targetKind);
+        setDraft(updated);
         setVoucherCode('');
+        setVoucherDiscount((updated.couponDiscountIls ?? 0) + (updated.giftCardCreditIls ?? 0));
+        setVoucherSuccess('');
+        if (targetKind === 'gift-card') setWixCheckoutCodeKind('gift-card');
+        else if (!birthdayDiscountApplied) setWixCheckoutCodeKind('coupon');
+        return;
       } catch {
-        setVoucherError(activeDraft.giftCardId ? copy.wixGiftCardVerifyFailed : copy.wixCouponVerifyFailed);
+        setVoucherError(targetKind === 'gift-card' ? copy.wixGiftCardVerifyFailed : copy.wixCouponVerifyFailed);
         return;
       } finally {
         setIsVerifyingVoucher(false);
@@ -273,9 +294,14 @@ export function useBookingVoucher(args: UseBookingVoucherArgs) {
     setVoucherSuccess('');
   };
 
+  const isCouponApplied = Boolean(activeDraft?.couponId);
   const isNativeGiftCardApplied = Boolean(activeDraft?.giftCardId);
+  const canAddAnotherCode = canUseWixNativeCheckout
+    ? !isNativeGiftCardApplied || (!isCouponApplied && !birthdayDiscountApplied)
+    : voucherDiscount <= 0;
 
   return {
+    canUseWixNativeCheckout,
     voucherCode,
     setVoucherCode,
     cachedVoucherCode,
@@ -289,10 +315,26 @@ export function useBookingVoucher(args: UseBookingVoucherArgs) {
     selectCodeKind,
     verifyVoucher: handleVerifyVoucher,
     removeVoucher: handleRemoveVoucher,
+    isCouponApplied,
+    appliedCouponCode: activeDraft?.couponCode,
+    appliedCouponDiscountIls: activeDraft?.couponDiscountIls ?? 0,
     isNativeGiftCardApplied,
+    appliedGiftCardCode: activeDraft?.giftCardObfuscatedCode,
+    appliedGiftCardCreditIls: activeDraft?.giftCardCreditIls ?? 0,
+    canAddAnotherCode,
     /** The code shown next to the applied discount; Wix masks a Gift Card's bearer code. */
-    appliedCodeDisplay: isNativeGiftCardApplied ? activeDraft?.giftCardObfuscatedCode : voucherCode,
-    appliedCodeLabel: isNativeGiftCardApplied ? copy.wixGiftCardCredit : copy.voucherDiscount,
+    appliedCodeDisplay:
+      isCouponApplied && isNativeGiftCardApplied
+        ? `${activeDraft?.couponCode} + ${activeDraft?.giftCardObfuscatedCode}`
+        : isNativeGiftCardApplied
+          ? activeDraft?.giftCardObfuscatedCode
+          : activeDraft?.couponCode || voucherCode,
+    appliedCodeLabel:
+      isCouponApplied && isNativeGiftCardApplied
+        ? `${copy.voucherDiscount} + ${copy.wixGiftCardCredit}`
+        : isNativeGiftCardApplied
+          ? copy.wixGiftCardCredit
+          : copy.voucherDiscount,
   };
 }
 

@@ -38,10 +38,17 @@ export function VoucherRedeem({ formId, voucher, canUseWixNativeCheckout }: Vouc
     selectCodeKind,
     verifyVoucher,
     removeVoucher,
+    isCouponApplied,
+    appliedCouponCode,
+    appliedCouponDiscountIls,
     isNativeGiftCardApplied,
+    appliedGiftCardCode,
+    appliedGiftCardCreditIls,
+    canAddAnotherCode,
     appliedCodeDisplay,
   } = voucher;
   const isGiftCardEntry = canUseWixNativeCheckout && wixCheckoutCodeKind === 'gift-card';
+  const couponTabDisabled = birthdayCouponBlocked || isCouponApplied;
 
   return (
     <div className="p-4 rounded-xl border border-sky-500/30 bg-slate-950/60 space-y-3">
@@ -53,7 +60,7 @@ export function VoucherRedeem({ formId, voucher, canUseWixNativeCheckout }: Vouc
         {voucherDiscount > 0 && (
           <button
             type="button"
-            onClick={removeVoucher}
+            onClick={() => removeVoucher()}
             className="text-xs font-mono text-red-400 hover:text-red-300 underline font-bold shrink-0"
           >
             {t.booking.removeVoucher}
@@ -61,27 +68,76 @@ export function VoucherRedeem({ formId, voucher, canUseWixNativeCheckout }: Vouc
         )}
       </div>
 
-      {voucherDiscount > 0 ? (
-        <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between gap-3">
-          <div>
-            <p className="text-xs font-mono font-bold text-emerald-400">
-              ✓ {appliedCodeDisplay}
-            </p>
-            <p className="text-[11px] font-mono text-emerald-300">
-              -{formatCurrency(voucherDiscount)} ({isNativeGiftCardApplied ? t.booking.wixGiftCardCredit : t.booking.discountApplied})
-            </p>
-          </div>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={removeVoucher}
-            className="text-xs text-slate-400 hover:text-red-300 h-auto py-1 px-2"
-          >
-            {t.booking.resetVoucher}
-          </Button>
-        </div>
+      {canUseWixNativeCheckout ? (
+        <>
+          {isCouponApplied && (
+            <div
+              data-applied-code-kind="coupon"
+              className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between gap-3"
+            >
+              <div>
+                <p className="text-xs font-mono font-bold text-emerald-400">✓ {appliedCouponCode}</p>
+                <p className="text-[11px] font-mono text-emerald-300">
+                  -{formatCurrency(appliedCouponDiscountIls)} ({t.booking.discountApplied})
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => removeVoucher('coupon')}
+                className="text-xs text-slate-400 hover:text-red-300 h-auto py-1 px-2"
+              >
+                {t.booking.resetVoucher}
+              </Button>
+            </div>
+          )}
+          {isNativeGiftCardApplied && (
+            <div
+              data-applied-code-kind="gift-card"
+              className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between gap-3"
+            >
+              <div>
+                <p className="text-xs font-mono font-bold text-emerald-400">✓ {appliedGiftCardCode}</p>
+                <p className="text-[11px] font-mono text-emerald-300">
+                  -{formatCurrency(appliedGiftCardCreditIls)} ({t.booking.wixGiftCardCredit})
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => removeVoucher('gift-card')}
+                className="text-xs text-slate-400 hover:text-red-300 h-auto py-1 px-2"
+              >
+                {t.booking.resetVoucher}
+              </Button>
+            </div>
+          )}
+        </>
       ) : (
+        voucherDiscount > 0 && (
+          <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-mono font-bold text-emerald-400">✓ {appliedCodeDisplay}</p>
+              <p className="text-[11px] font-mono text-emerald-300">
+                -{formatCurrency(voucherDiscount)} ({t.booking.discountApplied})
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => removeVoucher()}
+              className="text-xs text-slate-400 hover:text-red-300 h-auto py-1 px-2"
+            >
+              {t.booking.resetVoucher}
+            </Button>
+          </div>
+        )
+      )}
+
+      {canAddAnotherCode && (
         <div className="space-y-2">
           {canUseWixNativeCheckout && (
             <fieldset
@@ -92,19 +148,22 @@ export function VoucherRedeem({ formId, voucher, canUseWixNativeCheckout }: Vouc
               <button
                 type="button"
                 aria-pressed={wixCheckoutCodeKind === 'coupon'}
-                aria-disabled={birthdayCouponBlocked || undefined}
+                aria-disabled={couponTabDisabled || undefined}
+                disabled={isCouponApplied}
                 onClick={() => selectCodeKind('coupon')}
-                className={`${CODE_KIND_BASE} ${birthdayCouponBlocked ? 'cursor-not-allowed opacity-50' : wixCheckoutCodeKind === 'coupon' ? CODE_KIND_ACTIVE : CODE_KIND_IDLE}`}
+                className={`${CODE_KIND_BASE} ${couponTabDisabled ? 'cursor-not-allowed opacity-50' : wixCheckoutCodeKind === 'coupon' ? CODE_KIND_ACTIVE : CODE_KIND_IDLE}`}
               >
-                {t.booking.wixCouponCodeType}
+                {isCouponApplied ? `✓ ${t.booking.wixCouponCodeType}` : t.booking.wixCouponCodeType}
               </button>
               <button
                 type="button"
                 aria-pressed={wixCheckoutCodeKind === 'gift-card'}
+                aria-disabled={isNativeGiftCardApplied || undefined}
+                disabled={isNativeGiftCardApplied}
                 onClick={() => selectCodeKind('gift-card')}
-                className={`${CODE_KIND_BASE} ${wixCheckoutCodeKind === 'gift-card' ? CODE_KIND_ACTIVE : CODE_KIND_IDLE}`}
+                className={`${CODE_KIND_BASE} ${isNativeGiftCardApplied ? 'cursor-not-allowed opacity-50' : wixCheckoutCodeKind === 'gift-card' ? CODE_KIND_ACTIVE : CODE_KIND_IDLE}`}
               >
-                {t.booking.wixGiftCardCodeType}
+                {isNativeGiftCardApplied ? `✓ ${t.booking.wixGiftCardCodeType}` : t.booking.wixGiftCardCodeType}
               </button>
             </fieldset>
           )}
@@ -131,7 +190,7 @@ export function VoucherRedeem({ formId, voucher, canUseWixNativeCheckout }: Vouc
             </Button>
           </div>
 
-          {cachedVoucherCode && (!canUseWixNativeCheckout || wixCheckoutCodeKind === 'coupon') && (
+          {cachedVoucherCode && (!canUseWixNativeCheckout || (wixCheckoutCodeKind === 'coupon' && !isCouponApplied)) && (
             <div className="flex items-center justify-between text-[11px] font-mono text-slate-400 bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-lg">
               <span>{t.booking.savedVoucher} <strong className="text-sky-300">{cachedVoucherCode}</strong></span>
               <button

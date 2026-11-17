@@ -161,7 +161,17 @@ function priceFromCalculation(calculation: WixCartCalculationResponse): WixCartP
   if (totalIls === null) {
     throw new WixBookingCheckoutClientError('Wix did not return a complete checkout total. Please try again.');
   }
-  return { discountIls, totalIls };
+  const payment = calculation.summary?.paymentSummary;
+  const giftCardAppliedIls = (payment?.giftCards ?? []).reduce(
+    (sum, giftCard) => sum + (wixMoneyAmount(giftCard.redeemAmount?.amount) ?? 0),
+    0
+  );
+  if (giftCardAppliedIls <= 0) return { discountIls, totalIls };
+  const totalAfterGiftCards =
+    wixMoneyAmount(payment?.totalAfterGiftCards?.amount) ??
+    wixMoneyAmount(payment?.payNow?.amount) ??
+    Math.max(0, Number((totalIls - giftCardAppliedIls).toFixed(3)));
+  return { discountIls, totalIls: totalAfterGiftCards, giftCardAppliedIls };
 }
 
 /**
@@ -172,33 +182,10 @@ function priceFromCalculation(calculation: WixCartCalculationResponse): WixCartP
  */
 function priceAfterCoupon(calculation: WixCartCalculationResponse, previousTotalIls?: number): WixCartPrice {
   const price = priceFromCalculation(calculation);
+  const preGiftCardTotal = wixMoneyAmount(calculation.summary?.priceSummary?.total?.amount) ?? price.totalIls;
   if (previousTotalIls === undefined || !Number.isFinite(previousTotalIls)) return price;
-  const effectiveDiscount = Math.max(0, Number((previousTotalIls - price.totalIls).toFixed(3)));
+  const effectiveDiscount = Math.max(0, Number((previousTotalIls - preGiftCardTotal).toFixed(3)));
   return { ...price, discountIls: Math.max(price.discountIls, effectiveDiscount) };
-}
-
-/**
- * Wix reports native Gift Cards as payment credit rather than a promotion. Keep
- * the credit and payable remainder distinct so a stored-value card is never
- * presented as a coupon discount.
- */
-function priceAfterGiftCard(calculation: WixCartCalculationResponse): WixCartPrice {
-  const price = priceFromCalculation(calculation);
-  const payment = calculation.summary?.paymentSummary;
-  const giftCardAppliedIls = (payment?.giftCards ?? []).reduce(
-    (sum, giftCard) => sum + (wixMoneyAmount(giftCard.redeemAmount?.amount) ?? 0),
-    0
-  );
-  const totalAfterGiftCards =
-    wixMoneyAmount(payment?.totalAfterGiftCards?.amount) ??
-    wixMoneyAmount(payment?.payNow?.amount) ??
-    Math.max(0, Number((price.totalIls - giftCardAppliedIls).toFixed(3)));
-
-  return {
-    ...price,
-    totalIls: totalAfterGiftCards,
-    giftCardAppliedIls,
-  };
 }
 
 function dateTimeParts(localDateTime: string): { year: number; month: number; day: number; hour: number; minute: number; second: number } {
@@ -432,8 +419,8 @@ export async function applyWixGiftCard(
   }
 
   const calculation = await calculateWixCart(client, cartId);
-  const price = priceAfterGiftCard(calculation);
-  if (price.giftCardAppliedIls === undefined || price.giftCardAppliedIls <= 0) {
+  const price = priceFromCalculation(calculation);
+  if (!price.giftCardAppliedIls || price.giftCardAppliedIls <= 0) {
     await removeWixGiftCard(client, cartId, giftCardId);
     throw new WixBookingCheckoutClientError('This Gift Card has no available balance for this booking.');
   }
