@@ -32,7 +32,6 @@ import { useSchedulerViewModel } from '@/components/scheduler/hooks';
 import type { BookingVoucher } from '@/components/booking/hooks';
 import { FlightSlot, SimulatorPackage, FlightAddon, PilotExperienceLevel, MissionManifestCalculation, SlotBlockPeriod } from '@/types';
 import { formatCurrency } from '@/lib/utils';
-import { useModalFocus } from '@/lib/ui/use-modal-focus';
 import { useLanguage } from '@/lib/i18n/language-context';
 import type { Language, LocalizedRecord } from '@/lib/i18n/translations';
 import { formatCalendarDate, formatCalendarDayNumber } from '@/lib/i18n/calendar-presentation';
@@ -211,7 +210,6 @@ export function AmazonFlightStorefront({
         : calendarCopy.customizeFlight;
   const [addonFilter, setAddonFilter] = useState<AddonFilterTab>('all');
   const [blueprintPackage, setBlueprintPackage] = useState<SimulatorPackage | null>(null);
-  const blueprintPanelRef = useModalFocus<HTMLDivElement>(blueprintPackage !== null, () => setBlueprintPackage(null));
   const slotsContainerRef = useRef<HTMLDivElement>(null);
   const packagesSectionRef = useRef<HTMLElement>(null);
   const buyBoxFormRef = useRef<HTMLFormElement>(null);
@@ -1481,11 +1479,10 @@ export function AmazonFlightStorefront({
           pkg={blueprintPackage}
           copy={bpCopy}
           isRTL={isRTL}
-          panelRef={blueprintPanelRef}
           onClose={() => setBlueprintPackage(null)}
           onSelect={onSelectPackage}
-          overlayClassName="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 px-safe-area-4 pb-safe-area-4"
-          panelClassName="relative max-w-2xl w-full rounded-2xl border-2 border-sky-500/40 bg-slate-900 shadow-2xl p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto focus:outline-none"
+          overlayClassName="bg-slate-950/80 backdrop-blur-md items-center justify-center p-4 px-safe-area-4 pb-safe-area-4"
+          panelClassName="relative max-w-2xl w-full rounded-2xl border-2 border-sky-500/40 bg-slate-900 shadow-2xl p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto"
           selectButtonClassName="w-full sm:w-auto font-black bg-amber-400 hover:bg-amber-300 text-slate-950 px-6"
         />
       )}

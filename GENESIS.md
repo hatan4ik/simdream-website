@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:7fcbb8f1d19ddb46b7f17bd9696eeb28940bd6b9859ed0155702f10f2529ace5 -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:a3fce681da69280fc11828b290c864b8c41f859b67b6ab8f9f45895519ef74c5 -->
 
 ## Verification contract
 
@@ -290,7 +290,7 @@ Add 3 curated one-click combos. Localize every package and add-on in all seven l
   - `KantorovichCalendarScheduler` (guided wizard).
 - Both call one hook, `useSchedulerViewModel` (`components/scheduler/hooks/`), over the pure view-model in `lib/scheduler/availability-view-model.ts`, and keep only their own markup and copy: `countOpenSlots()` and `groupOpenSlotsByPeriod()` (open slots only, morning before 15:00, afternoon before 18:00, then evening), `listPackageOptions()` (every bookable package or duration of the day with its 0-slot state, open-slot count and from-price; the wizard lists one option per duration and selects by duration, the storefront one card per package and selects by id), `zeroSlotAlternatives()` (the other options with open departures that day) and `nextDayRecovery()` (the next day, disabled past the booking horizon). The hook also holds the week/month switch and the browsed month.
 - `BookingWeekPager` and `BookingMonthPager` are their shared, seven-language navigation boundaries. The week pager shifts the selected Israel date by exactly seven days and the month pager by one month; both prevent travel before today and past the one-year booking horizon (the next control is disabled, days past the horizon are disabled, and a short note explains the limit), and both offer a **Today** button that returns to today's date once the view has moved away from it. Only directional chevrons flip for RTL (not text).
-- Both render one `PackageInclusionsDialog` for a package's inclusions (the caller's `useModalFocus()` traps and restores focus); the two differ only in the overlay, panel and select-button class strings they pass.
+- Both render one `PackageInclusionsDialog` for a package's inclusions (a native modal `<dialog>` opened by `useNativeModal()`: the browser traps focus, handles Escape and restores focus; the dialog is the full-viewport shell, so a click outside the panel dismisses); the two differ only in the overlay, panel and select-button class strings they pass.
 - The calendar defaults to a **localized week view**, with the month grid retained as an explicit toggle. Weeks start on Sunday for he, ar and en, and on Monday for ru, fr, es and de. RTL arrows are flipped.
 - `/book` renders a localized initialization state until the browser supplies the live **Israel** date; it never places a fictional date in server HTML. Do not read the device clock in calendar render paths: a visitor west of UTC must never get a date-shift or React hydration mismatch.
 - **Never hide packages or durations** with zero open slots. Show them with a "0 slots open today" badge and keep the user's selection.
@@ -736,7 +736,7 @@ lib/
   security/rate-limit client-address constant-time same-origin honeypot  http/read-json-body
   i18n/ translations language-context language-preference locale-routing calendar-presentation booking-blueprint-copy wix-subscription-booking-copy
   config/ facility-info server-env use-live-facility-status
-  theme/ui-theme-context  ui/ use-client-value use-modal-focus  seo/ seo-config structured-data site-routes llms-txt blog-structured-data blog-post-metadata
+  theme/ui-theme-context  ui/ use-client-value use-native-modal  seo/ seo-config structured-data site-routes llms-txt blog-structured-data blog-post-metadata
   reviews/google-reviews-cache google-reviews-source review-translation reviews-snapshot-store snapshot-window use-google-reviews review-language last-known-rating.json  i18n/booking-blueprint-copy
   stripe.ts  sendgrid.ts  validation.ts  utils.ts  supabaseClient.ts
 types/index.ts

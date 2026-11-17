@@ -22,7 +22,6 @@ import {
   SlotBlockPeriod,
 } from '@/types';
 import { formatCurrency } from '@/lib/utils';
-import { useModalFocus } from '@/lib/ui/use-modal-focus';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { type Language, type LocalizedRecord } from '@/lib/i18n/translations';
 import { formatCalendarDate, formatCalendarDayNumber } from '@/lib/i18n/calendar-presentation';
@@ -284,9 +283,6 @@ export function KantorovichCalendarScheduler({
   const bpCopy = BOOKING_BLUEPRINT_COPY[language] || BOOKING_BLUEPRINT_COPY.en;
 
   const [blueprintModalPackage, setBlueprintModalPackage] = useState<SimulatorPackage | null>(null);
-  const blueprintPanelRef = useModalFocus<HTMLDivElement>(blueprintModalPackage !== null, () =>
-    setBlueprintModalPackage(null)
-  );
   const slotsSectionRef = useRef<HTMLDivElement>(null);
 
   // Availability, calendar and zero-slot recovery are shared with the storefront (AGENTS.md §4.4).
@@ -727,11 +723,10 @@ export function KantorovichCalendarScheduler({
           pkg={blueprintModalPackage}
           copy={bpCopy}
           isRTL={isRTL}
-          panelRef={blueprintPanelRef}
           onClose={() => setBlueprintModalPackage(null)}
           onSelect={onSelectPackage}
-          overlayClassName="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 px-safe-area-4 pb-safe-area-4 animate-in fade-in"
-          panelClassName="relative max-w-2xl w-full rounded-2xl border-2 border-sky-500/40 bg-slate-900 shadow-2xl p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto text-left rtl:text-right focus:outline-none"
+          overlayClassName="bg-slate-950/80 backdrop-blur-md items-center justify-center p-4 px-safe-area-4 pb-safe-area-4 animate-in fade-in"
+          panelClassName="relative max-w-2xl w-full rounded-2xl border-2 border-sky-500/40 bg-slate-900 shadow-2xl p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto text-left rtl:text-right"
           selectButtonClassName="w-full sm:w-auto font-black bg-sky-500 hover:bg-sky-400 text-slate-950 px-6 shadow-glow"
         />
       )}

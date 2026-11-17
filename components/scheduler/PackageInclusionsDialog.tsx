@@ -1,7 +1,7 @@
-import type { RefObject } from 'react';
 import { Check, ChevronRight, Plane, Sparkles, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import type { BookingBlueprintCopy } from '@/lib/i18n/booking-blueprint-copy';
+import { MODAL_SHELL, useNativeModal } from '@/lib/ui/use-native-modal';
 import { formatCurrency } from '@/lib/utils';
 import type { SimulatorPackage } from '@/types';
 
@@ -9,8 +9,6 @@ interface PackageInclusionsDialogProps {
   pkg: SimulatorPackage;
   copy: BookingBlueprintCopy;
   isRTL: boolean;
-  /** The panel ref from the caller's `useModalFocus()`, which traps focus and restores it on close. */
-  panelRef: RefObject<HTMLDivElement | null>;
   onClose: () => void;
   onSelect: (pkg: SimulatorPackage) => void;
   /** The three class strings the storefront and the wizard render differently, passed whole. */
@@ -28,27 +26,23 @@ export function PackageInclusionsDialog({
   pkg,
   copy,
   isRTL,
-  panelRef,
   onClose,
   onSelect,
   overlayClassName,
   panelClassName,
   selectButtonClassName,
 }: PackageInclusionsDialogProps) {
+  const { dialogRef, requestClose, lightDismiss } = useNativeModal(onClose);
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
+    // A native modal <dialog>: the browser traps focus, handles Escape and returns focus to the
+    // opener. The dialog is the full-viewport shell, so a click on it (outside the panel) dismisses.
+    <dialog
+      ref={dialogRef}
       aria-labelledby="blueprint-modal-title"
-      className={overlayClassName}
-      onClick={onClose}
+      className={`${MODAL_SHELL} ${overlayClassName}`}
+      onClick={lightDismiss}
     >
-      <div
-        ref={panelRef}
-        tabIndex={-1}
-        className={panelClassName}
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className={panelClassName}>
         {/* Header */}
         <div className="flex items-start justify-between gap-4 border-b border-slate-800 pb-4">
           <div>
@@ -66,7 +60,7 @@ export function PackageInclusionsDialog({
 
           <button
             type="button"
-            onClick={onClose}
+            onClick={requestClose}
             aria-label={copy.closeDialogLabel}
             className="p-1.5 rounded-lg border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors"
           >
@@ -147,7 +141,7 @@ export function PackageInclusionsDialog({
           <Button
             type="button"
             variant="ghost"
-            onClick={onClose}
+            onClick={requestClose}
             className="w-full sm:w-auto text-slate-400 hover:text-white"
           >
             {copy.closeBtn}
@@ -156,7 +150,7 @@ export function PackageInclusionsDialog({
             type="button"
             onClick={() => {
               onSelect(pkg);
-              onClose();
+              requestClose();
             }}
             className={selectButtonClassName}
           >
@@ -165,6 +159,6 @@ export function PackageInclusionsDialog({
           </Button>
         </div>
       </div>
-    </div>
+    </dialog>
   );
 }

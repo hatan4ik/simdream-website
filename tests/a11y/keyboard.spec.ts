@@ -333,16 +333,20 @@ test.describe('Mission Blueprint dialog', () => {
     await expect(dialog.locator(':focus')).toHaveCount(1, FOCUS_SETTLE);
   });
 
-  test('keeps Tab focus inside the open dialog', async ({ page }) => {
+  test('never lets Tab focus reach the page behind the open dialog', async ({ page }) => {
     const dialog = await openWizardBlueprintByKeyboard(page);
     await dialog.getByRole('button', { name: 'Close package inclusions' }).focus();
 
+    // A native modal makes the page inert. Past its last control Tab hands focus to the browser's own
+    // UI (the document then reports <body>) and comes back to the first, so <body> is allowed; any
+    // other element outside the dialog would be a control of the page behind it.
     const escaped: string[] = [];
     for (let press = 0; press < 6; press += 1) {
       await page.keyboard.press('Tab');
-      if (!(await dialog.evaluate((element) => element.contains(document.activeElement)))) {
-        escaped.push(await describeActiveElement(page));
-      }
+      const behind = await dialog.evaluate(
+        (element) => document.activeElement !== document.body && !element.contains(document.activeElement),
+      );
+      if (behind) escaped.push(await describeActiveElement(page));
     }
     expect(escaped).toEqual([]);
   });
