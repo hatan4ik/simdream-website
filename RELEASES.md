@@ -10,6 +10,14 @@
 
 ## Product changes by version
 
+### [v1.29.16](https://github.com/hatan4ik/simdream-website/releases/tag/v1.29.16) — 2026-11-17
+
+#### Bug Fixes
+
+- **forms:** make browser autofill fill the voucher and refund forms, tidy inputs and viewport height (#266) (e1221cb)
+
+Deployment evidence: [GitHub Release](https://github.com/hatan4ik/simdream-website/releases/tag/v1.29.16).
+
 ### [v1.29.15](https://github.com/hatan4ik/simdream-website/releases/tag/v1.29.15) — 2026-11-17
 
 #### Bug Fixes
