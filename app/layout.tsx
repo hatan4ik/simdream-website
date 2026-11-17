@@ -73,7 +73,7 @@ export default async function RootLayout({
         {/* Blocking on purpose: sets data-ui before first paint. Same-origin file keeps the CSP strict. */}
         <script nonce={nonce} src="/theme-bootstrap.js" />
       </head>
-      <body className="min-h-screen flex flex-col bg-aviation-darkest text-slate-100 antialiased transition-colors duration-200">
+      <body className="min-h-dvh flex flex-col bg-aviation-darkest text-slate-100 antialiased transition-colors duration-200">
         <UiThemeProvider>
           <LanguageProvider initialLanguage={initialLanguage} routedLanguage={routedLanguage}>
             <AuthProvider>

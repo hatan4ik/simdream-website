@@ -246,6 +246,10 @@ export function BlogIndexView({ initialPosts }: BlogIndexViewProps) {
             <Search className="w-4 h-4 text-slate-400 absolute start-3.5 top-3 pointer-events-none" />
             <input
               type="search"
+              name="q"
+              aria-label={copy.searchPlaceholder}
+              enterKeyHint="search"
+              autoComplete="off"
               placeholder={copy.searchPlaceholder}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}

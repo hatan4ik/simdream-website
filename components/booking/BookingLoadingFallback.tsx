@@ -8,5 +8,5 @@ import { useLanguage } from '@/lib/i18n/language-context';
  */
 export function BookingLoadingFallback() {
   const { t } = useLanguage();
-  return <div className="min-h-screen py-24 text-center text-slate-400 font-mono text-sm">{t.booking.initializing}</div>;
+  return <div className="min-h-dvh py-24 text-center text-slate-400 font-mono text-sm">{t.booking.initializing}</div>;
 }

@@ -76,6 +76,7 @@ export function OrderStep({ form, copy, idBase }: StepProps) {
           {({ id, describedBy, invalid }) => (
             <input
               id={id}
+              name="email"
               type="email"
               dir="ltr"
               inputMode="email"
@@ -94,6 +95,7 @@ export function OrderStep({ form, copy, idBase }: StepProps) {
           {({ id, describedBy, invalid }) => (
             <input
               id={id}
+              name="name"
               type="text"
               autoComplete="name"
               maxLength={120}
@@ -110,6 +112,7 @@ export function OrderStep({ form, copy, idBase }: StepProps) {
           {({ id, describedBy, invalid }) => (
             <input
               id={id}
+              name="phone"
               type="tel"
               dir="ltr"
               inputMode="tel"
