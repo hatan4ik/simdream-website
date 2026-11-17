@@ -92,7 +92,9 @@ export function BirthdayCalculator({ copy, language }: BirthdayCalculatorProps) 
           </label>
           <input
             id={`${ids}-birth`}
+            name="birthDate"
             type="date"
+            autoComplete="bday"
             value={birthDate}
             min="1900-01-01"
             max={today || undefined}

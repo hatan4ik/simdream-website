@@ -209,7 +209,7 @@ export default function GiftVouchersPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 pt-12 pb-24">
+    <div className="min-h-dvh bg-slate-950 pt-12 pb-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-10">
@@ -763,7 +763,7 @@ export default function GiftVouchersPage() {
                       name="recipientName"
                       type="text"
                       required
-                      autoComplete="off"
+                      autoComplete="section-recipient name"
                       value={recipientName}
                       onChange={(e) => setRecipientName(e.target.value)}
                       onBlur={syncAriaInvalid}
@@ -782,7 +782,7 @@ export default function GiftVouchersPage() {
                       id="voucher-recipient-email"
                       name="recipientEmail"
                       type="email"
-                      autoComplete="off"
+                      autoComplete="section-recipient email"
                       autoCorrect="off"
                       autoCapitalize="off"
                       spellCheck={false}

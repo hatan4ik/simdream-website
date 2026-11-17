@@ -257,3 +257,9 @@ Every feature is a folder module with one public `index.ts`: UI in `components/<
 3. Any change to legal or consent wording bumps `LEGAL_DOCUMENT_VERSION` / `CONSENT_VERSION` in `lib/legal/versions.ts`; `tests/unit/legal-versions.test.ts` enforces it.
 4. The checkout shows two separate, unchecked checkboxes (rules + refund rule + privacy; media release and waiver) with the copy from `CONSENT_COPY`, and the server stores `buildConsentRecord()` with the order.
 5. Legal translations are flagged NEEDS LEGAL REVIEW until counsel signs off; no Hebrew text on non-Hebrew pages.
+
+---
+
+## 11. Browser support policy
+
+Use Baseline Widely available web platform features without fallbacks. A feature that is only Newly available or Limited availability (for example `closedby`, `focusgroup`, anchor positioning, `popover` in older Safari) is used only as progressive enhancement: the page works without it, and any behaviour that matters is provided another way (the native modal dialogs keep click-outside dismissal in a script handler because Safari lacks `closedby`). Do not add a polyfill or a library for a feature a browser lacks when graceful degradation is enough. Check support in the Modern Web Guidance guide (`npx -y modern-web-guidance@latest retrieve "<guide>"`) before relying on a newer feature.

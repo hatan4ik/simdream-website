@@ -126,7 +126,7 @@ export function BlogPostPageView({ post }: BlogPostPageViewProps) {
         currentLang={lang}
       />
 
-      <article dir={isRTL ? 'rtl' : 'ltr'} className="min-h-screen bg-slate-950 pt-8 pb-24">
+      <article dir={isRTL ? 'rtl' : 'ltr'} className="min-h-dvh bg-slate-950 pt-8 pb-24">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <nav
             aria-label={BREADCRUMB_NAV_LABELS[lang]}
