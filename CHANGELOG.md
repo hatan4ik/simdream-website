@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.29.15](https://github.com/hatan4ik/simdream-website/compare/v1.29.14...v1.29.15) (2026-11-17)
+
+
+### Bug Fixes
+
+* **theme:** follow the active theme for native UI and the Clean Studio scrollbar ([#262](https://github.com/hatan4ik/simdream-website/issues/262)) ([13e49ea](https://github.com/hatan4ik/simdream-website/commit/13e49ea595c0074397577f0d734ea221ffec4d09))
+
 ## [1.29.14](https://github.com/hatan4ik/simdream-website/compare/v1.29.13...v1.29.14) (2026-11-17)
 
 
