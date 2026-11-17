@@ -10,6 +10,14 @@
 
 ## Product changes by version
 
+### [v1.29.11](https://github.com/hatan4ik/simdream-website/releases/tag/v1.29.11) — 2026-11-17
+
+#### Bug Fixes
+
+- **ui:** modernize autofill, scrollbars, switch attribute, and toSorted patterns (#254) (cc64fb4)
+
+Deployment evidence: [GitHub Release](https://github.com/hatan4ik/simdream-website/releases/tag/v1.29.11).
+
 ### [v1.29.10](https://github.com/hatan4ik/simdream-website/releases/tag/v1.29.10) — 2026-11-16
 
 #### Bug Fixes
