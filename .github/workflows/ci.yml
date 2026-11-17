@@ -156,7 +156,8 @@ jobs:
       - run: npm run docs:verify
       - name: Vitest with coverage ratchet
         run: npx vitest run --coverage --reporter=default --reporter=junit --outputFile.junit=test-results/vitest-junit.xml
-      - run: npm audit --audit-level=high
+      # npm audit --audit-level=high plus the reviewed, expiring exceptions in scripts/audit-gate.mjs.
+      - run: node scripts/audit-gate.mjs
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
