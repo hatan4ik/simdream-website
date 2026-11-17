@@ -84,7 +84,7 @@ export async function prepareWixCheckoutDraft(input: PrepareWixDraftInput): Prom
 export type CouponApplication =
   /** Wix accepted the code but calculated no discount (service outside the coupon's scope or minimum). */
   | { kind: 'not-eligible'; draft: WixCheckoutDraftState }
-  | { kind: 'applied'; draft: WixCheckoutDraftState; discountIls: number; totalIls: number };
+  | { kind: 'applied'; draft: WixCheckoutDraftState; discountIls: number; totalIls: number; percentageOff?: number };
 
 /** Applies a native Wix coupon to the draft cart; Wix, not React, calculates the discount. */
 export async function applyCouponToDraft(draft: WixCheckoutDraftState, code: string): Promise<CouponApplication> {
@@ -112,11 +112,13 @@ export async function applyCouponToDraft(draft: WixCheckoutDraftState, code: str
       couponId: applied.couponId,
       couponCode: code,
       couponDiscountIls: applied.price.discountIls,
+      couponPercentageOff: applied.percentageOff,
       giftCardCreditIls: applied.price.giftCardAppliedIls ?? draft.giftCardCreditIls,
       totalIls: applied.price.totalIls,
     },
     discountIls: applied.price.discountIls,
     totalIls: applied.price.totalIls,
+    percentageOff: applied.percentageOff,
   };
 }
 
@@ -169,6 +171,7 @@ export async function removeAppliedCodeFromDraft(
     couponId: undefined,
     couponCode: undefined,
     couponDiscountIls: undefined,
+    couponPercentageOff: undefined,
     giftCardCreditIls: price.giftCardAppliedIls ?? draft.giftCardCreditIls,
   };
 }

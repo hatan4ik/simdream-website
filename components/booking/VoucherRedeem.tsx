@@ -41,6 +41,7 @@ export function VoucherRedeem({ formId, voucher, canUseWixNativeCheckout }: Vouc
     isCouponApplied,
     appliedCouponCode,
     appliedCouponDiscountIls,
+    appliedCouponPercentageOff,
     isNativeGiftCardApplied,
     appliedGiftCardCode,
     appliedGiftCardCreditIls,
@@ -76,7 +77,10 @@ export function VoucherRedeem({ formId, voucher, canUseWixNativeCheckout }: Vouc
               className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between gap-3"
             >
               <div>
-                <p className="text-xs font-mono font-bold text-emerald-400">✓ {appliedCouponCode}</p>
+                <p className="text-xs font-mono font-bold text-emerald-400">
+                  ✓ {appliedCouponCode}
+                  {appliedCouponPercentageOff ? ` (${appliedCouponPercentageOff}% OFF)` : ''}
+                </p>
                 <p className="text-[11px] font-mono text-emerald-300">
                   -{formatCurrency(appliedCouponDiscountIls)} ({t.booking.discountApplied})
                 </p>

@@ -152,8 +152,25 @@ export interface WixCartCreateResponse {
   cart?: { id?: string };
 }
 
+/** Applied coupon metadata in Cart V2 `cart.tcAppliedDiscounts`. */
+export interface WixCartTcAppliedCoupon {
+  id?: string;
+  code?: string;
+  name?: string;
+  couponType?: string;
+  discountValueType?: string;
+  percentage?: string;
+  amount?: { amount?: string; formattedAmount?: string };
+}
+
 /** Calculate Cart reply: the only price authority for a cart. */
 export interface WixCartCalculationResponse {
+  cart?: {
+    tcAppliedDiscounts?: Array<{
+      discountType?: string;
+      coupon?: WixCartTcAppliedCoupon;
+    }>;
+  };
   summary?: {
     violations?: unknown[];
     priceSummary?: {
@@ -176,6 +193,10 @@ export interface WixCartCalculationResponse {
 export interface WixCartCouponResponse {
   cart?: {
     coupons?: Array<{ id?: string; _id?: string; code?: string }>;
+    tcAppliedDiscounts?: Array<{
+      discountType?: string;
+      coupon?: WixCartTcAppliedCoupon;
+    }>;
   };
 }
 

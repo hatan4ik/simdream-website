@@ -118,8 +118,11 @@ export function VoucherBalanceCheckDrawer() {
                 className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
               >
                 <div className="space-y-1">
-                  <div className="text-xs font-mono font-bold text-emerald-300" dir="ltr">
-                    ✓ {verifiedVoucher.code}
+                  <div className="flex flex-wrap items-center gap-2 text-xs font-mono font-bold text-emerald-300" dir="ltr">
+                    <span>✓ {verifiedVoucher.code}</span>
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-[10px] uppercase tracking-wider text-emerald-200">
+                      ACTIVE
+                    </span>
                   </div>
                   <div className="flex flex-wrap gap-4 text-xs text-slate-300">
                     {verifiedVoucher.currentBalanceIls !== undefined && (
@@ -150,9 +153,11 @@ export function VoucherBalanceCheckDrawer() {
                       <span>
                         {t.booking.wixCouponCodeType}:{' '}
                         <strong className="text-white font-mono" dir="ltr">
-                          {verifiedVoucher.discountIls && verifiedVoucher.discountIls > 0
-                            ? `-${formatCurrency(verifiedVoucher.discountIls)}`
-                            : t.booking.discountApplied}
+                          {verifiedVoucher.percentageOff
+                            ? `${verifiedVoucher.percentageOff}% OFF${verifiedVoucher.discountIls && verifiedVoucher.discountIls > 0 ? ` (-${formatCurrency(verifiedVoucher.discountIls)})` : ''}`
+                            : verifiedVoucher.discountIls && verifiedVoucher.discountIls > 0
+                              ? `-${formatCurrency(verifiedVoucher.discountIls)}`
+                              : t.booking.discountApplied}
                         </strong>
                       </span>
                     )}
