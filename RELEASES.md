@@ -10,6 +10,14 @@
 
 ## Product changes by version
 
+### [v1.29.17](https://github.com/hatan4ik/simdream-website/releases/tag/v1.29.17) — 2026-11-17
+
+#### Bug Fixes
+
+- **wix:** reserve add-on time in Wix and offer the next session 15 minutes after a booking (#269) (9998590)
+
+Deployment evidence: [GitHub Release](https://github.com/hatan4ik/simdream-website/releases/tag/v1.29.17).
+
 ### [v1.29.16](https://github.com/hatan4ik/simdream-website/releases/tag/v1.29.16) — 2026-11-17
 
 #### Bug Fixes
