@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.29.12](https://github.com/hatan4ik/simdream-website/compare/v1.29.11...v1.29.12) (2026-11-17)
+
+
+### Bug Fixes
+
+* **booking,vouchers:** allow combining Wix Coupon and Gift Card + add /vouchers Gift Card & Coupon verification + staging suite ([#256](https://github.com/hatan4ik/simdream-website/issues/256)) ([23f4fc2](https://github.com/hatan4ik/simdream-website/commit/23f4fc2a2ea6bb85a5d29bb58b23f390b914444b))
+
 ## [1.29.11](https://github.com/hatan4ik/simdream-website/compare/v1.29.10...v1.29.11) (2026-11-17)
 
 
