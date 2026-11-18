@@ -247,8 +247,7 @@ function servicePrice(service: WixService): string {
 
 /**
  * Compares the local catalog with the live Wix services it maps to. A varied
- * price counts as matching when the local price equals its minimum (the 90m
- * Odyssey is ₪850 off-peak and ₪950 prime-time).
+ * price counts as matching when the local price equals its minimum.
  */
 export function reconcileCatalog(services: WixService[]): CatalogMismatch[] {
   const byId = new Map(services.map((service) => [service.id, service]));

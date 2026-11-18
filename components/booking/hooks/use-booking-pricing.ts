@@ -61,7 +61,6 @@ export function useBookingPricing(args: UseBookingPricingArgs) {
   );
   const wixDraft = useWixCheckoutDraft({
     packageId: wixPackageId,
-    sourcePackageId: useUpgradedWixPackage ? activePackage.id : undefined,
     selectedDate,
     selectedSlot,
     pilotName: pilot.pilotName,

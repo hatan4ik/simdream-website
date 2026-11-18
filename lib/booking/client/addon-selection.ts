@@ -2,9 +2,11 @@ import type { FlightAddon, PackageCategory } from '@/types';
 import { canAddonFitInSlot } from '@/lib/scheduler/mission-calculator';
 import {
   MAX_MISSION_ADDONS,
+  canUpgradedDurationFit,
   countSelectedMissionAddons,
   isMissionAddon,
   resolveUpgradedDurationMinutes,
+  type DurationAvailabilitySummary,
 } from '@/lib/scheduler/mission-upgrade-promo';
 
 export type AddonToggleResult =
@@ -25,6 +27,7 @@ export interface AddonToggleInputs {
   packageCategory?: PackageCategory;
   totalDurationMinutes: number;
   maxSlotMinutes: number;
+  durationAvailability?: DurationAvailabilitySummary;
 }
 
 /** What toggling an add-on does. Removing is always allowed; adding respects the 2-mission cap and departure window. */
@@ -41,7 +44,7 @@ export function resolveAddonToggle(inputs: AddonToggleInputs): AddonToggleResult
     }
     if (inputs.packageCategory === 'recreational' && inputs.baseDurationMinutes !== undefined) {
       const nextDuration = resolveUpgradedDurationMinutes(inputs.baseDurationMinutes, currentMissionCount + 1);
-      if (nextDuration > inputs.maxSlotMinutes) {
+      if (!canUpgradedDurationFit(nextDuration, inputs.maxSlotMinutes, inputs.durationAvailability)) {
         return { kind: 'no-fit' };
       }
       return { kind: 'set', ids: [...selectedAddonIds, addonId] };

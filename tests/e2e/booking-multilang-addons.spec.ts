@@ -160,9 +160,14 @@ test.describe('multilingual multi-addon booking matrix (CI guard)', () => {
         await cb.check();
       }
 
-      if (startTimes.length > 1) {
+      const upgradedDuration = scenario.addons.filter((id) => id !== 'addon-extra-seat').length >= 2 ? 120 : 90;
+      const upgradedStarts = (await schedule.day(date, upgradedDuration)).slots
+        .filter((slot) => slot.available && (slot.maxAvailableMinutes ?? 0) >= upgradedDuration)
+        .map((slot) => slot.startTime);
+
+      if (upgradedStarts.length > 1) {
         await page.getByRole('button', { name: translations[scenario.lang].booking.back }).click();
-        const alternateTime = startTimes.find((t) => t !== chosenTime) ?? chosenTime;
+        const alternateTime = upgradedStarts.find((t) => t !== chosenTime) ?? upgradedStarts[0]!;
         const altBtn = slotButtonByTime(page, alternateTime);
         await altBtn.click();
         await page.getByRole('button', { name: translations[scenario.lang].booking.continueToAddons }).click();
@@ -226,8 +231,11 @@ test.describe('multilingual multi-addon booking matrix (CI guard)', () => {
 
       await page.locator('#storefront-buy-box button[aria-label^="Remove "]').first().click();
       await expect(page.locator('#storefront-buy-box button[aria-label^="Remove "]')).toHaveCount(2);
-      if (startTimes.length > 1) {
-        await slotButtonByTime(page, startTimes[startTimes.length - 1]!).click();
+      const upgraded90Starts = (await schedule.day(date, 90)).slots
+        .filter((slot) => slot.available && (slot.maxAvailableMinutes ?? 0) >= 90)
+        .map((slot) => slot.startTime);
+      if (upgraded90Starts.length > 1) {
+        await slotButtonByTime(page, upgraded90Starts[upgraded90Starts.length - 1]!).click();
       }
 
       await assertClearOfStickyChrome(page.locator('#storefront-pilot-name'), `storefront-${lang}-pilot-name`);

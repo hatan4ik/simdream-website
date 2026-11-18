@@ -27,6 +27,7 @@ export { OrderSummary } from './OrderSummary';
 export { PilotManifestForm } from './PilotManifestForm';
 export { PilotManifestStep } from './PilotManifestStep';
 export { RouteIntentBanner } from './RouteIntentBanner';
+export { SlotAdjustmentBanner } from './SlotAdjustmentBanner';
 export { VoucherRedeem } from './VoucherRedeem';
 export { WixSubscriptionBanner } from './WixSubscriptionBanner';
 export { bookingExtraSlots, type BookingExtraSlots } from './booking-extra-slots';

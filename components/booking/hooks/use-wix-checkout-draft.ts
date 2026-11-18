@@ -12,8 +12,6 @@ import {
 
 interface UseWixCheckoutDraftArgs {
   packageId: string;
-  /** Originating shorter package when a promotional tier bump-up promotes `packageId`. */
-  sourcePackageId?: string;
   selectedDate: string;
   selectedSlot: FlightSlot | null;
   pilotName: string;
@@ -37,7 +35,6 @@ interface UseWixCheckoutDraftArgs {
 export function useWixCheckoutDraft(args: UseWixCheckoutDraftArgs) {
   const {
     packageId,
-    sourcePackageId,
     selectedDate,
     selectedSlot,
     pilotName,
@@ -54,7 +51,6 @@ export function useWixCheckoutDraft(args: UseWixCheckoutDraftArgs) {
 
   const draftKey = buildWixCheckoutDraftKey({
     packageId,
-    sourcePackageId,
     selectedDate,
     slotId: selectedSlot?.id,
     pilotName,
@@ -74,7 +70,6 @@ export function useWixCheckoutDraft(args: UseWixCheckoutDraftArgs) {
     const prepared = await prepareWixCheckoutDraft({
       inputKey: draftKey,
       packageId,
-      sourcePackageId,
       bookingDate: selectedDate,
       startTime: selectedSlot.startTime,
       pilotName,

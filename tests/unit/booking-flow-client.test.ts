@@ -15,6 +15,7 @@ import {
   extractSlotList,
   filterMissionCompatibleSlots,
   findBookingBlocker,
+  findNearestCompatibleSlot,
   formatBookingTemplate,
   isWixSubscriptionRequested,
   mergeRequestedAddonIds,
@@ -27,6 +28,7 @@ import {
   resolveAddonToggle,
   resolveCheckoutMode,
   resolvePackageSlug,
+  resolveScheduleDurationMinutes,
   resolveSlotsState,
   selectDepartureAfterLoad,
   stepAfterSlot,
@@ -159,6 +161,81 @@ describe('departure selection', () => {
     const previous = slot({ id: 'mine' });
     expect(selectDepartureAfterLoad(slots, { selectedDate: '2026-11-10', previous, requiredMissionMinutes: 30 })?.id).toBe('a');
     expect(selectDepartureAfterLoad(slots, { selectedDate: '2026-11-09', previous, requiredMissionMinutes: 90 })?.id).toBe('a');
+  });
+
+  it('switches the schedule duration to the upgraded tier for recreational promo upgrades only', () => {
+    expect(resolveScheduleDurationMinutes(60, 60, 'recreational')).toBe(60);
+    expect(resolveScheduleDurationMinutes(60, 90, 'recreational')).toBe(90);
+    expect(resolveScheduleDurationMinutes(60, 120, 'recreational')).toBe(120);
+    expect(resolveScheduleDurationMinutes(30, 60, 'recreational')).toBe(60);
+    expect(resolveScheduleDurationMinutes(45, 90, 'recreational')).toBe(90);
+    expect(resolveScheduleDurationMinutes(60, 90, 'training')).toBe(60);
+  });
+
+  it('matches exact startTime across grid switches and snaps to nearest compatible start when off-grid', () => {
+    const grid90 = [
+      slot({ id: '90-0900', startTime: '09:00', maxAvailableMinutes: 180 }),
+      slot({ id: '90-1045', startTime: '10:45', maxAvailableMinutes: 180 }),
+      slot({ id: '90-1230', startTime: '12:30', maxAvailableMinutes: 180 }),
+    ];
+    // Exact wall-clock match (09:00 is on both 60m and 90m grids) keeps 09:00 even though slot.id changed.
+    expect(
+      selectDepartureAfterLoad(grid90, {
+        selectedDate: '2026-11-09',
+        previous: slot({ id: '60-0900', startTime: '09:00' }),
+        requiredMissionMinutes: 90,
+        preferNearestOnSameDate: true,
+      })?.id
+    ).toBe('90-0900');
+    // 10:15 (60m grid) snaps to nearest 90m start 10:45 (+30m vs -75m to 09:00).
+    expect(
+      selectDepartureAfterLoad(grid90, {
+        selectedDate: '2026-11-09',
+        previous: slot({ id: '60-1015', startTime: '10:15' }),
+        requiredMissionMinutes: 90,
+        preferNearestOnSameDate: true,
+      })?.startTime
+    ).toBe('10:45');
+    // Equidistant tie (11:30? no, 09:52 vs 10:45 -> test exact midpoint 11:37 vs 10:45/12:30 or 10:00 between 09:00 & 11:00) breaks later.
+    expect(
+      findNearestCompatibleSlot(
+        [
+          slot({ id: 'early', startTime: '09:00' }),
+          slot({ id: 'late', startTime: '11:00' }),
+        ],
+        '10:00'
+      )?.id
+    ).toBe('late');
+  });
+
+  it('uses day-level durationAvailability for recreational upgrades when supplied', () => {
+    const addons = [addon('cold-dark', 30)];
+    // Even if current 60m slot is near closing (maxSlotMinutes=60), upgrade is allowed when 90m slots exist on that day.
+    expect(
+      resolveAddonToggle({
+        addonId: 'cold-dark',
+        selectedAddonIds: [],
+        addons,
+        packageCategory: 'recreational',
+        baseDurationMinutes: 60,
+        totalDurationMinutes: 60,
+        maxSlotMinutes: 60,
+        durationAvailability: { 60: { availableCount: 3 }, 90: { availableCount: 2 } },
+      })
+    ).toEqual({ kind: 'set', ids: ['cold-dark'] });
+    // If no 90m slots exist on that day, upgrade is refused.
+    expect(
+      resolveAddonToggle({
+        addonId: 'cold-dark',
+        selectedAddonIds: [],
+        addons,
+        packageCategory: 'recreational',
+        baseDurationMinutes: 60,
+        totalDurationMinutes: 60,
+        maxSlotMinutes: 180,
+        durationAvailability: { 60: { availableCount: 1 }, 90: { availableCount: 0 } },
+      })
+    ).toEqual({ kind: 'no-fit' });
   });
 
   it('reports the availability request phase', () => {
@@ -412,26 +489,12 @@ describe('submit blockers and request body', () => {
   });
 });
 
-describe('Wix draft prepare with promo sourcePackageId and typed errors', () => {
+describe('Wix draft prepare typed errors', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
   });
 
-  it('includes sourcePackageId in the draft key and forwards it to /api/wix/bookings/checkout', async () => {
-    const base = {
-      packageId: 'pkg-ultimate-90',
-      selectedDate: '2026-12-22',
-      slotId: 'slot-12-15',
-      pilotName: 'Ada',
-      pilotEmail: 'ada@example.com',
-      pilotPhone: '+972501234567',
-      notes: '',
-      birthdayValue: '1990-04-02',
-    };
-    expect(buildWixCheckoutDraftKey(base)).not.toBe(
-      buildWixCheckoutDraftKey({ ...base, sourcePackageId: 'pkg-captain-60' })
-    );
-
+  it('surfaces server 409 departure errors as WixDraftPrepareError', async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: false,
       status: 409,
@@ -442,9 +505,8 @@ describe('Wix draft prepare with promo sourcePackageId and typed errors', () => 
     const err = await prepareWixCheckoutDraft({
       inputKey: 'k1',
       packageId: 'pkg-ultimate-90',
-      sourcePackageId: 'pkg-captain-60',
       bookingDate: '2026-12-22',
-      startTime: '12:15',
+      startTime: '12:30',
       pilotName: 'Ada',
       pilotEmail: 'ada@example.com',
       pilotPhone: '+972501234567',
@@ -463,9 +525,8 @@ describe('Wix draft prepare with promo sourcePackageId and typed errors', () => 
         method: 'POST',
         body: JSON.stringify({
           packageId: 'pkg-ultimate-90',
-          sourcePackageId: 'pkg-captain-60',
           bookingDate: '2026-12-22',
-          startTime: '12:15',
+          startTime: '12:30',
         }),
       })
     );

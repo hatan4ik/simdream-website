@@ -58,6 +58,7 @@ export function BookingStorefrontView({
       onSelectPackage={selection.handleSelectPackage}
       slots={schedule.missionCompatibleSlots}
       selectedSlot={schedule.selectedSlot}
+      slotAdjustment={schedule.slotAdjustment}
       onSelectSlot={schedule.setSelectedSlot}
       durationAvailability={schedule.durationAvailability}
       loadingSlots={schedule.loadingSlots}

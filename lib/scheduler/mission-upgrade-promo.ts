@@ -36,6 +36,25 @@ export interface AddonUpgradePreview {
   previewPromo: MissionUpgradePromo;
 }
 
+export type DurationAvailabilitySummary = Readonly<Record<number, { availableCount: number }>>;
+
+/**
+ * Checks whether an upgraded recreational duration can be booked on the selected date.
+ * When `durationAvailability` reports the upgraded duration's own grid count, that day-level
+ * availability decides (the schedule switches to the upgraded duration's grid); otherwise it
+ * falls back to the selected departure's continuous `maxSlotMinutes` window.
+ */
+export function canUpgradedDurationFit(
+  nextDurationMinutes: number,
+  maxSlotMinutes: number,
+  durationAvailability?: DurationAvailabilitySummary
+): boolean {
+  if (durationAvailability && Object.prototype.hasOwnProperty.call(durationAvailability, nextDurationMinutes)) {
+    return (durationAvailability[nextDurationMinutes]?.availableCount ?? 0) > 0;
+  }
+  return nextDurationMinutes <= maxSlotMinutes;
+}
+
 /** True for cockpit/weather/World Trio upgrades that extend flight time; false for Extra Seat (0m). */
 export function isMissionAddon(addon: Pick<FlightAddon, 'durationMinutes'>): boolean {
   return (addon.durationMinutes || 0) > 0;
@@ -228,8 +247,10 @@ export function previewAddonUpgrade(input: {
   candidateAddon: FlightAddon;
   availableAddons: readonly FlightAddon[];
   maxSlotMinutes: number;
+  durationAvailability?: DurationAvailabilitySummary;
 }): AddonUpgradePreview {
-  const { pkg, isPrimeTime, selectedAddonIds, candidateAddon, availableAddons, maxSlotMinutes } = input;
+  const { pkg, isPrimeTime, selectedAddonIds, candidateAddon, availableAddons, maxSlotMinutes, durationAvailability } =
+    input;
   const isMission = isMissionAddon(candidateAddon);
   const isChecked = selectedAddonIds.includes(candidateAddon.id);
   const currentMissionCount = countSelectedMissionAddons(selectedAddonIds, availableAddons);
@@ -244,7 +265,12 @@ export function previewAddonUpgrade(input: {
   });
 
   const effectiveDurationAfterAdd = previewPromo.effectiveDurationMinutes;
-  const fitsSlot = isChecked || !isMission || effectiveDurationAfterAdd <= maxSlotMinutes;
+  const fitsSlot =
+    isChecked ||
+    !isMission ||
+    (pkg.category === 'recreational'
+      ? canUpgradedDurationFit(effectiveDurationAfterAdd, maxSlotMinutes, durationAvailability)
+      : effectiveDurationAfterAdd <= maxSlotMinutes);
 
   return {
     isMission,

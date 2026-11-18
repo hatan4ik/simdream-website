@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { FlightSlot, PublicCapacityReport, SimulatorPackage } from '@/types';
 import { addDaysToYmd } from '@/lib/utils';
 import { clampToBookingHorizon } from '@/lib/scheduler/booking-horizon';
@@ -9,8 +9,10 @@ import { useClientValue } from '@/lib/ui/use-client-value';
 import {
   extractSlotList,
   filterMissionCompatibleSlots,
+  resolveScheduleDurationMinutes,
   resolveSlotsState,
   selectDepartureAfterLoad,
+  type SlotAdjustment,
   type SlotsApiPayload,
 } from '@/lib/booking/client';
 
@@ -22,57 +24,70 @@ interface UseBookingScheduleArgs {
 
 /**
  * Date and departure: the selected day (never past the one-year horizon), the Kantorovich-optimized
- * slots and daily efficiency for it, and the selected departure. Reloads whenever the date, package
- * or mission length changes; a newer request aborts a slower, stale one.
+ * slots and daily efficiency for it, and the selected departure. When a recreational mission add-on
+ * upgrades the tier (e.g. 60m -> 90m), switches to the upgraded duration's own schedule grid and
+ * snaps to the nearest departure if needed, recording `slotAdjustment` so the UI explains the shift.
  */
 export function useBookingSchedule({ selectedPackage, requiredMissionMinutes }: UseBookingScheduleArgs) {
   const browserIsraelToday = useClientValue(() => israelToday());
-  // Do not place a fabricated date in the initial HTML. Static prerendering
-  // cannot know today's Israel date, so the calendar renders only once the
-  // browser supplies it. Until then the visitor sees the localized loading
-  // state rather than a misleading future schedule.
   const calendarTodayYmd = browserIsraelToday ?? '';
 
-  // Selected Date & Slot (using local calendar YYYY-MM-DD to prevent UTC timezone day-shift).
-  //
-  // Do not copy the SSR placeholder into state and replace it later. That created a brief
-  // window where a visitor saw live slots for Israel but a 2099 calendar month and could
-  // navigate away before the replacement effect ran. The default is instead derived from
-  // the client clock; state exists only after an explicit customer selection.
   const [selectedDateOverride, setSelectedDateOverride] = useState<string | null>(null);
   const selectedDate =
     selectedDateOverride ??
     (browserIsraelToday ? addDaysToYmd(browserIsraelToday, 1) : '');
-  // Whatever the control, a visitor can never land past the one-year booking horizon.
+  const [slotAdjustment, setSlotAdjustment] = useState<SlotAdjustment | null>(null);
+  const preUpgradeStartRef = useRef<{ date: string; baseDuration: number; startTime: string } | null>(null);
+  const lastGridRef = useRef<{ date: string; packageId: string; duration: number } | null>(null);
+  const requiredMinutesRef = useRef<number>(requiredMissionMinutes);
+  requiredMinutesRef.current = requiredMissionMinutes;
+
   const setSelectedDate = useCallback(
     (date: string) => {
+      preUpgradeStartRef.current = null;
+      setSlotAdjustment(null);
       setSelectedDateOverride(clampToBookingHorizon(date, calendarTodayYmd));
     },
     [calendarTodayYmd]
   );
-  const [availableSlots, setAvailableSlots] = useState<FlightSlot[]>([]);
+
+  const scheduleDurationMinutes = resolveScheduleDurationMinutes(
+    selectedPackage.durationMinutes,
+    requiredMissionMinutes,
+    selectedPackage.category
+  );
+
+  const [loadedGrid, setLoadedGrid] = useState<{ date: string; duration: number; slots: FlightSlot[] }>({
+    date: '',
+    duration: 0,
+    slots: [],
+  });
+  const availableSlots = loadedGrid.slots;
   const [efficiencyReport, setEfficiencyReport] = useState<PublicCapacityReport | null>(null);
   const [durationAvailability, setDurationAvailability] = useState<
     Record<number, { availableCount: number; minPriceIls: number }>
   >({});
   const [wixBookingsAuthoritative, setWixBookingsAuthoritative] = useState<boolean>(false);
-  const [selectedSlot, setSelectedSlot] = useState<FlightSlot | null>(null);
+  const [selectedSlot, setSelectedSlotState] = useState<FlightSlot | null>(null);
+  const selectedSlotRef = useRef<FlightSlot | null>(null);
+  selectedSlotRef.current = selectedSlot;
+
+  const setSelectedSlot = useCallback((slot: FlightSlot | null) => {
+    preUpgradeStartRef.current = null;
+    setSlotAdjustment(null);
+    selectedSlotRef.current = slot;
+    setSelectedSlotState(slot);
+  }, []);
+
   const [loadingSlots, setLoadingSlots] = useState<boolean>(false);
   const [slotsLoadFailed, setSlotsLoadFailed] = useState<boolean>(false);
   const [slotsReloadKey, setSlotsReloadKey] = useState<number>(0);
-  // True once the first availability request has started, so the page can report
-  // `data-slots-state` (idle → loading → ready | failed) to journeys and tests.
   const [slotsRequested, setSlotsRequested] = useState<boolean>(false);
 
-  // Fetch Kantorovich-optimized slots & daily efficiency whenever selected date or package changes
+  // Fetch Kantorovich-optimized slots & daily efficiency whenever date, package or active grid duration changes.
   useEffect(() => {
-    // The first server/client hydration pass deliberately uses the stable snapshot
-    // above. Do not request availability for that placeholder date; fetch only
-    // once the browser has supplied Israel's current operating day.
     if (!browserIsraelToday) return;
 
-    // A newer date or package selection aborts this request, so a slow, stale
-    // response can never overwrite the slots of the current selection.
     const controller = new AbortController();
     async function fetchSlots() {
       setSlotsRequested(true);
@@ -80,7 +95,7 @@ export function useBookingSchedule({ selectedPackage, requiredMissionMinutes }: 
       setSlotsLoadFailed(false);
       try {
         const res = await fetch(
-          `/api/slots?date=${selectedDate}&duration=${selectedPackage.durationMinutes}&includeEfficiency=true`,
+          `/api/slots?date=${selectedDate}&duration=${scheduleDurationMinutes}&includeEfficiency=true`,
           { signal: controller.signal }
         );
         if (!res.ok) throw new Error(`Slots request failed with ${res.status}`);
@@ -92,16 +107,88 @@ export function useBookingSchedule({ selectedPackage, requiredMissionMinutes }: 
           setDurationAvailability(payload.durationAvailability);
         }
         setWixBookingsAuthoritative(payload?.wixBookingsAuthoritative === true);
-
-        setAvailableSlots(slotList);
         if (payload?.efficiency) {
           setEfficiencyReport(payload.efficiency);
         }
+
+        const prevSlot = selectedSlotRef.current;
+        const prevGrid = lastGridRef.current;
+        const isSameDatePackageGridSwitch = Boolean(
+          prevSlot &&
+            prevSlot.date === selectedDate &&
+            prevGrid &&
+            prevGrid.date === selectedDate &&
+            prevGrid.packageId === selectedPackage.id &&
+            prevGrid.duration !== scheduleDurationMinutes
+        );
+        const isUpgradedGrid = scheduleDurationMinutes > selectedPackage.durationMinutes;
+
+        let nextSlot: FlightSlot | null;
+        if (isSameDatePackageGridSwitch && prevSlot) {
+          if (isUpgradedGrid) {
+            if (!preUpgradeStartRef.current && prevGrid?.duration === selectedPackage.durationMinutes) {
+              preUpgradeStartRef.current = {
+                date: selectedDate,
+                baseDuration: selectedPackage.durationMinutes,
+                startTime: prevSlot.startTime,
+              };
+            }
+            const anchorStart =
+              preUpgradeStartRef.current?.date === selectedDate
+                ? preUpgradeStartRef.current.startTime
+                : prevSlot.startTime;
+            nextSlot = selectDepartureAfterLoad(slotList, {
+              selectedDate,
+              previous: prevSlot,
+              requiredMissionMinutes: requiredMinutesRef.current,
+              preferNearestOnSameDate: true,
+              preferredStartTime: anchorStart,
+            });
+            setSlotAdjustment(
+              nextSlot && nextSlot.startTime !== anchorStart
+                ? {
+                    fromStartTime: anchorStart,
+                    toStartTime: nextSlot.startTime,
+                    durationMinutes: scheduleDurationMinutes,
+                  }
+                : null
+            );
+          } else {
+            const restoreStart =
+              preUpgradeStartRef.current?.date === selectedDate &&
+              preUpgradeStartRef.current.baseDuration === scheduleDurationMinutes
+                ? preUpgradeStartRef.current.startTime
+                : undefined;
+            nextSlot = selectDepartureAfterLoad(slotList, {
+              selectedDate,
+              previous: prevSlot,
+              requiredMissionMinutes: requiredMinutesRef.current,
+              preferNearestOnSameDate: true,
+              preferredStartTime: restoreStart,
+            });
+            preUpgradeStartRef.current = null;
+            setSlotAdjustment(null);
+          }
+        } else {
+          if (!isUpgradedGrid) preUpgradeStartRef.current = null;
+          setSlotAdjustment(null);
+          nextSlot = selectDepartureAfterLoad(slotList, {
+            selectedDate,
+            previous: prevSlot,
+            requiredMissionMinutes: requiredMinutesRef.current,
+          });
+        }
+
+        lastGridRef.current = { date: selectedDate, packageId: selectedPackage.id, duration: scheduleDurationMinutes };
+        selectedSlotRef.current = nextSlot;
+        setSelectedSlotState(nextSlot);
+        setLoadedGrid({ date: selectedDate, duration: scheduleDurationMinutes, slots: slotList });
       } catch (err) {
         if (controller.signal.aborted) return;
-        // Show a load error with a retry, never an empty "sold out" day.
         console.error('Failed to load slots', err);
-        setAvailableSlots([]);
+        setLoadedGrid({ date: selectedDate, duration: scheduleDurationMinutes, slots: [] });
+        selectedSlotRef.current = null;
+        setSelectedSlotState(null);
         setWixBookingsAuthoritative(false);
         setSlotsLoadFailed(true);
       } finally {
@@ -110,19 +197,25 @@ export function useBookingSchedule({ selectedPackage, requiredMissionMinutes }: 
     }
     fetchSlots();
     return () => controller.abort();
-  }, [browserIsraelToday, selectedDate, selectedPackage, slotsReloadKey]);
+  }, [browserIsraelToday, selectedDate, selectedPackage.id, selectedPackage.durationMinutes, scheduleDurationMinutes, slotsReloadKey]);
 
-  // Reconcile the selected departure synchronously whenever the loaded slot list
-  // or chosen add-ons (requiredMissionMinutes) change, avoiding redundant slot fetches.
+  // Reconcile when mission minutes change within the already-loaded duration grid (e.g. non-recreational add-on).
   useEffect(() => {
-    setSelectedSlot((prev) =>
-      selectDepartureAfterLoad(availableSlots, { selectedDate, previous: prev, requiredMissionMinutes })
-    );
-  }, [availableSlots, requiredMissionMinutes, selectedDate]);
+    if (loadedGrid.date !== selectedDate || loadedGrid.duration !== scheduleDurationMinutes) return;
+    setSelectedSlotState((prev) => {
+      const next = selectDepartureAfterLoad(loadedGrid.slots, {
+        selectedDate,
+        previous: prev,
+        requiredMissionMinutes,
+      });
+      selectedSlotRef.current = next;
+      return next;
+    });
+  }, [loadedGrid, requiredMissionMinutes, scheduleDurationMinutes, selectedDate]);
 
-  // Both storefronts consume the same manifest-compatible departures. This
-  // keeps a selected route or add-on visible rather than offering a departure
-  // that would immediately invalidate it.
+  const isSwitchingGrid =
+    loadingSlots || (loadedGrid.duration > 0 && loadedGrid.duration !== scheduleDurationMinutes);
+
   const missionCompatibleSlots = useMemo(
     () => filterMissionCompatibleSlots(availableSlots, requiredMissionMinutes),
     [availableSlots, requiredMissionMinutes]
@@ -136,6 +229,12 @@ export function useBookingSchedule({ selectedPackage, requiredMissionMinutes }: 
     setSelectedDate,
     selectedSlot,
     setSelectedSlot,
+    /** Set when switching to an upgraded duration's grid moved the departure to a nearby start. */
+    slotAdjustment,
+    /** The active schedule grid duration currently queried from `/api/slots`. */
+    scheduleDurationMinutes,
+    /** True while a duration-grid switch fetch is in flight. */
+    isSwitchingGrid,
     missionCompatibleSlots,
     efficiencyReport,
     durationAvailability,

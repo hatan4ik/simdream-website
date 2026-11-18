@@ -3,11 +3,12 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { FlightAddon, FlightSlot, MissionManifestCalculation, SimulatorPackage } from '@/types';
 import { Button } from '@/components/ui/Button';
-import { formatBookingTemplate, getUpgradePromoCopy } from '@/lib/booking/client';
-import { previewAddonUpgrade } from '@/lib/scheduler/mission-upgrade-promo';
+import { formatBookingTemplate, getUpgradePromoCopy, type SlotAdjustment } from '@/lib/booking/client';
+import { previewAddonUpgrade, type DurationAvailabilitySummary } from '@/lib/scheduler/mission-upgrade-promo';
 import { formatCurrency } from '@/lib/utils';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { AddonCard } from './AddonCard';
+import { SlotAdjustmentBanner } from './SlotAdjustmentBanner';
 
 interface AddonsStepProps {
   /** Unique prefix for element ids (the page's `useId()`). */
@@ -16,6 +17,8 @@ interface AddonsStepProps {
   addons: FlightAddon[];
   selectedAddonIds: string[];
   selectedSlot: FlightSlot | null;
+  slotAdjustment?: SlotAdjustment | null;
+  durationAvailability?: DurationAvailabilitySummary;
   manifest: MissionManifestCalculation;
   onToggleAddon: (addonId: string) => void;
   onBack: () => void;
@@ -29,6 +32,8 @@ export function AddonsStep({
   addons,
   selectedAddonIds,
   selectedSlot,
+  slotAdjustment = null,
+  durationAvailability,
   manifest,
   onToggleAddon,
   onBack,
@@ -55,6 +60,8 @@ export function AddonsStep({
         </p>
       </div>
 
+      <SlotAdjustmentBanner adjustment={slotAdjustment} onChangeTime={onBack} />
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {addons.map((addon) => {
           const preview = previewAddonUpgrade({
@@ -64,6 +71,7 @@ export function AddonsStep({
             candidateAddon: addon,
             availableAddons: addons,
             maxSlotMinutes,
+            durationAvailability,
           });
           const isChecked = preview.isChecked;
           const exceedsSlotWindow = !isChecked && !preview.fitsSlot;
