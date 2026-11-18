@@ -25,8 +25,6 @@ export class WixDraftPrepareError extends Error {
 export interface PrepareWixDraftInput {
   inputKey: string;
   packageId: string;
-  /** Originating shorter package when a promotional tier bump-up promotes `packageId`. */
-  sourcePackageId?: string;
   bookingDate: string;
   startTime: string;
   pilotName: string;
@@ -48,7 +46,6 @@ export async function prepareWixCheckoutDraft(input: PrepareWixDraftInput): Prom
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       packageId: input.packageId,
-      ...(input.sourcePackageId ? { sourcePackageId: input.sourcePackageId } : {}),
       bookingDate: input.bookingDate,
       startTime: input.startTime,
       ...(input.addonIds && input.addonIds.length > 0 ? { addonIds: input.addonIds } : {}),

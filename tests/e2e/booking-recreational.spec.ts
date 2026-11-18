@@ -127,7 +127,13 @@ test.describe('recreational booking, guided 3-step wizard', () => {
   });
 
   test('removes an add-on and restores the base duration and price', async ({ page, booking, schedule }) => {
-    const { date, slot } = await schedule.findOpenSlot({ duration: 60, minWindowMinutes: 60 + XWIND.minutes });
+    const { date } = await schedule.findOpenSlot({ duration: 60, minWindowMinutes: 60 + XWIND.minutes });
+    const [day60, day90] = await Promise.all([schedule.day(date, 60), schedule.day(date, 90)]);
+    const day90OpenStarts = new Set(day90.slots.filter((s) => s.available).map((s) => s.startTime));
+    // Prefer an open 60m start that is NOT on the 90m grid to verify Option A auto-snap + restore.
+    const slot =
+      day60.slots.find((s) => s.available && !day90OpenStarts.has(s.startTime)) ??
+      day60.slots.find((s) => s.available && (s.maxAvailableMinutes ?? 60) >= 90)!;
     const basePrice = slot.dynamicPriceIls || CAPTAIN_60_PRICE;
 
     await booking.goto();
@@ -139,9 +145,13 @@ test.describe('recreational booking, guided 3-step wizard', () => {
     await wizard.addonCard(XWIND.name).click();
     await expect(wizard.actionBar()).toContainText('90 min');
     await expect(wizard.actionBar()).toContainText('90m Promo Upgrade');
+    if (!day90OpenStarts.has(slot.startTime)) {
+      await expect(page.locator('[data-slot-adjustment-banner="true"]')).toContainText(slot.startTime);
+    }
     await wizard.addonCard(XWIND.name).click();
 
     await expect(page.getByText('✓ Added to Flight (+30 min)')).toHaveCount(0);
+    await expect(page.locator('[data-slot-adjustment-banner="true"]')).toHaveCount(0);
     await expect(wizard.actionBar()).toContainText(`60 min • ${slot.startTime}–${addMinutes(slot.startTime, 60)}`);
     await expect(wizard.actionBar()).toContainText(ilsPattern(basePrice));
   });

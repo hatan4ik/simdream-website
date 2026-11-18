@@ -24,8 +24,6 @@ function isMappedPackage(packageId: string): boolean {
 
 export const wixBookingCheckoutSchema = z.object({
   packageId: z.string().refine(isMappedPackage),
-  /** Originating shorter recreational package when a promotional tier bump-up promotes the Wix service. */
-  sourcePackageId: z.string().refine(isMappedPackage).optional(),
   bookingDate: isoDate,
   startTime: startTimeSchema,
   addonIds: z.array(z.string()).max(20).optional(),
@@ -101,18 +99,6 @@ function wixLocationForCheckout(service: Awaited<ReturnType<typeof listWixServic
   return { id: location.id, locationType: location.type as WixBookingLocation['locationType'] };
 }
 
-function resolvePromoSourcePackage(
-  targetPkg: (typeof SIMULATOR_PACKAGES)[number] | undefined,
-  sourcePackageId: string | undefined
-): (typeof SIMULATOR_PACKAGES)[number] | null {
-  if (!targetPkg || !sourcePackageId || sourcePackageId === targetPkg.id) return null;
-  if (targetPkg.category !== 'recreational') return null;
-  const sourcePkg = SIMULATOR_PACKAGES.find((candidate) => candidate.id === sourcePackageId);
-  if (!sourcePkg || sourcePkg.category !== 'recreational') return null;
-  if (sourcePkg.durationMinutes >= targetPkg.durationMinutes) return null;
-  return wixServiceIdFor(sourcePkg.id) ? sourcePkg : null;
-}
-
 /**
  * Resolves an exact native-Wix appointment slot only after both scheduling engines agree.
  * Booking and cart creation remain in the browser's own Wix visitor session so guests,
@@ -127,7 +113,6 @@ export async function resolveWixBookingCheckout(
 
   const pkg = SIMULATOR_PACKAGES.find((candidate) => candidate.id === input.packageId);
   const durationMinutes = packageDuration(input.packageId);
-  const promoSourcePkg = resolvePromoSourcePackage(pkg, input.sourcePackageId);
   const addonIds = input.addonIds ?? [];
   if (countSelectedMissionAddons(addonIds, FLIGHT_ADDONS) > MAX_MISSION_ADDONS) {
     throw new WixBookingUnavailableError(`At most ${MAX_MISSION_ADDONS} mission upgrades may be selected.`);
@@ -148,38 +133,20 @@ export async function resolveWixBookingCheckout(
   const resourceTypeIds = wixResourceTypeIdsForService(service);
   const dayWindow = { serviceId, fromLocalDate: `${input.bookingDate}T00:00:00`, toLocalDate: `${input.bookingDate}T23:59:59` };
 
-  const sourceServiceId = promoSourcePkg ? wixServiceIdFor(promoSourcePkg.id) : null;
-  const sourceService = sourceServiceId ? services.find((candidate) => candidate.id === sourceServiceId) : undefined;
-  const sourceResourceTypeIds = sourceService ? wixResourceTypeIdsForService(sourceService) : resourceTypeIds;
-
   // With native duration add-ons Wix itself lengthens the slot, so that one query replaces the
   // fixed-tier preflight probe, which is kept only for flows that book the base slot.
   const extendedTier =
     availabilityAddOnIds.length > 0 ? null : extendedWixDurationTier(requiredMissionMinutes, durationMinutes);
-  const [availability, extendedSlots, nativeExtended, sourceAvailability] = await Promise.all([
+  const [availability, extendedSlots, nativeExtended] = await Promise.all([
     listWixAvailability({ ...dayWindow, includeResourceTypeIds: resourceTypeIds }),
     extendedTier ? listWixBookableSlotsForDuration(input.bookingDate, extendedTier) : Promise.resolve(null),
     availabilityAddOnIds.length > 0
       ? listWixAvailability({ ...dayWindow, includeResourceTypeIds: resourceTypeIds, addOnIds: availabilityAddOnIds })
       : Promise.resolve(null),
-    sourceServiceId
-      ? listWixAvailability({
-          serviceId: sourceServiceId,
-          fromLocalDate: dayWindow.fromLocalDate,
-          toLocalDate: dayWindow.toLocalDate,
-          includeResourceTypeIds: sourceResourceTypeIds,
-        })
-      : Promise.resolve(null),
   ]);
 
   // The very list the calendar shows, so the checkout accepts exactly the departures a customer could pick.
-  // When a promotional tier bump-up promotes a shorter base session (e.g. 60m + Cold & Dark -> 90m),
-  // validate the departure against the originating base session's offered list and confirm the upgraded
-  // Wix service itself is bookable at that exact start time.
-  const offeredSlots =
-    promoSourcePkg && sourceAvailability
-      ? await getWixBackedKantorovichSlots(input.bookingDate, promoSourcePkg.durationMinutes, sourceAvailability.timeSlots)
-      : await getWixBackedKantorovichSlots(input.bookingDate, durationMinutes, availability.timeSlots);
+  const offeredSlots = await getWixBackedKantorovichSlots(input.bookingDate, durationMinutes, availability.timeSlots);
   const canonicalSlot = offeredSlots.find((slot) => slot.startTime === input.startTime && slot.available);
   const wixSlot = availability.timeSlots.find(
     (slot) => slot.bookable !== false && matchesLocalStart(slot, input.bookingDate, input.startTime)
@@ -188,8 +155,7 @@ export async function resolveWixBookingCheckout(
     throw new WixBookingUnavailableError('The requested Wix booking slot is no longer available.');
   }
 
-  const slotBaseMinutes = promoSourcePkg ? promoSourcePkg.durationMinutes : durationMinutes;
-  if ((canonicalSlot.maxAvailableMinutes ?? slotBaseMinutes) < requiredMissionMinutes) {
+  if ((canonicalSlot.maxAvailableMinutes ?? durationMinutes) < requiredMissionMinutes) {
     throw new WixBookingUnavailableError('The requested Wix booking slot cannot accommodate the selected add-on duration.');
   }
 

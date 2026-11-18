@@ -9,9 +9,11 @@ import {
 import { getKantorovichPricing, minutesToTime, timeToMinutes } from './kantorovich-engine';
 import {
   MAX_MISSION_ADDONS,
+  canUpgradedDurationFit,
   isMissionAddon,
   resolveMissionUpgradePromo,
   resolveUpgradedDurationMinutes,
+  type DurationAvailabilitySummary,
 } from './mission-upgrade-promo';
 
 const DEFAULT_MAX_SLOT_MINUTES = 180;
@@ -89,7 +91,8 @@ export function pruneAddonsExceedingSlot(
   allAddons: readonly FlightAddon[],
   baseDurationMinutes: number,
   maxSlotMinutes: number = DEFAULT_MAX_SLOT_MINUTES,
-  category?: PackageCategory
+  category?: PackageCategory,
+  durationAvailability?: DurationAvailabilitySummary
 ): string[] {
   if (category === 'recreational') {
     let keptMissionCount = 0;
@@ -103,7 +106,7 @@ export function pruneAddonsExceedingSlot(
       }
       if (keptMissionCount >= MAX_MISSION_ADDONS) continue;
       const nextDuration = resolveUpgradedDurationMinutes(baseDurationMinutes, keptMissionCount + 1);
-      if (nextDuration <= maxSlotMinutes) {
+      if (canUpgradedDurationFit(nextDuration, maxSlotMinutes, durationAvailability)) {
         keptMissionCount += 1;
         validIds.push(id);
       }

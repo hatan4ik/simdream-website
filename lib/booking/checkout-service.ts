@@ -14,7 +14,11 @@ import {
   sanitizePackageTitle,
   type CalculateMissionManifestInput,
 } from '@/lib/scheduler/mission-calculator';
-import { countSelectedMissionAddons, MAX_MISSION_ADDONS } from '@/lib/scheduler/mission-upgrade-promo';
+import {
+  computeEffectiveMissionDuration,
+  countSelectedMissionAddons,
+  MAX_MISSION_ADDONS,
+} from '@/lib/scheduler/mission-upgrade-promo';
 import { memberIdForBooking } from '@/lib/auth/member-ownership';
 import { bookingCheckoutSchema, voucherCheckoutSchema } from '@/lib/validation';
 import { resolveCheckoutExtras } from './checkout-extras';
@@ -92,7 +96,27 @@ function validVoucherForAmount(voucher: GiftVoucher | undefined, amount: number,
   return voucher;
 }
 
-/** Scheduling conflicts become a user-facing 409; storage failures propagate as a generic 503. */
+/**
+ * Resolves the departure slot against the effective upgraded duration grid first (Option A),
+ * falling back to the base package grid so legacy/direct callers with a base-grid departure
+ * still reach the `maxAvailableMinutes` window check in `priceMission`.
+ */
+async function resolveBookableMissionSlot(
+  dependencies: CheckoutDependencies,
+  bookingDate: string,
+  startTime: string,
+  baseDurationMinutes: number,
+  effectiveDurationMinutes: number
+): Promise<MissionSlot> {
+  try {
+    return await dependencies.repository.assertBookableStart(bookingDate, startTime, effectiveDurationMinutes);
+  } catch (error) {
+    if (error instanceof SlotReservationConflictError && effectiveDurationMinutes !== baseDurationMinutes) {
+      return await dependencies.repository.assertBookableStart(bookingDate, startTime, baseDurationMinutes);
+    }
+    throw error;
+  }
+}
 async function conflictsAsCheckoutErrors<T>(operation: Promise<T>): Promise<T> {
   try {
     return await operation;
@@ -143,6 +167,13 @@ async function createBookingFromRequest(
     throw new CheckoutError(`You can select at most ${MAX_MISSION_ADDONS} mission upgrades per flight session.`);
   }
 
+  const effectiveDurationMinutes = computeEffectiveMissionDuration(
+    pkg.durationMinutes,
+    addonIds,
+    FLIGHT_ADDONS,
+    pkg.category
+  );
+
   const isVoucherPayment = Boolean(input.voucherCode);
   const now = dependencies.clock.now();
   // A card checkout holds the departure unpaid: the same pilot's retry resumes their open hold or
@@ -155,15 +186,26 @@ async function createBookingFromRequest(
       startTime: input.startTime,
       addonIds,
       payableIls: () =>
-        priceMission(pkg, input, addonIds, departureTariff(input.bookingDate, input.startTime, pkg.durationMinutes), now)
-          .payableIls,
+        priceMission(
+          pkg,
+          input,
+          addonIds,
+          departureTariff(input.bookingDate, input.startTime, effectiveDurationMinutes),
+          now
+        ).payableIls,
       now,
     });
     if (resumed) return { kind: 'resumed', session: resumed };
   }
 
   const slot = await conflictsAsCheckoutErrors(
-    dependencies.repository.assertBookableStart(input.bookingDate, input.startTime, pkg.durationMinutes)
+    resolveBookableMissionSlot(
+      dependencies,
+      input.bookingDate,
+      input.startTime,
+      pkg.durationMinutes,
+      effectiveDurationMinutes
+    )
   );
   const { manifest, extras, payableIls } = priceMission(pkg, input, addonIds, slot, now);
   const birthdayDiscountIls = extras.birthday.discountIls;

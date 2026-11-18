@@ -181,7 +181,7 @@ Before advertising this offer or connecting live payments, execute and record ea
 | --- | --- |
 | Eligible 30-minute daytime flight | registry price minus exactly 15%, whole-shekel half-up rounding |
 | Eligible 60-minute flight | registry price minus exactly 15% |
-| Eligible 90-minute daytime / evening / Saturday | 15% off the correct registry tariff (including ₪950 prime time) |
+| Eligible 90-minute daytime / evening / Saturday | 15% off the flat ₪850 registry tariff |
 | 45-minute discounted promotion | standard price; no claim/no birthday reduction |
 | PRO, Fear of Flying, corporate, subscription redemption | standard price; no birthday reduction |
 | Missing claim | standard price |

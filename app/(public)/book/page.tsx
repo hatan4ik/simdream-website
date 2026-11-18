@@ -126,6 +126,8 @@ function BookContent() {
     baseDurationMinutes: manifest.baseDurationMinutes,
     totalDurationMinutes: manifest.totalDurationMinutes,
     maxSlotMinutes: manifest.maxAvailableMinutes,
+    durationAvailability: schedule.durationAvailability,
+    isSwitchingGrid: schedule.isSwitchingGrid,
     wixBookingsAuthoritative: schedule.wixBookingsAuthoritative,
     isWixSubscriptionRedemption,
   });
@@ -198,6 +200,8 @@ function BookContent() {
               addons={selection.scopedAddons}
               selectedAddonIds={selectedAddons}
               selectedSlot={selectedSlot}
+              slotAdjustment={schedule.slotAdjustment}
+              durationAvailability={schedule.durationAvailability}
               manifest={manifest}
               onToggleAddon={addonControls.toggleAddon}
               onBack={() => setCurrentStep(STEP_DATE_SLOT)}

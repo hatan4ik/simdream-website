@@ -30,8 +30,11 @@ export {
   computeRequiredMissionMinutes,
   extractSlotList,
   filterMissionCompatibleSlots,
+  findNearestCompatibleSlot,
+  resolveScheduleDurationMinutes,
   resolveSlotsState,
   selectDepartureAfterLoad,
+  type SlotAdjustment,
   type SlotsApiPayload,
   type SlotsState,
 } from './slot-selection';

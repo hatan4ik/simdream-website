@@ -21,6 +21,10 @@ export interface UpgradePromoCopy {
   promoFooterBadge: (minutes: number, percent: number) => string;
   /** Express shop add-on subtitle noting 30m Cold & Dark and IFR durations. */
   storefrontAddonsSubtitle: string;
+  /** Notice shown when switching to an upgraded duration's grid snaps the departure to a nearby start. */
+  slotAdjustedNotice: (fromTime: string, toTime: string, minutes: number) => string;
+  /** Action label on the adjustment banner to open or return to the departure time picker. */
+  changeTimeAction: string;
 }
 
 export const UPGRADE_PROMO_COPY: Record<Language, UpgradePromoCopy> = {
@@ -38,6 +42,9 @@ export const UPGRADE_PROMO_COPY: Record<Language, UpgradePromoCopy> = {
       percent >= 15 ? `${minutes}m Promo • ${percent}% OFF` : `${minutes}m Promo Upgrade`,
     storefrontAddonsSubtitle:
       'Add up to 2 upgrades (3-airport Trios +40m, Cold & Dark +30m, IFR weather +30m) for an instant promotional tier upgrade',
+    slotAdjustedNotice: (fromTime, toTime, minutes) =>
+      `Departure adjusted from ${fromTime} to ${toTime} to fit your ${minutes}-minute mission schedule.`,
+    changeTimeAction: 'Change time',
   },
   he: {
     promoUpgradeBadge: (minutes) => `שדרוג מבצע ← ${minutes} דק׳`,
@@ -53,6 +60,9 @@ export const UPGRADE_PROMO_COPY: Record<Language, UpgradePromoCopy> = {
       percent >= 15 ? `מבצע ${minutes} דק׳ • ${percent}% הנחה` : `שדרוג מבצע ל-${minutes} דק׳`,
     storefrontAddonsSubtitle:
       'בחרו עד 2 שדרוגים (שלישיות שדות תעופה +40 דק׳, Cold & Dark +30 דק׳, מזג אוויר IFR +30 דק׳) לשדרוג אוטומטי במחיר מבצע',
+    slotAdjustedNotice: (fromTime, toTime, minutes) =>
+      `שעת ההמראה הותאמה מ-${fromTime} ל-${toTime} כדי להתאים ללוח הזמנים של משימת ${minutes} הדקות.`,
+    changeTimeAction: 'החלפת שעה',
   },
   ru: {
     promoUpgradeBadge: (minutes) => `ПРОМО-АПГРЕЙД → ${minutes} мин`,
@@ -68,6 +78,9 @@ export const UPGRADE_PROMO_COPY: Record<Language, UpgradePromoCopy> = {
       percent >= 15 ? `Промо ${minutes} мин • -${percent}%` : `Промо-апгрейд ${minutes} мин`,
     storefrontAddonsSubtitle:
       'Добавьте до 2 модулей (Трио аэропортов +40 мин, Cold & Dark +30 мин, IFR погода +30 мин) для мгновенного промо-апгрейда',
+    slotAdjustedNotice: (fromTime, toTime, minutes) =>
+      `Время вылета скорректировано с ${fromTime} на ${toTime} под расписание сессии ${minutes} мин.`,
+    changeTimeAction: 'Изменить время',
   },
   fr: {
     promoUpgradeBadge: (minutes) => `OFFRE UPGRADE → ${minutes} min`,
@@ -83,6 +96,9 @@ export const UPGRADE_PROMO_COPY: Record<Language, UpgradePromoCopy> = {
       percent >= 15 ? `Promo ${minutes} min • -${percent}%` : `Upgrade promo ${minutes} min`,
     storefrontAddonsSubtitle:
       'Ajoutez jusqu’à 2 modules (Trios +40 min, Cold & Dark +30 min, météo IFR +30 min) pour un surclassement promo instantané',
+    slotAdjustedNotice: (fromTime, toTime, minutes) =>
+      `Départ ajusté de ${fromTime} à ${toTime} pour correspondre à la grille de ${minutes} min.`,
+    changeTimeAction: 'Changer l’horaire',
   },
   ar: {
     promoUpgradeBadge: (minutes) => `ترقية عرض ← ${minutes} دقيقة`,
@@ -98,6 +114,9 @@ export const UPGRADE_PROMO_COPY: Record<Language, UpgradePromoCopy> = {
       percent >= 15 ? `عرض ${minutes} د • خصم ${percent}%` : `ترقية عرض ${minutes} د`,
     storefrontAddonsSubtitle:
       'اختر حتى ترقيتين (ثلاثيات المطارات +40 د، Cold & Dark +30 د، طقس IFR +30 د) للحصول على ترقية فورية بسعر العرض',
+    slotAdjustedNotice: (fromTime, toTime, minutes) =>
+      `تم تعديل وقت الإقلاع من ${fromTime} إلى ${toTime} ليتناسب مع جدول جلسة ${minutes} دقيقة.`,
+    changeTimeAction: 'تغيير الوقت',
   },
   es: {
     promoUpgradeBadge: (minutes) => `MEJORA PROMO → ${minutes} min`,
@@ -113,6 +132,9 @@ export const UPGRADE_PROMO_COPY: Record<Language, UpgradePromoCopy> = {
       percent >= 15 ? `Promo ${minutes}m • ${percent}% DTO` : `Mejora promo ${minutes}m`,
     storefrontAddonsSubtitle:
       'Elige hasta 2 mejoras (Tríos +40m, Cold & Dark +30m, clima IFR +30m) para subir de nivel con precio promocional',
+    slotAdjustedNotice: (fromTime, toTime, minutes) =>
+      `Salida ajustada de ${fromTime} a ${toTime} para encajar en el horario de ${minutes} min.`,
+    changeTimeAction: 'Cambiar hora',
   },
   de: {
     promoUpgradeBadge: (minutes) => `PROMO-UPGRADE → ${minutes} Min.`,
@@ -128,6 +150,9 @@ export const UPGRADE_PROMO_COPY: Record<Language, UpgradePromoCopy> = {
       percent >= 15 ? `${minutes} Min. Promo • ${percent}% RABATT` : `${minutes} Min. Promo-Upgrade`,
     storefrontAddonsSubtitle:
       'Wählen Sie bis zu 2 Upgrades (3-Flughafen-Trios +40 Min., Cold & Dark +30 Min., IFR-Wetter +30 Min.) für ein sofortiges Promo-Upgrade',
+    slotAdjustedNotice: (fromTime, toTime, minutes) =>
+      `Startzeit von ${fromTime} auf ${toTime} angepasst, passend zum ${minutes}-Min.-Zeitplan.`,
+    changeTimeAction: 'Zeit ändern',
   },
 };
 

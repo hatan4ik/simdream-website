@@ -26,6 +26,7 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { StorefrontVoucherBox } from '@/components/booking/StorefrontVoucherBox';
 import { PromoBanner } from '@/components/booking/PromoBanner';
+import { SlotAdjustmentBanner } from '@/components/booking/SlotAdjustmentBanner';
 import { BookingMonthPager } from '@/components/scheduler/BookingMonthPager';
 import { BookingWeekPager } from '@/components/scheduler/BookingWeekPager';
 import { PackageInclusionsDialog } from '@/components/scheduler/PackageInclusionsDialog';
@@ -39,9 +40,9 @@ import type { Language, LocalizedRecord } from '@/lib/i18n/translations';
 import { formatCalendarDate, formatCalendarDayNumber } from '@/lib/i18n/calendar-presentation';
 import { SLOT_PERIODS, type DurationAvailability } from '@/lib/scheduler/availability-view-model';
 import { sanitizePackageTitle } from '@/lib/scheduler/mission-calculator';
-import { previewAddonUpgrade, resolveMissionUpgradePromo } from '@/lib/scheduler/mission-upgrade-promo';
+import { canUpgradedDurationFit, previewAddonUpgrade, resolveMissionUpgradePromo } from '@/lib/scheduler/mission-upgrade-promo';
 import { getPackageFormulaBadge } from '@/lib/scheduler/package-presentation';
-import { getUpgradePromoCopy } from '@/lib/booking/client';
+import { getUpgradePromoCopy, type SlotAdjustment } from '@/lib/booking/client';
 import { BOOKING_BLUEPRINT_COPY } from '@/lib/i18n/booking-blueprint-copy';
 
 interface AmazonFlightStorefrontProps {
@@ -54,6 +55,7 @@ interface AmazonFlightStorefrontProps {
   onSelectPackage: (pkg: SimulatorPackage) => void;
   slots: FlightSlot[];
   selectedSlot: FlightSlot | null;
+  slotAdjustment?: SlotAdjustment | null;
   onSelectSlot: (slot: FlightSlot) => void;
   durationAvailability: DurationAvailability;
   loadingSlots: boolean;
@@ -162,6 +164,7 @@ export function AmazonFlightStorefront({
   onSelectPackage,
   slots,
   selectedSlot,
+  slotAdjustment = null,
   onSelectSlot,
   durationAvailability,
   loadingSlots,
@@ -837,7 +840,7 @@ export function AmazonFlightStorefront({
               const combinedDuration = comboPromo.effectiveDurationMinutes;
               const combinedPrice = comboPromo.promoSubtotalIls;
               const anchorPrice = comboPromo.strikeOutAnchorSubtotalIls;
-              const fitsSlot = combinedDuration <= maxAvailableMinutes;
+              const fitsSlot = canUpgradedDurationFit(combinedDuration, maxAvailableMinutes, durationAvailability);
               const isComboActive =
                 combo.addonIds.every((id) => selectedAddons.includes(id)) &&
                 selectedAddons.length === combo.addonIds.length;
@@ -1008,6 +1011,8 @@ export function AmazonFlightStorefront({
             </div>
           )}
 
+          <SlotAdjustmentBanner adjustment={slotAdjustment} onChangeTime={scrollToSlotsPanel} />
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {filteredAddons.map((addon) => {
               const preview = previewAddonUpgrade({
@@ -1017,6 +1022,7 @@ export function AmazonFlightStorefront({
                 candidateAddon: addon,
                 availableAddons: addons,
                 maxSlotMinutes: maxAvailableMinutes,
+                durationAvailability,
               });
               const isBundledInActivePromo = Boolean(
                 manifest.upgradePromo?.isPromoActive &&
