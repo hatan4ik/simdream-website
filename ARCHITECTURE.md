@@ -84,7 +84,7 @@ flowchart TD
 
 ### Checkout dependency boundary
 
-`POST /api/checkout` is the legacy local Next.js checkout path. It calls the provider-neutral business service in `lib/booking/checkout-service.ts`, whose server composition binds Supabase, Stripe, SendGrid, and Supabase Auth. It preserves server-authoritative schedule, pricing, voucher, guest-checkout, and Stripe webhook rules. When `WIX_AVAILABILITY_ADAPTER_ENABLED=true`, that local writer refuses mapped base-flight checkout so that Wix-native browser checkout is the only writer for the same slot. The frontend's Wix path revalidates the live slot, creates a Wix booking, builds Cart V2 (including mapped Store add-ons when present), calculates the cart, and opens Wix-hosted checkout. The repository proves this integration code and its flags—not that any external Wix payment/provider configuration is active.
+`POST /api/checkout` is the legacy local Next.js checkout path. It calls the provider-neutral business service in `lib/booking/checkout-service.ts`, whose server composition binds Supabase, Stripe, SendGrid, and Supabase Auth. It preserves server-authoritative schedule, pricing, voucher, guest-checkout, and Stripe webhook rules. When `WIX_AVAILABILITY_ADAPTER_ENABLED=true`, that local writer refuses mapped base-flight checkout so that Wix-native browser checkout is the only writer for the same slot. The frontend's Wix path revalidates the live slot (re-anchored around live bookings via `lib/wix/wix-blocked-bookings.ts` when the pricing provider is off, and lengthened via `customerChoices.addOnIds` for duration add-ons), creates a Wix booking carrying native `bookedAddOns` (`lib/wix/native-addons.ts`), builds Cart V2 (skipping Wix Stores products for add-ons already booked natively; `WIX_ADDON_PRODUCT_IDS` remains a fallback for unmapped add-ons), calculates the cart, and opens Wix-hosted checkout. The repository proves this integration code and its flags—not that any external Wix payment/provider configuration is active.
 
 ### Wix Member identity and Flight Deck boundary
 
@@ -124,9 +124,9 @@ flowchart TD
     end
 
     subgraph RecreationalFlow["Full 3-Step Storefront Flow (Recreational / Consumer)"]
-        DetectPackage -->|category = 'recreational'| RecConfig["Display Full Catalog (30m, 45m, 60m, 90m)<br/>User Selects Pilot Level"]
+        DetectPackage -->|category = 'recreational'| RecConfig["Display Full Catalog (30m, 45m, 60m, 90m, 120m)<br/>User Selects Pilot Level"]
         RecConfig --> Step1Rec["Step 1: Date & Slot Selection<br/>(Live Runway Capacity Bar)"]
-        Step1Rec --> Step2Rec["Step 2: Cockpit Add-ons & Combos<br/>(Cold & Dark, 8 World Trios, Extra Cockpit Guest)"]
+        Step1Rec --> Step2Rec["Step 2: Cockpit Add-ons & Promo Tier Upgrades<br/>(Cold & Dark +30m, IFR +30m, 8 Trios, Extra Seat; max 2 mission add-ons via mission-upgrade-promo.ts)"]
         Step2Rec --> Step3Rec["Step 3: Pilot Manifest & Checkout<br/>(Voucher Reapply & Manifest Summary)"]
     end
 
@@ -161,11 +161,11 @@ flowchart LR
     end
 
     subgraph ValidationEngine["3. Dynamic Programming Tile Engine"]
-        Candidates["Generate 15-Minute Candidate Starts"]
+        Candidates["Generate Duration-Aware Cadence Starts<br/>(Reconnected at booking boundaries; Wix re-anchors via wixBlockedBookings)"]
         CollisionCheck{"Collides with Existing Booking?"}
         WindowCheck{"Exceeds Closing Time?"}
         PromoCheck{"45m Discounted Promotion outside Sun–Tue daytime?"}
-        ZeroWasteDP{"canTileIntervalZeroWaste()<br/>Can free space before & after be tiled?"}
+        ZeroWasteDP{"canTileIntervalZeroWaste() / minSellableGaps<br/>Can free space before & after stay sellable?"}
     end
 
     subgraph FrontendState["4. Resilient Frontend UI"]
@@ -324,7 +324,7 @@ flowchart TD
 
     subgraph Stage1["1. Static & Fast Unit Verification (Vitest)"]
         Typecheck["TypeScript Strict Check<br/>(tsc --noEmit)"]
-        UnitTests["Vitest Projects (167 Suites, 3,400+ Tests)<br/>- Scheduling math & mission manifests<br/>- i18n key parity & unicode purity<br/>- Member auth ownership contracts<br/>- Wix catalog & plans resolution"]
+        UnitTests["Vitest Projects (175 Suites, 3,480+ Tests)<br/>- Scheduling math & mission manifests<br/>- i18n key parity & unicode purity<br/>- Member auth ownership contracts<br/>- Wix catalog & plans resolution"]
     end
 
     subgraph Stage2["2. Build & Artifact Verification"]
