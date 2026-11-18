@@ -26,7 +26,7 @@ export function BirthdayStatus({ id, birthday }: { id: string; birthday: Booking
       {kind === 'promo_picked' && (
         <p
           data-birthday-promo-notice
-          className="flex items-start gap-2 rounded-lg border border-orange-500 bg-orange-500/10 p-3 text-sm font-semibold leading-relaxed text-orange-300"
+          className="flex items-start gap-2 rounded-lg border border-orange-500 bg-slate-950/50 p-3 text-sm font-semibold leading-relaxed text-orange-400"
         >
           <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0 text-orange-400" aria-hidden="true" />
           <span>{extras.birthdayPromoPicked}</span>
