@@ -14,9 +14,19 @@ import type { WixCheckoutCodeKind, WixCheckoutDraftState } from './wix-checkout-
 
 /** Browser-side operations on the visitor-owned, unpaid Wix cart ("draft") behind a native checkout. */
 
+/** Raised when `/api/wix/bookings/checkout` refuses the departure (e.g. 409 unavailable) before a cart exists. */
+export class WixDraftPrepareError extends Error {
+  constructor(message: string, readonly status?: number) {
+    super(message);
+    this.name = 'WixDraftPrepareError';
+  }
+}
+
 export interface PrepareWixDraftInput {
   inputKey: string;
   packageId: string;
+  /** Originating shorter package when a promotional tier bump-up promotes `packageId`. */
+  sourcePackageId?: string;
   bookingDate: string;
   startTime: string;
   pilotName: string;
@@ -38,6 +48,7 @@ export async function prepareWixCheckoutDraft(input: PrepareWixDraftInput): Prom
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       packageId: input.packageId,
+      ...(input.sourcePackageId ? { sourcePackageId: input.sourcePackageId } : {}),
       bookingDate: input.bookingDate,
       startTime: input.startTime,
       ...(input.addonIds && input.addonIds.length > 0 ? { addonIds: input.addonIds } : {}),
@@ -45,7 +56,7 @@ export async function prepareWixCheckoutDraft(input: PrepareWixDraftInput): Prom
   });
   const wixSlot = (await wixSlotResponse.json()) as Partial<WixNativeCheckoutCandidate> & { error?: string };
   if (!wixSlotResponse.ok || !wixSlot.slotAvailability || !wixSlot.timeZone || !wixSlot.location || !wixSlot.paymentOptions) {
-    throw new Error(wixSlot.error || input.paymentStartFailed);
+    throw new WixDraftPrepareError(wixSlot.error || input.paymentStartFailed, wixSlotResponse.status);
   }
 
   const checkoutInput = {

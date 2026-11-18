@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { FlightAddon, FlightSlot, MissionManifestCalculation } from '@/types';
 import { getCheckoutExtrasCopy } from '@/lib/booking/client/extras-copy';
 import {
@@ -6,6 +6,7 @@ import {
   STEP_ADDONS,
   STEP_DATE_SLOT,
   STEP_PILOT,
+  WixDraftPrepareError,
   appendWixMissionSummaryToNote,
   buildLocalCheckoutBody,
   buildWixCheckoutDraftKey,
@@ -20,6 +21,7 @@ import {
   normalizeStep,
   parseRequestedAddonIds,
   pickActiveWixCheckoutDraft,
+  prepareWixCheckoutDraft,
   presentManifestWithDraft,
   requestedPackageSlug,
   resolveAddonToggle,
@@ -407,5 +409,65 @@ describe('submit blockers and request body', () => {
   it('returns localized checkout extras copy and falls back to English for unknown codes', () => {
     expect(getCheckoutExtrasCopy('he').opensInNewTab).toBeTruthy();
     expect(getCheckoutExtrasCopy('zz')).toEqual(getCheckoutExtrasCopy('en'));
+  });
+});
+
+describe('Wix draft prepare with promo sourcePackageId and typed errors', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('includes sourcePackageId in the draft key and forwards it to /api/wix/bookings/checkout', async () => {
+    const base = {
+      packageId: 'pkg-ultimate-90',
+      selectedDate: '2026-12-22',
+      slotId: 'slot-12-15',
+      pilotName: 'Ada',
+      pilotEmail: 'ada@example.com',
+      pilotPhone: '+972501234567',
+      notes: '',
+      birthdayValue: '1990-04-02',
+    };
+    expect(buildWixCheckoutDraftKey(base)).not.toBe(
+      buildWixCheckoutDraftKey({ ...base, sourcePackageId: 'pkg-captain-60' })
+    );
+
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 409,
+      json: async () => ({ error: 'That departure is no longer available. Please choose another time.' }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const err = await prepareWixCheckoutDraft({
+      inputKey: 'k1',
+      packageId: 'pkg-ultimate-90',
+      sourcePackageId: 'pkg-captain-60',
+      bookingDate: '2026-12-22',
+      startTime: '12:15',
+      pilotName: 'Ada',
+      pilotEmail: 'ada@example.com',
+      pilotPhone: '+972501234567',
+      notes: '',
+      paymentStartFailed: 'Fallback error',
+    }).catch((caught: unknown) => caught);
+
+    expect(err).toBeInstanceOf(WixDraftPrepareError);
+    expect((err as WixDraftPrepareError).status).toBe(409);
+    expect((err as WixDraftPrepareError).message).toBe(
+      'That departure is no longer available. Please choose another time.'
+    );
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/wix/bookings/checkout',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({
+          packageId: 'pkg-ultimate-90',
+          sourcePackageId: 'pkg-captain-60',
+          bookingDate: '2026-12-22',
+          startTime: '12:15',
+        }),
+      })
+    );
   });
 });

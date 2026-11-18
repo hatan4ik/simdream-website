@@ -190,3 +190,110 @@ describe('resolveWixBookingCheckout with add-on duration', () => {
     ).rejects.toThrow(WixBookingUnavailableError);
   });
 });
+
+const ULTIMATE_90_SERVICE_ID = '97b47c8c-c7a5-4c3c-9596-8e5cf77e9e77';
+
+describe('resolveWixBookingCheckout with promotional tier upgrade (sourcePackageId)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.listWixServices.mockResolvedValue([
+      {
+        id: SERVICE_ID,
+        locations: [{ id: 'loc-1', type: 'BUSINESS' }],
+        payment: { options: { online: true, inPerson: false } },
+      },
+      {
+        id: ULTIMATE_90_SERVICE_ID,
+        locations: [{ id: 'loc-1', type: 'BUSINESS' }],
+        payment: { options: { online: true, inPerson: false } },
+      },
+    ]);
+  });
+
+  function buildFiveMinSlots(date: string, durationMinutes: number, startFrom = 9 * 60, lastStart = 22 * 60) {
+    const out: Array<Record<string, unknown>> = [];
+    for (let m = startFrom; m <= lastStart; m += 5) {
+      const sh = String(Math.floor(m / 60)).padStart(2, '0');
+      const sm = String(m % 60).padStart(2, '0');
+      const emTotal = m + durationMinutes;
+      const eh = String(Math.floor(emTotal / 60)).padStart(2, '0');
+      const em = String(emTotal % 60).padStart(2, '0');
+      out.push({ localStartDate: `${date}T${sh}:${sm}:00`, localEndDate: `${date}T${eh}:${em}:00`, bookable: true });
+    }
+    return out;
+  }
+
+  it('accepts a 60m departure off the 90m grid (e.g. 11:30) when promoted to pkg-ultimate-90 via sourcePackageId', async () => {
+    const date = '2099-05-10';
+    const slots60 = buildFiveMinSlots(date, 60, 9 * 60, 22 * 60 + 45);
+    const slots90 = buildFiveMinSlots(date, 90, 9 * 60, 22 * 60 + 15);
+    mocks.listWixAvailability.mockImplementation(async (window: { serviceId: string }) => ({
+      timeZone: 'Asia/Jerusalem',
+      timeSlots: window.serviceId === SERVICE_ID ? slots60 : slots90,
+    }));
+
+    // Without sourcePackageId, 11:30 is off the 90m empty-day grid (09:00, 10:45, 12:30...) and rejected.
+    await expect(
+      resolveWixBookingCheckout({
+        packageId: 'pkg-ultimate-90',
+        bookingDate: date,
+        startTime: '11:30',
+      })
+    ).rejects.toThrow(WixBookingUnavailableError);
+
+    // With sourcePackageId='pkg-captain-60', 11:30 is a valid 60m grid start with >=90m open and Wix 90m bookable.
+    const promoted = await resolveWixBookingCheckout({
+      packageId: 'pkg-ultimate-90',
+      sourcePackageId: 'pkg-captain-60',
+      bookingDate: date,
+      startTime: '11:30',
+    });
+
+    expect(promoted.slotAvailability.localStartDate).toBe(`${date}T11:30:00`);
+    expect(promoted.slotAvailability.localEndDate).toBe(`${date}T13:00:00`);
+  });
+
+  it('rejects a promoted departure when Wix does not offer the upgraded 90m slot at that time', async () => {
+    const date = '2099-05-10';
+    const slots60 = buildFiveMinSlots(date, 60, 9 * 60, 22 * 60 + 45);
+    const slots90 = buildFiveMinSlots(date, 90, 9 * 60, 22 * 60 + 15).filter(
+      (slot) => slot.localStartDate !== `${date}T11:30:00`
+    );
+    mocks.listWixAvailability.mockImplementation(async (window: { serviceId: string }) => ({
+      timeZone: 'Asia/Jerusalem',
+      timeSlots: window.serviceId === SERVICE_ID ? slots60 : slots90,
+    }));
+
+    await expect(
+      resolveWixBookingCheckout({
+        packageId: 'pkg-ultimate-90',
+        sourcePackageId: 'pkg-captain-60',
+        bookingDate: date,
+        startTime: '11:30',
+      })
+    ).rejects.toThrow(WixBookingUnavailableError);
+  });
+
+  it('rejects a promoted departure when the source slot window cannot hold the upgraded 90m duration', async () => {
+    const date = '2099-05-10';
+    // 11:30 is open for 60m (75m reserved), but a booking starts at 12:45 so 12:45 is blocked: maxAvailableMinutes = 60 < 90.
+    const slots60 = buildFiveMinSlots(date, 60, 9 * 60, 22 * 60 + 45).filter((slot) => {
+      const hhmm = String(slot.localStartDate).slice(11, 16);
+      return hhmm < '11:35' || hhmm >= '14:00';
+    });
+    const slots90 = buildFiveMinSlots(date, 90, 9 * 60, 22 * 60 + 15);
+    mocks.listWixAvailability.mockImplementation(async (window: { serviceId: string }) => ({
+      timeZone: 'Asia/Jerusalem',
+      timeSlots: window.serviceId === SERVICE_ID ? slots60 : slots90,
+    }));
+
+    await expect(
+      resolveWixBookingCheckout({
+        packageId: 'pkg-ultimate-90',
+        sourcePackageId: 'pkg-captain-60',
+        bookingDate: date,
+        startTime: '11:30',
+      })
+    ).rejects.toThrow(WixBookingUnavailableError);
+  });
+});

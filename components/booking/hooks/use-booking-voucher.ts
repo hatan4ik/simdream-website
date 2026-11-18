@@ -9,6 +9,7 @@ import {
   formatBookingTemplate,
   removeAppliedCodeFromDraft,
   WixBirthdayClaimContactError,
+  WixDraftPrepareError,
   type WixCheckoutCodeKind,
 } from '@/lib/booking/client';
 import type { WixCheckoutDraftHandle } from './use-wix-checkout-draft';
@@ -239,18 +240,22 @@ export function useBookingVoucher(args: UseBookingVoucherArgs) {
         sessionStorage.setItem(CACHED_VOUCHER_STORAGE_KEY, code);
       } catch {}
     } catch (err: unknown) {
-      // A birthday price needs a usable pilot email before the Wix cart exists: say so, not "code failed".
+      // A birthday price needs a usable pilot email before the Wix cart exists, and a slot/draft
+      // refusal (409/503 from /api/wix/bookings/checkout) is a departure error—never disguise it as "code failed".
       const needsPilotDetails = err instanceof WixBirthdayClaimContactError;
+      const draftPrepareFailure = err instanceof WixDraftPrepareError;
       setVoucherError(
-        canUseWixNativeCheckout
-          ? wixCheckoutCodeKind === 'gift-card'
-            ? needsPilotDetails
-              ? copy.wixGiftCardNeedsPilotDetails
-              : copy.wixGiftCardVerifyFailed
-            : needsPilotDetails
-              ? copy.wixCouponNeedsPilotDetails
-              : copy.wixCouponVerifyFailed
-          : extractErrorMessage(err, copy.voucherVerifyFailed)
+        draftPrepareFailure
+          ? err.message
+          : canUseWixNativeCheckout
+            ? wixCheckoutCodeKind === 'gift-card'
+              ? needsPilotDetails
+                ? copy.wixGiftCardNeedsPilotDetails
+                : copy.wixGiftCardVerifyFailed
+              : needsPilotDetails
+                ? copy.wixCouponNeedsPilotDetails
+                : copy.wixCouponVerifyFailed
+            : extractErrorMessage(err, copy.voucherVerifyFailed)
       );
       setVoucherDiscount(0);
     } finally {
