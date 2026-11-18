@@ -1,6 +1,6 @@
 'use client';
 
-import { Info } from 'lucide-react';
+import { Info, TriangleAlert } from 'lucide-react';
 import { getBirthdayCheckoutCopy } from '@/lib/discounts/birthday';
 import { getCheckoutExtrasCopy, type BirthdayStatusKind } from '@/lib/booking/client';
 import { useLanguage } from '@/lib/i18n/language-context';
@@ -23,6 +23,15 @@ export function BirthdayStatus({ id, birthday }: { id: string; birthday: Booking
 
   return (
     <div id={id} aria-live="polite" data-birthday-status-region={kind}>
+      {kind === 'promo_picked' && (
+        <p
+          data-birthday-promo-notice
+          className="flex items-start gap-2 rounded-lg border border-orange-500 bg-orange-500/10 p-3 text-sm font-semibold leading-relaxed text-orange-300"
+        >
+          <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0 text-orange-400" aria-hidden="true" />
+          <span>{extras.birthdayPromoPicked}</span>
+        </p>
+      )}
       {kind === 'banner' && birthday.state.reason && <BirthdayBanner reason={birthday.state.reason} />}
       {note && (
         <p className="flex items-start gap-2 rounded-lg border border-slate-700 bg-slate-950/50 p-3 text-xs leading-relaxed text-slate-300">

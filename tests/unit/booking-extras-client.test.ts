@@ -131,7 +131,16 @@ describe('birthdayStatusKind', () => {
   });
   it('explains a date that earns nothing and a package that cannot carry the offer', () => {
     expect(birthdayStatusKind(evaluateBirthdayField(field({ value: '1990-06-15' })))).toBe('not_eligible');
-    expect(birthdayStatusKind(evaluateBirthdayField(field({ packageId: 'pkg-promo-45', subtotalIls: 490 })))).toBe('not_applicable');
+    expect(birthdayStatusKind(evaluateBirthdayField(field({ packageId: 'pkg-pro-90', subtotalIls: 1285 })))).toBe('not_applicable');
+  });
+  it('highlights the bare Discounted Promotion whatever the date, mode or birth date entered', () => {
+    expect(birthdayStatusKind(evaluateBirthdayField(field({ packageId: 'pkg-promo-45', subtotalIls: 490 })))).toBe('promo_picked');
+    expect(birthdayStatusKind(evaluateBirthdayField(field({ packageId: 'pkg-promo-45', value: '' })))).toBe('promo_picked');
+    expect(birthdayStatusKind(evaluateBirthdayField(field({ packageId: 'pkg-promo-45', mode: 'wix' })))).toBe('promo_picked');
+  });
+  it('treats a promo upgraded by add-ons as the tier it became: 90 and 120 earn the birthday discount', () => {
+    expect(evaluateBirthdayField(field({ packageId: 'pkg-ultimate-90', subtotalIls: 850 }))).toMatchObject({ applied: true, promoPicked: false });
+    expect(evaluateBirthdayField(field({ packageId: 'pkg-grand-120', subtotalIls: 1200 }))).toMatchObject({ applied: true, discountIls: 180, promoPicked: false });
   });
   it('always carries the honest notice on the Wix-hosted checkout, with or without a date', () => {
     expect(birthdayStatusKind(evaluateBirthdayField(field({ mode: 'wix' })))).toBe('wix_notice');

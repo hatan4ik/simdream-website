@@ -5,6 +5,7 @@ import {
   daysInMonth,
   formatIsoDate,
   parseIsoDate,
+  getBirthdayPackageEligibility,
   resolveBookingBirthday,
   type BirthdayDateError,
   type BirthdayMonthDay,
@@ -75,6 +76,8 @@ export interface BirthdayFieldState {
   discountIls: number;
   reason: BirthdayReason | null;
   blockedBy?: BookingBirthdayBlock;
+  /** The bare Discounted Promotion is picked (no add-on upgrade): no stacking, so the offer never applies. */
+  promoPicked: boolean;
   /** The only part of the date that is ever stored or sent to staff. */
   birthday: BirthdayMonthDay | null;
 }
@@ -91,7 +94,7 @@ export interface BirthdayFieldInputs {
   today?: string;
 }
 
-const EMPTY: Omit<BirthdayFieldState, 'mode' | 'status'> = {
+const EMPTY: Omit<BirthdayFieldState, 'mode' | 'status' | 'promoPicked'> = {
   applied: false,
   discountIls: 0,
   reason: null,
@@ -100,6 +103,11 @@ const EMPTY: Omit<BirthdayFieldState, 'mode' | 'status'> = {
 
 /** What the entered date means for this booking right now. Recomputed whenever the date, package or flight date changes. */
 export function evaluateBirthdayField(inputs: BirthdayFieldInputs): BirthdayFieldState {
+  const promoPicked = getBirthdayPackageEligibility(inputs.packageId).reason === 'discounted_promotion';
+  return { ...evaluateDate(inputs), promoPicked };
+}
+
+function evaluateDate(inputs: BirthdayFieldInputs): Omit<BirthdayFieldState, 'promoPicked'> {
   const { mode } = inputs;
   if (!inputs.value) return { ...EMPTY, mode, status: 'empty', error: 'required' };
 
@@ -129,11 +137,13 @@ export function evaluateBirthdayField(inputs: BirthdayFieldInputs): BirthdayFiel
  * Wix-hosted checkout without the pricing provider the notice is always shown (nothing appears or disappears with the date), and for a
  * flight-track redemption the field's own hint already says the date is not stored.
  */
-export type BirthdayStatusKind = 'none' | 'banner' | 'not_eligible' | 'not_applicable' | 'wix_notice';
+export type BirthdayStatusKind = 'none' | 'banner' | 'not_eligible' | 'not_applicable' | 'wix_notice' | 'promo_picked';
 
 export function birthdayStatusKind(state: BirthdayFieldState): BirthdayStatusKind {
+  if (state.mode === 'subscription') return 'none';
+  if (state.promoPicked) return 'promo_picked';
   if (state.mode === 'wix') return 'wix_notice';
-  if (state.mode === 'subscription' || state.status !== 'valid') return 'none';
+  if (state.status !== 'valid') return 'none';
   if (state.applied) return 'banner';
   return state.reason === 'none' ? 'not_eligible' : 'not_applicable';
 }
