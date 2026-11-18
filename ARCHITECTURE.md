@@ -84,7 +84,7 @@ flowchart TD
 
 ### Checkout dependency boundary
 
-`POST /api/checkout` is the legacy local Next.js checkout path. It calls the provider-neutral business service in `lib/booking/checkout-service.ts`, whose server composition binds Supabase, Stripe, SendGrid, and Supabase Auth. It preserves server-authoritative schedule, pricing, voucher, guest-checkout, and Stripe webhook rules. When `WIX_AVAILABILITY_ADAPTER_ENABLED=true`, that local writer refuses mapped base-flight checkout so that Wix-native browser checkout is the only writer for the same slot. The frontend's Wix path revalidates the live slot (re-anchored around live bookings via `lib/wix/wix-blocked-bookings.ts` when the pricing provider is off, and lengthened via `customerChoices.addOnIds` for duration add-ons), creates a Wix booking carrying native `bookedAddOns` (`lib/wix/native-addons.ts`), builds Cart V2 (skipping Wix Stores products for add-ons already booked natively; `WIX_ADDON_PRODUCT_IDS` remains a fallback for unmapped add-ons), calculates the cart, and opens Wix-hosted checkout. The repository proves this integration code and its flags—not that any external Wix payment/provider configuration is active.
+`POST /api/checkout` is the legacy local Next.js checkout path. It calls the provider-neutral business service in `lib/booking/checkout-service.ts`, whose server composition binds Supabase, Stripe, SendGrid, and Supabase Auth. It preserves server-authoritative schedule, pricing, voucher, guest-checkout, and Stripe webhook rules. When `WIX_AVAILABILITY_ADAPTER_ENABLED=true`, that local writer refuses mapped base-flight checkout so that Wix-native browser checkout is the only writer for the same slot. The frontend's Wix path revalidates the live slot (re-anchored around live bookings via `lib/wix/wix-blocked-bookings.ts` when the pricing provider is off, passing `sourcePackageId` when a promotional tier bump-up promotes the Wix service, lengthening via `customerChoices.addOnIds` for duration add-ons, and surfacing `409`/`503` failures through `WixDraftPrepareError`), creates a Wix booking carrying native `bookedAddOns` (`lib/wix/native-addons.ts`), builds Cart V2 (skipping Wix Stores products for add-ons already booked natively; `WIX_ADDON_PRODUCT_IDS` remains a fallback for unmapped add-ons), calculates the cart, and opens Wix-hosted checkout. The repository proves this integration code and its flags—not that any external Wix payment/provider configuration is active.
 
 ### Wix Member identity and Flight Deck boundary
 
@@ -165,7 +165,7 @@ flowchart LR
         CollisionCheck{"Collides with Existing Booking?"}
         WindowCheck{"Exceeds Closing Time?"}
         PromoCheck{"45m Discounted Promotion outside Sun–Tue daytime?"}
-        ZeroWasteDP{"canTileIntervalZeroWaste() / minSellableGaps<br/>Can free space before & after stay sellable?"}
+        ZeroWasteDP{"canTileIntervalZeroWaste() / minSellableGaps<br/>Can free space stay sellable? (Allows flush closing tail <45m in Wix mode)"}
     end
 
     subgraph FrontendState["4. Resilient Frontend UI"]
@@ -324,7 +324,7 @@ flowchart TD
 
     subgraph Stage1["1. Static & Fast Unit Verification (Vitest)"]
         Typecheck["TypeScript Strict Check<br/>(tsc --noEmit)"]
-        UnitTests["Vitest Projects (175 Suites, 3,480+ Tests)<br/>- Scheduling math & mission manifests<br/>- i18n key parity & unicode purity<br/>- Member auth ownership contracts<br/>- Wix catalog & plans resolution"]
+        UnitTests["Vitest Projects (175 Suites, 3,500+ Tests)<br/>- Scheduling math & mission manifests<br/>- i18n key parity & unicode purity<br/>- Member auth ownership contracts<br/>- Wix catalog & plans resolution"]
     end
 
     subgraph Stage2["2. Build & Artifact Verification"]
