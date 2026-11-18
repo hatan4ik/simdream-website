@@ -656,8 +656,15 @@ export function buildWixPricingPlanCreatePayload(
       description: spec.summary,
       visibility: 'PUBLIC',
       buyable: true,
+      currency: 'ILS',
+      perks: [
+        { id: crypto.randomUUID(), description: `${spec.sessions} captain-led Boeing 737 sessions of ${spec.sessionMinutes} minutes.` },
+        { id: crypto.randomUUID(), description: `Valid for ${spec.validityMonths} months from purchase.` },
+      ],
       pricingVariants: [
         {
+          // Wix Pricing Plans v3 rejects a create whose variants or perks carry no GUID.
+          id: crypto.randomUUID(),
           name: `${spec.sessions} × ${spec.sessionMinutes} min · 12 months`,
           pricingStrategies: [
             {
