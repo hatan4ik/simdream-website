@@ -25,9 +25,11 @@ import {
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { StorefrontVoucherBox } from '@/components/booking/StorefrontVoucherBox';
+import { PromoBanner } from '@/components/booking/PromoBanner';
 import { BookingMonthPager } from '@/components/scheduler/BookingMonthPager';
 import { BookingWeekPager } from '@/components/scheduler/BookingWeekPager';
 import { PackageInclusionsDialog } from '@/components/scheduler/PackageInclusionsDialog';
+import { StorefrontAddonCard } from '@/components/scheduler/StorefrontAddonCard';
 import { useSchedulerViewModel } from '@/components/scheduler/hooks';
 import type { BookingVoucher } from '@/components/booking/hooks';
 import { FlightSlot, SimulatorPackage, FlightAddon, PilotExperienceLevel, MissionManifestCalculation, SlotBlockPeriod } from '@/types';
@@ -36,8 +38,10 @@ import { useLanguage } from '@/lib/i18n/language-context';
 import type { Language, LocalizedRecord } from '@/lib/i18n/translations';
 import { formatCalendarDate, formatCalendarDayNumber } from '@/lib/i18n/calendar-presentation';
 import { SLOT_PERIODS, type DurationAvailability } from '@/lib/scheduler/availability-view-model';
-import { canAddonFitInSlot, sanitizePackageTitle } from '@/lib/scheduler/mission-calculator';
+import { sanitizePackageTitle } from '@/lib/scheduler/mission-calculator';
+import { previewAddonUpgrade, resolveMissionUpgradePromo } from '@/lib/scheduler/mission-upgrade-promo';
 import { getPackageFormulaBadge } from '@/lib/scheduler/package-presentation';
+import { getUpgradePromoCopy } from '@/lib/booking/client';
 import { BOOKING_BLUEPRINT_COPY } from '@/lib/i18n/booking-blueprint-copy';
 
 interface AmazonFlightStorefrontProps {
@@ -114,21 +118,21 @@ interface QuickComboPreset {
 const QUICK_COMBOS: QuickComboPreset[] = [
   {
     id: 'combo-eu-captain',
-    badge: 'MOST POPULAR BUNDLE',
+    badge: 'MOST POPULAR • 120M PROMO',
     title: 'Cold & Dark Startup + Classical EU Trio',
-    subtitle: 'Power up the 737 MAX from a dark cockpit (+20m) & fly Heathrow, CDG & Schiphol (+40m)',
+    subtitle: 'Power up the 737 MAX from a dark cockpit (+30m) & fly Heathrow, CDG & Schiphol (+40m)',
     addonIds: ['addon-cold-dark', 'addon-classical-eu'],
   },
   {
     id: 'combo-extreme-ops',
-    badge: 'PRO PILOT CHALLENGE',
+    badge: 'PRO PILOT • 120M PROMO',
     title: 'Crosswind/IFR Storm + Extreme World Approaches',
-    subtitle: 'Battle live gusts & low-visibility ILS (+15m) plus Paro, Hong Kong Kai Tak & Innsbruck (+25m)',
+    subtitle: 'Battle live gusts & low-visibility ILS (+30m) plus Paro, Hong Kong Kai Tak & Innsbruck (+25m)',
     addonIds: ['addon-xwind-ifr', 'addon-extreme-airports'],
   },
   {
     id: 'combo-med-guest',
-    badge: 'SHARED FLIGHT FAVORITE',
+    badge: 'SHARED FLIGHT • 90M PROMO',
     title: 'Mediterranean Islands Trio + Extra Cockpit Guest',
     subtitle: 'Corfu, Skiathos & Nice approaches (+40m), shared with one additional cockpit observer',
     addonIds: ['addon-med-islands', 'addon-extra-seat'],
@@ -202,6 +206,7 @@ export function AmazonFlightStorefront({
   const bpCopy = BOOKING_BLUEPRINT_COPY[language] || BOOKING_BLUEPRINT_COPY.en;
   const calendarCopy = STOREFRONT_CALENDAR_COPY[language] || STOREFRONT_CALENDAR_COPY.en;
   const addonCopy = STOREFRONT_ADDON_COPY[language] || STOREFRONT_ADDON_COPY.en;
+  const promoCopy = getUpgradePromoCopy(language);
   const packagesActionLabel =
     selectedPackage.category === 'training'
       ? calendarCopy.chooseTrainingDuration
@@ -823,13 +828,15 @@ export function AmazonFlightStorefront({
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
             {QUICK_COMBOS.map((combo) => {
-              const comboAddons = combo.addonIds
-                .map((id) => addons.find((a) => a.id === id))
-                .filter((a): a is FlightAddon => Boolean(a));
-              const comboExtraMin = comboAddons.reduce((sum, a) => sum + a.durationMinutes, 0);
-              const comboExtraPrice = comboAddons.reduce((sum, a) => sum + a.priceIls, 0);
-              const combinedDuration = baseDurationMinutes + comboExtraMin;
-              const combinedPrice = basePriceIls + comboExtraPrice;
+              const comboPromo = resolveMissionUpgradePromo({
+                pkg: selectedPackage,
+                isPrimeTime: selectedSlot?.isPrimeTime,
+                selectedAddonIds: combo.addonIds,
+                availableAddons: addons,
+              });
+              const combinedDuration = comboPromo.effectiveDurationMinutes;
+              const combinedPrice = comboPromo.promoSubtotalIls;
+              const anchorPrice = comboPromo.strikeOutAnchorSubtotalIls;
               const fitsSlot = combinedDuration <= maxAvailableMinutes;
               const isComboActive =
                 combo.addonIds.every((id) => selectedAddons.includes(id)) &&
@@ -851,8 +858,10 @@ export function AmazonFlightStorefront({
                       <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
                         {combo.badge}
                       </span>
-                      <span className="text-xs font-mono font-bold text-sky-400">
-                        +{comboExtraMin}m
+                      <span className="text-xs font-mono font-bold text-emerald-400">
+                        {comboPromo.discountPercent >= 15
+                          ? `${comboPromo.discountPercent}% OFF`
+                          : `${combinedDuration}m`}
                       </span>
                     </div>
                     <h3 className="text-sm font-bold text-white leading-snug">{combo.title}</h3>
@@ -862,8 +871,15 @@ export function AmazonFlightStorefront({
                   <div className="pt-3 mt-3 border-t border-slate-800/80 space-y-2">
                     <div className="flex items-baseline justify-between text-xs font-mono">
                       <span className="text-slate-400">Combo Total ({combinedDuration}m):</span>
-                      <span className="text-base font-black text-emerald-400">
-                        {formatCurrency(combinedPrice)}
+                      <span className="flex items-baseline gap-1.5">
+                        {comboPromo.savingsIls > 0 && (
+                          <span className="text-xs line-through text-slate-400">
+                            {formatCurrency(anchorPrice)}
+                          </span>
+                        )}
+                        <span className="text-base font-black text-emerald-400">
+                          {formatCurrency(combinedPrice)}
+                        </span>
                       </span>
                     </div>
 
@@ -889,7 +905,7 @@ export function AmazonFlightStorefront({
                       ) : (
                         <>
                           <Plus className="w-3.5 h-3.5" />
-                          <span>Apply Combo (+{formatCurrency(comboExtraPrice)})</span>
+                          <span>Apply Combo ({formatCurrency(combinedPrice)})</span>
                         </>
                       )}
                     </button>
@@ -913,7 +929,7 @@ export function AmazonFlightStorefront({
                 Customize Flight Plan — World Airport Trios & Cockpit Modules
               </h2>
               <p className="text-xs text-slate-400">
-                Mix & match 3-airport global tours (+40m), Cold & Dark startup (+20m), or IFR weather (+15m)
+                {promoCopy.storefrontAddonsSubtitle}
               </p>
             </div>
 
@@ -994,98 +1010,33 @@ export function AmazonFlightStorefront({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {filteredAddons.map((addon) => {
-              const isChecked = selectedAddons.includes(addon.id);
-              const addonMin = addon.durationMinutes;
-              const isWorldBundle = WORLD_BUNDLE_IDS.has(addon.id);
-              const fitsSlot =
-                isChecked || canAddonFitInSlot(addon, totalDurationMinutes, maxAvailableMinutes);
+              const preview = previewAddonUpgrade({
+                pkg: selectedPackage,
+                isPrimeTime: selectedSlot?.isPrimeTime,
+                selectedAddonIds: selectedAddons,
+                candidateAddon: addon,
+                availableAddons: addons,
+                maxSlotMinutes: maxAvailableMinutes,
+              });
+              const isBundledInActivePromo = Boolean(
+                manifest.upgradePromo?.isPromoActive &&
+                  manifest.upgradePromo.bundledMissionAddonIds.includes(addon.id)
+              );
 
               return (
-                <div
+                <StorefrontAddonCard
                   key={addon.id}
-                  data-addon-card={addon.id}
-                  data-addon-selected={isChecked ? 'true' : 'false'}
-                  data-addon-deemphasized={!isChecked && hasSelectedAddons ? 'true' : 'false'}
-                  className={`p-4 sm:p-5 rounded-xl border transition-all flex flex-col justify-between ${
-                    !fitsSlot
-                      ? 'border-slate-800/50 bg-slate-950/40'
-                      : isChecked
-                      ? 'border-amber-400 bg-amber-500/10 shadow-lg ring-1 ring-amber-400/40'
-                      : hasSelectedAddons
-                      ? 'border-slate-800/70 bg-slate-950/55 opacity-45 hover:opacity-80 hover:border-slate-700'
-                      : 'border-slate-800 bg-slate-950/80 hover:border-slate-700'
-                  }`}
-                >
-                  <div className="space-y-2.5">
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-1.5">
-                        {getAddonIcon(addon)}
-                        <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold">
-                          {isWorldBundle
-                            ? '3-AIRPORT WORLD TOUR'
-                            : addonMin > 0
-                            ? 'COCKPIT MISSION MODULE'
-                            : 'GUEST EXPERIENCE'}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        {addonMin > 0 && (
-                          <span className="text-xs font-mono font-bold text-sky-300 px-2 py-0.5 rounded bg-sky-500/15 border border-sky-500/30">
-                            +{addonMin} min
-                          </span>
-                        )}
-                        <span className="text-sm font-mono font-black text-emerald-400 px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20">
-                          +{formatCurrency(addon.priceIls)}
-                        </span>
-                      </div>
-                    </div>
-
-                    <h3 className="text-sm sm:text-base font-bold text-white leading-snug">
-                      {addon.name}
-                    </h3>
-
-                    <p className="text-xs text-slate-300 leading-relaxed">{addon.description}</p>
-                  </div>
-
-                  <div className="pt-4 mt-3 border-t border-slate-800/80 flex items-center justify-between gap-3">
-                    {!fitsSlot ? (
-                      <span className="text-[11px] font-mono text-amber-400">
-                        Exceeds {maxAvailableMinutes}m slot window at {selectedSlot?.startTime}
-                      </span>
-                    ) : (
-                      <span className="text-[11px] font-mono text-slate-400">
-                        {addonMin > 0 ? `Extends flight by +${addonMin}m` : 'Included during session'}
-                      </span>
-                    )}
-
-                    <button
-                      type="button"
-                      disabled={!fitsSlot}
-                      onClick={() => onToggleAddon(addon.id)}
-                      aria-pressed={isChecked}
-                      className={`min-h-11 px-3.5 py-2 rounded-lg font-mono text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
-                        !fitsSlot
-                          ? 'bg-slate-900 text-slate-600 cursor-not-allowed'
-                          : isChecked
-                          ? 'bg-emerald-500 text-slate-950 hover:bg-emerald-400'
-                          : 'bg-amber-400 text-slate-950 hover:bg-amber-300 shadow-sm'
-                      }`}
-                    >
-                      {isChecked ? (
-                        <>
-                          <Check className="w-3.5 h-3.5" />
-                          <span>Added to Flight</span>
-                        </>
-                      ) : (
-                        <>
-                          <Plus className="w-3.5 h-3.5" />
-                          <span>Add to Flight</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </div>
+                  addon={addon}
+                  icon={getAddonIcon(addon)}
+                  isWorldBundle={WORLD_BUNDLE_IDS.has(addon.id)}
+                  hasSelectedAddons={hasSelectedAddons}
+                  preview={preview}
+                  isBundledInActivePromo={isBundledInActivePromo}
+                  maxAvailableMinutes={maxAvailableMinutes}
+                  selectedStartTime={selectedSlot?.startTime}
+                  promoCopy={promoCopy}
+                  onToggle={() => onToggleAddon(addon.id)}
+                />
               );
             })}
           </div>
@@ -1158,8 +1109,15 @@ export function AmazonFlightStorefront({
                 <ShoppingCart className="w-3.5 h-3.5" />
                 <span>FLIGHT DISPATCH BUY BOX</span>
               </div>
-              <div className="text-3xl font-black font-mono text-emerald-400 mt-1">
-                {formatCurrency(totalIls)}
+              <div className="flex items-baseline gap-2 mt-1 font-mono">
+                {manifest.upgradePromo?.isPromoActive && manifest.upgradePromo.savingsIls > 0 && (
+                  <span className="text-base line-through text-slate-400">
+                    {formatCurrency(manifest.upgradePromo.strikeOutAnchorSubtotalIls)}
+                  </span>
+                )}
+                <span className="text-3xl font-black text-emerald-400">
+                  {formatCurrency(totalIls)}
+                </span>
               </div>
               <div className="text-[11px] font-mono text-slate-400">
                 Includes VAT • Certified Instructor Included
@@ -1171,13 +1129,15 @@ export function AmazonFlightStorefront({
               <div className="text-lg font-black font-mono text-sky-400">
                 {totalDurationMinutes} MIN
               </div>
-              {addonsDurationMinutes > 0 && (
+              {!manifest.upgradePromo?.isPromoActive && addonsDurationMinutes > 0 && (
                 <div className="text-[10px] font-mono text-slate-400">
                   {baseDurationMinutes}m + {addonsDurationMinutes}m
                 </div>
               )}
             </div>
           </div>
+
+          {manifest.upgradePromo?.isPromoActive && <PromoBanner promo={manifest.upgradePromo} compact />}
 
           {/* LIVE TELEMETRY & RUNWAY WINDOW */}
           <div className="p-3.5 rounded-xl bg-slate-950/90 border border-slate-800 space-y-2.5 text-xs font-mono">
@@ -1231,16 +1191,25 @@ export function AmazonFlightStorefront({
               <div className="min-w-0">
                 <div className="font-bold text-white truncate">{cleanPackageTitle}</div>
                 <div className="text-[10px] font-mono text-sky-400">
-                  Base Package • {baseDurationMinutes} min
+                  Base Package • {manifest.upgradePromo?.isPromoActive ? manifest.upgradePromo.effectiveDurationMinutes : baseDurationMinutes} min
                 </div>
               </div>
               <span className="font-mono font-bold text-white shrink-0">
-                {formatCurrency(basePriceIls)}
+                {formatCurrency(
+                  manifest.upgradePromo?.isPromoActive
+                    ? manifest.upgradePromo.effectiveTierPriceIls
+                    : basePriceIls
+                )}
               </span>
             </div>
 
             {/* Selected Add-On Lines with 1-Click Remove */}
-            {manifest.selectedAddonItems.map((item) => (
+            {manifest.selectedAddonItems.map((item) => {
+              const isBundled = Boolean(
+                manifest.upgradePromo?.isPromoActive &&
+                  manifest.upgradePromo.bundledMissionAddonIds.includes(item.addon.id)
+              );
+              return (
               <div
                 key={item.addon.id}
                 className="flex items-center justify-between gap-2 p-2.5 rounded-lg bg-sky-950/20 border border-sky-500/30"
@@ -1254,9 +1223,18 @@ export function AmazonFlightStorefront({
                   </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                  <span className="font-mono font-bold text-emerald-400">
-                    {formatCurrency(item.priceIls)}
-                  </span>
+                  {isBundled ? (
+                    <span className="flex items-center gap-1.5 font-mono">
+                      <span className="line-through text-slate-400 text-[11px]">
+                        {formatCurrency(item.priceIls)}
+                      </span>
+                      <span className="font-bold text-emerald-400">{promoCopy.includedInPromo}</span>
+                    </span>
+                  ) : (
+                    <span className="font-mono font-bold text-emerald-400">
+                      {formatCurrency(item.priceIls)}
+                    </span>
+                  )}
                   <button
                     type="button"
                     onClick={() => onToggleAddon(item.addon.id)}
@@ -1267,7 +1245,8 @@ export function AmazonFlightStorefront({
                   </button>
                 </div>
               </div>
-            ))}
+              );
+            })}
 
             {voucherDiscount > 0 && (
               <div className="flex justify-between text-emerald-400 font-semibold px-1 pt-1">

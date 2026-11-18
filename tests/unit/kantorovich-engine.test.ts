@@ -178,7 +178,7 @@ describe('getKantorovichPricing', () => {
     [45, 490],
     [60, 690],
     [90, 850],
-    [120, 1590],
+    [120, 1200],
   ])('charges the documented daytime tariff for a %i-minute flight (₪%i)', (duration, price) => {
     expect(getKantorovichPricing(duration, timeToMinutes('10:00'), false)).toMatchObject({
       basePriceIls: price,
@@ -199,12 +199,12 @@ describe('getKantorovichPricing', () => {
     );
   });
 
-  it('raises the 90-minute flight from ₪850 to ₪950 in prime time only', () => {
+  it('keeps the 90-minute flight flat at ₪850 across daytime, evening and Saturday', () => {
     fc.assert(
       fc.property(startMinutes, fc.boolean(), (start, isSaturday) => {
         const pricing = getKantorovichPricing(90, start, isSaturday);
         expect(pricing.basePriceIls).toBe(850);
-        expect(pricing.dynamicPriceIls).toBe(isSaturday || start >= PRIME_TIME_START ? 950 : 850);
+        expect(pricing.dynamicPriceIls).toBe(850);
       })
     );
   });
@@ -556,10 +556,10 @@ describe('Saturday window', () => {
     ]);
   });
 
-  it('prices every Saturday 90-minute departure at the ₪950 prime-time tariff', () => {
+  it('prices every Saturday 90-minute departure at the flat ₪850 tariff', () => {
     const slots = generateKantorovichSlots(WEEKDAY_DATES.saturday, 90, []);
     expect(slots.length).toBeGreaterThan(0);
-    expect(new Set(slots.map((slot) => slot.dynamicPriceIls))).toEqual(new Set([950]));
+    expect(new Set(slots.map((slot) => slot.dynamicPriceIls))).toEqual(new Set([850]));
   });
 });
 

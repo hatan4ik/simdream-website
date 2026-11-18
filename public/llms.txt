@@ -40,10 +40,11 @@
 Prices and durations below are the live registry values the booking engine charges (`/book`). Daytime prices apply unless a prime-time price is listed.
 
 ### Experience Flights (consumer, no flight experience required)
-- **Discovery Flight — 30-Minute Boeing 737 Experience** (30 min): ₪450. A guided 30-minute Boeing 737 mission with takeoff, hands-on flight and landing. Customize your mission with Cold & Dark (+20m), Classical EU Airports (+40m), Crosswind/IFR (+15m), or Extreme Approaches (+25m) in Step 2.
+- **Discovery Flight — 30-Minute Boeing 737 Experience** (30 min): ₪450. A guided 30-minute Boeing 737 mission with takeoff, hands-on flight and landing. Customize your mission with Cold & Dark (+30m), Classical EU Airports (+40m), Crosswind/IFR (+30m), or Extreme Approaches (+25m) in Step 2.
 - **Daytime Special Flight (45m Promo)** (45 min): ₪490. Discounted promotion tariff, Sunday–Tuesday before 18:00. A 45-minute flight session with two landings and weather scenarios.
 - **Captain's Command Flight (60m)** (60 min): ₪690. Includes Takeoff & Landing Exercise + 1 Full World Trio Theme (3 iconic airport landings of your choice), live weather challenges & up to 2 free cockpit guests.
-- **Captains' Challenge & Multi-Trio Odyssey (90m)** (90 min): ₪850 daytime / ₪950 prime-time. Includes Takeoff & Landing Exercise + 2 World Trio Themes (up to 6 airports), Cold & Dark or V1 Engine-Out emergencies, and 1 or 2 pilots sharing the controls.
+- **Captains' Challenge & Multi-Trio Odyssey (90m)** (90 min): ₪850. Includes Takeoff & Landing Exercise + 2 World Trio Themes (up to 6 airports), Cold & Dark or V1 Engine-Out emergencies, and 1 or 2 pilots sharing the controls.
+- **Grand Captain's Odyssey (120m)** (120 min): ₪1,200. Full 2-hour Boeing 737 command mission with up to 2 World Airport Trios or cockpit procedure modules, live weather & up to 2 free cockpit guests.
 
 ### Fear of Flying
 - **Fear of Flying Overcoming Course** (60 min): ₪690. A gentle, empowering 60-minute session with an experienced captain to demystify sounds, turbulence, and flight safety.
@@ -58,8 +59,8 @@ Prices and durations below are the live registry values the booking engine charg
 
 ### Flight Mission Upgrades & Add-Ons (consumer flights only)
 Add-ons extend a consumer Experience Flight. Professional and Fear of Flying sessions carry no add-ons.
-- **Boeing 737 Cold & Dark Cockpit Startup** (+20 min): ₪200
-- **X-Wind / Live METAR / IFR Instrument Conditions** (+15 min): ₪250
+- **Boeing 737 Cold & Dark Cockpit Startup** (+30 min): ₪200
+- **X-Wind / Live METAR / IFR Instrument Conditions** (+30 min): ₪250
 - **Extreme World Airports Trio — Paro (VQPR), Hong Kong Kai Tak (VHHX) & Innsbruck (LOWI)** (+25 min): ₪450
 - **Classical EU Hubs Trio — London Heathrow (EGLL), Paris CDG (LFPG) & Amsterdam (EHAM)** (+40 min): ₪450
 - **Mediterranean Islands & Riviera Trio — Corfu (LGKR), Skiathos (LGSK) & Nice (LFMN)** (+40 min): ₪450

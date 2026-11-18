@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { FlightAddon, FlightSlot, MissionManifestCalculation } from '@/types';
+import { getCheckoutExtrasCopy } from '@/lib/booking/client/extras-copy';
 import {
   DEFAULT_PACKAGE_SLUG,
   STEP_ADDONS,
@@ -297,6 +298,15 @@ describe('Wix checkout draft', () => {
     expect(buildWixMissionNotes('  Window seat ', ['addon-cold-dark'], route)).toBe(
       'Window seat | Requested route: route-test (LLBG-LOWI-LSZH) | Add-ons: addon-cold-dark'
     );
+    expect(
+      buildWixMissionNotes(
+        '',
+        ['addon-cold-dark'],
+        { id: 'route-bare' },
+        [{ id: 'addon-cold-dark', name: 'Cold & Dark' }],
+        90
+      )
+    ).toBe('Requested route: route-bare | Promo Upgrade (90m) Add-ons: Cold & Dark');
     expect(appendWixMissionSummaryToNote('Consent ok', ['addon-extra-seat'], route)).toBe(
       'Consent ok | Requested route: route-test (LLBG-LOWI-LSZH) | Add-ons: addon-extra-seat'
     );
@@ -392,5 +402,10 @@ describe('submit blockers and request body', () => {
     expect(merged.birthday).toBe('1990-04-02');
     expect(merged.packageId).toBe('pkg-captain-60');
     expect(merged.kind).toBe('booking');
+  });
+
+  it('returns localized checkout extras copy and falls back to English for unknown codes', () => {
+    expect(getCheckoutExtrasCopy('he').opensInNewTab).toBeTruthy();
+    expect(getCheckoutExtrasCopy('zz')).toEqual(getCheckoutExtrasCopy('en'));
   });
 });

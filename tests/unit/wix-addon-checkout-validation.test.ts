@@ -75,20 +75,20 @@ describe('resolveWixBookingCheckout with add-on duration', () => {
 
   it('asks Wix for the slot with the add-ons and returns the extended slot to book', async () => {
     mockWixAvailability([
-      { localStartDate: '2099-05-10T09:00:00', localEndDate: '2099-05-10T10:20:00', bookable: true },
+      { localStartDate: '2099-05-10T09:00:00', localEndDate: '2099-05-10T10:30:00', bookable: true },
     ]);
 
     const result = await resolveWixBookingCheckout({
       packageId: 'pkg-captain-60',
       bookingDate: '2099-05-10',
       startTime: '09:00',
-      addonIds: ['addon-cold-dark'], // 60 + 20 = 80 minutes
+      addonIds: ['addon-cold-dark'], // 60 + 30 = 90 minutes
     });
 
     expect(mocks.listWixAvailability).toHaveBeenCalledWith(
       expect.objectContaining({ serviceId: SERVICE_ID, addOnIds: [COLD_DARK_WIX_ID] })
     );
-    expect(result.slotAvailability.localEndDate).toBe('2099-05-10T10:20:00');
+    expect(result.slotAvailability.localEndDate).toBe('2099-05-10T10:30:00');
     expect(result.bookedAddOns).toEqual([{ id: COLD_DARK_WIX_ID, groupId: MISSION_GROUP_ID }]);
     expect(result.availabilityAddOnIds).toEqual([COLD_DARK_WIX_ID]);
     expect(result.nativeAddonIds).toEqual(['addon-cold-dark']);
@@ -96,9 +96,9 @@ describe('resolveWixBookingCheckout with add-on duration', () => {
   });
 
   it('rejects when Wix has no slot with the add-on duration at that departure', async () => {
-    // 09:00 is free for 60m, but not for 80m: the 80m slot only starts at 10:00.
+    // 09:00 is free for 60m, but not for 90m: the 90m slot only starts at 10:00.
     mockWixAvailability([
-      { localStartDate: '2099-05-10T10:00:00', localEndDate: '2099-05-10T11:20:00', bookable: true },
+      { localStartDate: '2099-05-10T10:00:00', localEndDate: '2099-05-10T11:30:00', bookable: true },
     ]);
 
     await expect(
@@ -112,9 +112,9 @@ describe('resolveWixBookingCheckout with add-on duration', () => {
   });
 
   it('fails closed when the minutes Wix adds differ from the SimDream registry', async () => {
-    // The registry says Cold & Dark adds 20 minutes; this Wix slot is 30 minutes longer than the service.
+    // The registry says Cold & Dark adds 30 minutes (90m total); this Wix slot is 40 minutes longer (100m).
     mockWixAvailability([
-      { localStartDate: '2099-05-10T09:00:00', localEndDate: '2099-05-10T10:30:00', bookable: true },
+      { localStartDate: '2099-05-10T09:00:00', localEndDate: '2099-05-10T10:40:00', bookable: true },
     ]);
 
     const outcome = resolveWixBookingCheckout({

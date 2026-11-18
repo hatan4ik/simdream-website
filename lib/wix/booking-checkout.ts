@@ -3,6 +3,7 @@ import 'server-only';
 import { z } from 'zod';
 import { FLIGHT_ADDONS, SIMULATOR_PACKAGES } from '@/lib/db/seed-data';
 import { computeRequiredMissionMinutes } from '@/lib/booking/client/slot-selection';
+import { countSelectedMissionAddons, MAX_MISSION_ADDONS } from '@/lib/scheduler/mission-upgrade-promo';
 import { isoDate } from '@/lib/validation';
 import { getWixBackedKantorovichSlots, listWixBookableSlotsForDuration } from './availability-adapter';
 import { listWixAvailability, listWixServices, wixResourceTypeIdsForService, type WixTimeSlot } from './bookings';
@@ -110,8 +111,13 @@ export async function resolveWixBookingCheckout(
   if (!isWixConfigured()) throw new Error('Wix Bookings is not configured.');
   const useNativeAddOns = options.nativeAddOns !== false;
 
+  const pkg = SIMULATOR_PACKAGES.find((candidate) => candidate.id === input.packageId);
   const durationMinutes = packageDuration(input.packageId);
-  const requiredMissionMinutes = computeRequiredMissionMinutes(durationMinutes, input.addonIds ?? [], FLIGHT_ADDONS);
+  const addonIds = input.addonIds ?? [];
+  if (countSelectedMissionAddons(addonIds, FLIGHT_ADDONS) > MAX_MISSION_ADDONS) {
+    throw new WixBookingUnavailableError(`At most ${MAX_MISSION_ADDONS} mission upgrades may be selected.`);
+  }
+  const requiredMissionMinutes = computeRequiredMissionMinutes(durationMinutes, addonIds, FLIGHT_ADDONS, pkg?.category);
   const serviceId = wixServiceIdFor(input.packageId);
   if (!serviceId) throw new Error(`No Wix service maps to ${input.packageId}.`);
   const services = await listWixServices();

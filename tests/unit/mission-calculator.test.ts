@@ -175,9 +175,9 @@ describe('calculateMissionManifest', () => {
     });
     expect(manifest.selectedAddonItems.map(({ addon, durationMinutes, priceIls }) => [addon.id, durationMinutes, priceIls])).toEqual([
       ['addon-extra-seat', 0, 90],
-      ['addon-cold-dark', 20, 200],
+      ['addon-cold-dark', 30, 200],
     ]);
-    expect(manifest).toMatchObject({ startTime: '10:00', effectiveEndTime: '10:50', subtotalIls: 740, totalIls: 740 });
+    expect(manifest).toMatchObject({ startTime: '10:00', effectiveEndTime: '11:00', subtotalIls: 740, totalIls: 740 });
   });
 });
 

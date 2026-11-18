@@ -6,6 +6,7 @@ import { useLanguage } from '@/lib/i18n/language-context';
 import { getLocalizedAddons, getLocalizedPackages } from '@/lib/i18n/translations';
 import { WIX_SUBSCRIPTION_BOOKING_COPY } from '@/lib/i18n/wix-subscription-booking-copy';
 import { isWixBrowserClientConfigured } from '@/lib/wix/member-client';
+import { wixServiceIdFor } from '@/lib/wix/catalog';
 import {
   STEP_ADDONS,
   STEP_DATE_SLOT,
@@ -40,13 +41,7 @@ import {
   type BookingViewMode,
 } from '@/components/booking';
 
-/**
- * `/book`: the booking orchestrator. It holds no rules and no markup of its own, only the wiring
- * between the booking modules (docs/MODULARITY.md, docs/modules/modular-booking.md): hooks in
- * `components/booking/hooks` (called in dependency order), steps in `components/booking`, and
- * pure rules in `lib/booking/client`. Flows: recreational (3 steps), PRO training and Fear of
- * Flying (2 steps, no add-ons).
- */
+/** `/book`: thin booking orchestrator wiring hooks, steps and pure rules (docs/MODULARITY.md). */
 function BookContent() {
   const searchParams = useSearchParams();
   const { t, language } = useLanguage();
@@ -54,34 +49,27 @@ function BookContent() {
   const localizedPackages = getLocalizedPackages(language);
   const localizedAddons = getLocalizedAddons(language);
   const wixSubscriptionCopy = WIX_SUBSCRIPTION_BOOKING_COPY[language] || WIX_SUBSCRIPTION_BOOKING_COPY.en;
-
-  // Calendar-first guidance is the default booking experience. The optional desktop storefront
-  // remains available for guests who prefer a one-page checkout, but is intentionally absent on phones.
   const [bookingViewMode, setBookingViewMode] = useState<BookingViewMode>('wizard');
 
-  // What is booked, when, and by whom (hooks are called in dependency order).
   const intent = useBookingUrlIntent(searchParams);
   const selection = useBookingSelection({ searchParams, intent, localizedPackages, localizedAddons });
   const { activePackage, isNoiseFreeBooking, isWixSubscriptionRedemption, selectedAddons } = selection;
   const pilot = usePilotDetails();
-  const { selectedPackage, requiredMissionMinutes } = selection;
-  const schedule = useBookingSchedule({ selectedPackage, requiredMissionMinutes });
+  const schedule = useBookingSchedule({ selectedPackage: selection.selectedPackage, requiredMissionMinutes: selection.requiredMissionMinutes });
   const { selectedDate, selectedSlot } = schedule;
   const { currentStep, setCurrentStep } = useBookingStep(isNoiseFreeBooking);
 
-  // Which checkout writes the reservation: Wix natively for simple single-service bookings,
-  // otherwise the local checkout (and never both, while a live Wix calendar is authoritative).
+  const manifestInput = { activePackage, selectedSlot, selectedAddons, scopedAddons: selection.scopedAddons };
+  const { subtotalIls, upgradePromo } = useBookingManifest(manifestInput, 0);
+  const effectivePackageId = upgradePromo?.isPromoActive ? upgradePromo.effectivePackageId : activePackage.id;
   const { canUseWixNativeCheckout, requiresUnsupportedLocalCheckout } = resolveCheckoutMode({
     isWixSubscriptionRedemption,
     wixBookingsAuthoritative: schedule.wixBookingsAuthoritative,
     wixBookingFrontendActive: isWixBrowserClientConfigured(),
+    effectivePackageWixMapped: Boolean(wixServiceIdFor(effectivePackageId)),
     selectedAddonCount: selectedAddons.length,
     hasRequestedRoute: Boolean(selection.activeRequestedRoute),
   });
-
-  // Price, vouchers, Wix cart and mandatory extras share one manifest.
-  const manifestInput = { activePackage, selectedSlot, selectedAddons, scopedAddons: selection.scopedAddons };
-  const subtotalIls = useBookingManifest(manifestInput, 0).subtotalIls;
   const extras = useBookingExtras({
     packageId: activePackage.id,
     flightDate: selectedDate,
@@ -99,6 +87,7 @@ function BookContent() {
     isWixSubscriptionRedemption,
     canUseWixNativeCheckout,
     subtotalIls,
+    upgradePromo,
     birthday: extras.birthday,
     copy: t.booking,
   });
@@ -109,6 +98,8 @@ function BookContent() {
     pilot,
     experienceLevel: selection.experienceLevel,
     selectedAddons,
+    addons: selection.scopedAddons,
+    upgradePromo,
     activeRequestedRoute: selection.activeRequestedRoute,
     isWixSubscriptionRedemption,
     canUseWixNativeCheckout,
@@ -130,6 +121,7 @@ function BookContent() {
     localizedAddons,
     scopedAddons: selection.scopedAddons,
     selectedSlot,
+    packageCategory: activePackage.category,
     baseDurationMinutes: manifest.baseDurationMinutes,
     totalDurationMinutes: manifest.totalDurationMinutes,
     maxSlotMinutes: manifest.maxAvailableMinutes,
@@ -201,6 +193,7 @@ function BookContent() {
           {!isNoiseFreeBooking && currentStep === STEP_ADDONS && (
             <AddonsStep
               formId={formId}
+              activePackage={activePackage}
               addons={selection.scopedAddons}
               selectedAddonIds={selectedAddons}
               selectedSlot={selectedSlot}

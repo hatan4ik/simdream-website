@@ -99,3 +99,4 @@ export {
 } from './consent-state';
 export { buildWixConsentNote, WIX_CART_NOTE_MAX_LENGTH, type WixConsentNoteInput } from './wix-consent-note';
 export { CHECKOUT_EXTRAS_COPY, getCheckoutExtrasCopy, type CheckoutExtrasCopy } from './extras-copy';
+export { UPGRADE_PROMO_COPY, getUpgradePromoCopy, type UpgradePromoCopy } from './upgrade-promo-copy';

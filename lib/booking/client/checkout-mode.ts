@@ -4,6 +4,8 @@ export interface CheckoutModeInputs {
   wixBookingsAuthoritative: boolean;
   /** The browser has a configured Wix client id. */
   wixBookingFrontendActive: boolean;
+  /** True when the effective target package (after any promo tier bump-up) has a live Wix Service ID. */
+  effectivePackageWixMapped?: boolean;
   selectedAddonCount?: number;
   /** A captain-confirmed custom World Trio request is part of the booking. */
   hasRequestedRoute?: boolean;
@@ -12,7 +14,7 @@ export interface CheckoutModeInputs {
 export interface CheckoutMode {
   /** Bookings (including add-ons and route requests) are written natively through a Wix cart and hosted checkout. */
   canUseWixNativeCheckout: boolean;
-  /** A live Wix calendar blocks falling back to local checkout when the Wix frontend client is inactive. */
+  /** A live Wix calendar blocks falling back to local checkout when the Wix frontend client is inactive or the target service is unmapped. */
   requiresUnsupportedLocalCheckout: boolean;
 }
 
@@ -23,10 +25,12 @@ export interface CheckoutMode {
  * the same simulator time.
  */
 export function resolveCheckoutMode(inputs: CheckoutModeInputs): CheckoutMode {
+  const targetMapped = inputs.effectivePackageWixMapped ?? true;
   const canUseWixNativeCheckout =
     !inputs.isWixSubscriptionRedemption &&
     inputs.wixBookingsAuthoritative &&
-    inputs.wixBookingFrontendActive;
+    inputs.wixBookingFrontendActive &&
+    targetMapped;
   const requiresUnsupportedLocalCheckout =
     inputs.wixBookingsAuthoritative && !inputs.isWixSubscriptionRedemption && !canUseWixNativeCheckout;
   return { canUseWixNativeCheckout, requiresUnsupportedLocalCheckout };

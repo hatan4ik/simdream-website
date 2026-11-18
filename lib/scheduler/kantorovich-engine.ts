@@ -142,8 +142,8 @@ export function canTileIntervalZeroWaste(
  * - 30 min (45m reserved): 450 ILS (10.00 ILS/min)
  * - 45 min Promo (60m reserved): 490 ILS (8.17 ILS/min) - Strictly daytime (< 18:00)
  * - 60 min Standard (75m reserved): 690 ILS (9.20 ILS/min)
- * - 90 min Long (105m reserved): 850 ILS Daytime (< 18:00) | 950 ILS Prime-Time (>= 18:00 or Sat)
- * - 120 min Pro (150m reserved): 1590 ILS
+ * - 90 min Long (105m reserved): 850 ILS flat all day (8.10 ILS/min)
+ * - 120 min Grand Consumer (150m reserved): 1200 ILS (8.00 ILS/min)
  */
 export function getKantorovichPricing(
   durationMinutes: number,
@@ -186,21 +186,20 @@ export function getKantorovichPricing(
   }
 
   if (durationMinutes === 90) {
-    const dynamicPrice = isPrimeTime ? 950 : 850;
     return {
       basePriceIls: 850,
-      dynamicPriceIls: dynamicPrice,
+      dynamicPriceIls: 850,
       isPrimeTime,
-      yieldPerMinIls: +(dynamicPrice / reserved).toFixed(2), // 8.10 day / 9.05 prime
+      yieldPerMinIls: +(850 / reserved).toFixed(2), // 8.10 flat all day
     };
   }
 
   if (durationMinutes === 120) {
     return {
-      basePriceIls: 1590,
-      dynamicPriceIls: 1590,
+      basePriceIls: 1200,
+      dynamicPriceIls: 1200,
       isPrimeTime,
-      yieldPerMinIls: +(1590 / reserved).toFixed(2), // 10.60
+      yieldPerMinIls: +(1200 / reserved).toFixed(2), // 8.00
     };
   }
 
@@ -304,7 +303,7 @@ export type ReservedBooking = Pick<Booking, 'bookingDate' | 'startTime' | 'endTi
  * - 150-minute block Smart Pairing (e.g. 30m at 18:00 -> highlights 18:45 for 90m)
  * - Anti-Gap Zero-Waste protection (disables slots that create 15m/30m/un-tileable orphan windows)
  * - Discounted Promotion rule (45m is sold Sunday–Tuesday before 18:00 only;
- *   switches 90m from 850 ILS to 950 ILS after 18:00 & Sat)
+ *   90m runs flat at 850 ILS across daytime and evening/weekend)
  */
 export function generateKantorovichSlots(
   dateString: string,

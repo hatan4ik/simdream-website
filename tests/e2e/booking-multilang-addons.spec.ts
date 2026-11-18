@@ -13,7 +13,7 @@ const LANGUAGES: ReadonlyArray<{
   addons: readonly string[];
 }> = [
   { lang: 'he', dir: 'rtl', slotPosition: 'first', addons: ['addon-cold-dark', 'addon-xwind-ifr', 'addon-extra-seat'] },
-  { lang: 'en', dir: 'ltr', slotPosition: 'middle', addons: ['addon-cold-dark', 'addon-xwind-ifr', 'addon-classical-eu'] },
+  { lang: 'en', dir: 'ltr', slotPosition: 'middle', addons: ['addon-cold-dark', 'addon-classical-eu', 'addon-extra-seat'] },
   { lang: 'ru', dir: 'ltr', slotPosition: 'last', addons: ['addon-cold-dark', 'addon-night-neon', 'addon-extra-seat'] },
   { lang: 'fr', dir: 'ltr', slotPosition: 'first', addons: ['addon-med-islands', 'addon-extra-seat'] },
   { lang: 'ar', dir: 'rtl', slotPosition: 'middle', addons: ['addon-cold-dark', 'addon-xwind-ifr', 'addon-extra-seat'] },
@@ -215,16 +215,17 @@ test.describe('multilingual multi-addon booking matrix (CI guard)', () => {
       const firstSlot = slotButtonByTime(page, startTimes[0]!);
       await firstSlot.click();
 
-      const chosen = ['addon-cold-dark', 'addon-xwind-ifr', 'addon-classical-eu', 'addon-extra-seat'] as const;
+      const chosen = ['addon-cold-dark', 'addon-classical-eu', 'addon-extra-seat'] as const;
       for (const addonId of chosen) {
         const card = page.locator(`[data-addon-card="${addonId}"]`);
         await card.scrollIntoViewIfNeeded();
         await card.locator('button').last().click();
       }
-      await expect(page.locator('#storefront-buy-box button[aria-label^="Remove "]')).toHaveCount(4);
+      await expect(page.locator('#storefront-buy-box button[aria-label^="Remove "]')).toHaveCount(3);
+      await expect(page.locator('[data-addon-card="addon-xwind-ifr"] button').last()).toBeDisabled();
 
       await page.locator('#storefront-buy-box button[aria-label^="Remove "]').first().click();
-      await expect(page.locator('#storefront-buy-box button[aria-label^="Remove "]')).toHaveCount(3);
+      await expect(page.locator('#storefront-buy-box button[aria-label^="Remove "]')).toHaveCount(2);
       if (startTimes.length > 1) {
         await slotButtonByTime(page, startTimes[startTimes.length - 1]!).click();
       }
@@ -243,7 +244,7 @@ test.describe('multilingual multi-addon booking matrix (CI guard)', () => {
 
       await expect(page.getByRole('alert').filter({ hasText: PAYMENTS_UNAVAILABLE }).first()).toBeVisible();
       const payload = checkoutRequests[0]!.postDataJSON() as { addons: string[]; consent: { language: string } };
-      expect(payload.addons).toHaveLength(3);
+      expect(payload.addons).toHaveLength(2);
       expect(payload.consent.language).toBe(lang);
     });
   }

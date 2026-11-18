@@ -1,4 +1,4 @@
-import type { MissionManifestCalculation } from '@/types';
+import type { FlightAddon, MissionManifestCalculation } from '@/types';
 import { WIX_CART_NOTE_MAX_LENGTH } from './wix-consent-note';
 
 /** An unpaid, visitor-owned Wix cart reused between coupon validation and checkout. */
@@ -57,17 +57,29 @@ export interface WixMissionSummaryRoute {
   airports?: readonly { icao: string }[];
 }
 
+function formatAddonLabels(
+  addonIds?: readonly string[],
+  addons?: readonly Pick<FlightAddon, 'id' | 'name'>[]
+): string[] {
+  if (!addonIds || addonIds.length === 0) return [];
+  return addonIds.map((id) => addons?.find((a) => a.id === id)?.name ?? id);
+}
+
 function buildWixMissionSummaryParts(
   addonIds?: readonly string[],
-  requestedRoute?: WixMissionSummaryRoute
+  requestedRoute?: WixMissionSummaryRoute,
+  addons?: readonly Pick<FlightAddon, 'id' | 'name'>[],
+  promoDurationMinutes?: number
 ): string[] {
   const parts: string[] = [];
   if (requestedRoute) {
     const icaos = requestedRoute.airports?.map((a) => a.icao).join('-');
     parts.push(icaos ? `Requested route: ${requestedRoute.id} (${icaos})` : `Requested route: ${requestedRoute.id}`);
   }
-  if (addonIds && addonIds.length > 0) {
-    parts.push(`Add-ons: ${addonIds.join(', ')}`);
+  const labels = formatAddonLabels(addonIds, addons);
+  if (labels.length > 0) {
+    const prefix = promoDurationMinutes ? `Promo Upgrade (${promoDurationMinutes}m) Add-ons` : 'Add-ons';
+    parts.push(`${prefix}: ${labels.join(', ')}`);
   }
   return parts;
 }
@@ -76,10 +88,12 @@ function buildWixMissionSummaryParts(
 export function buildWixMissionNotes(
   pilotNotes: string,
   addonIds?: readonly string[],
-  requestedRoute?: WixMissionSummaryRoute
+  requestedRoute?: WixMissionSummaryRoute,
+  addons?: readonly Pick<FlightAddon, 'id' | 'name'>[],
+  promoDurationMinutes?: number
 ): string {
   const trimmed = pilotNotes.trim();
-  const missionParts = buildWixMissionSummaryParts(addonIds, requestedRoute);
+  const missionParts = buildWixMissionSummaryParts(addonIds, requestedRoute, addons, promoDurationMinutes);
   return [trimmed, ...missionParts].filter(Boolean).join(' | ');
 }
 
@@ -87,10 +101,12 @@ export function buildWixMissionNotes(
 export function appendWixMissionSummaryToNote(
   baseNote: string | null | undefined,
   addonIds?: readonly string[],
-  requestedRoute?: WixMissionSummaryRoute
+  requestedRoute?: WixMissionSummaryRoute,
+  addons?: readonly Pick<FlightAddon, 'id' | 'name'>[],
+  promoDurationMinutes?: number
 ): string | null {
   const trimmedBase = baseNote?.trim() ?? '';
-  const missionParts = buildWixMissionSummaryParts(addonIds, requestedRoute);
+  const missionParts = buildWixMissionSummaryParts(addonIds, requestedRoute, addons, promoDurationMinutes);
   const combined = [trimmedBase, ...missionParts].filter(Boolean).join(' | ');
   if (!combined) return null;
   return combined.slice(0, WIX_CART_NOTE_MAX_LENGTH);

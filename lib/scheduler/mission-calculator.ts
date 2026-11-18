@@ -3,9 +3,16 @@ import {
   FlightSlot,
   MissionManifestAddonItem,
   MissionManifestCalculation,
+  PackageCategory,
   SimulatorPackage,
 } from '@/types';
 import { getKantorovichPricing, minutesToTime, timeToMinutes } from './kantorovich-engine';
+import {
+  MAX_MISSION_ADDONS,
+  isMissionAddon,
+  resolveMissionUpgradePromo,
+  resolveUpgradedDurationMinutes,
+} from './mission-upgrade-promo';
 
 const DEFAULT_MAX_SLOT_MINUTES = 180;
 
@@ -74,14 +81,37 @@ export function canAddonFitInSlot(
 
 /**
  * Prunes any selected time-extending add-ons that would overflow `maxSlotMinutes`
- * when a customer switches to a tighter time slot in Step 1.
+ * (or exceed the 2-mission-addon recreational promotional cap) when a customer
+ * switches to a tighter time slot in Step 1.
  */
 export function pruneAddonsExceedingSlot(
   selectedAddonIds: readonly string[],
   allAddons: readonly FlightAddon[],
   baseDurationMinutes: number,
-  maxSlotMinutes: number = DEFAULT_MAX_SLOT_MINUTES
+  maxSlotMinutes: number = DEFAULT_MAX_SLOT_MINUTES,
+  category?: PackageCategory
 ): string[] {
+  if (category === 'recreational') {
+    let keptMissionCount = 0;
+    const validIds: string[] = [];
+
+    for (const id of selectedAddonIds) {
+      const addon = allAddons.find((a) => a.id === id);
+      if (!addon || !isMissionAddon(addon)) {
+        validIds.push(id);
+        continue;
+      }
+      if (keptMissionCount >= MAX_MISSION_ADDONS) continue;
+      const nextDuration = resolveUpgradedDurationMinutes(baseDurationMinutes, keptMissionCount + 1);
+      if (nextDuration <= maxSlotMinutes) {
+        keptMissionCount += 1;
+        validIds.push(id);
+      }
+    }
+
+    return validIds;
+  }
+
   let runningDuration = baseDurationMinutes;
   const validIds: string[] = [];
 
@@ -98,7 +128,8 @@ export function pruneAddonsExceedingSlot(
 }
 
 export interface CalculateMissionManifestInput {
-  pkg: Pick<SimulatorPackage, 'title' | 'durationMinutes' | 'priceIls' | 'primeTimePriceIls'>;
+  pkg: Pick<SimulatorPackage, 'title' | 'durationMinutes' | 'priceIls' | 'primeTimePriceIls'> &
+    Partial<Pick<SimulatorPackage, 'id' | 'category'>>;
   slot?: (Pick<FlightSlot, 'startTime' | 'endTime' | 'maxAvailableMinutes'> & Partial<Pick<FlightSlot, 'isPrimeTime'>>) | null;
   selectedAddonIds: readonly string[];
   availableAddons: readonly FlightAddon[];
@@ -125,19 +156,20 @@ export function calculateMissionManifest(
 
   const cleanPackageTitle = sanitizePackageTitle(pkg.title);
   const baseDurationMinutes = pkg.durationMinutes;
-  const basePriceIls = packagePriceForSlot(pkg, Boolean(slot?.isPrimeTime));
+  const isPrimeTime = Boolean(slot?.isPrimeTime);
+  const basePriceIls = packagePriceForSlot(pkg, isPrimeTime);
   const maxAvailableMinutes = slot?.maxAvailableMinutes ?? DEFAULT_MAX_SLOT_MINUTES;
 
   const selectedAddonItems: MissionManifestAddonItem[] = [];
-  let addonsDurationMinutes = 0;
-  let addonsPriceIls = 0;
+  let rawAddonsDurationMinutes = 0;
+  let rawAddonsPriceIls = 0;
 
   for (const id of selectedAddonIds) {
     const addon = availableAddons.find((a) => a.id === id);
     if (!addon) continue;
     const dur = addon.durationMinutes || 0;
-    addonsDurationMinutes += dur;
-    addonsPriceIls += addon.priceIls;
+    rawAddonsDurationMinutes += dur;
+    rawAddonsPriceIls += addon.priceIls;
     selectedAddonItems.push({
       addon,
       durationMinutes: dur,
@@ -145,11 +177,30 @@ export function calculateMissionManifest(
     });
   }
 
-  const totalDurationMinutes = baseDurationMinutes + addonsDurationMinutes;
+  const upgradePromo = resolveMissionUpgradePromo({
+    pkg,
+    isPrimeTime,
+    selectedAddonIds,
+    availableAddons,
+  });
+
+  const totalDurationMinutes = upgradePromo.isPromoActive
+    ? upgradePromo.effectiveDurationMinutes
+    : baseDurationMinutes + rawAddonsDurationMinutes;
+  const addonsDurationMinutes = upgradePromo.isPromoActive
+    ? Math.max(0, totalDurationMinutes - baseDurationMinutes)
+    : rawAddonsDurationMinutes;
+
   const startTime = slot?.startTime || fallbackStartTime;
   const effectiveEndTime = addMinutesToTime(startTime, totalDurationMinutes);
 
-  const subtotalIls = basePriceIls + addonsPriceIls;
+  const subtotalIls = upgradePromo.isPromoActive
+    ? upgradePromo.promoSubtotalIls
+    : basePriceIls + rawAddonsPriceIls;
+  const addonsPriceIls = upgradePromo.isPromoActive
+    ? Math.max(0, subtotalIls - basePriceIls)
+    : rawAddonsPriceIls;
+
   const boundedDiscountIls = Math.min(Math.max(0, voucherDiscountIls), subtotalIls);
   const totalIls = Math.max(0, subtotalIls - boundedDiscountIls);
 
@@ -167,5 +218,6 @@ export function calculateMissionManifest(
     discountIls: boundedDiscountIls,
     totalIls,
     selectedAddonItems,
+    ...(upgradePromo.isPromoActive ? { upgradePromo } : {}),
   };
 }

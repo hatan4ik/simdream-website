@@ -94,12 +94,14 @@ export function PackageInclusionsDialog({
                 <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
                 <span>
                   <strong className="text-white">{copy.worldTitle}</strong>{' '}
-                  {pkg.durationMinutes === 60
-                    ? copy.world60
+                  {pkg.category === 'training'
+                    ? copy.worldPro
+                    : pkg.durationMinutes === 120
+                    ? copy.world120
                     : pkg.durationMinutes === 90
                     ? copy.world90
-                    : pkg.category === 'training'
-                    ? copy.worldPro
+                    : pkg.durationMinutes === 60
+                    ? copy.world60
                     : copy.worldBasic}
                 </span>
               </li>

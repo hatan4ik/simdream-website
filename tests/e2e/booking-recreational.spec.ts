@@ -5,9 +5,10 @@ import { addMinutes, displayDatePattern, ilsPattern } from './pages/format';
 import { expect, recordRequests, test } from './fixtures';
 
 const CAPTAIN_60_PRICE = 690;
+const PROMO_90_PRICE = 850;
 /** Seeded paid voucher (lib/db/seed-data.ts); this suite only verifies it, never redeems it. */
 const SEED_VOUCHER = { code: 'SD-VOUCH-DF7QK3MN8R2V6X9LPA', balance: 500 } as const;
-const XWIND = { name: 'X-Wind / Live METAR / IFR Instrument Conditions', minutes: 15, price: 250 } as const;
+const XWIND = { name: 'X-Wind / Live METAR / IFR Instrument Conditions', minutes: 30, price: 250 } as const;
 
 /** Everything a booking checkout may send (lib/validation.ts bookingCheckoutSchema); no price fields. */
 const BOOKING_REQUEST_FIELDS: readonly string[] = [
@@ -39,10 +40,10 @@ test.describe('recreational booking, guided 3-step wizard', () => {
     booking,
     schedule,
   }) => {
-    // A slot whose free window also fits the +15 min add-on.
+    // A slot whose free window also fits the upgraded 90-minute (+30 min) mission.
     const { date, slot } = await schedule.findOpenSlot({ duration: 60, minWindowMinutes: 60 + XWIND.minutes });
     const basePrice = slot.dynamicPriceIls || CAPTAIN_60_PRICE;
-    const total = basePrice + XWIND.price;
+    const total = PROMO_90_PRICE;
     const endWithoutAddon = addMinutes(slot.startTime, 60);
     const endWithAddon = addMinutes(slot.startTime, 60 + XWIND.minutes);
     const checkoutRequests = recordRequests(page, '/api/checkout');
@@ -61,19 +62,21 @@ test.describe('recreational booking, guided 3-step wizard', () => {
     await expect(wizard.actionBar()).toContainText(ilsPattern(basePrice));
     await wizard.continueToAddons().click();
 
-    // Step 2: an add-on extends the end time and the price.
+    // Step 2: adding X-Wind/IFR bumps the 60m flight to the 90m promotional tier (₪850).
     await expect(page.getByRole('heading', { level: 1, name: 'Cockpit Upgrades & Commemoratives' })).toBeVisible();
     await expect(wizard.actionBar()).toContainText(`60 min • ${slot.startTime}–${endWithoutAddon}`);
     await wizard.addonCard(XWIND.name).click();
-    await expect(page.getByText('✓ Added to Flight (+15 min)')).toBeVisible();
-    await expect(wizard.actionBar()).toContainText(`75 min (60m base + 15m add-ons) • ${slot.startTime}–${endWithAddon}`);
+    await expect(page.getByText('✓ Added to Flight (+30 min)')).toBeVisible();
+    await expect(wizard.actionBar()).toContainText('90 min');
+    await expect(wizard.actionBar()).toContainText('90m Promo Upgrade');
+    await expect(wizard.actionBar()).toContainText(`${slot.startTime}–${endWithAddon}`);
     await expect(wizard.actionBar()).toContainText(ilsPattern(total));
     await wizard.continueToPilot().click();
 
-    // Step 3: the summary carries the add-on and the new total.
+    // Step 3: the summary carries the add-on and the promotional 90m total.
     await expect(page.getByRole('heading', { level: 1, name: 'Pilot in Command Details' })).toBeVisible();
     await expect(page.getByText(`+ ${XWIND.name}`)).toBeVisible();
-    await expect(page.getByText(`75 min (${slot.startTime}–${endWithAddon})`)).toBeVisible();
+    await expect(page.getByText(`90 min (${slot.startTime}–${endWithAddon})`)).toBeVisible();
     await expect(page.getByText(displayDatePattern(date)).first()).toBeVisible();
     await expect(wizard.submit()).toHaveText(ilsPattern(total));
 
@@ -134,10 +137,11 @@ test.describe('recreational booking, guided 3-step wizard', () => {
     await wizard.continueToAddons().click();
 
     await wizard.addonCard(XWIND.name).click();
-    await expect(wizard.actionBar()).toContainText('75 min (60m base + 15m add-ons)');
+    await expect(wizard.actionBar()).toContainText('90 min');
+    await expect(wizard.actionBar()).toContainText('90m Promo Upgrade');
     await wizard.addonCard(XWIND.name).click();
 
-    await expect(page.getByText('✓ Added to Flight (+15 min)')).toHaveCount(0);
+    await expect(page.getByText('✓ Added to Flight (+30 min)')).toHaveCount(0);
     await expect(wizard.actionBar()).toContainText(`60 min • ${slot.startTime}–${addMinutes(slot.startTime, 60)}`);
     await expect(wizard.actionBar()).toContainText(ilsPattern(basePrice));
   });
@@ -219,7 +223,7 @@ test.describe('recreational booking, one-page storefront', () => {
     schedule,
   }) => {
     const { date, slot } = await schedule.findOpenSlot({ duration: 60, minWindowMinutes: 60 + XWIND.minutes });
-    const total = (slot.dynamicPriceIls || CAPTAIN_60_PRICE) + XWIND.price;
+    const total = PROMO_90_PRICE;
     const store = booking.storefront;
 
     await booking.goto();
@@ -229,7 +233,7 @@ test.describe('recreational booking, one-page storefront', () => {
     await store.addToFlight(XWIND.name).click();
 
     await expect(store.removeAddon(XWIND.name)).toBeVisible();
-    await expect(page.getByText(`${slot.startTime} – ${addMinutes(slot.startTime, 75)} IST`)).toBeVisible();
+    await expect(page.getByText(`${slot.startTime} – ${addMinutes(slot.startTime, 90)} IST`)).toBeVisible();
     await expect(store.submit()).toHaveText(ilsPattern(total));
 
     await store.fillPilot(PILOT);

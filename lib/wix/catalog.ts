@@ -22,18 +22,41 @@ export const WIX_SERVICE_IDS: Readonly<Record<string, string>> = {
   'pkg-corporate-crm': '33a37201-2866-4bb3-9268-882d3b22ff8c',
 };
 
+/**
+ * Packages in `SIMULATOR_PACKAGES` whose Wix Bookings service is pending creation
+ * on `SimDream-Staging` via `npm run wix:provision` (or provided via env override).
+ */
+export const PENDING_WIX_PACKAGE_IDS: readonly string[] = ['pkg-grand-120'];
+
+function envGrand120ServiceId(): string | null {
+  const id = (process.env.WIX_SERVICE_ID_GRAND_120 ?? process.env.NEXT_PUBLIC_WIX_SERVICE_ID_GRAND_120 ?? '').trim();
+  return id || null;
+}
+
 export function wixServiceIdFor(packageId: string): string | null {
+  if (packageId === 'pkg-grand-120') return envGrand120ServiceId();
   return WIX_SERVICE_IDS[packageId] ?? null;
 }
 
 export function packageIdForWixService(serviceId: string): string | null {
   const match = Object.entries(WIX_SERVICE_IDS).find(([, id]) => id === serviceId);
-  return match ? match[0] : null;
+  if (match) return match[0];
+  const grand120 = envGrand120ServiceId();
+  if (grand120 && grand120 === serviceId) return 'pkg-grand-120';
+  return null;
 }
 
-/** Package ids in the catalog that have no Wix service yet (should stay empty). */
+/** Pending catalog packages not yet provisioned with a Wix Bookings service UUID. */
+export function pendingWixPackageIds(): string[] {
+  return PENDING_WIX_PACKAGE_IDS.filter((id) => !wixServiceIdFor(id));
+}
+
+/** Package ids in the catalog that have no Wix service yet and are not explicitly pending provisioning. */
 export function unmappedPackageIds(): string[] {
-  return SIMULATOR_PACKAGES.map((pkg) => pkg.id).filter((id) => !(id in WIX_SERVICE_IDS));
+  const pending = new Set(PENDING_WIX_PACKAGE_IDS);
+  return SIMULATOR_PACKAGES.map((pkg) => pkg.id).filter(
+    (id) => !wixServiceIdFor(id) && !pending.has(id)
+  );
 }
 
 /**

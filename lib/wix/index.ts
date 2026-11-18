@@ -9,8 +9,10 @@ export {
 export { getWixClient, WixApiError, WixNotConfiguredError } from './client';
 export {
   WIX_SERVICE_IDS,
+  PENDING_WIX_PACKAGE_IDS,
   wixServiceIdFor,
   packageIdForWixService,
+  pendingWixPackageIds,
   unmappedPackageIds,
   WIX_PLAN_IDS,
   wixPlanIdFor,

@@ -14,6 +14,7 @@ import {
   sanitizePackageTitle,
   type CalculateMissionManifestInput,
 } from '@/lib/scheduler/mission-calculator';
+import { countSelectedMissionAddons, MAX_MISSION_ADDONS } from '@/lib/scheduler/mission-upgrade-promo';
 import { memberIdForBooking } from '@/lib/auth/member-ownership';
 import { bookingCheckoutSchema, voucherCheckoutSchema } from '@/lib/validation';
 import { resolveCheckoutExtras } from './checkout-extras';
@@ -137,6 +138,9 @@ async function createBookingFromRequest(
   }
   if (addonIds.length > 0 && !packageAllowsAddons(pkg)) {
     throw new CheckoutError('Mission add-ons are not available for this package.');
+  }
+  if (countSelectedMissionAddons(addonIds, FLIGHT_ADDONS) > MAX_MISSION_ADDONS) {
+    throw new CheckoutError(`You can select at most ${MAX_MISSION_ADDONS} mission upgrades per flight session.`);
   }
 
   const isVoucherPayment = Boolean(input.voucherCode);

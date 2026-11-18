@@ -38,7 +38,7 @@ test.describe('gift vouchers', () => {
     await vouchers.recipientName().fill(ORDER.recipientName);
     await vouchers.senderName().fill(ORDER.senderName);
 
-    await expect(vouchers.submit()).toHaveText(ilsPattern(950));
+    await expect(vouchers.submit()).toHaveText(ilsPattern(850));
     await expect(page.getByText(ORDER.recipientName, { exact: true })).toBeVisible();
     await expect(page.getByText(ORDER.senderName, { exact: true })).toBeVisible();
   });
@@ -97,7 +97,7 @@ test.describe('gift vouchers', () => {
     for (const { service, amount } of [
       { service: /30-Min Discovery Flight/, amount: 450 },
       { service: /60-Min Captain's Command/, amount: 690 },
-      { service: /90-Min Ultimate Aviator/, amount: 950 },
+      { service: /90-Min Ultimate Aviator/, amount: 850 },
       { service: /120-Min Pro Pilot Prep/, amount: 1590 },
     ]) {
       await expect(vouchers.tier(service)).toContainText(ilsPattern(amount));

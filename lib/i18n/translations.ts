@@ -220,7 +220,6 @@ const baseTranslations = {
           'Build a longer mission with optional cockpit and route upgrades in Step 2',
           '1 guest/observer seated in the cockpit jumpseat',
           '1-on-1 guidance from a commercial pilot instructor',
-          'Commemorative Flight Certificate',
         ],
       },
       'pkg-captain-60': {
@@ -235,7 +234,6 @@ const baseTranslations = {
           'Real-time customizable weather, sunset & crosswind challenges',
           'Autopilot, Flight Director & FMC navigation briefing included',
           'Up to 2 observers in cockpit jumpseats included FREE',
-          'Personalized Captain Flight Certificate',
         ],
       },
       'pkg-ultimate-90': {
@@ -247,9 +245,22 @@ const baseTranslations = {
           'Includes: Takeoff & Landing Exercise + 2 World Trio Themes (4–6 Airport Landings)',
           '90 Minutes cockpit time — fly solo OR split Captain time between 2 participants',
           'Includes Cold & Dark Cockpit Startup OR V1 Engine-Out emergency scenarios',
-          'Daytime tariff ₪850 (until 18:00) | Evening & Weekend ₪950',
           'Severe weather, windshear & instrument approach mastery',
           'Up to 2 guests in jumpseats included FREE',
+          'Personalized captain debrief after the mission',
+        ],
+      },
+      'pkg-grand-120': {
+        title: "Grand Captain's Odyssey (120m)",
+        badge: 'Grand 120m • 15% OFF Value',
+        shortDesc: 'Full 2-hour Boeing 737 command mission with up to 2 World Airport Trios or cockpit procedure modules, live weather & up to 2 free cockpit guests.',
+        description: 'Our flagship 2-hour consumer flight mission — ideal for 1 dedicated aviator OR 2 participants alternating in the Captain’s seat. Enjoy 120 minutes of hands-on flight time combining Takeoff & Landing, up to 2 World Airport Trio themes or Cold & Dark startup and IFR storm approaches, with active airline captain mentorship and up to 2 guests in the cockpit jumpseats free.',
+        features: [
+          '120 Minutes (Full 2 Hours) hands-on Pilot-in-Command cockpit flight time',
+          'Includes Takeoff & Landing + up to 2 World Airport Trios or Cockpit Modules',
+          'Cold & Dark startup, live METAR crosswinds, IFR approaches & emergencies',
+          'Ideal for 1 dedicated Captain OR 2 participants sharing the controls',
+          'Up to 2 observers in cockpit jumpseats included FREE',
           'Personalized captain debrief after the mission',
         ],
       },
@@ -1073,7 +1084,6 @@ const baseTranslations = {
           'אפשרות להרחיב את המשימה עם שדרוגי קוקפיט ונתיבים בשלב 2',
           'אורח/ת אחד/ת במושב הצופה בקוקפיט',
           'מדריך טיסה מוסמך המשמש כקצין ראשון לצידכם',
-          'תעודת טיסה רשמית למזכרת',
         ],
       },
       'pkg-captain-60': {
@@ -1088,7 +1098,6 @@ const baseTranslations = {
           'מזג אוויר, שקיעה ורוחות צד בהתאמה אישית בזמן אמת',
           'תדריך מערכות טייס אוטומטי ומחשב טיסה (FMC)',
           'עד 2 צופים בכיסאות צופה (Jumpseat) ללא תוספת תשלום',
-          'תעודת קברניט אישית',
         ],
       },
       'pkg-ultimate-90': {
@@ -1100,8 +1109,21 @@ const baseTranslations = {
           'כולל: תרגול המראה ונחיתה + עד 2 חבילות Trio עולמיות (4–6 נחיתות בעולם)',
           '90 דקות זמן קוקפיט – למטיס יחיד או ל-2 משתתפים המתחלפים בהגאים',
           'כולל התנעת Cold & Dark מלאה או תרגול תקלת מנוע ב-V1 ותרחישי חירום',
-          'תעריף יום ₪850 (עד 18:00) | תעריף ערב וסופ״ש ₪950',
           'סימולציית מזג אוויר סוער, גזירת רוח וגישות מכשירים (ILS)',
+          'עד 2 אורחים במושבי צופה (Jumpseat) ללא עלות',
+          'תחקיר אישי עם הקברניט בסיום המשימה',
+        ],
+      },
+      'pkg-grand-120': {
+        title: 'אודיסיאת הקברניט הגדולה (120 דק׳)',
+        badge: 'גרנד 120 דק׳ • ערך מוגדל ב-15% הנחה',
+        shortDesc: 'משימת פיקוד מלאה של שעתיים בבואינג 737 עם עד 2 שלישיות שדות תעופה בעולם או מודולי קוקפיט, מזג אוויר חי ועד 2 מלווים חינם.',
+        description: 'חוויית הדגל המלאה של שעתיים – אידאלית למטיס יחיד השואף לשליטה עמוקה או ל-2 משתתפים המתחלפים במושב הקברניט. 120 דקות הטסה מעשית הכוללות המראה ונחיתה, עד 2 חבילות Trio עולמיות או התנעת Cold & Dark וגישות מכשירים בסערה, בליווי קברניט פעיל ועד 2 אורחים במושבי הצופה ללא עלות.',
+        features: [
+          '120 דקות (שעתיים מלאות) של הטסה מעשית במושב הקברניט',
+          'כולל תרגול המראה ונחיתה + עד 2 שלישיות Trio עולמיות או מודולי קוקפיט',
+          'התנעת Cold & Dark, רוחות צד לפי METAR חי, גישות IFR ותרחישי חירום',
+          'מושלם לקברניט אחד או ל-2 משתתפים המתחלפים בהגאים',
           'עד 2 אורחים במושבי צופה (Jumpseat) ללא עלות',
           'תחקיר אישי עם הקברניט בסיום המשימה',
         ],
@@ -1914,14 +1936,13 @@ const baseTranslations = {
         shortDesc: '30-минутная управляемая миссия на Boeing 737: взлёт, самостоятельное пилотирование и посадка с капитаном рядом.',
         description: 'Займите кресло командира в кабине Boeing 737 MAX масштаба 1:1 для полноценной 30-минутной ознакомительной миссии. После краткого брифинга вы взлетите, вручную проведёте самолёт по визуальному маршруту и выполните посадку вместе с действующим пилотом авиакомпании.',
         features: [
-          'Кабина Boeing 737 MAX в точном масштабе 1:1',
-          'Аутентичная кабина Boeing 737 MAX в масштабе 1:1',
           '30 минут практического пилотирования в кресле командира',
+          'Аутентичная кабина Boeing 737 MAX в масштабе 1:1',
           'Управляемые взлёт, визуальная навигация и ручная посадка',
           'Краткий инструктаж по органам управления и безопасности перед полётом',
+          'Возможность расширить миссию с модулями кабины и маршрутами на шаге 2',
           '1 гость на откидном кресле наблюдателя (Jumpseat)',
           'Опытный пилот-инструктор в роли второго пилота',
-          'Памятный сертификат о совершенном полете',
         ],
       },
       'pkg-captain-60': {
@@ -1936,7 +1957,6 @@ const baseTranslations = {
           'Сложные заходы (Инсбрук, Кай Так, Мадейра)',
           'Инструктаж по автопилоту и бортовому компьютеру FMC',
           'До 2 гостей на креслах наблюдателей (Jumpseat) бесплатно',
-          'Персональный сертификат капитана',
         ],
       },
       'pkg-ultimate-90': {
@@ -1945,13 +1965,26 @@ const baseTranslations = {
         shortDesc: 'Углубленная сессия с отказами двигателей, сильным боковым ветром, горными ущельями и ночными посадками.',
         description: 'Для увлеченных авиаторов и любителей сложных вызовов. За 90 минут полета вы отработаете реальные нештатные ситуации гражданской авиации: отказ двигателя на скорости принятия решения V1, экстренное снижение при разгерметизации, посадка при боковом ветре 40 узлов и ночной заход по приборам.',
         features: [
-          '90 минут интенсивного времени в кабине',
-          'Аварийные карты проверок и пилотирование на одном моторе',
-          'Симуляция сдвига ветра, грозы и сильной болтанки',
-          'Ввод сложного маршрута в FMC со схемами SID и STAR',
-          'Полет по реальному маршруту (например, Тель-Авив — Ларнака)',
-          'До 2 гостей на креслах наблюдателей',
+          '90 минут интенсивного времени в кабине (1 или 2 пилота)',
+          'Аварийные карты проверок, запуск Cold & Dark и отказ двигателя на V1',
+          'Симуляция сдвига ветра, грозы и заходов по приборам ILS',
+          'Маршруты World Trio и ввод сложного маршрута в FMC (SID/STAR)',
+          'До 2 гостей на креслах наблюдателей бесплатно',
           'Персональный разбор полета с капитаном',
+        ],
+      },
+      'pkg-grand-120': {
+        title: 'Большая одиссея командира (120 мин)',
+        badge: 'Гранд 120 мин • Выгода 15%',
+        shortDesc: 'Полная 2-часовая миссия в кабине Boeing 737 с 2 маршрутами World Trio или модулями кабины, реальной погодой и до 2 гостей бесплатно.',
+        description: 'Наша флагманская 2-часовая программа — идеально для одного пилота или двоих участников, сменяющих друг друга за штурвалом. 120 минут живого пилотирования: взлёт и посадка, до 2 тем World Trio или запуск Cold & Dark и штормовые заходы IFR с действующим капитаном и до 2 гостей в кабине бесплатно.',
+        features: [
+          '120 минут (полные 2 часа) пилотирования в кресле командира',
+          'Взлёт и посадка + до 2 маршрутов World Trio или модулей кабины',
+          'Запуск Cold & Dark, боковой ветер METAR, заходы IFR и особые случаи',
+          'Идеально для 1 пилота или 2 участников, сменяющихся у штурвала',
+          'До 2 гостей на креслах наблюдателей (Jumpseat) бесплатно',
+          'Персональный разбор полёта с капитаном после миссии',
         ],
       },
       'pkg-pro-60': {
@@ -2768,14 +2801,13 @@ const baseTranslations = {
         shortDesc: 'Une mission guidée de 30 minutes sur Boeing 737 : décollage, pilotage manuel et atterrissage avec un commandant à vos côtés.',
         description: 'Prenez place dans le siège commandant de notre Boeing 737 MAX à l’échelle 1:1 pour une mission découverte complète de 30 minutes. Après un briefing concis, vous décollerez, piloterez une route visuelle à la main et atterrirez avec un commandant de ligne à vos côtés.',
         features: [
-          'Cockpit Boeing 737 MAX échelle 1:1 certifié',
-          'Expérience authentique de cockpit Boeing 737 MAX à l’échelle 1:1',
           '30 minutes de pilotage pratique depuis le siège commandant',
+          'Expérience authentique de cockpit Boeing 737 MAX à l’échelle 1:1',
           'Décollage guidé, navigation visuelle et atterrissage manuel',
           'Briefing concis sur les commandes principales et la sécurité avant le vol',
+          'Personnalisez votre mission avec des modules cockpit et routes à l’étape 2',
           '1 invité / observateur installé en strapontin (Jumpseat)',
           'Instructeur de vol qualifié agissant comme copilote',
-          'Certificat de vol officiel encadré en souvenir',
         ],
       },
       'pkg-captain-60': {
@@ -2790,7 +2822,6 @@ const baseTranslations = {
           'Approches spectaculaires (Innsbruck, Kai Tak, Madère)',
           'Briefing sur le pilote automatique et l’ordinateur de bord FMC',
           'Jusqu’à 2 observateurs en strapontin cockpit inclus sans frais',
-          'Certificat de vol personnalisé par le commandant',
         ],
       },
       'pkg-ultimate-90': {
@@ -2799,12 +2830,25 @@ const baseTranslations = {
         shortDesc: 'Session approfondie incluant pannes de systèmes, forts vents de travers, vallées alpines et vols de nuit.',
         description: 'Pour les passionnés d’aviation exigeants qui souhaitent vivre l’expérience la plus authentique possible. En 90 minutes, vous gérerez des scénarios réels de compagnies aériennes : panne moteur à V1 (vitesse de décision), descente d’urgence suite à dépressurisation, atterrissages par vent de travers de 40 nœuds et approche de nuit aux instruments.',
         features: [
-          '90 minutes de temps de vol effectif dans le cockpit',
-          'Listes de vérification d’urgence et vol monomoteur',
-          'Simulation de cisaillement de vent, tempêtes et turbulences',
-          'Programmation FMC avancée avec arrivées STAR',
-          'Vol d’étape entre deux villes réelles (ex: Tel Aviv vers Larnaca)',
-          'Jusqu’à 2 invités en strapontins',
+          '90 minutes de temps de vol effectif dans le cockpit (1 ou 2 pilotes)',
+          'Démarrage Cold & Dark ou pannes d’urgence et vol monomoteur',
+          'Simulation de cisaillement de vent, tempêtes et approches aux instruments',
+          'Routes World Trio et programmation FMC avancée (SID/STAR)',
+          'Jusqu’à 2 invités en strapontins inclus sans frais',
+          'Débriefing personnalisé avec le commandant après la mission',
+        ],
+      },
+      'pkg-grand-120': {
+        title: 'Grande Odyssée du Commandant (120 min)',
+        badge: 'Grand 120 min • Valeur -15%',
+        shortDesc: 'Mission complète de 2 heures en Boeing 737 avec jusqu’à 2 World Trios ou modules cockpit, météo réelle et jusqu’à 2 invités gratuits.',
+        description: 'Notre session loisir phare de 2 heures — idéale pour un pilote souhaitant maîtriser le cockpit ou deux participants alternant au siège commandant. Profitez de 120 minutes de pilotage incluant décollage, atterrissage, jusqu’à 2 thèmes World Trio ou démarrage Cold & Dark et approches IFR en tempête, avec un commandant actif et jusqu’à 2 invités gratuits.',
+        features: [
+          '120 minutes (2 heures complètes) aux commandes en tant que commandant',
+          'Décollage et atterrissage + jusqu’à 2 World Trios ou modules cockpit',
+          'Démarrage Cold & Dark, vents de travers METAR, approches IFR et urgences',
+          'Idéal pour 1 commandant passionné ou 2 pilotes se relayant aux commandes',
+          'Jusqu’à 2 observateurs en strapontins inclus sans frais',
           'Débriefing personnalisé avec le commandant après la mission',
         ],
       },
@@ -3628,14 +3672,13 @@ const baseTranslations = {
         shortDesc: 'مهمة موجهة لمدة 30 دقيقة على بوينغ 737 تشمل الإقلاع والطيران العملي والهبوط بجوار كابتن طيران.',
         description: 'اجلس في مقعد القبطان داخل قمرة بوينغ 737 ماكس بمقياس 1:1 لمهمة استكشافية كاملة مدتها 30 دقيقة. بعد موجز مختصر عن أدوات التحكم ستقلع، وتقود مساراً بصرياً يدوياً، وتهبط برفقة كابتن طيران فعلي.',
         features: [
-          'قمرة قيادة حقيقية لطائرة بوينغ 737 ماكس بمقياس 1:1',
-          'تجربة قمرة بوينغ 737 ماكس أصيلة بمقياس 1:1',
           '30 دقيقة من الطيران العملي من مقعد القبطان',
+          'تجربة قمرة بوينغ 737 ماكس أصيلة بمقياس 1:1',
           'إقلاع موجه وملاحة بصرية وهبوط يدوي',
           'إحاطة موجزة حول أدوات التحكم الأساسية والسلامة قبل الرحلة',
+          'إمكانية توسيع مهمتك بترقيات القمرة والمسارات في الخطوة 2',
           'مرافق واحد يجلس على مقعد الملاحظة (Jumpseat) داخل القمرة',
           'مدرب طيران معتمد يرافقك كمساعد طيار محترف',
-          'شهادة طيران تذكارية رسمية ومؤطرة',
         ],
       },
       'pkg-captain-60': {
@@ -3650,7 +3693,6 @@ const baseTranslations = {
           'مسارات هبوط وتحديات عالمية (إنسبروك، كاي تاك، ماديرا)',
           'شرح عملي للطيار الآلي وكمبيوتر إدارة الرحلة (FMC)',
           'إمكانية اصطحاب مرافقين اثنين على مقاعد Jumpseat مجاناً',
-          'شهادة كابتن شخصية',
         ],
       },
       'pkg-ultimate-90': {
@@ -3659,12 +3701,25 @@ const baseTranslations = {
         shortDesc: 'جلسة متعمقة للمتحمسين تشمل أعطال المحركات، الرياح المتقاطعة العنيفة، والملاحة الليلية في الوديان.',
         description: 'مخصصة لعشاق الطيران الراغبين في خوض أعمق تجربة ممكنة في محاكاة طائرات الخطوط الجوية. خلال 90 دقيقة، ستتعامل مع حالات طوارئ حقيقية: تعطل المحرك عند سرعة القرار V1 أثناء الإقلاع، الهبوط الاضطراري السريع عند انخفاض الضغط الجوي، الهبوط مع رياح جانبية عاتية بقوة 40 عقدة، واقتراب ليلي دقيق بين التضاريس.',
         features: [
-          '90 دقيقة كاملة داخل قمرة القيادة',
-          'قوائم تدقيق الطوارئ والتعامل مع تعطل المحركات',
-          'محاكاة العواصف وظاهرة قص الرياح والاضطرابات الجوية',
-          'برمجة مسار كامل عبر الـ FMC وإجراءات الوصول الملاحية (STAR)',
-          'رحلة متكاملة بين مطارين حقيقيين (مثل بن غوريون إلى لارنكا)',
-          'استضافة مرافقين اثنين على مقاعد المراقب في القمرة',
+          '90 دقيقة كاملة داخل قمرة القيادة (لطيار واحد أو طيارين)',
+          'تشغيل Cold & Dark أو قوائم طوارئ وتعطل المحرك عند V1',
+          'محاكاة العواصف وقص الرياح واقترابات الأجهزة الدقيقة (ILS)',
+          'مسارات World Trio وبرمجة مسار كامل عبر الـ FMC',
+          'استضافة مرافقين اثنين على مقاعد المراقب مجاناً',
+          'جلسة مراجعة شخصية مع الكابتن بعد المهمة',
+        ],
+      },
+      'pkg-grand-120': {
+        title: 'ملحمة القبطان الكبرى (120 دقيقة)',
+        badge: '120 دقيقة • قيمة بخصم 15%',
+        shortDesc: 'مهمة قيادة كاملة لمدة ساعتين في بوينغ 737 تشمل باقتين من ثلاثيات المطارات العالمية أو وحدات القمرة مع طقس حي ومرافقين مجاناً.',
+        description: 'مهمتنا الرائدة لمدة ساعتين — مثالية لطيار يسعى لإتقان كامل أو لمشاركين يتناوبان على مقعد القبطان. استمتع بـ 120 دقيقة من الطيران العملي تشمل الإقلاع والهبوط وما يصل إلى باقتين من ثلاثيات المطارات العالمية أو تشغيل Cold & Dark واقترابات العواصف الآلية بإشراف قبطان طيران فعلي مع مرافقين اثنين مجاناً.',
+        features: [
+          '120 دقيقة (ساعتان كاملتان) من الطيران العملي في مقعد القبطان',
+          'يشمل الإقلاع والهبوط + حتى باقتين من ثلاثيات المطارات أو وحدات القمرة',
+          'تشغيل Cold & Dark ورياح جانبية حية واقترابات IFR وسيناريوهات طوارئ',
+          'مثالي لقبطان واحد أو مشاركين يتبادلان التحكم في الطائرة',
+          'مرافقان اثنان في مقاعد المراقب (Jumpseat) مجاناً',
           'جلسة مراجعة شخصية مع الكابتن بعد المهمة',
         ],
       },
@@ -4359,6 +4414,66 @@ const spanishTranslations = {
     bookThisFlight: 'Reservar este vuelo',
     inquireCorporate: 'Consultar para empresas',
   },
+  packages: {
+    ...baseTranslations.en.packages,
+    'pkg-discovery-30': {
+      title: 'Vuelo de Descubrimiento — Experiencia Boeing 737 de 30 minutos',
+      badge: 'Discovery 30m • ₪450',
+      shortDesc: 'Una misión guiada de 30 minutos en Boeing 737 con despegue, vuelo manual y aterrizaje. Añade mejoras de cabina, clima o aeropuertos en el Paso 2.',
+      description: 'Toma el asiento del capitán en nuestra cabina Boeing 737 MAX a escala 1:1 para una misión de descubrimiento de 30 minutos. Tras una breve orientación, despegarás, volarás una ruta visual a mano y aterrizarás junto a un capitán en activo. Amplía tu misión con mejoras opcionales en el Paso 2.',
+      features: [
+        '30 minutos de vuelo práctico como piloto al mando',
+        'Auténtica cabina Boeing 737 MAX a escala 1:1',
+        'Despegue guiado, navegación visual y aterrizaje manual',
+        'Orientación previa sobre controles principales y seguridad incluida',
+        'Amplía tu misión con mejoras de cabina y rutas en el Paso 2',
+        '1 invitado/observador en el asiento de cabina (jumpseat)',
+        'Guía individual de un piloto comercial instructor',
+      ],
+    },
+    'pkg-captain-60': {
+      title: 'Vuelo de Mando del Capitán (60m)',
+      badge: 'Más popular • +1 Trío incluido',
+      shortDesc: 'Incluye ejercicio de despegue y aterrizaje + 1 Trío de aeropuertos del mundo (3 aterrizajes icónicos) + clima a medida y 2 invitados gratis.',
+      description: 'Nuestra sesión más vendida. Combina un ejercicio completo de despegue y aterrizaje con 1 tema World Trio (3 aterrizajes internacionales icónicos en una sola sesión, como St. Maarten, los Alpes de Innsbruck o Hong Kong Kai Tak), clima personalizable y hasta 2 acompañantes gratis en la cabina.',
+      features: [
+        'Incluye: Ejercicio de despegue y aterrizaje + 1 Trío mundial (3 aterrizajes icónicos)',
+        '60 minutos completos en el asiento del capitán',
+        'Elige cualquier tema Trío de 3 aeropuertos (Europa, extremos, Caribe, Alpes, etc.)',
+        'Clima en tiempo real, atardecer y desafíos de viento cruzado',
+        'Orientación sobre piloto automático, Flight Director y FMC incluida',
+        'Hasta 2 observadores en asientos de cabina incluidos GRATIS',
+      ],
+    },
+    'pkg-ultimate-90': {
+      title: 'Desafío de Capitanes y Odisea Multi-Trío (90m)',
+      badge: 'Ideal para 1–2 pilotos • +2 Tríos',
+      shortDesc: 'Incluye despegue y aterrizaje + 2 Tríos de aeropuertos (hasta 6 aterrizajes) + Cold & Dark o emergencias V1 (para 1 o 2 pilotos).',
+      description: 'La aventura de 90 minutos definitiva: ideal para un piloto dedicado o para dos participantes que se turnan en el asiento del capitán. Incluye ejercicio de despegue y aterrizaje, hasta 2 temas World Trio (4–6 aterrizajes) y tu elección entre arranque Cold & Dark o escenarios de emergencia de aerolínea.',
+      features: [
+        'Incluye: Ejercicio de despegue y aterrizaje + 2 temas World Trio (4–6 aterrizajes)',
+        '90 minutos en cabina: vuela solo o reparte el tiempo entre 2 participantes',
+        'Incluye arranque Cold & Dark o escenarios de fallo de motor en V1',
+        'Dominio de clima severo, cizalladura y aproximaciones por instrumentos',
+        'Hasta 2 invitados en asientos de cabina incluidos GRATIS',
+        'Debriefing personalizado con el capitán tras la misión',
+      ],
+    },
+    'pkg-grand-120': {
+      title: 'Gran Odisea del Capitán (120m)',
+      badge: 'Gran 120m • 15% de ahorro',
+      shortDesc: 'Misión completa de 2 horas en Boeing 737 con hasta 2 Tríos mundiales o módulos de cabina, clima en vivo y hasta 2 invitados gratis.',
+      description: 'Nuestra misión insignia de 2 horas para público general: ideal para un piloto que busca dominio total o para dos participantes que alternan al mando. Disfruta de 120 minutos prácticos combinando despegue y aterrizaje, hasta 2 temas World Trio o arranque Cold & Dark y aproximaciones IFR en tormenta, con capitán activo y hasta 2 acompañantes gratis.',
+      features: [
+        '120 minutos (2 horas completas) de vuelo práctico como piloto al mando',
+        'Incluye despegue y aterrizaje + hasta 2 Tríos mundiales o módulos de cabina',
+        'Arranque Cold & Dark, viento cruzado METAR en vivo, aproximaciones IFR y emergencias',
+        'Ideal para 1 capitán dedicado o 2 participantes compartiendo los mandos',
+        'Hasta 2 observadores en asientos de cabina incluidos GRATIS',
+        'Debriefing personalizado con el capitán tras la misión',
+      ],
+    },
+  },
   booking: {
     ...baseTranslations.en.booking,
     pilotName: 'Nombre completo del piloto',
@@ -4490,9 +4605,9 @@ const PROMO_45_TRANSLATIONS: LocalizedRecord<{
     badge: 'Discounted Promotion • Sun–Tue • Until 18:00',
     shortDesc: 'A special Sun–Tue daytime tariff (10:00–18:00). A 45-minute flight with two landings and custom weather.',
     description:
-      'Available Sunday through Tuesday before 18:00. Enjoy 45 minutes of pure cockpit flight time (a 60-minute total slot including the 15-minute technical turnaround), with a full takeoff, circuit navigation, and two approaches at international airports.',
+      'Available Sunday through Tuesday before 18:00. Enjoy 45 minutes of pure cockpit flight time with a full takeoff, circuit navigation, and two approaches at international airports.',
     features: [
-      '45 Minutes pilot-in-command flight time (+15m Prep = 60m Slot)',
+      '45 Minutes pilot-in-command flight time',
       'Available Sunday–Tuesday during daytime hours (10:00–18:00)',
       'Two full takeoffs and landings at airports of your choice',
       'Authentic Boeing 737 cockpit flight experience',
@@ -4504,9 +4619,9 @@ const PROMO_45_TRANSLATIONS: LocalizedRecord<{
     badge: 'מבצע מוזל • א׳–ג׳ • עד 18:00',
     shortDesc: 'תעריף מיוחד לימי א׳–ג׳ בשעות היום (10:00–18:00). חוויית טיסה של 45 דקות הכוללת שתי נחיתות ומזג אוויר מותאם.',
     description:
-      'זמין בימי א׳–ג׳ עד 18:00. 45 דקות טיסה נטו בקוקפיט (סלוט מלא של 60 דקות כולל 15 דקות התארגנות טכנית), המאפשרות לבצע המראה מלאה, ניווט וגישה לשתי נחיתות בשדות תעופה בינלאומיים.',
+      'זמין בימי א׳–ג׳ עד 18:00. 45 דקות טיסה מלאות בקוקפיט המאפשרות לבצע המראה מלאה, ניווט וגישה לשתי נחיתות בשדות תעופה בינלאומיים.',
     features: [
-      '45 דקות זמן הטסה נטו כקברניט (+15 דק׳ התארגנות = סלוט 60 דק׳)',
+      '45 דקות זמן הטסה נטו כקברניט',
       'זמין בימי א׳–ג׳ בשעות היום בלבד (10:00–18:00)',
       'שתי המראות ונחיתות מלאות בשדות תעופה לבחירתכם',
       'חוויית תא טייס אותנטית של בואינג 737',
@@ -4518,9 +4633,9 @@ const PROMO_45_TRANSLATIONS: LocalizedRecord<{
     badge: 'Промо со скидкой • Вс–Вт • До 18:00',
     shortDesc: 'Специальный тариф по воскресеньям–вторникам (10:00–18:00). 45 минут полёта, два захода на посадку и выбор погоды.',
     description:
-      'Доступно с воскресенья по вторник до 18:00. Оптимальный 60-минутный слот по модели Канторовича: 45 минут чистого полёта и 15 минут технической паузы для взлёта, маршрута по кругу и двух полноценных посадок.',
+      'Доступно с воскресенья по вторник до 18:00. 45 минут чистого полёта в кабине для полноценного взлёта, маршрута по кругу и двух посадок в международных аэропортах.',
     features: [
-      '45 минут чистого времени за штурвалом (+15 мин пауза = 60 мин слот)',
+      '45 минут чистого времени за штурвалом',
       'Действует по воскресеньям–вторникам днём (10:00–18:00)',
       'Два полноценных взлёта и посадки в выбранных аэропортах',
       'Аутентичная кабина Boeing 737',
@@ -4532,9 +4647,9 @@ const PROMO_45_TRANSLATIONS: LocalizedRecord<{
     badge: 'Promotion • Dim–Mar • Jusqu’à 18h00',
     shortDesc: 'Tarif spécial du dimanche au mardi (10h00–18h00). 45 minutes de vol, deux atterrissages et météo au choix.',
     description:
-      'Disponible du dimanche au mardi avant 18h00. Profitez de 45 minutes de vol pur aux commandes (créneau total de 60 minutes incluant 15 minutes de préparation technique).',
+      'Disponible du dimanche au mardi avant 18h00. Profitez de 45 minutes de vol pur aux commandes avec un décollage complet, un tour de piste et deux approches sur des aéroports internationaux.',
     features: [
-      '45 minutes de vol commandant de bord (+15 min prép. = créneau 60 min)',
+      '45 minutes de vol commandant de bord',
       'Disponible du dimanche au mardi en journée (10h00–18h00)',
       'Deux décollages et atterrissages complets',
       'Expérience authentique de cockpit Boeing 737',
@@ -4546,13 +4661,27 @@ const PROMO_45_TRANSLATIONS: LocalizedRecord<{
     badge: 'عرض مخفّض • الأحد–الثلاثاء • حتى 18:00',
     shortDesc: 'تعرفة خاصة من الأحد إلى الثلاثاء (10:00–18:00). جلسة طيران لمدة 45 دقيقة تشمل هبوطين كاملين وأجواء مناخية مخصصة.',
     description:
-      'متاحة من الأحد إلى الثلاثاء قبل 18:00. استمتع بـ 45 دقيقة من الطيران الصافي في قمرة القيادة (إجمالي الفترة 60 دقيقة شاملة 15 دقيقة توقف تقني).',
+      'متاحة من الأحد إلى الثلاثاء قبل 18:00. استمتع بـ 45 دقيقة من الطيران الصافي في قمرة القيادة تشمل إقلاعاً كاملاً وملاحة وهبوطين في مطارات دولية.',
     features: [
-      '45 دقيقة طيران فعلي كقائد طائرة (+15 دقيقة تحضير = فترة 60 دقيقة)',
+      '45 دقيقة طيران فعلي كقائد طائرة',
       'متاح من الأحد إلى الثلاثاء خلال ساعات النهار (10:00–18:00)',
       'إقلاعان وهبوطان كاملان في مطارات من اختيارك',
       'تجربة قمرة بوينغ 737 أصيلة',
       'ما يصل إلى ضيفين في مقاعد المراقب (Jumpseat)',
+    ],
+  },
+  es: {
+    title: 'Vuelo promocional con descuento (45 min)',
+    badge: 'Promoción • Dom–Mar • Hasta las 18:00',
+    shortDesc: 'Tarifa especial de domingo a martes (10:00–18:00). 45 minutos de vuelo con dos aterrizajes y clima a medida.',
+    description:
+      'Disponible de domingo a martes antes de las 18:00. Disfruta de 45 minutos de vuelo en cabina con despegue completo, navegación en circuito y dos aproximaciones en aeropuertos internacionales.',
+    features: [
+      '45 minutos de vuelo como piloto al mando',
+      'Disponible de domingo a martes en horario diurno (10:00–18:00)',
+      'Dos despegues y aterrizajes completos en los aeropuertos que elijas',
+      'Auténtica experiencia de cabina Boeing 737',
+      'Hasta 2 observadores en los asientos de cabina (Jumpseat)',
     ],
   },
   de: {
@@ -4560,9 +4689,9 @@ const PROMO_45_TRANSLATIONS: LocalizedRecord<{
     badge: 'Aktionsangebot • So–Di • Bis 18:00',
     shortDesc: 'Sondertarif für Sonntag bis Dienstag tagsüber (10:00–18:00). Ein 45-Minuten-Flug mit zwei Landungen und Wunschwetter.',
     description:
-      'Verfügbar von Sonntag bis Dienstag vor 18:00 Uhr. Genießen Sie 45 Minuten reine Cockpit-Flugzeit (60 Minuten Gesamtslot inklusive 15 Minuten technischem Turnaround) mit vollständigem Start, Platzrunde und zwei Anflügen an internationalen Flughäfen.',
+      'Verfügbar von Sonntag bis Dienstag vor 18:00 Uhr. Genießen Sie 45 Minuten reine Cockpit-Flugzeit mit vollständigem Start, Platzrunde und zwei Anflügen an internationalen Flughäfen.',
     features: [
-      '45 Minuten Flugzeit als Pilot-in-Command (+15 Min. Vorbereitung = 60 Min. Slot)',
+      '45 Minuten Flugzeit als Pilot-in-Command',
       'Verfügbar Sonntag–Dienstag tagsüber (10:00–18:00)',
       'Zwei vollständige Starts und Landungen an Flughäfen Ihrer Wahl',
       'Authentisches Boeing 737 Cockpit-Flugerlebnis',
@@ -4576,12 +4705,12 @@ const MISSION_ADDONS_TRANSLATIONS: LocalizedRecord<Record<string, { name: string
     'addon-cold-dark': {
       name: 'Boeing 737 Cold & Dark Cockpit Startup',
       description:
-        'What you will do: Enter a completely dark, unpowered 737 MAX flight deck (+20 min). Together with your instructor, you will switch on the main battery & ground power, fire up the Auxiliary Power Unit (APU), configure overhead air conditioning/bleed valves and fuel pumps, align the IRS navigation displays, and execute the real-world checklist to ignite both CFM LEAP-1B jet engines before taxi.',
+        'What you will do: Enter a completely dark, unpowered 737 MAX flight deck (+30 min). Together with your instructor, you will switch on the main battery & ground power, fire up the Auxiliary Power Unit (APU), configure overhead air conditioning/bleed valves and fuel pumps, align the IRS navigation displays, and execute the real-world checklist to ignite both CFM LEAP-1B jet engines before taxi.',
     },
     'addon-xwind-ifr': {
       name: 'X-Wind / Live METAR / IFR Instrument Conditions',
       description:
-        'What it means: Instead of calm visual skies, you will fly using real-world live weather reports (METAR) under Instrument Flight Rules (IFR) inside dense cloud layers and storms (+15 min). Master the rudder crab/de-crab technique against 30-knot gusting crosswinds (X-Wind) and guide the jet down to minimums using precision ILS instrument needles.',
+        'What it means: Instead of calm visual skies, you will fly using real-world live weather reports (METAR) under Instrument Flight Rules (IFR) inside dense cloud layers and storms (+30 min). Master the rudder crab/de-crab technique against 30-knot gusting crosswinds (X-Wind) and guide the jet down to minimums using precision ILS instrument needles.',
     },
     'addon-extreme-airports': {
       name: 'Extreme World Airports Trio — Paro (VQPR), Hong Kong Kai Tak (VHHX) & Innsbruck (LOWI)',
@@ -4628,12 +4757,12 @@ const MISSION_ADDONS_TRANSLATIONS: LocalizedRecord<Record<string, { name: string
     'addon-cold-dark': {
       name: 'התנעת בואינג 737 ממצב חשוך וכבוי (Cold & Dark Startup)',
       description:
-        'מה תעשו בקוקפיט (+20 דק׳): תיכנסו לתא טייס חשוך וכבוי לחלוטין. יחד עם הקברניט תחברו מתח מצברים ומתח קרקע, תניעו את מנוע העזר האחורי (APU), תפתחו משאבות דלק ומערכות לחץ אוויר בפאנל העליון (Overhead Panel), תאפסו את מערכות הניווט (IRS) ותבצעו התנעה מלאה של שני מנועי ה-LEAP-1B לפי בד״ח חברת תעופה.',
+        'מה תעשו בקוקפיט (+30 דק׳): תיכנסו לתא טייס חשוך וכבוי לחלוטין. יחד עם הקברניט תחברו מתח מצברים ומתח קרקע, תניעו את מנוע העזר האחורי (APU), תפתחו משאבות דלק ומערכות לחץ אוויר בפאנל העליון (Overhead Panel), תאפסו את מערכות הניווט (IRS) ותבצעו התנעה מלאה של שני מנועי ה-LEAP-1B לפי בד״ח חברת תעופה.',
     },
     'addon-xwind-ifr': {
       name: 'תנאי רוח צד / מזג אוויר חי / טיסת מכשירים (X-Wind / METAR / IFR)',
       description:
-        'מה זה אומר (+15 דק׳): במקום לטוס ביום בהיר ושקט, תטוסו לפי דיווחי מזג אוויר אמיתיים (METAR) בתנאי טיסת מכשירים (IFR) בתוך עננים, גשם וערפל כבד ללא ראות חיצונית. תתרגלו נחיתות ברוחות צד חזקות (Crosswind) תוך שימוש בדוושות ההגה (Crab / De-Crab) וגישת מכשירים מדויקת (ILS) עד למסלול.',
+        'מה זה אומר (+30 דק׳): במקום לטוס ביום בהיר ושקט, תטוסו לפי דיווחי מזג אוויר אמיתיים (METAR) בתנאי טיסת מכשירים (IFR) בתוך עננים, גשם וערפל כבד ללא ראות חיצונית. תתרגלו נחיתות ברוחות צד חזקות (Crosswind) תוך שימוש בדוושות ההגה (Crab / De-Crab) וגישת מכשירים מדויקת (ILS) עד למסלול.',
     },
     'addon-extreme-airports': {
       name: 'שלישיית שדות האקסטרים הקשים בעולם — פארו (VQPR), קאי טאק (VHHX) ואינסברוק (LOWI)',
@@ -4680,12 +4809,12 @@ const MISSION_ADDONS_TRANSLATIONS: LocalizedRecord<Record<string, { name: string
     'addon-cold-dark': {
       name: 'Полный запуск Boeing 737 из состояния Cold & Dark',
       description:
-        'Что вы будете делать (+20 мин): Вы войдёте в полностью обесточенную и тёмную кабину лайнера. Вместе с инструктором включите аккумулятор и наземное питание, запустите ВСУ (APU), настроите топливные насосы и отбор воздуха на верхней панели (Overhead), согласуете навигацию IRS и по реальному чек-листу запустите оба двигателя CFM LEAP-1B перед рулением.',
+        'Что вы будете делать (+30 мин): Вы войдёте в полностью обесточенную и тёмную кабину лайнера. Вместе с инструктором включите аккумулятор и наземное питание, запустите ВСУ (APU), настроите топливные насосы и отбор воздуха на верхней панели (Overhead), согласуете навигацию IRS и по реальному чек-листу запустите оба двигателя CFM LEAP-1B перед рулением.',
     },
     'addon-xwind-ifr': {
       name: 'Боковой ветер / Реальная погода METAR / Полёты по приборам (IFR)',
       description:
-        'Что это значит (+15 мин): Вместо ясной погоды вы будете лететь по реальным метеосводкам (METAR) в режиме полёта по приборам (IFR) сквозь густую облачность, туман и шторм. Отработаете технику посадки при сильном боковом ветре (X-Wind) с работой педалями (Crab / De-Crab) и заход по глиссаде ILS при минимальной видимости.',
+        'Что это значит (+30 мин): Вместо ясной погоды вы будете лететь по реальным метеосводкам (METAR) в режиме полёта по приборам (IFR) сквозь густую облачность, туман и шторм. Отработаете технику посадки при сильном боковом ветре (X-Wind) с работой педалями (Crab / De-Crab) и заход по глиссаде ILS при минимальной видимости.',
     },
     'addon-extreme-airports': {
       name: 'Трио экстремальных аэропортов мира — Паро (VQPR), Гонконг Кай-Так (VHHX) и Инсбрук (LOWI)',
@@ -4732,12 +4861,12 @@ const MISSION_ADDONS_TRANSLATIONS: LocalizedRecord<Record<string, { name: string
     'addon-cold-dark': {
       name: 'Démarrage Complet Boeing 737 « Cold & Dark »',
       description:
-        'Ce que vous ferez (+20 min) : Entrez dans un cockpit totalement éteint. Avec votre instructeur, activez la batterie et le groupe de parc, démarrez l’APU, configurez le panneau supérieur (pompes carburant, prélèvement d’air, hydraulique), alignez les centrales inertielles IRS et lancez la séquence d’allumage des deux réacteurs CFM LEAP-1B.',
+        'Ce que vous ferez (+30 min) : Entrez dans un cockpit totalement éteint. Avec votre instructeur, activez la batterie et le groupe de parc, démarrez l’APU, configurez le panneau supérieur (pompes carburant, prélèvement d’air, hydraulique), alignez les centrales inertielles IRS et lancez la séquence d’allumage des deux réacteurs CFM LEAP-1B.',
     },
     'addon-xwind-ifr': {
       name: 'Vent de Travers (X-Wind) / Météo METAR / Vol aux Instruments (IFR)',
       description:
-        'Ce que cela signifie (+15 min) : Au lieu d’un ciel dégagé, volez avec les bulletins météo réels (METAR) selon les règles de vol aux instruments (IFR) dans les nuages et la tempête. Maîtrisez le palonnier face aux rafales de vent de travers (décrabage) et suivez le faisceau ILS jusqu’aux minimas.',
+        'Ce que cela signifie (+30 min) : Au lieu d’un ciel dégagé, volez avec les bulletins météo réels (METAR) selon les règles de vol aux instruments (IFR) dans les nuages et la tempête. Maîtrisez le palonnier face aux rafales de vent de travers (décrabage) et suivez le faisceau ILS jusqu’aux minimas.',
     },
     'addon-extreme-airports': {
       name: 'Trio Aéroports Extrêmes — Paro (VQPR), Hong Kong Kai Tak (VHHX) & Innsbruck (LOWI)',
@@ -4784,12 +4913,12 @@ const MISSION_ADDONS_TRANSLATIONS: LocalizedRecord<Record<string, { name: string
     'addon-cold-dark': {
       name: 'تشغيل طائرة بوينغ 737 من الوضع المظلم بالكامل (Cold & Dark)',
       description:
-        'ماذا ستفعل (+20 دقيقة): ستدخل إلى قمرة قيادة مظلمة ومتوقفة تماماً. بمساعدة القبطان ستقوم بتشغيل البطارية والطاقة الأرضية، تشغيل وحدة الطاقة المساعدة (APU)، تهيئة مضخات الوقود وضغط الهواء في اللوحة العلوية (Overhead)، محاذاة أنظمة الملاحة، وتشغيل محركي الطائرة النفاثين خطوة بخطوة قبل التحرك.',
+        'ماذا ستفعل (+30 دقيقة): ستدخل إلى قمرة قيادة مظلمة ومتوقفة تماماً. بمساعدة القبطان ستقوم بتشغيل البطارية والطاقة الأرضية، تشغيل وحدة الطاقة المساعدة (APU)، تهيئة مضخات الوقود وضغط الهواء في اللوحة العلوية (Overhead)، محاذاة أنظمة الملاحة، وتشغيل محركي الطائرة النفاثين خطوة بخطوة قبل التحرك.',
     },
     'addon-xwind-ifr': {
       name: 'رياح جانبية (X-Wind) / طقس حي METAR / طيران آلي بالعدادات (IFR)',
       description:
-        'ماذا يعني ذلك (+15 دقيقة): بدلاً من الطيران في سماء صافية، ستطير وفق تقارير الطقس الحية (METAR) بنظام الطيران الآلي (IFR) وسط الغيوم الكثيفة والضباب. ستتدرب على الهبوط في مواجهة الرياح الجانبية القوية باستخدام دواسات التوجيه والهبوط الدقيق عبر أجهزة الـ ILS.',
+        'ماذا يعني ذلك (+30 دقيقة): بدلاً من الطيران في سماء صافية، ستطير وفق تقارير الطقس الحية (METAR) بنظام الطيران الآلي (IFR) وسط الغيوم الكثيفة والضباب. ستتدرب على الهبوط في مواجهة الرياح الجانبية القوية باستخدام دواسات التوجيه والهبوط الدقيق عبر أجهزة الـ ILS.',
     },
     'addon-extreme-airports': {
       name: 'ثلاثية أخطر مطارات العالم — بارو (VQPR)، هونغ كونغ كاي تاك (VHHX) وإنسبروك (LOWI)',
@@ -4836,12 +4965,12 @@ const MISSION_ADDONS_TRANSLATIONS: LocalizedRecord<Record<string, { name: string
     'addon-cold-dark': {
       name: 'Boeing 737 Cold & Dark Cockpit-Start',
       description:
-        'Das erwartet Sie (+20 Min.): Sie betreten ein komplett stromloses, dunkles 737-MAX-Flugdeck. Gemeinsam mit Ihrem Instruktor schalten Sie Batterie und Bodenstrom ein, starten die APU, konfigurieren Zapfluftventile und Treibstoffpumpen im Overhead-Panel, richten die IRS-Navigation aus und zünden beide CFM-LEAP-1B-Triebwerke nach realer Checkliste.',
+        'Das erwartet Sie (+30 Min.): Sie betreten ein komplett stromloses, dunkles 737-MAX-Flugdeck. Gemeinsam mit Ihrem Instruktor schalten Sie Batterie und Bodenstrom ein, starten die APU, konfigurieren Zapfluftventile und Treibstoffpumpen im Overhead-Panel, richten die IRS-Navigation aus und zünden beide CFM-LEAP-1B-Triebwerke nach realer Checkliste.',
     },
     'addon-xwind-ifr': {
       name: 'Seitenwind (X-Wind) / Live-METAR / IFR-Instrumentenflug',
       description:
-        'Das erwartet Sie (+15 Min.): Statt ruhigem Sichtflug fliegen Sie nach realen Wetterberichten (METAR) unter Instrumentenflugregeln (IFR) durch dichte Wolken und Gewitter. Meistern Sie die Vorhaltewinkel- und Ausrichtetechnik gegen 30 Knoten böigen Seitenwind und führen Sie den Jet per Präzisions-ILS-Nadeln bis zum Minimum.',
+        'Das erwartet Sie (+30 Min.): Statt ruhigem Sichtflug fliegen Sie nach realen Wetterberichten (METAR) unter Instrumentenflugregeln (IFR) durch dichte Wolken und Gewitter. Meistern Sie die Vorhaltewinkel- und Ausrichtetechnik gegen 30 Knoten böigen Seitenwind und führen Sie den Jet per Präzisions-ILS-Nadeln bis zum Minimum.',
     },
     'addon-extreme-airports': {
       name: 'Extrem-Flughäfen-Trio — Paro (VQPR), Hongkong Kai Tak (VHHX) & Innsbruck (LOWI)',
@@ -4882,6 +5011,58 @@ const MISSION_ADDONS_TRANSLATIONS: LocalizedRecord<Record<string, { name: string
       name: 'Luftfahrt-Legenden & Nahost Trio — Dubai (OMDB), Gibraltar (LXGB) & Larnaka (LCLK)',
       description:
         'Route & Ausblick (+40 Min.): Gleiten Sie vorbei an Burj Khalifa und Palm Jumeirah nach Dubai International (OMDB), meistern Sie Fallwinde am Felsen von Gibraltar auf einer von einer Straße gekreuzten Piste (LXGB) und fliegen Sie den klassischen Küstenanflug auf Larnaka, Zypern (LCLK).',
+    },
+  },
+  es: {
+    'addon-cold-dark': {
+      name: 'Arranque Completo Boeing 737 «Cold & Dark»',
+      description:
+        'Qué harás (+30 min): Entrarás en una cabina 737 MAX totalmente apagada. Junto a tu instructor conectarás batería y energía de tierra, encenderás la APU, configurarás bombas de combustible y aire del panel superior, alinearás la navegación IRS y encenderás ambos reactores CFM LEAP-1B siguiendo la lista real.',
+    },
+    'addon-xwind-ifr': {
+      name: 'Viento Cruzado (X-Wind) / METAR en Vivo / Vuelo Instrumental (IFR)',
+      description:
+        'Qué significa (+30 min): En lugar de cielos despejados, volarás con reportes meteorológicos reales (METAR) bajo reglas instrumentales (IFR) entre nubes densas y tormentas. Domina el timón ante ráfagas de viento cruzado y guía el avión con precisión ILS hasta mínimos.',
+    },
+    'addon-extreme-airports': {
+      name: 'Trío de Aeropuertos Extremos — Paro (VQPR), Hong Kong Kai Tak (VHHX) e Innsbruck (LOWI)',
+      description:
+        'Qué significa (+25 min): Pon a prueba tu temple en las aproximaciones manuales más exigentes del mundo: serpentea entre picos del Himalaya hacia Paro (VQPR), ejecuta el famoso viraje de 47° en Kai Tak (VHHX) y desciende al valle alpino de Innsbruck (LOWI).',
+    },
+    'addon-classical-eu': {
+      name: 'Trío de Grandes Hubs Europeos — Londres Heathrow (EGLL), París CDG (LFPG) y Ámsterdam (EHAM)',
+      description:
+        'Ruta y vistas (+40 min): Gira insignia por 3 megahubs europeos: aproximación sobre el Támesis en Londres Heathrow (EGLL), pistas paralelas en París Charles de Gaulle (LFPG) y pistas bajo el nivel del mar en Ámsterdam Schiphol (EHAM).',
+    },
+    'addon-med-islands': {
+      name: 'Trío Islas del Mediterráneo y Riviera — Corfú (LGKR), Skiathos (LGSK) y Niza (LFMN)',
+      description:
+        'Ruta y vistas (+40 min): Aproximaciones costeras espectaculares sobre el agua en Corfú (LGKR), el famoso umbral junto a la playa en Skiathos (LGSK) y el viraje visual de la Riviera frente a Mónaco en Niza (LFMN).',
+    },
+    'addon-us-megacities': {
+      name: 'Trío Skylines de EE. UU. — Nueva York (KLGA), Washington (KDCA) y San Francisco (KSFO)',
+      description:
+        'Ruta y vistas (+40 min): Viraje frente a Manhattan en LaGuardia (KLGA), descenso por el río Potomac junto al Pentágono en Washington (KDCA) y aproximación junto al Golden Gate en San Francisco (KSFO).',
+    },
+    'addon-night-neon': {
+      name: 'Trío Centros Urbanos y Neón Nocturno — London City (EGLC), Tokio Haneda (RJTT) y Las Vegas (KLAS)',
+      description:
+        'Ruta y vistas (+40 min): Senda pronunciada de 5,5° junto al Tower Bridge en London City (EGLC), vistas de la Torre de Tokio en Haneda (RJTT) y aterrizaje paralelo al Strip iluminado de Las Vegas (KLAS).',
+    },
+    'addon-alpine-mountains': {
+      name: 'Trío Alpes y Fiordos — Queenstown (NZQN), Ginebra (LSGG) y Salzburgo (LOWS)',
+      description:
+        'Ruta y vistas (+40 min): Aproximación curva RNP-AR entre picos nevados hacia Queenstown (NZQN), descenso frente al Mont Blanc sobre el lago Lemán en Ginebra (LSGG) y maniobra visual en Salzburgo (LOWS).',
+    },
+    'addon-tropical-ocean': {
+      name: 'Trío Caribe y Pistas Oceánicas — St. Maarten (TNCM), Río (SBRJ) y Maldivas (VRMM)',
+      description:
+        'Ruta y vistas (+40 min): Sobrevuela a pocos metros la playa de Maho en St. Maarten (TNCM), vira junto al Pan de Azúcar hacia la pista corta de Río Santos Dumont (SBRJ) y aterriza en el atolón de Malé en Maldivas (VRMM).',
+    },
+    'addon-middle-east-legends': {
+      name: 'Trío Leyendas y Oriente Medio — Dubái (OMDB), Peñón de Gibraltar (LXGB) y Lárnaca (LCLK)',
+      description:
+        'Ruta y vistas (+40 min): Vuela junto al Burj Khalifa hacia Dubái (OMDB), afronta las rachas del Peñón de Gibraltar sobre una pista cruzada por una avenida (LXGB) y disfruta la aproximación costera a Lárnaca en Chipre (LCLK).',
     },
   },
 };

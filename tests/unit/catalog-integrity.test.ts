@@ -88,17 +88,17 @@ describe('package catalog', () => {
     ]);
   });
 
-  it('offers the full consumer ladder of 30, 45, 60 and 90 minutes', () => {
+  it('offers the full consumer ladder of 30, 45, 60, 90 and 120 minutes', () => {
     expect(
       SIMULATOR_PACKAGES.filter((pkg) => pkg.category === 'recreational').map((pkg) => pkg.durationMinutes)
-    ).toEqual([30, 45, 60, 90]);
+    ).toEqual([30, 45, 60, 90, 120]);
   });
 
   it('keeps named gift certificates on the 30/60/90/120 package ladder at canonical prices', () => {
     const certificates = orderGiftCertificatePackages(SIMULATOR_PACKAGES);
     expect(certificates.map((pkg) => pkg.id)).toEqual(GIFT_CERTIFICATE_PACKAGE_IDS);
     expect(certificates.map((pkg) => pkg.durationMinutes)).toEqual([30, 60, 90, 120]);
-    expect(certificates.map(giftCertificateAmount)).toEqual([450, 690, 950, 1590]);
+    expect(certificates.map(giftCertificateAmount)).toEqual([450, 690, 850, 1590]);
   });
 
   it('marks only the 45-minute promo as daytime-only', () => {
