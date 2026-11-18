@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.30.1](https://github.com/hatan4ik/simdream-website/compare/v1.30.0...v1.30.1) (2026-11-18)
+
+
+### Bug Fixes
+
+* **booking:** resolve promo-upgrade Wix 409s, Saturday pricing/grid parity, and closing-tail recovery ([#276](https://github.com/hatan4ik/simdream-website/issues/276)) ([bb01503](https://github.com/hatan4ik/simdream-website/commit/bb015038617d34dddac8a1303511973507cf2384))
+
 ## [1.30.0](https://github.com/hatan4ik/simdream-website/compare/v1.29.17...v1.30.0) (2026-11-18)
 
 
