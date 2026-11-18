@@ -287,6 +287,9 @@ describe('7-language copy friction removal & promo copy completeness', () => {
     expect(copy.promoFooterBadge(90, 5).trim().length).toBeGreaterThan(0);
     expect(copy.promoFooterBadge(120, 15).trim().length).toBeGreaterThan(0);
     expect(copy.storefrontAddonsSubtitle.trim().length).toBeGreaterThan(0);
+    expect(copy.slotAdjustedNotice('10:15', '10:45', 90)).toContain('10:15');
+    expect(copy.slotAdjustedNotice('10:15', '10:45', 90)).toContain('10:45');
+    expect(copy.changeTimeAction.trim().length).toBeGreaterThan(0);
   });
 
   it('covers edge branches across upgrade promo engine, addon toggle, and fallback copy', () => {

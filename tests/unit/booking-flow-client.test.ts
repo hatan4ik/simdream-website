@@ -196,7 +196,8 @@ describe('departure selection', () => {
         preferNearestOnSameDate: true,
       })?.startTime
     ).toBe('10:45');
-    // Equidistant tie (11:30? no, 09:52 vs 10:45 -> test exact midpoint 11:37 vs 10:45/12:30 or 10:00 between 09:00 & 11:00) breaks later.
+    // Equidistant tie breaks later, and empty compatible list returns null.
+    expect(findNearestCompatibleSlot([], '10:00')).toBeNull();
     expect(
       findNearestCompatibleSlot(
         [
@@ -206,6 +207,23 @@ describe('departure selection', () => {
         '10:00'
       )?.id
     ).toBe('late');
+    // Explicit preferredStartTime matches exact first, then nearest when off-grid.
+    expect(
+      selectDepartureAfterLoad(grid90, {
+        selectedDate: '2026-11-09',
+        previous: slot({ id: '90-1045', startTime: '10:45' }),
+        requiredMissionMinutes: 90,
+        preferredStartTime: '12:30',
+      })?.id
+    ).toBe('90-1230');
+    expect(
+      selectDepartureAfterLoad(grid90, {
+        selectedDate: '2026-11-09',
+        previous: slot({ id: '90-1045', startTime: '10:45' }),
+        requiredMissionMinutes: 90,
+        preferredStartTime: '10:15',
+      })?.id
+    ).toBe('90-1045');
   });
 
   it('uses day-level durationAvailability for recreational upgrades when supplied', () => {
