@@ -120,6 +120,10 @@ Import `test` and `expect` from `tests/support/e2e.ts`, or from the folder's `fi
 - Hydration errors appear as `Minified React error #418`. Check for a clock read during render. Pages are prerendered at build time, so read the clock in the browser (`useClientValue` in `lib/ui/use-client-value.ts`) or in an effect.
 - `test-results/quality-report.md` summarises every stage, JUnit totals, coverage, load latencies and open known defects.
 
+## Manual studies
+
+[`docs/agents/slot-utilization-study.md`](docs/agents/slot-utilization-study.md) is the prompt for an owner-triggered agent that measures how much of the simulator's week can be sold and what it earns. It simulates the real scheduler, then places a few real orders on SimDream-Staging (at most 30, each cancelled afterwards). It is not part of `test:all` or CI, and it never runs against production Wix. Run it after a change to the scheduler, the packages, the promo tier ladder, the Wix availability adapter or the opening hours.
+
 ## CI
 
 `.github/workflows/ci.yml` (**Verify**) runs on every pull request and every push to `main`:
