@@ -61,6 +61,7 @@ export {
   type WixSubscriptionCheckoutInput,
 } from './submit-wix-subscription';
 export {
+  WixDraftPrepareError,
   applyCouponToDraft,
   applyGiftCardToDraft,
   getWixCheckoutUrl,

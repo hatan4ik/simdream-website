@@ -436,12 +436,12 @@ export function generateKantorovichSlots(
     const gapBefore = startMin - prevBoundary;
     const gapAfter = nextBoundary - reservedEndMin;
 
-    // Judge each gap by where it starts, as evaluateDailyEfficiency does: a daytime departure
-    // can still leave a prime-time gap after it, which only prime-time blocks may fill.
+    // Judge each gap by where it starts; in Wix re-anchored mode allow a flush closing tail (<45m before close).
     const gapOk = (gap: number, isPrime: boolean) =>
       options.minSellableGaps ? gap === 0 || gap >= 45 : canTileIntervalZeroWaste(gap, isPrime, isPromoDay);
     const validBefore = gapOk(gapBefore, config.isSaturday || prevBoundary >= 18 * 60);
-    const validAfter = gapOk(gapAfter, config.isSaturday || reservedEndMin >= 18 * 60);
+    const closingTailFlush = Boolean(options.minSellableGaps) && gapBefore === 0 && nextBoundary === config.closeMinutes && gapAfter > 0 && gapAfter < 45;
+    const validAfter = closingTailFlush || gapOk(gapAfter, config.isSaturday || reservedEndMin >= 18 * 60);
 
     if (!validBefore || !validAfter) {
       const badGap = !validBefore ? gapBefore : gapAfter;

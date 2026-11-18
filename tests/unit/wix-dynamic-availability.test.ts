@@ -147,4 +147,31 @@ describe('the engine rule for the time left next to a departure', () => {
     const stranded = slots.find((slot) => slot.startTime === '14:35');
     expect(stranded === undefined || stranded.available === false).toBe(true);
   });
+
+  it('recovers a flush Saturday closing-tail 90m departure (22:00 in 22:00–24:00) in re-anchored mode without allowing a 22:15 duplicate or mid-day 15m orphans', () => {
+    const saturday = '2027-01-16';
+    // Wix Saturday opens at 19:00; 19:00–20:30 (90m, reserved -> 20:45) + 20:45–21:45 (60m, reserved -> 22:00)
+    // leaves a 120-minute closing tail (22:00–24:00).
+    const saturdayBookings = [
+      { bookingDate: saturday, startTime: '09:00', endTime: '18:45', durationMinutes: 585, status: 'confirmed' as const },
+      { bookingDate: saturday, startTime: '19:00', endTime: '20:30', durationMinutes: 90, status: 'confirmed' as const },
+      { bookingDate: saturday, startTime: '20:45', endTime: '21:45', durationMinutes: 60, status: 'confirmed' as const },
+    ];
+
+    const reanchored90 = generateKantorovichSlots(saturday, 90, saturdayBookings, { minSellableGaps: true });
+    expect(reanchored90.find((slot) => slot.startTime === '22:00')?.available).toBe(true);
+    expect(reanchored90.find((slot) => slot.startTime === '22:15')?.available).toBe(false);
+
+    // Strict zero-waste mode stays unchanged (refuses 22:00 as orphan_gap).
+    const strict90 = generateKantorovichSlots(saturday, 90, saturdayBookings);
+    expect(strict90.find((slot) => slot.startTime === '22:00')?.disabledReason).toBe('orphan_gap');
+
+    // A mid-day 120-minute pocket (14:00–16:00 between two bookings, NOT closing time) still refuses 14:00 90m (15m orphan).
+    const middayPocket = [
+      { bookingDate: DATE, startTime: '12:45', endTime: '13:45', durationMinutes: 60, status: 'confirmed' as const },
+      { bookingDate: DATE, startTime: '16:00', endTime: '17:00', durationMinutes: 60, status: 'confirmed' as const },
+    ];
+    const midday90 = generateKantorovichSlots(DATE, 90, middayPocket, { minSellableGaps: true });
+    expect(midday90.find((slot) => slot.startTime === '14:00')?.available).toBe(false);
+  });
 });

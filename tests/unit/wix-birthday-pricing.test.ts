@@ -552,6 +552,31 @@ describe('Wix pricing provider binds every priced booking to the local zero-wast
       )
     ).resolves.toEqual({ ok: false, code: 'unsupported-service' });
   });
+
+  it('prices promotional tier-upgrade origins on shorter recreational grids at the flat upgraded tariff', async () => {
+    // 11:30 is on the 60m grid (not 90m), promoted from 60m + mission add-on -> 90m at flat ₪850.
+    await expect(
+      calculateWixBookingPrice(slotAt('pkg-ultimate-90', israelTime('11:30')), { config: CONFIG, now: NOW })
+    ).resolves.toMatchObject({ ok: true, calculatedPrice: 850, discountApplied: false });
+
+    // Saturday 19:00 is on the 60m grid and prices flat ₪850 (never the retired ₪950 prime tariff).
+    await expect(
+      calculateWixBookingPrice(
+        slotAt('pkg-ultimate-90', '2026-11-14T17:00:00.000Z'),
+        { config: CONFIG, now: NOW }
+      )
+    ).resolves.toMatchObject({ ok: true, calculatedPrice: 850, discountApplied: false });
+
+    // 09:45 is on the 30m grid (not 60m), promoted from 30m + mission add-on -> 60m at ₪690.
+    await expect(
+      calculateWixBookingPrice(slotAt('pkg-captain-60', israelTime('09:45')), { config: CONFIG, now: NOW })
+    ).resolves.toMatchObject({ ok: true, calculatedPrice: 690, discountApplied: false });
+
+    // 22:45 is on the 60m grid, but its promoted 90m (105m reserved) block would pass 24:00 close -> rejected.
+    await expect(
+      calculateWixBookingPrice(slotAt('pkg-ultimate-90', israelTime('22:45')), { config: CONFIG, now: NOW })
+    ).resolves.toEqual({ ok: false, code: 'off-grid-departure' });
+  });
 });
 
 describe('Wix pricing-provider request authentication', () => {

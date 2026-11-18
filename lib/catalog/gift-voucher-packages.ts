@@ -20,7 +20,7 @@ export function isGiftCertificatePackageId(packageId: string): packageId is Gift
   return (GIFT_CERTIFICATE_PACKAGE_IDS as readonly string[]).includes(packageId);
 }
 
-/** A voucher must cover every valid departure, including the 90-minute prime-time tariff. */
+/** A voucher must cover every valid departure for the selected package. */
 export function giftCertificateAmount(pkg: Pick<SimulatorPackage, 'priceIls' | 'primeTimePriceIls'>): number {
   return pkg.primeTimePriceIls ?? pkg.priceIls;
 }

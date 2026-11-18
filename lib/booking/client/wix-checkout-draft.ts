@@ -21,6 +21,8 @@ export interface WixCheckoutDraftState {
 
 export interface WixCheckoutDraftInputs {
   packageId: string;
+  /** Originating shorter package when a promotional tier bump-up promotes `packageId`. */
+  sourcePackageId?: string;
   selectedDate: string;
   slotId: string | undefined;
   pilotName: string;
@@ -40,6 +42,7 @@ export interface WixCheckoutDraftInputs {
 export function buildWixCheckoutDraftKey(inputs: WixCheckoutDraftInputs): string {
   return [
     inputs.packageId,
+    inputs.sourcePackageId ?? '',
     inputs.selectedDate,
     inputs.slotId ?? '',
     inputs.pilotName.trim(),

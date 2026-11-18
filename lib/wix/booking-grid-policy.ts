@@ -2,7 +2,12 @@ import 'server-only';
 
 import type { FlightSlot } from '@/types';
 import { SIMULATOR_PACKAGES } from '@/lib/db/seed-data';
-import { generateKantorovichSlots } from '@/lib/scheduler/kantorovich-engine';
+import {
+  generateKantorovichSlots,
+  getDayOperatingConfig,
+  getReservedMinutesForFlight,
+  timeToMinutes,
+} from '@/lib/scheduler/kantorovich-engine';
 
 /**
  * The one rule that binds a Wix-created booking to the local zero-waste grid (AGENTS.md §4).
@@ -64,14 +69,45 @@ export interface StrictWixGridDeparture {
   isPrimeTime: boolean;
 }
 
+/** Shorter recreational base packages that can promote into a higher Wix tier via mission add-ons. */
+const PROMO_UPGRADE_SOURCE_IDS: Readonly<Record<string, readonly string[]>> = {
+  'pkg-captain-60': ['pkg-discovery-30'],
+  'pkg-ultimate-90': ['pkg-promo-45', 'pkg-captain-60'],
+  'pkg-grand-120': ['pkg-discovery-30', 'pkg-promo-45', 'pkg-captain-60', 'pkg-ultimate-90'],
+};
+
+function openPromoUpgradeSourceSlot(
+  packageId: string,
+  flightDate: string,
+  startTime: string
+): FlightSlot | undefined {
+  const sourceIds = PROMO_UPGRADE_SOURCE_IDS[packageId];
+  if (!sourceIds) return undefined;
+  const targetPkg = SIMULATOR_PACKAGES.find((candidate) => candidate.id === packageId);
+  if (!targetPkg) return undefined;
+  const { closeMinutes } = getDayOperatingConfig(flightDate);
+  if (timeToMinutes(startTime) + getReservedMinutesForFlight(targetPkg.durationMinutes) > closeMinutes) {
+    return undefined;
+  }
+  for (const sourceId of sourceIds) {
+    const match = openStrictGridSlot(sourceId, flightDate, startTime);
+    if (match) return match;
+  }
+  return undefined;
+}
+
 /**
  * The pricing provider's reading of a Wix slot `startDate` (an RFC 3339 instant): the open grid
  * departure it lands on, or null when it lands on none. The Israel date and time, and so the flight
  * date and the tariff, come from the instant itself, never from the booking's `timezone` label,
- * which the browser sets.
+ * which the browser sets. Accepts both the package's own strict grid and any shorter recreational
+ * promo-upgrade origin whose upgraded reservation still fits before closing time.
  */
 export function strictWixGridDepartureFor(packageId: string, startDate: string | undefined): StrictWixGridDeparture | null {
   const departure = startDate ? israelDepartureOf(startDate) : null;
-  const slot = departure ? openStrictGridSlot(packageId, departure.flightDate, departure.startTime) : undefined;
+  const slot = departure
+    ? openStrictGridSlot(packageId, departure.flightDate, departure.startTime) ??
+      openPromoUpgradeSourceSlot(packageId, departure.flightDate, departure.startTime)
+    : undefined;
   return departure && slot ? { ...departure, isPrimeTime: slot.isPrimeTime } : null;
 }
