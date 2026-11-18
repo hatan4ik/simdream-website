@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.30.0](https://github.com/hatan4ik/simdream-website/compare/v1.29.17...v1.30.0) (2026-11-18)
+
+
+### Features
+
+* **booking:** add smart promotional tier bump-up ladder, 120m ₪1,200 pack, flat ₪850 90m pricing, and friction-free 7-language copy ([#271](https://github.com/hatan4ik/simdream-website/issues/271)) ([b5154c1](https://github.com/hatan4ik/simdream-website/commit/b5154c11d17d60f375ecea5a069756a69b2994b6))
+
 ## [1.29.17](https://github.com/hatan4ik/simdream-website/compare/v1.29.16...v1.29.17) (2026-11-17)
 
 
