@@ -3,7 +3,7 @@
  *
  * Defaults strictly to READ-ONLY `--dry-run` mode: queries the live Wix site
  * with the anonymous visitor token, compares all 9 Bookings services, the
- * shared simulator resource pool, the 4 Pricing Plans, and the 7 Gift Card
+ * shared simulator resource pool, the 6 Pricing Plans (4 consumer + 2 PRO), and the 7 Gift Card
  * design variants against `WIX_BACKEND_BLUEPRINT`, and prints the diff.
  *
  * Multi-Lock Protection against accidental backend recreation:
@@ -26,6 +26,8 @@ const PLAN_ENV_KEYS = [
   'WIX_PLAN_ID_ADVANCED_5X90',
   'WIX_PLAN_ID_ATPL_10X60',
   'WIX_PLAN_ID_AIRLINE_10X90',
+  'WIX_PLAN_ID_PRO_3X90',
+  'WIX_PLAN_ID_PRO_5X60',
 ] as const;
 
 loadWixLocalEnv(['NEXT_PUBLIC_WIX_CLIENT_ID', 'WIX_SITE_ID', ...PLAN_ENV_KEYS]);

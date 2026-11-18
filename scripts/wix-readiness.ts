@@ -16,6 +16,8 @@ const PLAN_ENV_KEYS = [
   'WIX_PLAN_ID_ADVANCED_5X90',
   'WIX_PLAN_ID_ATPL_10X60',
   'WIX_PLAN_ID_AIRLINE_10X90',
+  'WIX_PLAN_ID_PRO_3X90',
+  'WIX_PLAN_ID_PRO_5X60',
 ] as const;
 
 // Read for the scheduling-grid line only: their presence is checked, their values never printed.

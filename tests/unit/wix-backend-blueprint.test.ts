@@ -288,6 +288,12 @@ describe('Wix-as-Code Backend Blueprint & Multi-Lock Provisioning Protection', (
         buyable: true,
       },
     });
+    // Wix Pricing Plans v3 rejects a create without GUIDs on every variant and perk (HTTP 400).
+    const guid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+    const plan = (planPayload as { plan: { pricingVariants: { id: string }[]; perks: { id: string }[] } }).plan;
+    expect(plan.pricingVariants[0]!.id).toMatch(guid);
+    expect(plan.perks.length).toBeGreaterThan(0);
+    for (const perk of plan.perks) expect(perk.id).toMatch(guid);
 
     const giftCardPayload = buildWixGiftCardProductPayload();
     expect(giftCardPayload).toMatchObject({

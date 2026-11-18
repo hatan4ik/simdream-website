@@ -12,6 +12,8 @@ export interface CheckoutExtrasCopy {
   opensInNewTab: string;
   /** A valid date that would qualify, on a package that cannot carry the offer (no stacking, category). */
   birthdayNotApplicable: string;
+  /** The bare Discounted Promotion is picked: the offer cannot stack on it. */
+  birthdayPromoPicked: string;
   /** The Wix-hosted checkout: the offer cannot be applied automatically, the day and month go to the team. */
   birthdayWixNotice: string;
   /** A flight-track redemption: no offer, and the date is not stored anywhere. */
@@ -22,6 +24,7 @@ export const CHECKOUT_EXTRAS_COPY: Record<SupportedLanguage, CheckoutExtrasCopy>
   en: {
     opensInNewTab: 'opens in a new tab',
     birthdayNotApplicable: 'The birthday discount does not apply to this booking.',
+    birthdayPromoPicked: 'You already picked the Discounted Promotion, so the birthday discount cannot be added. Add a cockpit upgrade to move up to a full flight and it applies.',
     birthdayWixNotice:
       'The birthday discount cannot be applied automatically in this checkout. Your day and month are passed to our team with the order.',
     birthdayNotStored:
@@ -30,6 +33,7 @@ export const CHECKOUT_EXTRAS_COPY: Record<SupportedLanguage, CheckoutExtrasCopy>
   he: {
     opensInNewTab: 'נפתח בלשונית חדשה',
     birthdayNotApplicable: 'הנחת יום ההולדת אינה חלה על הזמנה זו.',
+    birthdayPromoPicked: 'כבר בחרתם בחבילת המבצע המוזל, ולכן אי אפשר להוסיף את הנחת יום ההולדת. הוסיפו שדרוג תא טייס כדי לעבור לטיסה מלאה והנחה תחול.',
     birthdayWixNotice:
       'לא ניתן להחיל את הנחת יום ההולדת אוטומטית בתשלום הזה. היום והחודש שלך מועברים לצוות שלנו יחד עם ההזמנה.',
     birthdayNotStored:
@@ -38,6 +42,7 @@ export const CHECKOUT_EXTRAS_COPY: Record<SupportedLanguage, CheckoutExtrasCopy>
   ru: {
     opensInNewTab: 'открывается в новой вкладке',
     birthdayNotApplicable: 'Скидка ко дню рождения не распространяется на это бронирование.',
+    birthdayPromoPicked: 'Вы уже выбрали акционный пакет со скидкой, поэтому скидка ко дню рождения не добавляется. Добавьте апгрейд кабины, чтобы перейти на полноценный полёт, и скидка применится.',
     birthdayWixNotice:
       'Скидка ко дню рождения не может быть применена автоматически при этой оплате. День и месяц передаются нашей команде вместе с заказом.',
     birthdayNotStored:
@@ -46,6 +51,7 @@ export const CHECKOUT_EXTRAS_COPY: Record<SupportedLanguage, CheckoutExtrasCopy>
   fr: {
     opensInNewTab: 's’ouvre dans un nouvel onglet',
     birthdayNotApplicable: 'La remise anniversaire ne s’applique pas à cette réservation.',
+    birthdayPromoPicked: 'Vous avez déjà choisi l’offre promotionnelle, la remise anniversaire ne peut donc pas s’y ajouter. Ajoutez une option de cockpit pour passer à un vol complet et elle s’appliquera.',
     birthdayWixNotice:
       'La remise anniversaire ne peut pas être appliquée automatiquement dans ce paiement. Votre jour et votre mois sont transmis à notre équipe avec la commande.',
     birthdayNotStored:
@@ -54,6 +60,7 @@ export const CHECKOUT_EXTRAS_COPY: Record<SupportedLanguage, CheckoutExtrasCopy>
   ar: {
     opensInNewTab: 'يفتح في علامة تبويب جديدة',
     birthdayNotApplicable: 'لا ينطبق خصم عيد الميلاد على هذا الحجز.',
+    birthdayPromoPicked: 'لقد اخترت بالفعل باقة العرض المخفَّض، لذلك لا يمكن إضافة خصم عيد الميلاد. أضف ترقية لمقصورة القيادة للانتقال إلى رحلة كاملة وسيُطبَّق الخصم.',
     birthdayWixNotice:
       'لا يمكن تطبيق خصم عيد الميلاد تلقائيًا في عملية الدفع هذه. يُرسَل يوم ميلادك وشهره إلى فريقنا مع الطلب.',
     birthdayNotStored:
@@ -62,6 +69,7 @@ export const CHECKOUT_EXTRAS_COPY: Record<SupportedLanguage, CheckoutExtrasCopy>
   es: {
     opensInNewTab: 'se abre en una pestaña nueva',
     birthdayNotApplicable: 'El descuento de cumpleaños no se aplica a esta reserva.',
+    birthdayPromoPicked: 'Ya elegiste la promoción con descuento, así que no se puede añadir el descuento de cumpleaños. Añade una mejora de cabina para pasar a un vuelo completo y se aplicará.',
     birthdayWixNotice:
       'El descuento de cumpleaños no se puede aplicar automáticamente en este pago. Tu día y mes se envían a nuestro equipo junto con el pedido.',
     birthdayNotStored:
@@ -70,6 +78,7 @@ export const CHECKOUT_EXTRAS_COPY: Record<SupportedLanguage, CheckoutExtrasCopy>
   de: {
     opensInNewTab: 'öffnet in einem neuen Tab',
     birthdayNotApplicable: 'Der Geburtstagsrabatt gilt für diese Buchung nicht.',
+    birthdayPromoPicked: 'Sie haben bereits das Aktionsangebot gewählt, daher kann der Geburtstagsrabatt nicht hinzukommen. Fügen Sie ein Cockpit-Upgrade hinzu, um auf einen vollen Flug zu wechseln, dann gilt er.',
     birthdayWixNotice:
       'Der Geburtstagsrabatt kann in diesem Checkout nicht automatisch angewendet werden. Ihr Tag und Monat werden zusammen mit der Bestellung an unser Team übermittelt.',
     birthdayNotStored:
