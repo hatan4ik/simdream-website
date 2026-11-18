@@ -10,14 +10,7 @@ import { execFileSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 
 /** @type {ReadonlyArray<{ advisory: string; reason: string; expires: string }>} */
-export const AUDIT_EXCEPTIONS = [
-  {
-    advisory: 'GHSA-fc5q-39xc-vjpf',
-    reason:
-      'picomatch ReDoS (<= 4.0.7, no patched release yet). Reached only through vitest and vite, which are dev tooling that never runs in production.',
-    expires: '2026-12-17',
-  },
-];
+export const AUDIT_EXCEPTIONS = [];
 
 const BLOCKING = new Set(['high', 'critical']);
 

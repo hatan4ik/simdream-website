@@ -71,7 +71,8 @@ function BookContent() {
     hasRequestedRoute: Boolean(selection.activeRequestedRoute),
   });
   const extras = useBookingExtras({
-    packageId: activePackage.id,
+    // The tier actually bought: a promo upgraded by add-ons is a normal 90/120 booking, not the Discounted Promotion.
+    packageId: effectivePackageId,
     flightDate: selectedDate,
     subtotalIls,
     wixAuthoritative: schedule.wixBookingsAuthoritative,
