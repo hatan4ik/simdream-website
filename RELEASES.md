@@ -10,6 +10,15 @@
 
 ## Product changes by version
 
+### [v1.30.2](https://github.com/hatan4ik/simdream-website/releases/tag/v1.30.2) — 2026-11-18
+
+#### Bug Fixes
+
+- **booking:** judge the birthday discount on the upgraded tier, highlight the bare Discounted Promotion (#281) (ca6cd14)
+- **wix:** PRO plan env keys and valid pricing-plan create payload (#280) (1c51470)
+
+Deployment evidence: [GitHub Release](https://github.com/hatan4ik/simdream-website/releases/tag/v1.30.2).
+
 ### [v1.30.1](https://github.com/hatan4ik/simdream-website/releases/tag/v1.30.1) — 2026-11-18
 
 #### Bug Fixes
