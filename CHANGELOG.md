@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.30.2](https://github.com/hatan4ik/simdream-website/compare/v1.30.1...v1.30.2) (2026-11-18)
+
+
+### Bug Fixes
+
+* **booking:** judge the birthday discount on the upgraded tier, highlight the bare Discounted Promotion ([#281](https://github.com/hatan4ik/simdream-website/issues/281)) ([ca6cd14](https://github.com/hatan4ik/simdream-website/commit/ca6cd14922fde7a96dd6740084e667ca06d7321e))
+* **wix:** PRO plan env keys and valid pricing-plan create payload ([#280](https://github.com/hatan4ik/simdream-website/issues/280)) ([1c51470](https://github.com/hatan4ik/simdream-website/commit/1c51470ab44b8c47fe428ccefbf232736bbb3031))
+
 ## [1.30.1](https://github.com/hatan4ik/simdream-website/compare/v1.30.0...v1.30.1) (2026-11-18)
 
 
