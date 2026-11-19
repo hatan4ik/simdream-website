@@ -10,6 +10,14 @@
 
 ## Product changes by version
 
+### [v1.31.0](https://github.com/hatan4ik/simdream-website/releases/tag/v1.31.0) — 2026-11-18
+
+#### Features
+
+- **booking:** switch promo tier upgrades to upgraded duration grid (Option A) (#279) (dfdedc8)
+
+Deployment evidence: [GitHub Release](https://github.com/hatan4ik/simdream-website/releases/tag/v1.31.0).
+
 ### [v1.30.2](https://github.com/hatan4ik/simdream-website/releases/tag/v1.30.2) — 2026-11-18
 
 #### Bug Fixes

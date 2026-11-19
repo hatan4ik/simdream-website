@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.31.0](https://github.com/hatan4ik/simdream-website/compare/v1.30.2...v1.31.0) (2026-11-18)
+
+
+### Features
+
+* **booking:** switch promo tier upgrades to upgraded duration grid (Option A) ([#279](https://github.com/hatan4ik/simdream-website/issues/279)) ([dfdedc8](https://github.com/hatan4ik/simdream-website/commit/dfdedc8726f9f62cff8ecfd29b4f57697e0428de))
+
 ## [1.30.2](https://github.com/hatan4ik/simdream-website/compare/v1.30.1...v1.30.2) (2026-11-18)
 
 
