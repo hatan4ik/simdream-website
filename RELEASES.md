@@ -10,6 +10,14 @@
 
 ## Product changes by version
 
+### [v1.31.1](https://github.com/hatan4ik/simdream-website/releases/tag/v1.31.1) — 2026-11-19
+
+#### Bug Fixes
+
+- **booking:** sync audit drifts, judge upgraded 45m birthday in local checkout (#284) (49ec23f)
+
+Deployment evidence: [GitHub Release](https://github.com/hatan4ik/simdream-website/releases/tag/v1.31.1).
+
 ### [v1.31.0](https://github.com/hatan4ik/simdream-website/releases/tag/v1.31.0) — 2026-11-18
 
 #### Features
