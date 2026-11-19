@@ -66,8 +66,12 @@ function priceMission(pkg: SimulatorPackage, input: BookingCheckoutInput, addonI
 
   // The consent record and the birthday discount are decided here from the slot's own date and the
   // registry subtotal; the client sends only the two confirmations and the typed birth date.
+  // The tier actually bought: a promo upgraded by add-ons is a normal 90/120 booking, not the Discounted Promotion.
+  const effectivePackageId = manifest.upgradePromo?.isPromoActive
+    ? manifest.upgradePromo.effectivePackageId
+    : pkg.id;
   const extras = resolveCheckoutExtras({
-    packageId: pkg.id,
+    packageId: effectivePackageId,
     bookingDate: input.bookingDate,
     subtotalIls: manifest.subtotalIls,
     pilotBirthDate: input.pilotBirthDate,

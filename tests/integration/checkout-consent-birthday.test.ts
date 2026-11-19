@@ -309,6 +309,34 @@ describe('POST /api/checkout: the birthday discount', () => {
     expect(app.checkoutSessions[0].amountIls).toBe(490);
   });
 
+  it('applies the birthday discount when a 45-minute promo is upgraded to 90m by an add-on', async () => {
+    const app = await loadApp({ stripe: 'mocked' });
+    const addons = ['addon-xwind-ifr'];
+    const slot = await findSlotWhere(
+      app,
+      DAY,
+      45,
+      (candidate) => candidate.available && !candidate.isPrimeTime && (candidate.maxAvailableMinutes ?? 0) >= 90,
+      'an open promotion slot with room for the 90m promo upgrade'
+    );
+    // Promo 45 + X-Wind bumps up to the 90m promotional tier (₪850).
+    const subtotal = 850;
+
+    const response = await postCheckout(
+      app,
+      bookingCheckoutBody({ packageId: 'pkg-promo-45', bookingDate: DAY, startTime: slot.startTime, addons, pilotBirthDate: DECEMBER_BIRTHDAY })
+    );
+
+    expect(response.status).toBe(201);
+    expect(app.checkoutSessions[0].amountIls).toBe(subtotal - fifteenPercentOff(subtotal));
+    expect(await app.store.getBookingById(app.checkoutSessions[0].bookingId ?? '')).toMatchObject({
+      subtotalIls: subtotal,
+      discountIls: fifteenPercentOff(subtotal),
+      birthdayDiscountIls: fifteenPercentOff(subtotal),
+      totalIls: subtotal - fifteenPercentOff(subtotal),
+    });
+  });
+
   it('applies the percentage to the whole subtotal, add-ons included', async () => {
     const app = await loadApp({ stripe: 'mocked' });
     const addons = ['addon-xwind-ifr'];
