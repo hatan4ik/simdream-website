@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.31.1](https://github.com/hatan4ik/simdream-website/compare/v1.31.0...v1.31.1) (2026-11-19)
+
+
+### Bug Fixes
+
+* **booking:** sync audit drifts, judge upgraded 45m birthday in local checkout ([#284](https://github.com/hatan4ik/simdream-website/issues/284)) ([49ec23f](https://github.com/hatan4ik/simdream-website/commit/49ec23fe040997b3c1a5a1c2e2d11c5ad1f9d028))
+
 ## [1.31.0](https://github.com/hatan4ik/simdream-website/compare/v1.30.2...v1.31.0) (2026-11-18)
 
 
