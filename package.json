@@ -56,7 +56,7 @@
     "@tailwindcss/postcss": "^4.3.5",
     "@wix/members": "^1.0.541",
     "@wix/pricing-plans": "^1.0.440",
-    "@wix/redirects": "^1.0.133",
+    "@wix/redirects": "^1.0.134",
     "@wix/sdk": "^1.21.18",
     "canvas-confetti": "^1.9.4",
     "clsx": "^2.1.1",
