@@ -14,6 +14,11 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    groups:
+      # CodeQL refuses to run when init and analyze come from different releases.
+      codeql-action:
+        patterns:
+          - "github/codeql-action*"
     labels:
       - dependencies
       - security
