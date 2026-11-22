@@ -4,7 +4,12 @@ import { localizeInternalHref } from '@/lib/i18n/locale-routing';
 import { completeBookingExtras } from '../support/booking-extras';
 import { expect, recordRequests, test } from './fixtures';
 import { PAYMENTS_UNAVAILABLE } from './pages/booking-page';
+import { israelDate } from './pages/format';
 import type { ScheduleApi } from './pages/schedule-api';
+
+/** Same ribbon window as `ScheduleApi.findOpenSlot`: not tomorrow (preselected), nothing past the week strip. */
+const FIRST_DAY_OFFSET = 2;
+const LAST_DAY_OFFSET = 12;
 
 const LANGUAGES: ReadonlyArray<{
   lang: Language;
@@ -25,13 +30,19 @@ async function findMultiAddonDay(
   schedule: ScheduleApi,
   minWindowMinutes = 120
 ): Promise<{ date: string; startTimes: string[] }> {
-  const { date } = await schedule.findOpenSlot({ duration: 60, minWindowMinutes });
-  const day = await schedule.day(date, 60);
-  const startTimes = day.slots
-    .filter((slot) => slot.available && (slot.maxAvailableMinutes ?? 0) >= minWindowMinutes)
-    .map((slot) => slot.startTime);
-  expect(startTimes.length, `expected >= 1 open slot fitting ${minWindowMinutes}m on ${date}`).toBeGreaterThan(0);
-  return { date, startTimes };
+  // Two time-adding add-ons upgrade the 60m flight to the 120m tier, and the calendar then switches to the 120m grid
+  // (lib/scheduler/mission-upgrade-promo.ts). A day whose 120m grid is full (for example a demo-seeded Tuesday with a
+  // 165m hole that is not on the 150m cadence) disables those add-ons by design, so the day must offer both grids.
+  for (let offset = FIRST_DAY_OFFSET; offset <= LAST_DAY_OFFSET; offset++) {
+    const date = israelDate(offset);
+    const startTimes = (await schedule.day(date, 60)).slots
+      .filter((slot) => slot.available && (slot.maxAvailableMinutes ?? 0) >= minWindowMinutes)
+      .map((slot) => slot.startTime);
+    if (startTimes.length === 0) continue;
+    const upgraded = (await schedule.day(date, 120)).slots.filter((slot) => slot.available);
+    if (upgraded.length > 0) return { date, startTimes };
+  }
+  throw new Error(`No day inside the date ribbon offers both a 60m slot with a ${minWindowMinutes}m window and a 120m slot.`);
 }
 
 function pickTime(startTimes: readonly string[], position: 'first' | 'middle' | 'last'): string {
