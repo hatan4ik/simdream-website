@@ -6,51 +6,90 @@ Visual architecture documentation for **Sim Dream LTD** (`simdream.co.il`), Boei
 
 ## 1. High-Level System Architecture
 
+### 1A. Executive System Landscape (Human-Readable Overview)
+
+A high-level view of how customers, flight candidates, instructors, and operational staff interact with the SimDream platform and its connected services:
+
 ```mermaid
 flowchart TD
-    subgraph ClientLayer["Client & User Interface Layer"]
-        User["Visitor / Pilot Candidate"]
-        BrandLogoSystem["Official Brand Identity<br/>BrandLogo.tsx (Orange Plane + Cerulean Wordmark)<br/>Header: logo alone, no tagline"]
-        ThemeEngine["Triple UX Engine<br/>☀️ Brand Daylight (default) • 🌙 Cockpit Night • ✨ Clean Studio<br/>Sim Dream cerulean #2096C7 + orange #FF5500"]
-        I18nEngine["7-Language Engine (i18n)<br/>HE/AR (RTL) • EN/RU/FR/ES/DE (LTR)"]
-        StorefrontUI["Dual Booking Storefront<br/>Amazon 1-Page Storefront / 3-Step Wizard"]
-        SubPortalUI["Flight Subscription Portal<br/>Dedicated /subscriptions & /experiences category"]
+    User["Customer / Flight Candidate"] --> Storefront["SimDream Storefront<br/>Next.js 16 • React 19 • 7 Languages"]
+
+    subgraph ExperienceTracks["Experience Portals"]
+        Storefront --> RecTrack["Recreational Flights<br/>Discovery, Captain & Ultimate 737 Experiences"]
+        Storefront --> ProTrack["Professional Training<br/>Airline Assessment Prep & Screening"]
+        Storefront --> SubTrack["Annual Subscriptions<br/>Multi-Session Flight Training Passes"]
+        Storefront --> B2BTrack["Corporate & Groups<br/>CRM Leadership & Team Workshops"]
     end
 
-    subgraph RoutingLayer["Edge Routing & Next.js 16 App Router"]
-        CanonicalRedirects["Configured 301 Permanent Redirects<br/>/simulator, /training ➔ /pro • /aerophobia ➔ /fear-of-flying<br/>/book-online ➔ /book • legacy gift voucher ➔ /vouchers<br/>/cooperation ➔ /workshops • /pricing-plans/list ➔ /subscriptions<br/>/blog/:slug ➔ /post/:slug"]
-        PublicPages["Public Pages<br/>/ • /about • /pro • /experiences • /book • /book/success • /offers<br/>/subscriptions • /subscriptions/thank-you • /workshops • /vouchers • /ground-school<br/>/contact • /rules • /privacy-policy • /refund • /fear-of-flying • /blog • /post/[...segments]"]
-        MemberPages["Member Area<br/>/dashboard • /login • /wix/members/callback<br/>legacy /auth/callback • /auth/reset-password"]
-        AdminPages["Admin Dispatch Command Center<br/>/admin (Bookings, Vouchers, Workshops, Schedule Efficiency)"]
+    subgraph CorePlatform["Core Platform Engines"]
+        RecTrack --> Engine["Kantorovich Scheduler<br/>Zero-Waste Tiled Slot Allocation"]
+        ProTrack --> Engine
+        Engine --> BookingEngine["Adaptive Booking Engine<br/>Smart Duration Switching & Upgrades"]
     end
 
-    subgraph BusinessLogic["Core Business Logic & Engines"]
-        NoiseFreeAdapter["Noise-Free Booking Adapter<br/>Suppresses recreational add-ons for PRO & Fear of Flying"]
+    subgraph BusinessCheckout["Checkout & Commerce"]
+        BookingEngine --> WixHeadless["Wix Headless Cloud<br/>Primary Booking, Calendar & Member Area"]
+        BookingEngine -.-> LegacyStripe["Stripe Payments<br/>Self-Hosted Backup Payment Path"]
+        SubTrack --> WixHeadless
+    end
+
+    subgraph Management["Operations & Command Center"]
+        Dispatcher["Flight Dispatcher"] --> AdminDeck["Dispatch Command Center<br/>Slot Management, Vouchers & Analytics"]
+        AdminDeck --> Engine
+    end
+```
+
+---
+
+### 1B. System Topology & Component Graph (Professional Technical Deep-Dive)
+
+The complete engineering topology mapping client UI layers, App Router pages, domain business logic, API route handlers, and backend persistence boundaries:
+
+```mermaid
+flowchart TD
+    subgraph ClientLayer["Client and UI Layer"]
+        UserNode["Visitor or Pilot Candidate"]
+        BrandSystem["Official Brand Identity<br/>BrandLogo.tsx - Orange Plane and Cerulean Wordmark"]
+        ThemeEngine["Triple Theme Engine<br/>Brand Daylight - Cockpit Night - Clean Studio"]
+        I18nEngine["7-Language Engine<br/>HE and AR RTL - EN, RU, FR, ES, DE LTR"]
+        StorefrontUI["Adaptive Booking Storefront<br/>Recreational 3-Step Flow or PRO 2-Step Flow"]
+        SubPortalUI["Subscriptions Portal<br/>Dedicated /subscriptions and /pro Tracks"]
+    end
+
+    subgraph RoutingLayer["Edge Routing and Next.js 16 App Router"]
+        CanonicalRedirects["Configured 301 Permanent Redirects<br/>/simulator and /training -> /pro<br/>/aerophobia -> /fear-of-flying<br/>/book-online -> /book<br/>/pricing-plans/list -> /subscriptions"]
+        PublicPages["Public Pages (20 Routes)<br/>/ • /about • /pro • /experiences • /book • /book/success<br/>/offers • /subscriptions • /subscriptions/thank-you • /workshops<br/>/vouchers • /ground-school • /contact • /rules • /privacy-policy<br/>/refund • /fear-of-flying • /blog • /post/(segments)"]
+        MemberPages["Member Area (5 Routes)<br/>/dashboard • /login • /wix/members/callback<br/>Legacy /auth/callback • /auth/reset-password"]
+        AdminPages["Admin Dispatch Command Center (4 Routes)<br/>/admin • /admin/bookings • /admin/vouchers • /admin/workshops"]
+    end
+
+    subgraph BusinessLogic["Core Business Logic and Engines"]
+        NoiseFreeAdapter["Noise-Free Booking Adapter<br/>Suppresses recreational add-ons for PRO and Fear of Flying"]
         KantorovichEngine["Tiled Interval Scheduler Engine<br/>lib/scheduler/kantorovich-engine.ts"]
-        MissionCalc["Mission Calculator<br/>Flight time + Addons + Voucher Manifest"]
-        WixPlansResolver["Wix Pricing Plans Resolver<br/>lib/wix/plans.ts (Price & Pattern Matching)"]
-        ReviewsCache["Google Reviews Snapshot<br/>stored twice a day (06:00/17:00 Israel); without one, one Google read per server/window; last-known aggregate only when unavailable"]
+        MissionCalc["Mission Duration and Upgrade Calculator<br/>lib/scheduler/mission-upgrade-promo.ts"]
+        WixPlansResolver["Wix Pricing Plans Resolver<br/>lib/wix/plans.ts"]
+        ReviewsCache["Google Reviews Snapshot Cache<br/>lib/reviews/ - Israel window refresh with fallback"]
     end
 
-    subgraph APILayer["Next.js Route Handlers (24 route files)"]
-        BookingAPIs["Booking & Capacity APIs<br/>GET /api/slots • GET /api/packages<br/>POST /api/checkout • POST /api/webhooks/stripe"]
-        SubscriptionAPIs["Subscription Checkout API<br/>POST & GET /api/subscriptions/checkout"]
-        MemberAPIs["Member Profile & Receipts<br/>GET /api/my-bookings • GET /api/my-bookings/[ref]/receipt<br/>POST /api/membership/bootstrap"]
-        ContentAPIs["Content & Offers APIs<br/>GET /api/blog • GET /api/offers/capabilities"]
-        OperationsAPIs["Operational & Customer APIs<br/>GET/POST/PATCH /api/bookings • GET/POST/PATCH /api/vouchers • GET/POST/PATCH /api/workshops<br/>POST /api/contact • GET/POST/PATCH /api/ground-school/inquiries<br/>GET/POST /api/refund-requests • POST /api/refund-requests/lookup<br/>GET/POST /api/reviews • POST /api/reviews/refresh"]
-        AdminAPIs["Admin Optimization<br/>GET /api/admin/schedule-efficiency • POST /api/admin/schedule-optimization"]
-        WixAPIs["Wix Pricing & Booking APIs<br/>POST /api/wix/bookings/checkout • POST /api/wix/birthday/claim<br/>POST /api/wix/birthday-pricing/v1/calculate-price"]
+    subgraph APILayer["Next.js Route Handlers (24 Route Files)"]
+        BookingAPIs["Booking and Capacity APIs<br/>GET /api/slots • GET /api/packages<br/>POST /api/checkout • POST /api/webhooks/stripe"]
+        SubscriptionAPIs["Subscription Checkout API<br/>POST and GET /api/subscriptions/checkout"]
+        MemberAPIs["Member Profile and Receipts<br/>GET /api/my-bookings • GET /api/my-bookings/(ref)/receipt<br/>POST /api/membership/bootstrap"]
+        ContentAPIs["Content and Offers APIs<br/>GET /api/blog • GET /api/offers/capabilities"]
+        OperationsAPIs["Operational and Customer APIs<br/>GET/POST/PATCH /api/bookings • GET/POST/PATCH /api/vouchers<br/>POST /api/contact • GET/POST/PATCH /api/ground-school/inquiries<br/>GET/POST /api/refund-requests • POST /api/refund-requests/lookup<br/>GET/POST /api/reviews • POST /api/reviews/refresh • POST /api/workshops"]
+        AdminAPIs["Admin Optimization APIs<br/>GET /api/admin/schedule-efficiency<br/>POST /api/admin/schedule-optimization"]
+        WixAPIs["Wix Pricing and Booking APIs<br/>POST /api/wix/bookings/checkout • POST /api/wix/birthday/claim<br/>POST /api/wix/birthday-pricing/v1/calculate-price"]
     end
 
-    subgraph PersistenceLayer["Persistence & External Services"]
-        SupabaseDB[("Supabase PostgreSQL (Production)<br/>Row-Level Security & Exclusion Constraints")]
-        InMemoryFallback[("In-Memory Store Fallback<br/>Local Dev & Non-500 Demo Resilience (ALLOW_IN_MEMORY_STORE)")]
-        StripeService["Legacy Stripe Hosted Checkout<br/>Card payment flow & Webhooks"]
-        WixHeadless["Wix Headless Platform (@wix/sdk)<br/>Members • Calendar sessions • Bookings • Pricing Plans • Hosted Checkout"]
-        GooglePlaces["Google Places + Cloud Translation<br/>Stored snapshot; process-window fallback; aggregate-only cold fallback"]
+    subgraph PersistenceLayer["Persistence and External Services"]
+        SupabaseDB[("Supabase PostgreSQL Production<br/>Row-Level Security and Exclusion Constraints")]
+        InMemoryFallback[("In-Memory Store Fallback<br/>Local Dev and Demo Resilience")]
+        StripeService["Stripe Hosted Checkout<br/>Legacy card payment flow and webhooks"]
+        WixHeadless["Wix Headless Platform SDK<br/>Members, Calendar, Bookings, Pricing Plans"]
+        GooglePlaces["Google Places and Translation API<br/>Twice-daily snapshot refresh"]
     end
 
-    User --> ThemeEngine --> I18nEngine
+    UserNode --> ThemeEngine --> I18nEngine
     I18nEngine --> StorefrontUI
     I18nEngine --> SubPortalUI
 
@@ -67,19 +106,17 @@ flowchart TD
     BookingAPIs --> KantorovichEngine
     BookingAPIs --> MissionCalc
     SubscriptionAPIs --> WixPlansResolver
-    BookingAPIs -.->|Wix-authoritative mode| WixAPIs --> WixHeadless
-    PublicPages --> ReviewsCache --> GooglePlaces
+    BookingAPIs -.->|Wix-authoritative mode| WixAPIs
 
-    KantorovichEngine --> SupabaseDB
-    KantorovichEngine -.->|If unconfigured| InMemoryFallback
-    BookingAPIs -->|legacy mode: Wix adapter disabled| StripeService
-    StripeService --> BookingAPIs
+    BookingAPIs --> SupabaseDB
+    BookingAPIs --> StripeService
     SubscriptionAPIs --> WixHeadless
-    BookingAPIs -.->|Optional shadow reads| WixHeadless
-    MemberPages --> MemberAPIs --> WixHeadless
-    MemberAPIs -.->|legacy booking history & Stripe receipts| SupabaseDB
-    AdminPages --> AdminAPIs --> SupabaseDB
-    AdminPages --> OperationsAPIs --> SupabaseDB
+    MemberAPIs --> WixHeadless
+    AdminAPIs --> SupabaseDB
+    OperationsAPIs --> SupabaseDB
+    WixAPIs --> WixHeadless
+    ContentAPIs --> ReviewsCache
+    ReviewsCache --> GooglePlaces
 ```
 
 ### Checkout dependency boundary
@@ -110,67 +147,124 @@ Flight tracks are single-payment, 12-month commercial packages: four consumer tr
 
 ## 2. Adaptive Booking Engine Architecture (Recreational vs Noise-Free PRO vs Subscriptions)
 
+### 2A. The 3 Customer Booking Journeys (Human-Readable Overview)
+
 ```mermaid
 flowchart TD
-    Start(["User Lands on Booking Engine (/book) or Portal (/subscriptions)"]) --> DetectPackage{"Package Category Check"}
+    Customer["Customer visits Booking Engine"] --> ChooseTrack{"Select Flight Track"}
 
-    subgraph NoiseFreeFlow["Noise-Free 2-Step Flow (PRO & Fear of Flying)"]
-        DetectPackage -->|category = 'training' (PRO)| ProConfig["Auto-Select: PRO Tiers (60/90/120 PRO)<br/>Pilot Level: ATPL"]
-        DetectPackage -->|category = 'fear_of_flying'| FearConfig["Auto-Select: Fear of Flying Course<br/>Pilot Level: Beginner"]
-        ProConfig --> Step1Pro["Step 1: Date & Operational Slot Selection"]
+    subgraph TrackA["Recreational Flights (3-Step Storefront)"]
+        ChooseTrack -->|Recreational| Step1A["1. Select Date and Time<br/>Live capacity indicators"]
+        Step1A --> Step2A["2. Add Cockpit Missions<br/>Cold and Dark, Crosswind, Extreme Airports"]
+        Step2A --> UpgradeAlert{"Promotional Upgrade?"}
+        UpgradeAlert -->|Yes| BumpNotice["Smart Tier Bump-up<br/>Auto-upgrades package and switches grid"]
+        UpgradeAlert -->|No| Step3A
+        BumpNotice --> Step3A["3. Pilot Manifest and Payment<br/>Wix Hosted Checkout"]
+    end
+
+    subgraph TrackB["Commercial PRO and Fear of Flying (Serene 2-Step)"]
+        ChooseTrack -->|Professional or Therapy| Step1B["1. Operational Slot Selection<br/>Zero consumer add-on distractions"]
+        Step1B --> Step2B["2. Pilot Manifest and Confirm<br/>Serene noise-free checkout"]
+    end
+
+    subgraph TrackC["Multi-Session Subscriptions (1-Click Portal)"]
+        ChooseTrack -->|Annual Subscription| SubPick["Select Flight Pack<br/>5x60m, 5x90m, 10x60m, or 10x90m"]
+        SubPick --> SubPay["Wix Pricing Plans Checkout<br/>Instant account credentialing"]
+    end
+```
+
+---
+
+### 2B. Adaptive Booking Pipeline & Upgrade State Machine (Professional Deep-Dive)
+
+```mermaid
+flowchart TD
+    Start["User Lands on /book or /subscriptions"] --> DetectPackage{"Package Category Check"}
+
+    subgraph NoiseFreeFlow["Noise-Free 2-Step Flow (PRO and Fear of Flying)"]
+        DetectPackage -->|category = training| ProConfig["Auto-Select: PRO Tiers (60/90/120 PRO)<br/>Pilot Level: ATPL"]
+        DetectPackage -->|category = fear_of_flying| FearConfig["Auto-Select: Fear of Flying Course<br/>Pilot Level: Beginner"]
+        ProConfig --> Step1Pro["Step 1: Date and Operational Slot Selection"]
         FearConfig --> Step1Pro
-        Step1Pro --> SuppressAddons["Step 2 Suppressed (Zero Recreational Add-ons)<br/>addons = []"]
-        SuppressAddons --> Step3Pro["Step 2 (Direct): Pilot Manifest & Checkout"]
+        Step1Pro --> SuppressAddons["Step 2 Suppressed: Zero Recreational Add-ons<br/>Addon array forced empty"]
+        SuppressAddons --> Step3Pro["Step 2 Direct: Pilot Manifest and Checkout"]
     end
 
-    subgraph RecreationalFlow["Full 3-Step Storefront Flow (Recreational / Consumer)"]
-        DetectPackage -->|category = 'recreational'| RecConfig["Display Full Catalog (30m, 45m, 60m, 90m, 120m)<br/>User Selects Pilot Level"]
-        RecConfig --> Step1Rec["Step 1: Date & Slot Selection<br/>(Live Runway Capacity Bar)"]
-        Step1Rec --> Step2Rec["Step 2: Cockpit Add-ons & Promo Tier Upgrades<br/>(Cold & Dark +30m, IFR +30m, 8 Trios, Extra Seat; max 2 mission add-ons via mission-upgrade-promo.ts)"]
-        Step2Rec --> Step3Rec["Step 3: Pilot Manifest & Checkout<br/>(Voucher Reapply & Manifest Summary)"]
+    subgraph RecreationalFlow["Full 3-Step Storefront Flow (Recreational Consumer)"]
+        DetectPackage -->|category = recreational| RecConfig["Display Full Catalog: 30m, 45m, 60m, 90m, 120m"]
+        RecConfig --> Step1Rec["Step 1: Date and Slot Selection<br/>Live Runway Capacity Bar"]
+        Step1Rec --> Step2Rec["Step 2: Cockpit Add-ons and Upgrades<br/>Max 2 mission add-ons via mission-upgrade-promo.ts"]
+        Step2Rec --> GridSwitchCheck{"Promotional Bump-Up Triggered?"}
+        GridSwitchCheck -->|30m+1 to 60m, 45m/60m+1 to 90m, any+2 to 120m| ResolveGrid["Option A Grid Duration Switching<br/>resolveScheduleDurationMinutes and SlotAdjustmentBanner"]
+        GridSwitchCheck -->|No add-on upgrade| Step3Rec["Step 3: Pilot Manifest and Checkout"]
+        ResolveGrid --> Step3Rec
     end
 
-    subgraph SubscriptionFlow["Single-Payment Annual Subscriptions Flow (/subscriptions)"]
-        DetectPackage -->|category = 'subscriptions'| SubConfig["Display 4 Annual Tracks (5x60, 5x90, 10x60, 10x90)<br/>12-Month Validity • Active Captain Coaching"]
-        SubConfig --> SubAction["User clicks 'Buy Subscription' / 'רכישת מנוי'"]
-        SubAction --> SubCheckout(["POST /api/subscriptions/checkout"])
+    subgraph SubscriptionFlow["Annual Subscriptions Flow (/subscriptions)"]
+        DetectPackage -->|category = subscriptions| SubConfig["Display 4 Consumer and 2 PRO Tracks<br/>12-Month Validity - Airline Pilot Coaching"]
+        SubConfig --> SubAction["User clicks Buy Subscription"]
+        SubAction --> SubCheckout["POST /api/subscriptions/checkout"]
     end
 
-    Step3Pro --> SubmitCheckout(["Checkout handoff<br/>Wix native when enabled; legacy /api/checkout otherwise"])
+    Step3Pro --> SubmitCheckout["Checkout Handoff<br/>Wix native when enabled - legacy /api/checkout otherwise"]
     Step3Rec --> SubmitCheckout
-    SubCheckout --> WixRedirectFlow(["Wix Pricing Plans Hosted Checkout (@wix/redirects)"])
+    SubCheckout --> WixRedirectFlow["Wix Pricing Plans Hosted Checkout via redirects API"]
 ```
 
 ---
 
 ## 3. Kantorovich Tiled Interval Scheduler Architecture
 
+### 3A. Zero-Waste Scheduling Principle (Human-Readable Overview)
+
+```mermaid
+flowchart LR
+    subgraph DailyHours["Operating Window"]
+        DailyTime["09:00 to 24:00 Daily<br/>15 Hours (900 Minutes) Continuous Cockpit Availability"]
+    end
+
+    subgraph BufferMath["Turnaround Buffer Math"]
+        FlightDuration["Flight Session<br/>30m, 45m, 60m, 90m, 120m"] --> AddBuffer["Turnaround Buffer<br/>+15m standard, +30m for 120m Grand Tour"]
+        AddBuffer --> TotalBlock["Total Reserved Block<br/>45m, 60m, 75m, 105m, 150m"]
+    end
+
+    subgraph ZeroWaste["Zero-Waste Slot Optimization"]
+        TotalBlock --> Algorithm["Dynamic Programming Tiling<br/>Validates that remaining time slots stay sellable"]
+        Algorithm --> Outcome1["Perfect Slot Fit -> Green Instant Booking"]
+        Algorithm --> Outcome2["Orphan Gap Avoided -> Refuses Fragmentation"]
+    end
+```
+
+---
+
+### 3B. Dynamic Programming Tiling Engine Pipeline (Professional Deep-Dive)
+
 ```mermaid
 flowchart LR
     subgraph Windows["1. Operating Windows"]
-        AllDays["Sun–Sat: 09:00–24:00 (900m)"]
+        AllDays["Sun-Sat: 09:00-24:00 (900 min capacity)"]
     end
 
     subgraph CapacityMap["2. Buffer Reservation Map"]
-        B30["30 min Flight ➔ 45 min Block"]
-        B45["45 min Flight ➔ 60 min Block (Daytime Only)"]
-        B60["60 min Flight ➔ 75 min Block"]
-        B90["90 min Flight ➔ 105 min Block"]
-        B120["120 min Flight ➔ 150 min Block"]
-        B240["240 min Workshop ➔ 255 min Block"]
+        B30["30 min Flight -> 45 min Block"]
+        B45["45 min Flight -> 60 min Block (Daytime Only)"]
+        B60["60 min Flight -> 75 min Block"]
+        B90["90 min Flight -> 105 min Block (Flat ₪850 Tariff)"]
+        B120["120 min Flight -> 150 min Block"]
+        B240["240 min Workshop -> 255 min Block"]
     end
 
     subgraph ValidationEngine["3. Dynamic Programming Tile Engine"]
-        Candidates["Generate Duration-Aware Cadence Starts<br/>(Reconnected at booking boundaries; Wix re-anchors via wixBlockedBookings)"]
+        Candidates["Generate 15-Minute Raster Candidate Starts<br/>Reconnected at booking boundaries via wixBlockedBookings"]
         CollisionCheck{"Collides with Existing Booking?"}
         WindowCheck{"Exceeds Closing Time?"}
-        PromoCheck{"45m Discounted Promotion outside Sun–Tue daytime?"}
-        ZeroWasteDP{"canTileIntervalZeroWaste() / minSellableGaps<br/>Can free space stay sellable? (Allows flush closing tail <45m in Wix mode)"}
+        PromoCheck{"45m Promo outside Sun-Tue daytime?"}
+        ZeroWasteDP{"canTileIntervalZeroWaste and minSellableGaps<br/>Can free space stay sellable? Allows flush closing tail"}
     end
 
     subgraph FrontendState["4. Resilient Frontend UI"]
-        SlotsAvailable["Slots Available ➔ Green Pills + Smart Pairing Badge"]
-        SoldOutState["0 Slots Today ➔ Amber Badge (Kept in DOM)<br/>Actionable Recovery: 'Check Next Day →'"]
+        SlotsAvailable["Slots Available -> Green Pills with Smart Pairing Badge"]
+        SoldOutState["0 Slots Today -> Amber Badge in DOM<br/>Actionable Recovery: Check Next Day"]
     end
 
     Windows --> Candidates
@@ -188,9 +282,43 @@ flowchart LR
 
 ---
 
-## 4. Legacy Supabase/Stripe Payment & Checkout Lifecycle Sequence Diagram
+## 4. Payment & Checkout Lifecycle Sequence Diagrams
 
-This diagram applies only while `WIX_AVAILABILITY_ADAPTER_ENABLED` is disabled. When Wix authority is enabled, the browser revalidates the selected slot through `POST /api/wix/bookings/checkout`, creates the native Wix booking and Cart V2 draft, and opens Wix-hosted checkout; the local `POST /api/checkout` writer returns `409` rather than creating a competing reservation.
+### 4A. Primary Wix Headless Checkout Flow (Sequence Diagram)
+
+When `WIX_AVAILABILITY_ADAPTER_ENABLED=true` (the production-standard configuration), booking checkout delegates to Wix Bookings, native duration-extending add-ons, and Wix Hosted Checkout:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Customer as Customer / Pilot
+    participant Browser as Booking Front-End (/book)
+    participant NextAPI as Next.js API (/api/wix/bookings/checkout)
+    participant WixEngine as Wix Bookings and Cart V2
+    participant HostedCheckout as Wix Hosted Checkout
+
+    Customer->>Browser: Selects Package, Date, Slot and Add-ons
+    Browser->>NextAPI: POST /api/wix/bookings/checkout (validate slot with upgraded duration)
+    NextAPI->>WixEngine: Check live time slots and availability
+    WixEngine-->>NextAPI: Confirms slot is unreserved and valid
+    NextAPI-->>Browser: HTTP 200 { valid: true, slot, businessLocation }
+
+    Browser->>WixEngine: Create draft Booking with native bookedAddOns
+    Browser->>WixEngine: Create Cart V2 containing booking line item
+    opt Wix Coupon or Gift Card entered
+        Browser->>WixEngine: Apply Coupon or Gift Card to Cart V2
+    end
+    WixEngine-->>Browser: Calculated Cart total with server discounts
+    Browser->>HostedCheckout: Redirect customer to secure Wix Hosted Checkout
+    Customer->>HostedCheckout: Completes payment
+    HostedCheckout-->>Browser: Redirects to /book/success with confirmed booking
+```
+
+---
+
+### 4B. Legacy Supabase / Stripe Checkout Flow (Sequence Diagram)
+
+This fallback flow applies only while `WIX_AVAILABILITY_ADAPTER_ENABLED` is disabled. When Wix authority is enabled, the local `POST /api/checkout` writer returns `409` rather than creating a competing reservation:
 
 ```mermaid
 sequenceDiagram
@@ -198,101 +326,132 @@ sequenceDiagram
     actor Customer as Customer / Pilot
     participant Browser as Storefront (/book)
     participant Server as Next.js API (/api/checkout)
-    participant DB as Supabase PostgreSQL / Store
+    participant DB as Supabase PostgreSQL Database
     participant Stripe as Stripe Payment Gateway
     participant Webhook as Next.js Webhook (/api/webhooks/stripe)
     actor Admin as Admin Dispatch Board
 
-    Customer->>Browser: Selects Package, Slot, Pilot Manifest & Clicks Checkout
-    Browser->>Server: POST /api/checkout (selection, manifest, and consent inputs; no price, duration, or discount authority)
+    Customer->>Browser: Selects Package, Slot, Manifest and Clicks Checkout
+    Browser->>Server: POST /api/checkout (manifest and choices without price authority)
 
     activate Server
-    Server->>DB: Fetch authoritative package price, slot capacity & existing bookings
-    Server->>Server: Recalculate duration, end time, and total price (Server-Authoritative)
+    Server->>DB: Fetch authoritative price, slot capacity and existing bookings
+    Server->>Server: Recalculate duration, end time and price on server
 
     alt Fully Funded Voucher Applied
-        Server->>DB: Mark Voucher Redeemed & Create Confirmed Booking
+        Server->>DB: Mark Voucher Redeemed and Create Confirmed Booking
         Server-->>Browser: HTTP 201 { success: true, bookingReference: "SD-..." }
         Browser-->>Customer: Redirect to /book/success
-    else Card Checkout
+    else Card Payment Required
         Server->>DB: Create Pending Booking with UUID
         Server->>Stripe: Create Stripe Checkout Session (metadata: booking_id, slot_id)
-        Stripe-->>Server: Checkout URL (stripe.com/pay/cs_test_...)
+        Stripe-->>Server: Checkout URL
         Server-->>Browser: HTTP 201 { checkoutUrl: "https://checkout.stripe.com/..." }
         deactivate Server
         Browser-->>Customer: Redirect to Stripe Hosted Checkout
         Customer->>Stripe: Completes Card Payment
-        Stripe-->>Customer: Redirects to /book/success?ref=...&session_id=...
+        Stripe-->>Customer: Redirects to /book/success with session parameters
 
         Note over Stripe,Webhook: Asynchronous Secure Webhook
         Stripe->>Webhook: POST /api/webhooks/stripe (checkout.session.completed)
         activate Webhook
         Webhook->>Webhook: Verify Stripe-Signature header
-        Webhook->>DB: UPDATE bookings SET status='confirmed', payment_status='paid'
-        Admin->>Server: Refreshes dispatch data through protected APIs
+        Webhook->>DB: Update booking to confirmed and payment to paid
+        Admin->>Server: Refreshes dispatch board through protected APIs
         Webhook-->>Stripe: HTTP 200 { received: true }
         deactivate Webhook
     end
 ```
 
-### 4B. Wix Pricing Plans & Subscriptions Checkout Lifecycle Sequence Diagram
+---
+
+### 4C. Wix Pricing Plans & Subscriptions Checkout Flow (Sequence Diagram)
 
 ```mermaid
 sequenceDiagram
     autonumber
     actor Customer as Customer / Pilot
-    participant Browser as Storefront (/subscriptions or /experiences)
+    participant Browser as Storefront (/subscriptions or /pro)
     participant API as Next.js API (/api/subscriptions/checkout)
     participant WixClient as Wix Client (lib/wix/plans.ts)
     participant Wix as Wix Headless (Pricing Plans V3)
-    participant Payment as Wix-hosted checkout / PayPlus when enabled
+    participant Payment as Wix Hosted Checkout
     participant Return as Browser (/subscriptions/thank-you)
 
-    Customer->>Browser: Selects Subscription (e.g. 5x90 Advanced Captain) & Clicks "Buy Subscription"
+    Customer->>Browser: Selects Subscription (e.g. 5x90 Advanced Captain) and Clicks Buy
     Browser->>API: POST /api/subscriptions/checkout { planId: "advanced-captain-5x90" }
     activate API
     API->>WixClient: resolveWixPlanId("advanced-captain-5x90")
-    WixClient->>Wix: Query Public Plans (price ₪3,390 or name match)
-    Wix-->>WixClient: Returns Plan GUID (or matches static WIX_PLAN_IDS)
+    WixClient->>Wix: Query Public Plans (matching price ₪3,390 or title)
+    Wix-->>WixClient: Returns Plan GUID or matches static WIX_PLAN_IDS
     WixClient->>Wix: client.redirects.createRedirectSession({ paidPlansCheckout: { planId } })
-    Wix-->>WixClient: Returns { redirectSession: { fullUrl } }
+    Wix-->>WixClient: Returns redirect session with full URL
     WixClient-->>API: Returns hosted checkout URL
     API-->>Browser: HTTP 200 { checkoutUrl: "https://...wix-site-host.com/..." }
     deactivate API
     Browser-->>Customer: Redirects customer to hosted payment page
-    Note over Wix,Payment: PayPlus is a deferred Wix payment-provider integration; do not treat it as active until Wix payment setup and cutover are verified.
-    Customer->>Payment: Completes payment with the provider configured in Wix
-    Payment-->>Return: Redirects to /subscriptions/thank-you?planOrderId=...
-    Return-->>Customer: Renders confetti & next steps to schedule sessions
+    Customer->>Payment: Completes payment with configured provider
+    Payment-->>Return: Redirects to /subscriptions/thank-you with planOrderId
+    Return-->>Customer: Renders confetti and session scheduling instructions
 ```
+
 ---
 
 ## 5. Bidirectional 7-Language Architecture (i18n)
 
+### 5A. Multilingual User Experience (Human-Readable Overview)
+
 ```mermaid
 flowchart TD
-    subgraph LangContext["LanguageContext & Provider"]
-        SelectedLang["Active Language State (stored in browser local storage)"]
+    UserLang["Visitor selects preferred language"] --> LangSwitch["Instant Client Language Switcher"]
+
+    subgraph RTLGroup["Right-to-Left (RTL) Layouts"]
+        LangSwitch --> HE["Hebrew (Default)<br/>Natural right-to-left layout and typography"]
+        LangSwitch --> AR["Arabic<br/>Natural right-to-left layout and typography"]
+    end
+
+    subgraph LTRGroup["Left-to-Right (LTR) Layouts"]
+        LangSwitch --> EN["English"]
+        LangSwitch --> RU["Russian"]
+        LangSwitch --> FR["French"]
+        LangSwitch --> ES["Spanish"]
+        LangSwitch --> DE["German"]
+    end
+
+    subgraph TelemetryRule["Aviation Telemetry Exception"]
+        HE -.-> CockpitData["Aviation METAR Weather, Radio Frequencies and Slots<br/>Always strictly rendered in LTR for international aviation compliance"]
+        AR -.-> CockpitData
+    end
+```
+
+---
+
+### 5B. Technical i18n Engine & Directionality Isolation (Professional Deep-Dive)
+
+```mermaid
+flowchart TD
+    subgraph LangContext["LanguageContext and Provider"]
+        SelectedLang["Active Language State stored in localStorage"]
     end
 
     subgraph Languages["Supported 7 Languages"]
-        HE["Hebrew ('he')<br/>RTL • dir='rtl'"]
-        AR["Arabic ('ar')<br/>RTL • dir='rtl'"]
-        EN["English ('en')<br/>LTR • dir='ltr'"]
-        RU["Russian ('ru')<br/>LTR • dir='ltr'"]
-        FR["French ('fr')<br/>LTR • dir='ltr'"]
-        ES["Spanish ('es')<br/>LTR • dir='ltr'"]
-        DE["German ('de')<br/>LTR • dir='ltr'"]
+        HE["Hebrew: he - RTL - dir=rtl"]
+        AR["Arabic: ar - RTL - dir=rtl"]
+        EN["English: en - LTR - dir=ltr"]
+        RU["Russian: ru - LTR - dir=ltr"]
+        FR["French: fr - LTR - dir=ltr"]
+        ES["Spanish: es - LTR - dir=ltr"]
+        DE["German: de - LTR - dir=ltr"]
     end
 
-    subgraph StrictRules["Architectural & Isolation Rules"]
-        Rule1["No isRTL Text Hacks: Always query translations[lang]"]
-        Rule2["Zero Unicode Contamination: Automated Regex Scan"]
-        Rule3["Telemetry Isolation: Aviation METAR, Frequencies, Slots in dir='ltr'"]
+    subgraph StrictRules["Architectural and Isolation Rules"]
+        Rule1["No isRTL text hacks: Always query translations dictionary"]
+        Rule2["Zero Unicode Contamination: Verified via automated regex scan"]
+        Rule3["Telemetry Isolation: Aviation METAR, Frequencies and Slots in dir=ltr"]
     end
 
     subgraph Output["Localized View"]
-        DOM["Clean DOM Render with Precise Typography & Correct Directionality"]
+        DOM["Clean DOM Render with Precise Typography and Directionality"]
     end
 
     SelectedLang --> HE
@@ -318,33 +477,48 @@ flowchart TD
 
 ## 6. Automated Quality Framework & Testing Pipeline (TESTING.md)
 
+### 6A. From Commit to Release Quality Gates (Human-Readable Overview)
+
+```mermaid
+flowchart LR
+    DevCommit["Code Commit"] --> Gate1["1. Fast Math and Typecheck<br/>Vitest 175 suites and TypeScript strict"]
+    Gate1 --> Gate2["2. Sandboxed Production Build<br/>Isolated build to .next-test directory"]
+    Gate2 --> Gate3["3. Real Browser Validation<br/>Playwright across 5 browsers and Axe-Core A11y"]
+    Gate3 --> Gate4["4. Load and Web Vitals<br/>Autocannon concurrency and Lighthouse CWV"]
+    Gate4 --> DeployProd["Safe Production Tag and Deployment"]
+```
+
+---
+
+### 6B. Comprehensive Testing Topology (Professional Deep-Dive)
+
 ```mermaid
 flowchart TD
-    Trigger(["npm run test:quick / npm run test:all"]) --> EnvCheck["Sandboxed Test Environment<br/>NEXT_DIST_DIR = '.next-test'<br/>ALLOW_IN_MEMORY_STORE = 'true'"]
+    Trigger["npm run test:quick or npm run test:all"] --> EnvCheck["Sandboxed Test Environment<br/>NEXT_DIST_DIR=.next-test<br/>ALLOW_IN_MEMORY_STORE=true"]
 
-    subgraph Stage1["1. Static & Fast Unit Verification (Vitest)"]
-        Typecheck["TypeScript Strict Check<br/>(tsc --noEmit)"]
-        UnitTests["Vitest Projects (175 Suites, 3,500+ Tests)<br/>- Scheduling math & mission manifests<br/>- i18n key parity & unicode purity<br/>- Member auth ownership contracts<br/>- Wix catalog & plans resolution"]
+    subgraph Stage1["1. Static and Fast Unit Verification (Vitest)"]
+        Typecheck["TypeScript Strict Check via tsc --noEmit"]
+        UnitTests["Vitest Projects (175 Suites, 3500+ Tests)<br/>Scheduling math and mission manifests<br/>i18n key parity and unicode purity<br/>Member auth ownership contracts<br/>Wix catalog and plans resolution"]
     end
 
-    subgraph Stage2["2. Build & Artifact Verification"]
+    subgraph Stage2["2. Build and Artifact Verification"]
         SandboxedBuild["Next.js Sandboxed Build<br/>Output to .next-test (Never touches dev .next)"]
         ServerLaunch["Ephemeral Test Server Launch<br/>Isolated port with clean mock state"]
     end
 
-    subgraph Stage3["3. Browser, Usability & Accessibility Suites (Playwright 10 Projects)"]
-        BrowserProjects["5 Cross-Browser Projects<br/>Chromium • Firefox • WebKit<br/>Mobile Chrome • Mobile Safari"]
-        QualityProjects["5 Quality Dimension Projects<br/>- a11y (Axe-Core automated audit, 0 violations)<br/>- usability (header-fit, member-i18n, apple-web-app)<br/>- security-web (CSP nonce, headers)<br/>- resilience (network/timeout fallbacks)<br/>- visual (cross-platform snapshots)"]
+    subgraph Stage3["3. Browser, Usability and Accessibility Suites (Playwright 10 Projects)"]
+        BrowserProjects["5 Cross-Browser Projects<br/>Chromium • Firefox • WebKit • Mobile Chrome • Mobile Safari"]
+        QualityProjects["5 Quality Dimension Projects<br/>a11y (Axe-Core automated audit, 0 violations)<br/>usability (header-fit, member-i18n, apple-web-app)<br/>security-web (CSP nonce, headers)<br/>resilience (network and timeout fallbacks)<br/>visual (cross-platform snapshots)"]
     end
 
-    subgraph Stage4["4. Performance & Reliability Smoke"]
-        LoadSmoke["Autocannon Load Smoke<br/>100 concurrency slot hammering"]
-        LighthouseAudit["Lighthouse CWV Budgets<br/>Performance, A11y, Best Practices, SEO"]
+    subgraph Stage4["4. Performance and Reliability Smoke"]
+        LoadSmoke["Autocannon Load Smoke with 100 concurrency slot hammering"]
+        LighthouseAudit["Lighthouse CWV Budgets: Performance, A11y, Best Practices, SEO"]
     end
 
     EnvCheck --> Stage1
     Stage1 --> Stage2
     Stage2 --> Stage3
     Stage3 --> Stage4
-    Stage4 --> QualityReport(["Comprehensive Quality Report<br/>test-results/quality-report.md"])
+    Stage4 --> QualityReport["Comprehensive Quality Report<br/>test-results/quality-report.md"]
 ```
