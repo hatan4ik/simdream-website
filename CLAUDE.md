@@ -30,8 +30,8 @@
 1. **Read state first.** Every new session starts by reading `docs/PROJECT_STATE.md` and `docs/DECISIONS.md`, before any other action.
 2. **Keep docs current.** After any substantive change, update both files in the same change. A document that no longer reflects the code is broken.
 3. **Independent verification.** Before marking a task done, run the [`verifier`](.claude/agents/verifier.md) agent. It did not write the code and reports without editing.
-4. **Branches.** Never work on `main`. Work on `devel/<topic>` cut from a freshly fetched `origin/main`, and finish with a pull request. Commit and push only when asked.
-5. **Wix production is read-only** from this repo. All API tests and writes go to `SimDream-Staging` (`AGENTS.md` section 6.7).
+4. **Branches, commits and pull requests** follow the task contract in `AGENTS.md` section 0 (Limits). `.claude/hooks/block-main-commit.sh` blocks commits on `main`.
+5. **Wix environments** follow `AGENTS.md` section 6.7 (only SimDream-Staging is writable).
 6. **Concurrent sessions.** Another session may edit this checkout. Read `git status` and file timestamps before writing, and never revert what you did not write.
 
 ## 4. Docs impact map
@@ -47,7 +47,7 @@ If you changed the item on the left, update what is on the right.
 | Environment variables | `.env.example` (the only place they are documented), `GENESIS.md` |
 | A design, brand or theme decision | `app/globals.css`, `AGENTS.md` (section 1), `docs/DECISIONS.md` |
 | Any new technical or architectural decision | `docs/DECISIONS.md` (decisions table) |
-| Source that affects the fingerprint (`app/`, `components/`, `lib/`, `scripts/`, `AGENTS.md`) | Run `npm run docs:genesis:stamp`, then `npm run docs:verify` |
+| Anything in the `GENESIS.md` fingerprint surface (listed in `AGENTS.md` section 0, "Done when", and in `scripts/check-genesis-coverage.ts`) | Run `npm run docs:genesis:stamp` after reviewing the diff, then `npm run docs:verify` |
 
 ## 5. Session roles
 

@@ -19,7 +19,7 @@ Dates come from the merge date of the cited PR. "Not recorded" means the repo do
 
 ## Working rules learned the hard way
 
-- **Branches.** Cut `devel/<topic>` from a freshly fetched `origin/main`, finish with a PR, never work on `main` (other teams use it). `.claude/settings.json` blocks committing on `main` and pushing to it.
+- **Branches.** Cut `devel/<topic>` from a freshly fetched `origin/main`, finish with a PR, never work on `main` (other teams use it). `.claude/hooks/block-main-commit.sh` blocks committing on `main`, and `.claude/settings.json` denies the common push-to-main forms (`git push origin main`, `+main`, `HEAD:main`, `refs/heads/main`, `-u`/`--set-upstream origin main`) and force pushes including `--force-with-lease`; prefix patterns cannot catch every spelling (a different remote name, options placed before `origin`), so branch protection is the real backstop.
 - **Test target.** Probe the new app on the staging Wix headless host `https://headless-ciwstxzqhgf-hatan4ik-1408.wix-site-host.com`, never on `www.simdream.co.il` (still the old Editor site, where `/book`, `/pro` and `/experiences` return 404). Name the host in every finding.
 - **Go slowly against Wix.** Wix and Cloudflare answer HTTP 429 after a few hundred requests a minute; send requests one at a time, and discard any run that shows 429s. On tablet profiles use real `tap()` calls followed by `waitForURL` (Next client navigation never fires `load`). Never grep page bodies for "not found": Next embeds its not-found template in every page.
 - **Concurrent sessions.** Another agent may edit or auto-commit in this checkout and replace `.next-test`. Before blaming code, check `ls .next-test/BUILD_ID`, `git status` and `uptime`; run `npm run typecheck` before `npm run test:build`; never revert another session's in-progress files.
@@ -36,7 +36,8 @@ Dates come from the merge date of the cited PR. "Not recorded" means the repo do
 ## Settled
 
 - 2026-11-23: `AGENTS.md` got a task contract, a file map and a pointer to this log (section 0); the Google reviews bar and Wix adapter detail moved verbatim to `docs/modules/`. `.claude/settings.json` denies `.env` reads and edits, force-pushes and pushes to `main`, and `.claude/hooks/block-main-commit.sh` blocks `git commit` on `main` (harness audit 6/10 to 9/10).
-- 2026-11-23: the agent working environment was set up (see the decisions table).
+- 2026-11-23: the agent working environment was set up (see the decisions table). `CLAUDE.md` points to `AGENTS.md` for branch, commit, Wix and fingerprint rules instead of restating them, so the two files cannot drift; the push-to-`main` deny list in `.claude/settings.json` was widened.
+- 2026-11-23: Dependabot security alert #4 (`minimatch`, medium) is fixed according to GitHub (fixed 2026-11-23, patched version 11.0.1).
 - 2026-11-22: `ARCHITECTURE.md` Mermaid diagrams fixed and split into two layers (#299).
 - 2026-11-22: dependency uplift merged (#300); CodeQL `init` and `analyze` pinned to one release and grouped in Dependabot (#293); the multi-add-on E2E helper requires a day where both the 60m and the 120m grids have open slots (#292).
 - 2026-11-22: Wix staging has six pool definitions, one per plan; Flight Foundations 5 x 60 is linked to "Captain's Command Flight (60m)" in the Wix dashboard.
@@ -45,7 +46,6 @@ Dates come from the merge date of the cited PR. "Not recorded" means the repo do
 ## Open
 
 - `@wix/pricing-plans` 1.0.451 pushes the Wix worker bundle to 14.01 of 14.00 MiB (the budget is never raised). Dependabot PR #298 was closed; either trim about 30 KB from the worker (`docs/modules/wix-bundle-diet.md`) and reopen it, or stay on the current version.
-- Dependabot security alert #4 (`minimatch`, medium; fixed in 11.0.1) has no PR yet.
 - Production Wix: PRO plans and benefit-pool links need an explicit instruction from the owner and a dashboard step; check read-only for duplicate pools first.
 - `pkg-grand-120` is not provisioned in Wix (`PENDING_WIX_PACKAGE_IDS`).
 - Stale text: `docs/WIX_BIRTHDAY_PRICING_PROVIDER.md` near line 184 and the `reconcileCatalog` comment.
