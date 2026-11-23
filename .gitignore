@@ -69,7 +69,11 @@ yarn-error.log*
 /skills-lock.json
 /.agents/
 /.*/skills/
-/.claude/
+# Claude Code: only the shared project settings and hooks are source (AGENTS.md section 0); skills, worktrees and local settings stay machine-local.
+/.claude/*
+!/.claude/settings.json
+!/.claude/hooks/
+!/.claude/agents/
 /.codex/
 /.codestudio/
 /.commandcode/
