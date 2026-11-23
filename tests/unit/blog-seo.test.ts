@@ -1,4 +1,7 @@
 import { describe, expect, it, vi, afterEach } from 'vitest';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 import { getAllBlogPosts } from '@/lib/data/blog-posts';
 import blogSlugMapData from '@/lib/data/blog-slug-map.json';
 import {
@@ -6,6 +9,7 @@ import {
   getAllBlogSeoRecords,
   getBlogSeoBySlugOrId,
   getLocalizedBlogSeo,
+  getLocalizedBlogSeoSync,
 } from '@/lib/data/blog-seo';
 import { buildBlogPostMetadata } from '@/lib/seo/blog-post-metadata';
 import { blogPostPath } from '@/lib/seo/site-routes';
@@ -20,6 +24,20 @@ const CYRILLIC_RE = /[\u0400-\u04FF]/;
 describe('blog-seo.json registry & short canonical URLs', () => {
   afterEach(() => {
     vi.restoreAllMocks();
+  });
+
+  it('resolves checked-in SEO data when the invoking working directory has no public data', () => {
+    const originalCwd = process.cwd();
+    const emptyCwd = mkdtempSync(path.join(tmpdir(), 'simdream-blog-seo-'));
+
+    try {
+      process.chdir(emptyCwd);
+      expect(getLocalizedBlogSeoSync('aircraft-systems-guide', 'en')?.shortSlug)
+        .toBe('aircraft-systems-guide');
+    } finally {
+      process.chdir(originalCwd);
+      rmSync(emptyCwd, { recursive: true, force: true });
+    }
   });
 
   it('covers all 39 posts across all 6 languages with unique ASCII shortSlugs', async () => {

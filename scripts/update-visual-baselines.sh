@@ -5,7 +5,7 @@
 # tests/visual/visual.spec.ts-snapshots is copied back.
 set -euo pipefail
 
-IMAGE="mcr.microsoft.com/playwright:v1.64.1-noble"
+IMAGE="mcr.microsoft.com/playwright:v1.65.1-noble"
 SNAPSHOTS="tests/visual/visual.spec.ts-snapshots"
 
 docker run --rm --ipc=host -v "$PWD":/src -w /work "$IMAGE" bash -c "
