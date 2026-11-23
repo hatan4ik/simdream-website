@@ -2,6 +2,7 @@ import { noDiscountBirthDate } from '../support/booking-extras';
 import { validityOf } from './pages/forms';
 import { PAYMENTS_UNAVAILABLE, type PilotDetails } from './pages/booking-page';
 import { addMinutes, displayDatePattern, ilsPattern } from './pages/format';
+import { activate } from './pages/hydration';
 import { expect, recordRequests, test } from './fixtures';
 
 const CAPTAIN_60_PRICE = 690;
@@ -188,15 +189,21 @@ test.describe('recreational booking, guided 3-step wizard', () => {
     const apply = page.getByRole('button', { name: 'Apply', exact: true });
 
     await code.fill('SD-VOUCH-ZZZZZZZZZZZZZZZZZZ');
-    const unknown = page.waitForResponse((response) => response.url().endsWith('/api/vouchers'));
-    await apply.click();
+    const unknown = page.waitForResponse(
+      (response) => new URL(response.url()).pathname === '/api/vouchers' && response.request().method() === 'POST'
+    );
+    // This button is mounted with the pilot step. Wait for its React handler rather than allowing
+    // a loaded Firefox runner to click the server-rendered, not-yet-interactive control.
+    await activate(apply);
     expect((await unknown).status()).toBe(404);
     await expect(page.getByText('Invalid voucher code.', { exact: true })).toBeVisible();
 
     // Verification is read-only: a paid voucher smaller than the order is explained, never applied.
     await code.fill(SEED_VOUCHER.code);
-    const insufficient = page.waitForResponse((response) => response.url().endsWith('/api/vouchers'));
-    await apply.click();
+    const insufficient = page.waitForResponse(
+      (response) => new URL(response.url()).pathname === '/api/vouchers' && response.request().method() === 'POST'
+    );
+    await activate(apply);
     expect((await insufficient).status()).toBe(200);
     await expect(
       page.getByText('This voucher cannot cover the full online order. Please contact us for split payment.')

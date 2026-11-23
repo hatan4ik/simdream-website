@@ -49,6 +49,7 @@
     "crm:migrate": "tsx tools/crm-migration/cli.ts",
     "wix:blog:translate": "tsx scripts/translate-wix-blog.ts",
     "wix:readiness": "tsx scripts/wix-readiness.ts",
+    "wix:check-benefit-pools": "tsx scripts/check-wix-benefit-pools.ts",
     "wix:provision": "tsx scripts/wix-provision.ts",
     "wix:build": "opennextjs-cloudflare build && node scripts/prepare-opennext-for-wix.mjs && wrangler deploy --dry-run --outdir .wix-worker && node scripts/prepare-wix-worker.mjs",
     "wix:preview": "opennextjs-cloudflare preview",
@@ -102,6 +103,7 @@
     "@opennextjs/cloudflare": {
       "glob": "14.0.6"
     },
+    "i18next": "26.3.4",
     "rclone.js": {
       "adm-zip": "0.6.1"
     }

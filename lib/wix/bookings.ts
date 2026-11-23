@@ -246,8 +246,9 @@ function servicePrice(service: WixService): string {
 }
 
 /**
- * Compares the local catalog with the live Wix services it maps to. A varied
- * price counts as matching when the local price equals its minimum.
+ * Compares the local catalog with the live Wix services it maps to (9 of 10 mapped;
+ * pkg-grand-120 is pending in PENDING_WIX_PACKAGE_IDS). SimDream operates flat fixed
+ * tariffs with no surcharge.
  */
 export function reconcileCatalog(services: WixService[]): CatalogMismatch[] {
   const byId = new Map(services.map((service) => [service.id, service]));

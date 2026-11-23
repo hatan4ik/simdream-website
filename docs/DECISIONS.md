@@ -10,6 +10,10 @@ Dates come from the merge date of the cited PR. "Not recorded" means the repo do
 
 | Date | Decision | Why | Rejected |
 | :--- | :--- | :--- | :--- |
+| 2026-11-23 | Send Wix Blog V3 post filters in the documented `query` envelope and require the requested locale in both the remote filter and returned post. | Stops ignored top-level filters from allowing a different-language article to render mixed-language breadcrumbs and JSON-LD. | Trusting an unvalidated first response or using unsupported `slug: { $eq: ... }`. |
+| 2026-11-23 | Pin transitive `i18next` to 26.3.4 through npm overrides. | Removes the moderate GHSA-6jcc-5g8w-32mx advisory without Dependabot's incompatible downgrade of `@wix/pricing-plans` to 1.0.221. | `npm audit fix --force` and a breaking Wix SDK downgrade. |
+| 2026-11-23 | Guard Wix Pricing Plans benefit pools via pure rule engine and CLI (`lib/wix/plan-benefit-pools.ts`, `scripts/check-wix-benefit-pools.ts`) to enforce at most 1 pool per plan. | Prevents duplicate benefit pools and multiplied sessions created by repetitive dashboard linkages. | Relying solely on manual dashboard inspection. |
+| 2026-11-23 | Update stale documentation: settle Wix worker diet (10.12 MiB UTF-8, 1.30 MiB under 14.00 MiB budget with `@wix/pricing-plans` at 1.0.453), flat ₪850 all-day 90m tariff in birthday verification table, and Grand 120 provisioning runbook. | Eliminate documentation drift against live codebase capabilities. | Leaving stale text in open state. |
 | 2026-11-23 | Adopt a structured agent working environment: `CLAUDE.md` (session roles, work cycle, Docs impact map), `docs/PROJECT_STATE.md`, this file, and agents in `.claude/agents/` (`verifier`, `researcher`, `tester`, `debugger`, `security`). | Prevent contradictions between sessions and duplicate decisions, and make sure changes are checked by an agent that did not write them. | Ad-hoc sessions with no roles and no independent verification. |
 | 2026-11-23 | Rename `docs/decisions.md` to `docs/DECISIONS.md` and merge the guidelines' table into it. | The guidelines name the file in upper case; macOS is case-insensitive, so keeping both names would collide. | Replacing the file with the table only (would lose the working rules). |
 | 2026-11-22 | Split the `ARCHITECTURE.md` diagrams into a readable overview layer and a detailed engineering layer (#299). | Earlier diagrams had Mermaid parse errors and were too dense to read quickly. | Not recorded. |
@@ -35,6 +39,11 @@ Dates come from the merge date of the cited PR. "Not recorded" means the repo do
 
 ## Settled
 
+- 2026-11-23: Wix worker bundle diet verified settled at 10.12 MiB UTF-8 / 12.70 MiB with `\u` escapes (1.30 MiB under the 14.00 MiB budget) with `@wix/pricing-plans` 1.0.453 merged in #300.
+- 2026-11-23: Repo guard script (`scripts/check-wix-benefit-pools.ts`, `lib/wix/plan-benefit-pools.ts`, `tests/unit/wix-benefit-pools.test.ts`) flags duplicate benefit pools per plan.
+- 2026-11-23: Stale text in `docs/WIX_BIRTHDAY_PRICING_PROVIDER.md` (flat ₪850 all-day tariff) and `reconcileCatalog` comments updated.
+- 2026-11-23: `docs/agents/slot-utilization-study.md` updated with Option A grid switching and two-add-on cap departure alignment.
+- 2026-11-23: `pkg-grand-120` provisioning specification documented in `docs/WIX_HEADLESS_CUTOVER_RUNBOOK.md`.
 - 2026-11-23: tracked git hooks added (`.githooks/pre-commit`, `.githooks/pre-push`, installed by the `prepare` script), so the no-commit-on-`main` and no-secrets rules hold for terminals and other agents, not only Claude Code.
 - 2026-11-23: `AGENTS.md` got a task contract, a file map and a pointer to this log (section 0); the Google reviews bar and Wix adapter detail moved verbatim to `docs/modules/`. `.claude/settings.json` denies `.env` reads and edits, force-pushes and pushes to `main`, and `.claude/hooks/block-main-commit.sh` blocks `git commit` on `main` (harness audit 6/10 to 9/10).
 - 2026-11-23: the agent working environment was set up (see the decisions table). `CLAUDE.md` points to `AGENTS.md` for branch, commit, Wix and fingerprint rules instead of restating them, so the two files cannot drift; the push-to-`main` deny list in `.claude/settings.json` was widened.
@@ -46,9 +55,5 @@ Dates come from the merge date of the cited PR. "Not recorded" means the repo do
 
 ## Open
 
-- `@wix/pricing-plans` 1.0.451 pushes the Wix worker bundle to 14.01 of 14.00 MiB (the budget is never raised). Dependabot PR #298 was closed; either trim about 30 KB from the worker (`docs/modules/wix-bundle-diet.md`) and reopen it, or stay on the current version.
 - Production Wix: PRO plans and benefit-pool links need an explicit instruction from the owner and a dashboard step; check read-only for duplicate pools first.
-- `pkg-grand-120` is not provisioned in Wix (`PENDING_WIX_PACKAGE_IDS`).
-- Stale text: `docs/WIX_BIRTHDAY_PRICING_PROVIDER.md` near line 184 and the `reconcileCatalog` comment.
-- No repo guard yet flags more than one benefit pool per plan.
-- `docs/agents/slot-utilization-study.md` predates the two-add-on tier upgrade finding (a 60m slot can have a large window but no 120m departure; the app disables the add-on on purpose).
+- `pkg-grand-120` is not provisioned in Wix (`PENDING_WIX_PACKAGE_IDS`; runbook documented).

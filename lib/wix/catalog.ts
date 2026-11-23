@@ -5,9 +5,10 @@ import { SUBSCRIPTION_PASSES, type SubscriptionPassId } from '@/lib/data/subscri
  * SimDream package id → Wix Bookings service id on the dedicated
  * "SimDream-Staging" Headless site (metasite 317b0c6d-6608-499a-bb3c-b1c37650e460).
  *
- * The services were created from this catalog, one APPOINTMENT per package,
+ * The services were created from this catalog, one APPOINTMENT per package (9 of 10
+ * mapped on SimDream-Staging; pkg-grand-120 is pending in PENDING_WIX_PACKAGE_IDS),
  * so the pairing is one-to-one. `reconcileCatalog` in ./bookings checks that
- * the live service still carries the same name, duration and price; the
+ * the live service still carries the same name, duration and fixed price; the
  * server stays the pricing authority either way (AGENTS.md §6.3).
  */
 export const WIX_SERVICE_IDS: Readonly<Record<string, string>> = {
