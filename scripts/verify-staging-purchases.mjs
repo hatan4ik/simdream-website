@@ -2,7 +2,7 @@
  * Live Wix Staging End-to-End Purchase, Add-on, Multi-Language, Coupon (`OFF-100`) &
  * Gift Card (`8AQMJWNT1V5RK98D`) Verification Suite.
  *
- * Runs inside Docker (`mcr.microsoft.com/playwright:v1.64.1-noble`) via:
+ * Runs inside Docker (`mcr.microsoft.com/playwright:v1.65.1-noble`) via:
  *   npm run test:staging:docker
  *
  * Or filtered to a specific suite:

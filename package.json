@@ -43,7 +43,7 @@
     "test:load": "tsx scripts/with-server.ts --port 3804 -- tsx tests/load/smoke.ts",
     "test:lighthouse": "tsx scripts/with-server.ts --port 3805 -- tsx tests/perf/run-lighthouse.ts",
     "test:staging:purchases": "node scripts/verify-staging-purchases.mjs",
-    "test:staging:docker": "docker run --rm -v \"$PWD:/work\" -w /work mcr.microsoft.com/playwright:v1.64.1-noble node scripts/verify-staging-purchases.mjs",
+    "test:staging:docker": "docker run --rm -v \"$PWD:/work\" -w /work mcr.microsoft.com/playwright:v1.65.1-noble node scripts/verify-staging-purchases.mjs",
     "wix:smoke": "tsx scripts/wix-smoke.ts",
     "wix:blog:migrate": "tsx scripts/migrate-wix-blog.ts",
     "crm:migrate": "tsx tools/crm-migration/cli.ts",

@@ -63,7 +63,7 @@ Treat each as a hypothesis the first time you run the study; the repository and 
 
 ### Environment
 
-- Image `mcr.microsoft.com/playwright:v1.64.1-noble` (matches `package.json`). Copy the source without `node_modules`, `.next`, `.next-test` and `.crm-migration` (a `tar` pipe works), run `npm ci`, and start `next dev -p 3111` against live staging.
+- Image `mcr.microsoft.com/playwright:v1.65.1-noble` (matches `package.json`). Copy the source without `node_modules`, `.next`, `.next-test` and `.crm-migration` (a `tar` pipe works), run `npm ci`, and start `next dev -p 3111` against live staging.
 - `lib/wix/config.ts` reads `wix.config.json` only when `NODE_ENV=production`, so under `next dev` pass explicitly: `NEXT_PUBLIC_WIX_CLIENT_ID` (the staging appId from `wix.config.json`), `WIX_SITE_ID=317b0c6d-6608-499a-bb3c-b1c37650e460`, `WIX_AVAILABILITY_ADAPTER_ENABLED=true`, `WIX_BIRTHDAY_PRICING_PROVIDER_ENABLED=false`, `ALLOW_IN_MEMORY_STORE=false`.
 - Verify `GET http://127.0.0.1:3111/api/slots?date=<future empty date>&duration=60` returns Wix authority and equals live Time Slots V2 before any order.
 - Importing repository libraries under `tsx` needs a `server-only` stub in the git-ignored `node_modules`.
