@@ -172,6 +172,8 @@ test.describe('refund request form', () => {
   });
 
   test('says no refund is likely on the day of the session, and offers a paid move', async ({ page }) => {
+    // The 23:30 session must still be ahead: after 23:30 Israel time the rules treat it as started and drop the paid move (4.2).
+    await page.clock.setFixedTime(new Date(`${israelDate(0)}T09:00:00Z`));
     await openForm(page);
     await fillOrder(page, { reference: 'WIX-1', email: 'dana@example.com', sessionDate: israelDate(0), sessionTime: '23:30' });
     await expect(panel(page)).toHaveAttribute('data-refund-outcome', 'no_refund_window');
