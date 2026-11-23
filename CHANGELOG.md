@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.31.2](https://github.com/hatan4ik/simdream-website/compare/v1.31.1...v1.31.2) (2026-11-23)
+
+
+### Bug Fixes
+
+* **reviews:** refresh Google rating to 5.0 (446 reviews) ([#301](https://github.com/hatan4ik/simdream-website/issues/301)) ([7f4dd72](https://github.com/hatan4ik/simdream-website/commit/7f4dd72a902bf260cb9392ef01df140035eafaa7))
+
 ## [1.31.1](https://github.com/hatan4ik/simdream-website/compare/v1.31.0...v1.31.1) (2026-11-19)
 
 

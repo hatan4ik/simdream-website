@@ -10,6 +10,14 @@
 
 ## Product changes by version
 
+### [v1.31.2](https://github.com/hatan4ik/simdream-website/releases/tag/v1.31.2) — 2026-11-23
+
+#### Bug Fixes
+
+- **reviews:** refresh Google rating to 5.0 (446 reviews) (#301) (7f4dd72)
+
+Deployment evidence: [GitHub Release](https://github.com/hatan4ik/simdream-website/releases/tag/v1.31.2).
+
 ### [v1.31.1](https://github.com/hatan4ik/simdream-website/releases/tag/v1.31.1) — 2026-11-19
 
 #### Bug Fixes
