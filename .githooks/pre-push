@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Tracked git hook. AGENTS.md section 0: main takes changes by pull request only (branch protection is the backstop).
+# Git passes one line per ref on stdin: <local ref> <local sha> <remote ref> <remote sha>.
+while read -r _local_ref _local_sha remote_ref _remote_sha; do
+  if [ "$remote_ref" = "refs/heads/main" ]; then
+    echo "Blocked: pushing to main. Push a devel/<topic> branch and open a pull request (AGENTS.md section 0)." >&2
+    exit 1
+  fi
+done
+exit 0
