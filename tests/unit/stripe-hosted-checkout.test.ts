@@ -11,6 +11,7 @@ const sessions = {
   expire: vi.fn(),
   retrieve: vi.fn(),
 };
+let stripeOptions: unknown;
 
 async function loadStripe(configured = true) {
   vi.resetModules();
@@ -19,6 +20,10 @@ async function loadStripe(configured = true) {
   vi.stubEnv('STRIPE_WEBHOOK_SECRET', configured ? TEST_STRIPE.webhookSecret : '');
   vi.doMock('stripe', () => ({
     default: class FakeStripe {
+      constructor(_secretKey: string, options: unknown) {
+        stripeOptions = options;
+      }
+
       checkout = { sessions };
       webhooks = {};
     },
@@ -31,6 +36,7 @@ afterEach(() => {
   sessions.create.mockReset();
   sessions.expire.mockReset();
   sessions.retrieve.mockReset();
+  stripeOptions = undefined;
 });
 
 describe('createCheckoutSession', () => {
@@ -53,6 +59,15 @@ describe('createCheckoutSession', () => {
       sessionId: 'cs_test_1',
       expiresAt: '2099-12-31T23:30:00.000Z',
     });
+    expect(stripeOptions).toEqual({ apiVersion: '2026-11-18.endive' });
+    expect(sessions.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        mode: 'payment',
+        customer_email: 'pilot@example.test',
+        metadata: { bookingId: 'booking-1', voucherId: '' },
+      })
+    );
+    expect(sessions.create.mock.calls[0]?.[0]).not.toHaveProperty('payment_method_types');
   });
 });
 

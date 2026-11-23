@@ -21,14 +21,15 @@ function readWranglerConfig(): Record<string, unknown> {
 describe('wrangler.jsonc for the Wix-hosted Worker', () => {
   const config = readWranglerConfig();
 
-  it('declares only the bundle settings present today: no vars, secrets, bindings, routes or environments', () => {
+  it('declares only the minified bundle settings: no vars, secrets, bindings, routes or environments', () => {
     expect(Object.keys(config).sort()).toEqual(
-      ['$schema', 'assets', 'compatibility_date', 'compatibility_flags', 'main', 'name'].sort()
+      ['$schema', 'assets', 'compatibility_date', 'compatibility_flags', 'main', 'minify', 'name'].sort()
     );
   });
 
   it('binds only the static assets directory, as ASSETS', () => {
     expect(config.assets).toEqual({ directory: '.open-next/assets', binding: 'ASSETS' });
     expect(config.main).toBe('.open-next/worker.js');
+    expect(config.minify).toBe(true);
   });
 });

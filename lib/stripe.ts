@@ -26,7 +26,7 @@ export const PAYMENTS_DISABLED_MESSAGE =
 
 export const stripe = isStripeConfigured
   ? new Stripe(stripeSecretKey, {
-      apiVersion: '2025-02-24.acacia',
+      apiVersion: '2026-11-18.endive',
     })
   : null;
 
@@ -74,7 +74,6 @@ export async function createCheckoutSession(params: CreateCheckoutParams): Promi
   }
 
   const session = await stripe.checkout.sessions.create({
-    payment_method_types: ['card'],
     line_items: [
       {
         price_data: {
@@ -126,7 +125,8 @@ export async function expireCheckoutSession(sessionId: string): Promise<'expired
     return 'expired';
   } catch (error) {
     const current = await stripe.checkout.sessions.retrieve(sessionId).catch(() => null);
-    if (current?.status === 'expired' || current?.status === 'complete') return current.status;
+    if (current?.status === 'expired') return 'expired';
+    if (current?.status === 'complete') return 'complete';
     throw error;
   }
 }

@@ -3,6 +3,11 @@
   "version": "1.31.1",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=24.22.1 <25",
+    "npm": ">=11.20.0"
+  },
+  "packageManager": "npm@11.20.0",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -47,17 +52,18 @@
     "wix:provision": "tsx scripts/wix-provision.ts",
     "wix:build": "opennextjs-cloudflare build && node scripts/prepare-opennext-for-wix.mjs && wrangler deploy --dry-run --outdir .wix-worker && node scripts/prepare-wix-worker.mjs",
     "wix:preview": "opennextjs-cloudflare preview",
-    "wix:release": "npm run wix:build && CI=1 npx --yes @wix/cli@1.2.9 release"
+    "wix:release": "npm run wix:build && CI=1 npx --yes @wix/cli@1.2.9 release",
+    "verify:dependency-uplift": "npm ci && npm audit --audit-level=moderate && npm install-scripts ls && npm run lint && npm run typecheck && npm run test:unit && npm run test:integration && npm run test:build && npm run wix:build && npm run docs:verify"
   },
   "dependencies": {
     "@sendgrid/mail": "^8.1.3",
     "@stripe/stripe-js": "^10.3.0",
-    "@supabase/supabase-js": "^2.119.0",
+    "@supabase/supabase-js": "^2.119.2",
     "@tailwindcss/postcss": "^4.3.5",
     "@wix/members": "^1.0.541",
-    "@wix/pricing-plans": "^1.0.440",
+    "@wix/pricing-plans": "^1.0.453",
     "@wix/redirects": "^1.0.134",
-    "@wix/sdk": "^1.21.18",
+    "@wix/sdk": "^1.21.19",
     "canvas-confetti": "^1.9.4",
     "clsx": "^2.1.1",
     "jose": "^6.2.18",
@@ -65,35 +71,44 @@
     "next": "^16.4.6",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
-    "stripe": "^17.2.0",
-    "tailwind-merge": "^2.5.4",
+    "stripe": "^23.2.0",
+    "tailwind-merge": "^3.7.1",
     "zod": "^4.6.7"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",
-    "@opennextjs/cloudflare": "^1.20.17",
-    "@playwright/test": "^1.64.1",
+    "@opennextjs/cloudflare": "^1.20.18",
+    "@playwright/test": "^1.65.1",
     "@types/canvas-confetti": "^1.9.0",
-    "@types/node": "^22.20.5",
+    "@types/node": "^24.19.2",
     "@types/react": "^19.3.0",
-    "@types/react-dom": "^19.2.3",
-    "@vitest/coverage-v8": "^5.0.5",
+    "@types/react-dom": "^19.3.0",
+    "@vitest/coverage-v8": "^5.1.1",
     "autocannon": "^9.0.0",
-    "fast-check": "^4.10.2",
+    "fast-check": "^4.11.0",
     "postcss": "^8.5.33",
     "rclone.js": "^0.6.6",
     "tailwindcss": "^4.3.3",
     "tsx": "^4.23.15",
     "typescript": "^6.0.3",
-    "vitest": "^5.0.5",
-    "wrangler": "^4.160.0"
+    "vitest": "^5.1.1",
+    "wrangler": "^4.166.0"
   },
   "overrides": {
     "@node-minify/core": {
       "glob": "10.5.0"
     },
+    "@opennextjs/cloudflare": {
+      "glob": "14.0.6"
+    },
     "rclone.js": {
       "adm-zip": "0.6.1"
     }
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true,
+    "workerd@1.20261119.1": true,
+    "rclone.js": false,
+    "fsevents": false
   }
 }

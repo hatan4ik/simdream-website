@@ -39,7 +39,8 @@ const LANG_BASE_KEYWORDS: Record<BlogSeoLang, readonly [string, string, string]>
   de: ['SimDream', 'Flugsimulator', 'Boeing 737'],
 };
 
-const PUBLIC_SEO_JSON_RELATIVE = ['public', 'data', 'blog-seo.json'] as const;
+// Keep literal path segments so Turbopack traces only this asset, not the full project.
+const PUBLIC_SEO_JSON_PATH = path.join(process.cwd(), 'public', 'data', 'blog-seo.json');
 let cachedSeoData: CompactSeoByTid | null = null;
 let inflightLoad: Promise<CompactSeoByTid | null> | null = null;
 
@@ -50,8 +51,7 @@ function buildKeywords(lang: BlogSeoLang, shortSlug: string): string[] {
 function loadFromDiskSync(): CompactSeoByTid | null {
   if (cachedSeoData) return cachedSeoData;
   try {
-    const filePath = path.join(process.cwd(), ...PUBLIC_SEO_JSON_RELATIVE);
-    const parsed = JSON.parse(readFileSync(filePath, 'utf8')) as CompactSeoByTid;
+    const parsed = JSON.parse(readFileSync(PUBLIC_SEO_JSON_PATH, 'utf8')) as CompactSeoByTid;
     cachedSeoData = parsed;
     return parsed;
   } catch {
@@ -65,8 +65,7 @@ export async function loadBlogSeoData(): Promise<CompactSeoByTid | null> {
 
   inflightLoad = (async (): Promise<CompactSeoByTid | null> => {
     try {
-      const filePath = path.join(process.cwd(), ...PUBLIC_SEO_JSON_RELATIVE);
-      const raw = await readFile(filePath, 'utf8');
+      const raw = await readFile(PUBLIC_SEO_JSON_PATH, 'utf8');
       const parsed = JSON.parse(raw) as CompactSeoByTid;
       cachedSeoData = parsed;
       return parsed;

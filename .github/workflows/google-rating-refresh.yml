@@ -23,7 +23,7 @@ jobs:
     env:
       BRANCH: automation/google-rating
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Pull the rating from the Places API
         id: rating
         env:
@@ -44,7 +44,7 @@ jobs:
       # steps run only when the rating changed, with neither the Places key nor GH_TOKEN in their environment;
       # --ignore-scripts keeps dependency install scripts from running in this write-permission job.
       - if: steps.rating.outputs.title != ''
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
           cache: npm
