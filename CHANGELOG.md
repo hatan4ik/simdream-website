@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.32.0](https://github.com/hatan4ik/simdream-website/compare/v1.31.2...v1.32.0) (2026-11-23)
+
+
+### Features
+
+* **wix:** add benefit pool duplicate guard, align documentation, and update slot study ([#306](https://github.com/hatan4ik/simdream-website/issues/306)) ([b88939b](https://github.com/hatan4ik/simdream-website/commit/b88939b4e16cc48c097a67f5114bc38789bbf77f))
+
 ## [1.31.2](https://github.com/hatan4ik/simdream-website/compare/v1.31.1...v1.31.2) (2026-11-23)
 
 
