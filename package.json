@@ -103,6 +103,7 @@
     "@opennextjs/cloudflare": {
       "glob": "14.0.6"
     },
+    "i18next": "26.3.4",
     "rclone.js": {
       "adm-zip": "0.6.1"
     }

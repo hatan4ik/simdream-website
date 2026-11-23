@@ -12,13 +12,15 @@ Facts here are checked against the repo; where a number is a measurement, the co
 - **Scheduler (Kantorovich tiled interval engine):** 09:00-24:00 operating window; reserved blocks 30m to 45, 45m to 60, 60m to 75, 90m to 105, 120m to 150, 240m to 255; zero-waste tiling; closing-tail recovery (#276). Spec: `KANTOROVICH_SCHEDULER_SPEC.md`.
 - **Booking (`/book`):** adaptive flows (3-step consumer, 2-step PRO and Fear of Flying), promotional tier bump-up ladder with the two-add-on cap, upgraded-duration grid switching (Option A, #279), flat 90m price all day (#271), 15% birthday discount judged on the upgraded tier (#281, #284).
 - **Offerings:** consumer flight tracks and PRO tracks (6 subscription passes: 4 consumer, 2 PRO), gift vouchers, Fear of Flying course (60 min, 690 ILS), the `/offers` page.
-- **Wix Headless adapter:** writes only to the SimDream-Staging site; `npm run wix:smoke` reconciles the catalog (9 of 10 package ids mapped). Wix benefit pool allocations are audited via `npm run wix:check-benefit-pools` (`lib/wix/plan-benefit-pools.ts`). Worker bundle stands at 10.12 MiB UTF-8 (12.70 MiB with `\u` escapes), 1.30 MiB below the 14.00 MiB budget with `@wix/pricing-plans` 1.0.453.
+- **Wix Headless adapter:** writes only to the SimDream-Staging site; `npm run wix:smoke` reconciles the catalog (9 of 10 package ids mapped). Wix benefit pool allocations are audited via `npm run wix:check-benefit-pools` (`lib/wix/plan-benefit-pools.ts`). Worker bundle stands at 10.13 MiB UTF-8 (12.70 MiB with `\u` escapes), 1.30 MiB below the 14.00 MiB budget with `@wix/pricing-plans` 1.0.453.
+- **Dependency security:** the npm override resolves the Wix transitive `i18next` dependency to 26.3.4, removing GHSA-6jcc-5g8w-32mx without downgrading `@wix/pricing-plans`; the clean Node 24/npm 11.20 audit reports zero production vulnerabilities.
 - **Quality gates:** `npm run docs:verify` passes (GENESIS.md covers 599 of 599 checklist items, fingerprint current). Test files: 176 unit/integration-style `*.test.ts` and 62 Playwright `*.spec.ts`; `playwright.config.ts` defines 10 projects; the accessibility baseline is empty (0 axe violations).
 
 ## In progress
 
 - Tracked git hooks and secret scan pre-commit (`.githooks/` and PR #305).
 - Single hardening & documentation consolidation PR (benefit pool guard, flat 90m tariff docs, Grand 120 runbook, slot study Option A updates).
+- PR #306 adds the safe `i18next` security resolution and makes the Firefox voucher E2E wait for the dynamically rendered Apply control to hydrate before clicking.
 
 ## Blocked
 
@@ -27,8 +29,8 @@ Facts here are checked against the repo; where a number is a measurement, the co
 
 ## Next step
 
-1. Complete verification (`npm run typecheck`, `npm run test:quick`, `npm run docs:verify`).
-2. Push branch `devel/system-hardening-and-bundle-diet` and open single consolidation PR.
+1. Push the verified PR #306 update and require a fresh green Verify run, including Firefox.
+2. Confirm GitHub closes the `i18next` Dependabot alert after its post-push dependency scan.
 
 Open items with owners and details are listed in `docs/DECISIONS.md`.
 
