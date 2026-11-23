@@ -53,7 +53,8 @@
     "wix:build": "opennextjs-cloudflare build && node scripts/prepare-opennext-for-wix.mjs && wrangler deploy --dry-run --outdir .wix-worker && node scripts/prepare-wix-worker.mjs",
     "wix:preview": "opennextjs-cloudflare preview",
     "wix:release": "npm run wix:build && CI=1 npx --yes @wix/cli@1.2.9 release",
-    "verify:dependency-uplift": "npm ci && npm audit --audit-level=moderate && npm install-scripts ls && npm run lint && npm run typecheck && npm run test:unit && npm run test:integration && npm run test:build && npm run wix:build && npm run docs:verify"
+    "verify:dependency-uplift": "npm ci && npm audit --audit-level=moderate && npm install-scripts ls && npm run lint && npm run typecheck && npm run test:unit && npm run test:integration && npm run test:build && npm run wix:build && npm run docs:verify",
+    "prepare": "git config core.hooksPath .githooks 2>/dev/null || true"
   },
   "dependencies": {
     "@sendgrid/mail": "^8.1.3",
