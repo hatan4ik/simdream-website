@@ -67,6 +67,11 @@ Complete these steps in a **staging Headless site** first. Do not test against p
 3. Verify the operational hours, ILS price, base duration and turnaround buffer with live reads. `npm run wix:smoke` reports future bookable 60-minute slots and the shared capacity resource; `npm run wix:readiness` blocks a pilot if the shared capacity pool or catalog alignment drifts.
 4. Correct any subsequent mismatch through an approved product decision. The known simulator offers remain defined locally; never silently change price or duration only in Wix.
 5. Keep the duration-aware adapter aligned with the package reservation map: 30m → 45m, 45m → 60m, 60m → 75m, 90m → 105m, 120m → 150m. Wix returns a 5-minute appointment raster; the engine derives the bookings from its holes and offers the first start 15 minutes after each (14:05 end → 14:20), never a start Wix does not list. Duration add-ons are native Wix Bookings add-ons: Wix returns the extended slot for `customerChoices.addOnIds` and the booking carries `bookedAddOns`, so the calendar blocks the whole mission (the extended-tier probe remains only for a subscription redemption). Create the add-on groups on every production service first. Do not enable an unmapped add-on or route through a local fallback while Wix owns the calendar.
+6. **Pending package provisioning (`pkg-grand-120`)**:
+   - Local Package: Grand Discovery Flight (120m), price ₪1,200 (`pkg-grand-120`).
+   - Wix service type: `APPOINTMENT`, base duration 120 min, buffer 30 min (total 150 min block).
+   - Resource requirement: Must assign the shared Boeing 737 Simulator resource type.
+   - Once provisioned in the Wix Dashboard or via `npm run wix:provision`, configure `WIX_SERVICE_ID_GRAND_120=<serviceId>` or update `WIX_SERVICE_IDS['pkg-grand-120']` in `lib/wix/catalog.ts` and remove `pkg-grand-120` from `PENDING_WIX_PACKAGE_IDS`.
 
 ### Pricing Plans subscriptions
 
