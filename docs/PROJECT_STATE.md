@@ -17,7 +17,7 @@ Facts here are checked against the repo; where a number is a measurement, the co
 
 ## In progress
 
-- Agent working environment (this setup): `CLAUDE.md`, these two docs and `.claude/agents/`, following `~/Downloads/agent-setup-guidelines.md`. Created and reviewed on branch `devel/harness-audit`; nothing is committed yet.
+- Agent working environment (this setup): `CLAUDE.md`, these two docs and `.claude/agents/`, following `~/Downloads/agent-setup-guidelines.md`. Committed (a371610) and pushed on branch `devel/harness-audit`; the pull request is not opened yet.
 - Wix staging: subscription plans and benefit pools (see `docs/DECISIONS.md`, Working rules, "Wix benefit pools").
 - Wix worker bundle: held under the 14.00 MiB budget by not taking `@wix/pricing-plans` 1.0.451.
 
@@ -29,7 +29,7 @@ Facts here are checked against the repo; where a number is a measurement, the co
 
 ## Next step
 
-1. Commit and open a pull request for the setup on `devel/harness-audit` (only when asked).
+1. Open the pull request for `devel/harness-audit` (only when asked); the setup commit a371610 is already pushed.
 2. Run `/agents` or restart Claude Code so the new agents in `.claude/agents/` can be called.
 3. Pick the session role for the next piece of work (`CLAUDE.md`, "Session roles").
 
