@@ -107,7 +107,6 @@ const queryBlogPostsResponseSchema = z
 
 export interface WixBlogListOptions {
   limit?: number;
-  offset?: number;
   category?: string;
   language?: string;
 }
@@ -232,15 +231,17 @@ export async function listWixBlogPosts(
   if (isWixConfigured()) {
     try {
       const raw = await wixPost<unknown>(WIX_BLOG_QUERY_POSTS_URL, {
-        filter: { language: { $eq: targetLang } },
-        paging: {
-          limit: options.limit ?? 50,
-          offset: options.offset ?? 0,
+        query: {
+          filter: { language: { $eq: targetLang } },
+          cursorPaging: {
+            limit: options.limit ?? 50,
+          },
         },
       });
       const parsed = queryBlogPostsResponseSchema.safeParse(raw);
-      if (parsed.success && parsed.data.posts.length > 0) {
-        return parsed.data.posts.map((p) => {
+      const posts = parsed.success ? parsed.data.posts.filter((post) => post.language === targetLang) : [];
+      if (posts.length > 0) {
+        return posts.map((p) => {
           const groupMeta = p.translationId ? blogSlugMap.byTranslationId[p.translationId] : undefined;
           const localFallback = groupMeta?.localSlug ? getBlogPostBySlug(groupMeta.localSlug) : undefined;
           const coverImage =
@@ -313,12 +314,20 @@ export async function resolveBlogPost(slug: string, requestedLang?: string): Pro
   if (isWixConfigured()) {
     try {
       const raw = await wixPost<unknown>(WIX_BLOG_QUERY_POSTS_URL, {
-        filter: { slug: { $eq: wixQuerySlug } },
+        query: {
+          filter: {
+            slug: { $hasSome: [wixQuerySlug] },
+            language: { $eq: targetLang },
+          },
+        },
         fieldsets: ['URL', 'RICH_CONTENT', 'SEO'],
       });
       const parsed = queryBlogPostsResponseSchema.safeParse(raw);
       if (parsed.success && parsed.data.posts.length > 0) {
-        const p = parsed.data.posts[0]!;
+        // Do not let a stale or ignored Wix filter replace a localized route
+        // with a different language's content.
+        const p = parsed.data.posts.find((post) => post.language === targetLang);
+        if (!p) throw new Error('Wix returned no post in the requested language');
         const contentNodes = convertWixRichContentNodes(p.richContent?.nodes);
         const groupMeta = p.translationId ? blogSlugMap.byTranslationId[p.translationId] : matchedGroup;
         const localFallback = groupMeta?.localSlug ? getBlogPostBySlug(groupMeta.localSlug) : undefined;

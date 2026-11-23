@@ -10,6 +10,7 @@ Dates come from the merge date of the cited PR. "Not recorded" means the repo do
 
 | Date | Decision | Why | Rejected |
 | :--- | :--- | :--- | :--- |
+| 2026-11-23 | Send Wix Blog V3 post filters in the documented `query` envelope and require the requested locale in both the remote filter and returned post. | Stops ignored top-level filters from allowing a different-language article to render mixed-language breadcrumbs and JSON-LD. | Trusting an unvalidated first response or using unsupported `slug: { $eq: ... }`. |
 | 2026-11-23 | Pin transitive `i18next` to 26.3.4 through npm overrides. | Removes the moderate GHSA-6jcc-5g8w-32mx advisory without Dependabot's incompatible downgrade of `@wix/pricing-plans` to 1.0.221. | `npm audit fix --force` and a breaking Wix SDK downgrade. |
 | 2026-11-23 | Guard Wix Pricing Plans benefit pools via pure rule engine and CLI (`lib/wix/plan-benefit-pools.ts`, `scripts/check-wix-benefit-pools.ts`) to enforce at most 1 pool per plan. | Prevents duplicate benefit pools and multiplied sessions created by repetitive dashboard linkages. | Relying solely on manual dashboard inspection. |
 | 2026-11-23 | Update stale documentation: settle Wix worker diet (10.12 MiB UTF-8, 1.30 MiB under 14.00 MiB budget with `@wix/pricing-plans` at 1.0.453), flat ₪850 all-day 90m tariff in birthday verification table, and Grand 120 provisioning runbook. | Eliminate documentation drift against live codebase capabilities. | Leaving stale text in open state. |

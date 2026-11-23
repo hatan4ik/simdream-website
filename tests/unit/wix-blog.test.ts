@@ -111,7 +111,7 @@ describe('Wix Headless Blog System & 39-Article Content Engine', () => {
 
   it('fetches and maps live Wix blog posts when Wix is configured', async () => {
     vi.spyOn(wixConfig, 'isWixConfigured').mockReturnValue(true);
-    vi.spyOn(wixClient, 'wixPost').mockResolvedValue({
+    const wixPost = vi.spyOn(wixClient, 'wixPost').mockResolvedValue({
       posts: [
         {
           id: 'test-wix-post-1',
@@ -162,8 +162,14 @@ describe('Wix Headless Blog System & 39-Article Content Engine', () => {
     expect(list[0]?.id).toBe('test-wix-post-1');
     expect(list[0]?.language).toBe('en');
     expect(list[0]?.readingTimeMinutes).toBe(7);
+    expect(wixPost).toHaveBeenCalledWith('https://www.wixapis.com/blog/v3/posts/query', {
+      query: {
+        filter: { language: { $eq: 'en' } },
+        cursorPaging: { limit: 50 },
+      },
+    });
 
-    const resolved = await resolveBlogPost('live-wix-test-article');
+    const resolved = await resolveBlogPost('live-wix-test-article', 'en');
     expect(resolved).toBeDefined();
     expect(resolved?.title).toBe('Live Wix Test Article');
     expect(resolved?.contentNodes).toHaveLength(4);
@@ -171,6 +177,63 @@ describe('Wix Headless Blog System & 39-Article Content Engine', () => {
     expect(resolved?.contentNodes[1]?.type).toBe('heading');
     expect(resolved?.contentNodes[2]?.type).toBe('paragraph');
     expect(resolved?.contentNodes[3]?.type).toBe('list');
+    expect(wixPost).toHaveBeenLastCalledWith('https://www.wixapis.com/blog/v3/posts/query', {
+      query: {
+        filter: {
+          slug: { $hasSome: ['live-wix-test-article'] },
+          language: { $eq: 'en' },
+        },
+      },
+      fieldsets: ['URL', 'RICH_CONTENT', 'SEO'],
+    });
+  });
+
+  it('keeps the requested blog language when Wix returns a mismatched post', async () => {
+    vi.spyOn(wixConfig, 'isWixConfigured').mockReturnValue(true);
+    const wixPost = vi.spyOn(wixClient, 'wixPost').mockResolvedValue({
+      posts: [
+        {
+          id: 'wrong-language-post',
+          title: 'English response that must not replace the Hebrew route',
+          slug: 'aircraft-systems-guide',
+          language: 'en',
+        },
+      ],
+    });
+
+    const resolved = await resolveBlogPost('aircraft-systems-guide', 'he');
+
+    expect(wixPost).toHaveBeenCalledWith('https://www.wixapis.com/blog/v3/posts/query', {
+      query: {
+        filter: {
+          slug: { $hasSome: ['מדריך-ללימוד-מערכות-מטוס-בלי-ללכת-לאיבוד'] },
+          language: { $eq: 'he' },
+        },
+      },
+      fieldsets: ['URL', 'RICH_CONTENT', 'SEO'],
+    });
+    expect(resolved?.language).toBe('he');
+    expect(resolved?.title).not.toBe('English response that must not replace the Hebrew route');
+  });
+
+  it('falls back to the requested language list when Wix returns only mismatched posts', async () => {
+    vi.spyOn(wixConfig, 'isWixConfigured').mockReturnValue(true);
+    vi.spyOn(wixClient, 'wixPost').mockResolvedValue({
+      posts: [
+        {
+          id: 'wrong-language-list-post',
+          title: 'English listing response that must not replace Hebrew posts',
+          slug: 'aircraft-systems-guide',
+          language: 'en',
+        },
+      ],
+    });
+
+    const posts = await listWixBlogPosts({ language: 'he' });
+
+    expect(posts).toHaveLength(39);
+    expect(posts.every((post) => post.language === 'he')).toBe(true);
+    expect(posts.some((post) => post.title === 'English listing response that must not replace Hebrew posts')).toBe(false);
   });
 
   it('handles Wix API errors cleanly by falling back', async () => {
