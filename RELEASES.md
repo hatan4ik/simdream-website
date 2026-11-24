@@ -10,6 +10,14 @@
 
 ## Product changes by version
 
+### [v1.32.1](https://github.com/hatan4ik/simdream-website/releases/tag/v1.32.1) — 2026-11-24
+
+#### Bug Fixes
+
+- **wix:** pin @opennextjs/cloudflare to 1.20.16 and guard the cookie bundle (#310) (f014941)
+
+Deployment evidence: [GitHub Release](https://github.com/hatan4ik/simdream-website/releases/tag/v1.32.1).
+
 ### [v1.32.0](https://github.com/hatan4ik/simdream-website/releases/tag/v1.32.0) — 2026-11-23
 
 #### Features
