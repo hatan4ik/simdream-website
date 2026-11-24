@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { getWixBackedKantorovichSlots } from '@/lib/wix/availability-adapter';
 import { wixBlockedBookings } from '@/lib/wix/wix-blocked-bookings';
 import { generateKantorovichSlots, minutesToTime, timeToMinutes } from '@/lib/scheduler/kantorovich-engine';
@@ -8,6 +8,15 @@ const provider = vi.hoisted(() => ({ enabled: false }));
 vi.mock('@/lib/wix/birthday-pricing-config', () => ({ isWixBirthdayPricingProviderEnabled: () => provider.enabled }));
 
 const DATE = '2026-11-24'; // a Tuesday; the Wix raster is "every 5 minutes"
+
+// The slot engine drops starts that are already in the past on today's date. With a fixed DATE and the real
+// clock this file passed only before the first slot of that day (CI after 09:00 Israel time failed on
+// 2026-11-24) and would fail on every run after it. Pin the clock to a morning well before DATE. This is a
+// beforeEach because tests/support/vitest.setup.ts restores real timers after every test.
+beforeEach(() => {
+  vi.useFakeTimers({ toFake: ['Date'] });
+  vi.setSystemTime(new Date('2026-11-01T06:00:00Z'));
+});
 const OPEN = 9 * 60;
 const LAST_START = 22 * 60 + 30;
 
