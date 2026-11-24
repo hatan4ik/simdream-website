@@ -14,13 +14,14 @@ Facts here are checked against the repo; where a number is a measurement, the co
 - **Offerings:** consumer flight tracks and PRO tracks (6 subscription passes: 4 consumer, 2 PRO), gift vouchers, Fear of Flying course (60 min, 690 ILS), the `/offers` page.
 - **Wix Headless adapter:** writes only to the SimDream-Staging site; `npm run wix:smoke` reconciles the catalog (9 of 10 package ids mapped). Wix benefit pool allocations are audited via `npm run wix:check-benefit-pools` (`lib/wix/plan-benefit-pools.ts`). Blog V3 reads put filters inside `query`, use the supported slug and language filters, and reject a returned locale mismatch before local fallback, so a Hebrew route cannot render an English breadcrumb or JSON-LD. Worker bundle stands at 10.15 MiB UTF-8 (12.73 MiB with `\u` escapes), 3.85 MiB below the 14.00 MiB budget with `@wix/pricing-plans` 1.0.453 and `@opennextjs/cloudflare` 1.20.16.
 - **Wix worker and cookies:** staging runs `v1.32.1` (published 2026-11-24 and checked in a real browser with a cookie: `/`, `/book`, `/vouchers`, `/pro`, `/offers`, `/experiences` all 200). `@opennextjs/cloudflare` is pinned to exactly 1.20.16 because 1.20.18 bundled the middleware cookie parser without esbuild's node-mode flag (every request with a Cookie header answered HTTP 500, "reading 'parse'"). `npm run wix:build` fails on that bundle (`scripts/wix-worker-guards.mjs`), and the CI preview, release and rollback smoke checks send a cookie. Dependabot ignores later versions until one passes a cookie request.
-- **Dependency security:** the npm override resolves the Wix transitive `i18next` dependency to 26.3.4, removing GHSA-6jcc-5g8w-32mx without downgrading `@wix/pricing-plans`; the clean Node 24/npm 11.20 audit reports zero production vulnerabilities.
+- **Dependency security:** `npm audit` reports 0 vulnerabilities; the `@node-minify/core` override pins its `glob` to 14.0.6 (which brings `minimatch` 11.0.9) for the older toolchain that the `@opennextjs/cloudflare` 1.20.16 pin needs (#318, Dependabot alert #4).
+- **Dependency security (Wix `i18next`):** the npm override resolves the Wix transitive `i18next` dependency to 26.3.4, removing GHSA-6jcc-5g8w-32mx without downgrading `@wix/pricing-plans`; the clean Node 24/npm 11.20 audit reports zero production vulnerabilities.
 - **Quality gates:** `npm run docs:verify` passes (GENESIS.md covers 599 of 599 checklist items, fingerprint current). Test files: 176 unit/integration-style `*.test.ts` and 62 Playwright `*.spec.ts`; `playwright.config.ts` defines 10 projects; the accessibility baseline is empty (0 axe violations).
 
 ## In progress
 
-- Intermittent WebKit header-navigation failures in `E2E (webkit shard 2)` (`offers.spec.ts:24`, `navigation.spec.ts:32`, one `#refunds` duplicate-id failure in `legal-pages.spec.ts:114`): each passed on retry and `main` passes; root cause under investigation.
-- Moderate `minimatch`/`glob` findings (Dependabot alert #4) that returned with the 1.20.16 pin; the CI audit gate (high and critical only) passes.
+- Three E2E flakes are still unexplained, each seen once and passing on retry: the slow-panel variant of the header flyout failure (`link not found` although the flyout opened), a duplicate `#refunds` element on the Hebrew `/rules` page (`legal-pages.spec.ts:114`) and the Hebrew blog breadcrumb on Firefox (`seo-contract.spec.ts:47`). The lost-hover WebKit failure is fixed (#317).
+- The block-main-commit hook (`.claude/hooks/block-main-commit.sh`) reads the branch of the shell's starting directory, not the repository the commit targets, and it also matches the words of a command's text; it can therefore block work in a clone on a `devel/` branch while the main checkout is on `main`.
 
 ## Blocked
 
@@ -29,9 +30,9 @@ Facts here are checked against the repo; where a number is a measurement, the co
 
 ## Next step
 
-1. Close the WebKit flake with a root cause, not retries.
-2. Clear the `minimatch` advisory without moving `@opennextjs/cloudflare` off 1.20.16.
-3. Move `@opennextjs/cloudflare` past 1.20.16 only when a release passes `npm run wix:build` and a cookie request on the built worker.
+1. Explain the three remaining flakes with a root cause, not retries.
+2. Fix the main-branch hook so it resolves the repository the commit targets.
+3. Move `@opennextjs/cloudflare` past 1.20.16 only when a release passes `npm run wix:build` and a cookie request on the built worker; then drop the `@node-minify/core` override if it is no longer needed.
 
 Open items with owners and details are listed in `docs/DECISIONS.md`.
 
