@@ -18,6 +18,7 @@ Facts here are checked against the repo; where a number is a measurement, the co
 
 ## In progress
 
+- Wix worker cookie outage (2026-11-24): staging runs `v1.31.1`; `main` still ships `@opennextjs/cloudflare` 1.20.18 until the pin on `devel/pin-opennext-cloudflare` merges. Do not publish a release before that, and check the staging host with a cookie-bearing request after any Wix publication.
 - Tracked git hooks and secret scan pre-commit (`.githooks/` and PR #305).
 - Single hardening & documentation consolidation PR (benefit pool guard, flat 90m tariff docs, Grand 120 runbook, slot study Option A updates).
 - PR #306 adds the safe `i18next` security resolution, makes the Firefox voucher E2E wait for the dynamically rendered Apply control to hydrate before clicking, and corrects Wix Blog V3 locale query handling after a Firefox breadcrumb flake exposed a mixed-language response.

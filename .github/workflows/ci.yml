@@ -588,6 +588,9 @@ jobs:
           for path in / /book /vouchers; do
             curl --fail --location --retry 30 --retry-delay 5 --retry-all-errors --silent --show-error "$SITE_URL$path" > /dev/null
           done
+          # A request that carries a cookie takes a different code path (the middleware cookie parser). Without it the
+          # 2026-11-24 outage (HTTP 500 for every browser) passed this check.
+          curl --fail --location --retry 30 --retry-delay 5 --retry-all-errors --silent --show-error -H 'Cookie: simdream_smoke=1; _wixAB3=1' "$SITE_URL/" > /dev/null
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
