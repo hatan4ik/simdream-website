@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.32.4](https://github.com/hatan4ik/simdream-website/compare/v1.32.3...v1.32.4) (2026-11-24)
+
+
+### Bug Fixes
+
+* **wix:** query blog posts by slug with $eq so translated articles stop falling back to Hebrew ([#324](https://github.com/hatan4ik/simdream-website/issues/324)) ([1e778fc](https://github.com/hatan4ik/simdream-website/commit/1e778fc25951ce5e0978e322e39ff20432e94450))
+
 ## [1.32.3](https://github.com/hatan4ik/simdream-website/compare/v1.32.2...v1.32.3) (2026-11-24)
 
 
