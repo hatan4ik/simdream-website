@@ -4,9 +4,8 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Language, LANGUAGES, LanguageInfo, translations, SupportedLanguage } from './translations';
 import {
   DEFAULT_LANGUAGE,
-  extractPathLocale,
   languageDirection,
-  resolveLanguagePreference,
+  selectPreferredLanguage,
 } from './language-preference';
 
 export type { Language, SupportedLanguage };
@@ -60,11 +59,14 @@ export function LanguageProvider({
     } catch {
       // Keep the server-provided language when storage is unavailable.
     }
-    const pathLocale =
-      typeof window !== 'undefined' ? extractPathLocale(window.location.pathname) : null;
     // The visible URL wins after hydration; the proxy-provided locale lets SSR
     // render the same language before the client reads window.location.
-    const selectedLanguage = resolveLanguagePreference(pathLocale ?? routedLanguage ?? saved ?? initialLanguage);
+    const selectedLanguage = selectPreferredLanguage({
+      pathname: typeof window !== 'undefined' ? window.location.pathname : null,
+      routedLanguage,
+      saved,
+      initialLanguage,
+    });
     setLanguageState(selectedLanguage);
     persistLanguagePreference(selectedLanguage);
     setPreferenceResolved(true);
