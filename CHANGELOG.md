@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.32.1](https://github.com/hatan4ik/simdream-website/compare/v1.32.0...v1.32.1) (2026-11-24)
+
+
+### Bug Fixes
+
+* **wix:** pin @opennextjs/cloudflare to 1.20.16 and guard the cookie bundle ([#310](https://github.com/hatan4ik/simdream-website/issues/310)) ([f014941](https://github.com/hatan4ik/simdream-website/commit/f014941875ed3afe7b75600a72e29bc6edad4148))
+
 ## [1.32.0](https://github.com/hatan4ik/simdream-website/compare/v1.31.2...v1.32.0) (2026-11-23)
 
 
