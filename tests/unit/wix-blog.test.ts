@@ -283,3 +283,71 @@ describe('resolveBlogPost sends only filter operators that Wix accepts', () => {
     expect(Object.keys(body.query.filter.slug)).toEqual(['$eq']);
   });
 });
+
+// A fallback to the local Hebrew articles is a degraded answer, and it must never be silent: a rejected Wix query
+// served every translation in Hebrew for hours without a signal (2026-11-24).
+describe('blog fallbacks to the local articles are logged', () => {
+  const okPost = (language: string) => ({ posts: [{ id: `p-${language}`, title: `T ${language}`, slug: 'aircraft-systems-guide', language }] });
+  const warned = (spy: { mock: { calls: unknown[][] } }) => spy.mock.calls.map((call) => String(call[0]) + ' ' + String(call[1] ?? '')).join('\n');
+
+  it('resolveBlogPost warns with the language and the reason when the Wix request fails', async () => {
+    vi.spyOn(wixConfig, 'isWixConfigured').mockReturnValue(true);
+    vi.spyOn(wixClient, 'wixPost').mockRejectedValue(new Error('Wix says no'));
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const resolved = await resolveBlogPost('aircraft-systems-guide', 'en');
+    expect(resolved?.hasTranslatedBody).toBe(false);
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warned(warn)).toMatch(/"en"[\s\S]*Wix says no/);
+  });
+
+  it('resolveBlogPost warns when Wix answers with no post or an unexpected shape', async () => {
+    vi.spyOn(wixConfig, 'isWixConfigured').mockReturnValue(true);
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const wixPost = vi.spyOn(wixClient, 'wixPost');
+    wixPost.mockResolvedValueOnce({ posts: [] });
+    await resolveBlogPost('aircraft-systems-guide', 'ru');
+    wixPost.mockResolvedValueOnce({ posts: 'not-a-list' });
+    await resolveBlogPost('aircraft-systems-guide', 'fr');
+    expect(warn).toHaveBeenCalledTimes(2);
+    expect(warned(warn)).toMatch(/"ru"/);
+    expect(warned(warn)).toMatch(/"fr"/);
+  });
+
+  it('resolveBlogPost stays quiet on success, when Wix is not configured, and for a slug nobody has (a plain 404)', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    vi.spyOn(wixConfig, 'isWixConfigured').mockReturnValue(true);
+    vi.spyOn(wixClient, 'wixPost').mockResolvedValue(okPost('he'));
+    await resolveBlogPost('aircraft-systems-guide', 'he');
+    vi.spyOn(wixClient, 'wixPost').mockResolvedValue({ posts: [] });
+    expect(await resolveBlogPost('no-such-article-anywhere', 'en')).toBeUndefined();
+    vi.spyOn(wixConfig, 'isWixConfigured').mockReturnValue(false);
+    await resolveBlogPost('aircraft-systems-guide', 'en');
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  it('listWixBlogPosts warns when the request fails, the shape is wrong or no post has the language', async () => {
+    vi.spyOn(wixConfig, 'isWixConfigured').mockReturnValue(true);
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const wixPost = vi.spyOn(wixClient, 'wixPost');
+    wixPost.mockRejectedValueOnce(new Error('list down'));
+    await listWixBlogPosts({ language: 'en' });
+    wixPost.mockResolvedValueOnce({ posts: 'not-a-list' });
+    await listWixBlogPosts({ language: 'ru' });
+    wixPost.mockResolvedValueOnce({ posts: [] });
+    await listWixBlogPosts({ language: 'de' });
+    expect(warn).toHaveBeenCalledTimes(3);
+    expect(warned(warn)).toMatch(/"en"[\s\S]*list down/);
+    expect(warned(warn)).toMatch(/"ru"/);
+    expect(warned(warn)).toMatch(/"de"/);
+  });
+
+  it('listWixBlogPosts stays quiet when Wix returns posts in the language', async () => {
+    vi.spyOn(wixConfig, 'isWixConfigured').mockReturnValue(true);
+    vi.spyOn(wixClient, 'wixPost').mockResolvedValue(okPost('en'));
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const list = await listWixBlogPosts({ language: 'en' });
+    expect(list[0]?.language).toBe('en');
+    expect(warn).not.toHaveBeenCalled();
+  });
+});
+
