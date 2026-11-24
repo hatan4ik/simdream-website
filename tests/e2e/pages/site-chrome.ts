@@ -83,19 +83,24 @@ export class SiteChrome {
       await expect(link).toBeVisible();
     } else if (!(await link.isVisible())) {
       const triggers = this.navbar.locator('button[data-navbar-menu-trigger]');
-      for (let index = 0; index < (await triggers.count()); index += 1) {
-        const trigger = triggers.nth(index);
-        // Desktop flyouts deliberately open on pointer entry. Follow the same customer gesture
-        // here; keyboard semantics are covered by the dedicated accessibility suite.
-        await waitUntilInteractive(trigger);
-        await trigger.hover();
-        await expect(trigger).toHaveAttribute('aria-expanded', 'true');
-        const destinationAppeared = await link
-          .waitFor({ state: 'visible', timeout: 2_000 })
-          .then(() => true)
-          .catch(() => false);
-        if (destinationAppeared) break;
-      }
+      // Desktop flyouts deliberately open on pointer entry. Follow the same customer gesture here;
+      // keyboard semantics are covered by the dedicated accessibility suite. Under CPU load (a slow CI
+      // runner) WebKit sometimes never delivers the hover, or renders the panel after the short wait, so
+      // the whole open-and-find sequence is retried instead of asserted once.
+      await expect(async () => {
+        for (let index = 0; index < (await triggers.count()); index += 1) {
+          const trigger = triggers.nth(index);
+          await waitUntilInteractive(trigger);
+          await trigger.hover();
+          if ((await trigger.getAttribute('aria-expanded')) !== 'true') continue;
+          const destinationAppeared = await link
+            .waitFor({ state: 'visible', timeout: 2_000 })
+            .then(() => true)
+            .catch(() => false);
+          if (destinationAppeared) return;
+        }
+        throw new Error(`"${name}" did not appear in any header flyout`);
+      }).toPass({ timeout: 20_000, intervals: [250, 500, 1_000] });
       await expect(link).toBeVisible();
     }
     return link;
