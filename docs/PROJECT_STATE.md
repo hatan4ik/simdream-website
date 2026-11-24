@@ -20,7 +20,7 @@ Facts here are checked against the repo; where a number is a measurement, the co
 
 ## In progress
 
-- Three E2E flakes are still unexplained, each seen once and passing on retry: the slow-panel variant of the header flyout failure (`link not found` although the flyout opened), a duplicate `#refunds` element on the Hebrew `/rules` page (`legal-pages.spec.ts:114`) and the Hebrew blog breadcrumb on Firefox (`seo-contract.spec.ts:47`). The lost-hover WebKit failure is fixed (#317).
+- Hebrew `/rules` briefly renders two `#refunds` cards when hydration runs before React's deferred Suspense swap (found with a delayed `requestAnimationFrame`; seen once on CI); a product fix is not done, details in `docs/DECISIONS.md` (Open). The lost-hover WebKit failure (#317) and the blog language loop are fixed.
 
 ## Blocked
 
@@ -29,7 +29,7 @@ Facts here are checked against the repo; where a number is a measurement, the co
 
 ## Next step
 
-1. Explain the three remaining flakes with a root cause, not retries.
+1. Remove the transient duplicate `#refunds` on Hebrew `/rules` at its source (see Open in `docs/DECISIONS.md`).
 2. Move `@opennextjs/cloudflare` past 1.20.16 only when a release passes `npm run wix:build` and a cookie request on the built worker; then drop the `@node-minify/core` override if it is no longer needed.
 
 Open items with owners and details are listed in `docs/DECISIONS.md`.
