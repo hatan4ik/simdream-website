@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.32.5](https://github.com/hatan4ik/simdream-website/compare/v1.32.4...v1.32.5) (2026-11-24)
+
+
+### Bug Fixes
+
+* **wix:** never fall back to local blog articles silently, verify a translated article after a publish, document it ([#326](https://github.com/hatan4ik/simdream-website/issues/326)) ([36eca72](https://github.com/hatan4ik/simdream-website/commit/36eca7212f17a507e5a3ec79718ecd1ea9cf250c))
+
 ## [1.32.4](https://github.com/hatan4ik/simdream-website/compare/v1.32.3...v1.32.4) (2026-11-24)
 
 
