@@ -10,6 +10,7 @@ import {
 import { listWixBlogPosts, resolveBlogPost, getBlogPostSiblings } from '@/lib/wix/blog';
 import * as wixConfig from '@/lib/wix/config';
 import * as wixClient from '@/lib/wix/client';
+import blogSlugMapData from '@/lib/data/blog-slug-map.json';
 
 describe('Wix Headless Blog System & 39-Article Content Engine', () => {
   afterEach(() => {
@@ -180,7 +181,7 @@ describe('Wix Headless Blog System & 39-Article Content Engine', () => {
     expect(wixPost).toHaveBeenLastCalledWith('https://www.wixapis.com/blog/v3/posts/query', {
       query: {
         filter: {
-          slug: { $hasSome: ['live-wix-test-article'] },
+          slug: { $eq: 'live-wix-test-article' },
           language: { $eq: 'en' },
         },
       },
@@ -206,7 +207,7 @@ describe('Wix Headless Blog System & 39-Article Content Engine', () => {
     expect(wixPost).toHaveBeenCalledWith('https://www.wixapis.com/blog/v3/posts/query', {
       query: {
         filter: {
-          slug: { $hasSome: ['מדריך-ללימוד-מערכות-מטוס-בלי-ללכת-לאיבוד'] },
+          slug: { $eq: 'מדריך-ללימוד-מערכות-מטוס-בלי-ללכת-לאיבוד' },
           language: { $eq: 'he' },
         },
       },
@@ -249,3 +250,36 @@ describe('Wix Headless Blog System & 39-Article Content Engine', () => {
   });
 });
 
+// 2026-11-24: Wix answers HTTP 400 ("Field 'blogSeo.slug' is using non allowed operator '$hasSome'") to a
+// slug filter with $hasSome, although the Query Posts reference lists it. The resolver swallows the error and
+// falls back to the local Hebrew article, so every translated article silently rendered in Hebrew. Verified
+// against the live API: slug with $eq plus language with $eq returns exactly the post in that language.
+describe('resolveBlogPost sends only filter operators that Wix accepts', () => {
+  const TRANSLATION_ID = '1d47b886-a23f-43d9-86cc-54bf8ab2513a';
+  const group = blogSlugMapData.byTranslationId[TRANSLATION_ID] as Record<string, string>;
+
+  for (const language of ['he', 'en', 'ru', 'fr', 'de', 'es', 'ar'] as const) {
+    it(`asks for the ${language} post by slug with $eq`, async () => {
+      vi.spyOn(wixConfig, 'isWixConfigured').mockReturnValue(true);
+      const wixPost = vi.spyOn(wixClient, 'wixPost').mockResolvedValue({
+        posts: [{ id: `post-${language}`, title: `Title ${language}`, slug: group[language], language, translationId: TRANSLATION_ID }],
+      });
+
+      const resolved = await resolveBlogPost(group[language]!, language);
+
+      const body = wixPost.mock.calls[0]![1] as { query: { filter: Record<string, Record<string, unknown>> } };
+      expect(body.query.filter.slug).toEqual({ $eq: group[language] });
+      expect(body.query.filter.language).toEqual({ $eq: language });
+      expect(resolved?.title).toBe(`Title ${language}`);
+      expect(resolved?.language).toBe(language);
+    });
+  }
+
+  it('never uses an operator on slug other than $eq', async () => {
+    vi.spyOn(wixConfig, 'isWixConfigured').mockReturnValue(true);
+    const wixPost = vi.spyOn(wixClient, 'wixPost').mockResolvedValue({ posts: [] });
+    await resolveBlogPost(group.en!, 'en');
+    const body = wixPost.mock.calls[0]![1] as { query: { filter: { slug: Record<string, unknown> } } };
+    expect(Object.keys(body.query.filter.slug)).toEqual(['$eq']);
+  });
+});

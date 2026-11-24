@@ -316,7 +316,9 @@ export async function resolveBlogPost(slug: string, requestedLang?: string): Pro
       const raw = await wixPost<unknown>(WIX_BLOG_QUERY_POSTS_URL, {
         query: {
           filter: {
-            slug: { $hasSome: [wixQuerySlug] },
+            // `$eq`, not `$hasSome`: Wix answers HTTP 400 to `$hasSome` on a post slug although the Query
+            // Posts reference lists it (verified on the live API, 2026-11-24).
+            slug: { $eq: wixQuerySlug },
             language: { $eq: targetLang },
           },
         },
@@ -362,8 +364,13 @@ export async function resolveBlogPost(slug: string, requestedLang?: string): Pro
           hasTranslatedBody: lang === 'he' || contentNodes.length > 0,
         };
       }
-    } catch {
-      // Fallback
+    } catch (error) {
+      // Fall back to the local article, but say so: a rejected query once served every translated article
+      // in Hebrew for hours without a single signal (2026-11-24). Language and Wix's own message only.
+      console.warn(
+        `Wix blog post lookup failed for language "${targetLang}"; serving the local article.`,
+        error instanceof Error ? error.message.slice(0, 200) : 'unknown error'
+      );
     }
   }
 
