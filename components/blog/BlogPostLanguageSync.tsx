@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { initialBlogLanguageSyncState, nextBlogLanguageStep } from '@/lib/blog/language-sync';
 import { useLanguage, type Language } from '@/lib/i18n/language-context';
 import { isSupportedLanguage } from '@/lib/i18n/language-preference';
 
@@ -14,6 +15,8 @@ interface BlogPostLanguageSyncProps {
 /**
  * Synchronizes the website language state with the current article's language,
  * and navigates to the sibling translated article when the user toggles the language dropdown.
+ * The decisions live in `lib/blog/language-sync.ts`: a stale site language right after the article
+ * corrected it must never be mistaken for a menu choice, or the page bounces between translations.
  */
 export function BlogPostLanguageSync({
   siblingSlugs = {},
@@ -22,50 +25,30 @@ export function BlogPostLanguageSync({
 }: BlogPostLanguageSyncProps) {
   const router = useRouter();
   const { language, setLanguage, languageResolved } = useLanguage();
-  const initialLangRef = useRef<string | null>(null);
+  const stateRef = useRef(initialBlogLanguageSyncState());
 
-  // 1. When directly loading a post with a distinct language (e.g. English, Russian),
-  // sync the site language selector if it differs from the article language.
   useEffect(() => {
-    if (!languageResolved) return;
+    if (!languageResolved || !language) return;
 
-    if (!initialLangRef.current) {
-      initialLangRef.current = currentLang;
-    }
+    const step = nextBlogLanguageStep({ articleLanguage: currentLang, language, supported: isSupportedLanguage }, stateRef.current);
+    stateRef.current = step.state;
 
-    if (
-      currentLang &&
-      currentLang !== language &&
-      isSupportedLanguage(currentLang)
-    ) {
-      setLanguage(currentLang as Language);
-    }
-  }, [currentLang, language, languageResolved, setLanguage]);
-
-  // 2. When the visitor actively toggles the language dropdown in the navbar:
-  useEffect(() => {
-    if (!languageResolved) return;
-
-    // Do nothing until initialLangRef is seeded
-    if (!initialLangRef.current) {
-      initialLangRef.current = currentLang;
+    if (step.action === 'set-language') {
+      setLanguage(step.language as Language);
       return;
     }
+    if (step.action !== 'navigate') return;
 
-    // Only redirect if language is different from both the initial loaded language AND currentLang
-    if (!language || language === currentLang || language === initialLangRef.current) return;
-
-    initialLangRef.current = language;
-    const targetPath = siblingPaths[language];
+    const targetPath = siblingPaths[step.language];
     if (targetPath && targetPath !== siblingPaths[currentLang]) {
       router.push(targetPath);
       return;
     }
-    const targetSlug = siblingSlugs[language];
+    const targetSlug = siblingSlugs[step.language];
     if (targetSlug && targetSlug !== siblingSlugs[currentLang]) {
       router.push(`/post/${encodeURIComponent(targetSlug)}`);
     }
-  }, [language, currentLang, languageResolved, siblingSlugs, siblingPaths, router]);
+  }, [language, currentLang, languageResolved, setLanguage, siblingSlugs, siblingPaths, router]);
 
   return null;
 }
