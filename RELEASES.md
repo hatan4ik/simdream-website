@@ -10,6 +10,14 @@
 
 ## Product changes by version
 
+### [v1.32.2](https://github.com/hatan4ik/simdream-website/releases/tag/v1.32.2) — 2026-11-24
+
+#### Bug Fixes
+
+- **deps:** override @node-minify/core glob to 14.0.6 to clear minimatch advisories (#318) (ef73198)
+
+Deployment evidence: [GitHub Release](https://github.com/hatan4ik/simdream-website/releases/tag/v1.32.2).
+
 ### [v1.32.1](https://github.com/hatan4ik/simdream-website/releases/tag/v1.32.1) — 2026-11-24
 
 #### Bug Fixes
