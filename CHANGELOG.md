@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.32.2](https://github.com/hatan4ik/simdream-website/compare/v1.32.1...v1.32.2) (2026-11-24)
+
+
+### Bug Fixes
+
+* **deps:** override @node-minify/core glob to 14.0.6 to clear minimatch advisories ([#318](https://github.com/hatan4ik/simdream-website/issues/318)) ([ef73198](https://github.com/hatan4ik/simdream-website/commit/ef731987364ad86e49db17a21c15bc180f9534ca))
+
 ## [1.32.1](https://github.com/hatan4ik/simdream-website/compare/v1.32.0...v1.32.1) (2026-11-24)
 
 
