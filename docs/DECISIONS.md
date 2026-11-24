@@ -35,6 +35,7 @@ Dates come from the merge date of the cited PR. "Not recorded" means the repo do
   - Runs with zero jobs and `startup_failure` mean a GitHub incident: check githubstatus.com before touching workflows.
   - Branch protection has `enforce_admins: true` and 14 required checks. Never weaken it.
 - **Visual baselines without Docker.** Refresh Linux baselines from the failing CI shard's artifact (`gh run download <run> -n results-web-quality-shard-N`, copy `*-actual.png` to `<name>-visual-linux.png`) after the diff image shows only the intended change; darwin ones with a local `.next-test` build and `--update-snapshots=changed`. Any `/pro` change needs the four `pro-{brand,cockpit}-{en,he}-visual-linux.png` refreshed.
+- **Wix rollback workflow.** `Roll back Wix production` could only restore the tag at the tip of `main`: its ancestry check ran after `git fetch origin main --depth=1`, which made the clone shallow (found 2026-11-24 when a rollback to `v1.31.2` failed in "Validate the rollback target"). Fixed on `devel/fix-wix-rollback-ancestry` by fetching `main` without a depth. The workflow runs on the `wix-production` environment, which targets the staging Headless site and needs the owner's approval in GitHub.
 - **Wix benefit pools.** The `add-items-to-benefit` endpoint answers an empty 403 for both the API key and the Wix connector, so linking a plan to a service is dashboard-only. The dashboard's "connect plan to service" creates a new PUNCH_CARD pool every time, which is what multiplied sessions.
 
 ## Settled

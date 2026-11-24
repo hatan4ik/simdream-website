@@ -54,7 +54,8 @@ jobs:
           [[ "$ROLLBACK_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$ ]] || { echo 'Use an existing SemVer release tag.' >&2; exit 1; }
           git rev-parse --verify "refs/tags/$ROLLBACK_TAG" > /dev/null
           release_sha="$(git rev-list -n 1 "$ROLLBACK_TAG")"
-          git fetch origin main --depth=1
+          # Keep full history: --depth=1 made the clone shallow, so only a tag at the very tip of main could pass the ancestry check.
+          git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
           git merge-base --is-ancestor "$release_sha" origin/main || { echo 'Rollback tags must reference a commit on main.' >&2; exit 1; }
       - run: npm ci
       - name: Re-run the fast source and build safety gate for the exact historical tag
