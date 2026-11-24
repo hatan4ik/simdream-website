@@ -57,6 +57,7 @@ flowchart TD
     end
 
     subgraph RoutingLayer["Edge Routing and Next.js 16 App Router"]
+        EdgeProxy["Edge Security & Locale Proxy (proxy.ts)<br/>Strict CSP Nonce Injection • Locale Rewriting (/en, /fr)<br/>Admin HTTP Basic Guard (requireAdmin)"]
         CanonicalRedirects["Configured 301 Permanent Redirects<br/>/simulator and /training -> /pro<br/>/aerophobia -> /fear-of-flying<br/>/book-online -> /book<br/>/pricing-plans/list -> /subscriptions"]
         PublicPages["Public Pages (20 Routes)<br/>/ • /about • /pro • /experiences • /book • /book/success<br/>/offers • /subscriptions • /subscriptions/thank-you • /workshops<br/>/vouchers • /ground-school • /contact • /rules • /privacy-policy<br/>/refund • /fear-of-flying • /blog • /post/(segments)"]
         MemberPages["Member Area (5 Routes)<br/>/dashboard • /login • /wix/members/callback<br/>Legacy /auth/callback • /auth/reset-password"]
@@ -93,11 +94,12 @@ flowchart TD
     I18nEngine --> StorefrontUI
     I18nEngine --> SubPortalUI
 
-    StorefrontUI --> PublicPages
-    SubPortalUI --> PublicPages
-    CanonicalRedirects --> PublicPages
-    PublicPages --> MemberPages
-    PublicPages --> AdminPages
+    StorefrontUI --> EdgeProxy
+    SubPortalUI --> EdgeProxy
+    EdgeProxy --> CanonicalRedirects
+    EdgeProxy --> PublicPages
+    EdgeProxy --> MemberPages
+    EdgeProxy --> AdminPages
 
     StorefrontUI --> BookingAPIs
     SubPortalUI --> SubscriptionAPIs
@@ -118,6 +120,13 @@ flowchart TD
     ContentAPIs --> ReviewsCache
     ReviewsCache --> GooglePlaces
 ```
+
+### Edge Security & Request Proxy boundary (`proxy.ts`)
+
+Next.js 16 request routing, security enforcement, and locale handling are anchored in [`proxy.ts`](proxy.ts) at the repository root:
+1. **Per-Request Content Security Policy (CSP)**: Generates a cryptographically strong UUID base64 nonce (`x-nonce`) for every HTML document request, binding `script-src 'self' 'nonce-{nonce}' 'strict-dynamic'` while allowing necessary image hosts (`lh3.googleusercontent.com`, `static.wixstatic.com`), connect hosts (`*.supabase.co`, `www.wixapis.com`, `edge.wixapis.com`), and Google Maps frames.
+2. **Wix Multilingual Locale Routing**: Normalizes secondary locale URL paths (`/en/...`, `/fr/...`, etc.) to the internal Next.js route tree while setting the `x-simdream-locale` request header, isolating directionality and page state without duplicate routing trees.
+3. **Admin Shell Protection**: Matches the `/admin` route family (`/admin`, `/admin/*`, `/admin.rsc`, and Next.js data routes) and enforces server-side HTTP Basic authentication via `requireAdmin(request)` before any page or handler evaluates.
 
 ### Checkout dependency boundary
 

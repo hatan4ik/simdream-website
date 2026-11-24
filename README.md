@@ -90,11 +90,16 @@ Production-grade website, multi-step booking engine, Amazon-style flight storefr
 
 7. **Member Flight Deck (`/dashboard`)**:
    - Displays future sessions, previous sessions, saved purchase records, payment state, and boarding-pass links for the authenticated member.
+   - Authentication runs through Wix Members PKCE OAuth via [`/login`](app/(auth)/login/page.tsx) and returns to [`/wix/members/callback`](app/wix/members/callback/page.tsx) with a tab-scoped session (legacy Supabase authentication remains as a self-hosted fallback on `/auth/callback` and `/auth/reset-password`).
    - Historical guest bookings are attached only after sign-in with the exact same confirmed email and only after payment; an anonymous email cannot retrieve purchase history.
    - Paid Stripe bookings expose a protected Stripe payment-receipt link. Formal tax invoices remain an external accounting integration.
 
 8. **Admin Dispatch Command Center & Tiled Capacity Monitor (`/admin`)**:
    - **Tiled Daily Efficiency Bar**: Displays live occupied vs. total capacity minutes (`Занято: X / 900 мин`), wasted tail minutes (`Потери («хвосты»): 0 мин`), booked revenue, and a rules-based capacity projection.
+   - **Dedicated Operational Sub-Consoles**:
+     - Schedule & Bookings Command Center ([`/admin/bookings`](app/admin/bookings/page.tsx)): Live slot monitoring, booking status updates, and drag-and-drop or manual rescheduling.
+     - Voucher Operations & Counter Redemptions ([`/admin/vouchers`](app/admin/vouchers/page.tsx)): Counter terminal for verifying and redeeming `SD-VOUCH-*` codes and checking Wix Gift Cards.
+     - Corporate Workshop Leads Pipeline ([`/admin/workshops`](app/admin/workshops/page.tsx)): B2B CRM pipeline tracking executive offsite requests and participant capacities.
    - **Red Gap Collision Alert & Interactive Auto-Snap**: Detects orphan gaps if an admin manually shifts a slot to an unaligned time (e.g. `19:00`) and provides one-click **Auto-Snap** buttons (`18:00` or `19:15`) to restore Zero-Waste alignment.
    - **Exact dry-run draft allocator**: `POST /api/admin/schedule-optimization` evaluates up to eight flexible, 15-minute-aligned draft requests against existing immutable bookings. It maximizes declared value without increasing orphan capacity and never writes a booking. This is the safe integration boundary for a later OR-Tools CP-SAT service.
    - **Master AI Reproduction Blueprint**: Full technical blueprint and prompt instructions for reproducing both Member and Admin dashboards are documented in [`DASHBOARD_REPRODUCTION_SPEC.md`](DASHBOARD_REPRODUCTION_SPEC.md).
@@ -149,6 +154,8 @@ Production-grade website, multi-step booking engine, Amazon-style flight storefr
 - **Least-privilege database access.** Browser roles can read active package catalog data only. Bookings, voucher balances, workshop inquiries, and flight logs are accessed through server routes using the service role.
 - **Ground School is a coordinator-confirmed cohort request.** [`/ground-school`](app/(public)/ground-school/page.tsx) presents the seven-language FAA/EASA theory and oral-preparation overview, a four-week monthly study sequence, online / Tel Aviv / hybrid study formats, and public total tuition in ILS. Its request form records only a consented request through [`POST /api/ground-school/inquiries`](app/api/ground-school/inquiries/route.ts); it does not charge, reserve capacity, claim instructor credentials, award official training credit, or guarantee an external exam result. The coordinator must confirm dates, capacity, instructor and final cohort plan before accepting enrollment.
 - **Verified member ownership.** A booking is linked to a member only when the checkout email exactly matches that member's confirmed identity-provider email. Guest checkout remains available without an account; a verified member may later claim matching **paid** guest bookings. Protected history and Stripe receipts are never returned by an anonymous email lookup.
+- **Database schema & migrations live in `lib/db/migrations/`.** Thirteen deterministic SQL migrations (`001_production_hardening.sql` through `013_booking_hosted_checkout.sql`) and `lib/db/schema.sql` define the complete persistence contract (including RLS and the GiST slot exclusion constraint). Standard Supabase projects often default to `supabase/migrations/`; in SimDream, migrations are maintained in `lib/db/migrations/` for unified in-memory test mocks and zero-dependency local resilience.
+- **Full Route & API Inventory.** All 29 page routes (`app/**/page.tsx`) and 24 API endpoints (`app/api/**/route.ts`) are completely mapped in [`ARCHITECTURE.md`](ARCHITECTURE.md) §1B and verified against [`GENESIS.md`](GENESIS.md) (600/600 coverage).
 
 ---
 
