@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.32.3](https://github.com/hatan4ik/simdream-website/compare/v1.32.2...v1.32.3) (2026-11-24)
+
+
+### Bug Fixes
+
+* **blog:** stop the article page bouncing between translations on a language mismatch ([#322](https://github.com/hatan4ik/simdream-website/issues/322)) ([cb44986](https://github.com/hatan4ik/simdream-website/commit/cb44986388fbfee4cf4f61bb58877de4bc556c1b))
+* **hooks:** judge the repository a commit targets, not the shell's start directory ([#321](https://github.com/hatan4ik/simdream-website/issues/321)) ([b8a4fe5](https://github.com/hatan4ik/simdream-website/commit/b8a4fe5a7d238b10e927c2ee838de471d7527d96))
+
 ## [1.32.2](https://github.com/hatan4ik/simdream-website/compare/v1.32.1...v1.32.2) (2026-11-24)
 
 

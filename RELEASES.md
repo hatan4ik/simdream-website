@@ -10,6 +10,15 @@
 
 ## Product changes by version
 
+### [v1.32.3](https://github.com/hatan4ik/simdream-website/releases/tag/v1.32.3) — 2026-11-24
+
+#### Bug Fixes
+
+- **blog:** stop the article page bouncing between translations on a language mismatch (#322) (cb44986)
+- **hooks:** judge the repository a commit targets, not the shell's start directory (#321) (b8a4fe5)
+
+Deployment evidence: [GitHub Release](https://github.com/hatan4ik/simdream-website/releases/tag/v1.32.3).
+
 ### [v1.32.2](https://github.com/hatan4ik/simdream-website/releases/tag/v1.32.2) — 2026-11-24
 
 #### Bug Fixes
