@@ -11,6 +11,10 @@ updates:
       # Remove this entry once a release passes `npm run wix:build` and a cookie request on the built worker.
       - dependency-name: "@opennextjs/cloudflare"
         versions: [">1.20.16"]
+      # 1.x removed the Facebook, Instagram and Youtube brand icons the social links import (PR #312, 2026-11-24).
+      # Take it only together with replacing those icons.
+      - dependency-name: "lucide-react"
+        update-types: ["version-update:semver-major"]
     labels:
       - dependencies
       - security
