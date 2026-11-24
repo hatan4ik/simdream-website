@@ -46,3 +46,21 @@ jobs:
           name: zap-baseline-report
           path: report_*.*
           if-no-files-found: ignore
+
+  # Live contract check of the Wix blog: every translation group must hold exactly one post per language.
+  # Read-only anonymous visitor, 14 requests, no secrets. Catches a rejected Wix operator (the `$hasSome`
+  # incident, HTTP 400 and every translation silently Hebrew) within a day, even when nothing was released.
+  wix-blog-languages:
+    name: Wix blog language contract (live, read-only)
+    if: github.repository == 'hatan4ik/simdream-website'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Check every blog group in every language against the live Wix API
+        run: npm run wix:check-blog-languages
