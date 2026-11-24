@@ -10,6 +10,14 @@
 
 ## Product changes by version
 
+### [v1.32.5](https://github.com/hatan4ik/simdream-website/releases/tag/v1.32.5) — 2026-11-24
+
+#### Bug Fixes
+
+- **wix:** never fall back to local blog articles silently, verify a translated article after a publish, document it (#326) (36eca72)
+
+Deployment evidence: [GitHub Release](https://github.com/hatan4ik/simdream-website/releases/tag/v1.32.5).
+
 ### [v1.32.4](https://github.com/hatan4ik/simdream-website/releases/tag/v1.32.4) — 2026-11-24
 
 #### Bug Fixes
