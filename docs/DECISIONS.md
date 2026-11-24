@@ -45,6 +45,7 @@ Dates come from the merge date of the cited PR. "Not recorded" means the repo do
 
 ## Settled
 
+- 2026-11-24: the main-branch hook (`.claude/hooks/block-main-commit.sh`) now parses the Bash command, resolves the repository a commit targets (`-C`, a preceding `cd`, simple variable assignments) and checks that repository's branch; text that merely mentions the command (messages, heredocs, `echo`, `grep`) no longer triggers it. A command it cannot resolve is allowed, because `.githooks/pre-commit` refuses a commit on main anyway. Covered by `tests/unit/block-main-commit-hook.test.ts`.
 - 2026-11-24: the lost-hover WebKit flake is fixed in the E2E helper (#317): under CPU load WebKit sometimes never delivered the Playwright hover, so `aria-expanded` stayed `false`; `SiteChrome.primaryLink` now retries the whole hover, expanded-check and destination wait (`expect().toPass`, 20 s). Hebrew was not the cause (the probe failed alike in English), and these tests do not reach live Wix. 110 of 110 passed under 6 CPU burners.
 - 2026-11-24: the returned `minimatch`/`glob` advisories (Dependabot alert #4) are cleared by overriding `@node-minify/core`'s `glob` to 14.0.6 (#318); `npm audit` reports 0 vulnerabilities. Remove the override once `@opennextjs/cloudflare` moves past 1.20.16 and a cookie request passes on the built worker.
 - 2026-11-24: the `wix-production` approvals for `v1.31.1` (rollback), `v1.32.1` (release) and the intermediate runs were given by the owner.
@@ -66,7 +67,6 @@ Dates come from the merge date of the cited PR. "Not recorded" means the repo do
 ## Open
 
 - Three unexplained, once-seen E2E flakes that pass on retry: the slow-panel variant of the header flyout failure (`link not found` although the flyout opened), a duplicate `#refunds` on the Hebrew `/rules` page (`legal-pages.spec.ts:114`) and the Hebrew blog breadcrumb on Firefox (`seo-contract.spec.ts:47`). Not reproduced locally.
-- The block-main-commit hook (`.claude/hooks/block-main-commit.sh`) reads the branch of the shell's starting directory, not the repository the commit targets, and it also matches the words of a command's text; it can therefore block work in a clone on a `devel/` branch while the main checkout is on `main`. A subagent worked around it by pointing git at its clone with `-C`.
 - Release Please races: a release PR's Verify run can be cancelled and leave `Prepare semantic release` red ("never left action_required"); the remedy is `gh run rerun <release run> --failed`, then re-run the cancelled Verify.
 - Production Wix: PRO plans and benefit-pool links need an explicit instruction from the owner and a dashboard step; check read-only for duplicate pools first.
 - `pkg-grand-120` is not provisioned in Wix (`PENDING_WIX_PACKAGE_IDS`; runbook documented).
