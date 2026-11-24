@@ -10,6 +10,14 @@
 
 ## Product changes by version
 
+### [v1.32.4](https://github.com/hatan4ik/simdream-website/releases/tag/v1.32.4) — 2026-11-24
+
+#### Bug Fixes
+
+- **wix:** query blog posts by slug with $eq so translated articles stop falling back to Hebrew (#324) (1e778fc)
+
+Deployment evidence: [GitHub Release](https://github.com/hatan4ik/simdream-website/releases/tag/v1.32.4).
+
 ### [v1.32.3](https://github.com/hatan4ik/simdream-website/releases/tag/v1.32.3) — 2026-11-24
 
 #### Bug Fixes
