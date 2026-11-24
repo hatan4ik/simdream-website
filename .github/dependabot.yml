@@ -5,6 +5,12 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    ignore:
+      # 1.20.18 bundles the middleware cookie parser without esbuild's node-mode flag, so every request with a
+      # Cookie header answers HTTP 500 on the Wix worker (2026-11-24). Guarded in scripts/wix-worker-guards.mjs.
+      # Remove this entry once a release passes `npm run wix:build` and a cookie request on the built worker.
+      - dependency-name: "@opennextjs/cloudflare"
+        versions: [">1.20.16"]
     labels:
       - dependencies
       - security

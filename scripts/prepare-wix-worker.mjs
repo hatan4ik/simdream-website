@@ -1,6 +1,7 @@
 import { readFile, rm, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { restoreUtf8Literals } from './wix-worker-charset.mjs';
+import { findBrokenCookieImports } from './wix-worker-guards.mjs';
 
 const outputDirectory = resolve(process.cwd(), '.wix-worker');
 const workerPath = resolve(outputDirectory, 'worker.js');
@@ -23,6 +24,22 @@ await rm(sourceMapPath, { force: true });
 const escapedWorker = await readFile(workerPath, 'utf8');
 const utf8Worker = restoreUtf8Literals(escapedWorker);
 await writeFile(workerPath, utf8Worker, 'utf8');
+
+// OpenNext writes the middleware before wrangler minifies it, so the `import_cookie` binding is still
+// readable here; in worker.js the names are mangled. A missing file means the OpenNext layout changed
+// and this guard must be updated, so fail instead of skipping it.
+const middlewarePath = resolve(process.cwd(), '.open-next/middleware/handler.mjs');
+const middlewareSource = await readFile(middlewarePath, 'utf8').catch(() => {
+  throw new Error(`Cannot read ${middlewarePath}: the OpenNext middleware layout changed, update scripts/wix-worker-guards.mjs.`);
+});
+const brokenCookieImports = findBrokenCookieImports(middlewareSource);
+if (brokenCookieImports.length > 0) {
+  throw new Error(
+    `The Wix worker bundles the cookie parser without esbuild's node-mode flag (${brokenCookieImports[0]}). ` +
+      "Every request that carries a Cookie header would answer HTTP 500 (\"Cannot read properties of undefined (reading 'parse')\"). " +
+      'This is the @opennextjs/cloudflare 1.20.18 regression: stay on the pinned 1.20.16 until it is fixed upstream.'
+  );
+}
 
 const size = Buffer.byteLength(utf8Worker);
 const mib = (bytes) => `${(bytes / 1024 / 1024).toFixed(2)} MiB`;
