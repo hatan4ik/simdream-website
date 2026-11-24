@@ -1,4 +1,3 @@
-import { z } from 'zod';
 import {
   getAllBlogPosts,
   getBlogPostBySlug,
@@ -11,6 +10,19 @@ import { getShortSlugMatch } from '@/lib/data/blog-legacy-slugs';
 import { blogPostPath } from '@/lib/seo/site-routes';
 import { isWixConfigured } from './config';
 import { wixPost } from './client';
+import { queryBlogPostsResponseSchema, wixBlogPostSchema } from './blog-schema';
+import type { WixBlogPost } from './blog-schema';
+
+// Re-exported so `lib/wix/index.ts` and its callers keep one import path.
+export { wixBlogPostSchema };
+export type { WixBlogPost };
+import {
+  FALLBACK_REASON_NO_POST,
+  FALLBACK_REASON_NO_SLUG,
+  FALLBACK_REASON_SHAPE,
+  describeWixFailure,
+  warnBlogFallback,
+} from './blog-fallback';
 
 const WIX_BLOG_QUERY_POSTS_URL = 'https://www.wixapis.com/blog/v3/posts/query';
 
@@ -40,70 +52,6 @@ interface BlogSlugMap {
 }
 
 const blogSlugMap: BlogSlugMap = blogSlugMapData as unknown as BlogSlugMap;
-
-export const wixBlogPostSchema = z
-  .object({
-    id: z.string(),
-    title: z.string(),
-    slug: z.string(),
-    excerpt: z.string().optional(),
-    firstPublishedDate: z.string().optional(),
-    lastPublishedDate: z.string().optional(),
-    translationId: z.string().optional(),
-    language: z.string().optional(),
-    minutesToRead: z.number().optional(),
-    media: z
-      .object({
-        wixMedia: z
-          .object({
-            image: z
-              .object({
-                id: z.string().optional(),
-                url: z.string().optional(),
-              })
-              .loose()
-              .optional(),
-          })
-          .loose()
-          .optional(),
-      })
-      .loose()
-      .optional(),
-    richContent: z
-      .object({
-        nodes: z.array(z.record(z.string(), z.unknown())).optional(),
-      })
-      .loose()
-      .optional(),
-    seoData: z
-      .object({
-        tags: z
-          .array(
-            z
-              .object({
-                type: z.string().optional(),
-                props: z.record(z.string(), z.unknown()).optional(),
-                children: z.string().optional(),
-              })
-              .loose()
-          )
-          .optional(),
-        title: z.string().optional(),
-        description: z.string().optional(),
-      })
-      .loose()
-      .optional(),
-  })
-  .loose();
-
-export type WixBlogPost = z.infer<typeof wixBlogPostSchema>;
-
-const queryBlogPostsResponseSchema = z
-  .object({
-    posts: z.array(wixBlogPostSchema).default([]),
-    totalCount: z.number().optional(),
-  })
-  .loose();
 
 export interface WixBlogListOptions {
   limit?: number;
@@ -229,6 +177,7 @@ export async function listWixBlogPosts(
   const targetLang = options.language || 'he';
 
   if (isWixConfigured()) {
+    let fallbackReason: string | undefined;
     try {
       const raw = await wixPost<unknown>(WIX_BLOG_QUERY_POSTS_URL, {
         query: {
@@ -274,9 +223,11 @@ export async function listWixBlogPosts(
           };
         });
       }
-    } catch {
-      // Fallback cleanly to local authoritative posts on unconfigured app or network drop
+      fallbackReason = parsed.success ? FALLBACK_REASON_NO_POST : FALLBACK_REASON_SHAPE;
+    } catch (error) {
+      fallbackReason = describeWixFailure(error);
     }
+    warnBlogFallback('list', targetLang, fallbackReason);
   }
 
   return getAllBlogPosts().map((p) => {
@@ -311,6 +262,7 @@ export async function resolveBlogPost(slug: string, requestedLang?: string): Pro
     (targetLang === 'he' && matchedGroup?.localSlug) ||
     decodeURIComponent(slug);
 
+  let wixFallbackReason: string | undefined;
   if (isWixConfigured()) {
     try {
       const raw = await wixPost<unknown>(WIX_BLOG_QUERY_POSTS_URL, {
@@ -364,19 +316,17 @@ export async function resolveBlogPost(slug: string, requestedLang?: string): Pro
           hasTranslatedBody: lang === 'he' || contentNodes.length > 0,
         };
       }
+      wixFallbackReason = parsed.success ? FALLBACK_REASON_NO_SLUG : FALLBACK_REASON_SHAPE;
     } catch (error) {
-      // Fall back to the local article, but say so: a rejected query once served every translated article
-      // in Hebrew for hours without a single signal (2026-11-24). Language and Wix's own message only.
-      console.warn(
-        `Wix blog post lookup failed for language "${targetLang}"; serving the local article.`,
-        error instanceof Error ? error.message.slice(0, 200) : 'unknown error'
-      );
+      wixFallbackReason = describeWixFailure(error);
     }
   }
 
   // Local fallback by Hebrew slug or shortSlug/legacySlug translationId:
   const local = getBlogPostBySlug(slug) ?? (matchedGroup?.localSlug ? getBlogPostBySlug(matchedGroup.localSlug) : undefined);
   if (local) {
+    // Warn only when a local article is actually served in place of Wix's: an unknown slug is a plain 404.
+    if (wixFallbackReason) warnBlogFallback('post', targetLang, wixFallbackReason);
     const entry = blogSlugMap.bySlug[local.slug];
     const tid = matchedTid || entry?.translationId;
     const group = tid ? blogSlugMap.byTranslationId[tid] : undefined;
