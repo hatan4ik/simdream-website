@@ -18,7 +18,8 @@ export function HomeWhyUs() {
   const { t, isRTL } = useLanguage();
   const wu = t.whyUs;
 
-  const pillars = [
+  // Top Tier: 2 Flagship Pillars (The Machine & The Mentors)
+  const flagshipPillars = [
     {
       badge: wu.pillar1Badge,
       title: wu.pillar1Title,
@@ -39,6 +40,10 @@ export function HomeWhyUs() {
       colorClass: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30',
       dotColor: 'bg-emerald-400',
     },
+  ];
+
+  // Foundation Tier: 3 Structural Pillars (Airports, Anxiety, Integrity)
+  const foundationPillars = [
     {
       badge: wu.pillar3Badge,
       title: wu.pillar3Title,
@@ -72,8 +77,9 @@ export function HomeWhyUs() {
   ];
 
   return (
-    <section className="py-14 sm:py-24 px-4 sm:px-6 lg:px-8 bg-slate-950 border-t border-b border-slate-900">
-      <div className="max-w-7xl mx-auto space-y-10 sm:space-y-16">
+    <section className="py-16 sm:py-24 px-4 sm:px-6 lg:px-8 bg-slate-950 border-t border-b border-slate-900">
+      <div className="max-w-7xl mx-auto space-y-12 sm:space-y-16">
+        {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto space-y-4">
           <Badge variant="sky">{wu.badge}</Badge>
           <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-white">
@@ -84,45 +90,89 @@ export function HomeWhyUs() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {pillars.map((pillar, idx) => {
-            const Icon = pillar.icon;
-            return (
-              <Card
-                key={idx}
-                glow
-                borderAccent={pillar.accent}
-                className="space-y-4 flex flex-col justify-between"
-              >
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className={`w-12 h-12 rounded-xl border flex items-center justify-center ${pillar.colorClass}`}>
-                      <Icon className="w-6 h-6" />
+        {/* Asymmetrical 2 + 3 Editorial Pillar Grid */}
+        <div className="space-y-6 sm:space-y-8">
+          {/* Top Marquee Tier: 2 Flagship Pillars */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+            {flagshipPillars.map((pillar, idx) => {
+              const Icon = pillar.icon;
+              return (
+                <Card
+                  key={idx}
+                  glow
+                  borderAccent={pillar.accent}
+                  className="p-8 space-y-6 flex flex-col justify-between relative overflow-hidden"
+                >
+                  <div className="space-y-5">
+                    <div className="flex items-center justify-between">
+                      <div className={`w-14 h-14 rounded-2xl border flex items-center justify-center ${pillar.colorClass}`}>
+                        <Icon className="w-7 h-7" />
+                      </div>
+                      <span className={`text-[11px] font-mono uppercase tracking-wider font-bold border px-3 py-1 rounded-full ${pillar.colorClass}`}>
+                        {pillar.badge}
+                      </span>
                     </div>
-                    <span className={`text-[10px] font-mono uppercase tracking-wider font-bold border px-2.5 py-1 rounded-full ${pillar.colorClass}`}>
-                      {pillar.badge}
-                    </span>
+                    <h3 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+                      {pillar.title}
+                    </h3>
+                    <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
+                      {pillar.desc}
+                    </p>
                   </div>
-                  <h3 className="text-xl font-bold text-white">{pillar.title}</h3>
-                  <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
-                    {pillar.desc}
-                  </p>
-                </div>
-                <ul className="text-xs font-mono text-slate-300 space-y-1.5 pt-3 border-t border-slate-800">
-                  {pillar.points.map((point, pIdx) => (
-                    <li key={pIdx} className="flex items-center gap-2">
-                      <span className={`w-1.5 h-1.5 rounded-full ${pillar.dotColor} shrink-0`} />
-                      <span>{point}</span>
-                    </li>
-                  ))}
-                </ul>
-              </Card>
-            );
-          })}
+                  <ul className="text-xs sm:text-sm font-mono text-slate-300 space-y-2 pt-4 border-t border-slate-800">
+                    {pillar.points.map((point, pIdx) => (
+                      <li key={pIdx} className="flex items-center gap-2.5">
+                        <span className={`w-2 h-2 rounded-full ${pillar.dotColor} shrink-0`} />
+                        <span>{point}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </Card>
+              );
+            })}
+          </div>
+
+          {/* Bottom Foundation Tier: 3 Structural Pillars */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {foundationPillars.map((pillar, idx) => {
+              const Icon = pillar.icon;
+              return (
+                <Card
+                  key={idx}
+                  glow
+                  borderAccent={pillar.accent}
+                  className="p-6 space-y-4 flex flex-col justify-between"
+                >
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className={`w-12 h-12 rounded-xl border flex items-center justify-center ${pillar.colorClass}`}>
+                        <Icon className="w-6 h-6" />
+                      </div>
+                      <span className={`text-[10px] font-mono uppercase tracking-wider font-bold border px-2.5 py-1 rounded-full ${pillar.colorClass}`}>
+                        {pillar.badge}
+                      </span>
+                    </div>
+                    <h3 className="text-xl font-bold text-white">{pillar.title}</h3>
+                    <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
+                      {pillar.desc}
+                    </p>
+                  </div>
+                  <ul className="text-xs font-mono text-slate-300 space-y-1.5 pt-3 border-t border-slate-800">
+                    {pillar.points.map((point, pIdx) => (
+                      <li key={pIdx} className="flex items-center gap-2">
+                        <span className={`w-1.5 h-1.5 rounded-full ${pillar.dotColor} shrink-0`} />
+                        <span>{point}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </Card>
+              );
+            })}
+          </div>
         </div>
 
         {/* Engineering & Hardware Specs Teaser Link */}
-        <div className="text-center pt-4">
+        <div className="text-center pt-2">
           <Link
             href="/pro"
             className="inline-flex items-center gap-2 text-xs font-mono text-slate-400 hover:text-sky-400 transition-colors"

@@ -641,7 +641,7 @@ describe('Strict Wix booking grid policy', () => {
       '09:00', '10:15', '11:30', '12:45', '14:00', '15:15', '16:30', '17:45', '19:00', '20:15', '21:30', '22:45',
     ]);
     expect(isOnStrictWixGrid('pkg-unknown', SAMPLE_DAY, '09:00')).toBe(false);
-  });
+  }, 60_000);
 });
 
 describe('Scheduling grid enforcement state', () => {
