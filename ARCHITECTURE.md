@@ -52,6 +52,7 @@ flowchart TD
         BrandSystem["Official Brand Identity<br/>BrandLogo.tsx - Orange Plane and Cerulean Wordmark"]
         ThemeEngine["Triple Theme Engine<br/>Brand Daylight - Cockpit Night - Clean Studio"]
         I18nEngine["7-Language Engine<br/>HE and AR RTL - EN, RU, FR, ES, DE LTR"]
+        HomeRouteGate["Modular Home Intent Gate (components/home/)<br/>HomeHero • HomeRouteGate • HomeHowItWorks<br/>HomeWhyUs • HomeFeaturedPackages • HomeCtaRibbon"]
         StorefrontUI["Adaptive Booking Storefront<br/>Recreational 3-Step Flow or PRO 2-Step Flow"]
         SubPortalUI["Subscriptions Portal<br/>Dedicated /subscriptions and /pro Tracks"]
     end
@@ -59,7 +60,7 @@ flowchart TD
     subgraph RoutingLayer["Edge Routing and Next.js 16 App Router"]
         EdgeProxy["Edge Security & Locale Proxy (proxy.ts)<br/>Strict CSP Nonce Injection • Locale Rewriting (/en, /fr)<br/>Admin HTTP Basic Guard (requireAdmin)"]
         CanonicalRedirects["Configured 301 Permanent Redirects<br/>/simulator and /training -> /pro<br/>/aerophobia -> /fear-of-flying<br/>/book-online -> /book<br/>/pricing-plans/list -> /subscriptions"]
-        PublicPages["Public Pages (20 Routes)<br/>/ • /about • /pro • /experiences • /book • /book/success<br/>/offers • /subscriptions • /subscriptions/thank-you • /workshops<br/>/vouchers • /ground-school • /contact • /rules • /privacy-policy<br/>/refund • /fear-of-flying • /blog • /post/(segments)"]
+        PublicPages["Public Pages (20 Routes)<br/>/ (Home Route Gate with 6 Intent Funnels) • /about • /pro • /experiences • /book • /book/success<br/>/offers • /subscriptions • /subscriptions/thank-you • /workshops<br/>/vouchers • /ground-school • /contact • /rules • /privacy-policy<br/>/refund • /fear-of-flying • /blog • /post/(segments)"]
         MemberPages["Member Area (5 Routes)<br/>/dashboard • /login • /wix/members/callback<br/>Legacy /auth/callback • /auth/reset-password"]
         AdminPages["Admin Dispatch Command Center (4 Routes)<br/>/admin • /admin/bookings • /admin/vouchers • /admin/workshops"]
     end
@@ -91,9 +92,11 @@ flowchart TD
     end
 
     UserNode --> ThemeEngine --> I18nEngine
+    I18nEngine --> HomeRouteGate
     I18nEngine --> StorefrontUI
     I18nEngine --> SubPortalUI
 
+    HomeRouteGate --> EdgeProxy
     StorefrontUI --> EdgeProxy
     SubPortalUI --> EdgeProxy
     EdgeProxy --> CanonicalRedirects
