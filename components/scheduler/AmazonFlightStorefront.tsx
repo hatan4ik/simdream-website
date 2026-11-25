@@ -74,8 +74,8 @@ interface AmazonFlightStorefrontProps {
   onChangePilotEmail: (val: string) => void;
   pilotPhone: string;
   onChangePilotPhone: (val: string) => void;
-  experienceLevel: PilotExperienceLevel;
-  onChangeExperienceLevel: (val: PilotExperienceLevel) => void;
+  experienceLevel?: PilotExperienceLevel;
+  onChangeExperienceLevel?: (val: PilotExperienceLevel) => void;
   notes: string;
   onChangeNotes: (val: string) => void;
   // Voucher State
@@ -1334,45 +1334,6 @@ export function AmazonFlightStorefront({
                 dir="ltr"
                 className="max-lg:scroll-mb-[calc(var(--consent-banner-offset,0px)+6rem)] lg:scroll-mb-[var(--consent-banner-offset,0px)] min-h-12 w-full rounded-lg bg-slate-950 border border-slate-700 px-3 py-2.5 text-base text-white focus:outline-none focus:border-amber-400 text-left rtl:text-right"
                 />
-              </div>
-            </div>
-
-            {/* Experience Level as 4 Visible Radio Options (Zero-Click Scanning per Modern Web Guidance) */}
-            <div className="space-y-1.5 pt-1">
-              <span className="block text-[11px] font-mono uppercase text-slate-300 font-semibold">
-                {t.booking.pilotExperience}
-              </span>
-              <div className="grid grid-cols-2 gap-1.5">
-                {(
-                  [
-                    { value: 'beginner', label: 'First-Timer' },
-                    { value: 'enthusiast', label: 'Sim Enthusiast' },
-                    { value: 'student_pilot', label: 'Student Pilot' },
-                    { value: 'atpl', label: 'Licensed Pilot' },
-                  ] as Array<{ value: PilotExperienceLevel; label: string }>
-                ).map((opt) => {
-                  const active = experienceLevel === opt.value;
-                  return (
-                    <label
-                      key={opt.value}
-                      className={`px-2.5 py-2 rounded-lg border text-xs font-mono cursor-pointer flex items-center gap-2 transition-all ${
-                        active
-                          ? 'border-amber-400 bg-amber-500/15 text-white font-bold'
-                          : 'border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700'
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name="experienceLevel"
-                        value={opt.value}
-                        checked={active}
-                        onChange={() => onChangeExperienceLevel(opt.value)}
-                        className="max-lg:scroll-mb-[calc(var(--consent-banner-offset,0px)+6rem)] lg:scroll-mb-[var(--consent-banner-offset,0px)] size-6 shrink-0 accent-amber-400"
-                      />
-                      <span className="truncate">{opt.label}</span>
-                    </label>
-                  );
-                })}
               </div>
             </div>
 

@@ -12,7 +12,6 @@ import { SOCIAL_CHANNELS } from './social-channels';
 import { WhatsAppAction } from './WhatsAppAction';
 
 import {
-  DROPDOWN_REVIEW_LIMIT,
   GOOGLE_REVIEW_POLICY_URL,
   REVIEWS_BAR_COPY,
   REVIEW_NOUNS,
@@ -87,9 +86,9 @@ export function LiveMetarBar() {
   const [originals, setOriginals] = useState<Record<string, boolean>>({});
   const reviewsPanelId = useId();
   const triggerRef = useRef<HTMLButtonElement>(null);
-  const reviews = snapshot.reviews.slice(0, 10);
-  // The dropdown is a short, scannable list; the full set stays one click away on Google.
-  const dropdownReviews = reviews.slice(0, DROPDOWN_REVIEW_LIMIT);
+  const reviews = snapshot.reviews;
+  // All available Google reviews, presented in a scrollable panel.
+  const dropdownReviews = reviews;
   const formattedCount = new Intl.NumberFormat(localeFor(language)).format(snapshot.totalReviewsCount);
 
   useEffect(() => {

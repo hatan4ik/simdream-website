@@ -229,7 +229,7 @@ test.describe('recreational booking, guided 3-step wizard', () => {
     await expect(page.getByLabel('Pilot Full Name *')).toBeVisible();
     await expect(page.getByLabel('Pilot Email (Confirmation) *')).toBeVisible();
     await expect(page.getByLabel('Phone Number *')).toBeVisible();
-    await expect(page.getByLabel('Aviation Experience Level')).toBeVisible();
+    await expect(page.getByLabel(/Pilot in Command date of birth/)).toBeVisible();
   });
 });
 
@@ -254,7 +254,6 @@ test.describe('recreational booking, one-page storefront', () => {
     await expect(store.submit()).toHaveText(ilsPattern(total));
 
     await store.fillPilot(PILOT);
-    await store.experience('Sim Enthusiast').check();
     const checkoutResponse = page.waitForResponse((response) => response.url().endsWith('/api/checkout'));
     await store.submit().click();
     const response = await checkoutResponse;
@@ -265,7 +264,7 @@ test.describe('recreational booking, one-page storefront', () => {
       packageId: 'pkg-captain-60',
       bookingDate: date,
       startTime: slot.startTime,
-      experienceLevel: 'enthusiast',
+      experienceLevel: 'beginner',
       addons: ['addon-xwind-ifr'],
     });
 
@@ -275,7 +274,6 @@ test.describe('recreational booking, one-page storefront', () => {
     await expect(store.pilotName()).toHaveValue(PILOT.name);
     await expect(store.pilotEmail()).toHaveValue(PILOT.email);
     await expect(store.pilotPhone()).toHaveValue(PILOT.phone);
-    await expect(store.experience('Sim Enthusiast')).toBeChecked();
     await expect(store.removeAddon(XWIND.name)).toBeVisible();
   });
 
