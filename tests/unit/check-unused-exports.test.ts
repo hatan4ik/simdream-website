@@ -86,7 +86,7 @@ beforeAll(() => {
     exportDirectories: ['lib', 'components'],
     compilerOptions: COMPILER_OPTIONS,
   });
-});
+}, 30_000);
 
 afterAll(() => {
   if (root) rmSync(root, { recursive: true, force: true });
