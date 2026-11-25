@@ -10,6 +10,14 @@
 
 ## Product changes by version
 
+### [v1.32.6](https://github.com/hatan4ik/simdream-website/releases/tag/v1.32.6) — 2026-11-25
+
+#### Bug Fixes
+
+- **legal:** render the Hebrew rules and privacy text in the first HTML so no clause id is ever duplicated (#329) (25d06f8)
+
+Deployment evidence: [GitHub Release](https://github.com/hatan4ik/simdream-website/releases/tag/v1.32.6).
+
 ### [v1.32.5](https://github.com/hatan4ik/simdream-website/releases/tag/v1.32.5) — 2026-11-24
 
 #### Bug Fixes
