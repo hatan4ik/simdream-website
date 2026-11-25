@@ -66,14 +66,21 @@ The state machine keeps a "correction requested, not landed yet" state. Without 
 | The loop, in three browsers | `tests/e2e/blog-language-sync.spec.ts` |
 | Path locale extraction, hero localization | `tests/unit/blog-language-routing.test.ts` |
 | hreflang, `x-default`, noindex fallback, 301s | `tests/unit/blog-seo.test.ts` |
+| A translated article: English title, `en-US` JSON-LD, self canonical, hreflang for 7 languages plus `x-default`; an untranslated one is noindex with the Hebrew canonical | `tests/unit/blog-translated-article.test.ts` |
+| The URL language beats the saved one (`selectPreferredLanguage`: path, then routed, then saved, then server language) | `tests/unit/language-preference.test.ts` |
+| Every mapped group has all seven languages on live Wix | `tests/unit/wix-blog-language-contract.test.ts` (logic, fake responses) and the nightly job (live) |
 | Article JSON-LD and breadcrumbs | `tests/unit/blog-structured-data.test.ts`, `tests/e2e/seo-contract.spec.ts` |
 | API route | `tests/integration/blog-api.test.ts` |
 | A translated article after a Wix publish | the smoke check in `ci.yml`, `wix-release.yml`, `wix-rollback.yml`, kept honest by `tests/unit/wix-smoke-translated-article.test.ts` |
 
+## Live contract check (nightly)
+
+`npm run wix:check-blog-languages` (`scripts/check-wix-blog-languages.ts`, pure logic in `lib/wix/blog-language-contract.ts`) proves against the LIVE Wix API, as an anonymous visitor and read-only, that every translation group in `lib/data/blog-slug-map.json` has exactly one post per language with that slug (39 groups x 7 languages = 273 checks in 14 requests: one `slug $in` batch per language plus the exact `slug $eq` plus `language $eq` body the resolver sends). It reports `missing`, `wrong-language`, `duplicate`, `http-error`, `truncated`, `no-slug` and `not-checked`, paces requests 600 ms apart, stops at the first HTTP 429 and never prints the token; any finding exits 1. The `wix-blog-languages` job in `.github/workflows/nightly.yml` runs it every night, so a rejected operator or a post removed from Wix is caught within a day even when nothing is released. It does not run on pull requests (network, and Wix owns the data), so the post-publish smoke check remains the gate for a release.
+
 ## Known gaps
 
-- No live-API contract test in CI: mocks cannot see a rejected operator. The post-publish smoke check is the safety net.
-- No end-to-end test that a translated article renders a translated body.
-- `LanguageProvider` preferring the path locale over localStorage has no unit test; the proxy locale header (#187) is covered only by e2e.
-- Nothing checks that the sitemap, `llms.txt` or hreflang list only languages whose live body exists.
-- The server HTML of the index and of non-article pages always carries the Hebrew title; only the article route resolves the language on the server.
+- A rejected Wix operator is caught by the nightly job and the post-publish smoke check, not before merge: no pull-request check talks to Wix.
+- No browser test that a translated article renders translated: the test sandbox blanks the Wix ids (`SANDBOX_ENV`). The render is covered by `tests/unit/blog-translated-article.test.ts` (mocked English post) and the live data by the nightly check.
+- The proxy locale header (#187) is covered only by e2e.
+- An English article still shows Hebrew in two places by design of the registries: the JSON-LD author name, and the related-articles aside lists Hebrew titles.
+- The server HTML of the index and of non-article pages always carries the Hebrew title; only the article route resolves the language on the server. The article markup carries no `lang` attribute; the document language is set client-side by `LanguageProvider`.

@@ -24,6 +24,7 @@
 | `npm run docs:genesis:stamp` | Re-stamps the `GENESIS.md` fingerprint after reviewing the diff |
 | `npm run wix:smoke` | Wix catalog reconciliation (run after touching the catalog or Wix services) |
 | `npm run wix:readiness` | Wix Headless readiness check, read-only |
+| `npm run wix:check-blog-languages` | Live, read-only: every blog translation group has a post in all 7 languages (also runs nightly) |
 
 ## 3. Session rules
 
