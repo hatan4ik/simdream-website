@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.33.0](https://github.com/hatan4ik/simdream-website/compare/v1.32.6...v1.33.0) (2026-11-25)
+
+
+### Features
+
+* **home:** elevate route gate storytelling, visual hierarchy, and layout rhythm ([#334](https://github.com/hatan4ik/simdream-website/issues/334)) ([51a18c0](https://github.com/hatan4ik/simdream-website/commit/51a18c0f45dd872f649ae939d704fad84933ee4d))
+* **home:** modularize homepage into 6-funnel intent route gate ([#333](https://github.com/hatan4ik/simdream-website/issues/333)) ([5c21da2](https://github.com/hatan4ik/simdream-website/commit/5c21da20bcf702823239a60d7b5c7e2d06c45184))
+
 ## [1.32.6](https://github.com/hatan4ik/simdream-website/compare/v1.32.5...v1.32.6) (2026-11-25)
 
 
