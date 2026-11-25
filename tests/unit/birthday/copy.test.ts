@@ -68,6 +68,11 @@ describe('birthday checkout copy', () => {
     expect(fillBirthdayTemplate('{percent}', { percent: 20 })).toBe('20');
   });
 
+  it('supports overriding percent in getBirthdayCheckoutCopy and getBirthdayBannerText', () => {
+    expect(getBirthdayCheckoutCopy('en', { percent: 10 }).discountLine).toBe('Birthday discount (10%)');
+    expect(getBirthdayBannerText('en', 'same_month', { percent: 10 })?.body).toContain('10%');
+  });
+
   it('falls back to English for an unsupported language code', () => {
     expect(getBirthdayCheckoutCopy('xx' as SupportedLanguage).bannerTitle).toBe(BIRTHDAY_CHECKOUT_COPY.en.bannerTitle);
   });

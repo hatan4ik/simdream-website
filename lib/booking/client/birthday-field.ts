@@ -74,6 +74,8 @@ export interface BirthdayFieldState {
   applied: boolean;
   /** Whole shekels the preview takes off; 0 unless `applied`. */
   discountIls: number;
+  /** Percentage applied; 0 unless `applied`. */
+  percent?: number;
   reason: BirthdayReason | null;
   blockedBy?: BookingBirthdayBlock;
   /** The bare Discounted Promotion is picked (no add-on upgrade): no stacking, so the offer never applies. */
@@ -97,6 +99,7 @@ export interface BirthdayFieldInputs {
 const EMPTY: Omit<BirthdayFieldState, 'mode' | 'status' | 'promoPicked'> = {
   applied: false,
   discountIls: 0,
+  percent: 0,
   reason: null,
   birthday: null,
 };
@@ -126,6 +129,7 @@ function evaluateDate(inputs: BirthdayFieldInputs): Omit<BirthdayFieldState, 'pr
     status: 'valid',
     applied: result.applied,
     discountIls: result.discountIls,
+    percent: result.applied ? result.percent : 0,
     reason: result.reason,
     blockedBy: result.blockedBy,
     birthday: result.birthday,

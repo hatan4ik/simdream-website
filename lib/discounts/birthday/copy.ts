@@ -168,19 +168,23 @@ export function fillBirthdayTemplate(
 }
 
 /** The six-language copy for a language with the placeholders already filled. */
-export function getBirthdayCheckoutCopy(language: SupportedLanguage): BirthdayCheckoutCopy {
+export function getBirthdayCheckoutCopy(
+  language: SupportedLanguage,
+  values: Record<string, string | number> = {}
+): BirthdayCheckoutCopy {
   const copy = BIRTHDAY_CHECKOUT_COPY[language] || BIRTHDAY_CHECKOUT_COPY.en;
   return Object.fromEntries(
-    Object.entries(copy).map(([key, value]) => [key, fillBirthdayTemplate(value)])
+    Object.entries(copy).map(([key, value]) => [key, fillBirthdayTemplate(value, values)])
   ) as unknown as BirthdayCheckoutCopy;
 }
 
 /** The congratulations banner text for an eligible evaluation, or null when nothing applies. */
 export function getBirthdayBannerText(
   language: SupportedLanguage,
-  reason: BirthdayReason
+  reason: BirthdayReason,
+  values: Record<string, string | number> = {}
 ): { title: string; body: string } | null {
-  const copy = getBirthdayCheckoutCopy(language);
+  const copy = getBirthdayCheckoutCopy(language, values);
   if (reason === 'same_month') return { title: copy.bannerTitle, body: copy.bannerSameMonth };
   if (reason === 'grace_before') return { title: copy.bannerTitle, body: copy.bannerGraceBefore };
   if (reason === 'grace_after') return { title: copy.bannerTitle, body: copy.bannerGraceAfter };

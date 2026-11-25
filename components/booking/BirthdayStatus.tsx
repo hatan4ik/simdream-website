@@ -32,7 +32,9 @@ export function BirthdayStatus({ id, birthday }: { id: string; birthday: Booking
           <span>{extras.birthdayPromoPicked}</span>
         </p>
       )}
-      {kind === 'banner' && birthday.state.reason && <BirthdayBanner reason={birthday.state.reason} />}
+      {kind === 'banner' && birthday.state.reason && (
+        <BirthdayBanner reason={birthday.state.reason} percent={birthday.state.percent} />
+      )}
       {note && (
         <p className="flex items-start gap-2 rounded-lg border border-slate-700 bg-slate-950/50 p-3 text-xs leading-relaxed text-slate-300">
           <Info className="mt-0.5 h-4 w-4 shrink-0 text-sky-400" aria-hidden="true" />

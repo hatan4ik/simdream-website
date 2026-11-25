@@ -8,9 +8,9 @@ import { useLanguage } from '@/lib/i18n/language-context';
  * The congratulations shown while the birthday discount applies: the slogan and one sentence saying the
  * discount is already in the total. It never appears on a checkout path that cannot apply the discount.
  */
-export function BirthdayBanner({ reason }: { reason: BirthdayReason }) {
+export function BirthdayBanner({ reason, percent }: { reason: BirthdayReason; percent?: number }) {
   const { language } = useLanguage();
-  const text = getBirthdayBannerText(language, reason);
+  const text = getBirthdayBannerText(language, reason, percent ? { percent } : {});
   if (!text) return null;
   return (
     <div
