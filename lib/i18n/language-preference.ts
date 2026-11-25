@@ -34,3 +34,28 @@ export function extractPathLocale(pathname: string | null | undefined): Language
   const candidate = match?.[1];
   return isSupportedLanguage(candidate) ? candidate : null;
 }
+
+export interface LanguagePreferenceInputs {
+  /** `window.location.pathname` after mount; the visible URL. */
+  pathname?: string | null;
+  /** The locale the proxy resolved for the request (lets SSR match the URL before hydration). */
+  routedLanguage?: Language;
+  /** The raw `simdream_lang` value from localStorage, or null. */
+  saved?: string | null;
+  /** The language the server rendered with. */
+  initialLanguage: Language;
+}
+
+/**
+ * The language the provider settles on after mount: a locale in the visible URL path, then the
+ * proxy-routed locale, then the saved choice, then the server's language. A winner that is not a
+ * supported language resolves to `DEFAULT_LANGUAGE`.
+ */
+export function selectPreferredLanguage({
+  pathname,
+  routedLanguage,
+  saved,
+  initialLanguage,
+}: LanguagePreferenceInputs): Language {
+  return resolveLanguagePreference(extractPathLocale(pathname) ?? routedLanguage ?? saved ?? initialLanguage);
+}
