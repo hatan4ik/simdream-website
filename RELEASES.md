@@ -10,6 +10,15 @@
 
 ## Product changes by version
 
+### [v1.34.0](https://github.com/hatan4ik/simdream-website/releases/tag/v1.34.0) — 2026-11-25
+
+#### Features
+
+- **checkout:** move birth date under contact fields, remove experience level, and display all scrollable Google reviews (#337) (4481468)
+- **discounts:** implement Option A tiered birthday discounts (#336) (9712515)
+
+Deployment evidence: [GitHub Release](https://github.com/hatan4ik/simdream-website/releases/tag/v1.34.0).
+
 ### [v1.33.0](https://github.com/hatan4ik/simdream-website/releases/tag/v1.33.0) — 2026-11-25
 
 #### Features
