@@ -174,8 +174,8 @@ test('opens a compact dropdown under the rating with a short list of reviews', a
   expect(panelBox.width).toBeLessThanOrEqual(520);
   expect(panelBox.y).toBeGreaterThanOrEqual(triggerBox.y + triggerBox.height - 2);
   expect(Math.abs(panelBox.x - triggerBox.x)).toBeLessThanOrEqual(2);
-  // "A couple of recent reviews": three of the four supplied, with the rest one click away on Google.
-  await expect(panel.getByRole('article')).toHaveCount(3);
+  // All supplied reviews are rendered in the scrollable panel.
+  await expect(panel.getByRole('article')).toHaveCount(4);
   await expect(panel.getByRole('link', { name: 'Read all reviews on Google' })).toBeVisible();
 });
 
@@ -342,7 +342,7 @@ test('shows each review\u2019s date and lets the reader switch between Google\u2
   await gotoSettled(page, '/');
   await page.locator('[data-google-reviews-trigger]').click();
   const panel = page.locator('[data-google-reviews-panel]');
-  await expect(panel.locator('[data-reviews-ordering]')).toHaveText('The five newest Google reviews, newest first (updated twice a day).');
+  await expect(panel.locator('[data-reviews-ordering]')).toHaveText('Google reviews, newest first (updated twice a day).');
   const first = panel.getByRole('article').first();
   await expect(first.locator('time')).toHaveAttribute('datetime', '2026-11-01T10:00:00Z');
   await expect(first.locator('time')).toHaveText(/2026/);

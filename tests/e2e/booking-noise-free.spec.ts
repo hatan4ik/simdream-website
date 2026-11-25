@@ -90,11 +90,9 @@ test.describe('professional training booking', () => {
     await expect(booking.storefront.packageCard(45)).toHaveCount(0);
   });
 
-  test('skips the add-on step in the wizard and defaults the level to ATPL', async ({ booking, schedule }) => {
+  test('skips the add-on step in the wizard', async ({ booking, schedule }) => {
     await booking.goto('?package=airline-prep-90-pro');
     await expectTwoStepWizard(booking, schedule, 90);
-
-    await expect(booking.wizard.experienceLevel()).toHaveValue('atpl');
   });
 
   test('resolves the documented deep link /book?package=airline-interview-prep-90-pro (E2E-3)', async ({
@@ -105,10 +103,9 @@ test.describe('professional training booking', () => {
 
     await expect(page.getByRole('heading', { level: 1, name: 'Airline Interview Prep 90 PRO' })).toBeVisible();
     await expect(page.getByText('🎯 NOISE-FREE AIRLINE ASSESSMENT SCHEDULING')).toBeVisible();
-    await expect(booking.storefront.experience('Licensed Pilot')).toBeChecked();
   });
 
-  test('dynamically switches checkout to Airline Interview Prep 60 PRO (registry price) when ATPL / Screening Prep is selected', async ({
+  test('resolves and submits Airline Interview Prep 60 PRO (registry price)', async ({
     page,
     booking,
     schedule,
@@ -116,17 +113,11 @@ test.describe('professional training booking', () => {
     const { date, slot } = await schedule.findOpenSlot({ duration: 60 });
     const checkoutRequests = recordRequests(page, '/api/checkout');
 
-    await booking.goto('?package=captains-command-60');
+    await booking.goto('?package=airline-prep-60-pro');
     const wizard = await booking.openWizard();
     await booking.selectDate(date);
     await wizard.slot(slot.startTime).click();
-    await wizard.continueToAddons().click();
     await wizard.continueToPilot().click();
-
-    await expect(page.getByRole('heading', { level: 3, name: "Captain's Command" })).toBeVisible();
-    await expect(wizard.experienceLevel()).toHaveValue('beginner');
-
-    await wizard.experienceLevel().selectOption('atpl');
 
     await expect(page.getByRole('heading', { level: 3, name: 'Airline Interview Prep 60 PRO' })).toBeVisible();
     await expect(wizard.submit()).toHaveText(ilsPattern(PRO_60_PRICE_ILS));
@@ -162,7 +153,6 @@ test.describe('45m daytime promo booking', () => {
     await expect(page.getByRole('heading', { level: 1, name: 'Discounted Promotion Flight' })).toBeVisible();
 
     await expect(page.getByRole('heading', { name: ADDON_SECTIONS[1] })).toBeVisible();
-    await expect(booking.storefront.experience('First-Timer')).toBeChecked();
     const wizard = await booking.openWizard();
     await expect(wizard.progressSteps()).toHaveText(['2. DATE & SLOT', '3. ADD-ONS', '4. PILOT & PAY']);
   });
@@ -175,13 +165,10 @@ test.describe('fear of flying booking', () => {
     await expect(page.getByRole('heading', { level: 1, name: 'Fear of Flying Overcoming Course' })).toBeVisible();
     await expect(page.getByText('🕊️ CALM & REASSURING FEAR OF FLYING SCHEDULING')).toBeVisible();
     await expectNoUpsells(booking);
-    await expect(booking.storefront.experience('First-Timer')).toBeChecked();
   });
 
   test('skips the add-on step in the wizard', async ({ booking, schedule }) => {
     await booking.goto('?package=fear-of-flying-course');
     await expectTwoStepWizard(booking, schedule, 60);
-
-    await expect(booking.wizard.experienceLevel()).toHaveValue('beginner');
   });
 });

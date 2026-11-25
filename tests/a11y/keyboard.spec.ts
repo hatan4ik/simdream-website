@@ -66,10 +66,6 @@ test.describe('keyboard-only booking journey', () => {
     await page.keyboard.type('dana.keyboard@example.com');
     await page.keyboard.press('Tab');
     await page.keyboard.type('054-555-0101');
-    await page.keyboard.press('Tab');
-    await expect(page.getByRole('radio', { name: 'First-Timer' })).toBeFocused();
-    await page.keyboard.press('ArrowDown');
-    await expect(page.getByRole('radio', { name: 'Sim Enthusiast' })).toBeChecked();
 
     await completeExtrasByKeyboard(page);
     await tabTo(page, checkoutButton(page));
@@ -84,7 +80,7 @@ test.describe('keyboard-only booking journey', () => {
       pilotName: 'Dana Keyboard',
       pilotEmail: 'dana.keyboard@example.com',
       pilotPhone: '054-555-0101',
-      experienceLevel: 'enthusiast',
+      experienceLevel: 'beginner',
       consent: { rulesRefundsAndPrivacy: true, mediaReleaseAndWaiver: true, language: 'en' },
     });
     expect((await sent.response())?.status()).toBe(503);

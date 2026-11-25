@@ -12,11 +12,11 @@ interface PilotManifestFormProps {
   pilot: PilotDetails;
   /** A Wix subscription redemption collects no pilot details here; Wix verifies the member. */
   isWixSubscriptionRedemption: boolean;
-  experienceLevel: PilotExperienceLevel;
-  onChangeExperienceLevel: (level: PilotExperienceLevel) => void;
+  experienceLevel?: PilotExperienceLevel;
+  onChangeExperienceLevel?: (level: PilotExperienceLevel) => void;
   /**
-   * SEAM for extra pilot fields (for example a birthday). Rendered inside the form after the special
-   * requests field, in the same column. Fields added here are validated through
+   * SEAM for extra pilot fields (for example a birthday). Rendered directly under the email and phone
+   * fields, in the same column. Fields added here are validated through
    * `extraValidation` and sent through `extraPayload` of `useBookingCheckout`.
    */
   extraFields?: ReactNode;
@@ -24,15 +24,13 @@ interface PilotManifestFormProps {
 
 /**
  * The left column of the final step: the "Pilot in Command Details" heading, the pilot's name,
- * email and phone, the experience level and special requests. Pure presentation over the
+ * email and phone, date of birth, and special requests. Pure presentation over the
  * `usePilotDetails` state; the page owns every value.
  */
 export function PilotManifestForm({
   formId,
   pilot,
   isWixSubscriptionRedemption,
-  experienceLevel,
-  onChangeExperienceLevel,
   extraFields,
 }: PilotManifestFormProps) {
   const { t } = useLanguage();
@@ -104,22 +102,7 @@ export function PilotManifestForm({
         </div>
       </div>
 
-      <div className="space-y-1.5">
-        <label htmlFor={`${formId}-pilot-experience`} className={FIELD_LABEL}>
-          {t.booking.pilotExperience}
-        </label>
-        <select
-          id={`${formId}-pilot-experience`}
-          value={experienceLevel}
-          onChange={(e) => onChangeExperienceLevel(e.target.value as PilotExperienceLevel)}
-          className={FIELD_CONTROL}
-        >
-          <option value="beginner">{t.experienceLevels.beginner}</option>
-          <option value="enthusiast">{t.experienceLevels.enthusiast}</option>
-          <option value="student_pilot">{t.experienceLevels.student}</option>
-          <option value="atpl">{t.experienceLevels.commercial}</option>
-        </select>
-      </div>
+      {extraFields}
 
       <div className="space-y-1.5">
         <label htmlFor={`${formId}-special-requests`} className={FIELD_LABEL}>
@@ -134,8 +117,6 @@ export function PilotManifestForm({
           className={FIELD_CONTROL}
         />
       </div>
-
-      {extraFields}
     </div>
   );
 }
