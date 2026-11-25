@@ -10,6 +10,7 @@ const COPY: Record<Language, { vouchersTitle: string; hero: string }> = {
   fr: { vouchersTitle: 'Offrez l’Expérience de Vol Ultime', hero: 'Prenez les commandes du' },
   ar: { vouchersTitle: 'امنح تجربة الطيران الاستثنائية', hero: 'تول قيادة طائرة' },
   es: { vouchersTitle: 'Regala la experiencia de vuelo definitiva', hero: 'Toma el mando de un' },
+  de: { vouchersTitle: 'Verschenken Sie das ultimative Flugerlebnis', hero: 'Steuern Sie die' },
 };
 
 const directionOf = (language: Language) => (RTL_LANGUAGES.includes(language) ? 'rtl' : 'ltr');
@@ -73,7 +74,7 @@ test.describe('language switcher', () => {
     await expect(chrome.languageButton()).toContainText('ar');
   });
 
-  for (const language of ['en', 'ru', 'fr', 'ar', 'es'] as const) {
+  for (const language of ['en', 'ru', 'fr', 'ar', 'es', 'de'] as const) {
     test(`renders ${language} directly from its Wix subdirectory URL`, async ({ page, chrome }) => {
       await page.goto(localePath(language, '/vouchers'));
 

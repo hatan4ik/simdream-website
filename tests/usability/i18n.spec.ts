@@ -21,6 +21,7 @@ const NATIVE_NAMES: Record<Language, string> = {
   fr: 'Français',
   ar: 'العربية',
   es: 'Español',
+  de: 'Deutsch',
 };
 
 /**

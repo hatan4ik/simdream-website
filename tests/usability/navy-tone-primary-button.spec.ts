@@ -9,8 +9,8 @@ import { freezeCssMotion, gotoSettled, isolateFromThirdParties } from './support
 // the brand orange #FF5500 with the tone's chrome navy as its label (AGENTS.md §1.6). White on
 // #FF5500 is only 3.2:1, so the label must stay dark. Classic Night, SimDream Day and Clean Studio
 // keep the cerulean pill. These tests read what the browser paints, at rest, on hover and under
-// keyboard focus, on every primary control of the home page (the header "Book" link is a link
-// styled with buttonClassName(); the hero action is a <Button>).
+// keyboard focus, on every primary control of the home page (the header "Book" link and the hero
+// action are single semantic links styled with buttonClassName()).
 test.use({ reducedMotion: 'reduce', video: 'off', viewport: { width: 1440, height: 900 } });
 
 const PRIMARY = '[data-ui-control="button"][data-button-variant="primary"]';
@@ -151,7 +151,7 @@ for (const primaryCase of CASES) {
     test('hover and keyboard focus keep a readable label', async ({ page, baseURL }) => {
       await openHome(page, baseURL, primaryCase);
       const headerBook = page.getByRole('navigation').locator(`a${PRIMARY}`).filter({ visible: true }).first();
-      const heroAction = page.getByRole('main').locator(`button${PRIMARY}`).filter({ visible: true }).first();
+      const heroAction = page.getByRole('main').locator(`:is(button, a)${PRIMARY}`).filter({ visible: true }).first();
 
       for (const control of [headerBook, heroAction]) {
         await control.hover();
