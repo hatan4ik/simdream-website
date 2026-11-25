@@ -88,6 +88,7 @@ for (const language of LANGUAGES) {
       fr: /avis$/,
       ar: /تقييمًا$/,
       es: /reseñas$/,
+      de: /Bewertungen$/,
     } as const;
     await expect(label).toHaveText(nouns[language as keyof typeof nouns]);
     // No cross-script contamination: the count label carries only its own language's script.
