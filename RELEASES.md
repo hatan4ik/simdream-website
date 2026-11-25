@@ -10,6 +10,15 @@
 
 ## Product changes by version
 
+### [v1.33.0](https://github.com/hatan4ik/simdream-website/releases/tag/v1.33.0) — 2026-11-25
+
+#### Features
+
+- **home:** elevate route gate storytelling, visual hierarchy, and layout rhythm (#334) (51a18c0)
+- **home:** modularize homepage into 6-funnel intent route gate (#333) (5c21da2)
+
+Deployment evidence: [GitHub Release](https://github.com/hatan4ik/simdream-website/releases/tag/v1.33.0).
+
 ### [v1.32.6](https://github.com/hatan4ik/simdream-website/releases/tag/v1.32.6) — 2026-11-25
 
 #### Bug Fixes
