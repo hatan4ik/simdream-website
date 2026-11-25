@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import blogSlugMap from '@/lib/data/blog-slug-map.json';
 import { BLOG_SEO_LANGS, SHORT_SLUG_BY_TID } from '@/lib/data/blog-short-slugs';
@@ -9,23 +11,41 @@ import {
   assertStagingUrl,
   titleMatchesLanguage,
 } from '../../scripts/verify-staging-content.mjs';
+import { REPO_ROOT } from './_support/source';
 
 // The staging content suite (`npm run test:staging:content:docker`) is read-only and runs against the Wix staging
 // host only. These tests pin its pure helpers, and keep its sample articles real.
 describe('staging content suite: target guard', () => {
-  it('refuses the production domain in any spelling', () => {
-    for (const url of ['https://www.simdream.co.il', 'https://simdream.co.il/', 'HTTPS://WWW.SIMDREAM.CO.IL/he', 'http://simdream.co.il:443']) {
-      expect(() => assertStagingUrl(url), url).toThrow(/simdream\.co\.il/);
+  const STAGING = 'https://headless-ciwstxzqhgf-hatan4ik-1408.wix-site-host.com';
+
+  it('runs against the staging site and nothing else', () => {
+    for (const url of [
+      'https://www.simdream.co.il',
+      'https://simdream.co.il/',
+      'HTTPS://WWW.SIMDREAM.CO.IL/he',
+      'http://localhost:3100',
+      'http://127.0.0.1:8781',
+      'https://example.com',
+      'https://another-site-0000.wix-site-host.com',
+      `${STAGING}.evil.example`,
+      `${STAGING}@evil.example`,
+      STAGING.replace('https://', 'http://'),
+      'not a url',
+      '',
+    ]) {
+      expect(() => assertStagingUrl(url), JSON.stringify(url)).toThrow(/staging/i);
     }
   });
 
-  it('accepts the staging host and drops a trailing slash', () => {
-    expect(assertStagingUrl(DEFAULT_BASE_URL)).toBe(DEFAULT_BASE_URL);
-    expect(assertStagingUrl(`${DEFAULT_BASE_URL}///`)).toBe(DEFAULT_BASE_URL);
+  it('accepts the staging site, with or without a trailing slash or path, and returns its origin', () => {
+    for (const url of [STAGING, `${STAGING}/`, `${STAGING}///`, `${STAGING}/en/blog`, `${STAGING.toUpperCase()}/`]) {
+      expect(assertStagingUrl(url), url).toBe(STAGING);
+    }
   });
 
-  it('defaults to a Wix staging host, never the production domain', () => {
-    expect(DEFAULT_BASE_URL).toMatch(/^https:\/\/[a-z0-9-]+\.wix-site-host\.com$/);
+  it('names exactly the staging host as its default and cannot be pointed elsewhere by an environment variable', () => {
+    expect(DEFAULT_BASE_URL).toBe(STAGING);
+    expect(readFileSync(path.join(REPO_ROOT, 'scripts/verify-staging-content.mjs'), 'utf8')).not.toMatch(/process\.env\.STAGING_BASE_URL/);
   });
 });
 

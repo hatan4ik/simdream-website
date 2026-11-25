@@ -18,8 +18,9 @@
  *
  *   npm run test:staging:content:docker -- --only=cookie,article --article=does-autopilot-land-alone
  *
- * Target host: STAGING_BASE_URL, default the Wix staging host. It refuses simdream.co.il. Requests are paced
- * (staging answers HTTP 429 when pushed) and the run stops at the first 429.
+ * Target: the Wix staging site only (https://headless-ciwstxzqhgf-hatan4ik-1408.wix-site-host.com); there is no
+ * override, and production, localhost or any other host is refused. Requests are paced (staging answers HTTP 429
+ * when pushed) and the run stops at the first 429.
  */
 import { chromium } from 'playwright';
 
@@ -37,9 +38,21 @@ const CYRILLIC = /[\u0400-\u04FF]/;
 const PAUSE_MS = 1200;
 const COOKIE_HEADER = 'simdream_smoke=1; _wixAB3=1';
 
+/**
+ * At this stage the only target is the Wix staging site. Anything else (production, localhost, another Wix
+ * host, a lookalike, plain http) is refused, and there is no environment override.
+ */
 export function assertStagingUrl(url) {
-  if (/simdream\.co\.il/i.test(url)) throw new Error('Refusing to run the staging content suite against simdream.co.il.');
-  return url.replace(/\/+$/, '');
+  let origin;
+  try {
+    origin = new URL(url).origin;
+  } catch {
+    throw new Error(`Refusing to run against ${JSON.stringify(url)}: only the staging site ${DEFAULT_BASE_URL} is allowed.`);
+  }
+  if (origin.toLowerCase() !== DEFAULT_BASE_URL) {
+    throw new Error(`Refusing to run against ${origin}: only the staging site ${DEFAULT_BASE_URL} is allowed.`);
+  }
+  return DEFAULT_BASE_URL;
 }
 
 /** The path a visitor opens for a blog article: the Hebrew master has no language prefix. */
@@ -228,7 +241,7 @@ async function checkServedHtml(base, context) {
 }
 
 async function main() {
-  const base = assertStagingUrl(process.env.STAGING_BASE_URL || DEFAULT_BASE_URL);
+  const base = assertStagingUrl(DEFAULT_BASE_URL);
   const arg = (name) => process.argv.find((value) => value.startsWith(`--${name}=`))?.split('=')[1];
   const only = new Set((arg('only') ?? 'cookie,article,loop,index,legal,html').split(','));
   const articles = (arg('article') ?? DEFAULT_ARTICLES.join(',')).split(',');

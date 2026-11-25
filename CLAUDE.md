@@ -34,7 +34,7 @@
 3. **Independent verification.** Before marking a task done, run the [`verifier`](.claude/agents/verifier.md) agent. It did not write the code and reports without editing.
 4. **Branches, commits and pull requests** follow the task contract in `AGENTS.md` section 0 (Limits). `.claude/hooks/block-main-commit.sh` blocks commits on `main`.
 5. **Wix environments** follow `AGENTS.md` section 6.7 (only SimDream-Staging is writable).
-6. **Verify staging with Playwright in Docker** (`npm run test:staging:content:docker`, `docs`: `TESTING.md`), not by driving the owner's own browser profile.
+6. **At this stage the only URL to test is the staging site** (`https://headless-ciwstxzqhgf-hatan4ik-1408.wix-site-host.com`), never `simdream.co.il` or another host, and it is verified with Playwright in Docker (`npm run test:staging:content:docker`, see `TESTING.md`), not by driving the owner's own browser profile.
 7. **Concurrent sessions.** Another session may edit this checkout. Read `git status` and file timestamps before writing, and never revert what you did not write.
 
 ## 4. Docs impact map
