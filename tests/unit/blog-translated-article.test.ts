@@ -62,7 +62,10 @@ describe('a translated (English) article page renders translated', () => {
   const markup = renderArticle(englishPost());
   // Visible text only: the BlogPosting author keeps its Hebrew registry name inside the JSON-LD (existing design),
   // and the related-articles aside lists the Hebrew master titles.
-  const withoutRelated = markup.replace(/<script[\s\S]*?<\/script>/g, '').split('<aside')[0]!;
+  const beforeAside = markup.split('<aside')[0]!;
+  const doc = new DOMParser().parseFromString(beforeAside, 'text/html');
+  doc.querySelectorAll('script').forEach((node) => node.remove());
+  const withoutRelated = doc.body.innerHTML;
 
   it('shows the English title, excerpt and body, left to right', () => {
     expect(markup).toMatch(/<h1[^>]*>Aircraft Systems Guide: Mastering the Cockpit Without Getting Lost<\/h1>/);
