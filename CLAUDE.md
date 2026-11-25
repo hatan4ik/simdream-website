@@ -15,6 +15,7 @@
 
 | Command | Purpose |
 | :--- | :--- |
+| `npm run status` | Read-only snapshot for the start of a session or after a reboot: checkout, open PRs and checks, main CI, latest release and Wix publish, nightly run, staging health (about 6 seconds, 11 lines) |
 | `npm run dev` | Local development server |
 | `npm run start:local` | Local production server with the in-memory store (no live Supabase) |
 | `npm run build` | Full Next.js build; must compile with 0 errors |
@@ -29,13 +30,24 @@
 
 ## 3. Session rules
 
-1. **Read state first.** Every new session starts by reading `docs/PROJECT_STATE.md` and `docs/DECISIONS.md`, before any other action.
+1. **Read state first, cheaply.** Every new session starts with `npm run status`, then `docs/PROJECT_STATE.md`, then only the "Working rules" and "Open" sections of `docs/DECISIONS.md` (`grep -n "^## " docs/DECISIONS.md`, then read those ranges), before any other action.
 2. **Keep docs current.** After any substantive change, update both files in the same change. A document that no longer reflects the code is broken.
 3. **Independent verification.** Before marking a task done, run the [`verifier`](.claude/agents/verifier.md) agent. It did not write the code and reports without editing.
 4. **Branches, commits and pull requests** follow the task contract in `AGENTS.md` section 0 (Limits). `.claude/hooks/block-main-commit.sh` blocks commits on `main`.
 5. **Wix environments** follow `AGENTS.md` section 6.7 (only SimDream-Staging is writable).
 6. **At this stage the only URL to test is the staging site** (`https://headless-ciwstxzqhgf-hatan4ik-1408.wix-site-host.com`), never `simdream.co.il` or another host, and it is verified with Playwright in Docker (`npm run test:staging:content:docker`, see `TESTING.md`), not by driving the owner's own browser profile.
 7. **Concurrent sessions.** Another session may edit this checkout. Read `git status` and file timestamps before writing, and never revert what you did not write.
+
+### Token discipline, and not getting lost after a reboot
+
+- A reboot loses the chat, background tasks and everything under `/private/tmp` (scratch clones, agent output); git and GitHub survive. Push a draft PR before any long step, and write decisions and the next step into the docs, not only into the chat.
+- One task per session. State a plan of five steps or fewer before coding.
+- Read by line range or `grep`, never a whole large file. `GENESIS.md` (about 33k tokens), `CHANGELOG.md`, `RELEASES.md`, the lockfile and `TESTING.md` are read on demand only.
+- Trim output (`| tail -n`, `| grep`, `--reporter=line`); never paste a full log.
+- Wait on one background task with one notification; do not poll CI in a loop.
+- Run the full suite once at the end, on a quiet machine (`uptime` load average below 9): the quick suite has 20 s timeouts and fails under load for no reason in the code.
+- Delegate wide investigations to an agent with an output cap (for example under 400 words), and check its result yourself.
+- A claim needs evidence from a command run in the same message: red first, then green.
 
 ## 4. Docs impact map
 

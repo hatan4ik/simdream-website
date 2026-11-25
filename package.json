@@ -42,6 +42,7 @@
     "test:visual:update": "bash scripts/update-visual-baselines.sh",
     "test:load": "tsx scripts/with-server.ts --port 3804 -- tsx tests/load/smoke.ts",
     "test:lighthouse": "tsx scripts/with-server.ts --port 3805 -- tsx tests/perf/run-lighthouse.ts",
+    "status": "node scripts/session-status.mjs",
     "test:staging:purchases": "node scripts/verify-staging-purchases.mjs",
     "test:staging:content": "node scripts/verify-staging-content.mjs",
     "test:staging:content:docker": "docker run --rm -v \"$PWD:/work\" -w /work mcr.microsoft.com/playwright:v1.65.1-noble node scripts/verify-staging-content.mjs",
