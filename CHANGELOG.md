@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.34.0](https://github.com/hatan4ik/simdream-website/compare/v1.33.0...v1.34.0) (2026-11-25)
+
+
+### Features
+
+* **checkout:** move birth date under contact fields, remove experience level, and display all scrollable Google reviews ([#337](https://github.com/hatan4ik/simdream-website/issues/337)) ([4481468](https://github.com/hatan4ik/simdream-website/commit/44814681180b9bd50f9a443063b718cec40fcdc4))
+* **discounts:** implement Option A tiered birthday discounts ([#336](https://github.com/hatan4ik/simdream-website/issues/336)) ([9712515](https://github.com/hatan4ik/simdream-website/commit/97125151710c7860ff6b267a217f595004cd1501))
+
 ## [1.33.0](https://github.com/hatan4ik/simdream-website/compare/v1.32.6...v1.33.0) (2026-11-25)
 
 
