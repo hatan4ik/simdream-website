@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.32.6](https://github.com/hatan4ik/simdream-website/compare/v1.32.5...v1.32.6) (2026-11-25)
+
+
+### Bug Fixes
+
+* **legal:** render the Hebrew rules and privacy text in the first HTML so no clause id is ever duplicated ([#329](https://github.com/hatan4ik/simdream-website/issues/329)) ([25d06f8](https://github.com/hatan4ik/simdream-website/commit/25d06f88418acc0f483f0d1e04bae55c08de02a6))
+
 ## [1.32.5](https://github.com/hatan4ik/simdream-website/compare/v1.32.4...v1.32.5) (2026-11-24)
 
 
