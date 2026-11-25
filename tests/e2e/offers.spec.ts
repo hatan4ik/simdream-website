@@ -100,7 +100,7 @@ test.describe('Offers & Benefits page', () => {
       await expect(rows).toHaveCount(eligible.length);
       const localized = getLocalizedPackages('en');
       for (const entry of eligible) {
-        const price = applyBirthdayDiscount(entry.priceIls);
+        const price = applyBirthdayDiscount(entry.priceIls, entry.discountPercent);
         const title = localized.find((pkg) => pkg.id === entry.id)!.title;
         const row = rows.filter({ hasText: title });
         await expect(row).toContainText(ils(price.subtotalIls));

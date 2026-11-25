@@ -17,7 +17,7 @@ const CONSENT = CONSENT_COPY.en;
 const BIRTHDAY = BIRTHDAY_CHECKOUT_COPY.en;
 const PILOT = { name: 'Noa Consent-Tester', email: 'noa.consent@example.com', phone: '+972-54-555-0102' };
 const PRO_90_PRICE_ILS = SIMULATOR_PACKAGES.find((pkg) => pkg.id === 'pkg-pro-90')!.priceIls;
-const halfUp15 = (subtotal: number) => Math.floor((subtotal * 15 + 50) / 100);
+const halfUp10 = (subtotal: number) => Math.floor((subtotal * 10 + 50) / 100);
 
 interface PilotStep {
   date: string;
@@ -131,7 +131,7 @@ for (const view of ['wizard', 'storefront'] as const) {
       expect(checkoutRequests).toHaveLength(0);
     });
 
-    test('shows the congratulations and takes 15 percent off the total, in the summary and on the button, for a birthday in the flight month', async ({
+    test('shows the congratulations and takes the birthday discount off the total, in the summary and on the button, for a birthday in the flight month', async ({
       page,
       booking,
       schedule,
@@ -147,8 +147,8 @@ for (const view of ['wizard', 'storefront'] as const) {
 
       await expect(page.locator('[data-birthday-banner]')).toBeVisible();
       await expect(page.locator('[data-birthday-banner]')).toContainText(BIRTHDAY.bannerTitle);
-      await expect(page.locator('[data-birthday-discount-line]')).toHaveText(new RegExp(`Birthday discount \\(15%\\)\\D*-\\D*${halfUp15(price)}\\D*`));
-      await expect(ui.submit()).toHaveText(ilsPattern(price - halfUp15(price)));
+      await expect(page.locator('[data-birthday-discount-line]')).toHaveText(new RegExp(`Birthday discount \\(10%\\)\\D*-\\D*${halfUp10(price)}\\D*`));
+      await expect(ui.submit()).toHaveText(ilsPattern(price - halfUp10(price)));
       // The field the visitor is typing in never moves when the banner appears below it.
       expect(await offsetInForm(birthDate(page))).toBeCloseTo(offsetBefore, 0);
       await expect(page.locator('[data-birthday-status-region]')).toHaveAttribute('aria-live', 'polite');

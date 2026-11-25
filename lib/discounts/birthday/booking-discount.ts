@@ -1,4 +1,4 @@
-import { DEFAULT_BIRTHDAY_POLICY, type BirthdayPolicy } from './constants';
+import { DEFAULT_BIRTHDAY_POLICY, getBirthdayDiscountPercent, type BirthdayPolicy } from './constants';
 import { isBirthdayDiscountEnforceableOnActivePath } from './capability';
 import { getBirthdayPackageEligibility, type BirthdayPackageBlockReason } from './eligibility';
 import { evaluateBirthdayDiscount, type BirthdayDateError, type BirthdayReason } from './evaluate';
@@ -80,7 +80,8 @@ export function resolveBookingBirthday(input: BookingBirthdayInput): BookingBirt
   }
 
   const applied = evaluation.eligible && blockedBy === undefined;
-  const price = applyBirthdayDiscount(input.subtotalIls, applied ? evaluation.percent : 0);
+  const packagePercent = getBirthdayDiscountPercent(input.packageId);
+  const price = applyBirthdayDiscount(input.subtotalIls, applied ? packagePercent : 0);
   return {
     ok: true,
     applied,

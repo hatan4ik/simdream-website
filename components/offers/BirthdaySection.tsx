@@ -66,7 +66,7 @@ export function BirthdaySection({ copy, language, enforceable }: BirthdaySection
               regular: formatIls(example.price.subtotalIls),
               total: formatIls(example.price.totalIls),
               saving: formatIls(example.price.discountIls),
-              percent: BIRTHDAY_DISCOUNT_PERCENT,
+              percent: example.price.percent,
             })}
           </p>
         </div>

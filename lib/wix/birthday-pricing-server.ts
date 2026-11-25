@@ -71,6 +71,7 @@ export async function issueWixBirthdayPricingClaim(
     flightDate: input.flightDate,
     birthdayMonth: birthday.birthday.month,
     birthdayDay: birthday.birthday.day,
+    discountPercent: birthday.percent as PromotionDiscountPercent,
     identityKeys: await birthdayClaimIdentityKeys({ email: input.email, phone: input.phone }, config.claimSecret),
     secret: config.claimSecret,
     now: options.now,
@@ -231,13 +232,14 @@ export async function calculateWixBookingPrice(
 
   // Birthday claim: the issuer has already checked the full birthday and age.
   // The price helper owns the policy percentage and exact whole-shekel rounding.
-  const price = applyBirthdayDiscount(basePriceIls);
+  const discountPercent = claim.discountPercent ?? 15;
+  const price = applyBirthdayDiscount(basePriceIls, discountPercent);
   return {
     ok: true,
     calculatedPrice: price.totalIls,
     birthdayApplied: true,
     discountApplied: true,
-    discountPercent: 15,
+    discountPercent,
     promoKind: 'birthday',
   };
 }

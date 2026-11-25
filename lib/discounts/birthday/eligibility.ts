@@ -1,10 +1,15 @@
 import { SIMULATOR_PACKAGES } from '@/lib/db/seed-data';
-import { BIRTHDAY_ELIGIBLE_CATEGORIES } from './constants';
+import {
+  BIRTHDAY_ELIGIBLE_CATEGORIES,
+  BIRTHDAY_MIN_DURATION_MINUTES,
+  getBirthdayDiscountPercent,
+} from './constants';
 
 export type BirthdayPackageBlockReason =
   | 'unknown_package'
   | 'discounted_promotion'
   | 'category_excluded'
+  | 'duration_too_short'
   | 'subscription_redemption'
   | 'gift_voucher_purchase';
 
@@ -38,6 +43,7 @@ export function getBirthdayPackageEligibility(
   if (!pkg) return { applicable: false, reason: 'unknown_package' };
   if (pkg.daytimeOnly) return { applicable: false, reason: 'discounted_promotion' };
   if (!BIRTHDAY_ELIGIBLE_CATEGORIES.includes(pkg.category)) return { applicable: false, reason: 'category_excluded' };
+  if (pkg.durationMinutes < BIRTHDAY_MIN_DURATION_MINUTES) return { applicable: false, reason: 'duration_too_short' };
   return { applicable: true, reason: 'ok' };
 }
 
@@ -46,10 +52,16 @@ export function isBirthdayDiscountApplicablePackage(packageId: string, context?:
 }
 
 /** The registry packages the discount applies to, in registry order (for the calculator table). */
-export function getBirthdayEligiblePackages(): ReadonlyArray<{ id: string; durationMinutes: number; priceIls: number }> {
+export function getBirthdayEligiblePackages(): ReadonlyArray<{
+  id: string;
+  durationMinutes: number;
+  priceIls: number;
+  discountPercent: number;
+}> {
   return SIMULATOR_PACKAGES.filter((pkg) => isBirthdayDiscountApplicablePackage(pkg.id)).map((pkg) => ({
     id: pkg.id,
     durationMinutes: pkg.durationMinutes,
     priceIls: pkg.priceIls,
+    discountPercent: getBirthdayDiscountPercent(pkg.id),
   }));
 }

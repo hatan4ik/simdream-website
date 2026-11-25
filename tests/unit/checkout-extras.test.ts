@@ -30,7 +30,7 @@ describe('resolveCheckoutExtras', () => {
 
   it('prices an eligible birthday with the engine', () => {
     const result = resolveCheckoutExtras(input());
-    expect(result.ok && result.birthday).toMatchObject({ applied: true, discountIls: 104, totalIls: 586, totalAgorot: 58_600 });
+    expect(result.ok && result.birthday).toMatchObject({ applied: true, discountIls: 69, totalIls: 621, totalAgorot: 62_100 });
   });
 
   it.each([

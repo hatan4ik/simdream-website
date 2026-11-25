@@ -25,6 +25,7 @@ export function bookingExtraSlots(extras: BookingExtras, variant: 'wizard' | 'st
     extraDiscountLines: (
       <BirthdayDiscountLine
         discountIls={extras.birthday.discountIls}
+        discountPercent={extras.birthday.state.applied ? extras.birthday.state.percent : undefined}
         reserveSpace={variant === 'storefront' && extras.birthday.discountPossible}
       />
     ),

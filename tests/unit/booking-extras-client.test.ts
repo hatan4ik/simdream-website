@@ -84,11 +84,11 @@ describe('evaluateBirthdayField', () => {
     expect(evaluateBirthdayField(field({ value: '' }))).toMatchObject({ status: 'empty', error: 'required', applied: false, discountIls: 0, birthday: null });
   });
 
-  it('previews the 15 percent with the same engine as the server', () => {
+  it('previews the discount with the same engine as the server', () => {
     expect(evaluateBirthdayField(field())).toMatchObject({
       status: 'valid',
       applied: true,
-      discountIls: 104,
+      discountIls: 69,
       reason: 'same_month',
       birthday: { month: 11, day: 25 },
     });
@@ -100,7 +100,7 @@ describe('evaluateBirthdayField', () => {
 
   it('applies nothing on the Wix-hosted checkout or a subscription redemption, whatever the date', () => {
     expect(evaluateBirthdayField(field({ mode: 'wix' }))).toMatchObject({ status: 'valid', applied: false, discountIls: 0, blockedBy: 'checkout_path' });
-    expect(evaluateBirthdayField(field({ mode: 'wix-pricing' }))).toMatchObject({ status: 'valid', applied: true, discountIls: 104 });
+    expect(evaluateBirthdayField(field({ mode: 'wix-pricing' }))).toMatchObject({ status: 'valid', applied: true, discountIls: 69 });
     expect(evaluateBirthdayField(field({ mode: 'subscription' }))).toMatchObject({ applied: false, discountIls: 0, blockedBy: 'subscription_redemption' });
   });
 
@@ -116,11 +116,11 @@ describe('evaluateBirthdayField', () => {
   it('prices both wix-pricing and local birthday preview on subtotalIls (including add-ons)', () => {
     expect(evaluateBirthdayField(field({ mode: 'wix-pricing', subtotalIls: 890 }))).toMatchObject({
       applied: true,
-      discountIls: 134,
+      discountIls: 89,
     });
     expect(evaluateBirthdayField(field({ mode: 'local', subtotalIls: 890 }))).toMatchObject({
       applied: true,
-      discountIls: 134,
+      discountIls: 89,
     });
   });
 });

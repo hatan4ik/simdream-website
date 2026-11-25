@@ -6,8 +6,34 @@ import type { PackageCategory } from '@/types';
  * Decisions and open questions: docs/modules/birthday-offers.md.
  */
 
-/** Percentage taken off the booking subtotal (package plus add-ons). */
+/** Maximum percentage taken off the booking subtotal (package plus add-ons) for 90m+ missions. */
 export const BIRTHDAY_DISCOUNT_PERCENT = 15;
+
+/** Standard percentage taken off the booking subtotal for 60-minute Captain's Command flights. */
+export const BIRTHDAY_60M_DISCOUNT_PERCENT = 10;
+
+/**
+ * Minimum flight duration that qualifies for the birthday discount (minutes).
+ * Entry 30-minute discovery flights are excluded so slots are reserved for full captain missions (60m+).
+ */
+export const BIRTHDAY_MIN_DURATION_MINUTES = 60;
+
+/**
+ * Returns the birthday discount percentage for a given package duration or package id:
+ * - 60 minutes ('pkg-captain-60'): 10%
+ * - 90 & 120 minutes ('pkg-ultimate-90', 'pkg-grand-120'): 15%
+ * - Below 60 minutes (e.g. 30m, 45m promo): 0%
+ */
+export function getBirthdayDiscountPercent(packageIdOrDuration: string | number): number {
+  if (typeof packageIdOrDuration === 'number') {
+    if (packageIdOrDuration < BIRTHDAY_MIN_DURATION_MINUTES) return 0;
+    if (packageIdOrDuration === 60) return BIRTHDAY_60M_DISCOUNT_PERCENT;
+    return BIRTHDAY_DISCOUNT_PERCENT;
+  }
+  if (packageIdOrDuration === 'pkg-captain-60') return BIRTHDAY_60M_DISCOUNT_PERCENT;
+  if (packageIdOrDuration === 'pkg-ultimate-90' || packageIdOrDuration === 'pkg-grand-120') return BIRTHDAY_DISCOUNT_PERCENT;
+  return 0;
+}
 
 /**
  * Backward grace: a birthday that happened up to this many days BEFORE the flight date still

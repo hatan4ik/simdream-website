@@ -201,12 +201,12 @@ describe('POST /api/checkout: a returning pilot retries the departure they hold'
     ['a different payable total', { pilotBirthDate: '1990-12-01' }],
   ])('leaves a live hold and its open checkout untouched when a retry asks for %s', async (_label, retry) => {
     const app = await loadApp({ stripe: 'mocked' });
-    const startTime = await openStart(app);
-    const first = await startCardCheckout(app, { startTime });
+    const startTime = await openStart(app, 60);
+    const first = await startCardCheckout(app, { startTime, packageId: 'pkg-captain-60' });
     // A copy: the in-memory store hands out its live records.
     const [original] = structuredClone(await unpaidHolds(app));
 
-    const differing = await startCardCheckout(app, { startTime, ...retry });
+    const differing = await startCardCheckout(app, { startTime, packageId: 'pkg-captain-60', ...retry });
 
     expect(differing.response.status).toBe(409);
     expect(expectContract(errorBody, differing.response.body).error).toBe(HOLD_IN_PROGRESS);
