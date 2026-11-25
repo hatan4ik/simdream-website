@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/Badge';
 import { useLanguage } from '@/lib/i18n/language-context';
 
 export function HomeHowItWorks() {
-  const { t, isRTL } = useLanguage();
+  const { t } = useLanguage();
   const hiw = t.howItWorks;
 
   const steps = [
