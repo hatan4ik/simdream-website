@@ -154,6 +154,8 @@ Import `test` and `expect` from `tests/support/e2e.ts`, or from the folder's `fi
 
 `.github/workflows/nightly.yml` runs an OWASP ZAP baseline (passive) scan against a sandboxed server every night. It reports only until the first findings are triaged.
 
+The same workflow runs `wix-blog-languages` every night: `npm run wix:check-blog-languages` queries the live Wix Blog API as an anonymous visitor (read-only, 14 requests) and fails if any of the 39 translation groups lacks a post in any of the 7 languages. It exists because mocks cannot see an operator the live API rejects (`docs/modules/blog-language.md`).
+
 ## Backlog
 
 These are coverage gaps the framework review found that are not yet closed. Each would be a new test, not an app fix.

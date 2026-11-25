@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:b8decdc533c7918f08287f9551cbb23a851c9decf5d96b3e57304011ed6dffb1 -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:8bfa990ff4a308bb56f58769030c7d6e0b5975727ce467daae325d39f7606026 -->
 
 ## Verification contract
 
@@ -730,7 +730,7 @@ components/
 lib/
   scheduler/ kantorovich-engine mission-calculator mission-upgrade-promo package-presentation tiled-interval-optimizer israel-clock booking-horizon availability-view-model
   booking/checkout-service checkout-error checkout-ports checkout-composition checkout-runtime checkout-throttle checkout-hold-policy
-  wix/ client config catalog bookings availability-adapter wix-blocked-bookings native-addons booking-checkout booking-grid-policy booking-grid-enforcement booking-cart-create booking-checkout-client cart-v2-shared checkout-prefill subscription-redemption subscription-booking checkout-shadow member-client backend-blueprint pricing-plan-payload gift-cards plans readiness blog blog-fallback blog-schema birthday-pricing-config birthday-pricing-server birthday-claim-request birthday-claim-identity birthday-claim-throttle birthday-claim-fallback-limiter
+  wix/ client config catalog bookings availability-adapter wix-blocked-bookings native-addons booking-checkout booking-grid-policy booking-grid-enforcement booking-cart-create booking-checkout-client cart-v2-shared checkout-prefill subscription-redemption subscription-booking checkout-shadow member-client backend-blueprint pricing-plan-payload gift-cards plans readiness blog blog-fallback blog-schema blog-language-contract birthday-pricing-config birthday-pricing-server birthday-claim-request birthday-claim-identity birthday-claim-throttle birthday-claim-fallback-limiter
   catalog/gift-voucher-packages  data/experience-routes subscription-passes subscription-page-copy blog-posts blog-categories blog-authors blog-seo blog-short-slugs blog-legacy-slugs  db/ store checkout-hold-store schema.sql seed-data supabase-admin migrations/
   auth/ admin-guard request-auth member-ownership safe-redirect auth-context
   customer/ customer-draft
