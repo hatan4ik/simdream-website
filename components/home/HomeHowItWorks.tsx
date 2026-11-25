@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Compass, Gauge, MessageSquare, ArrowRight } from 'lucide-react';
+import { Compass, Gauge, MessageSquare } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { useLanguage } from '@/lib/i18n/language-context';
 
