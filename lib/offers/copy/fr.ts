@@ -9,21 +9,21 @@ export const OFFERS_COPY_FR: OffersCopy = {
   jumpTerms: 'Conditions',
 
   birthdayEyebrow: 'Offre anniversaire',
-  birthdayTitle: 'Volez le mois de votre anniversaire et bénéficiez de {percent} % de remise',
+  birthdayTitle: 'Volez le mois de votre anniversaire et bénéficiez de jusqu’à {percent} % de remise',
   birthdayLead:
-    'Un anniversaire est une belle occasion de prendre place côté commandant. Chaque vol du mois de votre anniversaire bénéficie de {percent} % de remise, tout comme un vol dans les {days} jours qui suivent.',
+    'Un anniversaire est une belle occasion de prendre place côté commandant. Les vols du mois de votre anniversaire bénéficient de jusqu’à {percent} % de remise, tout comme un vol dans les {days} jours qui suivent.',
   birthdayUnavailable: 'La remise anniversaire n’est pas encore appliquée au paiement. Vous pouvez déjà vérifier ci-dessous si vous y avez droit.',
   stepsTitle: 'Comment ça marche',
   steps: [
     { title: 'Indiquez la date de naissance', body: 'Dans « Coordonnées du Commandant de Bord », au paiement, saisissez la date de naissance de la personne qui pilotera.' },
     { title: 'Choisissez la date du vol', body: 'Tout vol du mois de votre anniversaire est éligible, ainsi qu’un vol jusqu’à {days} jours après votre anniversaire.' },
-    { title: 'Voyez-la avant de payer', body: 'Les {percent} % sont déduits du total du vol, options comprises, et apparaissent sur une ligne distincte du récapitulatif.' },
+    { title: 'Voyez-la avant de payer', body: 'Jusqu’à {percent} % sont déduits du total du vol, options comprises, et apparaissent sur une ligne distincte du récapitulatif.' },
   ],
   exampleTitle: 'Un exemple',
   exampleBody: '{flight} coûte {regular}. Le mois de votre anniversaire, vous payez {total}, soit {saving} de moins.',
   whenTitle: 'Quels vols sont concernés ?',
   whenBody:
-    'C’est la date du vol qui décide, pas le jour de la réservation. Un vol du mois de votre anniversaire est éligible, tout comme un vol jusqu’à {days} jours après, afin qu’un anniversaire en fin de mois ne soit jamais manqué.',
+    'C’est la date du vol qui décide, pas le jour de la réservation. Les missions complètes du mois de votre anniversaire bénéficient de jusqu’à {percent} % de remise, tout comme un vol jusqu’à {days} jours après, afin qu’un anniversaire en fin de mois ne soit jamais manqué.',
 
   calcTitle: 'Vérifiez votre anniversaire',
   calcIntro: 'Saisissez une date de naissance et une date de vol pour savoir si l’offre s’applique et ce que vous économisez.',
@@ -31,9 +31,9 @@ export const OFFERS_COPY_FR: OffersCopy = {
   flightLabel: 'Date du vol',
   calcPrivacy: 'Cette vérification s’effectue dans votre navigateur. Rien de ce que vous saisissez n’est conservé ni envoyé.',
   calcPrompt: 'Saisissez les deux dates pour voir le résultat.',
-  resultSameMonth: 'Oui. Votre anniversaire tombe le mois de ce vol : {percent} % de remise s’appliquent.',
-  resultGraceBefore: 'Oui. Votre anniversaire était peu avant ce vol, dans la limite de {lookback} jours : {percent} % de remise s’appliquent.',
-  resultGraceAfter: 'Oui. Votre anniversaire tombe peu après ce vol : {percent} % de remise s’appliquent.',
+  resultSameMonth: 'Oui. Votre anniversaire tombe le mois de ce vol : jusqu’à {percent} % de remise s’appliquent.',
+  resultGraceBefore: 'Oui. Votre anniversaire était peu avant ce vol, dans la limite de {lookback} jours : jusqu’à {percent} % de remise s’appliquent.',
+  resultGraceAfter: 'Oui. Votre anniversaire tombe peu après ce vol : jusqu’à {percent} % de remise s’appliquent.',
   resultNone: 'Pas à cette date. Pour cet anniversaire, les vols du {start} au {end} sont éligibles.',
   resultWindow: 'Dates de vol éligibles : du {start} au {end}.',
   tableCaption: 'Ce que vous paieriez avec la remise anniversaire',
@@ -56,7 +56,7 @@ export const OFFERS_COPY_FR: OffersCopy = {
 
   termsTitle: 'Conditions',
   terms: [
-    'Une offre à la fois : les offres ne se cumulent pas. La remise anniversaire ne s’applique ni au vol en tarif promotionnel, ni aux vols payés avec un parcours, ni à l’achat d’un bon cadeau.',
+    'Une offre à la fois : les offres ne se cumulent pas. La remise anniversaire ne s’applique ni aux vols de découverte, ni au vol en tarif promotionnel, ni aux vols payés avec un parcours, ni à l’achat d’un bon cadeau.',
     'Payer avec un bon ou une carte cadeau est un moyen de paiement, pas une offre. La remise anniversaire est déduite d’abord, puis le bon couvre le solde.',
     'La date de naissance est celle du commandant de bord, la personne qui pilotera. L’accès au simulateur est possible dès {minAge} ans, âge à atteindre au plus tard à la date du vol.',
     'L’offre dépend de la date du vol, pas de la date de réservation. Seuls les vols situés dans votre fenêtre d’anniversaire sont éligibles, quel que soit le moment de la réservation.',

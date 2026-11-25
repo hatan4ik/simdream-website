@@ -9,21 +9,21 @@ export const OFFERS_COPY_ES: OffersCopy = {
   jumpTerms: 'Condiciones',
 
   birthdayEyebrow: 'Oferta de cumpleaños',
-  birthdayTitle: 'Vuela en el mes de tu cumpleaños y obtén un {percent}% de descuento',
+  birthdayTitle: 'Vuela en el mes de tu cumpleaños y ahorra hasta un {percent}%',
   birthdayLead:
-    'Un cumpleaños es una buena razón para sentarte en el asiento del capitán. Cada vuelo del mes de tu cumpleaños tiene un {percent}% de descuento, igual que un vuelo en los {days} días posteriores.',
+    'Un cumpleaños es una buena razón para sentarte en el asiento del capitán. Los vuelos en el mes de tu cumpleaños tienen hasta un {percent}% de descuento, igual que un vuelo en los {days} días posteriores.',
   birthdayUnavailable: 'El descuento de cumpleaños aún no se aplica al pagar. Ya puedes comprobar abajo si cumples los requisitos.',
   stepsTitle: 'Cómo funciona',
   steps: [
     { title: 'Indica la fecha de nacimiento', body: 'En «Datos del piloto al mando», al pagar, introduce la fecha de nacimiento de la persona que volará.' },
     { title: 'Elige la fecha del vuelo', body: 'Cualquier vuelo del mes de tu cumpleaños cumple, y también un vuelo hasta {days} días después de tu cumpleaños.' },
-    { title: 'Velo antes de pagar', body: 'El {percent}% se descuenta del total del vuelo, extras incluidos, y aparece en una línea propia del resumen.' },
+    { title: 'Velo antes de pagar', body: 'Hasta un {percent}% se descuenta del total del vuelo, extras incluidos, y aparece en una línea propia del resumen.' },
   ],
   exampleTitle: 'Un ejemplo',
   exampleBody: '{flight} cuesta {regular}. En el mes de tu cumpleaños pagas {total}: {saving} menos.',
   whenTitle: '¿Qué vuelos cumplen?',
   whenBody:
-    'Decide la fecha del vuelo, no el día en que reservas. Cumple un vuelo del mes de tu cumpleaños y también uno hasta {days} días después, así que un cumpleaños a finales de mes nunca se pierde.',
+    'Decide la fecha del vuelo, no el día en que reservas. Las misiones completas en el mes de tu cumpleaños tienen hasta un {percent}% de descuento, y también un vuelo hasta {days} días después, así que un cumpleaños a finales de mes nunca se pierde.',
 
   calcTitle: 'Comprueba tu cumpleaños',
   calcIntro: 'Introduce una fecha de nacimiento y una fecha de vuelo para ver si la oferta se aplica y cuánto ahorrarías.',
@@ -31,9 +31,9 @@ export const OFFERS_COPY_ES: OffersCopy = {
   flightLabel: 'Fecha del vuelo',
   calcPrivacy: 'Esta comprobación se hace en tu navegador. Nada de lo que introduces se guarda ni se envía.',
   calcPrompt: 'Introduce las dos fechas para ver el resultado.',
-  resultSameMonth: 'Sí. Tu cumpleaños cae en el mes de este vuelo, así que se aplica un {percent}%.',
-  resultGraceBefore: 'Sí. Tu cumpleaños fue poco antes de este vuelo, dentro del margen de {lookback} días, así que se aplica un {percent}%.',
-  resultGraceAfter: 'Sí. Tu cumpleaños llega poco después de este vuelo, así que se aplica un {percent}%.',
+  resultSameMonth: 'Sí. Tu cumpleaños cae en el mes de este vuelo, así que se aplica hasta un {percent}%.',
+  resultGraceBefore: 'Sí. Tu cumpleaños fue poco antes de este vuelo, dentro del margen de {lookback} días, así que se aplica hasta un {percent}%.',
+  resultGraceAfter: 'Sí. Tu cumpleaños llega poco después de este vuelo, así que se aplica hasta un {percent}%.',
   resultNone: 'No en esta fecha. Para este cumpleaños cumplen los vuelos del {start} al {end}.',
   resultWindow: 'Fechas de vuelo que cumplen: del {start} al {end}.',
   tableCaption: 'Lo que pagarías con el descuento de cumpleaños',
@@ -56,7 +56,7 @@ export const OFFERS_COPY_ES: OffersCopy = {
 
   termsTitle: 'Condiciones',
   terms: [
-    'Una oferta a la vez: las ofertas no se combinan. El descuento de cumpleaños no se aplica al vuelo promocional, a los vuelos pagados con un plan de vuelos ni a la compra de un bono de regalo.',
+    'Una oferta a la vez: las ofertas no se combinan. El descuento de cumpleaños no se aplica a los vuelos de descubrimiento, al vuelo promocional, a los vuelos pagados con un plan de vuelos ni a la compra de un bono de regalo.',
     'Pagar con un bono o una tarjeta de regalo es un medio de pago, no una oferta. Primero se descuenta el descuento de cumpleaños y el bono cubre el resto.',
     'La fecha de nacimiento es la del piloto al mando, la persona que volará. La entrada al simulador es a partir de {minAge} años, edad que debe cumplirse antes de la fecha del vuelo.',
     'La oferta depende de la fecha del vuelo, no de la fecha de reserva. Solo cumplen los vuelos dentro de tu ventana de cumpleaños, cuando sea que los reserves.',

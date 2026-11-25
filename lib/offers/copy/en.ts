@@ -9,21 +9,21 @@ export const OFFERS_COPY_EN: OffersCopy = {
   jumpTerms: 'Fine print',
 
   birthdayEyebrow: 'Birthday offer',
-  birthdayTitle: 'Fly in your birthday month and take {percent}% off',
+  birthdayTitle: 'Fly in your birthday month and save up to {percent}%',
   birthdayLead:
-    'A birthday is a good reason to take the Captain’s seat. Every flight in your birthday month takes {percent}% off, and so does a flight in the {days} days after your birthday.',
+    'A birthday is a good reason to take the Captain’s seat. Flights of full command in your birthday month save up to {percent}% off, and so does a flight in the {days} days after your birthday.',
   birthdayUnavailable: 'The birthday discount is not applied at checkout yet. You can already check below whether you qualify.',
   stepsTitle: 'How it works',
   steps: [
     { title: 'Enter the date of birth', body: 'In “Pilot in Command Details” at checkout, enter the date of birth of the person who will fly.' },
     { title: 'Choose your flight date', body: 'Any flight in your birthday month qualifies, and so does a flight up to {days} days after your birthday.' },
-    { title: 'See it before you pay', body: 'The {percent}% comes off the flight total, including add-ons, and shows as its own line in your summary.' },
+    { title: 'See it before you pay', body: 'Up to {percent}% comes off the flight total, including add-ons, and shows as its own line in your summary.' },
   ],
   exampleTitle: 'A worked example',
   exampleBody: 'The {flight} costs {regular}. In your birthday month you pay {total}: {saving} less.',
   whenTitle: 'Which flights qualify?',
   whenBody:
-    'The date of your flight decides, not the day you book. A flight in your birthday month qualifies, and so does a flight up to {days} days after your birthday, so a birthday at the end of a month is never missed.',
+    'The date of your flight decides, not the day you book. Full missions in your birthday month qualify for up to {percent}% off, and so does a flight up to {days} days after your birthday, so a birthday at the end of a month is never missed.',
 
   calcTitle: 'Check my birthday',
   calcIntro: 'Enter a date of birth and a flight date to see whether the offer applies and what you would save.',
@@ -31,9 +31,9 @@ export const OFFERS_COPY_EN: OffersCopy = {
   flightLabel: 'Flight date',
   calcPrivacy: 'This check runs in your browser. Nothing you enter is stored or sent.',
   calcPrompt: 'Enter both dates to see the result.',
-  resultSameMonth: 'Yes. Your birthday falls in the month of this flight, so {percent}% applies.',
-  resultGraceBefore: 'Yes. Your birthday was shortly before this flight, inside the {lookback}-day grace period, so {percent}% applies.',
-  resultGraceAfter: 'Yes. Your birthday comes shortly after this flight, so {percent}% applies.',
+  resultSameMonth: 'Yes. Your birthday falls in the month of this flight, so up to {percent}% applies.',
+  resultGraceBefore: 'Yes. Your birthday was shortly before this flight, inside the {lookback}-day grace period, so up to {percent}% applies.',
+  resultGraceAfter: 'Yes. Your birthday comes shortly after this flight, so up to {percent}% applies.',
   resultNone: 'Not for this date. For this birthday, flights from {start} to {end} qualify.',
   resultWindow: 'Qualifying flight dates: {start} to {end}.',
   tableCaption: 'What you would pay with the birthday discount',
@@ -56,7 +56,7 @@ export const OFFERS_COPY_EN: OffersCopy = {
 
   termsTitle: 'The fine print',
   terms: [
-    'One offer at a time: offers do not combine. The birthday discount does not apply to the discounted promotion flight, to flights paid with a flight track, or to the purchase of a gift voucher.',
+    'One offer at a time: offers do not combine. The birthday discount does not apply to discovery flights, to the discounted promotion flight, to flights paid with a flight track, or to the purchase of a gift voucher.',
     'Paying with a gift voucher or gift card is a way to pay, not an offer. The birthday discount comes off first, and the voucher covers what remains.',
     'The date of birth is the Pilot in Command’s, the person who will fly. Entry to the simulator is from age {minAge}, and the pilot must have reached it by the flight date.',
     'The offer follows the flight date, not the booking date. Only flights inside your birthday window qualify, whenever you book them.',

@@ -24,6 +24,8 @@ describe('package eligibility reads the registry, not retyped ids', () => {
         expect(verdict, pkg.id).toEqual({ applicable: false, reason: 'discounted_promotion' });
       } else if (!BIRTHDAY_ELIGIBLE_CATEGORIES.includes(pkg.category)) {
         expect(verdict, pkg.id).toEqual({ applicable: false, reason: 'category_excluded' });
+      } else if (pkg.durationMinutes < 60) {
+        expect(verdict, pkg.id).toEqual({ applicable: false, reason: 'duration_too_short' });
       } else {
         expect(verdict, pkg.id).toEqual({ applicable: true, reason: 'ok' });
       }
@@ -35,14 +37,18 @@ describe('package eligibility reads the registry, not retyped ids', () => {
     expect(isBirthdayDiscountApplicablePackage(promo.id)).toBe(false);
   });
 
-  it('applies to the consumer flights and not to professional training, fear of flying or corporate', () => {
+  it('applies to the consumer flights of at least 60m and not to discovery, professional training, fear of flying or corporate', () => {
     for (const pkg of SIMULATOR_PACKAGES.filter((candidate) => !candidate.daytimeOnly)) {
-      expect(isBirthdayDiscountApplicablePackage(pkg.id), pkg.id).toBe(pkg.category === 'recreational');
+      expect(isBirthdayDiscountApplicablePackage(pkg.id), pkg.id).toBe(
+        pkg.category === 'recreational' && pkg.durationMinutes >= 60
+      );
     }
   });
 
   it('never applies to a subscription redemption or a gift voucher purchase, whatever the package', () => {
-    const consumer = SIMULATOR_PACKAGES.find((pkg) => pkg.category === 'recreational' && !pkg.daytimeOnly)!;
+    const consumer = SIMULATOR_PACKAGES.find(
+      (pkg) => pkg.category === 'recreational' && !pkg.daytimeOnly && pkg.durationMinutes >= 60
+    )!;
     expect(getBirthdayPackageEligibility(consumer.id, { isSubscriptionRedemption: true })).toEqual({
       applicable: false,
       reason: 'subscription_redemption',
@@ -61,12 +67,14 @@ describe('package eligibility reads the registry, not retyped ids', () => {
 
   it('lists the eligible packages with registry prices only', () => {
     const eligible = getBirthdayEligiblePackages();
-    expect(eligible.length).toBeGreaterThan(0);
+    expect(eligible).toHaveLength(3);
     for (const entry of eligible) {
       const pkg = SIMULATOR_PACKAGES.find((candidate) => candidate.id === entry.id)!;
       expect(entry.priceIls).toBe(pkg.priceIls);
       expect(entry.durationMinutes).toBe(pkg.durationMinutes);
+      expect(entry.durationMinutes).toBeGreaterThanOrEqual(60);
       expect(pkg.daytimeOnly).toBeFalsy();
+      expect([10, 15]).toContain(entry.discountPercent);
     }
   });
 });

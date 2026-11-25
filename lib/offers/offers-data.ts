@@ -24,7 +24,7 @@ export function getBirthdayExample(): BirthdayExample {
   const featured = eligible.find((entry) => SIMULATOR_PACKAGES.find((pkg) => pkg.id === entry.id)?.featured);
   const chosen = featured ?? eligible[0];
   if (!chosen) throw new Error('No package is eligible for the birthday discount.');
-  return { packageId: chosen.id, durationMinutes: chosen.durationMinutes, price: applyBirthdayDiscount(chosen.priceIls) };
+  return { packageId: chosen.id, durationMinutes: chosen.durationMinutes, price: applyBirthdayDiscount(chosen.priceIls, chosen.discountPercent) };
 }
 
 /** The Discounted Promotion package: the one flagged `daytimeOnly` in the registry. */

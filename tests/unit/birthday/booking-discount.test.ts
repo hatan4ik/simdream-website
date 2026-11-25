@@ -20,13 +20,13 @@ const pkg = (id: string) => SIMULATOR_PACKAGES.find((item) => item.id === id)!;
 
 describe('resolveBookingBirthday: arithmetic', () => {
   it.each([
-    ['pkg-discovery-30', 450, 68, 382], // 67.5 rounds half up to 68
-    ['pkg-captain-60', 690, 104, 586], // 103.5 rounds half up to 104
-    ['pkg-ultimate-90', 850, 128, 722], // 127.5 rounds half up to 128
-  ])('%s: subtotal %i takes %i off, leaving %i', (packageId, subtotalIls, discountIls, totalIls) => {
+    ['pkg-captain-60', 690, 69, 621, 10], // 10%: 690 * 0.10 = 69
+    ['pkg-ultimate-90', 850, 128, 722, 15], // 15%: 850 * 0.15 = 127.5 rounds to 128
+    ['pkg-grand-120', 1200, 180, 1020, 15], // 15%: 1200 * 0.15 = 180
+  ])('%s: subtotal %i takes %i off, leaving %i (%i%%)', (packageId, subtotalIls, discountIls, totalIls, percent) => {
     expect(pkg(packageId).priceIls).toBe(subtotalIls);
     const result = resolveBookingBirthday(base({ packageId, subtotalIls }));
-    expect(result).toMatchObject({ ok: true, applied: true, discountIls, totalIls, percent: 15 });
+    expect(result).toMatchObject({ ok: true, applied: true, discountIls, totalIls, percent });
   });
 
   it('reports the Stripe amounts in agorot, exactly 100 times the shekels', () => {
@@ -41,7 +41,7 @@ describe('resolveBookingBirthday: arithmetic', () => {
   it('applies the percentage to the whole subtotal, add-ons included', () => {
     const addon = FLIGHT_ADDONS.find((item) => item.priceIls === 250)!;
     const subtotalIls = pkg('pkg-captain-60').priceIls + addon.priceIls; // 940
-    expect(resolveBookingBirthday(base({ subtotalIls }))).toMatchObject({ discountIls: 141, totalIls: 799 });
+    expect(resolveBookingBirthday(base({ subtotalIls }))).toMatchObject({ discountIls: 94, totalIls: 846 });
   });
 
   it('prices the subtotal it is given, not just the base package price', () => {
@@ -57,6 +57,11 @@ describe('resolveBookingBirthday: which flights carry the offer', () => {
   it('never discounts the Discounted Promotion (no stacking, Terms 8.1), though the date qualifies', () => {
     const result = resolveBookingBirthday(base({ packageId: 'pkg-promo-45', subtotalIls: 490 }));
     expect(result).toMatchObject({ ok: true, applied: false, reason: 'same_month', blockedBy: 'discounted_promotion', discountIls: 0, totalIls: 490 });
+  });
+
+  it('does not discount discovery flights (under 60 minutes), though the date qualifies', () => {
+    const result = resolveBookingBirthday(base({ packageId: 'pkg-discovery-30', subtotalIls: 450 }));
+    expect(result).toMatchObject({ ok: true, applied: false, reason: 'same_month', blockedBy: 'duration_too_short', discountIls: 0, totalIls: 450 });
   });
 
   it.each(['pkg-pro-60', 'pkg-pro-90', 'pkg-assessment-prep-120', 'pkg-fear-of-flying-90'])(

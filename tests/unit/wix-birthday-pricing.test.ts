@@ -82,7 +82,7 @@ describe('Wix birthday pricing claim', () => {
 });
 
 describe('Wix Bookings birthday price calculator', () => {
-  it('issues a qualifying claim then returns the registry-backed 15% total', async () => {
+  it('issues a qualifying claim then returns the registry-backed 10% total for 60m', async () => {
     const claim = await issueWixBirthdayPricingClaim(
       { packageId: 'pkg-captain-60', birthDate: '1990-11-25', flightDate: '2026-11-13', ...PILOT },
       { config: CONFIG, now: NOW, today: '2026-11-01' }
@@ -105,7 +105,15 @@ describe('Wix Bookings birthday price calculator', () => {
         },
         { config: CONFIG, now: NOW }
       )
-    ).resolves.toEqual({ ok: true, calculatedPrice: 586, birthdayApplied: true });
+    ).resolves.toEqual({ ok: true, calculatedPrice: 621, birthdayApplied: true });
+  });
+
+  it('does not issue an eligible claim for a 30-minute discovery flight', async () => {
+    const claim = await issueWixBirthdayPricingClaim(
+      { packageId: 'pkg-discovery-30', birthDate: '1990-11-25', flightDate: '2026-11-13', ...PILOT },
+      { config: CONFIG, now: NOW, today: '2026-11-01' }
+    );
+    expect(claim).toEqual({ ok: true, applied: false });
   });
 
   it('keeps the normal price with no claim and uses the flat ₪850 90-minute tariff before discounting', async () => {
@@ -204,7 +212,7 @@ describe('Wix Bookings birthday price calculator', () => {
 describe('Wix birthday claim is bound to the pilot contact it was issued for', () => {
   const CAPTAIN_60 = wixServiceIdFor('pkg-captain-60')!;
   const STANDARD = { ok: true, calculatedPrice: 690, birthdayApplied: false };
-  const DISCOUNTED = { ok: true, calculatedPrice: 586, birthdayApplied: true };
+  const DISCOUNTED = { ok: true, calculatedPrice: 621, birthdayApplied: true };
 
   async function issuedClaimFields(contact: { email?: string; phone?: string } = PILOT) {
     const claim = await issueWixBirthdayPricingClaim(
@@ -287,10 +295,18 @@ describe('Wix birthday claim is bound to the pilot contact it was issued for', (
       now: NOW,
     });
     const fields = [{ id: CONFIG.claimFieldId, value: legacy }];
-    await expect(calculateWixBirthdayBookingPrice(captainBooking(fields), { config: CONFIG, now: NOW })).resolves.toEqual(DISCOUNTED);
+    await expect(calculateWixBirthdayBookingPrice(captainBooking(fields), { config: CONFIG, now: NOW })).resolves.toEqual({
+      ok: true,
+      calculatedPrice: 586,
+      birthdayApplied: true,
+    });
     await expect(
       calculateWixBirthdayBookingPrice(captainBooking(fields, { email: 'other@example.com' }), { config: CONFIG, now: NOW })
-    ).resolves.toEqual(DISCOUNTED);
+    ).resolves.toEqual({
+      ok: true,
+      calculatedPrice: 586,
+      birthdayApplied: true,
+    });
     await expect(
       calculateWixBirthdayBookingPrice(captainBooking(fields), { config: CONFIG, now: new Date('2026-11-01T12:10:00.000Z') })
     ).resolves.toEqual({ ok: false, code: 'invalid-birthday-claim' });
@@ -301,7 +317,7 @@ describe('Wix birthday claim is bound to the pilot contact it was issued for', (
     const token = field!.value;
     await expect(verifyPromotionClaim(token, SECRET, NOW)).resolves.toMatchObject({
       promoKind: 'birthday',
-      discountPercent: 15,
+      discountPercent: 10,
       expiresAt: NOW.getTime() / 1_000 + 600,
     });
     expect(decodedPayload(token).e).toBe(NOW.getTime() / 1_000 + 600);
@@ -500,7 +516,7 @@ describe('Wix pricing provider binds every priced booking to the local zero-wast
         { ...slotAt('pkg-captain-60', israelTime('10:15')), additionalFields: await captainClaim(), contactDetails: PILOT_CONTACT },
         { config: CONFIG, now: NOW }
       )
-    ).resolves.toEqual({ ok: true, calculatedPrice: 586, birthdayApplied: true });
+    ).resolves.toEqual({ ok: true, calculatedPrice: 621, birthdayApplied: true });
   });
 
   it('rejects a start 5 minutes after a grid departure with off-grid-departure, with or without a valid claim', async () => {

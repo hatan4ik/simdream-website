@@ -31,6 +31,7 @@ export interface CreateWixBirthdayPricingClaimInput {
   flightDate: string;
   birthdayMonth: number;
   birthdayDay: number;
+  discountPercent?: PromotionDiscountPercent;
   secret: string;
   now?: Date;
   /** Ten minutes is enough to create the visitor cart, without leaving a reusable promotion token around. */
@@ -85,7 +86,7 @@ const discountPercentSchema = z.union([
 ]);
 
 function isValidPromoDiscount(kind: PromotionKind, discount: PromotionDiscountPercent): boolean {
-  if (kind === 'birthday') return discount === 15;
+  if (kind === 'birthday') return discount === 10 || discount === 15;
   if (kind === 'prepaid') return discount === 0;
   return discount === 5 || discount === 7 || discount === 10;
 }
@@ -162,7 +163,7 @@ function resolveDefaultDiscount(kind: PromotionKind, provided?: PromotionDiscoun
     }
     return provided;
   }
-  if (kind === 'birthday') return 15;
+  if (kind === 'birthday') return provided ?? 15;
   if (kind === 'prepaid') return 0;
   throw new RangeError('Loyalty promotion claim requires an explicit discountPercent (5, 7, or 10).');
 }
@@ -197,7 +198,9 @@ export async function issuePromotionClaim(input: IssuePromotionClaimInput): Prom
     f: input.flightDate,
     ...(b ? { b } : {}),
     e: nowSeconds + ttlSeconds,
-    ...(promoKind !== 'birthday' ? { k: promoKind, d: discountPercent } : {}),
+    ...(promoKind !== 'birthday' || discountPercent !== 15
+      ? { ...(promoKind !== 'birthday' ? { k: promoKind } : {}), d: discountPercent }
+      : {}),
     ...(normalizedIdentityKeys && normalizedIdentityKeys.length > 0 ? { i: normalizedIdentityKeys } : {}),
   };
 
@@ -267,7 +270,7 @@ export async function createWixBirthdayPricingClaim(input: CreateWixBirthdayPric
   return issuePromotionClaim({
     ...input,
     promoKind: 'birthday',
-    discountPercent: 15,
+    discountPercent: input.discountPercent ?? 15,
   });
 }
 

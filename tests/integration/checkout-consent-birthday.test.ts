@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { CONSENT_VERSION, LEGAL_DOCUMENT_VERSION } from '@/lib/legal';
 import { DEFAULT_TEST_NOW, bookingCheckoutBody, loadApp, validConsentBody } from '../support/app';
-import { EMPTY_DAY, findSlotWhere, postCheckout, SEED_VOUCHER } from './api-helpers';
+import { EMPTY_DAY, findSlotWhere, postCheckout, SEED_FULL_VOUCHER, SEED_VOUCHER } from './api-helpers';
 import { errorBody, expectContract, stripeCheckoutStarted, validationErrorBody, voucherCheckoutConfirmed } from './contracts';
 
 /**
@@ -15,6 +15,7 @@ const DECEMBER_BIRTHDAY = '1990-12-05';
 const JUNE_BIRTHDAY = '1990-06-15';
 /** Integer half-up percentage, written out so the test does not reuse the engine it checks. */
 const fifteenPercentOff = (subtotal: number) => Math.floor((subtotal * 15 + 50) / 100);
+const tenPercentOff = (subtotal: number) => Math.floor((subtotal * 10 + 50) / 100);
 
 async function openSlot(app: Awaited<ReturnType<typeof loadApp>>, duration: number) {
   return findSlotWhere(app, DAY, duration, (candidate) => candidate.available, 'open');
@@ -219,7 +220,7 @@ describe('POST /api/checkout: the birthday discount', () => {
 
     expect(response.status).toBe(201);
     expectContract(stripeCheckoutStarted, response.body);
-    const discount = fifteenPercentOff(subtotal);
+    const discount = tenPercentOff(subtotal);
     const [session] = app.checkoutSessions;
     expect(session.amountIls).toBe(subtotal - discount);
     expect(Math.round(session.amountIls * 100)).toBe((subtotal - discount) * 100);
@@ -239,13 +240,13 @@ describe('POST /api/checkout: the birthday discount', () => {
 
   it('honours the 14-day grace across the month boundary (flight 2026-12-13, birthday 2026-11-29)', async () => {
     const app = await loadApp({ stripe: 'mocked' });
-    const slot = await openSlot(app, 30);
+    const slot = await openSlot(app, 60);
     const response = await postCheckout(
       app,
-      bookingCheckoutBody({ bookingDate: DAY, startTime: slot.startTime, pilotBirthDate: '1990-11-29' })
+      bookingCheckoutBody({ packageId: 'pkg-captain-60', bookingDate: DAY, startTime: slot.startTime, pilotBirthDate: '1990-11-29' })
     );
     expect(response.status).toBe(201);
-    expect(app.checkoutSessions[0].amountIls).toBe(slot.dynamicPriceIls - fifteenPercentOff(slot.dynamicPriceIls));
+    expect(app.checkoutSessions[0].amountIls).toBe(slot.dynamicPriceIls - tenPercentOff(slot.dynamicPriceIls));
   });
 
   it('gives nothing when the birthday is outside the window, and still stores month and day', async () => {
@@ -381,23 +382,23 @@ describe('POST /api/checkout: the birthday discount', () => {
 describe('POST /api/checkout: a voucher covers what is left after the birthday discount', () => {
   it('accepts a voucher that covers the discounted total but not the list total, and debits the discounted total', async () => {
     const app = await loadApp();
-    // Leave 400 on the seed voucher: below the 450 list price, above the 382 birthday price.
-    await app.store.redeemVoucher(SEED_VOUCHER.code, SEED_VOUCHER.balanceIls - 400);
-    const slot = await openSlot(app, 30);
+    // Leave 650 on the seed voucher: below the 690 list price, above the 621 birthday price.
+    await app.store.redeemVoucher(SEED_FULL_VOUCHER.code, SEED_FULL_VOUCHER.balanceIls - 650);
+    const slot = await openSlot(app, 60);
     const list = slot.dynamicPriceIls;
-    const payable = list - fifteenPercentOff(list);
-    expect(400).toBeLessThan(list);
-    expect(400).toBeGreaterThanOrEqual(payable);
+    const payable = list - tenPercentOff(list);
+    expect(650).toBeLessThan(list);
+    expect(650).toBeGreaterThanOrEqual(payable);
 
     const plain = await postCheckout(
       app,
-      bookingCheckoutBody({ bookingDate: DAY, startTime: slot.startTime, voucherCode: SEED_VOUCHER.code, pilotBirthDate: JUNE_BIRTHDAY })
+      bookingCheckoutBody({ packageId: 'pkg-captain-60', bookingDate: DAY, startTime: slot.startTime, voucherCode: SEED_FULL_VOUCHER.code, pilotBirthDate: JUNE_BIRTHDAY })
     );
     expect(plain.status).toBe(409);
 
     const response = await postCheckout(
       app,
-      bookingCheckoutBody({ bookingDate: DAY, startTime: slot.startTime, voucherCode: SEED_VOUCHER.code, pilotBirthDate: DECEMBER_BIRTHDAY })
+      bookingCheckoutBody({ packageId: 'pkg-captain-60', bookingDate: DAY, startTime: slot.startTime, voucherCode: SEED_FULL_VOUCHER.code, pilotBirthDate: DECEMBER_BIRTHDAY })
     );
 
     expect(response.status).toBe(201);
@@ -410,6 +411,6 @@ describe('POST /api/checkout: a voucher covers what is left after the birthday d
       discountIls: list,
       totalIls: 0,
     });
-    expect(await app.store.getVoucherByCode(SEED_VOUCHER.code)).toMatchObject({ currentBalanceIls: 400 - payable });
+    expect(await app.store.getVoucherByCode(SEED_FULL_VOUCHER.code)).toMatchObject({ currentBalanceIls: 650 - payable });
   });
 });

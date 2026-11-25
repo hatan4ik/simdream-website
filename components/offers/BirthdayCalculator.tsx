@@ -63,7 +63,8 @@ export function BirthdayCalculator({ copy, language }: BirthdayCalculatorProps) 
     return getBirthdayEligiblePackages().map((entry) => ({
       id: entry.id,
       title: localized.find((pkg) => pkg.id === entry.id)?.title ?? entry.id,
-      price: applyBirthdayDiscount(entry.priceIls),
+      price: applyBirthdayDiscount(entry.priceIls, entry.discountPercent),
+      percent: entry.discountPercent,
     }));
   }, [language]);
 
@@ -146,6 +147,9 @@ export function BirthdayCalculator({ copy, language }: BirthdayCalculatorProps) 
                   <li key={row.id} className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-4 py-3">
                     <span className="text-sm text-slate-200">{row.title}</span>
                     <span className="flex items-baseline gap-3 tabular-nums">
+                      <span className="inline-flex items-center rounded-md bg-orange-500/10 px-2 py-0.5 text-xs font-semibold text-orange-400 border border-orange-500/20">
+                        -{row.percent}%
+                      </span>
                       <s className="text-sm text-slate-400">
                         <span className="sr-only">{copy.colRegular}: </span>
                         {formatIls(row.price.subtotalIls)}

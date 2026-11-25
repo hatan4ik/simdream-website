@@ -9,9 +9,9 @@ export const OFFERS_COPY_DE: OffersCopy = {
   jumpTerms: 'Bedingungen',
 
   birthdayEyebrow: 'Geburtstagsangebot',
-  birthdayTitle: 'Im Geburtstagsmonat fliegen und {percent}% sparen',
+  birthdayTitle: 'Im Geburtstagsmonat fliegen und bis zu {percent}% sparen',
   birthdayLead:
-    'Ein Geburtstag ist der beste Anlass für den Kapitänssitz. Auf jeden Flug in Ihrem Geburtstagsmonat erhalten Sie {percent}% Rabatt – ebenso auf einen Flug bis {days} Tage nach Ihrem Geburtstag.',
+    'Ein Geburtstag ist der beste Anlass für den Kapitänssitz. Auf Flüge in Ihrem Geburtstagsmonat erhalten Sie bis zu {percent}% Rabatt – ebenso auf einen Flug bis {days} Tage nach Ihrem Geburtstag.',
   birthdayUnavailable:
     'Der Geburtstagsrabatt wird beim Checkout noch nicht automatisch abgezogen. Unten können Sie bereits prüfen, ob Ihr Termin qualifiziert ist.',
   stepsTitle: 'So funktioniert es',
@@ -26,14 +26,14 @@ export const OFFERS_COPY_DE: OffersCopy = {
     },
     {
       title: 'Vor der Zahlung sehen',
-      body: 'Die {percent}% werden vom gesamten Flugbetrag inklusive Extras abgezogen und als eigene Zeile in der Übersicht angezeigt.',
+      body: 'Bis zu {percent}% werden vom gesamten Flugbetrag inklusive Extras abgezogen und als eigene Zeile in der Übersicht angezeigt.',
     },
   ],
   exampleTitle: 'Ein Rechenbeispiel',
   exampleBody: 'Der {flight} kostet regulär {regular}. In Ihrem Geburtstagsmonat zahlen Sie {total}: {saving} weniger.',
   whenTitle: 'Welche Flüge qualifizieren sich?',
   whenBody:
-    'Entscheidend ist das Datum Ihres Fluges, nicht der Buchungstag. Jeder Flug im Geburtstagsmonat sowie bis zu {days} Tage nach Ihrem Geburtstag qualifiziert sich, sodass ein Geburtstag am Monatsende nie verloren geht.',
+    'Entscheidend ist das Datum Ihres Fluges, nicht der Buchungstag. Vollwertige Missionen im Geburtstagsmonat sowie bis zu {days} Tage nach Ihrem Geburtstag qualifizieren sich für bis zu {percent}% Rabatt, sodass ein Geburtstag am Monatsende nie verloren geht.',
 
   calcTitle: 'Meinen Geburtstag prüfen',
   calcIntro: 'Geben Sie Geburtsdatum und Flugdatum ein, um zu sehen, ob das Angebot gilt und wie viel Sie sparen.',
@@ -41,10 +41,10 @@ export const OFFERS_COPY_DE: OffersCopy = {
   flightLabel: 'Flugdatum',
   calcPrivacy: 'Diese Prüfung läuft direkt in Ihrem Browser. Ihre Eingaben werden weder gespeichert noch gesendet.',
   calcPrompt: 'Geben Sie beide Daten ein, um das Ergebnis zu sehen.',
-  resultSameMonth: 'Ja. Ihr Geburtstag liegt im Monat dieses Fluges, daher gelten {percent}% Rabatt.',
+  resultSameMonth: 'Ja. Ihr Geburtstag liegt im Monat dieses Fluges, daher gelten bis zu {percent}% Rabatt.',
   resultGraceBefore:
-    'Ja. Ihr Geburtstag war kurz vor diesem Flug innerhalb der {lookback}-Tage-Frist, daher gelten {percent}% Rabatt.',
-  resultGraceAfter: 'Ja. Ihr Geburtstag liegt kurz nach diesem Flug, daher gelten {percent}% Rabatt.',
+    'Ja. Ihr Geburtstag war kurz vor diesem Flug innerhalb der {lookback}-Tage-Frist, daher gelten bis zu {percent}% Rabatt.',
+  resultGraceAfter: 'Ja. Ihr Geburtstag liegt kurz nach diesem Flug, daher gelten bis zu {percent}% Rabatt.',
   resultNone: 'Nicht für dieses Datum. Für diesen Geburtstag qualifizieren sich Flüge vom {start} bis {end}.',
   resultWindow: 'Qualifizierte Flugdaten: {start} bis {end}.',
   tableCaption: 'Ihr Preis mit dem Geburtstagsrabatt',
@@ -67,7 +67,7 @@ export const OFFERS_COPY_DE: OffersCopy = {
 
   termsTitle: 'Das Kleingedruckte',
   terms: [
-    'Immer nur ein Angebot: Angebote sind nicht kombinierbar. Der Geburtstagsrabatt gilt nicht für den vergünstigten Aktionsflug, für Flüge aus einem Flugprogramm oder für den Kauf eines Geschenkgutscheins.',
+    'Immer nur ein Angebot: Angebote sind nicht kombinierbar. Der Geburtstagsrabatt gilt nicht für Schnupperflüge, für den vergünstigten Aktionsflug, für Flüge aus einem Flugprogramm oder für den Kauf eines Geschenkgutscheins.',
     'Die Zahlung mit einem Geschenkgutschein oder einer Geschenkkarte ist ein Zahlungsmittel, kein Angebot. Zuerst wird der Geburtstagsrabatt abgezogen, den Rest deckt der Gutschein.',
     'Maßgeblich ist das Geburtsdatum des Pilot in Command, also der Person, die fliegt. Zutritt zum Simulator ab {minAge} Jahren – dieses Alter muss am Flugtag erreicht sein.',
     'Das Angebot richtet sich nach dem Flugdatum, nicht nach dem Buchungsdatum. Nur Flüge innerhalb Ihres Geburtstagsfensters qualifizieren sich.',

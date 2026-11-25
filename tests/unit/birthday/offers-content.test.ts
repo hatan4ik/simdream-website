@@ -131,7 +131,7 @@ describe('Offers page data comes from the registries', () => {
   it('prices the worked example from the package registry through the engine', () => {
     const example = getBirthdayExample();
     const pkg = SIMULATOR_PACKAGES.find((candidate) => candidate.id === example.packageId)!;
-    expect(example.price).toEqual(applyBirthdayDiscount(pkg.priceIls));
+    expect(example.price).toEqual(applyBirthdayDiscount(pkg.priceIls, 10));
     expect(example.durationMinutes).toBe(pkg.durationMinutes);
     expect(pkg.daytimeOnly).toBeFalsy();
   });
