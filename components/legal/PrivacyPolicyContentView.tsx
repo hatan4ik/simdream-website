@@ -1,10 +1,9 @@
 'use client';
 
-import React, { Suspense, useMemo } from 'react';
+import React, { type ReactNode } from 'react';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { PRIVACY_PAGE_COPY } from '@/lib/legal/page-copy';
 import { LegalContactBox } from './shared/LegalContactBox';
-import { LegalLoadingFallback } from './shared/LegalLoadingFallback';
 import { PrivacyBody } from './privacy/PrivacyBody';
 import { PrivacyHeader } from './privacy/PrivacyHeader';
 
@@ -13,25 +12,14 @@ import { PrivacyHeader } from './privacy/PrivacyHeader';
  * sections) and the contact box. The text lives in `lib/legal/content/privacy.*`, one module per
  * language, loaded on demand.
  */
-export function PrivacyPolicyContentView() {
+export function PrivacyPolicyContentView({ hebrewBody }: { hebrewBody: ReactNode }) {
   const { language } = useLanguage();
   const copy = PRIVACY_PAGE_COPY[language] || PRIVACY_PAGE_COPY.en;
-
-  // Stable boundary element, so the saved language resolving after mount does not discard the
-  // server-rendered policy text (see RulesContentView).
-  const body = useMemo(
-    () => (
-      <Suspense fallback={<LegalLoadingFallback label={copy.loading} />}>
-        <PrivacyBody language={language} tocLabel={copy.tocLabel} />
-      </Suspense>
-    ),
-    [language, copy.loading, copy.tocLabel]
-  );
 
   return (
     <div className="flex-1 w-full min-w-0 py-14 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto space-y-10">
       <PrivacyHeader copy={copy} />
-      {body}
+      <PrivacyBody language={language} tocLabel={copy.tocLabel} hebrewBody={hebrewBody} />
       <LegalContactBox question={copy.contactOfficer} crossLinkHref="/rules" crossLinkLabel={copy.rulesLink} />
     </div>
   );
