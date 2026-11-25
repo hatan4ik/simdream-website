@@ -58,7 +58,7 @@ export function HomeHowItWorks() {
                   <div className="w-12 h-12 rounded-xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-400">
                     <Icon className="w-6 h-6" />
                   </div>
-                  <span className="text-2xl font-black font-mono text-sky-400/40">
+                  <span className="text-2xl font-black font-mono text-sky-400" aria-hidden="true">
                     {step.num}
                   </span>
                 </div>

@@ -97,7 +97,6 @@ export function HomeRouteGate() {
                 key={item.href}
                 href={item.href}
                 className="group block focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 rounded-2xl transition-transform hover:-translate-y-1"
-                aria-label={`${item.title} — ${item.cta}`}
               >
                 <Card
                   glow
