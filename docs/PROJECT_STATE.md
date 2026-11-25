@@ -1,6 +1,6 @@
 # Project State
 
-Live state of the **SimDream LTD** website (`simdream.co.il`). Every new session starts by reading this file and `docs/DECISIONS.md`. Update both in the same change as any substantive code or architecture change; a stale state file counts as broken.
+Live state of the **SimDream LTD** website (`simdream.co.il`). **Start here:** run `npm run status` (a read-only snapshot of the checkout, open PRs, CI, releases, the last Wix publish and the staging site), then read this file, then only the "Working rules" and "Open" sections of `docs/DECISIONS.md`. Update both documents in the same change as any substantive code or architecture change; a stale state file counts as broken. At this stage the only URL to test is the staging site (`https://headless-ciwstxzqhgf-hatan4ik-1408.wix-site-host.com`).
 
 Facts here are checked against the repo; where a number is a measurement, the command that produced it is given. Rules and invariants live in `AGENTS.md`, not here.
 
@@ -13,14 +13,15 @@ Facts here are checked against the repo; where a number is a measurement, the co
 - **Booking (`/book`):** adaptive flows (3-step consumer, 2-step PRO and Fear of Flying), promotional tier bump-up ladder with the two-add-on cap, upgraded-duration grid switching (Option A, #279), flat 90m price all day (#271), 15% birthday discount judged on the upgraded tier (#281, #284).
 - **Offerings:** consumer flight tracks and PRO tracks (6 subscription passes: 4 consumer, 2 PRO), gift vouchers, Fear of Flying course (60 min, 690 ILS), the `/offers` page.
 - **Wix Headless adapter:** writes only to the SimDream-Staging site; `npm run wix:smoke` reconciles the catalog (9 of 10 package ids mapped). Wix benefit pool allocations are audited via `npm run wix:check-benefit-pools` (`lib/wix/plan-benefit-pools.ts`). Blog V3 reads put filters inside `query`, filter by slug with `$eq` (Wix rejects `$hasSome` on a slug with HTTP 400) and by language with `$eq`, and reject a returned locale mismatch before local fallback, so a Hebrew route cannot render an English breadcrumb or JSON-LD and a translated route cannot silently render Hebrew. Worker bundle stands at 10.15 MiB UTF-8 (12.73 MiB with `\u` escapes), 3.85 MiB below the 14.00 MiB budget with `@wix/pricing-plans` 1.0.453 and `@opennextjs/cloudflare` 1.20.16.
-- **Wix worker and cookies:** staging runs `v1.32.4` (published 2026-11-24 22:51Z). It was checked in a real browser with a cookie (`/`, `/book`, `/vouchers`, `/pro`, `/offers`, `/experiences` all 200) and the translated blog articles were checked in all seven languages (each returns its own title and its own canonical). `@opennextjs/cloudflare` is pinned to exactly 1.20.16 because 1.20.18 bundled the middleware cookie parser without esbuild's node-mode flag (every request with a Cookie header answered HTTP 500, "reading 'parse'"). `npm run wix:build` fails on that bundle (`scripts/wix-worker-guards.mjs`), and the CI preview, release and rollback smoke checks send a cookie and open a translated article. Dependabot ignores later versions until one passes a cookie request. After a publish the deployed staging site is checked by `npm run test:staging:content:docker` (Playwright in Docker, read-only). A nightly job (`wix-blog-languages`) checks the live Wix Blog API for every translation group in every language. Details: `docs/modules/wix-adapter.md`, `docs/modules/blog-language.md`.
+- **Wix worker and cookies:** staging runs `v1.32.6` (published 2026-11-25 00:55Z, includes the `/rules` and `/privacy-policy` duplicate-id fix). After a publish it is verified by `npm run test:staging:content:docker` (Playwright in Docker, 32 read-only checks, staging only; 32 of 32 on `v1.32.6`): a request with a cookie, every language of two blog articles with its own title and canonical, the language loop, both blog indexes, and the legal pages. `@opennextjs/cloudflare` is pinned to exactly 1.20.16 because 1.20.18 bundled the middleware cookie parser without esbuild's node-mode flag (every request with a Cookie header answered HTTP 500, "reading 'parse'"). `npm run wix:build` fails on that bundle (`scripts/wix-worker-guards.mjs`), and the CI preview, release and rollback smoke checks send a cookie and open a translated article. Dependabot ignores later versions until one passes a cookie request. After a publish the deployed staging site is checked by `npm run test:staging:content:docker` (Playwright in Docker, read-only). A nightly job (`wix-blog-languages`) checks the live Wix Blog API for every translation group in every language. Details: `docs/modules/wix-adapter.md`, `docs/modules/blog-language.md`.
 - **Dependency security:** `npm audit` reports 0 vulnerabilities; the `@node-minify/core` override pins its `glob` to 14.0.6 (which brings `minimatch` 11.0.9) for the older toolchain that the `@opennextjs/cloudflare` 1.20.16 pin needs (#318, Dependabot alert #4).
 - **Dependency security (Wix `i18next`):** the npm override resolves the Wix transitive `i18next` dependency to 26.3.4, removing GHSA-6jcc-5g8w-32mx without downgrading `@wix/pricing-plans`; the clean Node 24/npm 11.20 audit reports zero production vulnerabilities.
-- **Quality gates:** `npm run docs:verify` passes (GENESIS.md covers 599 of 599 checklist items, fingerprint current). Test files: 176 unit/integration-style `*.test.ts` and 62 Playwright `*.spec.ts`; `playwright.config.ts` defines 10 projects; the accessibility baseline is empty (0 axe violations).
+- **Quality gates:** `npm run docs:verify` passes (`GENESIS.md` covers 608 of 608 checklist items, fingerprint current). 185 Vitest test files and 64 Playwright `*.spec.ts` in 10 projects; `npm run test:quick` passes (184 files, 3,588 tests, 17 skipped bundle checks that need a built site); the accessibility baseline is empty (0 axe violations).
 
 ## In progress
 
-- Nothing open on the blog or legal pages. The lost-hover WebKit failure (#317), the blog language loop (#322), the blog query operator (#324) and the duplicate ids on `/rules` and `/privacy-policy` are fixed.
+- Nothing is being built. No PR is open; `main` and staging are on `v1.32.6`.
+- **Waiting for a time:** the nightly `wix-blog-languages` job (live, read-only: every blog translation group in every language) has never run on GitHub; its first scheduled run is 2026-11-25 02:00 UTC. Check it with `npm run status` ("Nightly").
 
 ## Blocked
 
@@ -29,10 +30,11 @@ Facts here are checked against the repo; where a number is a measurement, the co
 
 ## Next step
 
-1. Move `@opennextjs/cloudflare` past 1.20.16 only when a release passes `npm run wix:build` and a cookie request on the built worker; then drop the `@node-minify/core` override if it is no longer needed.
+1. **Owner decision:** run `npm run test:staging:content:docker` automatically after every Wix publish, as a separate non-blocking job in `wix-release.yml` (it changes the publish pipeline, so it is not done yet).
+2. Move `@opennextjs/cloudflare` past 1.20.16 only when a release passes `npm run wix:build` and a cookie request on the built worker; then drop the `@node-minify/core` override if it is no longer needed.
 
 Open items with owners and details are listed in `docs/DECISIONS.md`.
 
 ## Last updated
 
-2026-11-24
+2026-11-25
