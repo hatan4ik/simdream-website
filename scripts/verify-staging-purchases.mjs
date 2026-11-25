@@ -12,13 +12,13 @@
  *   npm run test:staging:docker -- --suite=expanded
  *
  * Target host defaults to Wix staging (`https://headless-ciwstxzqhgf-hatan4ik-1408.wix-site-host.com`)
- * and refuses `simdream.co.il` so automated test carts never touch the production domain.
+ * and refuses any other host, so automated test carts only ever touch staging.
  */
 import { chromium } from 'playwright';
 
 const BASE_URL = process.env.STAGING_BASE_URL || 'https://headless-ciwstxzqhgf-hatan4ik-1408.wix-site-host.com';
-if (/simdream\.co\.il/i.test(BASE_URL)) {
-  console.error('Refusing to run automated purchase suite against production domain simdream.co.il.');
+if (new URL(BASE_URL).origin !== 'https://headless-ciwstxzqhgf-hatan4ik-1408.wix-site-host.com') {
+  console.error(`Refusing to run the purchase suite against ${BASE_URL}: at this stage only the staging site is allowed.`);
   process.exit(2);
 }
 

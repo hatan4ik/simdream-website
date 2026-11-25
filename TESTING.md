@@ -127,6 +127,17 @@ Import `test` and `expect` from `tests/support/e2e.ts`, or from the folder's `fi
 - Hydration errors appear as `Minified React error #418`. Check for a clock read during render. Pages are prerendered at build time, so read the clock in the browser (`useClientValue` in `lib/ui/use-client-value.ts`) or in an effect.
 - `test-results/quality-report.md` summarises every stage, JUnit totals, coverage, load latencies and open known defects.
 
+## Checking the deployed staging site
+
+The Playwright projects above run against a sandbox build that `playwright.config.ts` starts itself, so they cannot be aimed at staging. To check what a publish actually deployed, run the staging suites in the pinned Playwright Docker image (`mcr.microsoft.com/playwright:v1.65.1-noble`, the same image as the visual baselines). Do not drive a personal browser profile: it carries the owner's cookies and localStorage, is not reproducible, and a long run can freeze it.
+
+| Command | What it does |
+| --- | --- |
+| `npm run test:staging:content:docker` | Read-only content check, no purchases: a request with a `Cookie` header, every language of two blog articles (own title, own canonical), a Hebrew article with English saved does not bounce between translations, `/en/blog` and `/ru/blog` list their own language, `/rules` and `/privacy-policy` (he, en, ar) never hold a duplicate id even with `requestAnimationFrame` delayed 800 ms and show no loading flash, scroll to their hash and do not overflow at 320 px, and the served HTML has the legal text inline. About three minutes. Options: `-- --only=cookie,article,loop,index,legal,html`, `-- --article=<short slug>`. |
+| `npm run test:staging:docker` | The purchase, coupon, add-on and multi-language suites (`scripts/verify-staging-purchases.mjs`); creates carts. |
+
+At this stage both run against the Wix staging site only, `https://headless-ciwstxzqhgf-hatan4ik-1408.wix-site-host.com`: the content suite has no override, and the purchases suite refuses any other `STAGING_BASE_URL` (production, localhost, another host or a lookalike; exit 2). They go slowly on purpose: staging answers HTTP 429 when pushed, and the content run stops at the first 429. Run the content check after every Wix publish. `tests/unit/staging-content-suite.test.ts` pins the suite's helpers and keeps its sample articles real; the same assertions exist as the sandbox specs `blog-language-sync`, `legal-duplicate-ids` and `legal-pages`.
+
 ## Manual studies
 
 [`docs/agents/slot-utilization-study.md`](docs/agents/slot-utilization-study.md) is the prompt for an owner-triggered agent that measures how much of the simulator's week can be sold and what it earns. It simulates the real scheduler, then places a few real orders on SimDream-Staging (at most 30, each cancelled afterwards). It is not part of `test:all` or CI, and it never runs against production Wix. Run it after a change to the scheduler, the packages, the promo tier ladder, the Wix availability adapter or the opening hours.

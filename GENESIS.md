@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:cdb77b2557fc83b97c507571c08d406494f71af37a3fc4b3071f0be1f36f2712 -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:479ac30a33e7f71aed98df18f3b3c3a014b6c37bfe26e03446b0bdc566635edb -->
 
 ## Verification contract
 
@@ -444,6 +444,7 @@ Wire all four gates into one command (`npm run test:all`) and into CI jobs that 
 | `test:e2e`, `test:a11y`, `test:a11y:baseline`, `test:usability`, `test:visual`, `test:visual:update` | Playwright projects; baseline and screenshot re-recording (Linux baselines in Docker) |
 | `test:load`, `test:lighthouse` | autocannon smoke and Lighthouse against a sandboxed server |
 | `test:staging:purchases`, `test:staging:docker` | Live Wix staging purchase, add-on, coupon (`100-OFF`, `15-OFF`) and Gift Card (`8AQMJWNT1V5RK98D`) E2E matrix (`scripts/verify-staging-purchases.mjs`) |
+| `test:staging:content`, `test:staging:content:docker` | Read-only content check of the deployed Wix staging site in a real Chromium, run in the pinned Playwright Docker image after a publish (`scripts/verify-staging-content.mjs`): a request with a Cookie header, every language of two blog articles, the blog language-sync behaviour, `/en/blog` and `/ru/blog`, duplicate ids and hash/overflow behaviour of `/rules` and `/privacy-policy`, and the served legal HTML. Refuses `simdream.co.il` |
 | `start:local` | `next start` with the demo store opt-in, for laptops without Supabase |
 | `docs:genesis` | Fails unless this blueprint still covers the codebase |
 
