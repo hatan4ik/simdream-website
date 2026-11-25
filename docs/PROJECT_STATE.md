@@ -20,7 +20,7 @@ Facts here are checked against the repo; where a number is a measurement, the co
 
 ## In progress
 
-- Hebrew `/rules` briefly renders two `#refunds` cards when hydration runs before React's deferred Suspense swap (found with a delayed `requestAnimationFrame`; seen once on CI); a product fix is not done, details in `docs/DECISIONS.md` (Open). The lost-hover WebKit failure (#317) and the blog language loop are fixed.
+- Nothing open on the blog or legal pages. The lost-hover WebKit failure (#317), the blog language loop (#322), the blog query operator (#324) and the duplicate ids on `/rules` and `/privacy-policy` are fixed.
 
 ## Blocked
 
@@ -29,8 +29,7 @@ Facts here are checked against the repo; where a number is a measurement, the co
 
 ## Next step
 
-1. Remove the transient duplicate `#refunds` on Hebrew `/rules` at its source (see Open in `docs/DECISIONS.md`).
-2. Move `@opennextjs/cloudflare` past 1.20.16 only when a release passes `npm run wix:build` and a cookie request on the built worker; then drop the `@node-minify/core` override if it is no longer needed.
+1. Move `@opennextjs/cloudflare` past 1.20.16 only when a release passes `npm run wix:build` and a cookie request on the built worker; then drop the `@node-minify/core` override if it is no longer needed.
 
 Open items with owners and details are listed in `docs/DECISIONS.md`.
 
