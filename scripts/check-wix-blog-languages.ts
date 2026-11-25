@@ -15,9 +15,8 @@
  * Exit 0 when every group and language is present, 1 on any finding or HTTP error.
  * @see docs/modules/blog-language.md
  */
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
 import slugMap from '../lib/data/blog-slug-map.json';
+import wixManagedProject from '../wix.config.json';
 import { BLOG_SEO_LANGS } from '../lib/data/blog-short-slugs';
 import {
   buildBatchQueryBody,
@@ -38,9 +37,9 @@ const PACE_MS = 600;
 const sleep = (ms: number) => new Promise<void>((done) => setTimeout(done, ms));
 
 function readAppId(): string {
-  const config = JSON.parse(readFileSync(resolve(process.cwd(), 'wix.config.json'), 'utf8')) as { appId?: unknown };
-  if (typeof config.appId !== 'string' || !config.appId) throw new Error('wix.config.json has no appId');
-  return config.appId;
+  // The public app id of the Wix Headless project, imported the way lib/wix/config.ts imports it.
+  if (typeof wixManagedProject.appId !== 'string' || !wixManagedProject.appId) throw new Error('wix.config.json has no appId');
+  return wixManagedProject.appId;
 }
 
 async function fetchVisitorToken(clientId: string): Promise<string> {
