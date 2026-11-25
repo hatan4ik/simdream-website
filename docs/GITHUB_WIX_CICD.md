@@ -37,6 +37,8 @@ passing main Verify → Release Please PR → inherited-release Verify → merge
 
 **Why the smoke checks send a cookie and open a translated article.** A request with a `Cookie` header takes a different path in the Worker (the middleware's cookie parser): a bundle without esbuild's node-mode flag once answered HTTP 500 to every browser while cookie-less requests passed (2026-11-24, `docs/modules/wix-adapter.md`). A failed Wix post lookup falls back to the Hebrew article, whose canonical points at the Hebrew page, so the English article's canonical must be `/post/en/<slug>` itself (`docs/modules/blog-language.md`). `tests/unit/wix-smoke-translated-article.test.ts` keeps the article used by the check real.
 
+After a publish, run `npm run test:staging:content:docker` (Playwright in the pinned Docker image, read-only, about three minutes): it opens real pages in Chromium and checks translated articles in all seven languages, the language-sync behaviour, `/rules` and `/privacy-policy`, and a request with a cookie (`TESTING.md`, "Checking the deployed staging site").
+
 The preview and release logs are workflow artifacts. [`RELEASES.md`](../RELEASES.md) is generated from the canonical changelog and links every version to its immutable GitHub Release. The post-smoke-test release record contains the tag commit, UTC time, Wix URL, workflow link and result. It explicitly marks Wix business configuration as **not asserted**: publishing a frontend must never be mistaken for enabling Bookings, payments, coupons, Members or other external settings.
 
 ## One-time owner setup

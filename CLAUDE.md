@@ -24,6 +24,7 @@
 | `npm run docs:genesis:stamp` | Re-stamps the `GENESIS.md` fingerprint after reviewing the diff |
 | `npm run wix:smoke` | Wix catalog reconciliation (run after touching the catalog or Wix services) |
 | `npm run wix:readiness` | Wix Headless readiness check, read-only |
+| `npm run test:staging:content:docker` | Read-only content check of the deployed staging site in the pinned Playwright image (run after every Wix publish) |
 | `npm run wix:check-blog-languages` | Live, read-only: every blog translation group has a post in all 7 languages (also runs nightly) |
 
 ## 3. Session rules
@@ -33,7 +34,8 @@
 3. **Independent verification.** Before marking a task done, run the [`verifier`](.claude/agents/verifier.md) agent. It did not write the code and reports without editing.
 4. **Branches, commits and pull requests** follow the task contract in `AGENTS.md` section 0 (Limits). `.claude/hooks/block-main-commit.sh` blocks commits on `main`.
 5. **Wix environments** follow `AGENTS.md` section 6.7 (only SimDream-Staging is writable).
-6. **Concurrent sessions.** Another session may edit this checkout. Read `git status` and file timestamps before writing, and never revert what you did not write.
+6. **Verify staging with Playwright in Docker** (`npm run test:staging:content:docker`, `docs`: `TESTING.md`), not by driving the owner's own browser profile.
+7. **Concurrent sessions.** Another session may edit this checkout. Read `git status` and file timestamps before writing, and never revert what you did not write.
 
 ## 4. Docs impact map
 

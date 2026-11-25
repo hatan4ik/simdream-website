@@ -68,6 +68,7 @@ The state machine keeps a "correction requested, not landed yet" state. Without 
 | hreflang, `x-default`, noindex fallback, 301s | `tests/unit/blog-seo.test.ts` |
 | A translated article: English title, `en-US` JSON-LD, self canonical, hreflang for 7 languages plus `x-default`; an untranslated one is noindex with the Hebrew canonical | `tests/unit/blog-translated-article.test.ts` |
 | The URL language beats the saved one (`selectPreferredLanguage`: path, then routed, then saved, then server language) | `tests/unit/language-preference.test.ts` |
+| Every language of two articles, the language-sync loop and both blog indexes on the deployed staging site, in a real Chromium | `npm run test:staging:content:docker` (`scripts/verify-staging-content.mjs`), after every publish |
 | Every mapped group has all seven languages on live Wix | `tests/unit/wix-blog-language-contract.test.ts` (logic, fake responses) and the nightly job (live) |
 | Article JSON-LD and breadcrumbs | `tests/unit/blog-structured-data.test.ts`, `tests/e2e/seo-contract.spec.ts` |
 | API route | `tests/integration/blog-api.test.ts` |
@@ -80,7 +81,7 @@ The state machine keeps a "correction requested, not landed yet" state. Without 
 ## Known gaps
 
 - A rejected Wix operator is caught by the nightly job and the post-publish smoke check, not before merge: no pull-request check talks to Wix.
-- No browser test that a translated article renders translated: the test sandbox blanks the Wix ids (`SANDBOX_ENV`). The render is covered by `tests/unit/blog-translated-article.test.ts` (mocked English post) and the live data by the nightly check.
+- The sandbox browser tests cannot see translated articles (the test sandbox blanks the Wix ids, `SANDBOX_ENV`). A real browser sees them only on the deployed site: `npm run test:staging:content:docker` does that after a publish, on demand, not in CI. The render itself is covered by `tests/unit/blog-translated-article.test.ts` (mocked English post) and the live data by the nightly check.
 - The proxy locale header (#187) is covered only by e2e.
 - An English article still shows Hebrew in two places by design of the registries: the JSON-LD author name, and the related-articles aside lists Hebrew titles.
 - The server HTML of the index and of non-article pages always carries the Hebrew title; only the article route resolves the language on the server. The article markup carries no `lang` attribute; the document language is set client-side by `LanguageProvider`.
