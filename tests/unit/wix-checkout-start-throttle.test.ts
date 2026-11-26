@@ -116,6 +116,29 @@ describe('/api/subscriptions/checkout', () => {
     expect(createPlanCheckoutUrl).toHaveBeenCalledTimes(10);
   });
 
+  it('sends a throttled form post to the contact page, and refuses a throttled member checkout call with 429', async () => {
+    const { POST } = await import('@/app/api/subscriptions/checkout/route');
+    for (let attempt = 0; attempt < 10; attempt += 1) await POST(subscriptionJson(ADDRESS_A));
+    const formPost = new NextRequest(`${ORIGIN}/api/subscriptions/checkout`, {
+      method: 'POST',
+      headers: { accept: 'text/html', 'content-type': 'application/x-www-form-urlencoded', ...ADDRESS_A },
+      body: 'planId=flight-foundations-5x60',
+    });
+    const memberCall = new NextRequest(`${ORIGIN}/api/subscriptions/checkout`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', ...ADDRESS_A },
+      body: JSON.stringify({ planId: 'flight-foundations-5x60', wixMemberCheckout: true }),
+    });
+
+    const page = await POST(formPost);
+    const api = await POST(memberCall);
+
+    expect(page.status).toBe(303);
+    expect(page.headers.get('location')).toContain('/contact?subject=subscription&plan=flight-foundations-5x60');
+    expect(api.status).toBe(429);
+    expect(resolveWixPlanId).toHaveBeenCalledTimes(10);
+  });
+
   it('does not count an unknown plan', async () => {
     const { POST } = await import('@/app/api/subscriptions/checkout/route');
     for (let attempt = 0; attempt < 20; attempt += 1) expect((await POST(subscriptionJson(ADDRESS_A, 'no-such-plan'))).status).toBe(400);
@@ -137,5 +160,16 @@ describe('without a durable limiter store (the Wix-hosted Worker)', () => {
 
     expect(refused.allowed).toBe(false);
     expect(refused.retryAfterSeconds).toBeGreaterThan(0);
+  });
+
+  it('keeps both routes answering through the in-process count, each at its own shared limit', async () => {
+    const rateLimit = await import('@/lib/security/rate-limit');
+    vi.spyOn(rateLimit, 'consumeRateLimit').mockRejectedValue(new rateLimit.RateLimitUnavailableError());
+    const booking = await import('@/app/api/wix/bookings/checkout/route');
+    const subscription = await import('@/app/api/subscriptions/checkout/route');
+
+    expect((await booking.POST(bookingRequest(ADDRESS_A))).status).toBe(200);
+    for (let attempt = 0; attempt < 60; attempt += 1) expect((await subscription.POST(subscriptionJson(ADDRESS_A))).status).toBe(200);
+    expect((await subscription.POST(subscriptionJson(ADDRESS_A))).status).toBe(429);
   });
 });
