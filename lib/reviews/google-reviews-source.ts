@@ -1,6 +1,7 @@
 import 'server-only';
 
 import { FACILITY_INFO } from '@/lib/config/facility-info';
+import { UPSTREAM_READ_TIMEOUT_MS } from '@/lib/http/timeouts';
 import { REVIEW_LANGUAGES, type ReviewLanguage } from './review-language';
 import { reviewLanguageFromGoogle, ReviewTranslationError, translateTexts } from './review-translation';
 
@@ -149,7 +150,7 @@ function placeDetailsUrl(key: string, params: Record<string, string>): string {
 }
 
 async function readPlaceDetails(fetchImpl: FetchLike, url: string): Promise<NonNullable<LegacyPlaceDetailsResponse['result']>> {
-  const response = await fetchImpl(url, { cache: 'no-store' });
+  const response = await fetchImpl(url, { cache: 'no-store', signal: AbortSignal.timeout(UPSTREAM_READ_TIMEOUT_MS) });
   if (!response.ok) throw new GoogleReviewsSourceError(`Google Places returned ${response.status}.`);
   const payload = (await response.json()) as LegacyPlaceDetailsResponse;
   if (payload.status !== 'OK' || !payload.result) {

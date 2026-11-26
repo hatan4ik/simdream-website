@@ -130,6 +130,21 @@ async function conflictsAsCheckoutErrors<T>(operation: Promise<T>): Promise<T> {
   }
 }
 
+type Settled<T> = { ok: true; value: T } | { ok: false; error: unknown };
+
+/** Starts work now and keeps its outcome, so a result awaited later cannot become an unhandled rejection. */
+function settle<T>(work: Promise<T>): Promise<Settled<T>> {
+  return work.then(
+    (value) => ({ ok: true as const, value }),
+    (error: unknown) => ({ ok: false as const, error })
+  );
+}
+
+function unwrap<T>(outcome: Settled<T>): T {
+  if (!outcome.ok) throw outcome.error;
+  return outcome.value;
+}
+
 async function createBookingFromRequest(
   dependencies: CheckoutDependencies,
   request: Request,
@@ -202,6 +217,13 @@ async function createBookingFromRequest(
     if (resumed) return { kind: 'resumed', session: resumed };
   }
 
+  // Two reads do not depend on the slot, so they start now and overlap its check: the member lookup (an outbound
+  // Wix or Supabase call) and the voucher read. Each is settled, so a rejection is never left unobserved, and each is
+  // awaited where the sequential code used it, so the order in which errors surface is unchanged. The hold check above
+  // stays first: it may expire a Stripe session or release this pilot's own hold, which the slot check must then see.
+  const memberLookup = settle((async () => dependencies.identity.getAuthenticatedMember(request))().catch(() => null));
+  const voucherLookup = input.voucherCode ? settle((async () => dependencies.repository.getVoucherByCode(input.voucherCode!))()) : undefined;
+
   const slot = await conflictsAsCheckoutErrors(
     resolveBookableMissionSlot(
       dependencies,
@@ -215,18 +237,14 @@ async function createBookingFromRequest(
   const birthdayDiscountIls = extras.birthday.discountIls;
 
   let voucher: GiftVoucher | undefined;
-  if (input.voucherCode) {
-    voucher = validVoucherForAmount(
-      await dependencies.repository.getVoucherByCode(input.voucherCode),
-      payableIls,
-      dependencies.clock.now()
-    );
+  if (voucherLookup) {
+    voucher = validVoucherForAmount(unwrap(await voucherLookup), payableIls, dependencies.clock.now());
   }
 
   // Authentication is optional. Guests always retain the same checkout path;
   // a booking is attached only when a verified member checks out using their
   // own verified email address.
-  const authenticatedMember = await dependencies.identity.getAuthenticatedMember(request).catch(() => null);
+  const authenticatedMember = unwrap(await memberLookup);
   const memberId = memberIdForBooking(authenticatedMember, input.pilotEmail);
   if (authenticatedMember && memberId) await dependencies.repository.ensureMemberProfile(authenticatedMember);
 

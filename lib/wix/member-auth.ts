@@ -1,6 +1,7 @@
 import 'server-only';
 
 import type { VerifiedMemberIdentity } from '@/lib/auth/member-ownership';
+import { AUTH_READ_TIMEOUT_MS } from '@/lib/http/timeouts';
 import { readWixMemberProfile } from './member-profile';
 
 export type WixMemberIdentity = VerifiedMemberIdentity & { provider: 'wix' };
@@ -25,6 +26,7 @@ export async function getWixMemberIdentity(accessToken: string): Promise<WixMemb
       // aligned with the authenticated Wix client.
       headers: { Authorization: accessToken },
       cache: 'no-store',
+      signal: AbortSignal.timeout(AUTH_READ_TIMEOUT_MS),
     });
     if (!response.ok) return null;
     const payload = (await response.json()) as WixMemberApiResponse;

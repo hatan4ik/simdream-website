@@ -12,6 +12,7 @@ import {
   type WixCheckoutUrlResponse,
 } from './cart-v2-shared';
 import { normalizeWixPhone, patchWixCartCustomerInfo, splitWixContactName } from './checkout-prefill';
+import { UPSTREAM_READ_TIMEOUT_MS } from '@/lib/http/timeouts';
 import { getWixClient, wixPost } from './client';
 import { isWixConfigured } from './config';
 import {
@@ -92,7 +93,7 @@ export async function listWixGiftCardProducts(): Promise<WixGiftCardProduct[]> {
   try {
     const raw = await wixPost<unknown>(WIX_GIFT_CARD_PRODUCTS_QUERY_URL, {
       query: { cursorPaging: { limit: 10 } },
-    });
+    }, { timeoutMs: UPSTREAM_READ_TIMEOUT_MS });
     const parsed = queryGiftCardProductsResponseSchema.safeParse(raw);
     return parsed.success ? parsed.data.giftCardProducts : [];
   } catch (err) {

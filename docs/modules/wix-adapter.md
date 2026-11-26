@@ -20,6 +20,10 @@ Moved out of `AGENTS.md` section 6, item 7, verbatim, so the instruction file st
 - Dependabot ignores later `@opennextjs/cloudflare` versions. Move past 1.20.16 only when a release passes `npm run wix:build` and a cookie request on the built Worker (`wrangler dev` with a scratch config, then `curl -H 'Cookie: a=1'`), then drop the `@node-minify/core` `glob` override in `package.json` if the audit no longer needs it.
 - Verified on Node 24.22.1 and Node 26: lint, `docs:verify`, audit, `wix:build` (worker about 10.16 MiB of 14), the cookie request, `test:quick`.
 
+## Outbound read deadlines
+
+`lib/http/timeouts.ts` owns the deadlines. `wixPost(url, body, { timeoutMs })` is opt-in: the read callers (blog, plans, gift-card products, Bookings services and availability) pass `UPSTREAM_READ_TIMEOUT_MS` (8 s), and a request that does not answer becomes a 504 `WixApiError`, handled like any other upstream failure. One availability query across its cursor pages has a 20 s total deadline. The member-token check (`lib/wix/member-auth.ts`, on every authenticated checkout) has 5 s and treats a timeout as unauthenticated (the member then checks out as a guest and can claim the paid booking later); the member calendar has 8 s. A Wix timeout in `/api/slots` falls back to the local calendar and logs a warning. **Calls that create something carry no deadline** (Wix cart creation, the cart checkout URL, Stripe sessions): an abort on the client could leave an orphan cart or session. `tests/unit/outbound-timeouts.test.ts` pins which calls have a deadline and that a write has none.
+
 ## Blog queries
 
 The post lookup filters by `slug $eq` and `language $eq`; the list by `language $eq`. Wix rejects `$hasSome` on a slug with HTTP 400 although its reference lists it, and the resolver used to swallow that and serve every translation in Hebrew. Every fallback to the local articles now logs a warning. Full contract, history and guards: `docs/modules/blog-language.md`.

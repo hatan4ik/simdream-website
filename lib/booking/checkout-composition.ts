@@ -6,6 +6,7 @@ import { attachHostedCheckout, listUnpaidPendingBookings } from '@/lib/db/checko
 import { BookingConflictError, store } from '@/lib/db/store';
 import { sendBookingConfirmationEmail } from '@/lib/sendgrid';
 import { createCheckoutSession, expireCheckoutSession } from '@/lib/stripe';
+import { runAfterResponse } from './after-response';
 import {
   CheckoutDependencies,
   SlotReservationConflictError,
@@ -51,7 +52,10 @@ export function createRuntimeCheckoutDependencies(): CheckoutDependencies {
       getAuthenticatedMember: (request) => requireAuthenticatedUser(request),
     },
     confirmations: {
-      sendBookingConfirmation: (booking) => sendBookingConfirmationEmail(booking),
+      // Only the voucher-funded booking uses this port (a card booking is confirmed by the Stripe webhook, which
+      // awaits its own email). The booking is already confirmed, so the email runs after the response.
+      sendBookingConfirmation: async (booking) =>
+        runAfterResponse(() => sendBookingConfirmationEmail(booking), 'voucher booking confirmation email'),
     },
     origin: {
       resolve: (request) => getApplicationOrigin(request),

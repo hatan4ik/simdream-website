@@ -52,13 +52,30 @@ export class WixApiError extends Error {
   }
 }
 
-/** POST a JSON body to a Wix REST endpoint as the visitor and return the parsed JSON. */
-export async function wixPost<T = unknown>(url: string, body: unknown): Promise<T> {
-  const response = await getWixClient().fetchWithAuth(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
+export interface WixPostOptions {
+  /** A deadline for the whole request. Pass it for idempotent reads only (lib/http/timeouts.ts). */
+  timeoutMs?: number;
+}
+
+/**
+ * POST a JSON body to a Wix REST endpoint as the visitor and return the parsed JSON. With `timeoutMs`
+ * a request that does not answer in time fails as a 504 `WixApiError`, like any other upstream failure.
+ */
+export async function wixPost<T = unknown>(url: string, body: unknown, options: WixPostOptions = {}): Promise<T> {
+  let response: Response;
+  try {
+    response = await getWixClient().fetchWithAuth(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      ...(options.timeoutMs ? { signal: AbortSignal.timeout(options.timeoutMs) } : {}),
+    });
+  } catch (error) {
+    if (options.timeoutMs && error instanceof DOMException && error.name === 'TimeoutError') {
+      throw new WixApiError(504, url, `No answer from Wix within ${options.timeoutMs} ms.`);
+    }
+    throw error;
+  }
   if (!response.ok) {
     throw new WixApiError(response.status, url, await response.text());
   }

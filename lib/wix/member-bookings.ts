@@ -1,5 +1,6 @@
 import 'server-only';
 
+import { UPSTREAM_READ_TIMEOUT_MS } from '@/lib/http/timeouts';
 import type { Booking } from '@/types';
 
 const WIX_MEMBER_EVENTS_URL = 'https://www.wixapis.com/calendar/v3/events/memberId';
@@ -57,6 +58,7 @@ async function listEventsInRange(
   const response = await fetch(url, {
     headers: { Authorization: accessToken },
     cache: 'no-store',
+    signal: AbortSignal.timeout(UPSTREAM_READ_TIMEOUT_MS),
   });
   if (!response.ok) throw new Error('Wix member calendar is unavailable.');
   const payload = (await response.json()) as WixCalendarEventsResponse;

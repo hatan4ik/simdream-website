@@ -5,6 +5,7 @@ import {
   subscriptionPassReturnPath,
   type SubscriptionPassId,
 } from '@/lib/data/subscription-passes';
+import { UPSTREAM_READ_TIMEOUT_MS } from '@/lib/http/timeouts';
 import { getWixClient, wixPost } from './client';
 import { isWixConfigured } from './config';
 import { WIX_PLAN_IDS, wixPlanIdFor } from './catalog';
@@ -60,7 +61,8 @@ export async function listWixPlans(): Promise<WixPlan[]> {
   try {
     const raw = await wixPost<unknown>(
       'https://www.wixapis.com/pricing-plans/v3/plans/query',
-      { filter: {} }
+      { filter: {} },
+      { timeoutMs: UPSTREAM_READ_TIMEOUT_MS }
     );
     const parsed = queryPlansResponseSchema.safeParse(raw);
     return parsed.success ? parsed.data.plans : [];

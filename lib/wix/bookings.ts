@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { SIMULATOR_PACKAGES } from '@/lib/db/seed-data';
 import { WIX_TIME_ZONE } from './config';
+import { AVAILABILITY_TOTAL_TIMEOUT_MS, UPSTREAM_READ_TIMEOUT_MS } from '@/lib/http/timeouts';
 import { WixApiError, wixPost } from './client';
 import { WIX_SERVICE_IDS } from './catalog';
 
@@ -171,7 +172,7 @@ const listTimeSlotsResponse = z
 
 /** Every Bookings service on the headless site (one page; the catalog is far below 100). */
 export async function listWixServices(): Promise<WixService[]> {
-  const data = await wixPost(QUERY_SERVICES_URL, { query: { paging: { limit: 100 } } });
+  const data = await wixPost(QUERY_SERVICES_URL, { query: { paging: { limit: 100 } } }, { timeoutMs: UPSTREAM_READ_TIMEOUT_MS });
   return queryServicesResponse.parse(data).services;
 }
 
@@ -201,7 +202,11 @@ export async function listWixAvailability(window: AvailabilityWindow): Promise<{
   // The documented endpoint can return more than one cursor page. A shadow
   // comparison must be complete; silently comparing only the first page could
   // make a non-matching availability calendar look healthy.
+  const startedAt = Date.now();
   for (let page = 0; page < 20; page += 1) {
+    if (Date.now() - startedAt > AVAILABILITY_TOTAL_TIMEOUT_MS) {
+      throw new WixApiError(504, LIST_TIME_SLOTS_URL, `Wix availability took longer than ${AVAILABILITY_TOTAL_TIMEOUT_MS} ms across its pages.`);
+    }
     const data = await wixPost(LIST_TIME_SLOTS_URL, {
       serviceId: window.serviceId,
       fromLocalDate: window.fromLocalDate,
@@ -214,7 +219,7 @@ export async function listWixAvailability(window: AvailabilityWindow): Promise<{
       // Wix advises passing only `addOnIds` and omitting `durationInMinutes`: it adds the durations itself.
       ...(window.addOnIds?.length ? { customerChoices: { addOnIds: window.addOnIds } } : {}),
       cursorPaging: { limit: 1000, ...(cursor ? { cursor } : {}) },
-    });
+    }, { timeoutMs: UPSTREAM_READ_TIMEOUT_MS });
     const parsed = listTimeSlotsResponse.parse(data);
     timeSlots.push(...parsed.timeSlots);
     timeZone = parsed.timeZone ?? timeZone;

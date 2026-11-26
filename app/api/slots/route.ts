@@ -28,6 +28,9 @@ async function getWixAdaptedSlots(date: string, duration: number) {
     const wixSlots = await listWixBookableSlotsForDuration(date, duration);
     return await getWixBackedKantorovichSlots(date, duration, wixSlots);
   } catch (wixError) {
+    // A fallback to local data is never silent. In Wix mode the local calendar does not know Wix bookings, so
+    // this is a degraded answer (checkout still fails closed when Wix and the registries disagree).
+    console.warn('Wix availability unavailable; serving the local calendar', wixError instanceof Error ? wixError.message : 'unknown error');
     try {
       return await store.getAvailableSlots(date, duration);
     } catch {
@@ -38,15 +41,18 @@ async function getWixAdaptedSlots(date: string, duration: number) {
 
 async function getWixAdaptedResponse(date: string, duration: number, includeEfficiency: boolean) {
   const durations: readonly number[] = includeEfficiency ? SUPPORTED_DURATIONS : [duration];
+  // The local efficiency read does not depend on what Wix answers, so it runs alongside the Wix reads. It is
+  // booking state (never cached) and has its own catch, so a failure here cannot reject the response.
+  const efficiencyRead = includeEfficiency ? store.getDailyEfficiencyReport(date).catch(() => null) : null;
   const slotResults = await Promise.all(durations.map((candidate) => getWixAdaptedSlots(date, candidate)));
   const slots = slotResults[durations.indexOf(duration)]!;
 
-  if (!includeEfficiency) return NextResponse.json(slots);
+  if (!efficiencyRead) return NextResponse.json(slots);
 
   const durationAvailability = Object.fromEntries(
     durations.map((candidate, index) => [candidate, availabilitySummary(slotResults[index]!)])
   );
-  const efficiency = await store.getDailyEfficiencyReport(date).catch(() => null);
+  const efficiency = await efficiencyRead;
 
   // A Wix-only deployment has no local booking identities to build a reliable
   // efficiency report from. Omit it rather than presenting an empty calendar

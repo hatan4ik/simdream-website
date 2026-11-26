@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:fe1edec691d4391d0cf435ebd36264baf1dbfea8c238d3493b2fd1f6a1aa2361 -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:e7f0fb3f266462a0686b62db321514156d7eb9f5d32cd643f1dbfcbf6e0f8153 -->
 
 ## Verification contract
 
@@ -313,6 +313,7 @@ Add 3 curated one-click combos. Localize every package and add-on in all seven l
   5. creates a Stripe Checkout session, or confirms immediately when a voucher covers the total.
 
   Stripe or persistence failure answers 503 and leaves no orphaned hold or voucher debit, with one deliberate exception: a failed write of the hosted-session fields after the Stripe session exists still answers 201 and keeps the hold (see "Unpaid holds" below). Success answers 201.
+- **Outbound deadlines and overlapped reads** (`lib/http/timeouts.ts`, `lib/booking/after-response.ts`): idempotent reads carry a deadline (member-token verification 5 s; Wix catalog, availability, member calendar, Google Places and Cloud Translation 8 s; a whole Wix availability query 20 s) and `wixPost` takes it as an opt-in `timeoutMs` that turns a timeout into a 504 `WixApiError`; a call that creates something (Wix cart, Stripe session) carries none. Checkout starts the member lookup and the voucher read while the slot is checked but keeps the hold check first and the error order unchanged; Wix-mode `/api/slots` starts the local efficiency read with the Wix reads; the voucher-funded confirmation email runs through `after()` while the Stripe webhook keeps awaiting its own.
 - **Checkout throttle** (`lib/booking/checkout-throttle.ts`): after validation, the Wix-authority 409 and the payments check, and before any record, every local checkout consumes `checkout-init-ip` (10 per 10 minutes, 60 for the shared `unknown-client` bucket), `checkout-init-email` (6 per 30 minutes on the normalized pilot or sender email) and, for bookings, `checkout-init-slot` (8 per 30 minutes on `<date>T<start>`) together. A refusal is 429 with the longest `Retry-After`; an unreachable limiter is 503 `no-store`. The Wix Gift Cards path has no limiter store and is not throttled.
 - **Unpaid holds** (`lib/booking/checkout-hold-policy.ts`, persistence `lib/db/checkout-hold-store.ts`, migration `013_booking_hosted_checkout.sql`): a card booking stores its Stripe session id, URL and expiry on the pending booking; if that write fails (for example before migration 013 is applied) the customer still gets the session, the service logs one fixed line, and the hold has no stored session. Because the email is unverified, a retry never releases a live hold. The same normalized email retrying the departure it holds (same package, date and start) gets that session back (201) when the session is open and the add-on set and payable total match. A session past its stored expiry goes to `expireHostedCheckout()`; only an exactly `expired` outcome cancels the hold and lets a normal checkout follow, a `complete` (paid, webhook pending) outcome answers 409 "already paid", any other outcome answers 409, and a gateway failure answers 503, all releasing nothing. Any other retry (different while the session is open, no stored session, or a stored expiry that is not a time) answers 409 and touches nothing. Any other departure is refused with 429 once the email holds two unpaid pending card bookings (`paymentMethod` `stripe`); a different email keeps the 409, and voucher-funded bookings skip these rules.
 - The checkout service has no direct import of the concrete store, Stripe, SendGrid, Supabase authentication, or origin configuration. Those integrations live in the server-only `checkout-composition.ts`; `tests/unit/checkout-service-ports.test.ts` proves that a substitute hosted-payment gateway and repository preserve the same redirect and 409 conflict contracts.
@@ -732,12 +733,12 @@ components/
   seo/ StructuredDataJsonLd FaqPageJsonLd  ui/ Button Card Badge HoneypotField
 lib/
   scheduler/ kantorovich-engine mission-calculator mission-upgrade-promo package-presentation tiled-interval-optimizer israel-clock booking-horizon availability-view-model
-  booking/checkout-service checkout-error checkout-ports checkout-composition checkout-runtime checkout-throttle checkout-hold-policy
+  booking/checkout-service checkout-error checkout-ports checkout-composition checkout-runtime checkout-throttle checkout-hold-policy after-response
   wix/ client config catalog bookings availability-adapter wix-blocked-bookings native-addons booking-checkout booking-grid-policy booking-grid-enforcement booking-cart-create booking-checkout-client cart-v2-shared checkout-prefill subscription-redemption subscription-booking checkout-shadow member-client backend-blueprint pricing-plan-payload gift-cards plans readiness blog blog-fallback blog-schema blog-language-contract birthday-pricing-config birthday-pricing-server birthday-claim-request birthday-claim-identity birthday-claim-throttle birthday-claim-fallback-limiter
   catalog/gift-voucher-packages  data/experience-routes subscription-passes subscription-page-copy blog-posts blog-categories blog-authors blog-seo blog-short-slugs blog-legacy-slugs  db/ store checkout-hold-store schema.sql seed-data supabase-admin migrations/
   auth/ admin-guard request-auth member-ownership safe-redirect auth-context
   customer/ customer-draft
-  security/rate-limit client-address constant-time same-origin honeypot  http/read-json-body
+  security/rate-limit client-address constant-time same-origin honeypot  http/read-json-body timeouts
   i18n/ translations language-context language-preference language-bootstrap locale-routing calendar-presentation booking-blueprint-copy wix-subscription-booking-copy
   config/ facility-info server-env use-live-facility-status
   blog/ language-sync  # decides when a blog article switches the site language or navigates to its translation (no loop on a language mismatch)
