@@ -16,8 +16,8 @@ export function getBearerToken(request: Request): string | null {
 /**
  * A Supabase session token is a compact JWT: exactly three non-empty base64url segments. This reads the
  * shape only, to choose which provider to ask; it decodes nothing and trusts nothing. A token of any other
- * shape cannot be a Supabase one, so it is not sent there: that saves a round trip for every Wix member
- * request and keeps a Wix credential from being posted to another provider.
+ * shape cannot be a Supabase one, so it is not sent there: a Wix member token of another shape then skips
+ * one round trip and is never posted to another provider. A token of this shape is treated as before.
  */
 const COMPACT_JWT = /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/;
 

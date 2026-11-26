@@ -78,6 +78,9 @@ describe('requireAuthenticatedUser', () => {
       await expect(noEmail.requireAuthenticatedUser(apiRequest('/x', { headers: bearer(JWT) }))).resolves.toBeNull();
 
       expect(wixLookup).toHaveBeenCalledTimes(2);
+      // Supabase was asked first each time: the fall-through is unchanged for a JWT-shaped token.
+      expect(supabaseLookup).toHaveBeenCalledTimes(2);
+      expect(supabaseLookup.mock.invocationCallOrder[0]).toBeLessThan(wixLookup.mock.invocationCallOrder[0]);
       expect(wixLookup).toHaveBeenCalledWith(JWT);
     });
 
