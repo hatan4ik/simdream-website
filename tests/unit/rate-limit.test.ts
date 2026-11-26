@@ -187,6 +187,7 @@ describe('peekRateLimit: reading a budget without spending it', () => {
       abortSignal: (...args: unknown[]) => (calls.push({ op: 'abortSignal', args }), Promise.resolve({ data: rows, error: null })),
     };
     const rpc = vi.fn();
+    const deadline = vi.spyOn(AbortSignal, 'timeout');
     vi.resetModules();
     vi.doMock('@/lib/db/supabase-admin', () => ({
       requireSupabaseAdmin: () => ({ from: (table: string) => (calls.push({ op: 'from', args: [table] }), chain), rpc }),
@@ -208,6 +209,7 @@ describe('peekRateLimit: reading a budget without spending it', () => {
     expect(rpc).not.toHaveBeenCalled();
     // The read carries a deadline, so a hung database cannot stall every admin request.
     expect(calls.find((call) => call.op === 'abortSignal')?.args[0]).toBeInstanceOf(AbortSignal);
+    expect(deadline).toHaveBeenCalledWith(5_000);
     expect(calls).toContainEqual({ op: 'from', args: ['security_rate_limits'] });
     expect(calls).toContainEqual({ op: 'eq', args: ['scope', 'admin-login-ip'] });
     const subject = calls.find((call) => call.op === 'eq' && call.args[0] === 'subject_hash');
@@ -237,5 +239,20 @@ describe('peekRateLimit: reading a budget without spending it', () => {
       peekRateLimit({ scope: 'admin-login-ip', subject: '203.0.113.7', limit: 12, windowSeconds: 900 })
     ).rejects.toBeInstanceOf(RateLimitUnavailableError);
     vi.doUnmock('@/lib/db/supabase-admin');
+  });
+});
+
+describe('clientAddressIsConfigured', () => {
+  it.each([
+    [{ RATE_LIMIT_CLIENT_IP_HEADER: 'cf-connecting-ip' }, true],
+    [{ RATE_LIMIT_CLIENT_IP_HEADER: ' X-Forwarded-For ' }, true],
+    [{ VERCEL: '1' }, true],
+    [{}, false],
+    [{ RATE_LIMIT_CLIENT_IP_HEADER: '' }, false],
+    [{ RATE_LIMIT_CLIENT_IP_HEADER: 'x-client-ip' }, false],
+    [{ VERCEL: '0' }, false],
+  ])('for %j answers %s', async (env, expected) => {
+    const { clientAddressIsConfigured } = await import('@/lib/security/client-address');
+    expect(clientAddressIsConfigured(env)).toBe(expected);
   });
 });

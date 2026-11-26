@@ -356,6 +356,24 @@ describe('requireAdmin: lockout applies to correct credentials too', () => {
     expect(await requireAdmin(adminRequest({ ...OWNER, ...adminHeaders() }))).toBeNull();
   });
 
+  it('counts a malformed Authorization header as an attempt', async () => {
+    const { requireAdmin } = await loadConfiguredGuard();
+    for (let attempt = 0; attempt < 12; attempt += 1) await requireAdmin(adminRequest({ ...ATTACKER, authorization: 'Basic invalid' }));
+
+    const response = await requireAdmin(adminRequest({ ...ATTACKER, ...adminHeaders() }));
+
+    expect(response?.status).toBe(429);
+  });
+
+  it('refuses a locked-out address before it looks at the origin of a mutation', async () => {
+    const { requireAdmin } = await loadConfiguredGuard();
+    await exhaust(requireAdmin, ATTACKER);
+
+    const response = await requireAdmin(adminRequest({ ...ATTACKER, ...adminHeaders(), origin: 'https://evil.example' }, 'POST'));
+
+    expect(response?.status).toBe(429);
+  });
+
   it('does not lock the owner out when someone else spends the budget of the owner\'s username', async () => {
     const { requireAdmin } = await loadConfiguredGuard();
     for (let attempt = 0; attempt < 8; attempt += 1) await requireAdmin(wrong(ATTACKER, attempt, TEST_ADMIN.user));
