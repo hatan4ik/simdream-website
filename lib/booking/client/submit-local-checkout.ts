@@ -1,4 +1,4 @@
-import { isSupabaseConfigured, supabase } from '@/lib/supabaseClient';
+import { loadSupabase } from '@/lib/supabaseClient';
 
 export interface LocalCheckoutMessages {
   paymentStartFailed: string;
@@ -23,7 +23,8 @@ export async function startLocalCheckout(
   messages: LocalCheckoutMessages
 ): Promise<void> {
   const headers: HeadersInit = { 'Content-Type': 'application/json' };
-  if (isSupabaseConfigured && supabase) {
+  const supabase = await loadSupabase();
+  if (supabase) {
     const { data } = await supabase.auth.getSession();
     if (data.session?.access_token) {
       headers.Authorization = `Bearer ${data.session.access_token}`;

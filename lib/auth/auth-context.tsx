@@ -4,7 +4,7 @@ import React, { createContext, useCallback, useContext, useEffect, useState } fr
 import type { Session, User } from '@supabase/supabase-js';
 import type { UserProfile } from '@/types';
 import { DEMO_USERS } from '../db/seed-data';
-import { isSupabaseConfigured, supabase } from '../supabaseClient';
+import { isSupabaseConfigured, loadSupabase } from '../supabaseClient';
 import {
   clearIfWixSessionRejected,
   clearWixMemberSession,
@@ -145,6 +145,7 @@ function profileFromUser(
 }
 
 async function getProfileForAuthenticatedUser(user: User): Promise<UserProfile> {
+  const supabase = await loadSupabase();
   if (!supabase) return profileFromUser(user);
   const { data } = await supabase
     .from('profiles')
@@ -238,29 +239,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     };
 
-    if (isSupabaseConfigured && supabase) {
-      void supabase.auth.getSession().then(({ data }) => {
-        if (data.session) {
-          void hydrateSession(data.session);
-        } else if (active) {
-          setIsLoading(false);
-        }
-      });
-
-      const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-        if (!active) return;
-        if (session) {
-          setIsLoading(true);
-          void hydrateSession(session);
-        } else {
-          setUser(null);
-          setIsLoading(false);
-        }
-      });
-
+    if (isSupabaseConfigured) {
+      // The SDK loads here, after hydration, and only where Supabase is the configured identity provider.
+      let unsubscribe: (() => void) | undefined;
+      const stopLoading = () => void (active && setIsLoading(false));
+      void loadSupabase().then((supabase) => {
+        if (!supabase || !active) return stopLoading();
+        void supabase.auth.getSession().then(({ data }) => (data.session ? void hydrateSession(data.session) : stopLoading()));
+        const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+          if (!active) return;
+          if (session) {
+            setIsLoading(true);
+            void hydrateSession(session);
+          } else {
+            setUser(null);
+            setIsLoading(false);
+          }
+        });
+        unsubscribe = () => listener.subscription.unsubscribe();
+      }, stopLoading);
       return () => {
         active = false;
-        listener.subscription.unsubscribe();
+        unsubscribe?.();
       };
     }
 
@@ -293,7 +293,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password: string): Promise<AuthActionResult> => {
     setIsLoading(true);
     try {
-      if (isSupabaseConfigured && supabase) {
+      const supabase = await loadSupabase();
+      if (supabase) {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error || !data.user) {
           return authResult(false, 'invalidCredentials');
@@ -323,9 +324,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signup = async (fullName: string, email: string, password: string): Promise<AuthActionResult> => {
-    if (!isSupabaseConfigured || !supabase) {
-      return authResult(false, 'registrationNotConfigured');
-    }
+    const supabase = await loadSupabase();
+    if (!supabase) return authResult(false, 'registrationNotConfigured');
     if (password.length < 12) {
       return authResult(false, 'passwordTooShort');
     }
@@ -347,9 +347,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const loginWithProvider = async (provider: SocialAuthProvider): Promise<AuthActionResult> => {
-    if (!isSupabaseConfigured || !supabase) {
-      return authResult(false, 'socialAuthNotConfigured');
-    }
+    const supabase = await loadSupabase();
+    if (!supabase) return authResult(false, 'socialAuthNotConfigured');
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: { redirectTo: `${authRedirect('/auth/callback')}?next=/dashboard` },
@@ -360,9 +359,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const resetPassword = async (email: string): Promise<AuthActionResult> => {
-    if (!isSupabaseConfigured || !supabase) {
-      return authResult(false, 'recoveryNotConfigured');
-    }
+    const supabase = await loadSupabase();
+    if (!supabase) return authResult(false, 'recoveryNotConfigured');
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: authRedirect('/auth/reset-password'),
     });
@@ -396,7 +394,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
     if (!isProduction) localStorage.removeItem('simdream_demo_user');
-    if (isSupabaseConfigured && supabase) void supabase.auth.signOut();
+    void loadSupabase().then((supabase) => supabase?.auth.signOut());
   };
 
   const setDemoUser = (type: 'pilot' | 'admin'): boolean => {

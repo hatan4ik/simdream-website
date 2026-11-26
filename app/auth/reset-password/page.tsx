@@ -7,7 +7,7 @@ import { KeyRound, Plane } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { useLanguage } from '@/lib/i18n/language-context';
-import { isSupabaseConfigured, supabase } from '@/lib/supabaseClient';
+import { loadSupabase } from '@/lib/supabaseClient';
 
 /**
  * Notices are stored as translation keys, not resolved strings, so an error or
@@ -33,7 +33,8 @@ export default function ResetPasswordPage() {
 
   useEffect(() => {
     const loadRecoverySession = async () => {
-      if (!isSupabaseConfigured || !supabase) {
+      const supabase = await loadSupabase();
+      if (!supabase) {
         setError('errorNotConfigured');
         return;
       }
@@ -59,6 +60,7 @@ export default function ResetPasswordPage() {
       setError('errorMismatch');
       return;
     }
+    const supabase = await loadSupabase();
     if (!supabase) return;
     setIsSubmitting(true);
     const { error: updateError } = await supabase.auth.updateUser({ password });

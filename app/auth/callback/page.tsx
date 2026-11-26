@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { safeRedirectPath } from '@/lib/auth/safe-redirect';
 import { useLanguage } from '@/lib/i18n/language-context';
-import { isSupabaseConfigured, supabase } from '@/lib/supabaseClient';
+import { loadSupabase } from '@/lib/supabaseClient';
 
 /**
  * Failure states are stored as translation keys, not resolved strings, so the
@@ -32,7 +32,8 @@ function AuthCallbackContent() {
 
   useEffect(() => {
     const completeAuthentication = async () => {
-      if (!isSupabaseConfigured || !supabase) {
+      const supabase = await loadSupabase();
+      if (!supabase) {
         setError('errorNotConfigured');
         return;
       }

@@ -18,9 +18,7 @@ vi.mock('@/lib/supabaseClient', () => ({
   get isSupabaseConfigured() {
     return supabase.configured;
   },
-  get supabase() {
-    return supabase.configured ? { auth: { getSession: supabase.getSession } } : null;
-  },
+  loadSupabase: async () => (supabase.configured ? { auth: { getSession: supabase.getSession } } : null),
 }));
 vi.mock('@/lib/wix/member-client', () => ({
   getWixMemberClient: () => wix.client,

@@ -24,6 +24,7 @@ Facts here are checked against the repo; where a number is a measurement, the co
 - Nothing is being built. No PR is open; `main` and staging are on `v1.32.6`.
 - **Waiting for a time:** the nightly `wix-blog-languages` job (live, read-only: every blog translation group in every language) has never run on GitHub; its first scheduled run is 2026-11-25 02:00 UTC. Check it with `npm run status` ("Nightly").
 - **Performance audit, Batch B (reliability) merged (#341, release 1.34.2):** Deadlines on idempotent outbound reads (none on writes), overlapped member and voucher reads in checkout, concurrent efficiency read in Wix-mode `/api/slots`, the voucher confirmation email through `after()`. Still to verify on the deployed staging Worker once the release is published: `AbortSignal.timeout` and `after()`. Not done and awaiting the owner: bookings read scope (`store.getBookings()`), bundle splitting, admin lockout pre-check, throttling the Wix routes, choosing the auth provider by token shape.
+- **Audit, client bundle, step 1 in review:** branch `devel/client-bundle-split`. The Supabase SDK loads on first use (home page JavaScript 498 to 442 KiB gzipped on a local production build). Measured but not yet changed, in order of size: all seven languages of `lib/i18n/translations.ts` ship on every page (142 KiB gzipped), and the Wix SDK ships on every page (61 KiB).
 
 ## Blocked
 
