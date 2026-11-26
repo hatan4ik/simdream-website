@@ -10,6 +10,14 @@
 
 ## Product changes by version
 
+### [v1.34.1](https://github.com/hatan4ik/simdream-website/releases/tag/v1.34.1) — 2026-11-26
+
+#### Performance Improvements
+
+- **i18n:** paint the server HTML at once unless a language hand-over needs hiding (#339) (305a448)
+
+Deployment evidence: [GitHub Release](https://github.com/hatan4ik/simdream-website/releases/tag/v1.34.1).
+
 ### [v1.34.0](https://github.com/hatan4ik/simdream-website/releases/tag/v1.34.0) — 2026-11-25
 
 #### Features
