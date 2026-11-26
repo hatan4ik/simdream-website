@@ -26,7 +26,7 @@ export async function POST(request: Request) {
     const preview = optimizeTiledCapacity({
       date: parsed.data.date,
       requests: parsed.data.requests,
-      existingBookings: await store.getBookings(),
+      existingBookings: await store.getBookings(parsed.data.date),
     });
     return NextResponse.json(preview, { headers: { 'Cache-Control': 'private, no-store' } });
   } catch (error) {

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { findSubscriptionPass, type SubscriptionPassId } from '@/lib/data/subscription-passes';
 import { readJsonBody } from '@/lib/http/read-json-body';
 import { createPlanCheckoutUrl, resolveWixPlanId } from '@/lib/wix';
+import { throttleWixCheckoutStart, wixCheckoutThrottledResponse } from '@/lib/wix/checkout-start-throttle';
 import { PRIMARY_WIX_LANGUAGE, isSupportedLanguage, localizeInternalHref } from '@/lib/i18n/locale-routing';
 import type { Language } from '@/lib/i18n/translations';
 
@@ -60,12 +61,18 @@ async function handleCheckout(req: NextRequest) {
     acceptsHtml &&
     !req.headers.get('content-type')?.includes('application/json');
 
+  const wantsPage = isDirectFormPost || (req.method === 'GET' && acceptsHtml);
+  // Counted only for a known plan, and before any Wix call. A throttled page navigation makes no Wix
+  // call and lands on the dispatch contact page below; a throttled API caller gets the 429.
+  const throttle = await throttleWixCheckoutStart(req, 'subscription-checkout-ip');
+  if (!throttle.allowed && !wantsPage) return wixCheckoutThrottledResponse(throttle);
+
   let checkoutUrl: string | null = null;
   let wixPlanId: string | null = null;
   let wixConnected = false;
 
   try {
-    const resolvedWixPlanId = await resolveWixPlanId(pass.id);
+    const resolvedWixPlanId = throttle.allowed ? await resolveWixPlanId(pass.id) : null;
     if (resolvedWixPlanId) {
       wixPlanId = resolvedWixPlanId;
       if (!wixMemberCheckout) {
@@ -87,7 +94,7 @@ async function handleCheckout(req: NextRequest) {
     checkoutUrl = `${baseUrl}${localizeInternalHref(`/contact?subject=subscription&plan=${pass.id}&notice=dispatch_assisted`, language)}`;
   }
 
-  if (isDirectFormPost || (req.method === 'GET' && acceptsHtml)) {
+  if (wantsPage) {
     return NextResponse.redirect(new URL(checkoutUrl, req.url), 303);
   }
 
