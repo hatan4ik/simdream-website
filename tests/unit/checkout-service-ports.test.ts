@@ -478,3 +478,37 @@ test('checkout service keeps the member profile and the booking after the verifi
 
   expect(order).toEqual(['identity', 'ensureMemberProfile', 'createBooking']);
 });
+
+test('checkout service treats a member lookup that throws synchronously like a failed lookup, after the slot check', async () => {
+  const dependencies = checkoutDependencies();
+  const order: string[] = [];
+  const assertBookableStart = dependencies.repository.assertBookableStart;
+  dependencies.repository.assertBookableStart = async (...args) => {
+    order.push('slot');
+    return assertBookableStart(...args);
+  };
+  dependencies.identity.getAuthenticatedMember = () => {
+    order.push('identity');
+    throw new Error('synchronous failure');
+  };
+
+  const result = await createCheckoutService(dependencies).startBookingCheckout(checkoutRequest(), bookingInput());
+
+  expect(result.kind).toBe('stripe'); // a guest checkout, as for any failed lookup
+  expect(order).toEqual(expect.arrayContaining(['slot', 'identity']));
+});
+
+test('checkout service starts neither the member nor the voucher lookup when a held departure is resumed', async () => {
+  const hold = await storedHold();
+  const { dependencies } = recordingDependencies([hold]);
+  const identity = vi.fn(async () => null);
+  const voucher = vi.fn(async () => undefined);
+  dependencies.identity.getAuthenticatedMember = identity;
+  dependencies.repository.getVoucherByCode = voucher;
+
+  const result = await createCheckoutService(dependencies).startBookingCheckout(checkoutRequest(), bookingInput());
+
+  expect(result).toEqual({ kind: 'stripe', url: SESSION.url, sessionId: SESSION.sessionId });
+  expect(identity).not.toHaveBeenCalled();
+  expect(voucher).not.toHaveBeenCalled();
+});

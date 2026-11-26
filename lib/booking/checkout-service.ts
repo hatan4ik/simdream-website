@@ -221,7 +221,7 @@ async function createBookingFromRequest(
   // Wix or Supabase call) and the voucher read. Each is settled, so a rejection is never left unobserved, and each is
   // awaited where the sequential code used it, so the order in which errors surface is unchanged. The hold check above
   // stays first: it may expire a Stripe session or release this pilot's own hold, which the slot check must then see.
-  const memberLookup = settle(dependencies.identity.getAuthenticatedMember(request).catch(() => null));
+  const memberLookup = settle((async () => dependencies.identity.getAuthenticatedMember(request))().catch(() => null));
   const voucherLookup = input.voucherCode ? settle((async () => dependencies.repository.getVoucherByCode(input.voucherCode!))()) : undefined;
 
   const slot = await conflictsAsCheckoutErrors(

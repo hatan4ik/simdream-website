@@ -71,4 +71,16 @@ describe('GET /api/slots in Wix mode', () => {
     expect(response.status).toBe(200);
     expect(mocks.getDailyEfficiencyReport).not.toHaveBeenCalled();
   });
+
+  it('logs, with the reason and no booking data, when it falls back to the local calendar because Wix cannot answer', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    mocks.listWixBookableSlotsForDuration.mockRejectedValue(new Error('Wix API 504: no answer within 8000 ms'));
+    mocks.getAvailableSlots.mockResolvedValue([]);
+
+    const response = await GET(slotsRequest('duration=60'));
+
+    expect(response.status).toBe(200);
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('Wix availability'), expect.stringContaining('no answer'));
+    warn.mockRestore();
+  });
 });

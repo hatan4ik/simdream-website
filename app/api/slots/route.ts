@@ -28,6 +28,9 @@ async function getWixAdaptedSlots(date: string, duration: number) {
     const wixSlots = await listWixBookableSlotsForDuration(date, duration);
     return await getWixBackedKantorovichSlots(date, duration, wixSlots);
   } catch (wixError) {
+    // A fallback to local data is never silent. In Wix mode the local calendar does not know Wix bookings, so
+    // this is a degraded answer (checkout still fails closed when Wix and the registries disagree).
+    console.warn('Wix availability unavailable; serving the local calendar', wixError instanceof Error ? wixError.message : 'unknown error');
     try {
       return await store.getAvailableSlots(date, duration);
     } catch {
