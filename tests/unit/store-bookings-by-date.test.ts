@@ -72,6 +72,41 @@ describe('bookings reads against Supabase', () => {
   });
 });
 
+describe('a day read from Supabase still drives availability', () => {
+  it('closes the departure a returned booking of that day occupies', async () => {
+    const DATE = '2027-01-10';
+    const row = {
+      id: 'book-db-1',
+      booking_reference: 'SD-737-ABCDEFGHJKLMNPQR',
+      package_id: 'pkg-captain-60',
+      package_title: "Captain's Command",
+      duration_minutes: 60,
+      booking_date: DATE,
+      start_time: '09:00:00',
+      end_time: '10:00:00',
+      pilot_name: 'Test Pilot',
+      pilot_email: 'pilot@example.com',
+      pilot_phone: '0500000000',
+      experience_level: 'beginner',
+      addons: [],
+      subtotal_ils: 690,
+      discount_ils: 0,
+      total_ils: 690,
+      birthday_discount_ils: 0,
+      status: 'confirmed',
+      payment_status: 'paid',
+      payment_method: 'stripe',
+      created_at: '2026-11-01T10:00:00.000Z',
+    };
+    const empty = await (await loadStore(fakeSupabase([]).client)).getAvailableSlots(DATE, 60);
+    const booked = await (await loadStore(fakeSupabase([row]).client)).getAvailableSlots(DATE, 60);
+
+    const isOpen = (slots: typeof empty, start: string) => slots.some((slot) => slot.startTime === start && slot.available);
+    expect(isOpen(empty, '09:00')).toBe(true);
+    expect(isOpen(booked, '09:00')).toBe(false);
+  });
+});
+
 describe('bookings reads in the in-memory store', () => {
   it('getBookings(date) returns only that day, the same rows the scheduler would have kept', async () => {
     const store = await loadStore(null);
@@ -84,6 +119,18 @@ describe('bookings reads in the in-memory store', () => {
     expect(scoped.length).toBeGreaterThan(0);
     expect(scoped).toEqual(all.filter((booking) => booking.bookingDate === day));
     expect(await store.getBookings('1999-01-01')).toEqual([]);
+  });
+
+  it('the reschedule check reads only the day of the booking being moved', async () => {
+    const store = await loadStore(null);
+    const booking = (await store.getBookings()).find((item) => item.status !== 'cancelled');
+    expect(booking).toBeTruthy();
+    const read = vi.spyOn(store, 'getBookings');
+
+    await store.assertRescheduleAllowed(booking!.id, booking!.startTime).catch(() => undefined);
+
+    expect(read).toHaveBeenCalledWith(booking!.bookingDate);
+    expect(read).not.toHaveBeenCalledWith();
   });
 });
 
