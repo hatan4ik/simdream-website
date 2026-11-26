@@ -30,6 +30,8 @@ Three chunks are on every page and are larger than what the page needs:
 | `/book` | 636 KiB | 580 KiB |
 | `/subscriptions` | 537 KiB | 481 KiB |
 
+The Worker is unchanged by this step: a clean-room `npm run wix:build` (Docker, `npm ci`) reports 10.23 MiB as UTF-8, the same as before.
+
 Where Supabase is the configured identity provider, the SDK still downloads on every page, after hydration, because the auth provider asks it for the session. Skipping that for guests would mean reading browser storage for a session first and attaching the auth listener at sign-in; it is left until such a deployment exists.
 
 The Supabase path of `lib/auth/auth-context.tsx` has no automated test: the repository has no DOM test environment, and the browser suites sign in through the demo and Wix paths. The change was checked by typecheck, build and reading.
