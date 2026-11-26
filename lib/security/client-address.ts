@@ -9,7 +9,7 @@
  */
 
 /** What every request without a usable address resolves to; callers share one bucket for it. */
-const UNKNOWN_CLIENT = 'unknown-client';
+export const UNKNOWN_CLIENT = 'unknown-client';
 
 /** The headers a deployer may name. Only x-forwarded-for is a list; the others carry one address. */
 const CONFIGURABLE_HEADERS = ['cf-connecting-ip', 'x-vercel-forwarded-for', 'x-real-ip', 'x-forwarded-for'] as const;
@@ -32,6 +32,16 @@ function clientAddressHeader(env: Environment): ClientAddressHeader {
   // Vercel sets VERCEL=1 and documents x-vercel-forwarded-for as its own copy of the client
   // address, kept even where a proxy rewrites x-forwarded-for (SECURITY.md quotes both pages).
   return env.VERCEL === '1' ? 'x-vercel-forwarded-for' : 'x-forwarded-for';
+}
+
+/**
+ * True when the deployment has said which header carries the client address (or runs on Vercel, which
+ * documents its own). Unconfigured, the x-forwarded-for default may name a proxy every visitor shares, or
+ * a value the client wrote, so nothing that punishes one address may rely on it.
+ */
+export function clientAddressIsConfigured(env: Environment = process.env): boolean {
+  const configured = env.RATE_LIMIT_CLIENT_IP_HEADER?.trim().toLowerCase();
+  return env.VERCEL === '1' || CONFIGURABLE_HEADERS.some((header) => header === configured);
 }
 
 /** RATE_LIMIT_TRUSTED_PROXY_HOPS as an integer from 1 to 5; any other value means the default. */

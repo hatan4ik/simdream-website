@@ -154,3 +154,105 @@ describe('trusted client address for rate limiting', () => {
     await expect(clientAddressFor({ 'x-vercel-forwarded-for': 'spoofed' }, { VERCEL: '1' })).resolves.toBe('unknown-client');
   });
 });
+
+describe('peekRateLimit: reading a budget without spending it', () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'], now: new Date('2026-11-01T10:00:00Z') });
+  });
+
+  it('reports the budget as used up only after the last allowed attempt, and never consumes one itself', async () => {
+    const { consumeRateLimit, peekRateLimit } = await loadRateLimit();
+    const rule = { scope: 'peek-check', subject: '203.0.113.7', limit: 2, windowSeconds: 60 };
+
+    for (let read = 0; read < 5; read += 1) await expect(peekRateLimit(rule)).resolves.toMatchObject({ allowed: true });
+    await consumeRateLimit(rule);
+    await expect(peekRateLimit(rule)).resolves.toMatchObject({ allowed: true });
+    await consumeRateLimit(rule);
+    await expect(peekRateLimit(rule)).resolves.toEqual({ allowed: false, retryAfterSeconds: 60 });
+    await expect(peekRateLimit({ ...rule, subject: '203.0.113.8' })).resolves.toMatchObject({ allowed: true });
+
+    vi.setSystemTime(new Date('2026-11-01T10:01:00Z'));
+    await expect(peekRateLimit(rule)).resolves.toMatchObject({ allowed: true });
+  });
+
+  it('reads the current window of the durable store in production, by hashed subject, and writes nothing', async () => {
+    const calls: { op: string; args: unknown[] }[] = [];
+    let rows: unknown[] = [];
+    const chain = {
+      select: (...args: unknown[]) => (calls.push({ op: 'select', args }), chain),
+      eq: (...args: unknown[]) => (calls.push({ op: 'eq', args }), chain),
+      gt: (...args: unknown[]) => (calls.push({ op: 'gt', args }), chain),
+      order: (...args: unknown[]) => (calls.push({ op: 'order', args }), chain),
+      limit: (...args: unknown[]) => (calls.push({ op: 'limit', args }), chain),
+      abortSignal: (...args: unknown[]) => (calls.push({ op: 'abortSignal', args }), Promise.resolve({ data: rows, error: null })),
+    };
+    const rpc = vi.fn();
+    const deadline = vi.spyOn(AbortSignal, 'timeout');
+    vi.resetModules();
+    vi.doMock('@/lib/db/supabase-admin', () => ({
+      requireSupabaseAdmin: () => ({ from: (table: string) => (calls.push({ op: 'from', args: [table] }), chain), rpc }),
+    }));
+    vi.stubEnv('NODE_ENV', 'production');
+    vi.stubEnv('ALLOW_IN_MEMORY_STORE', '');
+    const { peekRateLimit } = await import('@/lib/security/rate-limit');
+    const rule = { scope: 'admin-login-ip', subject: '203.0.113.7', limit: 12, windowSeconds: 900 };
+
+    await expect(peekRateLimit(rule)).resolves.toMatchObject({ allowed: true });
+    rows = [{ attempt_count: 11, window_started_at: '2026-11-01T10:00:00.000Z' }];
+    await expect(peekRateLimit(rule)).resolves.toMatchObject({ allowed: true });
+    rows = [{ attempt_count: 12, window_started_at: '2026-11-01T10:00:00.000Z' }];
+    await expect(peekRateLimit(rule)).resolves.toEqual({ allowed: false, retryAfterSeconds: 900 });
+
+    rows = [{ attempt_count: 'many', window_started_at: 'not a time' }];
+    await expect(peekRateLimit(rule)).rejects.toThrow('Rate-limit persistence is unavailable.');
+
+    expect(rpc).not.toHaveBeenCalled();
+    // The read carries a deadline, so a hung database cannot stall every admin request.
+    expect(calls.find((call) => call.op === 'abortSignal')?.args[0]).toBeInstanceOf(AbortSignal);
+    expect(deadline).toHaveBeenCalledWith(5_000);
+    expect(calls).toContainEqual({ op: 'from', args: ['security_rate_limits'] });
+    expect(calls).toContainEqual({ op: 'eq', args: ['scope', 'admin-login-ip'] });
+    const subject = calls.find((call) => call.op === 'eq' && call.args[0] === 'subject_hash');
+    expect(subject?.args[1]).toMatch(/^[a-f0-9]{64}$/);
+    expect(JSON.stringify(calls)).not.toContain('203.0.113.7');
+    // Only the window that is open now: rows are one window apart, so "started after now minus one window".
+    expect(calls).toContainEqual({ op: 'gt', args: ['window_started_at', '2026-11-01T09:45:00.000Z'] });
+    vi.doUnmock('@/lib/db/supabase-admin');
+  });
+
+  it('throws RateLimitUnavailableError when the durable store cannot be read', async () => {
+    const failing = {
+      select: () => failing,
+      eq: () => failing,
+      gt: () => failing,
+      order: () => failing,
+      limit: () => failing,
+      abortSignal: () => Promise.resolve({ data: null, error: { message: 'permission denied' } }),
+    };
+    vi.resetModules();
+    vi.doMock('@/lib/db/supabase-admin', () => ({ requireSupabaseAdmin: () => ({ from: () => failing }) }));
+    vi.stubEnv('NODE_ENV', 'production');
+    vi.stubEnv('ALLOW_IN_MEMORY_STORE', '');
+    const { peekRateLimit, RateLimitUnavailableError } = await import('@/lib/security/rate-limit');
+
+    await expect(
+      peekRateLimit({ scope: 'admin-login-ip', subject: '203.0.113.7', limit: 12, windowSeconds: 900 })
+    ).rejects.toBeInstanceOf(RateLimitUnavailableError);
+    vi.doUnmock('@/lib/db/supabase-admin');
+  });
+});
+
+describe('clientAddressIsConfigured', () => {
+  it.each([
+    [{ RATE_LIMIT_CLIENT_IP_HEADER: 'cf-connecting-ip' }, true],
+    [{ RATE_LIMIT_CLIENT_IP_HEADER: ' X-Forwarded-For ' }, true],
+    [{ VERCEL: '1' }, true],
+    [{}, false],
+    [{ RATE_LIMIT_CLIENT_IP_HEADER: '' }, false],
+    [{ RATE_LIMIT_CLIENT_IP_HEADER: 'x-client-ip' }, false],
+    [{ VERCEL: '0' }, false],
+  ])('for %j answers %s', async (env, expected) => {
+    const { clientAddressIsConfigured } = await import('@/lib/security/client-address');
+    expect(clientAddressIsConfigured(env)).toBe(expected);
+  });
+});
