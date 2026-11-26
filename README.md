@@ -40,10 +40,12 @@ Production-grade website, multi-step booking engine, Amazon-style flight storefr
    - Full native localization across 7 languages: **Hebrew (`he`)**, **English (`en`)**, **Russian (`ru`)**, **French (`fr`)**, **Arabic (`ar`)**, **Spanish (`es`)**, and **German (`de`)**.
    - Dynamic directionality with automatic `dir="rtl"` layout flipping for Hebrew and Arabic.
    - Telemetry isolation (`dir="ltr"`) for raw aviation data: live METAR strings, radio frequencies, transponder squawks, booking identifiers, and flight slot ranges.
+   - **Server-rendered HTML first paint (`lib/i18n/language-bootstrap.ts`)**: eliminates hydration-veil blank-page delays for first-time, Hebrew and routed-locale visitors; hides the page (`data-language-pending="true"`) only when a returning visitor has a saved non-Hebrew preference on an unrouted URL (3 s fail-safe).
    - Librarian-grade terminology audited against official airline, ICAO, and Boeing flight deck standards.
 
 4. **Rules-Based Tiled Interval Calendar & Booking Engine (`/book`)**:
    - The legacy `kantorovich-engine.ts` module is a deterministic interval scheduler, not a linear-programming solver. It uses fixed reservation buffers, overlap checks, and dynamic-programming gap tiling. Its full specification is documented in [`KANTOROVICH_SCHEDULER_SPEC.md`](KANTOROVICH_SCHEDULER_SPEC.md).
+   - **Outbound fetch deadlines & concurrency (`lib/http/timeouts.ts`, `lib/booking/after-response.ts`)**: idempotent outbound reads carry deadlines (5s member token, 8s Wix/Google, 20s availability query); `POST /api/checkout` starts member verification and voucher resolution concurrently with slot checking; and voucher-funded confirmation emails run non-blocking through Next.js `after()`.
    - **Zero-Duplication Calendar-First 3-Step Flow**:
      - Landing on `/book` (from the Navbar, Homepage, or `/experiences?package=...`) opens the **Smart Calendar immediately as Step 1** (`Step 1: Date, Duration & Departure Slot` &rarr; `Step 2: Cockpit Upgrades & Mission Add-Ons` &rarr; `Step 3: Pilot Manifest & Payment`).
    - **Core Reservation Mapping (Under the Hood)**: capacity is reserved through the server's canonical duration map (`30m -> 45m`, `45m -> 60m`, `60m -> 75m`, `90m -> 105m`, `120m -> 150m`); integrations must not infer the buffer themselves.
