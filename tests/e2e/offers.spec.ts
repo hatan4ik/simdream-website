@@ -15,7 +15,7 @@ import {
 } from '@/lib/offers/offers-data';
 import { LANGUAGES, RTL_LANGUAGES, preferLanguage } from '../support/e2e';
 import { expect, test } from './fixtures';
-import { follow, waitUntilInteractive } from './pages/hydration';
+import { follow, waitUntilInteractive, waitUntilPageHydrated } from './pages/hydration';
 
 const ils = (amount: number) => `₪${amount.toLocaleString('en-US')}`;
 
@@ -40,6 +40,8 @@ test.describe('Offers & Benefits page', () => {
       await preferLanguage(page, language);
       await page.goto('/offers');
       await expect(page.getByRole('heading', { level: 1 })).toHaveText(OFFERS_COPY[language].heroTitle);
+      // Hebrew shows the server HTML at once; measure the hydrated page and let its own requests settle.
+      await waitUntilPageHydrated(page);
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
       expect(overflow, `${language} overflows horizontally`).toBeLessThanOrEqual(0);
     }
