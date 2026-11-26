@@ -29,7 +29,8 @@ export async function waitUntilInteractive(control: Locator): Promise<void> {
 /**
  * Resolves once React has hydrated the shared layout (the language selector in the utility bar, on every page).
  * A Hebrew or first-time visitor sees the server HTML straight away (lib/i18n/language-bootstrap.ts), so a journey
- * that fills a form, or measures the page and ends before the page's own requests finish, must wait for this first.
+ * that measures the page and ends before the page's own requests finish must wait for this first. It proves the
+ * layout only: a form hydrates later, so a journey that types into one waits on that control with `waitUntilInteractive`.
  */
 export async function waitUntilPageHydrated(page: Page): Promise<void> {
   await waitUntilInteractive(
