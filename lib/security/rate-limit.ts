@@ -2,6 +2,7 @@ import 'server-only';
 
 import { hasUsableValue, isProduction } from '@/lib/config/server-env';
 import { requireSupabaseAdmin } from '@/lib/db/supabase-admin';
+import { AUTH_READ_TIMEOUT_MS } from '@/lib/http/timeouts';
 import { resolveClientAddress } from '@/lib/security/client-address';
 
 export interface RateLimitRule {
@@ -159,7 +160,8 @@ export async function peekRateLimit(rule: RateLimitRule, now = Date.now()): Prom
         .eq('subject_hash', subjectHash)
         .gt('window_started_at', new Date(now - windowMs).toISOString())
         .order('window_started_at', { ascending: false })
-        .limit(1);
+        .limit(1)
+        .abortSignal(AbortSignal.timeout(AUTH_READ_TIMEOUT_MS));
       if (error || !Array.isArray(data)) throw new RateLimitUnavailableError();
       const row = data[0] as { attempt_count?: unknown; window_started_at?: unknown } | undefined;
       const startedAt = row ? Date.parse(String(row.window_started_at)) : NaN;

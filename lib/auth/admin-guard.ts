@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { hasUsableValue, isProduction } from '@/lib/config/server-env';
 import { constantTimeEqual } from '@/lib/security/constant-time';
-import { UNKNOWN_CLIENT } from '@/lib/security/client-address';
+import { clientAddressIsConfigured, UNKNOWN_CLIENT } from '@/lib/security/client-address';
 import {
   consumeRateLimit,
   peekRateLimit,
@@ -80,23 +80,34 @@ function isSameOriginMutation(request: Request): boolean {
 }
 
 /**
- * A lockout that a correct password could walk through would bound nothing, so valid credentials are
- * refused too while their address has no failed attempt left. Only the per-address budget is read: the
- * per-username one would let anyone lock the owner out by guessing against the owner's username. For the
- * same reason requests with no resolvable address are never locked out, since they all share one bucket.
- * The read spends nothing, and when it fails the request proceeds as it did before this check existed.
+ * A lockout that a correct password could walk through would bound nothing, so while an address has no
+ * failed attempt left it is refused whatever it sends: the answer is the same for a right and a wrong
+ * password, and it is decided before the credentials matter. The read spends nothing.
+ *
+ * It never applies where it could lock the owner out from outside:
+ * - only the per-address budget is read, because anyone can spend the per-username one against the owner;
+ * - only an address the deployment has said it trusts, because the unconfigured x-forwarded-for default
+ *   may be a proxy every visitor shares, and `unknown-client` is one bucket for everyone;
+ * - when the state cannot be read, the request continues as it did before this check existed.
  */
 async function addressLockout(request: Request): Promise<NextResponse | null> {
   const client = rateLimitClientAddress(request);
-  if (client === UNKNOWN_CLIENT) return null;
+  if (client === UNKNOWN_CLIENT || !clientAddressIsConfigured()) return null;
   try {
     const state = await peekRateLimit(ipRule(client));
     if (state.allowed) return null;
     return NextResponse.json({ error: LOCKED_OUT_MESSAGE }, { status: 429, headers: rateLimitHeaders(state) });
   } catch {
-    console.error('Admin lockout state unavailable; accepting valid credentials without it');
+    console.error('Admin lockout state unavailable; continuing without it');
     return null;
   }
+}
+
+function challenge(): NextResponse {
+  return NextResponse.json(
+    { error: 'Admin authentication required' },
+    { status: 401, headers: { 'WWW-Authenticate': `Basic realm="${ADMIN_REALM}", charset="UTF-8"` } }
+  );
 }
 
 /**
@@ -105,21 +116,26 @@ async function addressLockout(request: Request): Promise<NextResponse | null> {
  */
 export async function requireAdmin(request: Request): Promise<NextResponse | null> {
   const auth = checkAdminAuth(request);
-  if (auth.result === 'authorized') {
-    const lockedOut = await addressLockout(request);
-    if (lockedOut) return lockedOut;
-    if (!isSameOriginMutation(request)) {
-      return NextResponse.json({ error: 'Cross-origin admin mutations are not allowed.' }, { status: 403 });
-    }
-    return null;
-  }
-
   if (auth.result === 'not_configured') {
     return NextResponse.json(
       { error: 'Admin access is disabled until ADMIN_USER and ADMIN_PASSWORD are configured.' },
       { status: 503 }
     );
   }
+
+  const lockedOut = await addressLockout(request);
+  if (lockedOut) return lockedOut;
+
+  if (auth.result === 'authorized') {
+    if (!isSameOriginMutation(request)) {
+      return NextResponse.json({ error: 'Cross-origin admin mutations are not allowed.' }, { status: 403 });
+    }
+    return null;
+  }
+
+  // A request with no Authorization header guesses nothing (a browser's first visit, a link prefetch), so it
+  // is challenged without spending an attempt: otherwise prefetches of the footer link would lock the owner out.
+  if (!request.headers.has('authorization')) return challenge();
 
   try {
     const client = rateLimitClientAddress(request);
@@ -147,11 +163,5 @@ export async function requireAdmin(request: Request): Promise<NextResponse | nul
     );
   }
 
-  return NextResponse.json(
-    { error: 'Admin authentication required' },
-    {
-      status: 401,
-      headers: { 'WWW-Authenticate': `Basic realm="${ADMIN_REALM}", charset="UTF-8"` },
-    }
-  );
+  return challenge();
 }

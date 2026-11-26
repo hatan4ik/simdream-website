@@ -183,7 +183,8 @@ describe('peekRateLimit: reading a budget without spending it', () => {
       eq: (...args: unknown[]) => (calls.push({ op: 'eq', args }), chain),
       gt: (...args: unknown[]) => (calls.push({ op: 'gt', args }), chain),
       order: (...args: unknown[]) => (calls.push({ op: 'order', args }), chain),
-      limit: (...args: unknown[]) => (calls.push({ op: 'limit', args }), Promise.resolve({ data: rows, error: null })),
+      limit: (...args: unknown[]) => (calls.push({ op: 'limit', args }), chain),
+      abortSignal: (...args: unknown[]) => (calls.push({ op: 'abortSignal', args }), Promise.resolve({ data: rows, error: null })),
     };
     const rpc = vi.fn();
     vi.resetModules();
@@ -201,7 +202,12 @@ describe('peekRateLimit: reading a budget without spending it', () => {
     rows = [{ attempt_count: 12, window_started_at: '2026-11-01T10:00:00.000Z' }];
     await expect(peekRateLimit(rule)).resolves.toEqual({ allowed: false, retryAfterSeconds: 900 });
 
+    rows = [{ attempt_count: 'many', window_started_at: 'not a time' }];
+    await expect(peekRateLimit(rule)).rejects.toThrow('Rate-limit persistence is unavailable.');
+
     expect(rpc).not.toHaveBeenCalled();
+    // The read carries a deadline, so a hung database cannot stall every admin request.
+    expect(calls.find((call) => call.op === 'abortSignal')?.args[0]).toBeInstanceOf(AbortSignal);
     expect(calls).toContainEqual({ op: 'from', args: ['security_rate_limits'] });
     expect(calls).toContainEqual({ op: 'eq', args: ['scope', 'admin-login-ip'] });
     const subject = calls.find((call) => call.op === 'eq' && call.args[0] === 'subject_hash');
@@ -213,7 +219,14 @@ describe('peekRateLimit: reading a budget without spending it', () => {
   });
 
   it('throws RateLimitUnavailableError when the durable store cannot be read', async () => {
-    const failing = { select: () => failing, eq: () => failing, gt: () => failing, order: () => failing, limit: () => Promise.resolve({ data: null, error: { message: 'permission denied' } }) };
+    const failing = {
+      select: () => failing,
+      eq: () => failing,
+      gt: () => failing,
+      order: () => failing,
+      limit: () => failing,
+      abortSignal: () => Promise.resolve({ data: null, error: { message: 'permission denied' } }),
+    };
     vi.resetModules();
     vi.doMock('@/lib/db/supabase-admin', () => ({ requireSupabaseAdmin: () => ({ from: () => failing }) }));
     vi.stubEnv('NODE_ENV', 'production');
