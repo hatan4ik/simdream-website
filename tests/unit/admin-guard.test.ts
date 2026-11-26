@@ -1,5 +1,5 @@
 import fc from 'fast-check';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { TEST_ADMIN } from '../support/test-env';
 import { TEST_ORIGIN, adminHeaders, apiRequest, basicAuth, readJson } from '../support/http';
 
@@ -275,5 +275,149 @@ describe('requireAdmin: rate-limit availability', () => {
     expect(headers.get('cache-control')).toBe('no-store');
     expect(body).toEqual({ error: 'Admin authentication is temporarily unavailable.' });
     expect(log).toHaveBeenCalledWith('Admin rate limiter failed', expect.any(Error));
+  });
+});
+
+describe('requireAdmin: lockout applies to correct credentials too', () => {
+  const ATTACKER = { 'x-forwarded-for': '203.0.113.7' };
+  const OWNER = { 'x-forwarded-for': '198.51.100.20' };
+  const wrong = (headers: Record<string, string>, attempt: number, user = `guess-${attempt}`) =>
+    adminRequest({ ...headers, authorization: basicAuth(user, 'wrong-password') });
+
+  /** The lockout needs a client address the deployment has said it trusts. */
+  async function loadConfiguredGuard(header = 'x-forwarded-for') {
+    const guard = await loadGuard();
+    vi.stubEnv('RATE_LIMIT_CLIENT_IP_HEADER', header);
+    vi.stubEnv('VERCEL', '');
+    return guard;
+  }
+
+  /** Twelve failures exhaust the per-address budget (each failure uses a new username, so only the address is spent). */
+  async function exhaust(requireAdmin: (request: Request) => Promise<Response | null>, headers: Record<string, string>, count = 12) {
+    for (let attempt = 0; attempt < count; attempt += 1) await requireAdmin(wrong(headers, attempt));
+  }
+
+  // The availability suite above leaves a failing limiter mocked; these tests need the real one.
+  beforeEach(() => vi.doUnmock('@/lib/security/rate-limit'));
+
+  it('refuses the correct password from an address that has used up its failed attempts', async () => {
+    const { requireAdmin } = await loadConfiguredGuard();
+    await exhaust(requireAdmin, ATTACKER);
+
+    const response = await requireAdmin(adminRequest({ ...ATTACKER, ...adminHeaders() }));
+
+    expect(response).not.toBeNull();
+    const { status, headers, body } = await readJson<{ error: string }>(response!);
+    expect(status).toBe(429);
+    expect(Number(headers.get('retry-after'))).toBeGreaterThan(0);
+    expect(body).toEqual({ error: 'Too many failed admin sign-in attempts. Please try again later.' });
+  });
+
+  it('answers a locked-out address the same way whether the password is right or wrong', async () => {
+    vi.useFakeTimers({ toFake: ['Date'], now: new Date('2026-11-01T10:00:00Z') });
+    const { requireAdmin } = await loadConfiguredGuard();
+    await exhaust(requireAdmin, ATTACKER);
+
+    const right = await readJson(( await requireAdmin(adminRequest({ ...ATTACKER, ...adminHeaders() })))!);
+    const wrongGuess = await readJson((await requireAdmin(wrong(ATTACKER, 99)))!);
+    vi.useRealTimers();
+
+    expect(right.status).toBe(429);
+    expect(wrongGuess.status).toBe(right.status);
+    expect(wrongGuess.body).toEqual(right.body);
+    expect([...wrongGuess.headers.entries()].sort()).toEqual([...right.headers.entries()].sort());
+  });
+
+  it('still lets the owner in from another address while an attacker is locked out', async () => {
+    const { requireAdmin } = await loadConfiguredGuard();
+    await exhaust(requireAdmin, ATTACKER);
+
+    expect(await requireAdmin(adminRequest({ ...OWNER, ...adminHeaders() }))).toBeNull();
+  });
+
+  it('lets the correct password through while the address still has attempts left', async () => {
+    const { requireAdmin } = await loadConfiguredGuard();
+    await exhaust(requireAdmin, ATTACKER, 11);
+
+    expect(await requireAdmin(adminRequest({ ...ATTACKER, ...adminHeaders() }))).toBeNull();
+  });
+
+  it('does not let a successful sign-in use up the failed-attempt budget', async () => {
+    const { requireAdmin } = await loadConfiguredGuard();
+    for (let request = 0; request < 40; request += 1) {
+      expect(await requireAdmin(adminRequest({ ...OWNER, ...adminHeaders() }))).toBeNull();
+    }
+  });
+
+  it('challenges a request with no Authorization header without spending an attempt, so link prefetches cannot lock the owner out', async () => {
+    const { requireAdmin } = await loadConfiguredGuard();
+    for (let request = 0; request < 40; request += 1) await expectUnauthorized(await requireAdmin(adminRequest(OWNER)));
+
+    expect(await requireAdmin(adminRequest({ ...OWNER, ...adminHeaders() }))).toBeNull();
+  });
+
+  it('counts a malformed Authorization header as an attempt', async () => {
+    const { requireAdmin } = await loadConfiguredGuard();
+    for (let attempt = 0; attempt < 12; attempt += 1) await requireAdmin(adminRequest({ ...ATTACKER, authorization: 'Basic invalid' }));
+
+    const response = await requireAdmin(adminRequest({ ...ATTACKER, ...adminHeaders() }));
+
+    expect(response?.status).toBe(429);
+  });
+
+  it('refuses a locked-out address before it looks at the origin of a mutation', async () => {
+    const { requireAdmin } = await loadConfiguredGuard();
+    await exhaust(requireAdmin, ATTACKER);
+
+    const response = await requireAdmin(adminRequest({ ...ATTACKER, ...adminHeaders(), origin: 'https://evil.example' }, 'POST'));
+
+    expect(response?.status).toBe(429);
+  });
+
+  it('does not lock the owner out when someone else spends the budget of the owner\'s username', async () => {
+    const { requireAdmin } = await loadConfiguredGuard();
+    for (let attempt = 0; attempt < 8; attempt += 1) await requireAdmin(wrong(ATTACKER, attempt, TEST_ADMIN.user));
+
+    expect(await requireAdmin(adminRequest({ ...OWNER, ...adminHeaders() }))).toBeNull();
+  });
+
+  it('never locks out valid credentials when the deployment has not named its client-address header', async () => {
+    // Unconfigured, the address is the rightmost x-forwarded-for entry, which may be a proxy every visitor shares.
+    const { requireAdmin } = await loadGuard();
+    vi.stubEnv('RATE_LIMIT_CLIENT_IP_HEADER', '');
+    vi.stubEnv('VERCEL', '');
+    await exhaust(requireAdmin, ATTACKER);
+
+    expect(await requireAdmin(adminRequest({ ...ATTACKER, ...adminHeaders() }))).toBeNull();
+  });
+
+  it('never locks out requests with no resolvable address, because they all share one bucket', async () => {
+    const { requireAdmin } = await loadConfiguredGuard();
+    await exhaust(requireAdmin, {});
+
+    expect(await requireAdmin(adminRequest(adminHeaders()))).toBeNull();
+  });
+
+  it('lets correct credentials through, and logs, when the lockout state cannot be read', async () => {
+    vi.resetModules();
+    vi.stubEnv('NODE_ENV', 'test');
+    vi.stubEnv('ADMIN_USER', TEST_ADMIN.user);
+    vi.stubEnv('ADMIN_PASSWORD', TEST_ADMIN.password);
+    vi.stubEnv('NEXT_PUBLIC_APP_URL', '');
+    vi.stubEnv('RATE_LIMIT_CLIENT_IP_HEADER', 'x-forwarded-for');
+    class StubRateLimitUnavailableError extends Error {}
+    vi.doMock('@/lib/security/rate-limit', () => ({
+      consumeRateLimit: vi.fn(),
+      peekRateLimit: vi.fn().mockRejectedValue(new StubRateLimitUnavailableError()),
+      rateLimitClientAddress: vi.fn().mockReturnValue('198.51.100.20'),
+      rateLimitHeaders: vi.fn(),
+      RateLimitUnavailableError: StubRateLimitUnavailableError,
+    }));
+    const log = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const { requireAdmin } = await import('@/lib/auth/admin-guard');
+
+    expect(await requireAdmin(adminRequest(adminHeaders()))).toBeNull();
+    expect(log).toHaveBeenCalledWith('Admin lockout state unavailable; continuing without it');
+    vi.doUnmock('@/lib/security/rate-limit');
   });
 });

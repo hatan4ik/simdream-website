@@ -34,6 +34,16 @@ function clientAddressHeader(env: Environment): ClientAddressHeader {
   return env.VERCEL === '1' ? 'x-vercel-forwarded-for' : 'x-forwarded-for';
 }
 
+/**
+ * True when the deployment has said which header carries the client address (or runs on Vercel, which
+ * documents its own). Unconfigured, the x-forwarded-for default may name a proxy every visitor shares, or
+ * a value the client wrote, so nothing that punishes one address may rely on it.
+ */
+export function clientAddressIsConfigured(env: Environment = process.env): boolean {
+  const configured = env.RATE_LIMIT_CLIENT_IP_HEADER?.trim().toLowerCase();
+  return env.VERCEL === '1' || CONFIGURABLE_HEADERS.some((header) => header === configured);
+}
+
 /** RATE_LIMIT_TRUSTED_PROXY_HOPS as an integer from 1 to 5; any other value means the default. */
 function trustedProxyHops(env: Environment): number {
   const configured = env.RATE_LIMIT_TRUSTED_PROXY_HOPS?.trim() ?? '';
