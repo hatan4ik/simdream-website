@@ -301,7 +301,7 @@ class SimDreamStore {
 
   async getAvailableSlots(dateString: string, durationMinutes = 60): Promise<FlightSlot[]> {
     return closeDepartedSlots(
-      generateKantorovichSlots(dateString, durationMinutes, await this.getBookings()),
+      generateKantorovichSlots(dateString, durationMinutes, await this.getBookings(dateString)),
       new Date()
     );
   }
@@ -309,7 +309,7 @@ class SimDreamStore {
   async getDurationAvailability(
     dateString: string
   ): Promise<Record<number, { availableCount: number; minPriceIls: number }>> {
-    const bookings = await this.getBookings();
+    const bookings = await this.getBookings(dateString);
     const now = new Date();
     const durations = [30, 45, 60, 90, 120];
     return Object.fromEntries(
@@ -331,15 +331,15 @@ class SimDreamStore {
   }
 
   async getDailyEfficiencyReport(dateString: string): Promise<DailyEfficiencyReport> {
-    return evaluateDailyEfficiency(dateString, await this.getBookings());
+    return evaluateDailyEfficiency(dateString, await this.getBookings(dateString));
   }
 
-  async getBookings(): Promise<Booking[]> {
-    if (!this.production) return this.bookings;
-    const { data, error } = await requireSupabaseAdmin()
-      .from('bookings')
-      .select('*')
-      .order('created_at', { ascending: false });
+  /** Every booking, or one day's when a date is given: a per-day read never fetches the whole table. */
+  async getBookings(bookingDate?: string): Promise<Booking[]> {
+    if (!this.production) return bookingDate ? this.bookings.filter((b) => b.bookingDate === bookingDate) : this.bookings;
+    const rows = requireSupabaseAdmin().from('bookings').select('*');
+    const scoped = bookingDate ? rows.eq('booking_date', bookingDate) : rows;
+    const { data, error } = await scoped.order('created_at', { ascending: false });
     assertPersistentWrite(error);
     return (data as DatabaseRow[]).map(toBooking);
   }
@@ -984,7 +984,7 @@ class SimDreamStore {
     if (!Number.isFinite(start) || start < config.openMinutes || reservedEnd > config.closeMinutes) {
       throw new BookingConflictError('The proposed time is outside operating hours.');
     }
-    const conflicts = (await this.getBookings()).some((item) => {
+    const conflicts = (await this.getBookings(booking.bookingDate)).some((item) => {
       if (item.id === id || item.bookingDate !== booking.bookingDate || item.status === 'cancelled') return false;
       const itemStart = timeToMinutes(item.startTime);
       const itemEnd = itemStart + getReservedMinutesForFlight(item.durationMinutes);
