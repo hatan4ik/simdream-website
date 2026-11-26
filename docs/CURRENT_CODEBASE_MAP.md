@@ -133,6 +133,7 @@ Customers never call these rules directly. They protect the business:
 | Database persistence | `lib/db/store.ts`, `schema.sql`, `migrations/` | Stores legacy bookings, vouchers, staff inquiries, refunds, consent and review snapshots. |
 | Stripe and email | `lib/stripe.ts`, `lib/sendgrid.ts` | Legacy payments/webhooks and transactional messages. |
 | Reviews and SEO | `lib/reviews/*`, `lib/seo/*` | Controlled Google review refresh/translation and one registry-backed public SEO graph. |
+| Outbound deadlines & concurrency | `lib/http/timeouts.ts`, `lib/booking/after-response.ts` | Enforces deadlines on idempotent reads (5s member, 8s Wix/Google, 20s availability query), overlapped checkout/slot reads, and post-response email dispatch. |
 
 ## File map: where to start changing something
 
