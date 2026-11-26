@@ -27,12 +27,17 @@ describe('requireAuthenticatedUser', () => {
   describe('with Supabase Auth configured', () => {
     type SupabaseUser = { id: string; email?: string; email_confirmed_at?: string; user_metadata?: Record<string, unknown> };
     const wixLookup = vi.fn();
+    const supabaseLookup = vi.fn();
+    /** Shaped like a Supabase session token (three base64url segments), assembled here so no token literal sits in the repository. */
+    const JWT = ['header', 'payload', 'signature'].join('.');
 
     async function loadWithSupabase(answer: { user: SupabaseUser | null; error: { message: string } | null }) {
       vi.resetModules();
       for (const [name, value] of Object.entries({ ...SANDBOX_ENV, NODE_ENV: 'test' })) vi.stubEnv(name, value);
       vi.doMock('@/lib/db/supabase-admin', () => ({
-        getSupabaseAdmin: () => ({ auth: { getUser: async () => ({ data: { user: answer.user }, error: answer.error }) } }),
+        getSupabaseAdmin: () => ({
+          auth: { getUser: async (token: string) => (supabaseLookup(token), { data: { user: answer.user }, error: answer.error }) },
+        }),
       }));
       vi.doMock('@/lib/wix/member-auth', () => ({ getWixMemberIdentity: wixLookup }));
       return import('@/lib/auth/request-auth');
@@ -42,6 +47,7 @@ describe('requireAuthenticatedUser', () => {
       vi.doUnmock('@/lib/db/supabase-admin');
       vi.doUnmock('@/lib/wix/member-auth');
       wixLookup.mockReset();
+      supabaseLookup.mockReset();
     });
 
     it('returns the verified Supabase identity with a bounded display name', async () => {
@@ -50,7 +56,7 @@ describe('requireAuthenticatedUser', () => {
         error: null,
       });
 
-      const identity = await requireAuthenticatedUser(apiRequest('/api/my-bookings', { headers: bearer('supabase-jwt') }));
+      const identity = await requireAuthenticatedUser(apiRequest('/api/my-bookings', { headers: bearer(JWT) }));
 
       expect(identity).toEqual({ id: 'user-1', email: 'pilot@simdream.co.il', emailVerified: true, fullName: 'A'.repeat(120), provider: 'supabase' });
       expect(wixLookup).not.toHaveBeenCalled();
@@ -58,21 +64,48 @@ describe('requireAuthenticatedUser', () => {
 
     it('falls back to the `name` claim, and leaves the name out when it is not a string', async () => {
       const named = await loadWithSupabase({ user: { id: 'user-2', email: 'a@b.test', user_metadata: { name: 'Dana' } }, error: null });
-      await expect(named.requireAuthenticatedUser(apiRequest('/x', { headers: bearer('t') }))).resolves.toMatchObject({ fullName: 'Dana', emailVerified: false });
+      await expect(named.requireAuthenticatedUser(apiRequest('/x', { headers: bearer(JWT) }))).resolves.toMatchObject({ fullName: 'Dana', emailVerified: false });
 
       const unnamed = await loadWithSupabase({ user: { id: 'user-3', email: 'a@b.test', user_metadata: { name: 42 } }, error: null });
-      await expect(unnamed.requireAuthenticatedUser(apiRequest('/x', { headers: bearer('t') }))).resolves.toMatchObject({ fullName: undefined });
+      await expect(unnamed.requireAuthenticatedUser(apiRequest('/x', { headers: bearer(JWT) }))).resolves.toMatchObject({ fullName: undefined });
     });
 
     it('asks Wix when Supabase rejects the token or knows no email for it', async () => {
       wixLookup.mockResolvedValue(null);
       const rejected = await loadWithSupabase({ user: null, error: { message: 'invalid JWT' } });
-      await expect(rejected.requireAuthenticatedUser(apiRequest('/x', { headers: bearer('wix-token') }))).resolves.toBeNull();
+      await expect(rejected.requireAuthenticatedUser(apiRequest('/x', { headers: bearer(JWT) }))).resolves.toBeNull();
       const noEmail = await loadWithSupabase({ user: { id: 'user-4' }, error: null });
-      await expect(noEmail.requireAuthenticatedUser(apiRequest('/x', { headers: bearer('wix-token') }))).resolves.toBeNull();
+      await expect(noEmail.requireAuthenticatedUser(apiRequest('/x', { headers: bearer(JWT) }))).resolves.toBeNull();
 
       expect(wixLookup).toHaveBeenCalledTimes(2);
-      expect(wixLookup).toHaveBeenCalledWith('wix-token');
+      // Supabase was asked first each time: the fall-through is unchanged for a JWT-shaped token.
+      expect(supabaseLookup).toHaveBeenCalledTimes(2);
+      expect(supabaseLookup.mock.invocationCallOrder[0]).toBeLessThan(wixLookup.mock.invocationCallOrder[0]);
+      expect(wixLookup).toHaveBeenCalledWith(JWT);
+    });
+
+    it.each([
+      ['a five-segment token', `OauthNG.JWS.${'a'.repeat(40)}.${'b'.repeat(40)}.${'c'.repeat(40)}`],
+      ['an opaque token', 'x'.repeat(96)],
+      ['a three-part token with characters no JWT has', 'aaa.b+b/b=.ccc'],
+      ['a JWT with an empty segment', 'aaa..ccc'],
+    ])('never sends %s to Supabase, because it cannot be a Supabase session token, and asks Wix directly', async (_label, token) => {
+      wixLookup.mockResolvedValue({ id: 'wix-1', email: 'pilot@example.com', emailVerified: true, provider: 'wix' });
+      const { requireAuthenticatedUser } = await loadWithSupabase({ user: { id: 'user-1', email: 'other@example.com' }, error: null });
+
+      await expect(requireAuthenticatedUser(apiRequest('/x', { headers: bearer(token) }))).resolves.toMatchObject({ id: 'wix-1', provider: 'wix' });
+
+      expect(supabaseLookup).not.toHaveBeenCalled();
+      expect(wixLookup).toHaveBeenCalledWith(token);
+    });
+
+    it('sends a JWT-shaped token to Supabase first and does not ask Wix once Supabase has verified it', async () => {
+      const { requireAuthenticatedUser } = await loadWithSupabase({ user: { id: 'user-1', email: 'pilot@example.com' }, error: null });
+
+      await expect(requireAuthenticatedUser(apiRequest('/x', { headers: bearer(JWT) }))).resolves.toMatchObject({ id: 'user-1', provider: 'supabase' });
+
+      expect(supabaseLookup).toHaveBeenCalledWith(JWT);
+      expect(wixLookup).not.toHaveBeenCalled();
     });
   });
 });
