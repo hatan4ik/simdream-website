@@ -393,3 +393,88 @@ test('checkout business rules do not import concrete persistence, payment, mail,
     }
   }
 });
+
+// Independent reads overlap the slot check; every dependent step keeps its order. The hold check stays first
+// because it may expire a Stripe session or release the pilot's own hold, and the slot check must see that.
+const FAST_FAIL_MS = 300;
+const neverStarted = (what: string) =>
+  new Promise<never>((_, reject) => setTimeout(() => reject(new Error(`${what} did not start while the departure was being checked`)), FAST_FAIL_MS));
+
+test('checkout service verifies the member while the departure is being checked, not after it', async () => {
+  const dependencies = checkoutDependencies();
+  let identitySeen!: () => void;
+  const seen = new Promise<void>((resolve) => (identitySeen = resolve));
+  dependencies.identity.getAuthenticatedMember = async () => {
+    identitySeen();
+    return null;
+  };
+  const assertBookableStart = dependencies.repository.assertBookableStart;
+  dependencies.repository.assertBookableStart = async (...args) => {
+    await Promise.race([seen, neverStarted('the member lookup')]);
+    return assertBookableStart(...args);
+  };
+
+  const result = await createCheckoutService(dependencies).startBookingCheckout(checkoutRequest(), bookingInput());
+
+  expect(result.kind).toBe('stripe');
+});
+
+test('checkout service reads the voucher while the departure is being checked, not after it', async () => {
+  const dependencies = checkoutDependencies();
+  let voucherSeen!: () => void;
+  const seen = new Promise<void>((resolve) => (voucherSeen = resolve));
+  dependencies.repository.getVoucherByCode = async () => {
+    voucherSeen();
+    return undefined;
+  };
+  const assertBookableStart = dependencies.repository.assertBookableStart;
+  dependencies.repository.assertBookableStart = async (...args) => {
+    await Promise.race([seen, neverStarted('the voucher lookup')]);
+    return assertBookableStart(...args);
+  };
+
+  // An unknown voucher is still refused after the slot is priced; only when it is read changed.
+  await expect(
+    createCheckoutService(dependencies).startBookingCheckout(checkoutRequest(), bookingInput({ voucherCode: 'SD-VOUCH-ABCDEFGHJKLMNPQRST' }))
+  ).rejects.toMatchObject({ name: CheckoutError.name });
+});
+
+test('checkout service still reports a slot conflict first when the overlapped voucher lookup also fails', async () => {
+  const dependencies = checkoutDependencies();
+  dependencies.repository.assertBookableStart = async () => {
+    throw new SlotReservationConflictError('That departure was just taken.');
+  };
+  dependencies.repository.getVoucherByCode = async () => {
+    throw new Error('voucher store down');
+  };
+  const unhandled: unknown[] = [];
+  const onUnhandled = (reason: unknown) => unhandled.push(reason);
+  process.on('unhandledRejection', onUnhandled);
+
+  await expect(
+    createCheckoutService(dependencies).startBookingCheckout(checkoutRequest(), bookingInput({ voucherCode: 'SD-VOUCH-ABCDEFGHJKLMNPQRST' }))
+  ).rejects.toMatchObject({ name: CheckoutError.name, status: 409 });
+  await new Promise((resolve) => setTimeout(resolve, 20));
+  process.off('unhandledRejection', onUnhandled);
+
+  expect(unhandled).toEqual([]);
+});
+
+test('checkout service keeps the member profile and the booking after the verified member, in that order', async () => {
+  const dependencies = checkoutDependencies();
+  const order: string[] = [];
+  dependencies.identity.getAuthenticatedMember = async () => {
+    order.push('identity');
+    return { id: 'member-1', email: 'pilot@example.test', emailVerified: true };
+  };
+  dependencies.repository.ensureMemberProfile = async () => void order.push('ensureMemberProfile');
+  const createBooking = dependencies.repository.createBooking;
+  dependencies.repository.createBooking = async (draft) => {
+    order.push('createBooking');
+    return createBooking(draft);
+  };
+
+  await createCheckoutService(dependencies).startBookingCheckout(checkoutRequest(), bookingInput());
+
+  expect(order).toEqual(['identity', 'ensureMemberProfile', 'createBooking']);
+});

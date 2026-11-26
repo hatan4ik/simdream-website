@@ -168,7 +168,7 @@ describe('Wix Headless Blog System & 39-Article Content Engine', () => {
         filter: { language: { $eq: 'en' } },
         cursorPaging: { limit: 50 },
       },
-    });
+    }, { timeoutMs: 8_000 });
 
     const resolved = await resolveBlogPost('live-wix-test-article', 'en');
     expect(resolved).toBeDefined();
@@ -186,7 +186,7 @@ describe('Wix Headless Blog System & 39-Article Content Engine', () => {
         },
       },
       fieldsets: ['URL', 'RICH_CONTENT', 'SEO'],
-    });
+    }, { timeoutMs: 8_000 });
   });
 
   it('keeps the requested blog language when Wix returns a mismatched post', async () => {
@@ -212,7 +212,7 @@ describe('Wix Headless Blog System & 39-Article Content Engine', () => {
         },
       },
       fieldsets: ['URL', 'RICH_CONTENT', 'SEO'],
-    });
+    }, { timeoutMs: 8_000 });
     expect(resolved?.language).toBe('he');
     expect(resolved?.title).not.toBe('English response that must not replace the Hebrew route');
   });

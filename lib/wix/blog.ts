@@ -9,6 +9,7 @@ import { resolveShortSlug } from '@/lib/data/blog-short-slugs';
 import { getShortSlugMatch } from '@/lib/data/blog-legacy-slugs';
 import { blogPostPath } from '@/lib/seo/site-routes';
 import { isWixConfigured } from './config';
+import { UPSTREAM_READ_TIMEOUT_MS } from '@/lib/http/timeouts';
 import { wixPost } from './client';
 import { queryBlogPostsResponseSchema, wixBlogPostSchema } from './blog-schema';
 import type { WixBlogPost } from './blog-schema';
@@ -186,7 +187,7 @@ export async function listWixBlogPosts(
             limit: options.limit ?? 50,
           },
         },
-      });
+      }, { timeoutMs: UPSTREAM_READ_TIMEOUT_MS });
       const parsed = queryBlogPostsResponseSchema.safeParse(raw);
       const posts = parsed.success ? parsed.data.posts.filter((post) => post.language === targetLang) : [];
       if (posts.length > 0) {
@@ -275,7 +276,7 @@ export async function resolveBlogPost(slug: string, requestedLang?: string): Pro
           },
         },
         fieldsets: ['URL', 'RICH_CONTENT', 'SEO'],
-      });
+      }, { timeoutMs: UPSTREAM_READ_TIMEOUT_MS });
       const parsed = queryBlogPostsResponseSchema.safeParse(raw);
       if (parsed.success && parsed.data.posts.length > 0) {
         // Do not let a stale or ignored Wix filter replace a localized route

@@ -1,5 +1,6 @@
 import 'server-only';
 
+import { UPSTREAM_READ_TIMEOUT_MS } from '@/lib/http/timeouts';
 import { isReviewLanguage, type ReviewLanguage } from './review-language';
 
 /**
@@ -67,6 +68,7 @@ export async function translateTexts({
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ q: texts, target, format: 'text' }),
     cache: 'no-store',
+    signal: AbortSignal.timeout(UPSTREAM_READ_TIMEOUT_MS),
   });
   const payload = (await response.json().catch(() => ({}))) as CloudTranslationResponse;
   if (!response.ok) {
