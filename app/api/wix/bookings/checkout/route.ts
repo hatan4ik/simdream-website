@@ -5,6 +5,7 @@ import {
   WixBookingUnavailableError,
   wixBookingCheckoutSchema,
 } from '@/lib/wix/booking-checkout';
+import { throttleWixCheckoutStart, wixCheckoutThrottledResponse } from '@/lib/wix/checkout-start-throttle';
 
 /** A package, a departure and up to 20 add-on ids: about 2 KiB at most. */
 const WIX_BOOKING_CHECKOUT_MAX_BODY_BYTES = 16 * 1024;
@@ -17,6 +18,10 @@ export async function POST(request: Request) {
   if (!input.success) {
     return NextResponse.json({ error: 'Use a valid package, date, and departure time.' }, { status: 400 });
   }
+
+  // Counted only for a request the schema accepts, and before any Wix read.
+  const throttle = await throttleWixCheckoutStart(request, 'wix-booking-checkout-ip');
+  if (!throttle.allowed) return wixCheckoutThrottledResponse(throttle);
 
   try {
     const checkout = await resolveWixBookingCheckout(input.data);
