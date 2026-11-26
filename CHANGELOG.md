@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.34.2](https://github.com/hatan4ik/simdream-website/compare/v1.34.1...v1.34.2) (2026-11-26)
+
+
+### Performance Improvements
+
+* **reliability:** deadlines on idempotent reads, overlapped checkout and slot reads ([#341](https://github.com/hatan4ik/simdream-website/issues/341)) ([5da78dc](https://github.com/hatan4ik/simdream-website/commit/5da78dc7071650da8fa97eda14ec75d127dfcf9d))
+
 ## [1.34.1](https://github.com/hatan4ik/simdream-website/compare/v1.34.0...v1.34.1) (2026-11-26)
 
 
