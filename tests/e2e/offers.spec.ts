@@ -34,9 +34,9 @@ test.describe('Offers & Benefits page', () => {
     });
   }
 
-  test('does not overflow a 320px phone in Hebrew (right-to-left) or English', async ({ page }) => {
-    await page.setViewportSize({ width: 320, height: 700 });
-    for (const language of ['he', 'en'] as const) {
+  for (const language of ['he', 'en'] as const) {
+    test(`does not overflow a 320px phone in ${language === 'he' ? 'Hebrew (right-to-left)' : 'English'}`, async ({ page }) => {
+      await page.setViewportSize({ width: 320, height: 700 });
       await preferLanguage(page, language);
       await page.goto('/offers');
       await expect(page.getByRole('heading', { level: 1 })).toHaveText(OFFERS_COPY[language].heroTitle);
@@ -44,8 +44,8 @@ test.describe('Offers & Benefits page', () => {
       await waitUntilPageHydrated(page);
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
       expect(overflow, `${language} overflows horizontally`).toBeLessThanOrEqual(0);
-    }
-  });
+    });
+  }
 
   test('anchors the birthday explanation at #birthday for the checkout link', async ({ page }) => {
     await preferLanguage(page, 'en');
