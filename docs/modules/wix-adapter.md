@@ -24,6 +24,14 @@ Moved out of `AGENTS.md` section 6, item 7, verbatim, so the instruction file st
 
 `lib/http/timeouts.ts` owns the deadlines. `wixPost(url, body, { timeoutMs })` is opt-in: the read callers (blog, plans, gift-card products, Bookings services and availability) pass `UPSTREAM_READ_TIMEOUT_MS` (8 s), and a request that does not answer becomes a 504 `WixApiError`, handled like any other upstream failure. One availability query across its cursor pages has a 20 s total deadline. The member-token check (`lib/wix/member-auth.ts`, on every authenticated checkout) has 5 s and treats a timeout as unauthenticated (the member then checks out as a guest and can claim the paid booking later); the member calendar has 8 s. A Wix timeout in `/api/slots` falls back to the local calendar and logs a warning. **Calls that create something carry no deadline** (Wix cart creation, the cart checkout URL, Stripe sessions): an abort on the client could leave an orphan cart or session. `tests/unit/outbound-timeouts.test.ts` pins which calls have a deadline and that a write has none.
 
+## Checkout start throttle
+
+`lib/wix/checkout-start-throttle.ts` counts the two unauthenticated checkout starts per client address, after validation and before any Wix call: `POST /api/wix/bookings/checkout` 30 per 10 minutes (240 for `unknown-client`) and `/api/subscriptions/checkout` 10 per 10 minutes (60). Without a durable limiter store, which is the case on the Wix deployment, it counts in a bounded in-process map at the shared limit and never answers 503 (the same exception as the birthday claim).
+
+- A refused API call is 429 with `Retry-After`. The booking clients show the server's English message or their generic checkout error, as they already do for the route's 409 and 503.
+- A refused subscription page navigation (a GET that accepts HTML, or a form post) makes no Wix call and redirects to the dispatch contact page.
+- The voucher verification drawer (`lib/wix/verify-voucher-or-code.ts`) calls the booking route for up to three dates per check and skips a refused call, so a throttled visitor's service-scoped coupon would read as invalid until the window ends. One address gets ten such checks in ten minutes before that can happen.
+
 ## Blog queries
 
 The post lookup filters by `slug $eq` and `language $eq`; the list by `language $eq`. Wix rejects `$hasSome` on a slug with HTTP 400 although its reference lists it, and the resolver used to swallow that and serve every translation in Hebrew. Every fallback to the local articles now logs a warning. Full contract, history and guards: `docs/modules/blog-language.md`.
