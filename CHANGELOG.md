@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.34.1](https://github.com/hatan4ik/simdream-website/compare/v1.34.0...v1.34.1) (2026-11-26)
+
+
+### Performance Improvements
+
+* **i18n:** paint the server HTML at once unless a language hand-over needs hiding ([#339](https://github.com/hatan4ik/simdream-website/issues/339)) ([305a448](https://github.com/hatan4ik/simdream-website/commit/305a44828d2a0f20508b711ffd4a43979cef5f9c))
+
 ## [1.34.0](https://github.com/hatan4ik/simdream-website/compare/v1.33.0...v1.34.0) (2026-11-25)
 
 
