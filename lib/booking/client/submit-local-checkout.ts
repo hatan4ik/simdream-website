@@ -23,7 +23,8 @@ export async function startLocalCheckout(
   messages: LocalCheckoutMessages
 ): Promise<void> {
   const headers: HeadersInit = { 'Content-Type': 'application/json' };
-  const supabase = await loadSupabase();
+  // A failed SDK download must not stop a checkout: it continues as a guest checkout.
+  const supabase = await loadSupabase().catch(() => null);
   if (supabase) {
     const { data } = await supabase.auth.getSession();
     if (data.session?.access_token) {

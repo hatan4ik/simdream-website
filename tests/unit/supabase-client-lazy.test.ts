@@ -22,7 +22,15 @@ describe('the Supabase SDK stays out of the initial browser bundle', () => {
     const offenders = ['app', 'components', 'lib']
       .flatMap(sourceFiles)
       .filter((file) => !SERVER_ONLY.has(file))
-      .filter((file) => /^import\s+(?!type\b)[^;]*from\s+'@supabase\/supabase-js'/m.test(readFileSync(path.join(REPO_ROOT, file), 'utf8')));
+      .filter((file) => {
+        const source = readFileSync(path.join(REPO_ROOT, file), 'utf8');
+        // A value import or re-export of any @supabase package, in either quote style, or a require of one.
+        return (
+          /^(?:import|export)\s+(?!type\b)[^;]*from\s+['"]@supabase\/[^'"]+['"]/m.test(source) ||
+          /^import\s+['"]@supabase\//m.test(source) ||
+          /require\(\s*['"]@supabase\//.test(source)
+        );
+      });
 
     expect(offenders).toEqual([]);
   });

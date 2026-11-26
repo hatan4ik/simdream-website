@@ -32,7 +32,7 @@ function AuthCallbackContent() {
 
   useEffect(() => {
     const completeAuthentication = async () => {
-      const supabase = await loadSupabase();
+      const supabase = await loadSupabase().catch(() => null);
       if (!supabase) {
         setError('errorNotConfigured');
         return;

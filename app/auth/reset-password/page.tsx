@@ -33,7 +33,7 @@ export default function ResetPasswordPage() {
 
   useEffect(() => {
     const loadRecoverySession = async () => {
-      const supabase = await loadSupabase();
+      const supabase = await loadSupabase().catch(() => null);
       if (!supabase) {
         setError('errorNotConfigured');
         return;
@@ -60,7 +60,7 @@ export default function ResetPasswordPage() {
       setError('errorMismatch');
       return;
     }
-    const supabase = await loadSupabase();
+    const supabase = await loadSupabase().catch(() => null);
     if (!supabase) return;
     setIsSubmitting(true);
     const { error: updateError } = await supabase.auth.updateUser({ password });

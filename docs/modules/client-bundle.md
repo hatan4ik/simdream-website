@@ -34,6 +34,8 @@ The Worker is unchanged by this step: a clean-room `npm run wix:build` (Docker, 
 
 Where Supabase is the configured identity provider, the SDK still downloads on every page, after hydration, because the auth provider asks it for the session. Skipping that for guests would mean reading browser storage for a session first and attaching the auth listener at sign-in; it is left until such a deployment exists.
 
+A failed download of the SDK is handled at each caller: checkout continues as a guest checkout, the two `/auth` pages and the dashboard show their existing "not available" state, and sign-out is skipped. The auth provider then has no session listener until the page is reloaded.
+
 The Supabase path of `lib/auth/auth-context.tsx` has no automated test: the repository has no DOM test environment, and the browser suites sign in through the demo and Wix paths. The change was checked by typecheck, build and reading.
 
 ## Step 2, not started: one language per visitor (about 120 KiB)
@@ -42,22 +44,22 @@ The server renders Hebrew unless the URL carries a routed locale (`/en/...`). Th
 
 What has to change:
 
-1. `lib/i18n/translations.ts` (5,432 lines) becomes one module per language. The tables are plain data with no functions, so a language can be loaded with `import()` or passed as a prop.
+1. `lib/i18n/translations.ts` (5,432 lines) becomes one module per language (German already has its own, `lib/i18n/de.ts`). The tables are plain data with no functions, so a language can be loaded with `import()` or passed as a prop.
 2. `LanguageProvider` keeps Hebrew as a static import and loads another language before switching to it. A saved non-Hebrew language already hides the page until the provider has resolved (`data-language-pending`), so the load fits inside that hand-over; it makes that hand-over one chunk longer.
-3. `getLocalizedPackages(lang)` and `getLocalizedAddons(lang)` are synchronous and called from twelve components. They would read the loaded dictionary from the provider instead of the full table.
+3. `getLocalizedPackages(lang)` and `getLocalizedAddons(lang)` are synchronous and called from eleven files. They would read the loaded dictionary from the provider instead of the full table.
 4. A routed locale is the hard case: the server renders English and the browser must hydrate with English at once. Two ways to hand it the dictionary:
-   - **Server prop.** The root layout loads the one dictionary and passes it to the provider. This is simple, but it puts the language tables back in the Server Components layer of the Worker, which `tests/unit/worker-bundle-rules.test.ts` forbids today (step 1 of the Worker diet removed 315 KB that way). The Worker is at 10.23 MiB of 14, so the room exists; the rule would have to be relaxed on purpose.
+   - **Server prop.** The root layout loads the one dictionary and passes it to the provider. This is simple, but it puts language tables back in the Server Components layer of the Worker, which step 1 of the Worker diet removed (315 KB). `tests/unit/worker-bundle-rules.test.ts` forbids only an import of `lib/i18n/translations` itself from the root layout and `lib/seo`, so a per-language module would pass the test while going against what it protects. The Worker is at 10.23 MiB of 14, so the room exists; it would be a deliberate exception.
    - **Inline JSON.** The provider prints the dictionary into the HTML as a non-executed JSON script on routed pages and reads it back during hydration. No Worker growth and no rule change, but it is hand-written hydration plumbing.
 
 Risks: hydration mismatches in any of seven languages, the "no streamed segments" guarantee on the legal pages if a Suspense boundary is used (so neither option above uses one), and visual baselines. It needs `npm run test:all` and a clean-room `npm run wix:build`.
 
-**Owner decision needed:** server prop (relax the Worker rule) or inline JSON.
+**Owner decision needed:** server prop (a deliberate exception to the Worker diet) or inline JSON.
 
 ## Step 3, not started: the Wix SDK only when it is needed (61 KiB)
 
 A guest needs no Wix client until checkout. Member tokens live under the site's own `sessionStorage` key (`simdream_wix_member_tokens`), so the auth provider can tell a guest from a member without the SDK.
 
-What has to change: split `lib/wix/member-client.ts` into a light session module (storage keys, events, "is a member session stored") and the SDK client behind `import()`, then convert the ten files that import it. The ones read so far (checkout cart, subscription checkout, voucher check, auth provider) call it from asynchronous code; the rest were not checked.
+What has to change: split `lib/wix/member-client.ts` into a light session module (storage keys, events, "is a member session stored") and the SDK client behind `import()`, then convert the nine files that import it. The ones read so far (checkout cart, subscription checkout, voucher check, auth provider) call it from asynchronous code; the rest were not checked.
 
 Risk: it touches member sign-in, the OAuth callback and Wix checkout, which the browser suites mock. It should be followed by a recorded sign-in and a checkout start on staging.
 

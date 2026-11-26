@@ -394,7 +394,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
     if (!isProduction) localStorage.removeItem('simdream_demo_user');
-    void loadSupabase().then((supabase) => supabase?.auth.signOut());
+    void loadSupabase().then((supabase) => supabase?.auth.signOut(), () => undefined);
   };
 
   const setDemoUser = (type: 'pilot' | 'admin'): boolean => {

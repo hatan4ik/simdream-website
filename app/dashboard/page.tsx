@@ -155,7 +155,7 @@ export default function DashboardPage() {
           const wixAccessToken = await getWixMemberAccessToken();
           if (wixAccessToken) headers.Authorization = `Bearer ${wixAccessToken}`;
         } else if (isSupabaseConfigured) {
-          const supabase = await loadSupabase();
+          const supabase = await loadSupabase().catch(() => null);
           const session = supabase ? (await supabase.auth.getSession()).data.session : null;
           if (session?.access_token) headers.Authorization = `Bearer ${session.access_token}`;
         } else {
@@ -209,7 +209,7 @@ export default function DashboardPage() {
     setReceiptError(null);
     setOpeningReceipt(bookingReference);
     try {
-      const supabase = await loadSupabase();
+      const supabase = await loadSupabase().catch(() => null);
       if (!supabase) {
         setReceiptError('receiptAuthNotConfigured');
         return;
