@@ -1,5 +1,5 @@
 import fc from 'fast-check';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { TEST_ADMIN } from '../support/test-env';
 import { TEST_ORIGIN, adminHeaders, apiRequest, basicAuth, readJson } from '../support/http';
 
@@ -275,5 +275,82 @@ describe('requireAdmin: rate-limit availability', () => {
     expect(headers.get('cache-control')).toBe('no-store');
     expect(body).toEqual({ error: 'Admin authentication is temporarily unavailable.' });
     expect(log).toHaveBeenCalledWith('Admin rate limiter failed', expect.any(Error));
+  });
+});
+
+describe('requireAdmin: lockout applies to correct credentials too', () => {
+  const ATTACKER = { 'x-forwarded-for': '203.0.113.7' };
+  const OWNER = { 'x-forwarded-for': '198.51.100.20' };
+  // The availability suite above leaves a failing limiter mocked; these tests need the real one.
+  beforeEach(() => vi.doUnmock('@/lib/security/rate-limit'));
+  const wrong = (headers: Record<string, string>, attempt: number) =>
+    adminRequest({ ...headers, authorization: basicAuth(`guess-${attempt}`, 'wrong-password') });
+
+  /** Twelve failures exhaust the per-address budget (each failure uses a new username, so only the address is spent). */
+  async function exhaust(requireAdmin: (request: Request) => Promise<Response | null>, headers: Record<string, string>, count = 12) {
+    for (let attempt = 0; attempt < count; attempt += 1) await requireAdmin(wrong(headers, attempt));
+  }
+
+  it('refuses the correct password from an address that has used up its failed attempts', async () => {
+    const { requireAdmin } = await loadGuard();
+    await exhaust(requireAdmin, ATTACKER);
+
+    const response = await requireAdmin(adminRequest({ ...ATTACKER, ...adminHeaders() }));
+
+    expect(response).not.toBeNull();
+    const { status, headers, body } = await readJson<{ error: string }>(response!);
+    expect(status).toBe(429);
+    expect(Number(headers.get('retry-after'))).toBeGreaterThan(0);
+    expect(body).toEqual({ error: 'Too many failed admin sign-in attempts. Please try again later.' });
+  });
+
+  it('still lets the owner in from another address while an attacker is locked out', async () => {
+    const { requireAdmin } = await loadGuard();
+    await exhaust(requireAdmin, ATTACKER);
+
+    expect(await requireAdmin(adminRequest({ ...OWNER, ...adminHeaders() }))).toBeNull();
+  });
+
+  it('lets the correct password through while the address still has attempts left', async () => {
+    const { requireAdmin } = await loadGuard();
+    await exhaust(requireAdmin, ATTACKER, 11);
+
+    expect(await requireAdmin(adminRequest({ ...ATTACKER, ...adminHeaders() }))).toBeNull();
+  });
+
+  it('does not let a successful sign-in use up the failed-attempt budget', async () => {
+    const { requireAdmin } = await loadGuard();
+    for (let request = 0; request < 40; request += 1) {
+      expect(await requireAdmin(adminRequest({ ...OWNER, ...adminHeaders() }))).toBeNull();
+    }
+  });
+
+  it('never locks out requests with no resolvable address, because they all share one bucket', async () => {
+    const { requireAdmin } = await loadGuard();
+    await exhaust(requireAdmin, {});
+
+    expect(await requireAdmin(adminRequest(adminHeaders()))).toBeNull();
+  });
+
+  it('lets correct credentials through, and logs, when the lockout state cannot be read', async () => {
+    vi.resetModules();
+    vi.stubEnv('NODE_ENV', 'test');
+    vi.stubEnv('ADMIN_USER', TEST_ADMIN.user);
+    vi.stubEnv('ADMIN_PASSWORD', TEST_ADMIN.password);
+    vi.stubEnv('NEXT_PUBLIC_APP_URL', '');
+    class StubRateLimitUnavailableError extends Error {}
+    vi.doMock('@/lib/security/rate-limit', () => ({
+      consumeRateLimit: vi.fn(),
+      peekRateLimit: vi.fn().mockRejectedValue(new StubRateLimitUnavailableError()),
+      rateLimitClientAddress: vi.fn().mockReturnValue('198.51.100.20'),
+      rateLimitHeaders: vi.fn(),
+      RateLimitUnavailableError: StubRateLimitUnavailableError,
+    }));
+    const log = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const { requireAdmin } = await import('@/lib/auth/admin-guard');
+
+    expect(await requireAdmin(adminRequest(adminHeaders()))).toBeNull();
+    expect(log).toHaveBeenCalledWith('Admin lockout state unavailable; accepting valid credentials without it');
+    vi.doUnmock('@/lib/security/rate-limit');
   });
 });

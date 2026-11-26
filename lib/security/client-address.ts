@@ -9,7 +9,7 @@
  */
 
 /** What every request without a usable address resolves to; callers share one bucket for it. */
-const UNKNOWN_CLIENT = 'unknown-client';
+export const UNKNOWN_CLIENT = 'unknown-client';
 
 /** The headers a deployer may name. Only x-forwarded-for is a list; the others carry one address. */
 const CONFIGURABLE_HEADERS = ['cf-connecting-ip', 'x-vercel-forwarded-for', 'x-real-ip', 'x-forwarded-for'] as const;

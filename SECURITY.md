@@ -39,6 +39,13 @@ Every other forwarding header on the request is ignored, also when the chosen on
 - A value that is not 3 to 64 hex digits, dots and colons (a host name, a bracketed address, a list in a single-value header) resolves to `unknown-client`. Those requests share one bucket per limit. The checkout throttle (`lib/booking/checkout-throttle.ts`) and the birthday-claim throttle (`lib/wix/birthday-claim-throttle.ts`) give that shared bucket a looser limit, 60 per 10 minutes instead of 10, so one visitor without a usable address does not shut out the others at the first refusal; the bucket can still be exhausted, and then every request without a usable address is refused until its window ends. The contact, Ground School and workshop limits, and every other per-client limit listed above, have no looser bucket: there `unknown-client` gets the same limit as one address.
 - Both variables are read on every request, because the OpenNext Worker copies its bindings into `process.env` only when it serves its first request.
 
+**Admin lockout.** A failed admin Basic-auth attempt spends one attempt from two budgets: 12 per 15 minutes for the client address (`admin-login-ip`) and 6 per 15 minutes for the attempted username (`admin-login-username`). While the address budget is used up, `requireAdmin()` (`lib/auth/admin-guard.ts`) answers 429 to that address even for the correct password, so the lockout bounds guessing instead of only relabelling wrong guesses. It reads the budget with `peekRateLimit()` (`lib/security/rate-limit.ts`), which spends nothing, so a signed-in operator can make any number of requests.
+
+- Only the address budget locks out valid credentials. The username budget does not, because anyone could spend it against the owner's username and lock the owner out.
+- A request that resolves to `unknown-client` is never locked out with valid credentials: those requests share one bucket, and locking it would let any visitor lock the owner out. Where the deployment names no trusted client-address header, the lockout therefore does not apply to valid credentials at all, exactly as before this check existed.
+- When the lockout state cannot be read, valid credentials are accepted and one fixed line is logged (`Admin lockout state unavailable; accepting valid credentials without it`). Recording a failed attempt still fails closed with 503.
+- Production reads the `security_rate_limits` row of the open window with the service role. That read has not been observed against the production database; if the role cannot read the table, the logged fallback above applies.
+
 **Set `RATE_LIMIT_CLIENT_IP_HEADER` to the header your edge overwrites.** What each vendor documents (read 2026-11-15):
 
 | Edge in front of the application | Setting | Source |

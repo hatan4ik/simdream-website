@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
 import { hasUsableValue, isProduction } from '@/lib/config/server-env';
 import { constantTimeEqual } from '@/lib/security/constant-time';
+import { UNKNOWN_CLIENT } from '@/lib/security/client-address';
 import {
   consumeRateLimit,
+  peekRateLimit,
   rateLimitClientAddress,
   rateLimitHeaders,
   RateLimitUnavailableError,
@@ -18,6 +20,8 @@ import { isReceivingOrigin } from '@/lib/security/same-origin';
  */
 
 const ADMIN_REALM = 'Sim Dream Admin';
+const LOCKED_OUT_MESSAGE = 'Too many failed admin sign-in attempts. Please try again later.';
+const ipRule = (client: string) => ({ scope: 'admin-login-ip', subject: client, limit: 12, windowSeconds: 15 * 60 });
 
 type AdminAuthResult = 'authorized' | 'unauthorized' | 'not_configured';
 
@@ -76,12 +80,34 @@ function isSameOriginMutation(request: Request): boolean {
 }
 
 /**
+ * A lockout that a correct password could walk through would bound nothing, so valid credentials are
+ * refused too while their address has no failed attempt left. Only the per-address budget is read: the
+ * per-username one would let anyone lock the owner out by guessing against the owner's username. For the
+ * same reason requests with no resolvable address are never locked out, since they all share one bucket.
+ * The read spends nothing, and when it fails the request proceeds as it did before this check existed.
+ */
+async function addressLockout(request: Request): Promise<NextResponse | null> {
+  const client = rateLimitClientAddress(request);
+  if (client === UNKNOWN_CLIENT) return null;
+  try {
+    const state = await peekRateLimit(ipRule(client));
+    if (state.allowed) return null;
+    return NextResponse.json({ error: LOCKED_OUT_MESSAGE }, { status: 429, headers: rateLimitHeaders(state) });
+  } catch {
+    console.error('Admin lockout state unavailable; accepting valid credentials without it');
+    return null;
+  }
+}
+
+/**
  * Returns an error response when the request is not from an authenticated admin,
  * or `null` when the caller may proceed.
  */
 export async function requireAdmin(request: Request): Promise<NextResponse | null> {
   const auth = checkAdminAuth(request);
   if (auth.result === 'authorized') {
+    const lockedOut = await addressLockout(request);
+    if (lockedOut) return lockedOut;
     if (!isSameOriginMutation(request)) {
       return NextResponse.json({ error: 'Cross-origin admin mutations are not allowed.' }, { status: 403 });
     }
@@ -98,7 +124,7 @@ export async function requireAdmin(request: Request): Promise<NextResponse | nul
   try {
     const client = rateLimitClientAddress(request);
     const [byClient, byUsername] = await Promise.all([
-      consumeRateLimit({ scope: 'admin-login-ip', subject: client, limit: 12, windowSeconds: 15 * 60 }),
+      consumeRateLimit(ipRule(client)),
       consumeRateLimit({
         scope: 'admin-login-username',
         subject: auth.attemptedUsername || 'missing-username',
@@ -109,7 +135,7 @@ export async function requireAdmin(request: Request): Promise<NextResponse | nul
     const blocked = !byClient.allowed ? byClient : !byUsername.allowed ? byUsername : null;
     if (blocked) {
       return NextResponse.json(
-        { error: 'Too many failed admin sign-in attempts. Please try again later.' },
+        { error: LOCKED_OUT_MESSAGE },
         { status: 429, headers: rateLimitHeaders(blocked) }
       );
     }
