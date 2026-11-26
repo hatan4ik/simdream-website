@@ -1,6 +1,6 @@
 # Wix Bookings birthday pricing provider: staging activation
 
-**Status: implementation ready, not active.** This guide enables the 15% birthday price on the dedicated
+**Status: implementation ready, not active.** This guide enables the tiered Option A birthday price (up to 15%) on the dedicated
 **SimDream-Staging** Headless site only. It must not be applied to the live Editor site or used as a payment-provider
 substitute.
 
@@ -179,15 +179,16 @@ Before advertising this offer or connecting live payments, execute and record ea
 
 | Case | Expected final Wix cart total |
 | --- | --- |
-| Eligible 30-minute daytime flight | registry price minus exactly 15%, whole-shekel half-up rounding |
-| Eligible 60-minute flight | registry price minus exactly 15% |
-| Eligible 90-minute flight (all day) | 15% off the flat ₪850 registry tariff (#271, #276) |
+| Eligible 30-minute daytime flight | standard price (ineligible under Option A; 0% reduction) |
+| Eligible 60-minute flight | registry price minus exactly 10% (₪621 instead of ₪690) |
+| Eligible 90-minute flight (all day) | 15% off the flat ₪850 registry tariff (₪722.50 → ₪723) (#271, #276) |
+| Eligible 120-minute flight | 15% off the ₪1,200 registry tariff (₪1,020) |
 | 45-minute discounted promotion | standard price; no claim/no birthday reduction |
 | PRO, Fear of Flying, corporate, subscription redemption | standard price; no birthday reduction |
 | Missing claim | standard price |
 | Altered/expired claim | booking cannot be priced; it must not receive a discount |
 | Claim issued for one email and phone, booking created with another email and phone | standard price; no birthday reduction |
-| Claim issued for the pilot, booking created with the same email (any letter case) | registry price minus exactly 15% (confirms Wix passes `contactDetails` to the provider) |
+| Claim issued for the pilot, booking created with the same email (any letter case) | registry price minus tiered birthday discount (10% on 60m, 15% on 90m/120m; confirms Wix passes `contactDetails` to the provider) |
 | Sixth claim request for one email within an hour (on the Wix Worker the fallback counts per instance) | the claim request answers 429; the booking page shows the "could not be verified" message |
 | Off-grid start (5 minutes after a grid departure, booked straight through Wix Create Booking), with and without a claim | booking cannot be priced (`off-grid-departure`); it never reaches payment; afterwards the refused booking no longer holds the Wix slot: Wix availability offers the off-grid start and the grid departure it overlaps again, without a staff action. If the slot stays held, record for how long, because an unpriceable booking then blocks real customers |
 | Birthday price with a native Gift Card | gift-card credit applies to the reduced balance |
