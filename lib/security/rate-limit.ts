@@ -2,6 +2,7 @@ import 'server-only';
 
 import { hasUsableValue, isProduction } from '@/lib/config/server-env';
 import { requireSupabaseAdmin } from '@/lib/db/supabase-admin';
+import { AUTH_READ_TIMEOUT_MS } from '@/lib/http/timeouts';
 import { resolveClientAddress } from '@/lib/security/client-address';
 
 export interface RateLimitRule {
@@ -131,6 +132,49 @@ export async function consumeRateLimit(rule: RateLimitRule): Promise<RateLimitDe
     if (error instanceof RateLimitUnavailableError) throw error;
     throw new RateLimitUnavailableError();
   }
+}
+
+/**
+ * Reads a budget without spending it: `allowed` is false once the open window has no attempt left, the
+ * state in which the next `consumeRateLimit` would be refused. It writes nothing, so the caller can ask
+ * on every request. Production reads the window row that `consume_rate_limit` (migration 005) maintains.
+ */
+export async function peekRateLimit(rule: RateLimitRule, now = Date.now()): Promise<RateLimitDecision> {
+  if (!validRule(rule)) throw new RateLimitUnavailableError();
+  if (isBrowserTestSandbox()) return { allowed: true, retryAfterSeconds: 1 };
+
+  const windowMs = rule.windowSeconds * 1_000;
+  const subjectHash = await sha256(`${rule.scope}\u0000${rule.subject}`);
+  let attempts = 0;
+  let expiresAt = Math.floor(now / windowMs) * windowMs + windowMs;
+  if (!isProduction || process.env.ALLOW_IN_MEMORY_STORE === 'true') {
+    const bucket = inMemoryBuckets.get(`${rule.scope}:${subjectHash}`);
+    if (bucket?.expiresAt === expiresAt) attempts = bucket.count;
+  } else {
+    try {
+      // Windows are one `windowSeconds` apart, so at most one row started after "now minus one window".
+      const { data, error } = await requireSupabaseAdmin()
+        .from('security_rate_limits')
+        .select('attempt_count, window_started_at')
+        .eq('scope', rule.scope)
+        .eq('subject_hash', subjectHash)
+        .gt('window_started_at', new Date(now - windowMs).toISOString())
+        .order('window_started_at', { ascending: false })
+        .limit(1)
+        .abortSignal(AbortSignal.timeout(AUTH_READ_TIMEOUT_MS));
+      if (error || !Array.isArray(data)) throw new RateLimitUnavailableError();
+      const row = data[0] as { attempt_count?: unknown; window_started_at?: unknown } | undefined;
+      const startedAt = row ? Date.parse(String(row.window_started_at)) : NaN;
+      if (row && (!Number.isFinite(Number(row.attempt_count)) || !Number.isFinite(startedAt))) {
+        throw new RateLimitUnavailableError();
+      }
+      if (row) [attempts, expiresAt] = [Number(row.attempt_count), startedAt + windowMs];
+    } catch (error) {
+      if (error instanceof RateLimitUnavailableError) throw error;
+      throw new RateLimitUnavailableError();
+    }
+  }
+  return { allowed: attempts < rule.limit, retryAfterSeconds: Math.max(1, Math.ceil((expiresAt - now) / 1_000)) };
 }
 
 export function rateLimitHeaders(decision: RateLimitDecision): HeadersInit {
