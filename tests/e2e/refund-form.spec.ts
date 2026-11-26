@@ -4,6 +4,7 @@ import { HE } from '../../lib/refund/copy/he';
 import { measureHorizontalOverflow } from '../usability/support/geometry';
 import { preferLanguage } from '../support/e2e';
 import { expect, recordRequests, test } from './fixtures';
+import { waitUntilPageHydrated } from './pages/hydration';
 
 /**
  * The unlisted /refund page: a three-step form with a live "what to expect" panel, an honest
@@ -332,6 +333,8 @@ test.describe('refund request form', () => {
     await preferLanguage(page, 'he');
     await page.goto('/refund');
     await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
+    // Hebrew shows the server HTML at once: typing or clicking before hydration would be lost.
+    await waitUntilPageHydrated(page);
     await page.getByLabel(HE.order.referenceLabel).fill('WIX-4');
     await page.getByLabel(HE.order.emailLabel).fill('dana@example.com');
     await page.getByLabel(HE.order.nameLabel).fill('Dana Pilot');

@@ -1,4 +1,4 @@
-import type { Locator } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 import { expect } from '../../support/e2e';
 
 /**
@@ -24,6 +24,17 @@ export async function waitUntilInteractive(control: Locator): Promise<void> {
       { message: 'React should hydrate the control before the journey uses it', timeout: 30_000 }
     )
     .toBe(true);
+}
+
+/**
+ * Resolves once React has hydrated the shared layout (the language selector in the utility bar, on every page).
+ * A Hebrew or first-time visitor sees the server HTML straight away (lib/i18n/language-bootstrap.ts), so a journey
+ * that fills a form, or measures the page and ends before the page's own requests finish, must wait for this first.
+ */
+export async function waitUntilPageHydrated(page: Page): Promise<void> {
+  await waitUntilInteractive(
+    page.locator('[data-site-utility-bar] button[data-language-selector-trigger]').filter({ visible: true }).first()
+  );
 }
 
 /** Clicks (or taps) `control` once React owns it, so the action is never swallowed by hydration. */
