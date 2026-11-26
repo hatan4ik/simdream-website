@@ -13,11 +13,19 @@ export function getBearerToken(request: Request): string | null {
   return token || null;
 }
 
+/**
+ * A Supabase session token is a compact JWT: exactly three non-empty base64url segments. This reads the
+ * shape only, to choose which provider to ask; it decodes nothing and trusts nothing. A token of any other
+ * shape cannot be a Supabase one, so it is not sent there: that saves a round trip for every Wix member
+ * request and keeps a Wix credential from being posted to another provider.
+ */
+const COMPACT_JWT = /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/;
+
 export async function requireAuthenticatedUser(request: Request): Promise<AuthenticatedUser | null> {
   const token = getBearerToken(request);
   if (!token) return null;
   const supabase = getSupabaseAdmin();
-  if (supabase) {
+  if (supabase && COMPACT_JWT.test(token)) {
     const { data, error } = await supabase.auth.getUser(token);
     if (!error && data.user?.email) {
       const rawName = data.user.user_metadata?.full_name ?? data.user.user_metadata?.name;
@@ -31,6 +39,7 @@ export async function requireAuthenticatedUser(request: Request): Promise<Authen
     }
   }
 
+  // Reached by a token Supabase did not verify, or one that cannot be a Supabase token at all.
   // A Wix token is never decoded or trusted locally. The Wix Members endpoint
   // resolves the caller's own profile before any data route uses its identity.
   return getWixMemberIdentity(token);
