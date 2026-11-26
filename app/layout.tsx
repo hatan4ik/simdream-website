@@ -5,6 +5,7 @@ import { UiThemeProvider } from '@/lib/theme/ui-theme-context';
 import { AuthProvider } from '@/lib/auth/auth-context';
 import { LanguageProvider } from '@/lib/i18n/language-context';
 import { DEFAULT_LANGUAGE, languageDirection } from '@/lib/i18n/language-preference';
+import { languagePreferenceBootstrap } from '@/lib/i18n/language-bootstrap';
 import { isSecondaryWixLanguage } from '@/lib/i18n/locale-routing';
 import { LiveMetarBar } from '@/components/layout/LiveMetarBar';
 import { Navbar } from '@/components/layout/Navbar';
@@ -39,13 +40,6 @@ function isWixHostedPreview(host: string | null): boolean {
   return Boolean(host && host.split(':', 1)[0].endsWith('.wix-site-host.com'));
 }
 
-// The server deliberately knows no anonymous locale cookie. For a returning
-// visitor, keep the Hebrew SSR fallback off-screen for the one short interval
-// before LanguageProvider restores its browser-local preference. The timeout
-// is a fail-safe for a blocked or broken client bundle; no-JS visitors never
-// execute this script and see the Hebrew page normally.
-const LANGUAGE_PREFERENCE_BOOTSTRAP = `(()=>{try{const root=document.documentElement;root.setAttribute('data-language-pending','true');window.setTimeout(()=>root.removeAttribute('data-language-pending'),3000)}catch{}})()`;
-
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -59,6 +53,9 @@ export default async function RootLayout({
   const routedLanguageHeader = requestHeaders.get('x-simdream-locale');
   const routedLanguage = isSecondaryWixLanguage(routedLanguageHeader) ? routedLanguageHeader : undefined;
   const initialLanguage = routedLanguage ?? DEFAULT_LANGUAGE;
+  // Hides the page only for a returning visitor whose saved language differs from the server's Hebrew
+  // (lib/i18n/language-bootstrap.ts); first-time, Hebrew and routed-locale visitors see the HTML at once.
+  const languageBootstrap = languagePreferenceBootstrap(routedLanguage);
   // The wix-site-host.com addresses are pre-production delivery URLs. Their
   // canonical domain remains simdream.co.il, but explicit noindex prevents a
   // preview from competing with the production domain before the cutover.
@@ -69,7 +66,7 @@ export default async function RootLayout({
       <head>
         <StructuredDataJsonLd nonce={nonce} />
         {noIndexPreview && <meta name="robots" content="noindex, nofollow, noarchive" />}
-        <script nonce={nonce} dangerouslySetInnerHTML={{ __html: LANGUAGE_PREFERENCE_BOOTSTRAP }} />
+        {languageBootstrap && <script nonce={nonce} dangerouslySetInnerHTML={{ __html: languageBootstrap }} />}
         {/* Blocking on purpose: sets data-ui before first paint. Same-origin file keeps the CSP strict. */}
         <script nonce={nonce} src="/theme-bootstrap.js" />
       </head>

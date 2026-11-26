@@ -1,4 +1,4 @@
-import type { Locator } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 import { expect } from '../../support/e2e';
 
 /**
@@ -6,8 +6,10 @@ import { expect } from '../../support/e2e';
  * language preference has committed. Before that a click on a server-rendered
  * button does nothing and a submit falls back to a native page reload, which
  * makes journeys flaky under load. React stores the props of every hydrated
- * node under `__reactProps$*`; app/layout's language guard keeps the UI hidden
- * until LanguageProvider has completed its preference hand-over.
+ * node under `__reactProps$*`. For a visitor whose saved language differs from
+ * the server's Hebrew (the shared fixture seeds `en`), app/layout's bootstrap keeps
+ * the UI hidden until LanguageProvider has completed its preference hand-over;
+ * first-time, Hebrew and routed-locale visitors are never hidden (lib/i18n/language-bootstrap.ts).
  */
 export async function waitUntilInteractive(control: Locator): Promise<void> {
   await expect
@@ -22,6 +24,18 @@ export async function waitUntilInteractive(control: Locator): Promise<void> {
       { message: 'React should hydrate the control before the journey uses it', timeout: 30_000 }
     )
     .toBe(true);
+}
+
+/**
+ * Resolves once React has hydrated the shared layout (the language selector in the utility bar, on every page).
+ * A Hebrew or first-time visitor sees the server HTML straight away (lib/i18n/language-bootstrap.ts), so a journey
+ * that measures the page and ends before the page's own requests finish must wait for this first. It proves the
+ * layout only: a form hydrates later, so a journey that types into one waits on that control with `waitUntilInteractive`.
+ */
+export async function waitUntilPageHydrated(page: Page): Promise<void> {
+  await waitUntilInteractive(
+    page.locator('[data-site-utility-bar] button[data-language-selector-trigger]').filter({ visible: true }).first()
+  );
 }
 
 /** Clicks (or taps) `control` once React owns it, so the action is never swallowed by hydration. */

@@ -57,7 +57,7 @@ value from `translations.ts`.
 ### 2.2 Non-Hebrew legal text is client-only (-88,973 B)
 
 The server renders the Hebrew default and nothing else (`app/layout.tsx` passes `DEFAULT_LANGUAGE`; a returning visitor's
-language is restored in the browser while `data-language-pending` hides the first paint). So the rules and privacy text in
+language is restored in the browser, and only a saved non-Hebrew language has the hand-over hidden by `data-language-pending`; first-time, Hebrew and routed-locale visitors see the server HTML at once, `lib/i18n/language-bootstrap.ts`). So the rules and privacy text in
 en, ru, fr, ar and es is never needed in the worker.
 
 - `lib/legal/loaders.ts` now holds the Hebrew loaders only (`loadRulesCoreHe`, `loadRulesExtraHe`, `loadPrivacyHe`,

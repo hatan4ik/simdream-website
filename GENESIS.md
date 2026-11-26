@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:098258b5694d6957830918045671f8619b0328d2c596d95b3216a54642d23652 -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:fe1edec691d4391d0cf435ebd36264baf1dbfea8c238d3493b2fd1f6a1aa2361 -->
 
 ## Verification contract
 
@@ -202,7 +202,7 @@ Build **simdream.co.il**, the booking and marketing platform for **Sim Dream LTD
    - The guided wizard is the default. Keep the optional Express Shop on desktop only; do not expose it at phone breakpoints, where localized labels must remain single-line and touch-safe.
 4. **Unicode purity and RTL isolation.**
    - Resolve ordinary user-visible strings through `lib/i18n/translations.ts` (with `lib/i18n/de.ts`), with identical key trees in all seven languages. Specialist catalog records use `LocalizedRecord`; all seven selector routes stay functional and the only current controlled fallback is English for missing Spanish specialist copy.
-   - Hebrew is the first-visit default. `lib/i18n/language-preference.ts` validates the seven supported codes and derives direction. An explicit `simdream_lang` preference stays in browser local storage; public browsing neither reads nor writes a language cookie. `LanguageProvider` restores the choice after hydration, while a bounded inline bootstrap prevents a returning visitor from seeing the Hebrew fallback before their saved language commits. The source maps Wix Multilingual-style URLs as Hebrew at `/` and the other shipped languages at `/en`, `/ru`, `/fr`, `/ar`, `/es` and `/de`; `lib/i18n/locale-routing.ts` and `proxy.ts` rewrite those canonical secondary prefixes to the shared Next route tree. A locale URL is authoritative over a stale local preference, and the selector changes both the language and URL. The matching Wix configuration and public deployment require external verification.
+   - Hebrew is the first-visit default. `lib/i18n/language-preference.ts` validates the seven supported codes and derives direction. An explicit `simdream_lang` preference stays in browser local storage; public browsing neither reads nor writes a language cookie. `LanguageProvider` restores the choice after hydration, while a bounded inline bootstrap (`lib/i18n/language-bootstrap.ts`) prevents a returning visitor from seeing the Hebrew fallback before their saved language commits. It hides the page (`data-language-pending`) only when a saved, supported, non-Hebrew language exists and the server rendered no routed locale; first-time, Hebrew and routed-locale visitors see the server HTML without waiting for hydration, and a 3 s fail-safe reveals the page if the client bundle never loads. The source maps Wix Multilingual-style URLs as Hebrew at `/` and the other shipped languages at `/en`, `/ru`, `/fr`, `/ar`, `/es` and `/de`; `lib/i18n/locale-routing.ts` and `proxy.ts` rewrite those canonical secondary prefixes to the shared Next route tree. A locale URL is authoritative over a stale local preference, and the selector changes both the language and URL. The matching Wix configuration and public deployment require external verification.
    - Never choose display text with an `isRTL` ternary; `isRTL` is for layout only.
    - No Hebrew letters in non-Hebrew copy and no Arabic letters in non-Arabic copy.
    - Telemetry stays `dir="ltr"` inside RTL text: METAR, frequencies, booking references, times, slot ranges, prices, emails.
@@ -738,7 +738,7 @@ lib/
   auth/ admin-guard request-auth member-ownership safe-redirect auth-context
   customer/ customer-draft
   security/rate-limit client-address constant-time same-origin honeypot  http/read-json-body
-  i18n/ translations language-context language-preference locale-routing calendar-presentation booking-blueprint-copy wix-subscription-booking-copy
+  i18n/ translations language-context language-preference language-bootstrap locale-routing calendar-presentation booking-blueprint-copy wix-subscription-booking-copy
   config/ facility-info server-env use-live-facility-status
   blog/ language-sync  # decides when a blog article switches the site language or navigates to its translation (no loop on a language mismatch)
   theme/ui-theme-context  ui/ use-client-value use-native-modal  seo/ seo-config structured-data site-routes llms-txt blog-structured-data blog-post-metadata
