@@ -6,8 +6,10 @@ import { expect } from '../../support/e2e';
  * language preference has committed. Before that a click on a server-rendered
  * button does nothing and a submit falls back to a native page reload, which
  * makes journeys flaky under load. React stores the props of every hydrated
- * node under `__reactProps$*`; app/layout's language guard keeps the UI hidden
- * until LanguageProvider has completed its preference hand-over.
+ * node under `__reactProps$*`. For a visitor whose saved language differs from
+ * the server's Hebrew (the shared fixture seeds `en`), app/layout's bootstrap keeps
+ * the UI hidden until LanguageProvider has completed its preference hand-over;
+ * first-time, Hebrew and routed-locale visitors are never hidden (lib/i18n/language-bootstrap.ts).
  */
 export async function waitUntilInteractive(control: Locator): Promise<void> {
   await expect

@@ -20,6 +20,7 @@ Facts here are checked against the repo; where a number is a measurement, the co
 
 ## In progress
 
+- **Performance audit, Batch A (first paint) in review:** branch `devel/perf-first-paint`. First-time and Hebrew visitors no longer wait for hydration to see the page (mobile-emulated first paint 3788 ms to 1288 ms). Batch B (outbound timeouts, independent checkout reads, `/api/slots` concurrency, `after()` for the voucher email) follows as a separate PR; the rest of the audit (bookings read scope, bundle splitting, admin lockout pre-check, throttling the Wix routes) is awaiting the owner's go-ahead.
 - Nothing is being built. No PR is open; `main` and staging are on `v1.32.6`.
 - **Waiting for a time:** the nightly `wix-blog-languages` job (live, read-only: every blog translation group in every language) has never run on GitHub; its first scheduled run is 2026-11-25 02:00 UTC. Check it with `npm run status` ("Nightly").
 
