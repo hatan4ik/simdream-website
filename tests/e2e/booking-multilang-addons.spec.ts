@@ -4,6 +4,7 @@ import { localizeInternalHref } from '@/lib/i18n/locale-routing';
 import { completeBookingExtras } from '../support/booking-extras';
 import { expect, recordRequests, test } from './fixtures';
 import { PAYMENTS_UNAVAILABLE } from './pages/booking-page';
+import { waitUntilPageHydrated } from './pages/hydration';
 import { israelDate } from './pages/format';
 import type { ScheduleApi } from './pages/schedule-api';
 
@@ -273,6 +274,8 @@ test.describe('multilingual multi-addon booking matrix (CI guard)', () => {
       await preferPageLanguage(page, lang);
       const path = localizeInternalHref('/vouchers', lang);
       await page.goto(path);
+      // A routed-locale or Hebrew page shows the server HTML at once: typing or submitting before hydration is lost.
+      await waitUntilPageHydrated(page);
       const nameInputs = page.locator('input[type="text"]:visible');
       await nameInputs.nth(0).fill('Aviad Tester');
       await nameInputs.nth(1).fill('Nat Nat');
