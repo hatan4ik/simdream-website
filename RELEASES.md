@@ -10,6 +10,14 @@
 
 ## Product changes by version
 
+### [v1.34.2](https://github.com/hatan4ik/simdream-website/releases/tag/v1.34.2) — 2026-11-26
+
+#### Performance Improvements
+
+- **reliability:** deadlines on idempotent reads, overlapped checkout and slot reads (#341) (5da78dc)
+
+Deployment evidence: [GitHub Release](https://github.com/hatan4ik/simdream-website/releases/tag/v1.34.2).
+
 ### [v1.34.1](https://github.com/hatan4ik/simdream-website/releases/tag/v1.34.1) — 2026-11-26
 
 #### Performance Improvements
