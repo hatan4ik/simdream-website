@@ -1,5 +1,5 @@
 import { execFileSync, spawnSync } from 'node:child_process';
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { closeSync, existsSync, fstatSync, openSync, readdirSync, readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
@@ -125,8 +125,27 @@ describe('repository contents', () => {
   // Tracked files plus untracked files that are not ignored: everything a commit could include.
   const candidates = git('ls-files', '--cached', '--others', '--exclude-standard', '-z')
     .split('\0')
-    .filter(Boolean)
-    .filter((file) => existsSync(join(ROOT, file)) && statSync(join(ROOT, file)).isFile());
+    .filter(Boolean);
+
+  /**
+   * A listed file's bytes, or null when it is not a regular file, is gone from the working tree or
+   * is too large to scan. One descriptor serves the checks and the read, so the bytes that are
+   * scanned are the bytes that were measured.
+   */
+  function scannableContent(file: string): Buffer | null {
+    let descriptor: number;
+    try {
+      descriptor = openSync(join(ROOT, file), 'r');
+    } catch {
+      return null;
+    }
+    try {
+      const stats = fstatSync(descriptor);
+      return stats.isFile() && stats.size <= MAX_SCANNED_BYTES ? readFileSync(descriptor) : null;
+    } finally {
+      closeSync(descriptor);
+    }
+  }
 
   it('lists committable files to scan', () => {
     expect(candidates).toContain('package.json');
@@ -134,10 +153,8 @@ describe('repository contents', () => {
 
   it('contains no secret-shaped credential in any committable file', () => {
     const findings = candidates.flatMap((file) => {
-      const path = join(ROOT, file);
-      if (statSync(path).size > MAX_SCANNED_BYTES) return [];
-      const content = readFileSync(path);
-      if (isBinary(content)) return [];
+      const content = scannableContent(file);
+      if (content === null || isBinary(content)) return [];
       return secretShapedValues(content.toString('utf8')).map(({ name, value }) => `${file}: ${name} ${value.slice(0, 12)}…`);
     });
     expect(findings).toEqual([]);

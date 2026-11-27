@@ -98,6 +98,17 @@ The repository's notes (AGENTS.md section 1.7, GENESIS.md) state that the Wix si
 - [ ] Whether Wix logs request headers or visitor addresses, and for how long.
 - [ ] That the site's environment variables (Supabase, Stripe, tokens) are stored as secrets and never served to the browser.
 
+## Wix member sign-in data in the browser
+
+The Wix member client is a public OAuth client: it has no secret, and the browser runs the whole sign-in. Two things are kept in `sessionStorage`, which is scoped to one tab and one origin and is emptied when the tab closes:
+
+- **The sign-in hand-over** (`generateOAuthData`: the PKCE code verifier and challenge, the `state` value, the redirect address and the page to return to). `lib/auth/auth-context.tsx` stores it just before the redirect to Wix, because the redirect discards everything held in memory, and `app/wix/members/callback/page.tsx` needs the same values to exchange the returned code. The callback removes it once the exchange succeeds. After a failed exchange it stays until the tab closes, the next sign-in overwrites it or sign-out clears it (`clearWixMemberSession()`); the code it belongs to can be exchanged once only.
+- **The member's access and refresh tokens** (`lib/wix/member-client.ts`), so a reload keeps the session.
+
+What protects them: nothing is written to `localStorage` or to a cookie this application sets, so neither survives the tab or travels with requests; the nonce-based Content Security Policy with `strict-dynamic` (`proxy.ts`) refuses scripts the page did not load itself. What does not: a script that does run in the page can read tab storage, and could equally act as the member while the page is open.
+
+Code scanning reports the hand-over as `js/clear-text-storage-of-sensitive-data` (alert 2). It is the flow Wix documents for a browser client, so the finding is accepted, not fixed. Keeping the refresh token on the server behind an `HttpOnly` cookie would remove it from page scripts; that is a change to how members sign in and stay signed in, and is listed under Open in `docs/DECISIONS.md`.
+
 ## Known limits of the unpaid-hold rule
 
 The unpaid-hold rule (`lib/booking/checkout-hold-policy.ts`, AGENTS.md section 6 item 10) keys on the checkout email, and that email is not verified. Someone who knows a customer's email and the departure they hold can therefore:
