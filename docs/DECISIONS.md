@@ -96,6 +96,8 @@ Dates come from the merge date of the cited PR. "Not recorded" means the repo do
 
 ## Open
 
+- **Wix page sync after sign-in may be blocked by the frame policy (unverified).** `app/wix/members/callback/page.tsx` calls `syncToWixPages({ force: true })`, which loads a Wix address in a hidden frame; `proxy.ts` allows frames from Google hosts only. If it is blocked, a signed-in member would be asked to sign in again on Wix-hosted pages such as the checkout. Read from the code on 2026-11-27, not observed: it needs a real member sign-in on staging with the browser console open.
+
 - **Member tokens in tab storage.** The Wix member's access and refresh tokens live in `sessionStorage` (`lib/wix/member-client.ts`). A server-held refresh token behind an `HttpOnly` cookie would keep it from page scripts. Owner decision: it changes sign-in, session length and the Wix-hosted checkout hand-over (`SECURITY.md`, "Wix member sign-in data in the browser").
 - **28 unused imports and variables reported by code scanning** (`js/unused-local-variable`, mostly under `app/admin/` and three large components). Not security findings; left out of the triage so it stayed reviewable.
 

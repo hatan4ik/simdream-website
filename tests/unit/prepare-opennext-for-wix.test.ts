@@ -37,6 +37,11 @@ function run(root: string) {
   return spawnSync(process.execPath, [SCRIPT], { cwd: root, encoding: 'utf8' });
 }
 
+/** Runs the script in a shell that may not write a file larger than `blocks` (512 or 1024 bytes each, by shell). */
+function runWithFileSizeLimit(root: string, blocks: number) {
+  return spawnSync('sh', ['-c', `ulimit -f ${blocks} && exec "$0" "$1"`, process.execPath, SCRIPT], { cwd: root, encoding: 'utf8' });
+}
+
 afterEach(() => {
   for (const root of workspaces.splice(0)) rmSync(root, { recursive: true, force: true });
 });
@@ -62,10 +67,34 @@ describe('prepare-opennext-for-wix', () => {
 
   it('writes a shorter worker without leaving bytes of the longer one behind', () => {
     const root = workspace();
-    run(root);
+    expect(run(root).status).toBe(0);
     const worker = readFileSync(join(root, '.open-next/worker.js'), 'utf8');
     expect(worker.endsWith('export default { fetch() {} };\n')).toBe(true);
     expect(worker.length).toBe(WORKER.length - 3 * '.build/'.length);
+  });
+
+  it('keeps multi-byte text intact', () => {
+    const text = `// עברית, العربية, русский, 🛫\n${WORKER}`;
+    const root = workspace({ worker: text });
+    expect(run(root).status).toBe(0);
+    expect(readFileSync(join(root, '.open-next/worker.js'), 'utf8')).toBe(text.replaceAll('./.build/durable-objects/', './durable-objects/'));
+  });
+
+  it('fails, and does not report success, when the rewritten worker cannot be written in full', () => {
+    // A worker far larger than the limit: a single write that stops short must not pass for a
+    // finished file (a full disk on a release runner would otherwise ship a truncated worker).
+    const worker = `${WORKER}${'// padding to exceed the file size limit\n'.repeat(8000)}`;
+    const root = workspace({ worker });
+    const result = runWithFileSizeLimit(root, 16);
+    expect(result.status === 0, `status ${result.status}, signal ${result.signal}`).toBe(false);
+  });
+
+  it('leaves the worker untouched when the generated Durable Object folder is missing', () => {
+    const root = workspace();
+    rmSync(join(root, '.open-next/.build'), { recursive: true, force: true });
+    const result = run(root);
+    expect(result.status).not.toBe(0);
+    expect(readFileSync(join(root, '.open-next/worker.js'), 'utf8')).toBe(WORKER);
   });
 
   it('fails when the OpenNext worker is missing', () => {

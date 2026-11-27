@@ -136,8 +136,10 @@ describe('repository contents', () => {
     let descriptor: number;
     try {
       descriptor = openSync(join(ROOT, file), 'r');
-    } catch {
-      return null;
+    } catch (error) {
+      // Listed by git but deleted in the working tree. Any other failure must fail the scan, not shrink it.
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') return null;
+      throw error;
     }
     try {
       const stats = fstatSync(descriptor);
@@ -147,8 +149,11 @@ describe('repository contents', () => {
     }
   }
 
-  it('lists committable files to scan', () => {
+  it('lists committable files to scan, and can read them', () => {
     expect(candidates).toContain('package.json');
+    expect(scannableContent('package.json')?.length).toBeGreaterThan(0);
+    expect(scannableContent('tests')).toBeNull();
+    expect(scannableContent('no-such-file.txt')).toBeNull();
   });
 
   it('contains no secret-shaped credential in any committable file', () => {
