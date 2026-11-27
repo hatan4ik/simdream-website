@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.35.1](https://github.com/hatan4ik/simdream-website/compare/v1.35.0...v1.35.1) (2026-11-27)
+
+
+### Performance Improvements
+
+* **bundle:** load the Supabase SDK in the browser on first use ([#351](https://github.com/hatan4ik/simdream-website/issues/351)) ([17dcab4](https://github.com/hatan4ik/simdream-website/commit/17dcab427482e34758b4e661e6d7484159917010))
+
 ## [1.35.0](https://github.com/hatan4ik/simdream-website/compare/v1.34.2...v1.35.0) (2026-11-27)
 
 

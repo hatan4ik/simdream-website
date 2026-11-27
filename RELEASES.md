@@ -10,6 +10,14 @@
 
 ## Product changes by version
 
+### [v1.35.1](https://github.com/hatan4ik/simdream-website/releases/tag/v1.35.1) — 2026-11-27
+
+#### Performance Improvements
+
+- **bundle:** load the Supabase SDK in the browser on first use (#351) (17dcab4)
+
+Deployment evidence: [GitHub Release](https://github.com/hatan4ik/simdream-website/releases/tag/v1.35.1).
+
 ### [v1.35.0](https://github.com/hatan4ik/simdream-website/releases/tag/v1.35.0) — 2026-11-27
 
 #### Features
