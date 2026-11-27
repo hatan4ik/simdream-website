@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.35.2](https://github.com/hatan4ik/simdream-website/compare/v1.35.1...v1.35.2) (2026-11-27)
+
+
+### Performance Improvements
+
+* **book:** server-render the first booking step instead of a placeholder ([#356](https://github.com/hatan4ik/simdream-website/issues/356)) ([ed1b0d4](https://github.com/hatan4ik/simdream-website/commit/ed1b0d4784a35fb4a13d53b3039cef92374990da))
+
 ## [1.35.1](https://github.com/hatan4ik/simdream-website/compare/v1.35.0...v1.35.1) (2026-11-27)
 
 
