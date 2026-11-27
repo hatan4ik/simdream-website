@@ -10,6 +10,14 @@
 
 ## Product changes by version
 
+### [v1.37.0](https://github.com/hatan4ik/simdream-website/releases/tag/v1.37.0) — 2026-11-27
+
+#### Features
+
+- **home:** upgrade visual hierarchy and telemetry aesthetics with art direction (#361) (2136265)
+
+Deployment evidence: [GitHub Release](https://github.com/hatan4ik/simdream-website/releases/tag/v1.37.0).
+
 ### [v1.36.1](https://github.com/hatan4ik/simdream-website/releases/tag/v1.36.1) — 2026-11-27
 
 #### Bug Fixes
