@@ -96,6 +96,9 @@ Dates come from the merge date of the cited PR. "Not recorded" means the repo do
 
 ## Open
 
+- **Arabic pages fail hydration in WebKit on staging (seen in Playwright's Linux WebKit, 2026-11-27, release 1.35.2).** `/ar/`, `/ar/pro` and `/ar/book` each throw React error 418. The header's Google review count is rendered by the Worker in Latin digits and by that browser in Arabic-Indic digits, so React discards the server-rendered page and rebuilds it. Chromium is clean, and macOS WebKit against Node passed locally; real Safari is untested. `IntlText` (`components/ui/IntlText.tsx`) around the count would remove it; read `docs/modules/google-reviews-bar.md` first. Owner decision.
+- **Second flaky browser test.** `tests/e2e/booking-multilang-addons.spec.ts:272` (gift voucher checkout in seven languages) timed out on WebKit waiting for `POST /api/checkout` and passed on retry (CI run 45981856684, 2026-11-27). CI fails a run on a flaky test. Cause not investigated; a click before hydration is one possibility.
+
 - **Wix page sync after sign-in may be blocked by the frame policy (unverified).** `app/wix/members/callback/page.tsx` calls `syncToWixPages({ force: true })`, which loads a Wix address in a hidden frame; `proxy.ts` allows frames from Google hosts only. If it is blocked, a signed-in member would be asked to sign in again on Wix-hosted pages such as the checkout. Read from the code on 2026-11-27, not observed: it needs a real member sign-in on staging with the browser console open.
 
 - **Member tokens in tab storage.** The Wix member's access and refresh tokens live in `sessionStorage` (`lib/wix/member-client.ts`). A server-held refresh token behind an `HttpOnly` cookie would keep it from page scripts. Owner decision: it changes sign-in, session length and the Wix-hosted checkout hand-over (`SECURITY.md`, "Wix member sign-in data in the browser").

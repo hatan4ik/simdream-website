@@ -2,6 +2,7 @@ import { spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { afterEach, describe, expect, it } from 'vitest';
 
 // `scripts/prepare-opennext-for-wix.mjs` rewrites OpenNext's build output so the Wix Worker runner
@@ -37,9 +38,29 @@ function run(root: string) {
   return spawnSync(process.execPath, [SCRIPT], { cwd: root, encoding: 'utf8' });
 }
 
-/** Runs the script in a shell that may not write a file larger than `blocks` (512 or 1024 bytes each, by shell). */
-function runWithFileSizeLimit(root: string, blocks: number) {
-  return spawnSync('sh', ['-c', `ulimit -f ${blocks} && exec "$0" "$1"`, process.execPath, SCRIPT], { cwd: root, encoding: 'utf8' });
+/**
+ * Runs the script with a file system that accepts at most `bytesPerWrite` bytes per write call, as a
+ * nearly full disk or a slow device may. A preload module caps `FileHandle.write`; no shell is involved.
+ */
+function runWithShortWrites(root: string, bytesPerWrite: number) {
+  const preload = join(root, 'short-writes.mjs');
+  writeFileSync(
+    preload,
+    [
+      "import { open } from 'node:fs/promises';",
+      'const probe = await open(new URL(import.meta.url), "r");',
+      'const fileHandle = Object.getPrototypeOf(probe);',
+      'await probe.close();',
+      'const write = fileHandle.write;',
+      `const cap = ${bytesPerWrite};`,
+      'fileHandle.write = function (buffer, offset, length, position) {',
+      '  if (cap === 0) return Promise.resolve({ bytesWritten: 0, buffer });',
+      '  return write.call(this, buffer, offset, Math.min(length, cap), position);',
+      '};',
+      '',
+    ].join('\n')
+  );
+  return spawnSync(process.execPath, ['--import', pathToFileURL(preload).href, SCRIPT], { cwd: root, encoding: 'utf8' });
 }
 
 afterEach(() => {
@@ -80,13 +101,22 @@ describe('prepare-opennext-for-wix', () => {
     expect(readFileSync(join(root, '.open-next/worker.js'), 'utf8')).toBe(text.replaceAll('./.build/durable-objects/', './durable-objects/'));
   });
 
-  it('fails, and does not report success, when the rewritten worker cannot be written in full', () => {
-    // A worker far larger than the limit: a single write that stops short must not pass for a
-    // finished file (a full disk on a release runner would otherwise ship a truncated worker).
-    const worker = `${WORKER}${'// padding to exceed the file size limit\n'.repeat(8000)}`;
-    const root = workspace({ worker });
-    const result = runWithFileSizeLimit(root, 16);
-    expect(result.status === 0, `status ${result.status}, signal ${result.signal}`).toBe(false);
+  it('writes the whole file when the file system takes it in pieces', () => {
+    // A write may store fewer bytes than asked. Stopping after the first piece would exit 0 with a
+    // truncated worker, which a release would then ship.
+    const root = workspace();
+    const result = runWithShortWrites(root, 7);
+    expect(result.status, result.stderr).toBe(0);
+    expect(readFileSync(join(root, '.open-next/worker.js'), 'utf8')).toBe(WORKER.replaceAll('./.build/durable-objects/', './durable-objects/'));
+    for (const file of DURABLE_OBJECT_FILES) {
+      expect(readFileSync(join(root, '.open-next/durable-objects', file), 'utf8')).toContain('export class Handler extends DurableObject {}');
+    }
+  });
+
+  it('fails when the file system accepts no more bytes', () => {
+    const result = runWithShortWrites(workspace(), 0);
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).toContain('the rewritten file is incomplete');
   });
 
   it('leaves the worker untouched when the generated Durable Object folder is missing', () => {
