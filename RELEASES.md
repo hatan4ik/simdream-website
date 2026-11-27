@@ -10,6 +10,18 @@
 
 ## Product changes by version
 
+### [v1.36.0](https://github.com/hatan4ik/simdream-website/releases/tag/v1.36.0) — 2026-11-27
+
+#### Features
+
+- **security:** add a self-closing diagnostic for the client address header (#357) (70a8122)
+
+#### Bug Fixes
+
+- **security:** close the file-race code-scanning findings and record the triage (#359) (89cf93b)
+
+Deployment evidence: [GitHub Release](https://github.com/hatan4ik/simdream-website/releases/tag/v1.36.0).
+
 ### [v1.35.2](https://github.com/hatan4ik/simdream-website/releases/tag/v1.35.2) — 2026-11-27
 
 #### Performance Improvements

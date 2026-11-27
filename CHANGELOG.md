@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.36.0](https://github.com/hatan4ik/simdream-website/compare/v1.35.2...v1.36.0) (2026-11-27)
+
+
+### Features
+
+* **security:** add a self-closing diagnostic for the client address header ([#357](https://github.com/hatan4ik/simdream-website/issues/357)) ([70a8122](https://github.com/hatan4ik/simdream-website/commit/70a8122bf9ebf87867d6b3faed91ac8fd5d85511))
+
+
+### Bug Fixes
+
+* **security:** close the file-race code-scanning findings and record the triage ([#359](https://github.com/hatan4ik/simdream-website/issues/359)) ([89cf93b](https://github.com/hatan4ik/simdream-website/commit/89cf93b17fff74b8f334c408d939844044cdd9f0))
+
 ## [1.35.2](https://github.com/hatan4ik/simdream-website/compare/v1.35.1...v1.35.2) (2026-11-27)
 
 
