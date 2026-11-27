@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.36.1](https://github.com/hatan4ik/simdream-website/compare/v1.36.0...v1.36.1) (2026-11-27)
+
+
+### Bug Fixes
+
+* **release:** attest the Verify run without GitHub's status list filter ([#362](https://github.com/hatan4ik/simdream-website/issues/362)) ([d290733](https://github.com/hatan4ik/simdream-website/commit/d29073360d136dcc52dcb252e82f7850256c1998))
+
 ## [1.36.0](https://github.com/hatan4ik/simdream-website/compare/v1.35.2...v1.36.0) (2026-11-27)
 
 
