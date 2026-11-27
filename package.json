@@ -4,10 +4,10 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=24.22.1 <25",
-    "npm": ">=11.20.0"
+    "node": ">=26.0.0 <27",
+    "npm": ">=12.0.0"
   },
-  "packageManager": "npm@11.20.0",
+  "packageManager": "npm@12.2.3",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -86,7 +86,7 @@
     "@opennextjs/cloudflare": "1.20.16",
     "@playwright/test": "^1.65.1",
     "@types/canvas-confetti": "^1.9.0",
-    "@types/node": "^24.19.2",
+    "@types/node": "^26.6.11",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitest/coverage-v8": "^5.1.1",
@@ -101,6 +101,10 @@
     "wrangler": "^4.166.0"
   },
   "overrides": {
+    "@wix/members": {
+      "react": "$react",
+      "react-dom": "$react-dom"
+    },
     "@node-minify/core": {
       "glob": "14.0.6"
     },
