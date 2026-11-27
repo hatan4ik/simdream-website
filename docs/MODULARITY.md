@@ -62,6 +62,7 @@ components/booking/                   UI, one component per file, public entry i
   BookingStepper       DateSlotStep       AddonsStep (AddonCard)
   PilotManifestStep    PilotManifestForm  OrderSummary  VoucherRedeem  CheckoutSubmit
   BookingStorefrontView (adapter for AmazonFlightStorefront)   BookingLoadingFallback
+  ServerIsraelToday (the server's Israel date for the first HTML, provided by app/(public)/book/layout.tsx)
 components/booking/hooks/             page state, one hook per concern
   use-booking-url-intent  use-booking-selection  use-pilot-details  use-booking-schedule  use-booking-step
   use-wix-checkout-draft  use-booking-voucher    use-booking-manifest  use-booking-checkout  use-addon-controls

@@ -143,9 +143,10 @@ unverifiable customer flows.
   persisted in browser local storage, not a public cookie. A bounded
   pre-hydration guard keeps the Hebrew server fallback off-screen until a saved
   language commits. Verify all seven languages after every release.
-- `/book` must never render a fabricated date. The calendar waits for the
-  browser's Israel clock and shows its localized initializing state until the
-  date is known; the raw page HTML must not contain `2099`.
+- `/book` must never render a fabricated date. The server renders the first
+  step from the Israel date it reads for that request, and the browser's own
+  Israel clock takes over after hydration; the raw page HTML must not contain
+  `2099`. Departures are never in the served HTML.
 - Gift recipient and sender fields retain the deliberately realistic preview
   defaults **Aviad Stern** and **Danielle Cohen**. They are editable before
   checkout and make the boarding-pass concept immediately understandable; they

@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { IntlText } from '@/components/ui/IntlText';
 import { clampToBookingHorizon, maxBookableDate } from '@/lib/scheduler/booking-horizon';
 import { addDaysToYmd } from '@/lib/utils';
 import {
@@ -54,9 +55,9 @@ export function BookingWeekPager({
         >
           <ChevronLeft className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
         </button>
-        <span className="text-xs sm:text-sm font-bold text-white text-center">
-          {formatCalendarDate(weekStartDate, language)} – {formatCalendarDate(weekEndDate, language)}
-        </span>
+        <IntlText className="text-xs sm:text-sm font-bold text-white text-center">
+          {`${formatCalendarDate(weekStartDate, language)} – ${formatCalendarDate(weekEndDate, language)}`}
+        </IntlText>
         <button
           type="button"
           data-calendar-next-week

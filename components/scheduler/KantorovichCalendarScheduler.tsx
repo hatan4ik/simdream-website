@@ -11,6 +11,7 @@ import {
   Award,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { IntlText } from '@/components/ui/IntlText';
 import { BookingMonthPager } from '@/components/scheduler/BookingMonthPager';
 import { BookingWeekPager } from '@/components/scheduler/BookingWeekPager';
 import { PackageInclusionsDialog } from '@/components/scheduler/PackageInclusionsDialog';
@@ -390,17 +391,13 @@ export function KantorovichCalendarScheduler({
                         : 'border-slate-800 bg-slate-950/70 text-slate-300 hover:border-slate-700'
                     }`}
                   >
-                    <span
-                      className={`text-[11px] font-medium ${
-                        isSelected ? 'text-sky-300 font-bold' : 'text-slate-400'
-                      }`}
-                    >
+                    <IntlText className={`text-[11px] font-medium ${isSelected ? 'text-sky-300 font-bold' : 'text-slate-400'}`}>
                       {day.weekdayLabel}
-                    </span>
-                    <span className="text-lg sm:text-xl font-black text-white leading-tight my-0.5">
+                    </IntlText>
+                    <IntlText className="text-lg sm:text-xl font-black text-white leading-tight my-0.5">
                       {formatCalendarDayNumber(day.dayNumber, language)}
-                    </span>
-                    <span className="text-[10px] text-slate-400">{day.monthShortLabel}</span>
+                    </IntlText>
+                    <IntlText className="text-[10px] text-slate-400">{day.monthShortLabel}</IntlText>
                   </button>
                 );
               })}
@@ -465,8 +462,8 @@ export function KantorovichCalendarScheduler({
             <div className="lg:hidden pt-2.5 border-t border-slate-800/80 flex items-center justify-between gap-2">
               <div className="text-xs font-mono text-slate-300 flex items-center gap-1.5 min-w-0">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
-                <span className="font-bold text-white truncate">{formatCalendarDate(selectedDate, language)}</span>
-                <span className="text-emerald-400 shrink-0">• {openSlotCount} {copy.availableCount}</span>
+                <IntlText className="font-bold text-white truncate">{formatCalendarDate(selectedDate, language)}</IntlText>
+                {!(loading && openSlotCount === 0) && <span className="text-emerald-400 shrink-0">• {openSlotCount} {copy.availableCount}</span>}
               </div>
               <button
                 type="button"
@@ -570,11 +567,11 @@ export function KantorovichCalendarScheduler({
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <h2 className="text-sm sm:text-base font-bold text-white">
-              {copy.selectTime} — <span className="text-sky-400">{formatCalendarDate(selectedDate, language)}</span>
+              {copy.selectTime} — <IntlText className="text-sky-400">{formatCalendarDate(selectedDate, language)}</IntlText>
             </h2>
           </div>
           <span className="text-xs font-mono text-emerald-400">
-            {openSlotCount} {copy.availableCount}
+            {!(loading && openSlotCount === 0) && `${openSlotCount} ${copy.availableCount}`}
           </span>
         </div>
 
