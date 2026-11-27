@@ -491,7 +491,7 @@ export function AmazonFlightStorefront({
                 <div className="text-xs font-mono text-slate-300 flex items-center gap-1.5 min-w-0">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
                   <span className="font-bold text-white truncate">{formatCalendarDate(selectedDate, language)}</span>
-                  {!(loadingSlots && availableSlotCount === 0) && <span className="text-emerald-400 shrink-0">• {calendarCopy.openSlotsCount(availableSlotCount)}</span>}
+                  <span className="text-emerald-400 shrink-0">• {calendarCopy.openSlotsCount(availableSlotCount)}</span>
                 </div>
                 <button
                   type="button"

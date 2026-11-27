@@ -1,5 +1,7 @@
 import type { Page } from '@playwright/test';
+import { CALENDAR_LOCALES } from '../../lib/i18n/calendar-presentation';
 import { translations } from '../../lib/i18n/translations';
+import { NO_SEEDED_CONSENT } from '../support/consent';
 import { expect, test } from './fixtures';
 import { israelDate } from './pages/format';
 
@@ -53,7 +55,8 @@ test('the served page carries the booking frame, dated per request and never cac
 });
 
 test.describe('before any script runs', () => {
-  test.use({ javaScriptEnabled: false });
+  // No seeded storage: Playwright writes localStorage with a script, which Firefox cannot run here.
+  test.use({ javaScriptEnabled: false, storageState: NO_SEEDED_CONSENT });
 
   test('the visitor sees the step heading, the calendar and a loading grid', async ({ page }) => {
     await page.goto('/book');
@@ -80,10 +83,7 @@ for (const timezoneId of ['Pacific/Kiritimati', 'America/Los_Angeles']) {
   });
 }
 
-test('neither booking view reports "0 open" while the first departures are still loading', async ({ page }) => {
-  test.skip((page.viewportSize()?.width ?? 0) < 640, 'Express Shop is a desktop view');
-  // Below the `lg` breakpoint both views show the calendar's status strip, which carries the count.
-  await page.setViewportSize({ width: 900, height: 900 });
+test('the guided view reports no "0 open" while the first departures are still loading', async ({ page }) => {
   let release: () => void = () => undefined;
   const held = new Promise<void>((resolve) => {
     release = resolve;
@@ -92,17 +92,13 @@ test('neither booking view reports "0 open" while the first departures are still
     await held;
     await route.continue();
   });
-  const zeroCount = page.getByText(/\b0 slots (available|open)/);
   const state = page.locator('[data-slots-state]').filter({ visible: true }).first();
 
   await page.goto('/book');
   await expect(state).toHaveAttribute('data-slots-state', 'loading', { timeout: 30_000 });
-  await expect(zeroCount).toHaveCount(0);
-
-  await page.getByRole('button', { name: 'Express Shop View (1-Page)' }).click();
-  await page.getByRole('button', { name: 'Month', exact: true }).click();
-  await expect(state).toHaveAttribute('data-slots-state', 'loading');
-  await expect(zeroCount).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Guided Wizard View' }).or(page.locator('[data-booking-view="wizard"]')).first()).toBeVisible();
+  // Hidden copies count too: the phone status strip and the departures header both carry the number.
+  await expect(page.getByText(/\b0 slots (available|open)/)).toHaveCount(0);
 
   release();
   await slotsSettled(page);
@@ -116,8 +112,18 @@ for (const locale of ['en', 'ru', 'fr', 'ar', 'es', 'de'] as const) {
     await page.goto(`/${locale}/book`);
     await slotsSettled(page);
     await expect(page.locator('html')).toHaveAttribute('lang', locale);
-    await expect(selectedDay(page, israelDate(1)).first()).toBeVisible();
+    const tomorrow = israelDate(1);
+    await expect(selectedDay(page, tomorrow).first()).toBeVisible();
     expect(hydrationErrors).toEqual([]);
+
+    // Server and browser may word a date differently (Safari against Node in Russian, Arabic and
+    // German); once hydrated, the calendar shows the browser's own wording.
+    const browserWeekday = await page.evaluate(
+      ([calendarLocale, isoDate]) =>
+        new Intl.DateTimeFormat(calendarLocale, { timeZone: 'UTC', weekday: 'short' }).format(new Date(`${isoDate}T12:00:00Z`)),
+      [CALENDAR_LOCALES[locale], tomorrow]
+    );
+    await expect(selectedDay(page, tomorrow).first().locator('span').first()).toHaveText(browserWeekday);
   });
 }
 

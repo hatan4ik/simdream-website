@@ -189,6 +189,9 @@ Now:
 - The server never reads availability. `/api/slots` is still fetched by the browser, uncached. `loadingSlots` is true
   until the first request has been made, so the server-rendered frame shows the loading grid; the calendar hides the
   open-slot count while it is loading and knows of none.
+- The calendar's `Intl`-formatted dates (weekday, day number, month, the selected date, the week range) are `IntlText`
+  spans. Safari words some of them differently from the server in English, Russian, Arabic and German, which React
+  treats as a hydration mismatch; `IntlText` keeps the server's wording during hydration and then shows the browser's.
 - `app/(public)/book/page.tsx` has no `<Suspense>` wrapper. Nothing in it suspends, and React 19.3's server renderer
   sends any completed boundary over 500 bytes as a separate chunk behind its fallback once the response passes
   12.8 KB, which put the frame behind the placeholder again and hid it without scripts.
@@ -205,11 +208,11 @@ rounds, local production builds without Wix or Supabase variables):
 
 First paint is later because the first paint is now the whole frame, not a one-line placeholder. The gain applies to
 first-time, Hebrew and routed-locale (`/en/book` and the like) visitors. A returning visitor with a saved non-Hebrew
-language on the unprefixed `/book` is still hidden until hydration by the language bootstrap (AGENTS.md section 5.5).
-Both booking interfaces hide the open-slot count while loading with none known. Not changed: the slots
+language on the unprefixed `/book` is still hidden until hydration by the language bootstrap (AGENTS.md section 5.5). Not changed: the slots
 request still starts only after hydration, so open departures appear when they did before. Not measured on the deployed
 Worker.
 
 Tests: `tests/unit/booking-first-paint.test.ts` (server snapshot, schedule defaults, the loading frame, the per-request
 layout) and `tests/e2e/booking-first-paint.spec.ts` (served HTML, the page with scripts disabled, hydration in two far
-timezones, a browser already on the next Israel day).
+timezones and in the six routed languages, no zero count while departures load, a browser already on the next Israel
+day).
