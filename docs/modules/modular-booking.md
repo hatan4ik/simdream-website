@@ -203,7 +203,10 @@ rounds, local production builds without Wix or Supabase variables):
 | First paint | 0.84 to 0.94 s | 1.16 to 1.22 s |
 | Scripts over the wire | 564 KiB | 566 KiB |
 
-First paint is later because the first paint is now the whole frame, not a one-line placeholder. Not changed: the slots
+First paint is later because the first paint is now the whole frame, not a one-line placeholder. The gain applies to
+first-time, Hebrew and routed-locale (`/en/book` and the like) visitors. A returning visitor with a saved non-Hebrew
+language on the unprefixed `/book` is still hidden until hydration by the language bootstrap (AGENTS.md section 5.5).
+Both booking interfaces hide the open-slot count while loading with none known. Not changed: the slots
 request still starts only after hydration, so open departures appear when they did before. Not measured on the deployed
 Worker.
 

@@ -60,6 +60,7 @@ test.describe('before any script runs', () => {
     await expect(page.getByRole('heading', { level: 1, name: STEP_HEADING })).toBeVisible();
     await expect(selectedDay(page, israelDate(1)).first()).toBeVisible();
     await expect(page.locator('[data-booking-duration="60"]').filter({ visible: true }).first()).toBeVisible();
+    await expect(page.locator('.animate-pulse').filter({ visible: true }).first()).toBeVisible();
     await expect(page.getByText(PLACEHOLDER)).toHaveCount(0);
     await expect(page.getByText(EMPTY_DAY)).toHaveCount(0);
   });
@@ -76,6 +77,47 @@ for (const timezoneId of ['Pacific/Kiritimati', 'America/Los_Angeles']) {
       await expect(selectedDay(page, israelDate(1)).first()).toBeVisible();
       expect(hydrationErrors).toEqual([]);
     });
+  });
+}
+
+test('neither booking view reports "0 open" while the first departures are still loading', async ({ page }) => {
+  test.skip((page.viewportSize()?.width ?? 0) < 640, 'Express Shop is a desktop view');
+  // Below the `lg` breakpoint both views show the calendar's status strip, which carries the count.
+  await page.setViewportSize({ width: 900, height: 900 });
+  let release: () => void = () => undefined;
+  const held = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route('**/api/slots?**', async (route) => {
+    await held;
+    await route.continue();
+  });
+  const zeroCount = page.getByText(/\b0 slots (available|open)/);
+  const state = page.locator('[data-slots-state]').filter({ visible: true }).first();
+
+  await page.goto('/book');
+  await expect(state).toHaveAttribute('data-slots-state', 'loading', { timeout: 30_000 });
+  await expect(zeroCount).toHaveCount(0);
+
+  await page.getByRole('button', { name: 'Express Shop View (1-Page)' }).click();
+  await page.getByRole('button', { name: 'Month', exact: true }).click();
+  await expect(state).toHaveAttribute('data-slots-state', 'loading');
+  await expect(zeroCount).toHaveCount(0);
+
+  release();
+  await slotsSettled(page);
+});
+
+// A routed locale is server-rendered in its own language, so each one puts its own weekday, month and
+// digit formatting into the HTML; the browser must produce the same text when it hydrates.
+for (const locale of ['en', 'ru', 'fr', 'ar', 'es', 'de'] as const) {
+  test(`/${locale}/book hydrates its server-rendered calendar without a mismatch`, async ({ page }) => {
+    const hydrationErrors = collectHydrationErrors(page);
+    await page.goto(`/${locale}/book`);
+    await slotsSettled(page);
+    await expect(page.locator('html')).toHaveAttribute('lang', locale);
+    await expect(selectedDay(page, israelDate(1)).first()).toBeVisible();
+    expect(hydrationErrors).toEqual([]);
   });
 }
 
