@@ -1,4 +1,4 @@
-import { isSupabaseConfigured, supabase } from '@/lib/supabaseClient';
+import { loadSupabase } from '@/lib/supabaseClient';
 
 export interface LocalCheckoutMessages {
   paymentStartFailed: string;
@@ -23,7 +23,9 @@ export async function startLocalCheckout(
   messages: LocalCheckoutMessages
 ): Promise<void> {
   const headers: HeadersInit = { 'Content-Type': 'application/json' };
-  if (isSupabaseConfigured && supabase) {
+  // A failed SDK download must not stop a checkout: it continues as a guest checkout.
+  const supabase = await loadSupabase().catch(() => null);
+  if (supabase) {
     const { data } = await supabase.auth.getSession();
     if (data.session?.access_token) {
       headers.Authorization = `Bearer ${data.session.access_token}`;

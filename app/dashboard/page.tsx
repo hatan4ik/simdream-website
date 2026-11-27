@@ -22,7 +22,7 @@ import { getLocalizedPackages, type LocalizedRecord } from '@/lib/i18n/translati
 import { EXPERIENCE_ROUTES_COPY, findOnRequestWorldRoute } from '@/lib/data/experience-routes';
 import { israelToday } from '@/lib/scheduler/israel-clock';
 import { sanitizePackageTitle } from '@/lib/scheduler/mission-calculator';
-import { isSupabaseConfigured, supabase } from '@/lib/supabaseClient';
+import { isSupabaseConfigured, loadSupabase } from '@/lib/supabaseClient';
 import { getWixMemberAccessToken, isWixBrowserClientConfigured } from '@/lib/wix/member-client';
 import type { Booking } from '@/types';
 import { formatCurrency, formatDate } from '@/lib/utils';
@@ -154,9 +154,10 @@ export default function DashboardPage() {
         if (isWixBrowserClientConfigured()) {
           const wixAccessToken = await getWixMemberAccessToken();
           if (wixAccessToken) headers.Authorization = `Bearer ${wixAccessToken}`;
-        } else if (isSupabaseConfigured && supabase) {
-          const { data } = await supabase.auth.getSession();
-          if (data.session?.access_token) headers.Authorization = `Bearer ${data.session.access_token}`;
+        } else if (isSupabaseConfigured) {
+          const supabase = await loadSupabase().catch(() => null);
+          const session = supabase ? (await supabase.auth.getSession()).data.session : null;
+          if (session?.access_token) headers.Authorization = `Bearer ${session.access_token}`;
         } else {
           // Accepted only by the non-production local simulator route.
           headers['x-simdream-demo-email'] = user.email;
@@ -208,7 +209,8 @@ export default function DashboardPage() {
     setReceiptError(null);
     setOpeningReceipt(bookingReference);
     try {
-      if (!isSupabaseConfigured || !supabase) {
+      const supabase = await loadSupabase().catch(() => null);
+      if (!supabase) {
         setReceiptError('receiptAuthNotConfigured');
         return;
       }
