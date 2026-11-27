@@ -55,9 +55,28 @@ Getting it wrong has two failure modes. A header the edge does not overwrite, or
 
 1. **Open it.** Set `CLIENT_ADDRESS_DIAGNOSTIC_UNTIL` to an instant an hour or two ahead (on the Wix site: `wix env set --key CLIENT_ADDRESS_DIAGNOSTIC_UNTIL --value <instant>`). That the route starts answering also shows the variable reaches the running application.
 2. **Plain request.** Send your own public address in `x-diagnostic-expect`. Pin the address family (`curl -4` or `curl -6`), because the comparison is textual. Note, for each header, `present`, `matchesExpected` and `expectedEntryFromRight`. `present` alone proves nothing: Next's server writes `x-forwarded-for` itself when a request has none.
-3. **Forged request.** Repeat it while writing one false address into **all** of `cf-connecting-ip`, `x-vercel-forwarded-for`, `x-real-ip`, `x-forwarded-for`, `true-client-ip` and `forwarded` at once, and name that false address in `x-diagnostic-spoof`. Forging every header together matters: an edge that fills one header from another (for example `x-real-ip` from the left end of `x-forwarded-for`) looks safe when only the first is forged.
-4. **Read the result.** A single-address header is trustworthy only if, in the forged request, `matchesExpected` is still true and `spoofEntryFromRight` is null. `x-forwarded-for` is usable only if `expectedEntryFromRight` is the same number in both requests and `spoofEntryFromRight` is larger than it (the false entry stayed to the left); that number is the `RATE_LIMIT_TRUSTED_PROXY_HOPS` to set. Prefer a single-address header when one passes: a hop count is right only while every path to the application appends the same number of entries, which one observation cannot prove.
-5. **Set and confirm.** Set `RATE_LIMIT_CLIENT_IP_HEADER` (and the hop count if needed), then send the forged request again: the answer must show `configured: true`, `resolvedMatchesExpected: true` and `resolvedIsSpoof: false`. Do not keep the setting if it does not. Naming the header also switches on the admin lockout on that host (below), so a header a client can write would let a stranger lock the owner out.
+
+   ```bash
+   HOST=https://<the host under test>; ME=<your public address>
+   curl -4 -s -H "x-diagnostic-expect: $ME" "$HOST/api/diagnostics/client-address"
+   ```
+3. **Forged request.** Repeat it while writing one false address into every forwarding header at once, and name that address in `x-diagnostic-spoof`. Two details decide whether the test means anything:
+   - The false address must be **public and routable** and not yours (`8.8.8.8` will do). An edge that picks the first public entry skips a private or documentation address such as `10.0.0.1` or `192.0.2.1`, and would look safe while a routable forgery gets through.
+   - Forge **all** headers together. An edge that fills one header from another (for example `x-real-ip` from the left end of `x-forwarded-for`) looks safe when only the first is forged.
+
+   ```bash
+   FAKE=8.8.8.8
+   forged() { curl -4 -s -H "x-diagnostic-expect: $ME" -H "x-diagnostic-spoof: $FAKE" "$@" "$HOST/api/diagnostics/client-address"; }
+   H=(-H "cf-connecting-ip: $FAKE" -H "x-vercel-forwarded-for: $FAKE" -H "x-real-ip: $FAKE" -H "x-forwarded-for: $FAKE" -H "true-client-ip: $FAKE" -H "forwarded: for=$FAKE")
+   forged "${H[@]}"            # each header once
+   forged "${H[@]}" "${H[@]}"  # each header twice: an edge may clean only the first line of a repeated header
+   ```
+4. **Read the result.** Judge the plain answer and both forged answers together.
+   - A single-address header is trustworthy only if, in both forged answers, `entries` is 1, `matchesExpected` is still true and `spoofEntryFromRight` is null.
+   - `x-forwarded-for` is usable only if `expectedEntryFromRight` is the same number in all three answers and `spoofEntryFromRight` is larger than it in both forged ones (the false entry stayed to the left). That number is the `RATE_LIMIT_TRUSTED_PROXY_HOPS` to set. An edge that replaces the header outright reports `spoofEntryFromRight: null` and fails this rule; that is a safe refusal, and a single-address header is then the one to look at.
+   - Prefer a single-address header when one passes: a hop count is right only while every path to the application appends the same number of entries, which one observation cannot prove.
+   - The result holds for the hostname you tested. Repeat it for each public hostname that reaches the application. The six headers above are the common ones, not all that exist; an edge that derives the address from another header (`x-client-ip`, `x-original-forwarded-for` and the like) is caught only if you forge that one too.
+5. **Set and confirm.** Set `RATE_LIMIT_CLIENT_IP_HEADER` (and the hop count if needed), then send both forged requests again: each answer must show `configured: true`, `resolvedMatchesExpected: true` and `resolvedIsSpoof: false`. Do not keep the setting if it does not. Naming the header also switches on the admin lockout on that host (below), so a header a client can write would let a stranger lock the owner out.
 6. **Close it.** Let the instant pass or remove the variable. While open, anyone can read which header the application uses and test their own requests against it without meeting a limiter; that is why it is short-lived.
 
 **Admin lockout.** A failed admin Basic-auth attempt spends one attempt from two budgets: 12 per 15 minutes for the client address (`admin-login-ip`) and 6 per 15 minutes for the attempted username (`admin-login-username`). While the address budget is used up, `requireAdmin()` (`lib/auth/admin-guard.ts`) answers 429 to that address whatever it sends, the correct password included, so a locked-out address cannot keep guessing until one guess gets in. The answer is decided before the credentials matter and is the same for a right and a wrong password. It reads the budget with `peekRateLimit()` (`lib/security/rate-limit.ts`), which spends nothing, so a signed-in operator can make any number of requests. The bound is per address: an attacker with many addresses gets 12 guesses from each.

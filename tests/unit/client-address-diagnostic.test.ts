@@ -82,6 +82,19 @@ describe('describeClientAddressHeaders', () => {
     expect(report).toMatchObject({ resolved: 'address', resolvedMatchesExpected: false, resolvedIsSpoof: true });
   });
 
+  it('shows a forged entry to the right of the real one when repeated header lines were joined', () => {
+    // An edge that cleans only the first x-forwarded-for line: the runtime joins the lines, and the
+    // entry the application would trust (the rightmost) is the client's.
+    const report = describe_(
+      { 'x-forwarded-for': `${SPOOF}, ${VISITOR}, ${SPOOF}`, 'cf-connecting-ip': `${VISITOR}, ${SPOOF}` },
+      {},
+      { expected: VISITOR, spoof: SPOOF }
+    );
+    expect(report.headers['x-forwarded-for']).toMatchObject({ entries: 3, expectedEntryFromRight: 2, spoofEntryFromRight: 1 });
+    expect(report.headers['cf-connecting-ip']).toMatchObject({ entries: 2, validAddress: false, matchesExpected: false, spoofEntryFromRight: 1 });
+    expect(report.resolvedIsSpoof).toBe(true);
+  });
+
   it('flags a single-address header that carries a list or a non-address', () => {
     const report = describe_({ 'cf-connecting-ip': `${SPOOF}, ${VISITOR}`, 'x-real-ip': 'proxy.internal' });
     expect(report.headers['cf-connecting-ip']).toMatchObject({ entries: 2, validAddress: false });
