@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.35.0](https://github.com/hatan4ik/simdream-website/compare/v1.34.2...v1.35.0) (2026-11-27)
+
+
+### Features
+
+* **security:** throttle the two Wix checkout starts per client address ([#348](https://github.com/hatan4ik/simdream-website/issues/348)) ([5f38dce](https://github.com/hatan4ik/simdream-website/commit/5f38dce3bd897b147daa2a4e93dfedd7aabe49ec))
+
+
+### Bug Fixes
+
+* **security:** refuse a locked-out address even with the correct admin password ([#347](https://github.com/hatan4ik/simdream-website/issues/347)) ([7432a9c](https://github.com/hatan4ik/simdream-website/commit/7432a9cfcee58e1e0397fed82cc2033cf1471663))
+
+
+### Performance Improvements
+
+* **auth:** ask Supabase only for a token that can be a Supabase token ([#350](https://github.com/hatan4ik/simdream-website/issues/350)) ([5af2e04](https://github.com/hatan4ik/simdream-website/commit/5af2e04db887165d8762d62f0eaa523872e29c0e))
+* **db:** read one day's bookings for per-day questions ([#345](https://github.com/hatan4ik/simdream-website/issues/345)) ([7202824](https://github.com/hatan4ik/simdream-website/commit/7202824b896b25619e9b397bd53fcc6dc3f16869))
+
 ## [1.34.2](https://github.com/hatan4ik/simdream-website/compare/v1.34.1...v1.34.2) (2026-11-26)
 
 
