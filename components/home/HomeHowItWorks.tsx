@@ -16,6 +16,8 @@ export function HomeHowItWorks() {
       desc: hiw.step1Desc,
       icon: Compass,
       tag: 'BRIEFING ROOM',
+      wpt: 'WPT-01',
+      pfdBadge: 'NAV / PRE-FLT',
     },
     {
       num: hiw.step2Number,
@@ -23,6 +25,8 @@ export function HomeHowItWorks() {
       desc: hiw.step2Desc,
       icon: Gauge,
       tag: 'LEAP-1B COCKPIT',
+      wpt: 'WPT-02',
+      pfdBadge: 'CMD / ACTIVE',
     },
     {
       num: hiw.step3Number,
@@ -30,6 +34,8 @@ export function HomeHowItWorks() {
       desc: hiw.step3Desc,
       icon: MessageSquare,
       tag: 'PILOT DEBRIEF',
+      wpt: 'WPT-03',
+      pfdBadge: 'LOG / COMPLETE',
     },
   ];
 
@@ -52,15 +58,15 @@ export function HomeHowItWorks() {
 
         {/* Connected Flight Plan Sequence */}
         <div className="relative">
-          {/* Desktop connecting airway flight track line */}
+          {/* Desktop connecting airway flight track line with FMC cerulean/orange gradient */}
           <div
-            className="hidden md:block absolute top-[36px] left-[12%] right-[12%] h-[2px] bg-gradient-to-r from-sky-500/20 via-sky-400/50 to-sky-500/20 pointer-events-none"
+            className="hidden md:block absolute top-[36px] left-[10%] right-[10%] h-[2px] bg-gradient-to-r from-sky-500/30 via-orange-500/40 to-sky-500/30 pointer-events-none"
             aria-hidden="true"
           />
 
           {/* Steps Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-10 relative">
-            {steps.map((step, idx) => {
+            {steps.map((step) => {
               const Icon = step.icon;
               return (
                 <div
@@ -69,27 +75,39 @@ export function HomeHowItWorks() {
                 >
                   {/* Waypoint Indicator Node */}
                   <div className="flex items-center gap-3 relative z-10">
-                    <div className="w-[72px] h-[72px] rounded-2xl bg-slate-900/90 border border-sky-500/30 group-hover:border-sky-400/80 flex items-center justify-center text-sky-400 shadow-glow transition-all duration-300 group-hover:scale-105">
+                    <div className="w-[72px] h-[72px] rounded-2xl bg-slate-900/90 border border-sky-500/30 group-hover:border-orange-500/70 flex items-center justify-center text-sky-400 group-hover:text-orange-400 shadow-glow transition-all duration-300 group-hover:scale-105">
                       <Icon className="w-8 h-8" />
                     </div>
-                    <div className="flex flex-col items-start">
-                      <span
-                        className="text-2xl font-black font-mono text-sky-400 tracking-tight"
-                        aria-hidden="true"
-                      >
-                        {step.num}
-                      </span>
-                      <span
-                        className="text-[10px] font-mono tracking-widest text-slate-400 uppercase font-semibold"
-                        aria-hidden="true"
-                      >
-                        {step.tag}
-                      </span>
+                    <div className="flex flex-col items-start gap-1">
+                      <div className="flex items-center gap-1.5 border border-slate-800 bg-slate-950/70 px-2 py-0.5 rounded">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" aria-hidden="true" />
+                        <span className="text-[10px] font-mono font-bold text-slate-300 tracking-wider">
+                          {step.wpt}
+                        </span>
+                      </div>
+                      <div className="flex items-baseline gap-2">
+                        <span
+                          className="text-2xl font-black font-mono tabular-nums text-sky-400 group-hover:text-orange-400 tracking-tight transition-colors"
+                          aria-hidden="true"
+                        >
+                          {step.num}
+                        </span>
+                        <span
+                          className="text-[10px] font-mono tracking-widest text-slate-400 uppercase font-semibold"
+                          aria-hidden="true"
+                        >
+                          {step.tag}
+                        </span>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Waypoint Content Card */}
-                  <div className="w-full bg-slate-900/50 border border-slate-800/80 rounded-2xl p-6 space-y-3 transition-colors duration-200 group-hover:border-slate-700/80">
+                  {/* Waypoint Content Card with motion-safe hover elevation */}
+                  <div className="w-full bg-slate-900/50 border border-slate-800/80 rounded-2xl p-6 space-y-3 transition-all duration-300 group-hover:border-slate-700/80 motion-safe:group-hover:-translate-y-1">
+                    <div className="flex items-center justify-between text-[10px] font-mono text-slate-500 uppercase tracking-wider">
+                      <span>BOEING PFD STAGE</span>
+                      <span className="text-sky-400/80 font-bold">{step.pfdBadge}</span>
+                    </div>
                     <h3 className="text-xl font-bold text-white group-hover:text-sky-300 transition-colors">
                       {step.title}
                     </h3>

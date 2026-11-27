@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 
 export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   glow?: boolean;
-  borderAccent?: 'sky' | 'amber' | 'emerald' | 'purple' | 'none';
+  borderAccent?: 'sky' | 'amber' | 'emerald' | 'purple' | 'orange' | 'none';
 }
 
 export function Card({ className, glow = false, borderAccent = 'none', children, ...props }: CardProps) {
@@ -13,6 +13,7 @@ export function Card({ className, glow = false, borderAccent = 'none', children,
     amber: 'border-amber-500/40 hover:border-amber-400/80',
     emerald: 'border-emerald-500/40 hover:border-emerald-400/80',
     purple: 'border-purple-500/40 hover:border-purple-400/80',
+    orange: 'border-orange-500/50 hover:border-orange-400/80',
   };
 
   return (
