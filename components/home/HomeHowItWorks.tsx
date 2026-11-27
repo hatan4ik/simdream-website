@@ -106,7 +106,7 @@ export function HomeHowItWorks() {
                   <div className="w-full bg-slate-900/50 border border-slate-800/80 rounded-2xl p-6 space-y-3 transition-all duration-300 group-hover:border-slate-700/80 motion-safe:group-hover:-translate-y-1">
                     <div className="flex items-center justify-between text-[10px] font-mono text-slate-500 uppercase tracking-wider">
                       <span>BOEING PFD STAGE</span>
-                      <span className="text-sky-400/80 font-bold">{step.pfdBadge}</span>
+                      <span className="text-sky-400 font-bold">{step.pfdBadge}</span>
                     </div>
                     <h3 className="text-xl font-bold text-white group-hover:text-sky-300 transition-colors">
                       {step.title}
