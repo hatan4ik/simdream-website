@@ -2,14 +2,14 @@ import { spawnSync } from 'node:child_process';
 import { chmodSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 
 // Two gates refuse to continue unless a successful `Verify` run exists for an exact `main` commit:
 // the publish gate in `wix-release.yml` and the release-lineage gate in `ci.yml`. Both read GitHub's
 // list of workflow runs. On 2026-11-27 that list, narrowed with `status=completed`, left out the
-// completed, successful Verify run of release commit 0336b1d for more than eight minutes while the
+// completed, successful Verify run of release commit 0336b1d for more than ten minutes while the
 // same list without that filter returned it, and the publish of v1.36.0 failed. The run's own
-// `conclusion` is the fact both gates need, so neither may depend on that list filter.
+// `status` and `conclusion` are the facts both gates need, so neither may depend on that list filter.
 
 const wixReleaseWorkflow = readFileSync('.github/workflows/wix-release.yml', 'utf8');
 const ciWorkflow = readFileSync('.github/workflows/ci.yml', 'utf8');
@@ -69,9 +69,8 @@ function runGate(runs: Run[]) {
       "appendFileSync(join(__dirname, 'requests.log'), `${target}\\n`);",
       "const query = new URL(`https://api.github.test/${target}`).searchParams;",
       "const all = JSON.parse(readFileSync(join(__dirname, 'runs.json'), 'utf8'));",
+      '// Deliberately returns runs of other commits and events: the gate must refuse them itself.',
       'const listed = all.filter((run) => {',
-      "  if (query.get('head_sha') && run.head_sha !== query.get('head_sha')) return false;",
-      "  if (query.get('event') && run.event !== query.get('event')) return false;",
       "  const status = query.get('status');",
       '  if (!status) return true;',
       '  if (run.missingFromStatusFilteredList) return false;',
@@ -102,6 +101,11 @@ function runGate(runs: Run[]) {
   };
 }
 
+beforeAll(() => {
+  const jq = spawnSync('jq', ['--version'], { encoding: 'utf8' });
+  if (jq.status !== 0) throw new Error('These tests run the workflow gates with jq, as GitHub runners do; install jq.');
+});
+
 afterEach(() => {
   for (const root of workspaces.splice(0)) rmSync(root, { recursive: true, force: true });
 });
@@ -115,6 +119,7 @@ describe('publish gate: a successful Verify run for the exact release commit', (
     expect(gate.requests).toHaveLength(1);
     expect(gate.requests[0]).toContain(`repos/${REPOSITORY}/actions/runs?`);
     expect(gate.requests[0]).toContain(`head_sha=${RELEASE_SHA}`);
+    expect(gate.requests[0]).toContain('event=push');
   });
 
   it('accepts the release when the status-filtered list leaves the successful run out', () => {
@@ -126,6 +131,7 @@ describe('publish gate: a successful Verify run for the exact release commit', (
   it.each([
     ['is still running', verifyRun({ status: 'in_progress', conclusion: null })],
     ['is queued', verifyRun({ status: 'queued', conclusion: null })],
+    ['is being re-run after an earlier success', verifyRun({ status: 'in_progress' })],
     ['failed', verifyRun({ conclusion: 'failure' })],
     ['was cancelled', verifyRun({ conclusion: 'cancelled' })],
     ['was skipped', verifyRun({ conclusion: 'skipped' })],
@@ -160,9 +166,39 @@ describe('Verify attestation queries', () => {
     }
   });
 
-  it('still require the run to have concluded successfully on a push to main in the lineage gate', () => {
-    expect(ciWorkflow).toContain(
-      'select(.name == "Verify" and .conclusion == "success" and .event == "push" and .head_branch == "main")'
-    );
+  it('ask GitHub for the exact commit in both gates', () => {
+    expect(queries(wixReleaseWorkflow)[0]).toContain('head_sha=${release_sha}');
+    expect(queries(ciWorkflow)[0]).toContain('head_sha=${base_sha}');
+  });
+});
+
+describe('release-lineage gate: a successful Verify run for the verified parent', () => {
+  // The lineage gate hands its selection to `gh api --jq`. Its expression is run here with `jq` on
+  // the same run records. It does not compare the commit itself: it relies on the `head_sha` the
+  // request carries, which the test above pins.
+  const expression = ciWorkflow.match(/actions\/runs\?event=push&head_sha=\$\{base_sha\}&per_page=100" \\\n\s+--jq '([^']+)'/)?.[1];
+
+  function select(runs: Run[]) {
+    if (!expression) throw new Error('Cannot find the lineage gate selection in ci.yml');
+    const result = spawnSync('jq', ['-r', expression], { encoding: 'utf8', input: JSON.stringify({ workflow_runs: runs }) });
+    if (result.status !== 0) throw new Error(`jq failed: ${result.stderr}`);
+    return result.stdout.trim();
+  }
+
+  it('selects the successful run', () => {
+    expect(select([codeqlRun, verifyRun()])).toBe('https://github.com/example/repo/actions/runs/1');
+  });
+
+  it.each([
+    ['is still running', verifyRun({ status: 'in_progress', conclusion: null })],
+    ['is being re-run after an earlier success', verifyRun({ status: 'in_progress' })],
+    ['failed', verifyRun({ conclusion: 'failure' })],
+    ['was cancelled', verifyRun({ conclusion: 'cancelled' })],
+    ['waits for approval', verifyRun({ conclusion: 'action_required' })],
+    ['ran for a pull request', verifyRun({ event: 'pull_request' })],
+    ['ran on another branch', verifyRun({ head_branch: 'devel/topic' })],
+    ['belongs to another workflow', verifyRun({ name: 'CodeQL' })],
+  ])('selects nothing when the only Verify run %s', (_case, run) => {
+    expect(select([run])).toBe('');
   });
 });

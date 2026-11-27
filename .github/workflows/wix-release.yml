@@ -72,7 +72,7 @@ jobs:
       # cannot publish an untested tag. The full browser suite is owned by
       # Verify, whose jobs install the pinned Playwright runtimes. The run list
       # is not narrowed with `status=`: GitHub has left a completed, successful
-      # run out of that filtered list; the run's own conclusion decides.
+      # run out of that filtered list; the run's own status and conclusion decide.
       - name: Require a successful Verify run for this exact main commit
         env:
           GH_TOKEN: ${{ github.token }}
@@ -85,6 +85,7 @@ jobs:
                   .workflow_runs[]
                   | select(
                       .name == "Verify" and
+                      .status == "completed" and
                       .conclusion == "success" and
                       .event == "push" and
                       .head_branch == "main" and
