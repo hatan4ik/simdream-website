@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useId, useState } from 'react';
+import { useId, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { getLocalizedAddons, getLocalizedPackages } from '@/lib/i18n/translations';
@@ -239,10 +239,8 @@ function BookContent() {
 }
 
 export default function BookPage() {
-  return (
-    // Fallback reserves viewport height to avoid footer CLS.
-    <Suspense fallback={<BookingLoadingFallback />}>
-      <BookContent />
-    </Suspense>
-  );
+  // No Suspense boundary on purpose. The layout's `connection()` makes this route per-request, so
+  // `useSearchParams()` needs none, and React's server renderer sends any boundary of this size as a
+  // later chunk behind its fallback: the booking frame would again miss the first paint.
+  return <BookContent />;
 }

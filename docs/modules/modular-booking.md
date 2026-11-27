@@ -173,3 +173,40 @@ full `test:all`, and the Linux visual baselines (they need the Docker image). Th
 step of `/book`; the pilot-manifest step is covered by the functional e2e, a11y and usability specs above plus a
 source comparison (every class token, `data-*` attribute, `role`, `aria-*` attribute and `t.booking.*` copy key of the
 old page is present in the new files), not by a pixel baseline.
+
+## First paint (2026-11-27)
+
+`/book` used to serve only the "initializing" placeholder: the whole frame was gated on the browser's Israel date
+(`useClientValue`, null on the server), so the step heading, the calendar and the durations painted only after every
+script had loaded.
+
+Now:
+
+- `app/(public)/book/layout.tsx` awaits `connection()` and provides `israelToday()` through `ServerIsraelTodayProvider`
+  (`components/booking/ServerIsraelToday.tsx`). The reading is per request; a prerender cannot freeze it.
+- `useBookingSchedule` hydrates from that value and switches to the browser's own Israel date after hydration, which
+  also covers a page served just before Israel's midnight.
+- The server never reads availability. `/api/slots` is still fetched by the browser, uncached. `loadingSlots` is true
+  until the first request has been made, so the server-rendered frame shows the loading grid; the calendar hides the
+  open-slot count while it is loading and knows of none.
+- `app/(public)/book/page.tsx` has no `<Suspense>` wrapper. Nothing in it suspends, and React 19.3's server renderer
+  sends any completed boundary over 500 bytes as a separate chunk behind its fallback once the response passes
+  12.8 KB, which put the frame behind the placeholder again and hid it without scripts.
+
+Measured on an emulated phone (390 px wide, CPU four times slower, 1.6 Mbit/s, cold cache, median of 3, two alternating
+rounds, local production builds without Wix or Supabase variables):
+
+| `/book` | before | after |
+| --- | --- | --- |
+| Largest paint | 4.8 to 5.0 s | 1.25 to 1.27 s |
+| Blocking time | 0.9 to 1.1 s | 0.46 to 0.51 s |
+| First paint | 0.84 to 0.94 s | 1.16 to 1.22 s |
+| Scripts over the wire | 564 KiB | 566 KiB |
+
+First paint is later because the first paint is now the whole frame, not a one-line placeholder. Not changed: the slots
+request still starts only after hydration, so open departures appear when they did before. Not measured on the deployed
+Worker.
+
+Tests: `tests/unit/booking-first-paint.test.ts` (server snapshot, schedule defaults, the loading frame, the per-request
+layout) and `tests/e2e/booking-first-paint.spec.ts` (served HTML, the page with scripts disabled, hydration in two far
+timezones, a browser already on the next Israel day).

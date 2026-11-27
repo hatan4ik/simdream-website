@@ -466,7 +466,7 @@ export function KantorovichCalendarScheduler({
               <div className="text-xs font-mono text-slate-300 flex items-center gap-1.5 min-w-0">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
                 <span className="font-bold text-white truncate">{formatCalendarDate(selectedDate, language)}</span>
-                <span className="text-emerald-400 shrink-0">• {openSlotCount} {copy.availableCount}</span>
+                {!(loading && openSlotCount === 0) && <span className="text-emerald-400 shrink-0">• {openSlotCount} {copy.availableCount}</span>}
               </div>
               <button
                 type="button"
@@ -574,7 +574,7 @@ export function KantorovichCalendarScheduler({
             </h2>
           </div>
           <span className="text-xs font-mono text-emerald-400">
-            {openSlotCount} {copy.availableCount}
+            {!(loading && openSlotCount === 0) && `${openSlotCount} ${copy.availableCount}`}
           </span>
         </div>
 

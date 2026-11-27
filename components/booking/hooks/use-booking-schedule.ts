@@ -6,6 +6,7 @@ import { addDaysToYmd } from '@/lib/utils';
 import { clampToBookingHorizon } from '@/lib/scheduler/booking-horizon';
 import { israelToday } from '@/lib/scheduler/israel-clock';
 import { useClientValue } from '@/lib/ui/use-client-value';
+import { useServerIsraelToday } from '../ServerIsraelToday';
 import {
   extractSlotList,
   filterMissionCompatibleSlots,
@@ -29,7 +30,9 @@ interface UseBookingScheduleArgs {
  * snaps to the nearest departure if needed, recording `slotAdjustment` so the UI explains the shift.
  */
 export function useBookingSchedule({ selectedPackage, requiredMissionMinutes }: UseBookingScheduleArgs) {
-  const browserIsraelToday = useClientValue(() => israelToday());
+  // The server's reading seeds the first HTML; after hydration the browser's own clock decides, so a
+  // page served just before Israel's midnight moves to the new day by itself.
+  const browserIsraelToday = useClientValue(() => israelToday(), useServerIsraelToday());
   const calendarTodayYmd = browserIsraelToday ?? '';
 
   const [selectedDateOverride, setSelectedDateOverride] = useState<string | null>(null);
@@ -222,7 +225,7 @@ export function useBookingSchedule({ selectedPackage, requiredMissionMinutes }: 
   );
 
   return {
-    /** Israel's business date once the browser supplied it; null while the page hydrates. */
+    /** Israel's business date: the server's reading in the first HTML, the browser's after hydration; null only when no server reading exists. */
     browserIsraelToday,
     calendarTodayYmd,
     selectedDate,
@@ -240,7 +243,8 @@ export function useBookingSchedule({ selectedPackage, requiredMissionMinutes }: 
     durationAvailability,
     /** A live Wix Bookings calendar is the single reservation writer. */
     wixBookingsAuthoritative,
-    loadingSlots,
+    /** Also true before the first request: the server-rendered frame must never report an unknown day as empty. */
+    loadingSlots: loadingSlots || !slotsRequested,
     slotsLoadFailed,
     reloadSlots: () => setSlotsReloadKey((key) => key + 1),
     /** `data-slots-state` of the page root. */
