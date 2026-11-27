@@ -12,20 +12,20 @@
 export const UNKNOWN_CLIENT = 'unknown-client';
 
 /** The headers a deployer may name. Only x-forwarded-for is a list; the others carry one address. */
-const CONFIGURABLE_HEADERS = ['cf-connecting-ip', 'x-vercel-forwarded-for', 'x-real-ip', 'x-forwarded-for'] as const;
-type ClientAddressHeader = (typeof CONFIGURABLE_HEADERS)[number];
+export const CONFIGURABLE_HEADERS = ['cf-connecting-ip', 'x-vercel-forwarded-for', 'x-real-ip', 'x-forwarded-for'] as const;
+export type ClientAddressHeader = (typeof CONFIGURABLE_HEADERS)[number];
 
 /** 1 = the rightmost x-forwarded-for entry, the one the nearest proxy appended. */
 const DEFAULT_TRUSTED_PROXY_HOPS = 1;
 const TRUSTED_PROXY_HOPS_FORMAT = /^[1-5]$/;
 
 /** The address shape check: hex digits, dots and colons only, so host names, brackets and lists fail. */
-const ADDRESS_FORMAT = /^[0-9a-f:.]{3,64}$/i;
+export const ADDRESS_FORMAT = /^[0-9a-f:.]{3,64}$/i;
 
 type Environment = Readonly<Record<string, string | undefined>>;
 
 /** RATE_LIMIT_CLIENT_IP_HEADER when it names an allowed header, else the platform default. */
-function clientAddressHeader(env: Environment): ClientAddressHeader {
+export function clientAddressHeader(env: Environment): ClientAddressHeader {
   const configured = env.RATE_LIMIT_CLIENT_IP_HEADER?.trim().toLowerCase();
   const allowed = CONFIGURABLE_HEADERS.find((header) => header === configured);
   if (allowed) return allowed;

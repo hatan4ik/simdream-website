@@ -197,20 +197,28 @@ Now:
   12.8 KB, which put the frame behind the placeholder again and hid it without scripts.
 
 Measured on an emulated phone (390 px wide, CPU four times slower, 1.6 Mbit/s, cold cache, median of 3, two alternating
-rounds, local production builds without Wix or Supabase variables):
+rounds, local production builds without Wix or Supabase variables; the merged code, read after the slots had loaded):
 
-| `/book` | before | after |
+| Hebrew `/book` | before | after |
 | --- | --- | --- |
-| Largest paint | 4.8 to 5.0 s | 1.25 to 1.27 s |
-| Blocking time | 0.9 to 1.1 s | 0.46 to 0.51 s |
-| First paint | 0.84 to 0.94 s | 1.16 to 1.22 s |
+| Largest paint | 4.84 to 4.93 s | 1.17 to 1.47 s |
+| Blocking time | 1.03 to 1.07 s | 0.47 to 0.53 s |
+| First paint | 0.81 to 0.84 s | 1.17 to 1.47 s |
 | Scripts over the wire | 564 KiB | 566 KiB |
 
-First paint is later because the first paint is now the whole frame, not a one-line placeholder. The gain applies to
-first-time, Hebrew and routed-locale (`/en/book` and the like) visitors. A returning visitor with a saved non-Hebrew
-language on the unprefixed `/book` is still hidden until hydration by the language bootstrap (AGENTS.md section 5.5). Not changed: the slots
-request still starts only after hydration, so open departures appear when they did before. Not measured on the deployed
-Worker.
+First paint is later because the first paint is now the whole frame, not a one-line placeholder.
+
+Who gains, and where the number does not move:
+
+- First-time and Hebrew visitors get the figures above.
+- On a routed locale the frame is also in the first HTML (`/en/book`: heading painted at about 1.3 s), but the
+  **reported** largest paint stayed at 4.8 to 5.1 s for a visitor who has not answered the cookie notice: the notice
+  paragraph, drawn after hydration, is larger than the English heading. See `docs/DECISIONS.md`, Open.
+- A returning visitor with a saved non-Hebrew language on the unprefixed `/book` is still hidden until hydration by the
+  language bootstrap (AGENTS.md section 5.5).
+
+Not changed: the slots request still starts only after hydration, so open departures appear when they did before. Not
+measured on the deployed Worker.
 
 Tests: `tests/unit/booking-first-paint.test.ts` (server snapshot, schedule defaults, the loading frame, the per-request
 layout) and `tests/e2e/booking-first-paint.spec.ts` (served HTML, the page with scripts disabled, hydration in two far
