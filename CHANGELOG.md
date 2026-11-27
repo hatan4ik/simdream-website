@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.37.0](https://github.com/hatan4ik/simdream-website/compare/v1.36.1...v1.37.0) (2026-11-27)
+
+
+### Features
+
+* **home:** upgrade visual hierarchy and telemetry aesthetics with art direction ([#361](https://github.com/hatan4ik/simdream-website/issues/361)) ([2136265](https://github.com/hatan4ik/simdream-website/commit/2136265455535ac82162e46e5211f6148c163e67))
+
 ## [1.36.1](https://github.com/hatan4ik/simdream-website/compare/v1.36.0...v1.36.1) (2026-11-27)
 
 
