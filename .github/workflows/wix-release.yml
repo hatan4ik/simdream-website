@@ -70,19 +70,22 @@ jobs:
       # Release Please only dispatches this workflow after a successful push
       # Verify run. Check that relationship again here so a manual dispatch
       # cannot publish an untested tag. The full browser suite is owned by
-      # Verify, whose jobs install the pinned Playwright runtimes.
+      # Verify, whose jobs install the pinned Playwright runtimes. The run list
+      # is not narrowed with `status=`: GitHub has left a completed, successful
+      # run out of that filtered list; the run's own status and conclusion decide.
       - name: Require a successful Verify run for this exact main commit
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           release_sha="$(git rev-list -n 1 "$RELEASE_TAG")"
           verified_run_url="$(
-            gh api "repos/${GITHUB_REPOSITORY}/actions/runs?event=push&status=completed&head_sha=${release_sha}&per_page=100" \
+            gh api "repos/${GITHUB_REPOSITORY}/actions/runs?event=push&head_sha=${release_sha}&per_page=100" \
               | jq -r --arg sha "$release_sha" '
                 [
                   .workflow_runs[]
                   | select(
                       .name == "Verify" and
+                      .status == "completed" and
                       .conclusion == "success" and
                       .event == "push" and
                       .head_branch == "main" and
