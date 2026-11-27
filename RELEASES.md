@@ -10,6 +10,14 @@
 
 ## Product changes by version
 
+### [v1.36.1](https://github.com/hatan4ik/simdream-website/releases/tag/v1.36.1) — 2026-11-27
+
+#### Bug Fixes
+
+- **release:** attest the Verify run without GitHub's status list filter (#362) (d290733)
+
+Deployment evidence: [GitHub Release](https://github.com/hatan4ik/simdream-website/releases/tag/v1.36.1).
+
 ### [v1.36.0](https://github.com/hatan4ik/simdream-website/releases/tag/v1.36.0) — 2026-11-27
 
 #### Features
