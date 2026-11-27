@@ -42,7 +42,7 @@ function applyContentSecurityPolicy(response: NextResponse, nonce: string): Next
  * a genuine `/admin` request fall through the proxy matcher.
  */
 function isAdminRoute(pathname: string): boolean {
-  let decoded = pathname;
+  let decoded: string;
   try {
     decoded = decodeURIComponent(pathname);
   } catch {

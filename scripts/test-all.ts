@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process';
-import { appendFileSync, existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
+import { appendFileSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 /**
@@ -121,10 +121,11 @@ function junitTotals(path: string): { tests: number; failures: number; skipped: 
 function openKnownDefects(): string[] {
   const ids = new Set<string>();
   const walk = (dir: string) => {
-    for (const entry of readdirSync(dir)) {
-      const path = join(dir, entry);
-      if (statSync(path).isDirectory()) walk(path);
-      else if (/\.(ts|tsx)$/.test(entry)) {
+    // `withFileTypes` reads each entry's kind with the listing, so no separate check precedes the read.
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const path = join(dir, entry.name);
+      if (entry.isDirectory()) walk(path);
+      else if (/\.(ts|tsx)$/.test(entry.name)) {
         const source = readFileSync(path, 'utf8');
         // The window spans an it.fails.each table; comments about fixed defects do not say KNOWN-DEFECT.
         for (const [, id] of source.matchAll(/(?:it\.fails|test\.fail)[\s\S]{0,600}?KNOWN-DEFECT ([A-Z0-9]+-\d+)/g)) ids.add(id);
