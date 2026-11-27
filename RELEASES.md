@@ -10,6 +10,14 @@
 
 ## Product changes by version
 
+### [v1.35.2](https://github.com/hatan4ik/simdream-website/releases/tag/v1.35.2) — 2026-11-27
+
+#### Performance Improvements
+
+- **book:** server-render the first booking step instead of a placeholder (#356) (ed1b0d4)
+
+Deployment evidence: [GitHub Release](https://github.com/hatan4ik/simdream-website/releases/tag/v1.35.2).
+
 ### [v1.35.1](https://github.com/hatan4ik/simdream-website/releases/tag/v1.35.1) — 2026-11-27
 
 #### Performance Improvements
