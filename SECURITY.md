@@ -51,6 +51,14 @@ Every other forwarding header on the request is ignored, also when the chosen on
 
 Getting it wrong has two failure modes. A header the edge does not overwrite, or a hop count that is too high, lets the client choose its own address and rotate past every limit. A hop count that is too low picks an inner proxy's address, so every visitor shares one bucket and legitimate traffic is throttled; a header the edge never sends turns every request into `unknown-client`, with the same effect.
 
+**Finding the header on a host.** When the edge is not one of the documented cases above (the Wix-hosted Worker is not: Wix documents no client-address header), observe it instead of guessing:
+
+1. Set `CLIENT_ADDRESS_DIAGNOSTIC=1` on that deployment (on the Wix site: `wix env set --key CLIENT_ADDRESS_DIAGNOSTIC --value 1`). `GET /api/diagnostics/client-address` then answers; with any other value it is a 404 with an empty body. That it starts answering also shows the variable reaches the running application.
+2. Request it with your own public address in the `x-diagnostic-expect` header. For each of the four headers the answer gives `present`, `entries`, `validAddress`, `matchesExpected` and, for a list, `expectedEntryFromRight` (the value `RATE_LIMIT_TRUSTED_PROXY_HOPS` would need). It never returns a header value.
+3. Repeat the request while sending a false value in the candidate header yourself. The header is trustworthy only if `matchesExpected` stays true (the edge overwrote your value) or, for `x-forwarded-for`, your false entry lands to the left of the expected one.
+4. Set `RATE_LIMIT_CLIENT_IP_HEADER` (and the hop count if needed), request again and check `configured: true`, `resolved: "address"` and `resolvedMatchesExpected: true`.
+5. Remove `CLIENT_ADDRESS_DIAGNOSTIC`. The route is for the observation, not for monitoring.
+
 **Admin lockout.** A failed admin Basic-auth attempt spends one attempt from two budgets: 12 per 15 minutes for the client address (`admin-login-ip`) and 6 per 15 minutes for the attempted username (`admin-login-username`). While the address budget is used up, `requireAdmin()` (`lib/auth/admin-guard.ts`) answers 429 to that address whatever it sends, the correct password included, so a locked-out address cannot keep guessing until one guess gets in. The answer is decided before the credentials matter and is the same for a right and a wrong password. It reads the budget with `peekRateLimit()` (`lib/security/rate-limit.ts`), which spends nothing, so a signed-in operator can make any number of requests. The bound is per address: an attacker with many addresses gets 12 guesses from each.
 
 What limits the ways it can be turned against the owner:
