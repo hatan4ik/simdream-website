@@ -10,6 +10,23 @@
 
 ## Product changes by version
 
+### [v1.35.0](https://github.com/hatan4ik/simdream-website/releases/tag/v1.35.0) — 2026-11-27
+
+#### Features
+
+- **security:** throttle the two Wix checkout starts per client address (#348) (5f38dce)
+
+#### Bug Fixes
+
+- **security:** refuse a locked-out address even with the correct admin password (#347) (7432a9c)
+
+#### Performance Improvements
+
+- **auth:** ask Supabase only for a token that can be a Supabase token (#350) (5af2e04)
+- **db:** read one day's bookings for per-day questions (#345) (7202824)
+
+Deployment evidence: [GitHub Release](https://github.com/hatan4ik/simdream-website/releases/tag/v1.35.0).
+
 ### [v1.34.2](https://github.com/hatan4ik/simdream-website/releases/tag/v1.34.2) — 2026-11-26
 
 #### Performance Improvements
