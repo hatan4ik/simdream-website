@@ -853,6 +853,14 @@ html[data-ui="brand"] .text-orange-400,
 html[data-ui="brand"] .text-orange-500 {
   color: #cb3200 !important;
 }
+html[data-ui="brand"] .bg-orange-500\/10,
+html[data-ui="brand"] .bg-orange-500\/15 {
+  background-color: #fff7ed !important;
+}
+html[data-ui="brand"] .border-orange-500\/30,
+html[data-ui="brand"] .border-orange-500\/40 {
+  border-color: #fed7aa !important;
+}
 
 /* Status Accents (Emerald / Amber / Red / Purple) in Daylight */
 html[data-ui="brand"] .text-emerald-300,
