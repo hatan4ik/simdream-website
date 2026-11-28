@@ -188,7 +188,7 @@ test('publishes the official social profiles on the customer story page', async 
 
   // Scoped to the page content: the footer carries the same channels on every page.
   const story = page.getByRole('main');
-  await expect(story.getByRole('link', { name: 'Instagram' })).toHaveAttribute(
+  await expect(story.getByRole('link', { name: 'Instagram', exact: true })).toHaveAttribute(
     'href',
     'https://www.instagram.com/simdream_israel/'
   );
@@ -196,7 +196,7 @@ test('publishes the official social profiles on the customer story page', async 
     'href',
     'https://www.facebook.com/Sim-Dream-Israel-104268755679413'
   );
-  await expect(story.getByRole('link', { name: 'YouTube' })).toHaveAttribute(
+  await expect(story.getByRole('link', { name: 'YouTube', exact: true })).toHaveAttribute(
     'href',
     'https://www.youtube.com/@SimDreamIsrael'
   );
