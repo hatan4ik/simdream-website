@@ -6,6 +6,8 @@ import { waitUntilInteractive } from './hydration';
 const DRAWER_BREAKPOINT_PX = 1280;
 /** Tailwind `sm`: below it the compact theme control lives inside the drawer. */
 const DRAWER_CONTROLS_BREAKPOINT_PX = 640;
+/** How many times the desktop flyout lookup goes round the triggers before it gives up. */
+const FLYOUT_LOOKUP_PASSES = 3;
 
 const NATIVE_LANGUAGE_NAMES: Record<Language, string> = {
   en: 'English',
@@ -85,23 +87,29 @@ export class SiteChrome {
     } else if (!(await link.isVisible())) {
       const triggers = this.navbar.locator('button[data-navbar-menu-trigger]');
       // Desktop flyouts deliberately open on pointer entry. Follow the same customer gesture here;
-      // keyboard semantics are covered by the dedicated accessibility suite. Under CPU load (a slow CI
-      // runner) WebKit sometimes never delivers the hover, or renders the panel after the short wait, so
-      // the whole open-and-find sequence is retried instead of asserted once.
-      await expect(async () => {
-        for (let index = 0; index < (await triggers.count()); index += 1) {
+      // keyboard semantics are covered by the dedicated accessibility suite. On a loaded CI runner
+      // WebKit needs seconds for each hover and sometimes never delivers one, so the lookup is
+      // bounded by passes over the triggers, not by a clock: a slow pointer only makes it slower,
+      // and a lost hover costs one more pass (tests/e2e/site-chrome-flyout.spec.ts).
+      let found = false;
+      for (let pass = 0; pass < FLYOUT_LOOKUP_PASSES && !found; pass += 1) {
+        for (let index = 0; index < (await triggers.count()) && !found; index += 1) {
           const trigger = triggers.nth(index);
           await waitUntilInteractive(trigger);
           await trigger.hover();
-          if ((await trigger.getAttribute('aria-expanded')) !== 'true') continue;
-          const destinationAppeared = await link
-            .waitFor({ state: 'visible', timeout: 2_000 })
-            .then(() => true)
-            .catch(() => false);
-          if (destinationAppeared) return;
+          // The hover's state update commits after the event, so wait for it instead of reading once.
+          const opened = await expect(trigger)
+            .toHaveAttribute('aria-expanded', 'true', { timeout: 1_500 })
+            .then(
+              () => true,
+              () => false
+            );
+          // The expanded trigger and its panel are one state and one commit (activeDesktopMenu),
+          // so an open flyout without the link means "not in this flyout": no further wait.
+          if (opened) found = await link.isVisible();
         }
-        throw new Error(`"${name}" did not appear in any header flyout`);
-      }).toPass({ timeout: 20_000, intervals: [250, 500, 1_000] });
+      }
+      if (!found) throw new Error(`"${name}" did not appear in any header flyout in ${FLYOUT_LOOKUP_PASSES} passes`);
       await expect(link).toBeVisible();
     }
     return link;
