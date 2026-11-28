@@ -239,6 +239,45 @@ test.describe('home route gate: cockpit readouts', () => {
   }
 });
 
+test.describe('home route gate: corner tint', () => {
+  // The tint sits in the anchor's inline-end top corner and fades toward the middle of the card. Its
+  // curve and its fade are physical properties, so both are mirrored for right-to-left pages;
+  // unmirrored, the tint ends in a hard straight edge inside the card.
+  for (const language of ['en', 'he', 'ar'] as const) {
+    test(`${language}: the tint curves and fades toward the inside of the card`, async ({ page, baseURL }) => {
+      await openHome(page, baseURL, language);
+      const tints = await page.locator(`${GATE} [data-route-backdrop]`).evaluateAll((all) =>
+        all.map((tint) => {
+          const style = getComputedStyle(tint);
+          const box = tint.getBoundingClientRect();
+          const card = (tint.parentElement as Element).getBoundingClientRect();
+          return {
+            left: parseFloat(style.borderBottomLeftRadius),
+            right: parseFloat(style.borderBottomRightRadius),
+            image: style.backgroundImage,
+            fromCardLeft: box.left - card.left,
+            fromCardRight: card.right - box.right,
+          };
+        })
+      );
+      expect(tints).toHaveLength(2);
+      for (const tint of tints) {
+        if (RTL_LANGUAGES.includes(language)) {
+          expect(tint.right, 'curved on the inner (right) side').toBeGreaterThan(0);
+          expect(tint.left, 'square on the outer (left) side').toBe(0);
+          expect(tint.image).toMatch(/to (right bottom|bottom right)/);
+          expect(tint.fromCardLeft, 'sits in the left (inline-end) corner').toBeLessThanOrEqual(2);
+        } else {
+          expect(tint.left, 'curved on the inner (left) side').toBeGreaterThan(0);
+          expect(tint.right, 'square on the outer (right) side').toBe(0);
+          expect(tint.image).toMatch(/to (left bottom|bottom left)/);
+          expect(tint.fromCardRight, 'sits in the right (inline-end) corner').toBeLessThanOrEqual(2);
+        }
+      }
+    });
+  }
+});
+
 test.describe('home route gate: themes and tones (axe, WCAG 2.x A/AA)', () => {
   const CASES: readonly { name: string; theme: UiTheme; tone?: 'classic' | 'cobalt' | 'squadron' }[] = [
     { name: 'Classic Night', theme: 'cockpit', tone: 'classic' },

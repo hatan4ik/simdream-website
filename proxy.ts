@@ -17,6 +17,9 @@ function createContentSecurityPolicy(nonce: string): string {
     // Wix media host that serves every blog cover in lib/data/blog-posts.json (the 39
     // migrated articles). tests/unit/seo-integrity.test.ts keeps the two lists in step.
     "img-src 'self' data: blob: https://lh3.googleusercontent.com https://static.wixstatic.com",
+    // Approved short-form marketing clips use Wix's dedicated video CDN. Keep this
+    // narrower than a generic media wildcard so the registry and CSP agree.
+    "media-src 'self' https://video.wixstatic.com",
     "font-src 'self' data:",
     // The browser-side Wix Headless client mints its anonymous visitor token
     // and calls Bookings/Cart V2 at www.wixapis.com, while @wix/members calls

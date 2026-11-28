@@ -77,7 +77,7 @@ export function HomeWhyUs() {
   ];
 
   return (
-    <section className="py-16 sm:py-24 px-4 sm:px-6 lg:px-8 bg-slate-950 border-t border-b border-slate-900">
+    <section data-home-why-us className="py-16 sm:py-24 px-4 sm:px-6 lg:px-8 bg-slate-950 border-t border-b border-slate-900">
       <div className="max-w-7xl mx-auto space-y-12 sm:space-y-16">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto space-y-4">
@@ -99,6 +99,7 @@ export function HomeWhyUs() {
               return (
                 <Card
                   key={idx}
+                  data-why-card
                   glow
                   borderAccent={pillar.accent}
                   className="p-8 space-y-6 flex flex-col justify-between relative overflow-hidden"
@@ -118,18 +119,6 @@ export function HomeWhyUs() {
                     <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
                       {pillar.desc}
                     </p>
-
-                    {/* Cockpit Visual Anchor for Pillar 1 (Boeing 737 LEAP-1B) */}
-                    {idx === 0 && (
-                      <div className="relative h-44 rounded-xl overflow-hidden border border-sky-500/30 group/img my-2">
-                        <img
-                          src="/gift-cards/moonlight.webp"
-                          alt="Boeing 737 LEAP-1B motorized flight deck"
-                          className="w-full h-full object-cover object-center group-hover/img:scale-105 transition-transform duration-500"
-                          loading="lazy"
-                        />
-                      </div>
-                    )}
                   </div>
                   <ul className="text-xs sm:text-sm font-mono text-slate-300 space-y-2 pt-4 border-t border-slate-800">
                     {pillar.points.map((point, pIdx) => (
@@ -151,6 +140,7 @@ export function HomeWhyUs() {
               return (
                 <Card
                   key={idx}
+                  data-why-card
                   glow
                   borderAccent={pillar.accent}
                   className="p-6 space-y-4 flex flex-col justify-between"
@@ -168,18 +158,6 @@ export function HomeWhyUs() {
                     <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
                       {pillar.desc}
                     </p>
-
-                    {/* Runway Visual Anchor for Pillar 3 (24,000+ Airports) */}
-                    {idx === 0 && (
-                      <div className="relative h-28 rounded-xl overflow-hidden border border-amber-500/30 group/img my-1">
-                        <img
-                          src="/gift-cards/skyline.webp"
-                          alt="24,000+ global airports and approaches"
-                          className="w-full h-full object-cover object-center group-hover/img:scale-105 transition-transform duration-500"
-                          loading="lazy"
-                        />
-                      </div>
-                    )}
                   </div>
                   <ul className="text-xs font-mono text-slate-300 space-y-1.5 pt-3 border-t border-slate-800">
                     {pillar.points.map((point, pIdx) => (

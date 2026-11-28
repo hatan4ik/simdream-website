@@ -17,7 +17,7 @@ export function HomeFeaturedPackages() {
     .slice(0, 3);
 
   return (
-    <section className="py-16 sm:py-24 px-4 sm:px-6 lg:px-8 bg-aviation-darkest">
+    <section data-home-packages className="py-16 sm:py-24 px-4 sm:px-6 lg:px-8 bg-aviation-darkest">
       <div className="max-w-7xl mx-auto space-y-12 sm:space-y-16">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
@@ -46,33 +46,29 @@ export function HomeFeaturedPackages() {
             return (
               <Card
                 key={pkg.id}
+                data-package-card
                 glow={isFlagship}
                 borderAccent={isFlagship ? 'orange' : 'none'}
                 className={`flex flex-col justify-between relative overflow-hidden transition-all duration-200 ${
                   isFlagship
-                    ? 'border-orange-500/80 ring-2 ring-orange-500/30 bg-slate-900/90 shadow-2xl scale-[1.02] md:scale-105 z-10'
+                    ? 'border-orange-500/80 ring-2 ring-orange-500/30 bg-slate-900/90 shadow-2xl'
                     : 'border-slate-800/80 bg-slate-900/50 hover:border-slate-700/80'
                 }`}
               >
-                {pkg.badge && (
-                  <div className="absolute top-4 right-4 rtl:right-auto rtl:left-4 z-10">
-                    <Badge variant={isFlagship ? 'orange' : 'slate'}>{pkg.badge}</Badge>
-                  </div>
-                )}
-
                 <div className="space-y-5 p-2">
+                  {/* The badge has its own row, so it cannot sit on the duration line or the title in any
+                      language. From `md` the row reserves two badge lines, so a card whose badge wraps to
+                      two lines (or has none) keeps its duration line level with its neighbours. */}
+                  <div data-package-badge className="flex justify-end items-start min-h-7 md:min-h-[2.375rem]">
+                    {pkg.badge && <Badge variant={isFlagship ? 'orange' : 'slate'}>{pkg.badge}</Badge>}
+                  </div>
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between">
-                      <span className={`text-xs font-mono font-bold uppercase tracking-wider ${
+                      <span data-package-eyebrow className={`text-xs font-mono font-bold uppercase tracking-wider ${
                         isFlagship ? 'text-orange-400' : 'text-sky-400'
                       }`}>
                         {pkg.durationMinutes} {t.experiences.minutesTime}
                       </span>
-                      {isFlagship && (
-                        <span className="text-[10px] font-mono uppercase tracking-widest text-slate-400 font-semibold border border-orange-500/30 bg-orange-500/10 px-2 py-0.5 rounded">
-                          FLAGSHIP
-                        </span>
-                      )}
                     </div>
                     <h3 className="text-2xl font-bold text-white tracking-tight">{pkg.title}</h3>
                   </div>
@@ -89,15 +85,6 @@ export function HomeFeaturedPackages() {
                           {formatCurrency(pkg.priceIls)}
                         </span>
                         <span className="text-xs text-slate-400 font-mono">{t.experiences.perFlight}</span>
-                      </div>
-                      <div className="text-end">
-                        <span className={`text-xs sm:text-sm font-mono font-black tabular-nums px-2 py-0.5 rounded border ${
-                          isFlagship
-                            ? 'text-orange-400 bg-orange-500/10 border-orange-500/30'
-                            : 'text-sky-400 bg-sky-500/10 border-sky-500/30'
-                        }`}>
-                          {pkg.durationMinutes} MIN
-                        </span>
                       </div>
                     </div>
                     <div className="text-xs text-slate-400 font-mono">

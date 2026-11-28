@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:ce4994dff464e2a449672c4341f8b1354551bc1b5d147305c84267809f3eec22 -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:dba34dcd0f8be21b752a7317a191fad0a3fd294e9bf29a4a365af1f3d35ebbdd -->
 
 ## Verification contract
 
@@ -734,8 +734,8 @@ components/
   layout/  Navbar Footer LanguageSelector UiThemeSwitcher CockpitToneSwitcher LiveMetarBar SkipLink navbar/ (modular navigation and locale href)
   scheduler/ AmazonFlightStorefront KantorovichCalendarScheduler PackageInclusionsDialog hooks/use-scheduler-view-model
   reviews/ReviewMeta               # header dropdown only; no page carousel
-  about/AboutExperienceView  pro/ProSessionsView  fear-of-flying/FearOfFlyingView  vouchers/ VoucherSenderFields GiftCardDesignPicker  blog/BlogCard BlogContentRenderer BlogConversionCta BlogIndexView BlogPostLanguageSync BlogPostPageView  legal/ PrivacyPolicyContentView RulesContentView
-  seo/ StructuredDataJsonLd FaqPageJsonLd  ui/ Button Card Badge HoneypotField
+  about/AboutExperienceView  experiences/WorldRoutesSection RouteVisualShowcase  pro/ProSessionsView  fear-of-flying/FearOfFlyingView  vouchers/ VoucherSenderFields GiftCardDesignPicker  blog/BlogCard BlogContentRenderer BlogConversionCta BlogIndexView BlogPostLanguageSync BlogPostPageView  legal/ PrivacyPolicyContentView RulesContentView
+  seo/ StructuredDataJsonLd FaqPageJsonLd  ui/ Button Card Badge HoneypotField CockpitMediaFrame
 lib/
   scheduler/ kantorovich-engine mission-calculator mission-upgrade-promo package-presentation tiled-interval-optimizer israel-clock booking-horizon availability-view-model
   booking/checkout-service checkout-error checkout-ports checkout-composition checkout-runtime checkout-throttle checkout-hold-policy after-response
@@ -747,6 +747,7 @@ lib/
   i18n/ translations language-context language-preference language-bootstrap locale-routing calendar-presentation booking-blueprint-copy wix-subscription-booking-copy
   config/ facility-info server-env use-live-facility-status
   blog/ language-sync  # decides when a blog article switches the site language or navigates to its translation (no loop on a language mismatch)
+  media/ cockpit-media  # approved aviation media provenance guard (no GIFs, verified public/Wix Media only) and factual scenario metadata
   theme/ui-theme-context  ui/ use-client-value use-native-modal  seo/ seo-config structured-data site-routes llms-txt blog-structured-data blog-post-metadata
   reviews/google-reviews-cache google-reviews-source review-translation reviews-snapshot-store snapshot-window use-google-reviews review-language last-known-rating.json  i18n/booking-blueprint-copy
   stripe.ts  sendgrid.ts  validation.ts  utils.ts  supabaseClient.ts

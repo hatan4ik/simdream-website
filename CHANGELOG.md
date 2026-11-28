@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.39.0](https://github.com/hatan4ik/simdream-website/compare/v1.38.1...v1.39.0) (2026-11-28)
+
+
+### Features
+
+* **marketing:** add performance-safe cockpit media frame, route visual switcher, and external reel teasers ([#377](https://github.com/hatan4ik/simdream-website/issues/377)) ([8eb7bff](https://github.com/hatan4ik/simdream-website/commit/8eb7bffdf63014917ac347ee884c5ebe81ba75cb))
+
+## [1.38.1](https://github.com/hatan4ik/simdream-website/compare/v1.38.0...v1.38.1) (2026-11-28)
+
+
+### Bug Fixes
+
+* **home:** repair the elements release 1.37.0 shipped visibly broken ([#376](https://github.com/hatan4ik/simdream-website/issues/376)) ([f01a719](https://github.com/hatan4ik/simdream-website/commit/f01a719914d7a8d0a781575c5d673708e300a6f7))
+
 ## [1.38.0](https://github.com/hatan4ik/simdream-website/compare/v1.37.0...v1.38.0) (2026-11-28)
 
 

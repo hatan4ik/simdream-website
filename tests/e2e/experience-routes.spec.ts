@@ -31,6 +31,23 @@ test.describe('experience flights route catalog', () => {
     await expect(page.locator('[data-world-route]')).toHaveCount(WORLD_ROUTES.length);
   });
 
+  test('labels the route visual as illustrative and switches its factual route briefing', async ({ page }) => {
+    await page.goto('/experiences#world-routes');
+    const showcase = page.locator('[data-route-visual-showcase]');
+
+    await expect(showcase.getByRole('button', { name: 'VHHX • RWY 13' })).toHaveAttribute('aria-pressed', 'true');
+    await expect(showcase.locator('[data-route-visual-illustrative-note]')).toContainText(
+      'The cockpit image is illustrative'
+    );
+
+    const paro = showcase.getByRole('button', { name: 'VQPR • RWY 15' });
+    await paro.click();
+    await expect(paro).toHaveAttribute('aria-pressed', 'true');
+    await expect(showcase.getByRole('img')).toHaveAccessibleName(
+      'Illustrative cockpit image for the VQPR Runway 15 route briefing'
+    );
+  });
+
   test('carries a bookable trio into the order instead of opening an empty base flight', async ({ page }) => {
     await page.goto('/experiences');
     const card = page.locator('[data-world-route="route-classical-eu"]');
