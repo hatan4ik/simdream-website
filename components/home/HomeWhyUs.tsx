@@ -12,10 +12,12 @@ import {
 } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
+import { CockpitMediaFrame } from '@/components/ui/CockpitMediaFrame';
 import { useLanguage } from '@/lib/i18n/language-context';
+import { HOME_WHY_US_MEDIA, pickLocalizedMediaText } from '@/lib/media/cockpit-media';
 
 export function HomeWhyUs() {
-  const { t, isRTL } = useLanguage();
+  const { t, language, isRTL } = useLanguage();
   const wu = t.whyUs;
 
   // Top Tier: 2 Flagship Pillars (The Machine & The Mentors)
@@ -121,12 +123,11 @@ export function HomeWhyUs() {
 
                     {/* Cockpit Visual Anchor for Pillar 1 (Boeing 737 LEAP-1B) */}
                     {idx === 0 && (
-                      <div className="relative h-44 rounded-xl overflow-hidden border border-sky-500/30 group/img my-2">
-                        <img
-                          src="/gift-cards/moonlight.webp"
-                          alt="Boeing 737 LEAP-1B motorized flight deck"
-                          className="w-full h-full object-cover object-center group-hover/img:scale-105 transition-transform duration-500"
-                          loading="lazy"
+                      <div className="my-2">
+                        <CockpitMediaFrame
+                          media={HOME_WHY_US_MEDIA.flightDeck}
+                          alt={pickLocalizedMediaText(HOME_WHY_US_MEDIA.flightDeck.alt, language)}
+                          frameClassName="h-44"
                         />
                       </div>
                     )}
@@ -171,12 +172,11 @@ export function HomeWhyUs() {
 
                     {/* Runway Visual Anchor for Pillar 3 (24,000+ Airports) */}
                     {idx === 0 && (
-                      <div className="relative h-28 rounded-xl overflow-hidden border border-amber-500/30 group/img my-1">
-                        <img
-                          src="/gift-cards/skyline.webp"
-                          alt="24,000+ global airports and approaches"
-                          className="w-full h-full object-cover object-center group-hover/img:scale-105 transition-transform duration-500"
-                          loading="lazy"
+                      <div className="my-1">
+                        <CockpitMediaFrame
+                          media={HOME_WHY_US_MEDIA.globalApproaches}
+                          alt={pickLocalizedMediaText(HOME_WHY_US_MEDIA.globalApproaches.alt, language)}
+                          frameClassName="h-28"
                         />
                       </div>
                     )}

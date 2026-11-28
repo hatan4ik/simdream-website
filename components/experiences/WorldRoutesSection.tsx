@@ -34,6 +34,7 @@ import { formatCurrency } from '@/lib/utils';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { RouteVisualShowcase } from '@/components/experiences/RouteVisualShowcase';
 import type { AddonIconName } from '@/types';
 
 const ICONS: Record<AddonIconName, LucideIcon> = {
@@ -128,6 +129,9 @@ export function WorldRoutesSection() {
           </div>
         ))}
       </dl>
+
+      {/* Interactive Scenario Visual Switcher (verified cockpit stills, no hover/JS dependency) */}
+      <RouteVisualShowcase />
 
       {/* Region filter */}
       <div role="group" aria-label={copy.filterAll} className="flex flex-wrap items-center justify-center gap-2">
