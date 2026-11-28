@@ -10,6 +10,14 @@
 
 ## Product changes by version
 
+### [v1.38.1](https://github.com/hatan4ik/simdream-website/releases/tag/v1.38.1) — 2026-11-28
+
+#### Bug Fixes
+
+- **home:** repair the elements release 1.37.0 shipped visibly broken (#376) (f01a719)
+
+Deployment evidence: [GitHub Release](https://github.com/hatan4ik/simdream-website/releases/tag/v1.38.1).
+
 ### [v1.38.0](https://github.com/hatan4ik/simdream-website/releases/tag/v1.38.0) — 2026-11-28
 
 #### Features
