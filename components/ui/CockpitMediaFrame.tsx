@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Pause, Play } from 'lucide-react';
+import { Pause, Plane, Play } from 'lucide-react';
 import {
   isApprovedMediaUrl,
   type ApprovedCockpitMedia,
@@ -63,6 +63,8 @@ export function CockpitMediaFrame({
   const [reducedMotion, setReducedMotion] = useState(false);
   const [inView, setInView] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [failedPosterSrc, setFailedPosterSrc] = useState<string | null>(null);
+  const posterFailed = failedPosterSrc === media.posterSrc;
 
   const hasValidPoster = isApprovedMediaUrl(media.posterSrc);
   const hasValidVideo = Boolean(media.videoSrc && isApprovedMediaUrl(media.videoSrc));
@@ -183,6 +185,17 @@ export function CockpitMediaFrame({
               )}
             </button>
           </>
+        ) : posterFailed ? (
+          <div
+            role="img"
+            aria-label={alt}
+            className="w-full h-full flex flex-col items-center justify-center gap-2 bg-slate-900 text-slate-400 px-4 text-center"
+          >
+            <Plane className="w-8 h-8 text-sky-400" aria-hidden="true" />
+            <span dir="ltr" className="font-mono tabular-nums text-xs text-slate-300">
+              {media.scenarioTag}
+            </span>
+          </div>
         ) : (
           <img
             src={media.posterSrc}
@@ -191,6 +204,7 @@ export function CockpitMediaFrame({
             height={media.height}
             loading={priority ? 'eager' : 'lazy'}
             decoding="async"
+            onError={() => setFailedPosterSrc(media.posterSrc)}
             className="w-full h-full object-cover object-center motion-safe:transition-transform motion-safe:duration-500 motion-safe:group-hover/media:scale-105"
           />
         )}

@@ -12,12 +12,10 @@ import {
 } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
-import { CockpitMediaFrame } from '@/components/ui/CockpitMediaFrame';
 import { useLanguage } from '@/lib/i18n/language-context';
-import { HOME_WHY_US_MEDIA, pickLocalizedMediaText } from '@/lib/media/cockpit-media';
 
 export function HomeWhyUs() {
-  const { t, language, isRTL } = useLanguage();
+  const { t, isRTL } = useLanguage();
   const wu = t.whyUs;
 
   // Top Tier: 2 Flagship Pillars (The Machine & The Mentors)
@@ -79,7 +77,7 @@ export function HomeWhyUs() {
   ];
 
   return (
-    <section className="py-16 sm:py-24 px-4 sm:px-6 lg:px-8 bg-slate-950 border-t border-b border-slate-900">
+    <section data-home-why-us className="py-16 sm:py-24 px-4 sm:px-6 lg:px-8 bg-slate-950 border-t border-b border-slate-900">
       <div className="max-w-7xl mx-auto space-y-12 sm:space-y-16">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto space-y-4">
@@ -101,6 +99,7 @@ export function HomeWhyUs() {
               return (
                 <Card
                   key={idx}
+                  data-why-card
                   glow
                   borderAccent={pillar.accent}
                   className="p-8 space-y-6 flex flex-col justify-between relative overflow-hidden"
@@ -120,17 +119,6 @@ export function HomeWhyUs() {
                     <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
                       {pillar.desc}
                     </p>
-
-                    {/* Cockpit Visual Anchor for Pillar 1 (Boeing 737 LEAP-1B) */}
-                    {idx === 0 && (
-                      <div className="my-2">
-                        <CockpitMediaFrame
-                          media={HOME_WHY_US_MEDIA.flightDeck}
-                          alt={pickLocalizedMediaText(HOME_WHY_US_MEDIA.flightDeck.alt, language)}
-                          frameClassName="h-44"
-                        />
-                      </div>
-                    )}
                   </div>
                   <ul className="text-xs sm:text-sm font-mono text-slate-300 space-y-2 pt-4 border-t border-slate-800">
                     {pillar.points.map((point, pIdx) => (
@@ -152,6 +140,7 @@ export function HomeWhyUs() {
               return (
                 <Card
                   key={idx}
+                  data-why-card
                   glow
                   borderAccent={pillar.accent}
                   className="p-6 space-y-4 flex flex-col justify-between"
@@ -169,17 +158,6 @@ export function HomeWhyUs() {
                     <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
                       {pillar.desc}
                     </p>
-
-                    {/* Runway Visual Anchor for Pillar 3 (24,000+ Airports) */}
-                    {idx === 0 && (
-                      <div className="my-1">
-                        <CockpitMediaFrame
-                          media={HOME_WHY_US_MEDIA.globalApproaches}
-                          alt={pickLocalizedMediaText(HOME_WHY_US_MEDIA.globalApproaches.alt, language)}
-                          frameClassName="h-28"
-                        />
-                      </div>
-                    )}
                   </div>
                   <ul className="text-xs font-mono text-slate-300 space-y-1.5 pt-3 border-t border-slate-800">
                     {pillar.points.map((point, pIdx) => (

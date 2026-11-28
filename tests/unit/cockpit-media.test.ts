@@ -1,10 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
   ABOUT_REEL_TEASERS,
   EXPERIENCE_ROUTE_SCENARIOS,
-  HOME_WHY_US_MEDIA,
   assertApprovedMediaAsset,
   isApprovedMediaUrl,
 } from '@/lib/media/cockpit-media';
@@ -13,10 +12,18 @@ import type { Language } from '@/lib/i18n/translations';
 
 const ALL_LANGUAGES: readonly Language[] = ['he', 'en', 'ru', 'fr', 'ar', 'es', 'de'];
 
+const BLOG_MEDIA_URLS: ReadonlySet<string> = new Set(
+  (JSON.parse(readFileSync(join(process.cwd(), 'lib/data/blog-posts.json'), 'utf-8')) as Array<{ coverImage?: string }>)
+    .map((p) => p.coverImage)
+    .filter((u): u is string => typeof u === 'string' && u.length > 0)
+);
+
 describe('cockpit media provenance and performance-safe contract', () => {
-  it('rejects .gif files and unapproved third-party origins', () => {
+  it('rejects .gif files, voucher artwork, and unapproved third-party origins', () => {
     expect(isApprovedMediaUrl('/media/cockpit.gif')).toBe(false);
     expect(isApprovedMediaUrl('/media/cockpit.GIF?v=2')).toBe(false);
+    expect(isApprovedMediaUrl('/gift-cards/moonlight.webp')).toBe(false);
+    expect(isApprovedMediaUrl('/gift-cards/skyline.webp')).toBe(false);
     expect(isApprovedMediaUrl('https://static.wixstatic.com/media/clip.gif')).toBe(false);
     expect(isApprovedMediaUrl('https://images.unsplash.com/photo-123.jpg')).toBe(false);
     expect(isApprovedMediaUrl('http://static.wixstatic.com/media/photo.webp')).toBe(false);
@@ -24,20 +31,26 @@ describe('cockpit media provenance and performance-safe contract', () => {
     expect(isApprovedMediaUrl('')).toBe(false);
 
     expect(() =>
-      assertApprovedMediaAsset({ posterSrc: '/gift-cards/moonlight.webp', videoSrc: '/media/demo.gif' })
+      assertApprovedMediaAsset({
+        posterSrc: 'https://static.wixstatic.com/media/49097a_e88e8006233746c89766cbfb2e0b3888~mv2.webp',
+        videoSrc: '/media/demo.gif',
+      })
     ).toThrow(/Unapproved or GIF/);
+
+    expect(() =>
+      assertApprovedMediaAsset({ posterSrc: '/gift-cards/moonlight.webp' })
+    ).toThrow(/voucher-artwork/);
   });
 
-  it('accepts verified local public paths and HTTPS Wix Media hosts', () => {
-    expect(isApprovedMediaUrl('/gift-cards/moonlight.webp')).toBe(true);
+  it('accepts verified local non-voucher paths and HTTPS Wix Media hosts', () => {
+    expect(isApprovedMediaUrl('/media/cockpit-poster.webp')).toBe(true);
     expect(isApprovedMediaUrl('/media/approach-vhhx.mp4')).toBe(true);
     expect(isApprovedMediaUrl('https://static.wixstatic.com/media/49097a_test~mv2.webp')).toBe(true);
     expect(isApprovedMediaUrl('https://video.wixstatic.com/video/49097a_test/1080p/mp4/file.mp4')).toBe(true);
   });
 
-  it('backs every registered media item with an existing public asset, explicit dimensions, and 7-language alt text', () => {
+  it('backs every registered media item with a verified asset, explicit dimensions, and 7-language alt text', () => {
     const allMedia = [
-      ...Object.values(HOME_WHY_US_MEDIA),
       ...ABOUT_REEL_TEASERS,
       ...EXPERIENCE_ROUTE_SCENARIOS.map((s) => s.media),
     ];
@@ -51,6 +64,11 @@ describe('cockpit media provenance and performance-safe contract', () => {
       if (item.posterSrc.startsWith('/')) {
         const diskPath = join(process.cwd(), 'public', item.posterSrc.slice(1));
         expect(existsSync(diskPath), `Missing public asset ${item.posterSrc}`).toBe(true);
+      } else {
+        expect(
+          BLOG_MEDIA_URLS.has(item.posterSrc),
+          `External Wix Media URL ${item.posterSrc} must come from verified repository media`
+        ).toBe(true);
       }
 
       for (const lang of ALL_LANGUAGES) {

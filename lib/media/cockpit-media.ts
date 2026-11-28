@@ -4,7 +4,8 @@
  * Enforces AGENTS.md §2 (Marketing Art Direction Rule) and the performance-safe
  * multimedia policy:
  * - No `.gif` files anywhere.
- * - Only verified local `/...` assets from `public/` or approved Wix Media hosts.
+ * - Never substitutes `/gift-cards/` voucher artwork for cockpit or airport photography.
+ * - Only verified local `/...` assets from `public/` or approved HTTPS Wix Media URLs.
  * - Explicit pixel dimensions to prevent CLS.
  * - Factual, localized scenario metadata (never disguised as live telemetry).
  */
@@ -34,11 +35,17 @@ const APPROVED_WIX_MEDIA_HOSTS = new Set([
 ]);
 
 const GIF_PATTERN = /\.gif(?:[?#].*)?$/i;
+const GIFT_CARD_ARTWORK_PATTERN = /^\/gift-cards\//i;
 
-/** Returns true iff the URL is a non-GIF local public asset or an approved Wix Media asset. */
+/**
+ * Returns true iff the URL is a non-GIF, non-voucher-artwork local public asset
+ * or an approved HTTPS Wix Media asset.
+ */
 export function isApprovedMediaUrl(url: string): boolean {
   const trimmed = url.trim();
-  if (!trimmed || GIF_PATTERN.test(trimmed)) return false;
+  if (!trimmed || GIF_PATTERN.test(trimmed) || GIFT_CARD_ARTWORK_PATTERN.test(trimmed)) {
+    return false;
+  }
   if (trimmed.startsWith('/')) {
     return !trimmed.startsWith('//');
   }
@@ -50,10 +57,12 @@ export function isApprovedMediaUrl(url: string): boolean {
   }
 }
 
-/** Validates an approved media asset at runtime/test time; throws on GIF or unapproved origin. */
-export function assertApprovedMediaAsset(media: Pick<ApprovedCockpitMedia, 'posterSrc' | 'videoSrc' | 'webmSrc'>): void {
+/** Validates an approved media asset at runtime/test time; throws on GIF, voucher art, or unapproved origin. */
+export function assertApprovedMediaAsset(
+  media: Pick<ApprovedCockpitMedia, 'posterSrc' | 'videoSrc' | 'webmSrc'>
+): void {
   if (!isApprovedMediaUrl(media.posterSrc)) {
-    throw new Error(`Unapproved or GIF poster media URL: ${media.posterSrc}`);
+    throw new Error(`Unapproved, voucher-artwork, or GIF poster media URL: ${media.posterSrc}`);
   }
   if (media.videoSrc !== undefined && !isApprovedMediaUrl(media.videoSrc)) {
     throw new Error(`Unapproved or GIF video media URL: ${media.videoSrc}`);
@@ -67,55 +76,22 @@ export function pickLocalizedMediaText(record: LocalizedRecord<string>, language
   return record[language] || record.en;
 }
 
-export const HOME_WHY_US_MEDIA = {
-  flightDeck: {
-    id: 'home-why-flight-deck',
-    posterSrc: '/gift-cards/moonlight.webp',
-    width: 1280,
-    height: 711,
-    aspect: 'video',
-    scenarioTag: 'B737 MAX 8 • LEAP-1B',
-    alt: {
-      he: 'תא טייס 1:1 של בואינג 737 MAX עם מערכת הגאים ממונעת',
-      en: 'Boeing 737 MAX 1:1 motorized flight deck',
-      ru: 'Кабина Boeing 737 MAX 1:1 с моторизованным управлением',
-      fr: 'Cockpit Boeing 737 MAX 1:1 à commandes motorisées',
-      ar: 'قمرة قيادة بوينغ 737 MAX بمقياس 1:1 مع أدوات تحكم آلية',
-      es: 'Cabina Boeing 737 MAX 1:1 con controles motorizados',
-      de: 'Boeing 737 MAX 1:1 Cockpit mit motorisierter Steuerung',
-    },
-  },
-  globalApproaches: {
-    id: 'home-why-global-approaches',
-    posterSrc: '/gift-cards/skyline.webp',
-    width: 1280,
-    height: 711,
-    aspect: 'video',
-    scenarioTag: 'VHHX • RWY 13 · VQPR • RWY 15 · LOWI • RWY 08',
-    alt: {
-      he: 'גישות נחיתה ליותר מ-24,000 שדות תעופה בעולם בסימולטור',
-      en: 'Global airport approaches across 24,000+ airports',
-      ru: 'Заходы на посадку в более чем 24 000 аэропортов мира',
-      fr: 'Approches sur plus de 24 000 aéroports dans le monde',
-      ar: 'مقاربات الهبوط لأكثر من 24,000 مطار حول العالم',
-      es: 'Aproximaciones a más de 24,000 aeropuertos en todo el mundo',
-      de: 'Anflüge auf über 24.000 Flughäfen weltweit',
-    },
-  },
-} as const satisfies Record<string, ApprovedCockpitMedia>;
-
 export interface ReelTeaserMedia extends ApprovedCockpitMedia {
   readonly channel: 'Instagram' | 'YouTube';
   readonly badge: LocalizedRecord<string>;
 }
 
+/**
+ * Verified SimDream Wix Media aviation stills (sourced from lib/data/blog-posts.json)
+ * used as consent-safe external Reel poster teasers on `/about`.
+ */
 export const ABOUT_REEL_TEASERS: readonly ReelTeaserMedia[] = [
   {
     id: 'about-reel-instagram',
     channel: 'Instagram',
-    posterSrc: '/gift-cards/sunset.webp',
+    posterSrc: 'https://static.wixstatic.com/media/49097a_e88e8006233746c89766cbfb2e0b3888~mv2.webp',
     width: 1280,
-    height: 711,
+    height: 720,
     aspect: 'video',
     scenarioTag: 'LLBG • RWY 26 · REELS',
     badge: {
@@ -140,9 +116,9 @@ export const ABOUT_REEL_TEASERS: readonly ReelTeaserMedia[] = [
   {
     id: 'about-reel-youtube',
     channel: 'YouTube',
-    posterSrc: '/gift-cards/dusk.webp',
+    posterSrc: 'https://static.wixstatic.com/media/49097a_9db77324ea6d4d1dba77adeb1cacbe2e~mv2.webp',
     width: 1280,
-    height: 711,
+    height: 720,
     aspect: 'video',
     scenarioTag: 'VHHX • RWY 13 · SHORTS',
     badge: {
@@ -175,6 +151,10 @@ export interface RouteScenarioVisual {
   readonly media: ApprovedCockpitMedia;
 }
 
+/**
+ * Verified SimDream Wix Media approach photos (sourced from lib/data/blog-posts.json)
+ * paired with iconic WORLD_ROUTES entries on `/experiences#world-routes`.
+ */
 export const EXPERIENCE_ROUTE_SCENARIOS: readonly RouteScenarioVisual[] = [
   {
     id: 'scenario-vhhx',
@@ -184,9 +164,9 @@ export const EXPERIENCE_ROUTE_SCENARIOS: readonly RouteScenarioVisual[] = [
     runwayTag: 'VHHX • RWY 13',
     media: {
       id: 'route-visual-vhhx',
-      posterSrc: '/gift-cards/skyline.webp',
+      posterSrc: 'https://static.wixstatic.com/media/49097a_5654792b0b7d4701acef68df5cf5f62b~mv2.webp',
       width: 1280,
-      height: 711,
+      height: 720,
       aspect: 'video',
       scenarioTag: 'VHHX • RWY 13',
       alt: {
@@ -208,9 +188,9 @@ export const EXPERIENCE_ROUTE_SCENARIOS: readonly RouteScenarioVisual[] = [
     runwayTag: 'VQPR • RWY 15',
     media: {
       id: 'route-visual-vqpr',
-      posterSrc: '/gift-cards/aurora.webp',
+      posterSrc: 'https://static.wixstatic.com/media/49097a_89df782bcec442a4921ae970d077c0f1~mv2.webp',
       width: 1280,
-      height: 711,
+      height: 720,
       aspect: 'video',
       scenarioTag: 'VQPR • RWY 15',
       alt: {
@@ -232,9 +212,9 @@ export const EXPERIENCE_ROUTE_SCENARIOS: readonly RouteScenarioVisual[] = [
     runwayTag: 'LOWI • RWY 08',
     media: {
       id: 'route-visual-lowi',
-      posterSrc: '/gift-cards/moonlight.webp',
+      posterSrc: 'https://static.wixstatic.com/media/49097a_d2262ee688ff47a09611ce7051f62393~mv2.webp',
       width: 1280,
-      height: 711,
+      height: 720,
       aspect: 'video',
       scenarioTag: 'LOWI • RWY 08',
       alt: {
