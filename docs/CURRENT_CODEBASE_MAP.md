@@ -2,7 +2,7 @@
 
 **Start here when you need to understand the website.** This is a plain-English ownership map, not a second Genesis document. [`GENESIS.md`](../GENESIS.md) remains the canonical reconstruction blueprint; this page tells a human where a feature lives and which system is responsible for it.
 
-**Source reviewed:** `origin/main` at `e6c66668326a` (2026-11-15), with this reconciliation cross-checking the same code baseline. It describes code in this repository. It does **not** prove that a Wix setting, payment provider, or database secret is enabled in a deployed environment.
+**Source reviewed:** `origin/main` at `6163c0a` (`v1.37.0`, 2026-11-27), reconciled against the live codebase. It describes code in this repository. It does **not** prove that a Wix setting, payment provider, or database secret is enabled in a deployed environment.
 
 ## The 30-second answer
 
@@ -184,7 +184,6 @@ Customers never call these rules directly. They protect the business:
 
 ## Review evidence
 
-- `npm run docs:verify` passed: 547/547 source-derived items, zero known-false claims and a current Genesis fingerprint.
-- `npm run lint` and `npm run test:quick` passed during the 2026-11-15 documentation sync. Expected failure-injection logs exercise fail-closed persistence, rate-limit and webhook paths; they are assertions, not test failures.
-- No application behavior was changed while creating this map. The pre-existing `.wix/topology.json` working-tree edit remains intentionally untouched and is not part of this documentation change.
-- No application behavior was changed while creating this map. The existing `.wix/topology.json` working-tree edit remains untouched.
+- `npm run docs:verify` passed: 623/623 source-derived items, zero known-false claims and a current Genesis fingerprint.
+- `npm run lint` and `npm run test:quick` passed during the 2026-11-27 documentation sync (196 Vitest files, 3,759 tests). Expected failure-injection logs exercise fail-closed persistence, rate-limit and webhook paths; they are assertions, not test failures.
+- No application behavior was changed while syncing this map.
