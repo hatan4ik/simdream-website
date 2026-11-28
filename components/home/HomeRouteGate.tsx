@@ -34,7 +34,7 @@ export function HomeRouteGate() {
   const { t, isRTL } = useLanguage();
   const rg = t.routeGate;
 
-  // Anchor 1: Consumer Flight Experiences (Wide 2-col showcase)
+  // Group 1, flights for everyone. Anchor: Consumer Flight Experiences
   const experiencesAnchor: RouteCardItem = {
     href: '/experiences',
     badge: rg.experiencesBadge,
@@ -53,7 +53,7 @@ export function HomeRouteGate() {
     ],
   };
 
-  // Secondary 1: Luxury Gift Vouchers (1-col crisp card)
+  // Group 1, secondary: Gift Vouchers
   const vouchersCard: RouteCardItem = {
     href: '/vouchers',
     badge: rg.vouchersBadge,
@@ -66,7 +66,7 @@ export function HomeRouteGate() {
     badgeClass: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
   };
 
-  // Secondary 2: Multi-Session Subscription Passes (1-col crisp card)
+  // Group 1, secondary: Multi-Session Flight Tracks
   const subscriptionsCard: RouteCardItem = {
     href: '/subscriptions',
     badge: rg.subscriptionsBadge,
@@ -79,7 +79,7 @@ export function HomeRouteGate() {
     badgeClass: 'text-purple-400 bg-purple-500/10 border-purple-500/20',
   };
 
-  // Anchor 2: Professional Airline Assessment & Interview Prep (Wide 2-col showcase)
+  // Group 2, specialist programmes. Anchor: Professional Airline Assessment & Interview Prep
   const proAnchor: RouteCardItem = {
     href: '/pro',
     badge: rg.proBadge,
@@ -98,7 +98,7 @@ export function HomeRouteGate() {
     ],
   };
 
-  // Secondary 3: Fear of Flying Coaching (1-col therapeutic module)
+  // Group 2, secondary: Fear of Flying Coaching
   const fearOfFlyingCard: RouteCardItem = {
     href: '/fear-of-flying',
     badge: rg.fearOfFlyingBadge,
@@ -111,7 +111,7 @@ export function HomeRouteGate() {
     badgeClass: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
   };
 
-  // Secondary 4 / Anchor 3: Corporate CRM & Leadership Workshops (Wide 2-col leadership module)
+  // Group 2, secondary: Corporate CRM & Leadership Workshops
   const workshopsCard: RouteCardItem = {
     href: '/workshops',
     badge: rg.workshopsBadge,
@@ -122,19 +122,20 @@ export function HomeRouteGate() {
     accent: 'amber',
     colorClass: 'text-amber-400 bg-amber-500/10 border-amber-500/30 group-hover:bg-amber-500/20',
     badgeClass: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
-    telemetry: [
-      { label: 'METHOD', value: 'AIRLINE CREW RESOURCE MGMT', color: 'text-amber-300' },
-      { label: 'FOCUS', value: 'THREAT & ERROR MANAGEMENT', color: 'text-emerald-400' },
-      { label: 'SIMULATION', value: 'EMERGENCY COCKPIT DYNAMICS', color: 'text-white' },
-      { label: 'COHORTS', value: 'EXECUTIVE & TEAM OFFSITES', color: 'text-sky-400' },
-    ],
   };
+
+  // Source order is reading order: each group is its anchor, then its two secondary routes.
+  const routeGroups = [
+    { id: 'consumer', anchor: experiencesAnchor, secondary: [vouchersCard, subscriptionsCard] },
+    { id: 'specialist', anchor: proAnchor, secondary: [fearOfFlyingCard, workshopsCard] },
+  ];
 
   const renderAnchorCard = (item: RouteCardItem) => {
     const Icon = item.icon;
     return (
       <Link
         href={item.href}
+        data-route-card="anchor"
         className="group block focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 rounded-2xl transition-transform duration-200 motion-safe:hover:-translate-y-1 h-full"
       >
         <Card
@@ -143,9 +144,9 @@ export function HomeRouteGate() {
           className="h-full flex flex-col justify-between p-6 sm:p-8 transition-colors duration-200 group-hover:border-slate-700 relative overflow-hidden"
         >
           {/* Subtle cockpit instrument grid backdrop */}
-          <div className="absolute top-0 end-0 w-64 h-64 bg-gradient-to-bl from-sky-500/5 to-transparent rounded-bl-full pointer-events-none" />
+          <div data-route-backdrop className="absolute top-0 end-0 w-64 h-64 bg-gradient-to-bl from-sky-500/5 to-transparent rounded-bl-full pointer-events-none" />
 
-          <div className="space-y-6 relative z-10">
+          <div className="flex flex-1 flex-col gap-6 relative z-10">
             <div className="flex items-center justify-between">
               <div className={`w-14 h-14 rounded-2xl border flex items-center justify-center transition-colors ${item.colorClass}`}>
                 <Icon className="w-7 h-7" />
@@ -156,23 +157,29 @@ export function HomeRouteGate() {
             </div>
 
             <div className="space-y-3">
-              <h3 className="text-2xl sm:text-3xl font-black text-white group-hover:text-sky-300 transition-colors tracking-tight">
+              <h3 className="text-2xl sm:text-3xl xl:text-4xl font-black text-white group-hover:text-sky-300 transition-colors tracking-tight">
                 {item.title}
               </h3>
-              <p className="text-slate-300 text-sm sm:text-base leading-relaxed max-w-xl">
+              <p className="text-slate-300 text-sm sm:text-base xl:text-lg leading-relaxed max-w-xl">
                 {item.desc}
               </p>
             </div>
 
-            {/* Instrument-Style Telemetry Readouts */}
+            {/* Instrument-style readouts: left-to-right in every language (AGENTS.md §5.3), wrapping
+                instead of cutting text off, and a 2 x 2 block beside the stacked secondary routes.
+                `mt-auto` rests the panel on the link row when the card is stretched to the pair's height. */}
             {item.telemetry && (
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3.5 rounded-xl bg-slate-950/70 border border-slate-800/90 font-mono text-[11px]">
+              <div
+                dir="ltr"
+                data-route-telemetry
+                className="mt-auto grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 gap-2.5 lg:gap-x-6 lg:gap-y-4 p-3.5 lg:p-5 rounded-xl bg-slate-950/70 border border-slate-800/90 font-mono text-[11px] lg:text-[13px]"
+              >
                 {item.telemetry.map((tItem, tIdx) => (
                   <div key={tIdx} className="space-y-0.5">
-                    <span className="text-slate-400 text-[9px] uppercase tracking-wider block font-semibold">
+                    <span className="text-slate-400 text-[9px] lg:text-[10px] uppercase tracking-wider block font-semibold">
                       {tItem.label}
                     </span>
-                    <span className={`font-bold tabular-nums truncate block ${tItem.color || 'text-white'}`}>
+                    <span className={`font-bold tabular-nums break-words block ${tItem.color || 'text-white'}`}>
                       {tItem.value}
                     </span>
                   </div>
@@ -195,6 +202,7 @@ export function HomeRouteGate() {
     return (
       <Link
         href={item.href}
+        data-route-card="secondary"
         className="group block focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 rounded-2xl transition-transform duration-200 motion-safe:hover:-translate-y-1 h-full"
       >
         <Card
@@ -231,7 +239,7 @@ export function HomeRouteGate() {
   };
 
   return (
-    <section className="py-16 sm:py-24 px-4 sm:px-6 lg:px-8 bg-slate-900/60 border-t border-slate-900">
+    <section data-route-gate className="py-16 sm:py-24 px-4 sm:px-6 lg:px-8 bg-slate-900/60 border-t border-slate-900">
       <div className="max-w-7xl mx-auto space-y-12 sm:space-y-16">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto space-y-4">
@@ -244,31 +252,26 @@ export function HomeRouteGate() {
           </p>
         </div>
 
-        {/* Asymmetric Bento Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Row 1: Anchor 1 (Consumer Flights - 2 cols) + Secondary 1 (Vouchers - 1 col) */}
-          <div className="md:col-span-2 lg:col-span-2">
-            {renderAnchorCard(experiencesAnchor)}
-          </div>
-          <div className="md:col-span-1 lg:col-span-1">
-            {renderSecondaryCard(vouchersCard)}
-          </div>
-
-          {/* Row 2: Secondary 2 (Subscriptions - 1 col) + Anchor 2 (PRO Prep - 2 cols) */}
-          <div className="md:col-span-1 lg:col-span-1">
-            {renderSecondaryCard(subscriptionsCard)}
-          </div>
-          <div className="md:col-span-2 lg:col-span-2">
-            {renderAnchorCard(proAnchor)}
-          </div>
-
-          {/* Row 3: Secondary 3 (Fear of Flying - 1 col) + Anchor 3 (Corporate Workshops - 2 cols) */}
-          <div className="md:col-span-1 lg:col-span-1">
-            {renderSecondaryCard(fearOfFlyingCard)}
-          </div>
-          <div className="md:col-span-2 lg:col-span-2">
-            {renderAnchorCard(workshopsCard)}
-          </div>
+        {/* Two route groups. From `lg` each is a 12-column grid: the anchor leads (7 columns, both
+            rows) and the two secondary routes stack beside it (5 columns). At `md` the anchor takes
+            the full row above the pair; on phones everything is one column. */}
+        <div className="space-y-8 sm:space-y-10">
+          {routeGroups.map((group, index) => (
+            <div
+              key={group.id}
+              data-route-group={group.id}
+              className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 lg:grid-rows-2 gap-6 ${
+                index > 0 ? 'pt-8 sm:pt-10 border-t border-slate-800/60' : ''
+              }`}
+            >
+              <div className="md:col-span-2 lg:col-span-7 lg:row-span-2">{renderAnchorCard(group.anchor)}</div>
+              {group.secondary.map((item) => (
+                <div key={item.href} className="lg:col-span-5">
+                  {renderSecondaryCard(item)}
+                </div>
+              ))}
+            </div>
+          ))}
         </div>
       </div>
     </section>
