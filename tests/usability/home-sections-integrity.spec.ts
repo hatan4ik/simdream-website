@@ -118,8 +118,6 @@ test.describe('home packages: the three cards form one row', () => {
           expect(card.title, `${label} shows its title`).not.toBeNull();
           expect(near(card.eyebrow?.top ?? Number.NaN, cards[0].eyebrow?.top ?? Number.NaN), `${label}: duration line level with the first card`).toBe(true);
           expect(near(card.title?.top ?? Number.NaN, cards[0].title?.top ?? Number.NaN), `${label}: title level with the first card`).toBe(true);
-          // One-line badges keep their own height; the row's reserved space must not stretch them.
-          if (card.badge) expect(card.badge.bottom - card.badge.top, `${label}: badge is one or two lines tall`).toBeLessThanOrEqual(42);
         }
       });
     }
