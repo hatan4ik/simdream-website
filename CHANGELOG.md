@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.38.0](https://github.com/hatan4ik/simdream-website/compare/v1.37.0...v1.38.0) (2026-11-28)
+
+
+### Features
+
+* **home:** group the route gate into two sets led by Experiences and PRO ([#368](https://github.com/hatan4ik/simdream-website/issues/368)) ([4e0ee3d](https://github.com/hatan4ik/simdream-website/commit/4e0ee3d372a33ae9d133ae983a29a26da2a74943))
+
 ## [1.37.0](https://github.com/hatan4ik/simdream-website/compare/v1.36.1...v1.37.0) (2026-11-27)
 
 

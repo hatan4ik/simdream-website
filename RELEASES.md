@@ -10,6 +10,14 @@
 
 ## Product changes by version
 
+### [v1.38.0](https://github.com/hatan4ik/simdream-website/releases/tag/v1.38.0) — 2026-11-28
+
+#### Features
+
+- **home:** group the route gate into two sets led by Experiences and PRO (#368) (4e0ee3d)
+
+Deployment evidence: [GitHub Release](https://github.com/hatan4ik/simdream-website/releases/tag/v1.38.0).
+
 ### [v1.37.0](https://github.com/hatan4ik/simdream-website/releases/tag/v1.37.0) — 2026-11-27
 
 #### Features
