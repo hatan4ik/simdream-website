@@ -28,13 +28,19 @@ import { CockpitMediaFrame } from '@/components/ui/CockpitMediaFrame';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { type Language, type LocalizedRecord } from '@/lib/i18n/translations';
 import { FACILITY_INFO } from '@/lib/config/facility-info';
-import { ABOUT_REEL_TEASERS, pickLocalizedMediaText } from '@/lib/media/cockpit-media';
+import {
+  ABOUT_REEL_TEASERS,
+  ABOUT_SHOWCASE_MEDIA,
+  MEDIA_CONTROL_COPY,
+  pickLocalizedMediaText,
+} from '@/lib/media/cockpit-media';
 
 import { ABOUT_COPY } from './about-copy';
 
 export function AboutExperienceView() {
   const { t, language, isRTL } = useLanguage();
   const copy = ABOUT_COPY[language] || ABOUT_COPY.en;
+  const mediaControls = MEDIA_CONTROL_COPY[language] || MEDIA_CONTROL_COPY.en;
 
   const profileIcons = [Users, Compass, HeartHandshake, Briefcase];
   const profileAccents = ['sky', 'emerald', 'amber', 'purple'] as const;
@@ -70,6 +76,22 @@ export function AboutExperienceView() {
             <MapPin className="w-4 h-4 text-sky-400" />
             <span>{copy.locationPillar}</span>
           </span>
+        </div>
+      </section>
+
+      {/* 1.5. AUTHENTIC TEL AVIV FLIGHT DECK SHOWCASE (1 muted loop + 1 captain-mentorship still) */}
+      <section className="max-w-5xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {ABOUT_SHOWCASE_MEDIA.map((item) => (
+            <CockpitMediaFrame
+              key={item.id}
+              media={item}
+              alt={pickLocalizedMediaText(item.alt, language)}
+              caption={item.caption ? pickLocalizedMediaText(item.caption, language) : undefined}
+              playLabel={mediaControls.playLabel}
+              pauseLabel={mediaControls.pauseLabel}
+            />
+          ))}
         </div>
       </section>
 

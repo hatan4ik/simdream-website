@@ -3,13 +3,15 @@
 import React from 'react';
 import Link from 'next/link';
 import { buttonClassName } from '@/components/ui/Button';
+import { CockpitMediaFrame } from '@/components/ui/CockpitMediaFrame';
+import { HOME_HERO_MEDIA, pickLocalizedMediaText } from '@/lib/media/cockpit-media';
 import { useLanguage } from '@/lib/i18n/language-context';
 
 export function HomeHero() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   return (
-    <section className="relative min-h-[75vh] sm:min-h-[85vh] flex items-center justify-center overflow-hidden px-4 sm:px-6 lg:px-8 pt-12 sm:pt-20 pb-[calc(var(--consent-banner-offset,0px)+3rem)] sm:pb-24 hud-grid">
+    <section className="relative flex items-center justify-center overflow-hidden px-4 sm:px-6 lg:px-8 pt-10 sm:pt-16 pb-[calc(var(--consent-banner-offset,0px)+3rem)] sm:pb-20 hud-grid">
       {/* Glowing atmospheric cockpit backdrops */}
       <div className="absolute inset-0 bg-gradient-to-b from-sky-950/20 via-slate-950/80 to-aviation-darkest pointer-events-none" />
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] bg-sky-500/10 blur-[130px] rounded-full pointer-events-none" />
@@ -62,6 +64,16 @@ export function HomeHero() {
           >
             {t.cta.buyVoucher}
           </Link>
+        </div>
+
+        {/* Authentic Tel Aviv 737 MAX visual anchor (poster-first static WebP, zero entrance delay) */}
+        <div className="pt-4 sm:pt-6 max-w-4xl mx-auto text-start">
+          <CockpitMediaFrame
+            media={HOME_HERO_MEDIA}
+            alt={pickLocalizedMediaText(HOME_HERO_MEDIA.alt, language)}
+            caption={HOME_HERO_MEDIA.caption ? pickLocalizedMediaText(HOME_HERO_MEDIA.caption, language) : undefined}
+            priority
+          />
         </div>
       </div>
     </section>

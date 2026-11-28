@@ -8,6 +8,7 @@ import { buttonClassName } from '@/components/ui/Button';
 import { WORLD_ROUTES, EXPERIENCE_ROUTES_COPY } from '@/lib/data/experience-routes';
 import {
   EXPERIENCE_ROUTE_SCENARIOS,
+  MEDIA_CONTROL_COPY,
   pickLocalizedMediaText,
 } from '@/lib/media/cockpit-media';
 import { useLanguage } from '@/lib/i18n/language-context';
@@ -28,6 +29,7 @@ export function RouteVisualShowcase() {
   const routeCopy = extremeRoute.copy[language] || extremeRoute.copy.en;
   const airportCopy = routeCopy.airports[activeScenario.airportIndex];
   const routesUiCopy = EXPERIENCE_ROUTES_COPY[language] || EXPERIENCE_ROUTES_COPY.en;
+  const mediaControls = MEDIA_CONTROL_COPY[language] || MEDIA_CONTROL_COPY.en;
   const illustrativeNote = pickLocalizedMediaText(activeScenario.illustrativeNote, language);
 
   const bookHref = `/book?package=captains-command-60&addons=addon-extreme-airports&route=${encodeURIComponent(extremeRoute.id)}`;
@@ -78,6 +80,8 @@ export function RouteVisualShowcase() {
             media={activeScenario.media}
             alt={pickLocalizedMediaText(activeScenario.media.alt, language)}
             caption={airportCopy.name}
+            playLabel={mediaControls.playLabel}
+            pauseLabel={mediaControls.pauseLabel}
           />
           <p
             data-route-visual-illustrative-note
