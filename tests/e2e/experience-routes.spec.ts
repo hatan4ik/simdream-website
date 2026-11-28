@@ -43,8 +43,7 @@ test.describe('experience flights route catalog', () => {
     const paro = showcase.getByRole('button', { name: 'VQPR • RWY 15' });
     await paro.click();
     await expect(paro).toHaveAttribute('aria-pressed', 'true');
-    await expect(showcase.getByRole('img')).toHaveAttribute(
-      'alt',
+    await expect(showcase.getByRole('img')).toHaveAccessibleName(
       'Illustrative cockpit image for the VQPR Runway 15 route briefing'
     );
   });

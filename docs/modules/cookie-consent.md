@@ -61,7 +61,8 @@ this module's scope).
 
 ### 2. CSP today (`proxy.ts`, per-request nonce, `script-src 'self' 'nonce-…' 'strict-dynamic'`)
 
-`img-src 'self' data: blob: https://lh3.googleusercontent.com https://static.wixstatic.com`; `connect-src 'self'
+`img-src 'self' data: blob: https://lh3.googleusercontent.com https://static.wixstatic.com`; `media-src 'self'
+https://video.wixstatic.com` (only for an approved optional Wix marketing clip); `connect-src 'self'
 https://*.supabase.co wss://*.supabase.co https://www.wixapis.com`; `frame-src https://www.google.com
 https://maps.google.com`; `form-action 'self' https://checkout.stripe.com`. No analytics host is allowed, so no analytics
 script could run even if one were added by mistake.

@@ -4,8 +4,8 @@
  * Enforces AGENTS.md §2 (Marketing Art Direction Rule) and the performance-safe
  * multimedia policy:
  * - No `.gif` files anywhere.
- * - Never substitutes `/gift-cards/` voucher artwork for cockpit or route imagery.
- * - Only verified local `/...` assets from `public/` or approved Wix Media hosts.
+ * - Never substitutes `/gift-cards/` voucher artwork for cockpit or airport photography.
+ * - Only verified local `/...` assets from `public/` or approved HTTPS Wix Media URLs.
  * - Explicit pixel dimensions to prevent CLS.
  * - Factual, localized scenario metadata (never disguised as live telemetry).
  */
@@ -37,10 +37,15 @@ const APPROVED_WIX_MEDIA_HOSTS = new Set([
 const GIF_PATTERN = /\.gif(?:[?#].*)?$/i;
 const GIFT_CARD_ARTWORK_PATTERN = /^\/gift-cards\//i;
 
-/** Returns true iff the URL is a non-GIF, non-voucher-artwork local public asset or approved Wix Media asset. */
+/**
+ * Returns true iff the URL is a non-GIF, non-voucher-artwork local public asset
+ * or an approved HTTPS Wix Media asset.
+ */
 export function isApprovedMediaUrl(url: string): boolean {
   const trimmed = url.trim();
-  if (!trimmed || GIF_PATTERN.test(trimmed) || GIFT_CARD_ARTWORK_PATTERN.test(trimmed)) return false;
+  if (!trimmed || GIF_PATTERN.test(trimmed) || GIFT_CARD_ARTWORK_PATTERN.test(trimmed)) {
+    return false;
+  }
   if (trimmed.startsWith('/')) {
     return !trimmed.startsWith('//');
   }
@@ -53,7 +58,9 @@ export function isApprovedMediaUrl(url: string): boolean {
 }
 
 /** Validates an approved media asset at runtime/test time; throws on GIF, voucher art, or unapproved origin. */
-export function assertApprovedMediaAsset(media: Pick<ApprovedCockpitMedia, 'posterSrc' | 'videoSrc' | 'webmSrc'>): void {
+export function assertApprovedMediaAsset(
+  media: Pick<ApprovedCockpitMedia, 'posterSrc' | 'videoSrc' | 'webmSrc'>
+): void {
   if (!isApprovedMediaUrl(media.posterSrc)) {
     throw new Error(`Unapproved, voucher-artwork, or GIF poster media URL: ${media.posterSrc}`);
   }
@@ -74,6 +81,10 @@ export interface ReelTeaserMedia extends ApprovedCockpitMedia {
   readonly badge: LocalizedRecord<string>;
 }
 
+/**
+ * Verified SimDream Wix Media aviation stills (sourced from lib/data/blog-posts.json)
+ * used as consent-safe external Reel poster teasers on `/about`.
+ */
 export const ABOUT_REEL_TEASERS: readonly ReelTeaserMedia[] = [
   {
     id: 'about-reel-instagram',
@@ -142,6 +153,10 @@ export interface RouteScenarioVisual {
   readonly media: ApprovedCockpitMedia;
 }
 
+/**
+ * Verified SimDream Wix Media stills (sourced from lib/data/blog-posts.json)
+ * provide cockpit context for WORLD_ROUTES; they are not airport photography.
+ */
 const ILLUSTRATIVE_ROUTE_VISUAL_NOTE: LocalizedRecord<string> = {
   he: 'תמונת הקוקפיט היא אילוסטרציה בלבד; קוד המסלול מתאר את משימת הטיסה שנבחרה.',
   en: 'The cockpit image is illustrative; the route code identifies the selected flight mission.',
@@ -151,7 +166,6 @@ const ILLUSTRATIVE_ROUTE_VISUAL_NOTE: LocalizedRecord<string> = {
   es: 'La imagen de cabina es ilustrativa; el código de ruta identifica la misión de vuelo seleccionada.',
   de: 'Das Cockpitbild ist illustrativ; der Routencode bezeichnet die ausgewählte Flugmission.',
 };
-
 export const EXPERIENCE_ROUTE_SCENARIOS: readonly RouteScenarioVisual[] = [
   {
     id: 'scenario-vhhx',
