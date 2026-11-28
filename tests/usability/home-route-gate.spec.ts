@@ -30,6 +30,8 @@ interface Box {
 interface CardBox extends Box {
   href: string | null;
   kind: string | null;
+  /** Distance from the bottom of the card's readout panel to the top of its link row; null without a panel. */
+  readoutGap: number | null;
 }
 interface GroupBox extends Box {
   id: string | null;
@@ -63,7 +65,8 @@ async function readLayout(page: Page): Promise<Layout> {
         // does not wrap, or an ellipsis); an inline box reports 0 for both widths and stays quiet.
         const widerThanItsBox = text.scrollWidth > text.clientWidth + 1;
         const clippedInHeight = getComputedStyle(text).overflowY !== 'visible' && text.scrollHeight > text.clientHeight + 1;
-        const leavesCard = rect.left < cardBox.left - 1 || rect.right > cardBox.right + 1;
+        const leavesCard =
+          rect.left < cardBox.left - 1 || rect.right > cardBox.right + 1 || rect.top < cardBox.top - 1 || rect.bottom > cardBox.bottom + 1;
         if (widerThanItsBox || clippedInHeight || leavesCard) cutOff.push(`${card.getAttribute('href')}: ${text.textContent?.trim()}`);
       }
     }
@@ -71,11 +74,16 @@ async function readLayout(page: Page): Promise<Layout> {
       groups: [...gate.querySelectorAll('[data-route-group]')].map((group) => ({
         id: group.getAttribute('data-route-group'),
         ...box(group),
-        cards: [...group.querySelectorAll('a[href]')].map((card) => ({
-          href: card.getAttribute('href'),
-          kind: card.getAttribute('data-route-card'),
-          ...box(card),
-        })),
+        cards: [...group.querySelectorAll('a[href]')].map((card) => {
+          const panel = card.querySelector('[data-route-telemetry]');
+          const linkRow = card.firstElementChild?.lastElementChild;
+          return {
+            href: card.getAttribute('href'),
+            kind: card.getAttribute('data-route-card'),
+            readoutGap: panel && linkRow ? linkRow.getBoundingClientRect().top - panel.getBoundingClientRect().bottom : null,
+            ...box(card),
+          };
+        }),
       })),
       cutOff,
       offScreen,
@@ -140,6 +148,9 @@ test.describe('home route gate: layout', () => {
           expect(first.bottom, `${label}: reading order runs down the column`).toBeLessThanOrEqual(second.top);
           expect(near(anchor.top, first.top), `${label}: the column starts level with the anchor`).toBe(true);
           expect(near(anchor.bottom, second.bottom), `${label}: the column ends level with the anchor`).toBe(true);
+          // The stretched anchor keeps its readouts on the link row (a fixed 24px), with no blank band between them.
+          expect(anchor.readoutGap, `${label}: the readouts rest on the link row`).not.toBeNull();
+          expect(Math.abs((anchor.readoutGap ?? 0) - 24), `${label}: the readouts rest on the link row`).toBeLessThanOrEqual(2);
           if (rtl) {
             expect(near(anchor.right, group.right), `${label}: the anchor starts at the right edge`).toBe(true);
             expect(first.right, `${label}: the secondary routes follow on the left`).toBeLessThan(anchor.left);
@@ -251,11 +262,16 @@ test.describe('home route gate: themes and tones (axe, WCAG 2.x A/AA)', () => {
         await openHome(page, baseURL, language, theme);
         await expectThemeApplied(page, theme);
         if (tone) await expect(page.locator('html')).toHaveAttribute('data-cockpit-tone', tone);
-        // The anchors carry a decorative corner tint (sky-500 at 5% or less). axe cannot judge text that
-        // another element overlaps and reports it as "incomplete", so the tint is hidden for the scan
-        // and the lowest measured ratio must clear AA with the tint's effect to spare.
-        await page.locator(`${GATE} [data-route-backdrop]`).evaluateAll((tints) => {
-          for (const tint of tints) (tint as HTMLElement).style.visibility = 'hidden';
+        // The anchors carry a decorative corner tint (sky-500 at 5%). axe cannot judge text that another
+        // element overlaps and reports it as "incomplete", so the tint is hidden for the scan. Blending
+        // that tint into the surface lowers a ratio by up to 6.4% at night and 5.3% by day, so text
+        // whose box meets the tint must clear AA with 7% to spare. The tint itself is pinned here: a
+        // stronger one has to revisit that margin.
+        const tints = page.locator(`${GATE} [data-route-backdrop]`);
+        await expect(tints).toHaveCount(2);
+        for (const tint of await tints.all()) await expect(tint).toHaveClass(/(^|\s)from-sky-500\/5(\s|$)/);
+        await tints.evaluateAll((all) => {
+          for (const tint of all) (tint as HTMLElement).style.visibility = 'hidden';
         });
         const axe = await new AxeBuilder({ page }).include(GATE).withTags(WCAG_A_AA_TAGS).analyze();
         expect(axe.violations.map((violation) => `${violation.id}: ${violation.nodes.length} node(s)`)).toEqual([]);
@@ -263,14 +279,30 @@ test.describe('home route gate: themes and tones (axe, WCAG 2.x A/AA)', () => {
         const contrastTargets = (results: typeof axe.violations) =>
           results.filter((result) => result.id === 'color-contrast').flatMap((result) => result.nodes.map((node) => node.target.join(' ')));
         expect(contrastTargets(axe.incomplete), 'text whose contrast axe could not measure').toEqual([]);
-        expect(contrastTargets(axe.passes).length, 'axe measured the text of the six cards').toBeGreaterThanOrEqual(24);
-        const ratios = axe.passes
+        const measured = axe.passes
           .filter((result) => result.id === 'color-contrast')
-          .flatMap((result) => result.nodes.flatMap((node) => node.any.map((check) => Number((check.data as { contrastRatio?: number })?.contrastRatio))))
-          .filter((ratio) => Number.isFinite(ratio));
-        // Blending sky-500 at 5% into the surface lowers a ratio by under 7% at night and under 3% by day.
-        const headroom = theme === 'cockpit' ? 1.07 : 1.03;
-        expect(Math.min(...ratios), 'lowest measured text contrast, with room for the corner tint').toBeGreaterThanOrEqual(4.5 * headroom);
+          .flatMap((result) =>
+            result.nodes.flatMap((node) =>
+              node.any.map((check) => ({ selector: node.target.join(' '), ratio: Number((check.data as { contrastRatio?: number })?.contrastRatio) }))
+            )
+          )
+          .filter((entry) => Number.isFinite(entry.ratio));
+        // 43 text nodes today: the section header, six cards and the two readout panels.
+        expect(measured.length, 'text nodes whose contrast axe measured').toBeGreaterThanOrEqual(40);
+        const underTint = await page.evaluate(
+          ({ entries, gate }) => {
+            const tintBoxes = [...document.querySelectorAll(`${gate} [data-route-backdrop]`)].map((tint) => tint.getBoundingClientRect());
+            return entries
+              .filter(({ selector }) => {
+                const box = document.querySelector(selector)?.getBoundingClientRect();
+                return Boolean(box) && tintBoxes.some((tint) => box!.left < tint.right && box!.right > tint.left && box!.top < tint.bottom && box!.bottom > tint.top);
+              })
+              .map(({ ratio }) => ratio);
+          },
+          { entries: measured, gate: GATE }
+        );
+        expect(underTint.length, 'measured text that meets the corner tint').toBeGreaterThanOrEqual(2);
+        expect(Math.min(...underTint), 'lowest contrast of text that meets the corner tint').toBeGreaterThanOrEqual(4.5 * 1.07);
       });
     }
   }
