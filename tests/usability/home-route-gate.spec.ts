@@ -249,7 +249,15 @@ test.describe('home route gate: corner tint', () => {
       const tints = await page.locator(`${GATE} [data-route-backdrop]`).evaluateAll((all) =>
         all.map((tint) => {
           const style = getComputedStyle(tint);
-          return { left: parseFloat(style.borderBottomLeftRadius), right: parseFloat(style.borderBottomRightRadius), image: style.backgroundImage };
+          const box = tint.getBoundingClientRect();
+          const card = (tint.parentElement as Element).getBoundingClientRect();
+          return {
+            left: parseFloat(style.borderBottomLeftRadius),
+            right: parseFloat(style.borderBottomRightRadius),
+            image: style.backgroundImage,
+            fromCardLeft: box.left - card.left,
+            fromCardRight: card.right - box.right,
+          };
         })
       );
       expect(tints).toHaveLength(2);
@@ -258,10 +266,12 @@ test.describe('home route gate: corner tint', () => {
           expect(tint.right, 'curved on the inner (right) side').toBeGreaterThan(0);
           expect(tint.left, 'square on the outer (left) side').toBe(0);
           expect(tint.image).toMatch(/to (right bottom|bottom right)/);
+          expect(tint.fromCardLeft, 'sits in the left (inline-end) corner').toBeLessThanOrEqual(2);
         } else {
           expect(tint.left, 'curved on the inner (left) side').toBeGreaterThan(0);
           expect(tint.right, 'square on the outer (right) side').toBe(0);
           expect(tint.image).toMatch(/to (left bottom|bottom left)/);
+          expect(tint.fromCardRight, 'sits in the right (inline-end) corner').toBeLessThanOrEqual(2);
         }
       }
     });

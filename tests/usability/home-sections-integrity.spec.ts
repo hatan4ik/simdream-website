@@ -22,7 +22,8 @@ interface Box {
   bottom: number;
 }
 interface PackageCard extends Box {
-  transform: string;
+  /** Every transform-like property: Tailwind's scale utilities set `scale`, not `transform`. */
+  transforms: string[];
   badge: Box | null;
   eyebrow: Box | null;
   title: Box | null;
@@ -49,14 +50,16 @@ async function readPackageCards(page: Page): Promise<PackageCard[]> {
     };
     return cards.map((card) => ({
       ...(box(card) as { left: number; right: number; top: number; bottom: number }),
-      transform: getComputedStyle(card).transform,
+      transforms: [getComputedStyle(card).transform, getComputedStyle(card).scale, getComputedStyle(card).translate, getComputedStyle(card).rotate],
       badge: box(card.querySelector('[data-package-badge] > *')),
       eyebrow: box(card.querySelector('[data-package-eyebrow]')),
       title: box(card.querySelector('h3')),
-      // Source text, not painted text: a translated "Min." that CSS prints in capitals is not a stamp.
-      stamps: [...card.querySelectorAll('span')]
-        .map((span) => (span.textContent ?? '').trim())
-        .filter((text) => text === 'FLAGSHIP' || /^\d+\s+MIN$/.test(text)),
+      // Source text nodes, not painted text: a translated "45 Min. Cockpitzeit" that CSS prints in
+      // capitals is copy, while an element holding only "Flagship" or "60 MIN" is a stamp.
+      stamps: [...card.querySelectorAll('*')]
+        .filter((element) => element.children.length === 0)
+        .map((element) => (element.textContent ?? '').replace(/\s+/g, ' ').trim())
+        .filter((text) => /^flagship$/i.test(text) || /^\d+ ?min\.?$/i.test(text)),
     }));
   });
 }
@@ -97,18 +100,25 @@ test.describe('home packages: labels do not collide', () => {
 });
 
 test.describe('home packages: the three cards form one row', () => {
-  for (const language of ['he', 'en'] as const) {
-    test(`${language}: same top, same height, same width, none scaled`, async ({ page, baseURL }) => {
-      await openHome(page, baseURL, language);
-      const cards = await readPackageCards(page);
-      expect(cards).toHaveLength(3);
-      for (const card of cards) {
-        expect(['none', 'matrix(1, 0, 0, 1, 0, 0)'], 'no card is scaled out of the grid').toContain(card.transform);
-        expect(near(card.top, cards[0].top), 'tops level').toBe(true);
-        expect(near(card.bottom, cards[0].bottom), 'bottoms level').toBe(true);
-        expect(near(card.right - card.left, cards[0].right - cards[0].left), 'equal widths').toBe(true);
-      }
-    });
+  for (const language of ['he', 'en', 'de'] as const) {
+    for (const width of [1024, 1280, 1440]) {
+      test(`${language} at ${width}px: level cards, level duration lines and titles, none scaled`, async ({ page, baseURL }) => {
+        await page.setViewportSize({ width, height: 900 });
+        await openHome(page, baseURL, language);
+        const cards = await readPackageCards(page);
+        expect(cards).toHaveLength(3);
+        for (const [index, card] of cards.entries()) {
+          const label = `card ${index + 1}`;
+          expect(card.transforms.filter((value) => value !== 'none' && value !== 'matrix(1, 0, 0, 1, 0, 0)'), `${label} is not scaled or moved`).toEqual([]);
+          expect(near(card.top, cards[0].top), `${label}: tops level`).toBe(true);
+          expect(near(card.bottom, cards[0].bottom), `${label}: bottoms level`).toBe(true);
+          expect(near(card.right - card.left, cards[0].right - cards[0].left), `${label}: equal widths`).toBe(true);
+          // A badge that wraps, or a card without one, must not push that card's text out of line.
+          expect(near(card.eyebrow?.top ?? -1, cards[0].eyebrow?.top ?? -2), `${label}: duration line level with the first card`).toBe(true);
+          expect(near(card.title?.top ?? -1, cards[0].title?.top ?? -2), `${label}: title level with the first card`).toBe(true);
+        }
+      });
+    }
   }
 });
 
@@ -117,7 +127,10 @@ test.describe('home why us: five cards of one kind', () => {
     test(`${language}: no voucher artwork stands in for a photo and no card has a hole`, async ({ page, baseURL }) => {
       await openHome(page, baseURL, language);
       await page.locator(WHY_US).scrollIntoViewIfNeeded();
-      // Gift-voucher designs belong to the voucher flow (lib/catalog/gift-card-designs.ts).
+      // The five cards are text cards. A picture in one card of a row makes that card a different kind
+      // and stretches its neighbours; gift-voucher designs in particular belong to the voucher flow
+      // (lib/catalog/gift-card-designs.ts). Icons are inline SVG and are not counted.
+      await expect(page.locator(`${WHY_US} [data-why-card] :is(img, picture, video)`)).toHaveCount(0);
       await expect(page.locator(`${WHY_US} img[src*="/gift-cards/"]`)).toHaveCount(0);
       const gaps = await page.locator(`${WHY_US} [data-why-card]`).evaluateAll((cards) =>
         cards.map((card) => {
