@@ -206,4 +206,12 @@ describe('blog cover images and the CSP', () => {
       [...coverHosts, 'https://lh3.googleusercontent.com'].sort()
     );
   });
+
+  it('allows only the approved Wix video host for optional marketing reels', () => {
+    const proxy = readFileSync(path.join(REPO_ROOT, 'proxy.ts'), 'utf8');
+    const mediaSrc = /"media-src ([^"]+)"/.exec(proxy)?.[1];
+
+    expect(mediaSrc).toBeDefined();
+    expect(mediaSrc!.split(/\s+/)).toEqual(["'self'", 'https://video.wixstatic.com']);
+  });
 });

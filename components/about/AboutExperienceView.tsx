@@ -24,9 +24,11 @@ import {
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
+import { CockpitMediaFrame } from '@/components/ui/CockpitMediaFrame';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { type Language, type LocalizedRecord } from '@/lib/i18n/translations';
 import { FACILITY_INFO } from '@/lib/config/facility-info';
+import { ABOUT_REEL_TEASERS, pickLocalizedMediaText } from '@/lib/media/cockpit-media';
 
 import { ABOUT_COPY } from './about-copy';
 
@@ -161,14 +163,47 @@ export function AboutExperienceView() {
         </div>
       </section>
 
-      {/* 5. Official Social Channels */}
-      <section aria-labelledby="official-socials" className="rounded-2xl border border-sky-500/30 bg-sky-950/20 p-6 sm:p-8 text-center space-y-5">
+      {/* 5. Official Social Channels & External Reel Poster Teasers (no social iframes) */}
+      <section aria-labelledby="official-socials" className="rounded-2xl border border-sky-500/30 bg-sky-950/20 p-6 sm:p-8 text-center space-y-6">
         <div className="max-w-2xl mx-auto space-y-2">
           <h2 id="official-socials" className="text-2xl sm:text-3xl font-black text-white">
             {copy.socialTitle}
           </h2>
           <p className="text-sm text-slate-300 leading-relaxed">{copy.socialSubtitle}</p>
         </div>
+
+        {/* Performance-safe external Reel poster teasers */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-4xl mx-auto text-start">
+          {ABOUT_REEL_TEASERS.map((teaser) => {
+            const href =
+              teaser.channel === 'Instagram'
+                ? FACILITY_INFO.social.instagramUrl
+                : FACILITY_INFO.social.youtubeUrl;
+            const badgeText = pickLocalizedMediaText(teaser.badge, language);
+            const ChannelIcon = teaser.channel === 'Instagram' ? Instagram : Youtube;
+            const iconColor = teaser.channel === 'Instagram' ? 'text-[#E4405F]' : 'text-[#FF0000]';
+            return (
+              <a
+                key={teaser.id}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
+              >
+                <CockpitMediaFrame
+                  media={teaser}
+                  alt={pickLocalizedMediaText(teaser.alt, language)}
+                />
+                <div className="mt-2 inline-flex items-center gap-2 text-xs font-semibold text-sky-400">
+                  <ChannelIcon aria-hidden="true" className={`h-4 w-4 ${iconColor}`} />
+                  <span>{badgeText}</span>
+                  <ExternalLink aria-hidden="true" className="h-3.5 w-3.5 text-slate-400" />
+                </div>
+              </a>
+            );
+          })}
+        </div>
+
         <div className="flex flex-wrap justify-center gap-3">
           <a
             href={FACILITY_INFO.social.instagramUrl}
