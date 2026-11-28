@@ -70,7 +70,7 @@ Israel date from `lib/scheduler/israel-clock.ts`.
 
 | Decision | Value | Where to veto |
 | :--- | :--- | :--- |
-| Discount | 15 percent of the booking subtotal (package plus add-ons), rounded half up to a whole shekel (450 gives 68, 690 gives 104) | `BIRTHDAY_DISCOUNT_PERCENT` |
+| Discount (tiered Option A) | Up to 15% of the booking subtotal (package plus add-ons), rounded half up to a whole shekel: **10%** on 60m `pkg-captain-60` (690 gives 69 → 621), **15%** on 90m `pkg-ultimate-90` (850 gives 128 → 722) and 120m `pkg-grand-120` (1,200 gives 180 → 1,020); 30m Discovery flight excluded (`duration_too_short`) | `BIRTHDAY_60M_DISCOUNT_PERCENT`, `BIRTHDAY_DISCOUNT_PERCENT`, `BIRTHDAY_MIN_DURATION_MINUTES`, `getBirthdayDiscountPercent()` |
 | Which date decides | The FLIGHT date (Israel calendar date), not the booking date, so nobody books a year ahead inside their birthday month | `evaluate.ts` |
 | Same month | Birthday month equals flight month (birthday earlier or later in the month) | `evaluate.ts` |
 | Backward grace | A birthday 1 to 14 days before the flight qualifies even when it fell in the previous month (exactly 14 yes, 15 no; works across New Year) | `BIRTHDAY_LOOKBACK_DAYS` |
