@@ -114,8 +114,10 @@ test.describe('home packages: the three cards form one row', () => {
           expect(near(card.bottom, cards[0].bottom), `${label}: bottoms level`).toBe(true);
           expect(near(card.right - card.left, cards[0].right - cards[0].left), `${label}: equal widths`).toBe(true);
           // A badge that wraps, or a card without one, must not push that card's text out of line.
-          expect(near(card.eyebrow?.top ?? -1, cards[0].eyebrow?.top ?? -2), `${label}: duration line level with the first card`).toBe(true);
-          expect(near(card.title?.top ?? -1, cards[0].title?.top ?? -2), `${label}: title level with the first card`).toBe(true);
+          expect(card.eyebrow, `${label} shows its duration line`).not.toBeNull();
+          expect(card.title, `${label} shows its title`).not.toBeNull();
+          expect(near(card.eyebrow?.top ?? Number.NaN, cards[0].eyebrow?.top ?? Number.NaN), `${label}: duration line level with the first card`).toBe(true);
+          expect(near(card.title?.top ?? Number.NaN, cards[0].title?.top ?? Number.NaN), `${label}: title level with the first card`).toBe(true);
         }
       });
     }
