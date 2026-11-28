@@ -143,8 +143,11 @@ export function HomeRouteGate() {
           borderAccent={item.accent}
           className="h-full flex flex-col justify-between p-6 sm:p-8 transition-colors duration-200 group-hover:border-slate-700 relative overflow-hidden"
         >
-          {/* Subtle cockpit instrument grid backdrop */}
-          <div data-route-backdrop className="absolute top-0 end-0 w-64 h-64 bg-gradient-to-bl from-sky-500/5 to-transparent rounded-bl-full pointer-events-none" />
+          {/* Subtle cockpit corner tint. The curve and the fade are physical, so both are mirrored for right-to-left pages. */}
+          <div
+            data-route-backdrop
+            className="absolute top-0 end-0 w-64 h-64 bg-gradient-to-bl rtl:bg-gradient-to-br from-sky-500/5 to-transparent rounded-bl-full rtl:rounded-bl-none rtl:rounded-br-full pointer-events-none"
+          />
 
           <div className="flex flex-1 flex-col gap-6 relative z-10">
             <div className="flex items-center justify-between">
