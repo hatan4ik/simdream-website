@@ -57,8 +57,8 @@ export function HomeFeaturedPackages() {
               >
                 <div className="space-y-5 p-2">
                   {/* The badge has its own row, so it cannot sit on the duration line or the title in any
-                      language. From `md` the row reserves two badge lines, so a card whose badge wraps
-                      (or has none) keeps its duration line level with its neighbours. */}
+                      language. From `md` the row reserves two badge lines, so a card whose badge wraps to
+                      two lines (or has none) keeps its duration line level with its neighbours. */}
                   <div data-package-badge className="flex justify-end items-start min-h-7 md:min-h-[2.375rem]">
                     {pkg.badge && <Badge variant={isFlagship ? 'orange' : 'slate'}>{pkg.badge}</Badge>}
                   </div>
