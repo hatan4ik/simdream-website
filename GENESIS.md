@@ -5,7 +5,7 @@ The **single canonical architecture and reconstruction document** for this repos
 - **Phase 1, codebase analysis**: what the system is, how it is built, and why.
 - **Phase 2, the Genesis Prompt**: a self-contained prompt that instructs an AI coding agent to rebuild this exact system from scratch.
 
-<!-- GENESIS-SOURCE-FINGERPRINT: sha256:ab06b66f4874653c8c399f7a0725c8afb7b0b643417b41c028b65dd135acdb72 -->
+<!-- GENESIS-SOURCE-FINGERPRINT: sha256:b1faea0e992a0aa738003b39ec6772bd33c6b5d877fdefb3b4a5bd7f14483cc0 -->
 
 ## Verification contract
 
@@ -747,7 +747,7 @@ lib/
   i18n/ translations language-context language-preference language-bootstrap locale-routing calendar-presentation booking-blueprint-copy wix-subscription-booking-copy
   config/ facility-info server-env use-live-facility-status
   blog/ language-sync  # decides when a blog article switches the site language or navigates to its translation (no loop on a language mismatch)
-  media/ cockpit-media  # approved aviation media provenance guard (no GIFs, verified public/Wix Media only) and factual scenario metadata
+  media/ cockpit-media cockpit-media-catalog  # approved aviation media provenance guard (no GIFs, verified public/Wix Media only), local 737 MAX WebP/MP4 catalog, and factual scenario metadata
   theme/ui-theme-context  ui/ use-client-value use-native-modal  seo/ seo-config structured-data site-routes llms-txt blog-structured-data blog-post-metadata
   reviews/google-reviews-cache google-reviews-source review-translation reviews-snapshot-store snapshot-window use-google-reviews review-language last-known-rating.json  i18n/booking-blueprint-copy
   stripe.ts  sendgrid.ts  validation.ts  utils.ts  supabaseClient.ts

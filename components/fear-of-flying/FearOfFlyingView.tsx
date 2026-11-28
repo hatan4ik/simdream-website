@@ -7,6 +7,8 @@ import { getLocalizedPackages, type LocalizedRecord } from '@/lib/i18n/translati
 import { useLanguage } from '@/lib/i18n/language-context';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { CockpitMediaFrame } from '@/components/ui/CockpitMediaFrame';
+import { FEAR_OF_FLYING_MEDIA, pickLocalizedMediaText } from '@/lib/media/cockpit-media';
 import { formatCurrency } from '@/lib/utils';
 
 const FEAR_OF_FLYING_PACKAGE_ID = 'pkg-fear-of-flying-90';
@@ -56,6 +58,19 @@ export function FearOfFlyingView() {
             </li>
           ))}
         </ul>
+      </section>
+
+      {/* 1.5. CALM DAYLIGHT COCKPIT PROOF (static reassuring photo, zero scary alerts or autoplay) */}
+      <section className="max-w-3xl mx-auto">
+        <CockpitMediaFrame
+          media={FEAR_OF_FLYING_MEDIA}
+          alt={pickLocalizedMediaText(FEAR_OF_FLYING_MEDIA.alt, language)}
+          caption={
+            FEAR_OF_FLYING_MEDIA.caption
+              ? pickLocalizedMediaText(FEAR_OF_FLYING_MEDIA.caption, language)
+              : undefined
+          }
+        />
       </section>
 
       {/* 2. THE SESSION, STEP BY STEP */}
